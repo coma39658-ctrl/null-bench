@@ -610,7 +610,7 @@ document.getElementById("runBtn").addEventListener("click",()=>{
 
  statusEl.textContent="Running…";
 
- setTimeout(()=>runTest(edges),20);
+ setTimeout(()=>{try{runTest(edges)}catch(e){console.error(e);statusEl.textContent="ERROR: "+e.message;}},20);
 
 });
 
