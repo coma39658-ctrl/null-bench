@@ -368,6 +368,34 @@ b,c
  </div>
 </footer>
 
+
+<script>
+function forceEnglishDigits(value){
+  const ar = "٠١٢٣٤٥٦٧٨٩";
+  const fa = "۰۱۲۳۴۵۶۷۸۹";
+  const ur = "٠١٢٣٤٥٦٧٨٩";
+
+  return String(value)
+    .replace(/[٠-٩]/g, ch => String(ar.indexOf(ch)))
+    .replace(/[۰-۹]/g, ch => String(fa.indexOf(ch)))
+    .replace(/[٠-٩]/g, ch => String(ur.indexOf(ch)));
+}
+
+["nullSamples","swapAttempts"].forEach(id => {
+  const el = document.getElementById(id);
+  if(!el) return;
+
+  el.addEventListener("input", () => {
+    const old = el.value;
+    const fixed = forceEnglishDigits(old);
+
+    if(old !== fixed){
+      el.value = fixed;
+    }
+  });
+});
+</script>
+
 <script>
 
 function buildAdjacency(edges){
