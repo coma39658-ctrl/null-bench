@@ -873,7 +873,8 @@ cat << 'EOF' >> index.html
 <!-- Rating & Review Form -->
 <div style="max-width: 600px; margin: 40px auto; padding: 20px; border: 1px solid #333; border-radius: 8px; background-color: #1e1e1e; color: #fff; font-family: sans-serif;">
   <h3 style="margin-top: 0; color: #00bcd4;">Submit Your Review / Feedback</h3>
-  <form action="https://formspree.io/f/xkjwnenn" method="POST">
+  <form action="https://api.web3forms.com/submit" method="POST">
+  <input type="hidden" name="access_key" value="0fe05a1a-1fa9-49ce-8c17-2b954fa4ee7b">
     
     <label for="rating" style="display: block; margin-bottom: 5px;">Rating:</label>
     <select name="rating" id="rating" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #444; background-color: #2a2a2a; color: #fff;" required>
