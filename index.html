@@ -868,4 +868,30 @@ function drawHistogram(vals,observed){
 
 </body>
 </html>
+cat << 'EOF' >> index.html
+
+<!-- Rating & Review Form -->
+<div style="max-width: 600px; margin: 40px auto; padding: 20px; border: 1px solid #333; border-radius: 8px; background-color: #1e1e1e; color: #fff; font-family: sans-serif;">
+  <h3 style="margin-top: 0; color: #00bcd4;">Submit Your Review / Feedback</h3>
+  <form action="https://formspree.io/f/xkjwnenn" method="POST">
+    
+    <label for="rating" style="display: block; margin-bottom: 5px;">Rating:</label>
+    <select name="rating" id="rating" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #444; background-color: #2a2a2a; color: #fff;" required>
+      <option value="5">⭐⭐⭐⭐⭐ - Excellent</option>
+      <option value="4">⭐⭐⭐⭐ - Good</option>
+      <option value="3">⭐⭐⭐ - Average</option>
+      <option value="2">⭐⭐ - Needs Improvement</option>
+      <option value="1">⭐ - Poor</option>
+    </select>
+    
+    <label for="feedback" style="display: block; margin-bottom: 5px;">Your Review / Experience:</label>
+    <textarea name="feedback" id="feedback" rows="4" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #444; background-color: #2a2a2a; color: #fff; resize: vertical;" placeholder="Write your feedback here..." required></textarea>
+    
+    <button type="submit" style="background-color: #00bcd4; color: #000; font-weight: bold; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%;">
+      Submit Review
+    </button>
+  </form>
+</div>
+EOF
+
 
