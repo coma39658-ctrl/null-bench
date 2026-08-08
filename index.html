@@ -866,6 +866,29 @@ function drawHistogram(vals,observed){
 
 </script>
 
+
+<script>
+(async function () {
+  const API = "https://null-bench-counter.coma39658.workers.dev";
+
+  try {
+    const response = await fetch(API + "/api/visit", {
+      method: "POST"
+    });
+
+    if (!response.ok) {
+      console.warn("Null Bench Analytics: visit request failed");
+      return;
+    }
+
+    const data = await response.json();
+    console.log("Null Bench Analytics:", data);
+  } catch (error) {
+    console.warn("Null Bench Analytics unavailable:", error);
+  }
+})();
+</script>
+
 </body>
 </html>
 cat << 'EOF' >> index.html
