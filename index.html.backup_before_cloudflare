@@ -1,0 +1,896 @@
+!DOCTYPE html>
+html lang="en">
+head>
+meta charset="UTF-8">
+meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Null Bench — Degree-Preserving Null Model Testing</title>
+<style>
+:root{
+ --paper:#eef1f0;--line:#d7dedc;--ink:#1b2430;--soft:#4c5b66;
+ --signal:#c4841f;--signalSoft:#ead9bc;
+ --blue:#4e7089;--blueSoft:#d6e1e8;--panel:#f7f9f8;
+}
+*{box-sizing:border-box}
+body{
+ margin:0;color:var(--ink);font-family:Arial,sans-serif;
+ background:
+ linear-gradient(var(--line) 1px,transparent 1px) 0 0/100% 28px,
+ linear-gradient(90deg,var(--line) 1px,transparent 1px) 0 0/28px 100%,
+ var(--paper);
+}
+.wrap{max-width:1080px;margin:auto;padding:0 24px}
+header{
+ max-width:1080px;margin:auto;padding:20px 24px;
+ display:flex;justify-content:space-between;align-items:center;
+}
+.brand{font-size:21px;font-weight:700}
+.mark{
+ display:inline-block;width:11px;height:11px;border-radius:50%;
+ background:var(--signal);margin-right:9px;
+ box-shadow:0 0 0 4px var(--signalSoft)
+}
+nav a{margin-left:20px;font-size:13px;color:var(--soft);text-decoration:none}
+.public-banner{
+ border-top:1px solid var(--line);
+ border-bottom:1px solid var(--line);
+ background:var(--signalSoft);
+ padding:10px 20px;text-align:center;
+ font-size:11px;font-weight:bold;letter-spacing:.06em;
+}
+section{padding:48px 0;border-top:1px solid var(--line)}
+.hero{border-top:0;padding-top:28px}
+.eyebrow{
+ color:var(--blue);font-size:12px;font-weight:bold;
+ letter-spacing:.08em;text-transform:uppercase
+}
+h1{font-size:clamp(34px,6vw,58px);line-height:1.05;max-width:780px;margin:16px 0}
+h1 em{color:var(--signal)}
+.lede{font-size:17px;line-height:1.6;color:var(--soft);max-width:720px}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin:25px 0}
+button,.btn{
+ padding:12px 20px;border:1px solid var(--ink);
+ background:var(--ink);color:white;
+ font-weight:bold;cursor:pointer;text-decoration:none;display:inline-block
+}
+button:hover,.btn:hover{transform:translateY(-1px)}
+.ghost{background:transparent;color:var(--ink)}
+.card{
+ background:var(--panel);border:1px solid var(--line);
+ padding:22px
+}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}nav{display:none}}
+h2{font-size:28px;margin:0 0 8px}
+h3{font-size:12px;text-transform:uppercase;color:var(--soft);letter-spacing:.07em}
+.sub{color:var(--soft);line-height:1.6}
+label{display:block;font-size:13px;color:var(--soft);margin:14px 0 6px}
+textarea,input,select{
+ width:100%;padding:11px;border:1px solid var(--line);
+ background:white;color:var(--ink);font-size:13px
+}
+textarea{min-height:150px;font-family:monospace}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat{
+ display:flex;justify-content:space-between;
+ padding:10px 0;border-bottom:1px dashed var(--line);
+ font-family:monospace;font-size:13px
+}
+.stat b{color:var(--ink)}
+#genBtn,#runBtn{width:100%;margin-top:14px}
+#runBtn{background:var(--signal);border-color:var(--signal)}
+#status{font-family:monospace;font-size:12px;color:var(--soft);margin-top:10px}
+.verdict{
+ margin-top:18px;padding:16px;
+ border-left:4px solid var(--blue);
+ background:var(--blueSoft);line-height:1.55;font-size:14px
+}
+.verdict.positive{border-color:var(--signal);background:var(--signalSoft)}
+.verdict b{display:block;margin-bottom:7px}
+.hist{
+ display:flex;align-items:flex-end;gap:2px;
+ height:120px;margin-top:20px;border-bottom:1px solid var(--line)
+}
+.bar{flex:1;background:var(--blueSoft);min-height:2px}
+.bar.marked{outline:2px solid var(--signal)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:800px){.steps{grid-template-columns:1fr}}
+.step{border-top:2px solid var(--ink);padding-top:12px}
+.step p{font-size:14px;color:var(--soft);line-height:1.55}
+.caveat{
+ background:white;border:1px solid var(--line);
+ padding:20px;line-height:1.6;color:var(--soft)
+}
+footer{border-top:1px solid var(--line);padding:35px 0 60px}
+footer p{font-family:monospace;font-size:12px;color:var(--soft)}
+svg{width:100%;height:auto;background:white;border:1px solid var(--line)}
+</style>
+</head>
+
+<body>
+
+<header>
+ <div class="brand">
+  <span class="mark"></span>Null Bench
+ </div>
+ <nav>
+  <a href="#try">Run Test</a>
+  <a href="#method">Method</a>
+  <a href="#limits">Limits</a>
+  <a href="#api">API</a>
+ </nav>
+</header>
+
+<div class="public-banner">
+ FREE PUBLIC RESEARCH TOOL · RUNS LOCALLY IN YOUR BROWSER · YOUR DATA STAYS ON YOUR DEVICE
+</div>
+
+<div class="wrap">
+
+<section class="hero">
+ <div class="eyebrow">Degree-Preserving Null-Model Testing</div>
+
+ <h1>
+ Is that network pattern real, or would a
+ <em>shuffled</em> version look the same?
+ </h1>
+
+ <p class="lede">
+ Null Bench tests whether a network pattern stands out from
+ degree-preserving random rewiring. It keeps each node's connection
+ count fixed while changing the topology, then compares the observed
+ structure with the resulting null distribution.
+ </p>
+
+ <div class="actions">
+  <a class="btn" href="#try">Run a Free Test</a>
+  <a class="btn ghost" href="#method">Learn the Method</a>
+ </div>
+
+ <svg viewBox="0 0 900 220">
+  <g stroke="#c4841f" stroke-width="2">
+   <line x1="100" y1="60" x2="100" y2="160"/>
+   <line x1="100" y1="60" x2="250" y2="40"/>
+   <line x1="100" y1="160" x2="250" y2="180"/>
+   <line x1="250" y1="40" x2="400" y2="110"/>
+   <line x1="250" y1="180" x2="400" y2="110"/>
+   <line x1="100" y1="60" x2="400" y2="110"/>
+  </g>
+
+  <g fill="#eef1f0" stroke="#1b2430" stroke-width="2">
+   <circle cx="100" cy="60" r="9"/>
+   <circle cx="100" cy="160" r="9"/>
+   <circle cx="250" cy="40" r="9"/>
+   <circle cx="250" cy="180" r="9"/>
+   <circle cx="400" cy="110" r="9"/>
+  </g>
+
+  <path d="M430 110 L490 110 M480 100 L492 110 L480 120"
+        stroke="#4c5b66" fill="none" stroke-width="2"/>
+
+  <g stroke="#4e7089" stroke-width="2" stroke-dasharray="6 4">
+   <line x1="540" y1="60" x2="540" y2="160"/>
+   <line x1="540" y1="60" x2="690" y2="180"/>
+   <line x1="540" y1="160" x2="690" y2="40"/>
+   <line x1="690" y1="40" x2="840" y2="110"/>
+   <line x1="690" y1="180" x2="840" y2="110"/>
+   <line x1="540" y1="60" x2="840" y2="110"/>
+  </g>
+
+  <g fill="#eef1f0" stroke="#1b2430" stroke-width="2">
+   <circle cx="540" cy="60" r="9"/>
+   <circle cx="540" cy="160" r="9"/>
+   <circle cx="690" cy="40" r="9"/>
+   <circle cx="690" cy="180" r="9"/>
+   <circle cx="840" cy="110" r="9"/>
+  </g>
+
+  <text x="100" y="205" fill="#c4841f" font-size="12">
+   OBSERVED NETWORK
+  </text>
+  <text x="620" y="205" fill="#4e7089" font-size="12">
+   DEGREE-PRESERVING NULL
+  </text>
+ </svg>
+</section>
+
+<section id="try">
+ <h2>01 — Run a test</h2>
+ <p class="sub">
+  Generate a sample network or paste your own edge list.
+  Processing is performed locally in your browser.
+ </p>
+
+ <div class="grid">
+
+  <div class="card">
+   <h3>Input</h3>
+
+   <label>Demo network</label>
+   <select id="demoSelect">
+    <option value="modular">Modular network</option>
+    <option value="random">Random network</option>
+    <option value="custom">Custom edge list</option>
+   </select>
+
+   <label>Edge list — one source,target per line</label>
+   <textarea id="edgeInput"
+placeholder="a,b
+a,c
+b,c
+..."></textarea>
+
+   <div class="row">
+    <div>
+     <label>Null samples</label>
+     <input id="nullSamples" type="number" inputmode="numeric" lang="en" dir="ltr" value="200" min="20" max="2000">
+    </div>
+    <div>
+     <label>Swap attempts / sample</label>
+     <input id="swapAttempts" type="number" inputmode="numeric" lang="en" dir="ltr" value="300" min="10" max="5000">
+    </div>
+   </div>
+
+   <button id="genBtn">Generate Demo Network</button>
+   <button id="runBtn">Run Null-Model Test</button>
+
+   <div id="status">Ready.</div>
+  </div>
+
+  <div class="card">
+   <h3>Result</h3>
+
+   <div class="stat">
+    <span>Nodes / edges</span>
+    <b id="statNE">—</b>
+   </div>
+
+   <div class="stat">
+    <span>Observed clustering</span>
+    <b id="statObs">—</b>
+   </div>
+
+   <div class="stat">
+    <span>Null mean ± SD</span>
+    <b id="statNull">—</b>
+   </div>
+
+   <div class="stat">
+    <span>95% null interval</span>
+    <b id="statCI">—</b>
+   </div>
+
+   <div class="stat">
+    <span>z-score</span>
+    <b id="statZ">—</b>
+   </div>
+
+   <div class="hist" id="hist"></div>
+
+   <div class="verdict" id="verdict">
+    <b>Awaiting a run</b>
+    Generate or paste a network, then run the test.
+   </div>
+  </div>
+
+ </div>
+</section>
+
+<section id="method">
+ <h2>02 — What it does</h2>
+
+ <div class="steps">
+
+  <div class="step">
+   <b>01 — Lock degree sequence</b>
+   <p>
+    Each node's number of connections is recorded and preserved.
+   </p>
+  </div>
+
+  <div class="step">
+   <b>02 — Rewire edges</b>
+   <p>
+    Pairs of edges are swapped without self-loops or duplicate
+    edges, changing topology while preserving degree.
+   </p>
+  </div>
+
+  <div class="step">
+   <b>03 — Compare structure</b>
+   <p>
+    The clustering statistic is measured across many rewired
+    networks and compared with the observed value.
+   </p>
+  </div>
+
+ </div>
+</section>
+
+<section id="limits">
+ <h2>03 — What this is — and isn't</h2>
+
+ <div class="caveat">
+  <b>This is a statistical network-analysis tool, not a proof engine.</b>
+
+  <ul>
+   <li>
+    A result outside the null interval means the observed pattern is
+    unusual relative to this particular degree-preserving null model.
+   </li>
+   <li>
+    It does not establish causality or a physical law.
+   </li>
+   <li>
+    Small networks and too few null samples can produce unstable results.
+   </li>
+   <li>
+    Important findings should be independently replicated and checked
+    by domain experts.
+   </li>
+   <li>
+    This public version is intended for research, education and
+    exploratory analysis.
+   </li>
+  </ul>
+ </div>
+</section>
+
+<section id="api">
+ <h2>04 — Programmatic use</h2>
+
+ <p class="sub">
+  The public browser version is designed for simple experimentation.
+  A future API version can support larger datasets and automated
+  research pipelines.
+ </p>
+
+ <div class="card">
+  <b>Planned pipeline</b>
+  <p class="sub">
+   Real data → Network representation → Baseline → Structural change
+   → Null comparison → Anomaly / signal detection → Report
+  </p>
+ </div>
+</section>
+
+</div>
+
+<footer>
+ <div class="wrap">
+  <p>
+   Null Bench — Free public degree-preserving null-model testing tool.
+   Browser-side processing. No network data is intentionally uploaded.
+  </p>
+  <p>
+   This tool provides computational/statistical evidence only.
+   It does not prove causality, mechanism, or physical law.
+  </p>
+ </div>
+</footer>
+
+
+<script>
+function forceEnglishDigits(value){
+  const ar = "٠١٢٣٤٥٦٧٨٩";
+  const fa = "۰۱۲۳۴۵۶۷۸۹";
+  const ur = "٠١٢٣٤٥٦٧٨٩";
+
+  return String(value)
+    .replace(/[٠-٩]/g, ch => String(ar.indexOf(ch)))
+    .replace(/[۰-۹]/g, ch => String(fa.indexOf(ch)))
+    .replace(/[٠-٩]/g, ch => String(ur.indexOf(ch)));
+}
+
+["nullSamples","swapAttempts"].forEach(id => {
+  const el = document.getElementById(id);
+  if(!el) return;
+
+  el.addEventListener("input", () => {
+    const old = el.value;
+    const fixed = forceEnglishDigits(old);
+
+    if(old !== fixed){
+      el.value = fixed;
+    }
+  });
+});
+</script>
+
+<script>
+
+function buildAdjacency(edges){
+ const adj=new Map();
+
+ edges.forEach(([u,v])=>{
+  if(u===v)return;
+
+  if(!adj.has(u))adj.set(u,new Set());
+  if(!adj.has(v))adj.set(v,new Set());
+
+  adj.get(u).add(v);
+  adj.get(v).add(u);
+ });
+
+ return adj;
+}
+
+function cloneAdj(adj){
+ const c=new Map();
+
+ adj.forEach((s,k)=>{
+  c.set(k,new Set(s));
+ });
+
+ return c;
+}
+
+function edgesFromAdjacency(adj){
+ const seen=new Set();
+ const out=[];
+
+ adj.forEach((nbrs,u)=>{
+  nbrs.forEach(v=>{
+   const key=u<v?u+"|"+v:v+"|"+u;
+
+   if(!seen.has(key)){
+    seen.add(key);
+    out.push([u,v]);
+   }
+  });
+ });
+
+ return out;
+}
+
+function doubleEdgeSwap(adj,attempts){
+
+ let edges=edgesFromAdjacency(adj);
+ let accepted=0;
+
+ for(let t=0;t<attempts;t++){
+
+  if(edges.length<2)break;
+
+  const i=Math.floor(Math.random()*edges.length);
+
+  let j=Math.floor(Math.random()*edges.length);
+
+  if(i===j)continue;
+
+  const [a,b]=edges[i];
+  const [c,d]=edges[j];
+
+  if(a===c||a===d||b===c||b===d)continue;
+
+  if(adj.get(a).has(d)||adj.get(c).has(b))continue;
+
+  adj.get(a).delete(b);
+  adj.get(b).delete(a);
+
+  adj.get(c).delete(d);
+  adj.get(d).delete(c);
+
+  adj.get(a).add(d);
+  adj.get(d).add(a);
+
+  adj.get(c).add(b);
+  adj.get(b).add(c);
+
+  edges[i]=[a,d];
+  edges[j]=[c,b];
+
+  accepted++;
+ }
+
+ return accepted;
+}
+
+function transitivity(adj){
+
+ let triads=0;
+
+ adj.forEach(nbrs=>{
+  const k=nbrs.size;
+  triads+=k*(k-1)/2;
+ });
+
+ if(triads===0)return 0;
+
+ let triSum=0;
+
+ const edges=edgesFromAdjacency(adj);
+
+ edges.forEach(([u,v])=>{
+
+  const nu=adj.get(u);
+  const nv=adj.get(v);
+
+  const small=nu.size<nv.size?nu:nv;
+  const big=nu.size<nv.size?nv:nu;
+
+  small.forEach(x=>{
+   if(big.has(x))triSum++;
+  });
+
+ });
+
+ return triSum/triads;
+}
+
+function parseEdgeText(text){
+
+ const edges=[];
+
+ text.split("\n").forEach(line=>{
+
+  const p=line.split(",")
+   .map(x=>x.trim())
+   .filter(Boolean);
+
+  if(p.length>=2)edges.push([p[0],p[1]]);
+
+ });
+
+ return edges;
+}
+
+function genModular(){
+
+ const edges=[];
+ const groups=4;
+ const perGroup=12;
+
+ function node(g,i){
+  return "g"+g+"_"+i;
+ }
+
+ for(let g=0;g<groups;g++){
+
+  for(let i=0;i<perGroup;i++){
+
+   for(let j=i+1;j<perGroup;j++){
+
+    if(Math.random()<0.35){
+     edges.push([node(g,i),node(g,j)]);
+    }
+
+   }
+  }
+ }
+
+ for(let g=0;g<groups;g++){
+
+  for(let k=0;k<4;k++){
+
+   const g2=(g+1)%groups;
+
+   const a=node(
+    g,
+    Math.floor(Math.random()*perGroup)
+   );
+
+   const b=node(
+    g2,
+    Math.floor(Math.random()*perGroup)
+   );
+
+   edges.push([a,b]);
+  }
+ }
+
+ return edges;
+}
+
+function genRandom(){
+
+ const edges=[];
+ const n=48;
+ const p=0.08;
+
+ for(let i=0;i<n;i++){
+
+  for(let j=i+1;j<n;j++){
+
+   if(Math.random()<p){
+    edges.push(["n"+i,"n"+j]);
+   }
+
+  }
+ }
+
+ return edges;
+}
+
+const edgeInput=document.getElementById("edgeInput");
+const demoSelect=document.getElementById("demoSelect");
+const statusEl=document.getElementById("status");
+
+document.getElementById("genBtn").addEventListener("click",()=>{
+
+ const kind=demoSelect.value==="random"
+  ?"random"
+  :"modular";
+
+ const edges=kind==="random"
+  ?genRandom()
+  :genModular();
+
+ edgeInput.value=
+  edges.map(e=>e.join(",")).join("\n");
+
+ statusEl.textContent=
+  "Generated "+kind+" demo — "+
+  edges.length+" edges.";
+
+});
+
+document.getElementById("runBtn").addEventListener("click",()=>{
+
+ const edges=parseEdgeText(edgeInput.value);
+
+ if(edges.length<4){
+
+  statusEl.textContent=
+   "Need at least a few edges.";
+
+  return;
+ }
+
+ statusEl.textContent="Running…";
+
+ setTimeout(()=>{try{runTest(edges)}catch(e){console.error(e);statusEl.textContent="ERROR: "+e.message;}},20);
+
+});
+
+function runTest(edges){
+
+ const nSamples=Math.max(
+  20,
+  Math.min(
+   2000,
+   parseInt(
+    document.getElementById("nullSamples").value
+   )||200
+  )
+ );
+
+ const swapAttempts=Math.max(
+  10,
+  Math.min(
+   5000,
+   parseInt(
+    document.getElementById("swapAttempts").value
+   )||300
+  )
+ );
+
+ const baseAdj=buildAdjacency(edges);
+
+ const nodeCount=baseAdj.size;
+
+ const observed=transitivity(baseAdj);
+
+ const nullVals=[];
+
+ for(let s=0;s<nSamples;s++){
+
+  const copy=cloneAdj(baseAdj);
+
+  doubleEdgeSwap(copy,swapAttempts);
+
+  nullVals.push(transitivity(copy));
+ }
+
+ const mean=
+  nullVals.reduce((a,b)=>a+b,0)/
+  nullVals.length;
+
+ const variance=
+  nullVals.length>1
+   ?nullVals.reduce(
+     (a,b)=>a+(b-mean)**2,
+     0
+    )/(nullVals.length-1)
+   :0;
+
+ const sd=Math.sqrt(variance);
+
+ const sorted=[...nullVals].sort(
+  (a,b)=>a-b
+ );
+
+ const lo=
+  sorted[Math.floor(
+   0.025*sorted.length
+  )];
+
+ const hi=
+  sorted[Math.min(
+   sorted.length-1,
+   Math.floor(
+    0.975*sorted.length
+   )
+  )];
+
+ const z=
+  sd>0
+   ?(observed-mean)/sd
+   :0;
+
+ document.getElementById("statNE").textContent=
+  nodeCount+" / "+edges.length;
+
+ document.getElementById("statObs").textContent=
+  observed.toFixed(4);
+
+ document.getElementById("statNull").textContent=
+  mean.toFixed(4)+" ± "+sd.toFixed(4);
+
+ document.getElementById("statCI").textContent=
+  "["+lo.toFixed(4)+", "+hi.toFixed(4)+"]";
+
+ document.getElementById("statZ").textContent=
+  z.toFixed(2);
+
+ drawHistogram(nullVals,observed);
+
+ const verdict=
+  document.getElementById("verdict");
+
+ const outside=
+  observed<lo ||
+  observed>hi;
+
+ if(outside){
+
+  verdict.className="verdict positive";
+
+  verdict.innerHTML=
+   "<b>Outside the 95% null interval</b>"+
+   "Observed clustering ("+
+   observed.toFixed(4)+
+   ") falls outside the sampled "+
+   "degree-preserving null distribution. "+
+   "This is a signal for further investigation, "+
+   "not proof of a cause or mechanism.";
+
+ }else{
+
+  verdict.className="verdict";
+
+  verdict.innerHTML=
+   "<b>Within the 95% null interval</b>"+
+   "Observed clustering ("+
+   observed.toFixed(4)+
+   ") is consistent with the sampled "+
+   "degree-preserving null distribution. "+
+   "No structural separation was detected "+
+   "under this particular null model.";
+
+ }
+
+ statusEl.textContent=
+  "Done — "+nSamples+
+  " null samples, "+
+  swapAttempts+
+  " swap attempts each.";
+
+}
+
+function drawHistogram(vals,observed){
+
+ const hist=document.getElementById("hist");
+
+ hist.innerHTML="";
+
+ const bins=24;
+
+ const min=Math.min(
+  ...vals,
+  observed
+ );
+
+ const max=Math.max(
+  ...vals,
+  observed
+ );
+
+ const range=(max-min)||1;
+
+ const counts=
+  new Array(bins).fill(0);
+
+ vals.forEach(v=>{
+
+  let idx=Math.floor(
+   ((v-min)/range)*bins
+  );
+
+  if(idx>=bins)idx=bins-1;
+
+  if(idx<0)idx=0;
+
+  counts[idx]++;
+
+ });
+
+ const maxCount=
+  Math.max(...counts,1);
+
+ const obsIdx=
+  Math.min(
+   bins-1,
+   Math.max(
+    0,
+    Math.floor(
+     ((observed-min)/range)*bins
+    )
+   )
+  );
+
+ counts.forEach((c,i)=>{
+
+  const bar=document.createElement("div");
+
+  bar.className=
+   "bar"+
+   (i===obsIdx?" marked":"");
+
+  bar.style.height=
+   Math.max(
+    2,
+    (c/maxCount)*100
+   )+"%";
+
+  bar.title=
+   "Bin "+i+": "+c+" samples";
+
+  hist.appendChild(bar);
+
+ });
+
+}
+
+(function(){
+
+ const edges=genModular();
+
+ edgeInput.value=
+  edges.map(e=>e.join(",")).join("\n");
+
+ statusEl.textContent=
+  "Ready — demo network loaded ("+
+  edges.length+" edges).";
+
+})();
+
+</script>
+
+</body>
+</html>
+cat << 'EOF' >> index.html
+
+<!-- Rating & Review Form -->
+<div style="max-width: 600px; margin: 40px auto; padding: 20px; border: 1px solid #333; border-radius: 8px; background-color: #1e1e1e; color: #fff; font-family: sans-serif;">
+  <h3 style="margin-top: 0; color: #00bcd4;">Submit Your Review / Feedback</h3>
+  <form action="https://api.web3forms.com/submit" method="POST">
+  <input type="hidden" name="access_key" value="0fe05a1a-1fa9-49ce-8c17-2b954fa4ee7b">
+    
+    <label for="rating" style="display: block; margin-bottom: 5px;">Rating:</label>
+    <select name="rating" id="rating" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #444; background-color: #2a2a2a; color: #fff;" required>
+      <option value="5">⭐⭐⭐⭐⭐ - Excellent</option>
+      <option value="4">⭐⭐⭐⭐ - Good</option>
+      <option value="3">⭐⭐⭐ - Average</option>
+      <option value="2">⭐⭐ - Needs Improvement</option>
+      <option value="1">⭐ - Poor</option>
+    </select>
+    
+    <label for="feedback" style="display: block; margin-bottom: 5px;">Your Review / Experience:</label>
+    <textarea name="feedback" id="feedback" rows="4" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #444; background-color: #2a2a2a; color: #fff; resize: vertical;" placeholder="Write your feedback here..." required></textarea>
+    
+    <button type="submit" style="background-color: #00bcd4; color: #000; font-weight: bold; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%;">
+      Submit Review
+    </button>
+  </form>
+</div>
+
