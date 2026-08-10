@@ -594,13 +594,6 @@ document.getElementById("genBtn").addEventListener("click",()=>{
   "Generated "+kind+" demo — "+
   edges.length+" edges.";
 
- if(typeof gtag==="function"){
-  gtag("event","demo_network_generated",{
-   demo_type:kind,
-   edge_count:edges.length
-  });
- }
-
 });
 
 document.getElementById("runBtn").addEventListener("click",()=>{
@@ -616,12 +609,6 @@ document.getElementById("runBtn").addEventListener("click",()=>{
  }
 
  statusEl.textContent="Running…";
-
- if(typeof gtag==="function"){
-  gtag("event","null_model_test_started",{
-   edge_count:edges.length
-  });
- }
 
  setTimeout(()=>runTest(edges),20);
 
@@ -759,20 +746,6 @@ function runTest(edges){
   " null samples, "+
   swapAttempts+
   " swap attempts each.";
-
- if(typeof gtag==="function"){
-  gtag("event","null_model_test_completed",{
-   node_count:nodeCount,
-   edge_count:edges.length,
-   null_samples:nSamples,
-   swap_attempts:swapAttempts,
-   observed_transitivity:Number(observed.toFixed(6)),
-   null_mean:Number(mean.toFixed(6)),
-   null_sd:Number(sd.toFixed(6)),
-   z_score:Number(z.toFixed(4)),
-   outside_95_percent_interval:outside
-  });
- }
 
 }
 
