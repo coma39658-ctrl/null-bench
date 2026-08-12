@@ -113,6 +113,7 @@ footer{border-top:1px solid var(--line);padding:35px 0 60px}
 footer p{font-family:monospace;font-size:12px;color:var(--soft)}
 svg{width:100%;height:auto;background:white;border:1px solid var(--line)}
 </style>
+  <link rel="manifest" href="manifest.json">
 </head>
 
 <body>
@@ -916,6 +917,17 @@ function drawHistogram(vals,observed){
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-YTVCF5JZCY');
+</script>
+
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("service-worker.js")
+      .then(() => console.log("E-ZERO Service Worker registered"))
+      .catch(err => console.error("Service Worker registration failed:", err));
+  });
+}
 </script>
 
 </body>
