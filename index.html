@@ -109,6 +109,83 @@ textarea{min-height:150px;font-family:monospace}
  background:white;border:1px solid var(--line);
  padding:20px;line-height:1.6;color:var(--soft)
 }
+
+.evidence-grid{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:18px;
+ margin-top:20px
+}
+@media(max-width:800px){
+ .evidence-grid{grid-template-columns:1fr}
+}
+.evidence-card{
+ background:white;
+ border:1px solid var(--line);
+ padding:20px
+}
+.evidence-card h3{
+ margin:0 0 8px;
+ font-size:18px
+}
+.evidence-meta{
+ font-family:monospace;
+ font-size:12px;
+ color:var(--soft);
+ margin-bottom:12px
+}
+.evidence-badge{
+ display:inline-block;
+ padding:4px 8px;
+ margin-right:6px;
+ border:1px solid var(--line);
+ font-family:monospace;
+ font-size:11px;
+ font-weight:700
+}
+.evidence-badge.pass{
+ background:#e8f5ec;
+ border-color:#8eb99a
+}
+.evidence-badge.fail{
+ background:#fff0ed;
+ border-color:#d89b90
+}
+.evidence-badge.tool{
+ background:var(--blueSoft);
+ border-color:var(--blue)
+}
+.evidence-metrics{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:8px;
+ margin:14px 0
+}
+@media(max-width:600px){
+ .evidence-metrics{grid-template-columns:1fr}
+}
+.evidence-metric{
+ border:1px solid var(--line);
+ padding:9px;
+ font-family:monospace;
+ font-size:12px
+}
+.evidence-card details{
+ margin-top:12px;
+ color:var(--soft)
+}
+.evidence-card li{
+ margin:6px 0;
+ line-height:1.45
+}
+.evidence-reference{
+ margin-top:12px;
+ font-family:monospace;
+ font-size:11px;
+ color:var(--soft);
+ word-break:break-word
+}
+
 footer{border-top:1px solid var(--line);padding:35px 0 60px}
 footer p{font-family:monospace;font-size:12px;color:var(--soft)}
 svg{width:100%;height:auto;background:white;border:1px solid var(--line)}
@@ -144,6 +221,7 @@ svg{width:100%;height:auto;background:white;border:1px solid var(--line)}
   <a href="#method">Method</a>
   <a href="#limits">Limits</a>
   <a href="#api">API</a>
+  <a href="#evidence">Evidence</a>
  </nav>
 </header>
 
@@ -379,6 +457,169 @@ b,c
   </p>
  </div>
 </section>
+
+
+<section id="evidence">
+ <h2>05 — Evidence &amp; Validation</h2>
+
+ <p class="sub">
+  E-ZERO scientific and computational claims shown here are loaded
+  from the validated evidence registry. PASS and FAIL results are
+  preserved as recorded; the website does not recalculate them.
+ </p>
+
+ <div
+  id="evidenceRegistryStatus"
+  class="caveat"
+  style="margin-top:18px;"
+ >
+  Loading validated evidence registry…
+ </div>
+
+ <div id="evidenceCards" class="evidence-grid"></div>
+</section>
+
+<script>
+(function(){
+ const statusBox = document.getElementById("evidenceRegistryStatus");
+ const cards = document.getElementById("evidenceCards");
+
+ function label(key){
+  return key
+   .replace(/_/g," ")
+   .replace(/\b\w/g,function(c){return c.toUpperCase();});
+ }
+
+ function badgeClass(value){
+  if(value === "PASS") return "pass";
+  if(value === "FAIL") return "fail";
+  return "tool";
+ }
+
+ function addText(parent, tag, text, className){
+  const el = document.createElement(tag);
+  if(className) el.className = className;
+  el.textContent = text;
+  parent.appendChild(el);
+  return el;
+ }
+
+ fetch("data/evidence_registry.json", {cache:"no-store"})
+  .then(function(response){
+   if(!response.ok){
+    throw new Error("HTTP " + response.status);
+   }
+   return response.json();
+  })
+  .then(function(registry){
+   statusBox.textContent =
+    "Evidence registry loaded · Last verified: " +
+    registry.last_verified +
+    " · Modules: " +
+    registry.modules.length;
+
+   registry.modules.forEach(function(module){
+    const card = document.createElement("article");
+    card.className = "evidence-card";
+
+    addText(card, "h3", module.display_name);
+
+    const meta = document.createElement("div");
+    meta.className = "evidence-meta";
+
+    const statusBadge = document.createElement("span");
+    statusBadge.className = "evidence-badge tool";
+    statusBadge.textContent = module.status;
+    meta.appendChild(statusBadge);
+
+    const evidenceBadge = document.createElement("span");
+    evidenceBadge.className =
+     "evidence-badge " + badgeClass(module.evidence_status);
+    evidenceBadge.textContent = module.evidence_status;
+    meta.appendChild(evidenceBadge);
+
+    card.appendChild(meta);
+
+    addText(card, "p", module.scope, "sub");
+
+    if(module.metrics){
+     const metrics = document.createElement("div");
+     metrics.className = "evidence-metrics";
+
+     Object.entries(module.metrics).forEach(function(entry){
+      const key = entry[0];
+      const value = entry[1];
+
+      const metric = document.createElement("div");
+      metric.className = "evidence-metric";
+
+      let suffix = "";
+      if(key.indexOf("percent") !== -1) suffix = "%";
+      if(key.endsWith("_pp")) suffix = " pp";
+
+      metric.textContent =
+       label(key) + ": " + String(value) + suffix;
+
+      metrics.appendChild(metric);
+     });
+
+     card.appendChild(metrics);
+    }
+
+    addText(
+     card,
+     "p",
+     module.what_this_means,
+     "sub"
+    );
+
+    const details = document.createElement("details");
+    const summary = document.createElement("summary");
+    summary.textContent = "Limitations & evidence reference";
+    details.appendChild(summary);
+
+    const list = document.createElement("ul");
+
+    module.limitations.forEach(function(item){
+     addText(list, "li", item);
+    });
+
+    details.appendChild(list);
+
+    const reference = document.createElement("div");
+    reference.className = "evidence-reference";
+
+    Object.entries(module.evidence_reference).forEach(function(entry){
+     addText(
+      reference,
+      "div",
+      label(entry[0]) + ": " + String(entry[1])
+     );
+    });
+
+    details.appendChild(reference);
+    card.appendChild(details);
+
+    if(module.public_use && module.public_url){
+     const link = document.createElement("a");
+     link.href = module.public_url;
+     link.target = "_blank";
+     link.rel = "noopener";
+     link.textContent = "Open public tool";
+     link.style.display = "inline-block";
+     link.style.marginTop = "14px";
+     card.appendChild(link);
+    }
+
+    cards.appendChild(card);
+   });
+  })
+  .catch(function(error){
+   statusBox.textContent =
+    "Evidence registry could not be loaded: " + error.message;
+  });
+})();
+</script>
 
 </div>
 
