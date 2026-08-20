@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "registry_name": "E-ZERO Evidence Registry",
+  "last_verified": "2026-08-20",
+  "principle": "Scientific claims are data, not UI text.",
+  "modules": [
+    {
+      "module_id": "null_bench",
+      "display_name": "Null Bench",
+      "status": "PUBLIC_TOOL",
+      "scope": "Degree-preserving null-model testing for network structure.",
+      "evidence_status": "COMPUTATIONAL_STATISTICAL_TOOL",
+      "evidence_reference": {
+        "repository": "coma39658-ctrl/null-bench",
+        "site_commit": "d9fbf12"
+      },
+      "what_this_means": "The tool compares an observed network statistic against a degree-preserving null distribution.",
+      "limitations": [
+        "A result outside the null interval does not establish causality.",
+        "It does not establish a physical law or mechanism.",
+        "Small networks or insufficient null samples may produce unstable results.",
+        "Important findings require independent replication and domain review."
+      ],
+      "public_use": true,
+      "public_url": "https://coma39658-ctrl.github.io/null-bench/"
+    }
+  ]
+}
