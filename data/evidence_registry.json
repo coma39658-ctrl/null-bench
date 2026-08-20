@@ -23,6 +23,103 @@
       ],
       "public_use": true,
       "public_url": "https://coma39658-ctrl.github.io/null-bench/"
+    },
+    {
+      "module_id": "benchmark002",
+      "display_name": "Benchmark 002 — Non-Gaussian Telemetry Validation",
+      "status": "CLOSED_FROZEN",
+      "scope": "Controlled computational validation under registered non-Gaussian telemetry conditions.",
+      "evidence_status": "PASS",
+      "evidence_reference": {
+        "repository": "coma39658-ctrl/ezero-gsrl-benchmark",
+        "tag": "benchmark002-final-v1.0",
+        "commit": "5cd7615"
+      },
+      "metrics": {
+        "pooled_rows": 2560,
+        "noisy_cases": 1920,
+        "unique_pre_change_cases": 240,
+        "persistent_false_alarm_cases": 4,
+        "persistent_false_alarm_rate_percent": 1.667,
+        "gaussian_detection_percent": 65.62,
+        "laplace_detection_percent": 89.84,
+        "student_t_df3_detection_percent": 85.94
+      },
+      "what_this_means": "Benchmark 002 completed its registered reproducibility closure with a PASS under the tested computational conditions.",
+      "limitations": [
+        "This is controlled computational evidence, not physical-system certification.",
+        "The result applies only to the tested benchmark conditions.",
+        "It does not establish universal detector performance.",
+        "Independent physical validation would be required for real-world safety claims."
+      ],
+      "public_use": false
+    },
+    {
+      "module_id": "benchmark003",
+      "display_name": "Benchmark 003 — Distribution-Shift Stress Test",
+      "status": "CLOSED_FROZEN",
+      "scope": "Controlled computational stress testing across Gaussian, Laplace, Student-t df3 and Uniform noise families.",
+      "evidence_status": "FAIL",
+      "evidence_reference": {
+        "repository": "coma39658-ctrl/ezero-gsrl-benchmark",
+        "tag": "benchmark003-closed-frozen-v1",
+        "closure_commit": "60b21bf",
+        "methodological_erratum_commit": "5c02676"
+      },
+      "metrics": {
+        "total_runs": 2400,
+        "noisy_cases": 1920,
+        "unique_pre_change_cases": 480,
+        "pooled_detection_percent": 56.094,
+        "gaussian_detection_percent": 45.0,
+        "laplace_detection_percent": 78.33,
+        "student_t_df3_detection_percent": 73.33,
+        "uniform_detection_percent": 27.71,
+        "persistent_false_alarm_rate_percent": 2.5
+      },
+      "what_this_means": "Benchmark 003 failed its registered primary stress criteria. The failure is preserved as evidence rather than hidden or retuned.",
+      "limitations": [
+        "The protocol coverage was partial: multiple signal dynamics were not executed.",
+        "The independent seed-batch replication criterion was not evaluated.",
+        "No universal normalized failure boundary was established.",
+        "This benchmark provides computational evidence only."
+      ],
+      "public_use": false
+    },
+    {
+      "module_id": "benchmark004",
+      "display_name": "Benchmark 004 — Frozen Held-Out Detector Validation",
+      "status": "CLOSED_FROZEN",
+      "scope": "First frozen held-out evaluation on seeds 4201-4210, with no post-result detector retuning.",
+      "evidence_status": "FAIL",
+      "evidence_reference": {
+        "repository": "coma39658-ctrl/ezero-gsrl-benchmark",
+        "pre_heldout_tag": "benchmark004-pre-heldout-v1",
+        "closed_tag": "benchmark004-closed-frozen-v1",
+        "commit": "40784c7"
+      },
+      "metrics": {
+        "noisy_cases": 1920,
+        "detected_cases": 1390,
+        "missed_cases": 530,
+        "overall_detection_percent": 72.4,
+        "gaussian_detection_percent": 85.62,
+        "laplace_detection_percent": 56.46,
+        "student_t_df3_detection_percent": 47.5,
+        "uniform_detection_percent": 100.0,
+        "pooled_unique_false_alarm_percent": 2.5,
+        "maximum_local_false_alarm_percent": 10.0,
+        "heldout_seed_spread_pp": 18.75,
+        "baseline_detection_percent": 54.11
+      },
+      "what_this_means": "The selected detector improved pooled held-out detection over the frozen baseline, but failed mandatory family-generalization and held-out seed-stability criteria.",
+      "limitations": [
+        "Primary held-out result is FAIL despite 72.40% pooled detection.",
+        "Student-t df3 detection was 47.50%, below the registered 50% requirement.",
+        "Held-out seed spread was 18.75 percentage points, above the registered 10 pp limit.",
+        "This is controlled computational evidence, not physical certification."
+      ],
+      "public_use": false
     }
   ]
 }

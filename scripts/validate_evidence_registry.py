@@ -1,8 +1,9 @@
 import json
+import math
 import sys
+from datetime import date
 from pathlib import Path
 from urllib.parse import urlparse
-
 
 REGISTRY = Path("data/evidence_registry.json")
 
@@ -26,9 +27,28 @@ REQUIRED_MODULE_FIELDS = {
     "public_use",
 }
 
+ALLOWED_STATUSES = {
+    "PUBLIC_TOOL",
+    "CLOSED_FROZEN",
+    "DEVELOPMENT",
+    "EXPERIMENTAL",
+}
+
+ALLOWED_EVIDENCE_STATUSES = {
+    "PASS",
+    "FAIL",
+    "CONDITIONAL",
+    "PARTIAL",
+    "COMPUTATIONAL_STATISTICAL_TOOL",
+}
+
 
 def fail(message, errors):
     errors.append(message)
+
+
+def warn(message, warnings):
+    warnings.append(message)
 
 
 def valid_http_url(value):
@@ -37,6 +57,35 @@ def valid_http_url(value):
         return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
     except Exception:
         return False
+
+
+def validate_metric(module_id, key, value, errors):
+    prefix = f"{module_id}.metrics.{key}"
+
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        fail(f"{prefix}: metric must be numeric.", errors)
+        return
+
+    if not math.isfinite(float(value)):
+        fail(f"{prefix}: metric must be finite.", errors)
+        return
+
+    if value < 0:
+        fail(f"{prefix}: metric cannot be negative.", errors)
+
+    key_lower = key.lower()
+
+    if "percent" in key_lower and not 0 <= value <= 100:
+        fail(
+            f"{prefix}: percentage must be between 0 and 100.",
+            errors,
+        )
+
+    if key_lower.endswith("_pp") and not 0 <= value <= 100:
+        fail(
+            f"{prefix}: percentage-point value must be between 0 and 100.",
+            errors,
+        )
 
 
 def main():
@@ -54,9 +103,22 @@ def main():
         return 1
 
     missing = REQUIRED_TOP_LEVEL - set(data)
+
     if missing:
         fail(
             "Missing top-level fields: " + ", ".join(sorted(missing)),
+            errors,
+        )
+
+    try:
+        date.fromisoformat(str(data.get("last_verified", "")))
+    except ValueError:
+        fail("last_verified must use ISO YYYY-MM-DD format.", errors)
+
+    if data.get("principle") != "Scientific claims are data, not UI text.":
+        fail(
+            "Registry principle must remain: "
+            "'Scientific claims are data, not UI text.'",
             errors,
         )
 
@@ -91,60 +153,138 @@ def main():
 
         if not isinstance(module_id, str) or not module_id.strip():
             fail(f"{prefix}: invalid module_id.", errors)
+            module_id = f"module_{index}"
         elif module_id in seen_ids:
             fail(f"{prefix}: duplicate module_id '{module_id}'.", errors)
         else:
             seen_ids.add(module_id)
 
+        status = str(module.get("status", "")).strip()
+
+        if status not in ALLOWED_STATUSES:
+            fail(
+                f"{module_id}: unsupported status '{status}'.",
+                errors,
+            )
+
+        evidence_status = str(
+            module.get("evidence_status", "")
+        ).strip()
+
+        if evidence_status not in ALLOWED_EVIDENCE_STATUSES:
+            fail(
+                f"{module_id}: unsupported evidence_status "
+                f"'{evidence_status}'.",
+                errors,
+            )
+
+        scope = str(module.get("scope", "")).strip()
+        if not scope:
+            fail(f"{module_id}: scope cannot be empty.", errors)
+
+        meaning = str(module.get("what_this_means", "")).strip()
+        if not meaning:
+            fail(
+                f"{module_id}: what_this_means cannot be empty.",
+                errors,
+            )
+
         limitations = module.get("limitations")
 
         if not isinstance(limitations, list) or not limitations:
             fail(
-                f"{prefix}: limitations must be a non-empty list.",
+                f"{module_id}: limitations must be a non-empty list.",
                 errors,
             )
 
-        evidence_reference = module.get("evidence_reference")
+        refs = module.get("evidence_reference")
 
-        if not isinstance(evidence_reference, dict) or not evidence_reference:
+        if not isinstance(refs, dict) or not refs:
             fail(
-                f"{prefix}: evidence_reference must be a non-empty object.",
+                f"{module_id}: evidence_reference must be a non-empty object.",
                 errors,
             )
+            refs = {}
+
+        if status == "CLOSED_FROZEN":
+            if not any(
+                key in refs
+                for key in {
+                    "tag",
+                    "closed_tag",
+                    "commit",
+                    "closure_commit",
+                }
+            ):
+                fail(
+                    f"{module_id}: CLOSED_FROZEN requires "
+                    "a commit or frozen tag reference.",
+                    errors,
+                )
 
         public_use = module.get("public_use")
 
         if not isinstance(public_use, bool):
             fail(
-                f"{prefix}: public_use must be true or false.",
+                f"{module_id}: public_use must be true or false.",
                 errors,
             )
 
         if public_use:
             public_url = module.get("public_url")
-
             if not isinstance(public_url, str) or not valid_http_url(public_url):
                 fail(
-                    f"{prefix}: public_use=true requires a valid public_url.",
+                    f"{module_id}: public_use=true requires "
+                    "a valid public_url.",
                     errors,
                 )
 
-        status = str(module.get("status", "")).strip()
+        metrics = module.get("metrics")
 
-        if not status:
-            fail(f"{prefix}: status cannot be empty.", errors)
+        if metrics is not None:
+            if not isinstance(metrics, dict):
+                fail(f"{module_id}: metrics must be an object.", errors)
+            else:
+                for key, value in metrics.items():
+                    validate_metric(module_id, key, value, errors)
 
-        scope = str(module.get("scope", "")).strip()
+        combined_text = " ".join(
+            [
+                meaning,
+                *(
+                    limitations
+                    if isinstance(limitations, list)
+                    else []
+                ),
+            ]
+        ).lower()
 
-        if not scope:
-            fail(f"{prefix}: scope cannot be empty.", errors)
-
-        meaning = str(module.get("what_this_means", "")).strip()
-
-        if not meaning:
+        if evidence_status == "FAIL" and "fail" not in combined_text:
             fail(
-                f"{prefix}: what_this_means cannot be empty.",
+                f"{module_id}: FAIL evidence must explicitly "
+                "state the failure in meaning or limitations.",
                 errors,
+            )
+
+        if evidence_status == "PASS":
+            for phrase in {
+                "universal proof",
+                "proves universally",
+                "guaranteed safe",
+                "physical proof",
+            }:
+                if phrase in combined_text:
+                    fail(
+                        f"{module_id}: PASS evidence contains "
+                        f"forbidden overclaim '{phrase}'.",
+                        errors,
+                    )
+
+        if status == "CLOSED_FROZEN" and evidence_status == "PARTIAL":
+            warn(
+                f"{module_id}: CLOSED_FROZEN evidence is PARTIAL; "
+                "limitations must explain coverage.",
+                warnings,
             )
 
     print("=" * 70)
@@ -164,7 +304,6 @@ def main():
         print("\nERRORS:")
         for error in errors:
             print(f"- {error}")
-
         print("\nVALIDATION RESULT: FAIL")
         return 1
 
