@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "registry_name": "E-ZERO Evidence Registry",
-  "last_verified": "2026-08-20",
+  "last_verified": "2026-08-21",
   "principle": "Scientific claims are data, not UI text.",
   "modules": [
     {
@@ -118,6 +118,57 @@
         "Student-t df3 detection was 47.50%, below the registered 50% requirement.",
         "Held-out seed spread was 18.75 percentage points, above the registered 10 pp limit.",
         "This is controlled computational evidence, not physical certification."
+      ],
+      "public_use": false
+    },
+    {
+      "module_id": "benchmark005",
+      "display_name": "Benchmark 005 — Multisensor Fault Diagnosis",
+      "status": "CLOSED_FROZEN",
+      "scope": "Controlled synthetic multisensor fault detection and subsystem localization across registered operating regimes, non-Gaussian noise families and held-out seeds.",
+      "evidence_status": "PASS",
+      "evidence_reference": {
+        "repository": "coma39658-ctrl/ezero-gsrl-benchmark",
+        "tag": "benchmark005-closed-v1",
+        "closure_commit": "2419a1b256047e8b2a3376b061cd066f03067054",
+        "heldout_evidence_commit": "4a5aa3ac66c1a901f6a1574011e943b3fc568b1a"
+      },
+      "metrics": {
+        "heldout_abnormal_cases": 2880,
+        "heldout_detected_cases": 2880,
+        "detection_percent": 100.0,
+        "subsystem_accuracy_percent": 98.8194,
+        "minimum_subsystem_recall_percent": 92.9167,
+        "pooled_false_alarm_percent": 1.25,
+        "maximum_local_false_alarm_percent": 10.0,
+        "heldout_seed_spread_pp": 1.3889
+      },
+      "what_this_means": "Benchmark 005 passed all registered primary criteria in its one-shot frozen held-out evaluation under the tested controlled synthetic conditions.",
+      "limitations": [
+        "This is controlled synthetic evidence, not real-world automotive or industrial diagnostic validation.",
+        "Subsystem localization does not establish unique component diagnosis.",
+        "The result does not establish safety certification or universal fault-detection performance.",
+        "No FPGA, ARM, HIL or real-world latency claim is established by this benchmark."
+      ],
+      "public_use": false
+    },
+    {
+      "module_id": "benchmark006",
+      "display_name": "Benchmark 006 — GSRL External Validation Readiness",
+      "status": "DEVELOPMENT",
+      "scope": "Pre-registered readiness for an independently supplied external benchmark specification, with immutable intake, hashing and audit controls prepared before execution.",
+      "evidence_status": "PARTIAL",
+      "evidence_reference": {
+        "repository": "coma39658-ctrl/ezero-gsrl-benchmark",
+        "pre_spec_tag": "benchmark006-pre-spec-readiness-v1",
+        "readiness_commit": "a56fc4c22b5b444bb0182b8d9f9c1f5611d91185"
+      },
+      "what_this_means": "Benchmark 006 is prepared for external specification intake but has not yet been executed and therefore has no external validation result.",
+      "limitations": [
+        "No GSRL external benchmark result has been produced yet.",
+        "No PASS or FAIL claim is made before receipt and execution of the external specification.",
+        "External acceptance criteria, datasets and latency constraints will not be invented or altered by E-ZERO.",
+        "Any future result will apply only to the externally supplied benchmark conditions actually executed."
       ],
       "public_use": false
     }
