@@ -160,8 +160,8 @@
       "evidence_status": "PARTIAL",
       "evidence_reference": {
         "repository": "coma39658-ctrl/ezero-gsrl-benchmark",
-        "pre_spec_tag": "benchmark006-pre-spec-readiness-v1",
-        "readiness_commit": "a56fc4c22b5b444bb0182b8d9f9c1f5611d91185"
+        "pre_spec_tag": "benchmark006-pre-spec-readiness-v2",
+        "readiness_commit": "1aabf5edcde5559854feeb1a49dddbfb87c2dc61"
       },
       "what_this_means": "Benchmark 006 is prepared for external specification intake but has not yet been executed and therefore has no external validation result.",
       "limitations": [
