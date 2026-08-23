@@ -170,7 +170,8 @@
         "External acceptance criteria, datasets and latency constraints will not be invented or altered by E-ZERO.",
         "Any future result will apply only to the externally supplied benchmark conditions actually executed."
       ],
-      "public_use": false
+      "public_use": true,
+      "public_url": "https://coma39658-ctrl.github.io/null-bench/data/benchmark006_public_readiness.json"
     }
   ]
 }

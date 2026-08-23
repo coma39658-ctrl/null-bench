@@ -1,0 +1,22 @@
+{
+  "benchmark_id": "benchmark006",
+  "display_name": "Benchmark 006 — GSRL External Validation Readiness",
+  "status": "DEVELOPMENT",
+  "evidence_status": "PARTIAL",
+  "scope": "Pre-registered readiness for an independently supplied external benchmark specification.",
+  "pre_spec_freeze": {
+    "tag": "benchmark006-pre-spec-readiness-v2",
+    "commit": "1aabf5edcde5559854feeb1a49dddbfb87c2dc61"
+  },
+  "audit_controls": [
+    "External specification files will be preserved unchanged before execution.",
+    "SHA-256 hashes will be recorded for supplied files before execution.",
+    "Adapter implementation and execution mapping/configuration will be hashed before registered execution.",
+    "Raw and result artifacts will be hashed before interpretation."
+  ],
+  "execution_status": "NOT_YET_EXECUTED",
+  "pass_fail_claim": "NONE",
+  "statement": "No external Benchmark 006 result has been produced yet. No PASS or FAIL claim is made before receipt and execution of the independently supplied external specification.",
+  "source_access_note": "The underlying benchmark repository remains private. The tag and commit above are provenance references and do not provide public source-code access.",
+  "public_disclosure_scope": "Readiness metadata only. No private source code, external dataset, adapter logic, acceptance criteria, raw telemetry, or protected execution outputs are disclosed."
+}
