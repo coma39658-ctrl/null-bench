@@ -763,7 +763,7 @@ function parseEdgeText(text){
 
  text.split("\n").forEach(line=>{
 
-  const p=line.split(",")
+  const p=(line.includes(",") ? line.split(",") : line.trim().split(/\s+/))
    .map(x=>x.trim())
    .filter(Boolean);
 
