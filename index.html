@@ -331,6 +331,85 @@ svg{
  }
 }
 
+
+/* SIMPLE PUBLIC OBD UI V1 */
+.public-obd-runner{
+ margin-top:26px;
+ padding:22px;
+ border:1px solid var(--line);
+ border-radius:10px;
+ background:rgba(248,251,252,.95);
+}
+.public-obd-runner h3{
+ margin:0 0 8px;
+ color:var(--ink);
+ font-size:17px;
+ text-transform:none;
+ letter-spacing:0;
+}
+.public-obd-runner select{
+ max-width:540px;
+}
+.public-obd-status{
+ margin-top:14px;
+ padding:11px 13px;
+ border-left:3px solid var(--signal);
+ background:var(--signalSoft);
+ color:#315b64;
+ font-family:monospace;
+ font-size:12px;
+}
+.public-obd-summary{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:10px;
+ margin-top:14px;
+}
+.public-obd-summary div{
+ padding:12px;
+ border:1px solid var(--line);
+ border-radius:8px;
+ background:#fbfdfe;
+}
+.public-obd-summary span{
+ display:block;
+ margin-bottom:4px;
+ color:var(--soft);
+ font-size:10px;
+ text-transform:uppercase;
+}
+.public-obd-summary strong{
+ color:var(--ink);
+ font-size:13px;
+}
+.public-obd-evidence{
+ margin-top:14px;
+}
+.public-obd-evidence summary{
+ cursor:pointer;
+ color:var(--blue);
+ font-weight:700;
+ font-size:12px;
+}
+.public-obd-evidence pre{
+ max-height:300px;
+ overflow:auto;
+ padding:14px;
+ border:1px solid var(--line);
+ border-radius:8px;
+ background:#f7fafb;
+ color:#334d55;
+ font-size:11px;
+ line-height:1.5;
+ white-space:pre-wrap;
+ word-break:break-word;
+}
+@media(max-width:700px){
+ .public-obd-summary{
+  grid-template-columns:1fr;
+ }
+}
+
 </style>
   <link rel="manifest" href="manifest.json">
 </head>
@@ -369,7 +448,7 @@ svg{
 </header>
 
 <div class="public-banner">
- FREE PUBLIC RESEARCH TOOL · RUNS LOCALLY IN YOUR BROWSER · YOUR DATA STAYS ON YOUR DEVICE
+ FREE PUBLIC RESEARCH TOOL · NULL BENCH RUNS LOCALLY IN YOUR BROWSER · OBD SIMULATION USES THE E-ZERO BACKEND
 </div>
 
 <div class="wrap">
@@ -515,6 +594,57 @@ svg{
   >
    Vehicle Sensor Screening
   </a>
+ </div>
+
+
+ <div id="public-obd-runner" class="public-obd-runner">
+
+  <h3>Try Read-Only OBD Simulation</h3>
+
+  <p class="sub">
+   Select a frozen test scenario. This is simulation only and
+   does not connect to or control a real vehicle.
+  </p>
+
+  <label for="publicObdScenario">OBD simulation scenario</label>
+
+  <select id="publicObdScenario">
+   <option value="OBD_SIM_A_HEALTHY_BASELINE">A — Healthy Baseline</option>
+   <option value="OBD_SIM_B_RANGE_ABNORMALITY">B — Range Abnormality</option>
+   <option value="OBD_SIM_C_UNSUPPORTED_PID">C — Unsupported PID</option>
+   <option value="OBD_SIM_D_READ_TIMEOUT">D — Read Timeout</option>
+   <option value="OBD_SIM_E_INVALID_RESPONSE">E — Invalid Response</option>
+   <option value="OBD_SIM_F_STORED_DTC_READ_ONLY">F — Stored DTC (Read Only)</option>
+   <option value="OBD_SIM_G_ADAPTER_ERROR">G — Adapter Error</option>
+   <option value="OBD_SIM_H_ECU_NO_RESPONSE">H — ECU No Response</option>
+  </select>
+
+  <div class="actions">
+   <button id="publicObdRun" type="button">
+    Run Safe Simulation
+   </button>
+
+   <button
+    id="publicObdReplay"
+    class="ghost"
+    type="button"
+    disabled
+   >
+    Validate Replay
+   </button>
+  </div>
+
+  <div id="publicObdStatus" class="public-obd-status">
+   Ready — simulation only.
+  </div>
+
+  <div id="publicObdSummary" class="public-obd-summary" hidden></div>
+
+  <details id="publicObdEvidence" class="public-obd-evidence" hidden>
+   <summary>Show simulation evidence</summary>
+   <pre id="publicObdRaw"></pre>
+  </details>
+
  </div>
 
  <p class="vehicle-note">
@@ -1396,6 +1526,136 @@ if ("serviceWorker" in navigator) {
       .catch(err => console.error("Service Worker registration failed:", err));
   });
 }
+</script>
+
+
+<script>
+(function(){
+ const API="https://e-zero-dashboard.onrender.com";
+
+ const scenario=document.getElementById("publicObdScenario");
+ const runBtn=document.getElementById("publicObdRun");
+ const replayBtn=document.getElementById("publicObdReplay");
+ const status=document.getElementById("publicObdStatus");
+ const summary=document.getElementById("publicObdSummary");
+ const evidence=document.getElementById("publicObdEvidence");
+ const raw=document.getElementById("publicObdRaw");
+
+ if(!scenario||!runBtn||!replayBtn) return;
+
+ let lastScan=null;
+
+ function showSummary(items){
+  summary.replaceChildren();
+
+  items.forEach(function(item){
+   const box=document.createElement("div");
+   const label=document.createElement("span");
+   const value=document.createElement("strong");
+
+   label.textContent=item[0];
+   value.textContent=item[1];
+
+   box.append(label,value);
+   summary.appendChild(box);
+  });
+
+  summary.hidden=false;
+ }
+
+ runBtn.addEventListener("click",async function(){
+  runBtn.disabled=true;
+  replayBtn.disabled=true;
+  lastScan=null;
+
+  status.textContent="Running safe simulation...";
+  summary.hidden=true;
+  evidence.hidden=true;
+
+  try{
+   const response=await fetch(API+"/obd/simulator",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({scenario_id:scenario.value})
+   });
+
+   const result=await response.json();
+
+   if(!response.ok){
+    throw new Error(result.error||("HTTP "+response.status));
+   }
+
+   lastScan=result;
+
+   const screening=result.sensor_screening||{};
+   const quality=result.data_quality||{};
+
+   showSummary([
+    ["Provenance",String(result.data_provenance||"SIMULATED")],
+    ["Scenario",String(result.scenario_id||"—")],
+    ["Context",String(result.operating_context||"—")],
+    ["Sensors",String(screening.total_sensors??"—")],
+    ["Out of range",String(screening.out_of_range_sensors??"—")],
+    ["DTCs",String(Array.isArray(result.dtcs)?result.dtcs.length:0)],
+    ["Successful reads",String(quality.successful_read_count??"—")],
+    ["Diagnostic claim",result.diagnostic_claim===false?"FALSE":String(result.diagnostic_claim)]
+   ]);
+
+   raw.textContent=JSON.stringify(result,null,2);
+   evidence.hidden=false;
+   replayBtn.disabled=false;
+
+   status.textContent=
+    "Simulation complete — no physical vehicle connection used.";
+
+  }catch(error){
+   status.textContent="Simulation unavailable: "+error.message;
+  }finally{
+   runBtn.disabled=false;
+  }
+ });
+
+ replayBtn.addEventListener("click",async function(){
+  if(!lastScan) return;
+
+  replayBtn.disabled=true;
+  status.textContent="Validating replay...";
+
+  try{
+   const response=await fetch(API+"/obd/replay",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({scan:lastScan})
+   });
+
+   const result=await response.json();
+
+   if(!response.ok && response.status!==409){
+    throw new Error(result.error||("HTTP "+response.status));
+   }
+
+   showSummary([
+    ["Replay provenance",String(result.data_provenance||"LOG_REPLAY")],
+    ["Source provenance",String(result.source_data_provenance||"SIMULATED")],
+    ["Scenario",String(result.scenario_id||"—")],
+    ["Canonical match",result.match===true?"YES":"NO"],
+    ["Diagnostic claim",result.diagnostic_claim===false?"FALSE":String(result.diagnostic_claim)]
+   ]);
+
+   raw.textContent=JSON.stringify(result,null,2);
+   evidence.hidden=false;
+
+   status.textContent=result.match===true
+    ?"Replay validated — canonical match."
+    :"Replay completed — canonical mismatch.";
+
+  }catch(error){
+   status.textContent="Replay unavailable: "+error.message;
+  }finally{
+   replayBtn.disabled=lastScan===null;
+  }
+ });
+})();
 </script>
 
 </body>
