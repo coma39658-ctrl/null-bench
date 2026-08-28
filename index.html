@@ -15,9 +15,9 @@
 <title>Null Bench — Degree-Preserving Null Model Testing</title>
 <style>
 :root{
- --paper:#eef1f0;--line:#d7dedc;--ink:#1b2430;--soft:#4c5b66;
- --signal:#c4841f;--signalSoft:#ead9bc;
- --blue:#4e7089;--blueSoft:#d6e1e8;--panel:#f7f9f8;
+ --paper:#f1f7f8;--line:#d2e1e5;--ink:#18313a;--soft:#536b74;
+ --signal:#278fa3;--signalSoft:#d9edf1;
+ --blue:#557b90;--blueSoft:#dceaf0;--panel:#f8fbfc;
 }
 *{box-sizing:border-box}
 body{
@@ -189,25 +189,167 @@ textarea{min-height:150px;font-family:monospace}
 footer{border-top:1px solid var(--line);padding:35px 0 60px}
 footer p{font-family:monospace;font-size:12px;color:var(--soft)}
 svg{width:100%;height:auto;background:white;border:1px solid var(--line)}
+
+/* E-ZERO LIGHT PROFESSIONAL POLISH V1 */
+body{
+ font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+}
+.brand{
+ color:#173741;
+ letter-spacing:.01em;
+}
+.eyebrow{
+ color:#557b90;
+}
+h1{
+ color:#19353e;
+ font-weight:800;
+ letter-spacing:-.035em;
+}
+h1 em{
+ color:#278fa3;
+ font-style:normal;
+ font-weight:800;
+}
+.lede{
+ color:#536b74;
+}
+.public-banner{
+ color:#28505b;
+}
+button,.btn{
+ border-radius:8px;
+ box-shadow:0 5px 14px rgba(30,82,94,.09);
+ transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
+}
+button:hover,.btn:hover{
+ transform:translateY(-1px);
+ box-shadow:0 7px 18px rgba(30,82,94,.14);
+}
+.ghost{
+ background:rgba(255,255,255,.48);
+}
+textarea,input,select{
+ border-radius:7px;
+ background:#fbfdfe;
+}
+.card{
+ border-radius:10px;
+}
+svg{
+ background:#fbfdfe;
+}
+
+
+.creator-line{
+ max-width:1080px;
+ margin:0 auto;
+ padding:14px 24px 0;
+ color:#66818a;
+ font-size:12px;
+ letter-spacing:.02em;
+}
+.creator-line strong{
+ color:#278fa3;
+ font-weight:700;
+}
+
+/* E-ZERO VEHICLE / OBD PUBLIC SECTION V1 */
+.vehicle-obd-section{
+ padding:48px 0;
+ border-top:1px solid var(--line);
+}
+.vehicle-obd-section h2{
+ margin:8px 0 10px;
+ color:var(--ink);
+}
+.vehicle-intro{
+ max-width:780px;
+}
+.vehicle-grid{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:16px;
+ margin-top:24px;
+}
+.vehicle-card{
+ position:relative;
+ padding:22px;
+ border:1px solid var(--line);
+ border-radius:10px;
+ background:rgba(248,251,252,.92);
+ box-shadow:0 5px 16px rgba(36,92,104,.06);
+}
+.vehicle-card h3{
+ margin:12px 0 8px;
+ color:var(--ink);
+ font-size:15px;
+ letter-spacing:0;
+ text-transform:none;
+}
+.vehicle-card p{
+ margin:0;
+ color:var(--soft);
+ font-size:13px;
+ line-height:1.65;
+}
+.vehicle-status{
+ display:inline-block;
+ padding:5px 8px;
+ border-radius:999px;
+ font-family:monospace;
+ font-size:10px;
+ font-weight:700;
+ letter-spacing:.04em;
+}
+.vehicle-status.ready{
+ color:#176a62;
+ background:#dff1ed;
+}
+.vehicle-status.simulated{
+ color:#786221;
+ background:#f2ebcf;
+}
+.vehicle-status.inactive{
+ color:#66727a;
+ background:#e7edef;
+}
+.vehicle-actions{
+ margin-top:22px;
+}
+.vehicle-note{
+ margin:18px 0 0;
+ color:#607880;
+ font-family:monospace;
+ font-size:10px;
+ line-height:1.6;
+ letter-spacing:.03em;
+}
+@media(max-width:800px){
+ .vehicle-grid{
+  grid-template-columns:1fr;
+ }
+}
+
 </style>
   <link rel="manifest" href="manifest.json">
 </head>
 
 <body>
-<div style="text-align:center;padding:12px;background:#f3dfb8;border-bottom:1px solid #d2b77d;">
+<div style="text-align:center;padding:12px;background:#dceff2;border-bottom:1px solid #bfd9df;">
   <a href="https://e-zero-dashboard.onrender.com/dashboard"
      target="_blank"
      rel="noopener"
-     style="display:inline-block;padding:12px 22px;background:#16b8cf;color:white;text-decoration:none;border-radius:6px;font-weight:700;">
+     style="display:inline-block;padding:12px 22px;background:#238fa3;color:#f8fdff;text-decoration:none;border-radius:6px;font-weight:700;">
      🚀 Launch E-ZERO Live Dashboard
   </a>
 </div>
 
-<div style="text-align:center;padding:12px;background:#eef1f0;border-bottom:1px solid #d7dedc;">
+<div style="text-align:center;padding:12px;background:#edf4f6;border-bottom:1px solid #d2e1e5;">
   <a href="https://doi.org/10.5281/zenodo.21428935"
      target="_blank"
      rel="noopener"
-     style="display:inline-block;padding:12px 22px;background:#4e7089;color:white;text-decoration:none;border-radius:6px;font-weight:700;">
+     style="display:inline-block;padding:12px 22px;background:#587d91;color:#f8fdff;text-decoration:none;border-radius:6px;font-weight:700;">
      📄 Read the E-ZERO Research Paper (DOI)
   </a>
 </div>
@@ -218,6 +360,7 @@ svg{width:100%;height:auto;background:white;border:1px solid var(--line)}
  </div>
  <nav>
   <a href="#try">Run Test</a>
+   <a href="#vehicle-obd">Vehicle / OBD</a>
   <a href="#method">Method</a>
   <a href="#limits">Limits</a>
   <a href="#api">API</a>
@@ -230,6 +373,10 @@ svg{width:100%;height:auto;background:white;border:1px solid var(--line)}
 </div>
 
 <div class="wrap">
+
+<div class="creator-line">
+ Created by <strong>Qamar Abbas Cheema</strong>
+</div>
 
 <section class="hero">
  <div class="eyebrow">Degree-Preserving Null-Model Testing</div>
@@ -296,6 +443,84 @@ svg{width:100%;height:auto;background:white;border:1px solid var(--line)}
    DEGREE-PRESERVING NULL
   </text>
  </svg>
+</section>
+
+
+<section id="vehicle-obd" class="vehicle-obd-section">
+ <div class="eyebrow">Vehicle Intelligence / Read-Only OBD</div>
+
+ <h2>Vehicle Sensor & OBD Intelligence</h2>
+
+ <p class="sub vehicle-intro">
+  E-ZERO now includes evidence-aware vehicle sensor screening and a
+  hardened read-only OBD software stack. The current public interface
+  does not control or change vehicle state.
+ </p>
+
+ <div class="vehicle-grid">
+
+  <div class="vehicle-card">
+   <span class="vehicle-status ready">READY</span>
+   <h3>Vehicle Sensor Screening</h3>
+   <p>
+    Reference-range screening with operating context,
+    provenance and clear out-of-range reporting.
+   </p>
+  </div>
+
+  <div class="vehicle-card">
+   <span class="vehicle-status ready">V0.2 VALIDATED</span>
+   <h3>Read-Only OBD Stack</h3>
+   <p>
+    Hardened read-only software path for supported OBD data,
+    with unsafe vehicle-control commands blocked.
+   </p>
+  </div>
+
+  <div class="vehicle-card">
+   <span class="vehicle-status simulated">SIMULATED</span>
+   <h3>OBD Simulator / Replay</h3>
+   <p>
+    Deterministic A–H scenarios and replay validation with
+    explicit SIMULATED and LOG_REPLAY provenance.
+   </p>
+  </div>
+
+  <div class="vehicle-card">
+   <span class="vehicle-status inactive">NOT ACTIVE</span>
+   <h3>Physical Vehicle Link</h3>
+   <p>
+    Real physical OBD hardware connection remains a later
+    validation stage. No vehicle control is enabled.
+   </p>
+  </div>
+
+ </div>
+
+ <div class="actions vehicle-actions">
+  <a
+   class="btn"
+   href="https://e-zero-dashboard.onrender.com/dashboard#sensor-screening-panel"
+   target="_blank"
+   rel="noopener"
+  >
+   Open Vehicle Dashboard
+  </a>
+
+  <a
+   class="btn ghost"
+   href="https://e-zero-dashboard.onrender.com/dashboard#sensor-screening-panel"
+   target="_blank"
+   rel="noopener"
+  >
+   Vehicle Sensor Screening
+  </a>
+ </div>
+
+ <p class="vehicle-note">
+  READ-ONLY POLICY · MODE 04 / CLEAR DTC DISABLED ·
+  NO CODING · NO ACTUATOR CONTROL · NO ECU FLASHING
+ </p>
 </section>
 
 <section id="try">
