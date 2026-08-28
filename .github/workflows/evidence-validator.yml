@@ -1,0 +1,36 @@
+name: Evidence Registry Validator
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate-evidence:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate evidence registry
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p validation_logs
+          DATE="$(date -u +%Y-%m-%d)"
+          python scripts/validate_evidence_registry.py \
+            | tee "validation_logs/evidence_registry_validation_ci_${DATE}_run-${GITHUB_RUN_ID}.log"
+
+      - name: Preserve validation log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidence-validator-log-${{ github.run_id }}
+          path: validation_logs/evidence_registry_validation_ci_*.log
+          if-no-files-found: warn
