@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "registry_name": "E-ZERO Evidence Registry",
-  "last_verified": "2026-08-21",
+  "last_verified": "2026-08-28",
   "principle": "Scientific claims are data, not UI text.",
   "modules": [
     {
@@ -26,7 +26,7 @@
     },
     {
       "module_id": "benchmark002",
-      "display_name": "Benchmark 002 — Non-Gaussian Telemetry Validation",
+      "display_name": "Benchmark 002 \u2014 Non-Gaussian Telemetry Validation",
       "status": "CLOSED_FROZEN",
       "scope": "Controlled computational validation under registered non-Gaussian telemetry conditions.",
       "evidence_status": "PASS",
@@ -56,7 +56,7 @@
     },
     {
       "module_id": "benchmark003",
-      "display_name": "Benchmark 003 — Distribution-Shift Stress Test",
+      "display_name": "Benchmark 003 \u2014 Distribution-Shift Stress Test",
       "status": "CLOSED_FROZEN",
       "scope": "Controlled computational stress testing across Gaussian, Laplace, Student-t df3 and Uniform noise families.",
       "evidence_status": "FAIL",
@@ -88,7 +88,7 @@
     },
     {
       "module_id": "benchmark004",
-      "display_name": "Benchmark 004 — Frozen Held-Out Detector Validation",
+      "display_name": "Benchmark 004 \u2014 Frozen Held-Out Detector Validation",
       "status": "CLOSED_FROZEN",
       "scope": "First frozen held-out evaluation on seeds 4201-4210, with no post-result detector retuning.",
       "evidence_status": "FAIL",
@@ -123,7 +123,7 @@
     },
     {
       "module_id": "benchmark005",
-      "display_name": "Benchmark 005 — Multisensor Fault Diagnosis",
+      "display_name": "Benchmark 005 \u2014 Multisensor Fault Diagnosis",
       "status": "CLOSED_FROZEN",
       "scope": "Controlled synthetic multisensor fault detection and subsystem localization across registered operating regimes, non-Gaussian noise families and held-out seeds.",
       "evidence_status": "PASS",
@@ -154,7 +154,7 @@
     },
     {
       "module_id": "benchmark006",
-      "display_name": "Benchmark 006 — GSRL External Validation Readiness",
+      "display_name": "Benchmark 006 \u2014 GSRL External Validation Readiness",
       "status": "DEVELOPMENT",
       "scope": "Pre-registered readiness for an independently supplied external benchmark specification, with immutable intake, hashing and audit controls prepared before execution.",
       "evidence_status": "PARTIAL",
@@ -172,6 +172,35 @@
       ],
       "public_use": true,
       "public_url": "https://coma39658-ctrl.github.io/null-bench/data/benchmark006_public_readiness.json"
+    },
+    {
+      "module_id": "obd_wifi_tcp_loopback_validation_v0_1",
+      "display_name": "Read-Only OBD \u2014 Wi-Fi TCP Loopback Validation V0.1",
+      "status": "DEVELOPMENT",
+      "scope": "Localhost-only Wi-Fi TCP transport validation for the E-ZERO read-only OBD stack, including ELM/STN text-protocol normalization, session integration and deterministic failure-state mapping.",
+      "evidence_status": "PASS",
+      "evidence_reference": {
+        "repository": "coma39658-ctrl/E-ZERO-Dashboard",
+        "branch": "obd-hardware-activation-prep-v0.1",
+        "commit": "8b2076bccd413cc38814f1af1dde3f585f93132c",
+        "regression_suite": "python -m unittest discover -v"
+      },
+      "metrics": {
+        "regression_tests_total": 414,
+        "regression_tests_passed": 414,
+        "targeted_loopback_tests_total": 26,
+        "targeted_loopback_tests_passed": 26
+      },
+      "what_this_means": "The localhost-only Wi-Fi TCP OBD transport path passed the registered software regression and targeted integration tests under the tested non-vehicle conditions.",
+      "limitations": [
+        "This is localhost/non-vehicle validation and is not real-vehicle validation.",
+        "No physical OBD adapter or vehicle was connected during this validation.",
+        "This evidence does not establish REAL_OBD provenance.",
+        "No vehicle-control capability is enabled or authorized.",
+        "The result does not establish automotive safety certification or universal hardware compatibility."
+      ],
+      "public_use": true,
+      "public_url": "https://coma39658-ctrl.github.io/null-bench/#vehicle-obd"
     }
   ]
 }
