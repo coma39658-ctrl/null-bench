@@ -566,6 +566,14 @@ svg{
    </p>
   </div>
 
+  <div class="vehicle-card" id="obd-v3-validation-card">
+   <span class="vehicle-status ready" id="obdV3Status">LOADING</span>
+   <h3>Wi-Fi TCP Network-Capable Bench Validation V0.3</h3>
+   <p id="obdV3Summary">Loading validated evidence registry…</p>
+   <p id="obdV3Boundary" class="sub"></p>
+   <p><a href="#evidence">View validated evidence &amp; limitations</a></p>
+  </div>
+
   <div class="vehicle-card">
    <span class="vehicle-status simulated">SIMULATED</span>
    <h3>OBD Simulator / Replay</h3>
@@ -883,7 +891,35 @@ b,c
     " · Modules: " +
     registry.modules.length;
 
-   registry.modules.forEach(function(module){
+   const obdV3 = registry.modules.find(function(module){
+     return module.module_id === "obd_wifi_tcp_network_capable_bench_validation_v0_3";
+    });
+
+    if(obdV3){
+     const v3Status = document.getElementById("obdV3Status");
+     const v3Summary = document.getElementById("obdV3Summary");
+     const v3Boundary = document.getElementById("obdV3Boundary");
+     const m = obdV3.metrics || {};
+
+     if(v3Status){
+      v3Status.textContent =
+       String(m.preregistered_requirements_passed) + "/" +
+       String(m.preregistered_requirements_total) + " PASS";
+     }
+
+     if(v3Summary){
+      v3Summary.textContent =
+       "Pre-registered network-capable bench validation passed. Full regression: " +
+       String(m.regression_tests_passed) + "/" +
+       String(m.regression_tests_total) + " PASS.";
+     }
+
+     if(v3Boundary){
+      v3Boundary.textContent = (obdV3.limitations || []).slice(0,3).join(" ");
+     }
+    }
+
+    registry.modules.forEach(function(module){
     const card = document.createElement("article");
     card.className = "evidence-card";
 

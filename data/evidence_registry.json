@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "registry_name": "E-ZERO Evidence Registry",
-  "last_verified": "2026-08-28",
+  "last_verified": "2026-08-29",
   "principle": "Scientific claims are data, not UI text.",
   "modules": [
     {
@@ -198,6 +198,41 @@
         "This evidence does not establish REAL_OBD provenance.",
         "No vehicle-control capability is enabled or authorized.",
         "The result does not establish automotive safety certification or universal hardware compatibility."
+      ],
+      "public_use": true,
+      "public_url": "https://coma39658-ctrl.github.io/null-bench/#vehicle-obd"
+    },
+    {
+      "module_id": "obd_wifi_tcp_network_capable_bench_validation_v0_3",
+      "display_name": "Read-Only OBD \u2014 Wi-Fi TCP Network-Capable Bench Validation V0.3",
+      "status": "CLOSED_FROZEN",
+      "scope": "Network-capable Wi-Fi TCP physical-backend code path validated under pre-registered non-vehicle bench conditions using deterministic mocked socket infrastructure. Real network activation remained disabled by default.",
+      "evidence_status": "PASS",
+      "evidence_reference": {
+        "repository": "coma39658-ctrl/E-ZERO-Dashboard",
+        "branch": "obd-hardware-activation-prep-v0.1",
+        "implementation_commit": "59aaf6e8783c02ceb16d129734a52d095f813afd",
+        "audit_commit": "e8d6d14fd6fe3a2eec871a41cd4107a9b61114cb",
+        "tag": "ezero-obd-network-capable-bench-validation-v0.3",
+        "regression_suite": "python -m unittest discover -v"
+      },
+      "metrics": {
+        "legacy_physical_skeleton_tests_total": 13,
+        "legacy_physical_skeleton_tests_passed": 13,
+        "targeted_preregistered_tests_total": 24,
+        "targeted_preregistered_tests_passed": 24,
+        "preregistered_requirements_total": 25,
+        "preregistered_requirements_passed": 25,
+        "regression_tests_total": 453,
+        "regression_tests_passed": 453
+      },
+      "what_this_means": "The pre-registered network-capable Wi-Fi TCP physical-backend bench-validation stage passed all 25 requirements under mocked non-vehicle conditions while preserving the read-only safety boundary and separate network-activation gate.",
+      "limitations": [
+        "No real OBD adapter or real vehicle was connected during this validation.",
+        "REAL_NETWORK_ACTIVATION_ALLOWED remained false by default and real network activation is not authorized.",
+        "This evidence does not establish REAL_OBD provenance.",
+        "diagnostic_claim remains false; transport validation is not a vehicle diagnosis.",
+        "This result does not establish automotive safety certification, universal hardware compatibility, fault-localization validation, RUL validation or commercial certification."
       ],
       "public_use": true,
       "public_url": "https://coma39658-ctrl.github.io/null-bench/#vehicle-obd"
