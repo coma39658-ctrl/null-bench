@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "registry_name": "E-ZERO Evidence Registry",
-  "last_verified": "2026-08-29",
+  "last_verified": "2026-08-31",
   "principle": "Scientific claims are data, not UI text.",
   "modules": [
     {
@@ -233,6 +233,42 @@
         "This evidence does not establish REAL_OBD provenance.",
         "diagnostic_claim remains false; transport validation is not a vehicle diagnosis.",
         "This result does not establish automotive safety certification, universal hardware compatibility, fault-localization validation, RUL validation or commercial certification."
+      ],
+      "public_use": true,
+      "public_url": "https://coma39658-ctrl.github.io/null-bench/#vehicle-obd"
+    },
+    {
+      "module_id": "obd_ble_mock_backend_software_validation_v0_1",
+      "display_name": "Read-Only OBD \u2014 BLE Mock Backend Software Validation V0.1",
+      "status": "CLOSED_FROZEN",
+      "scope": "Deterministic software/mock validation of the E-ZERO BLE transport backend using explicit BLE service/characteristic profile metadata, central read-only command policy, exact timeout contracts, mocked process-local single-session enforcement, and zero real BLE/GATT I/O.",
+      "evidence_status": "PASS",
+      "evidence_reference": {
+        "repository": "coma39658-ctrl/E-ZERO-Dashboard",
+        "branch": "obd-hardware-activation-prep-v0.1",
+        "implementation_commit": "27e4e1ac07a98464311e9d0b8b4afb53f64115f4",
+        "audit_commit": "6677d86668ea6196f974f413921caad6b4a8c37f",
+        "tag": "ezero-obd-mocked-ble-backend-implementation-v0.1",
+        "profile_spec_tag": "ezero-obd-ble-service-characteristic-profile-spec-v0.1",
+        "profile_implementation_tag": "ezero-obd-ble-service-characteristic-profile-implementation-v0.1",
+        "regression_suite": "python -m unittest discover -v"
+      },
+      "metrics": {
+        "dedicated_tests_total": 30,
+        "dedicated_tests_passed": 30,
+        "targeted_regression_tests_total": 100,
+        "targeted_regression_tests_passed": 100,
+        "full_regression_tests_total": 583,
+        "full_regression_tests_passed": 583
+      },
+      "what_this_means": "The frozen mocked BLE backend software milestone passed its dedicated, targeted, and full regression suites while preserving explicit BLE profile roles, the central read-only safety boundary, exact timeout contracts, deterministic mocked single-session behavior, simulated provenance, and zero real BLE/GATT activity.",
+      "limitations": [
+        "No real BLE adapter or physical GATT connection was used during this validation.",
+        "No BLE scanning, pairing, bonding, real service discovery, characteristic read/write, or subscription was performed.",
+        "No ECU or real vehicle was contacted.",
+        "This evidence does not establish REAL_OBD provenance.",
+        "diagnostic_claim remains false; software/mock transport validation is not a vehicle diagnosis.",
+        "This result does not establish physical BLE interoperability, universal adapter compatibility, automotive safety certification, fault-localization validity, RUL validity, or commercial diagnostic certification."
       ],
       "public_use": true,
       "public_url": "https://coma39658-ctrl.github.io/null-bench/#vehicle-obd"

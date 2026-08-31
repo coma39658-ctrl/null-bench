@@ -568,6 +568,14 @@ svg{
    <p><a href="#evidence">View validated evidence &amp; limitations</a></p>
   </div>
 
+  <div class="vehicle-card" id="obd-ble-v1-validation-card">
+   <span class="vehicle-status ready" id="obdBleV1Status">LOADING</span>
+   <h3>BLE Mock Backend Software Validation V0.1</h3>
+   <p id="obdBleV1Summary">Loading validated evidence registry…</p>
+   <p id="obdBleV1Boundary" class="sub"></p>
+   <p><a href="#evidence">View validated evidence &amp; limitations</a></p>
+  </div>
+
   <div class="vehicle-card">
    <span class="vehicle-status simulated">SIMULATED</span>
    <h3>OBD Simulator / Replay</h3>
@@ -910,6 +918,32 @@ b,c
 
      if(v3Boundary){
       v3Boundary.textContent = (obdV3.limitations || []).slice(0,3).join(" ");
+     }
+    }
+
+    const obdBleV1 = registry.modules.find(function(module){
+     return module.module_id === "obd_ble_mock_backend_software_validation_v0_1";
+    });
+
+    if(obdBleV1){
+     const bleStatus = document.getElementById("obdBleV1Status");
+     const bleSummary = document.getElementById("obdBleV1Summary");
+     const bleBoundary = document.getElementById("obdBleV1Boundary");
+     const m = obdBleV1.metrics || {};
+
+     if(bleStatus){
+      bleStatus.textContent =
+       String(m.dedicated_tests_passed) + "/" +
+       String(m.dedicated_tests_total) + " PASS";
+     }
+
+     if(bleSummary){
+      bleSummary.textContent = obdBleV1.what_this_means;
+     }
+
+     if(bleBoundary){
+      bleBoundary.textContent =
+       (obdBleV1.limitations || []).slice(0,3).join(" ");
      }
     }
 
