@@ -276,15 +276,19 @@
     {
       "module_id": "industrial_public_demo_readiness_v0_1",
       "display_name": "Industrial Intelligence \u2014 Public Demo Readiness V0.1",
-      "status": "DEVELOPMENT",
+      "status": "CLOSED_FROZEN",
       "scope": "Controlled public-software-demo readiness for E-ZERO Industrial Intelligence using frozen simulated/log-replay, sensor-quality, textile/garment profile, end-to-end demo-flow, and free read-only field-validation safety milestones. Public release is not yet authorized.",
-      "evidence_status": "PARTIAL",
+      "evidence_status": "PASS",
       "evidence_reference": {
         "repository": "coma39658-ctrl/ezero-industrial-intelligence-condition-monitoring",
         "readiness_spec_commit": "c86d4ff39a86cfb56fa130232d826ab30ae7a6c3",
         "readiness_spec_tag": "ezero-industrial-public-demo-readiness-spec-v0.1",
         "end_to_end_implementation_tag": "ezero-industrial-end-to-end-demo-flow-implementation-v0.1",
-        "field_validation_implementation_tag": "ezero-free-read-only-field-validation-implementation-v0.1"
+        "field_validation_implementation_tag": "ezero-free-read-only-field-validation-implementation-v0.1",
+        "readiness_audit_commit": "bd16922d8203805fec0488a9188395e931058a68",
+        "tag": "ezero-industrial-public-demo-readiness-v0.1",
+        "real_sensor_software_tag": "ezero-industrial-real-sensor-read-only-acquisition-implementation-v0.1",
+        "public_validation_log": "validation_logs/evidence_registry_validation_industrial_public_readiness_2026-09-02.log"
       },
       "metrics": {
         "industrial_full_regression_tests_total": 64,
@@ -294,15 +298,16 @@
         "end_to_end_demo_dedicated_tests_total": 8,
         "end_to_end_demo_dedicated_tests_passed": 8
       },
-      "what_this_means": "The industrial software stack and its public-readiness specification are frozen and currently passing their recorded software regressions, but the public Industrial Intelligence interface, evidence-registry release validation, preserved public validation log, and final website release verification are still pending.",
+      "what_this_means": "The E-ZERO Industrial Intelligence controlled public software demo is live and evidence-registry backed. The registered public-readiness validation passed with zero errors and zero warnings. Public industrial inputs remain limited to SIMULATED and approved LOG_REPLAY evidence.",
       "limitations": [
-        "The Industrial Intelligence public interface has not yet been released.",
-        "Public evidence-registry validation and a preserved release validation log are still pending.",
         "REAL_SENSOR is not authorized for the public demo; public demo inputs remain SIMULATED and approved LOG_REPLAY only.",
-        "The free read-only field-validation milestone is a software safety gate and does not establish live machine connection or successful real-sensor acquisition.",
-        "No real industrial-machine validation, diagnosis, root-cause proof, causality, failure-prediction validation, RUL validation, safety certification, maintenance certification, or universal machine compatibility is established."
+        "The separately validated real-sensor acquisition software is software-only and does not establish successful physical sensor or live machine connection.",
+        "The public interface provides condition screening and evidence visibility, not diagnosis, root cause, causality, confirmed component failure, failure prediction, or RUL validation.",
+        "No industrial safety certification, maintenance certification, regulatory approval, universal protocol compatibility, or universal machine compatibility is established.",
+        "No PLC/VFD write, actuator-control, machine-control, or autonomous-control authority is provided."
       ],
-      "public_use": false
+      "public_use": true,
+      "public_url": "https://coma39658-ctrl.github.io/null-bench/#industrial-intelligence"
     }
   ]
 }
