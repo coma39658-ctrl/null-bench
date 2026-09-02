@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "registry_name": "E-ZERO Evidence Registry",
-  "last_verified": "2026-08-31",
+  "last_verified": "2026-09-02",
   "principle": "Scientific claims are data, not UI text.",
   "modules": [
     {
@@ -272,6 +272,37 @@
       ],
       "public_use": true,
       "public_url": "https://coma39658-ctrl.github.io/null-bench/#vehicle-obd"
+    },
+    {
+      "module_id": "industrial_public_demo_readiness_v0_1",
+      "display_name": "Industrial Intelligence \u2014 Public Demo Readiness V0.1",
+      "status": "DEVELOPMENT",
+      "scope": "Controlled public-software-demo readiness for E-ZERO Industrial Intelligence using frozen simulated/log-replay, sensor-quality, textile/garment profile, end-to-end demo-flow, and free read-only field-validation safety milestones. Public release is not yet authorized.",
+      "evidence_status": "PARTIAL",
+      "evidence_reference": {
+        "repository": "coma39658-ctrl/ezero-industrial-intelligence-condition-monitoring",
+        "readiness_spec_commit": "c86d4ff39a86cfb56fa130232d826ab30ae7a6c3",
+        "readiness_spec_tag": "ezero-industrial-public-demo-readiness-spec-v0.1",
+        "end_to_end_implementation_tag": "ezero-industrial-end-to-end-demo-flow-implementation-v0.1",
+        "field_validation_implementation_tag": "ezero-free-read-only-field-validation-implementation-v0.1"
+      },
+      "metrics": {
+        "industrial_full_regression_tests_total": 64,
+        "industrial_full_regression_tests_passed": 64,
+        "field_validation_dedicated_tests_total": 10,
+        "field_validation_dedicated_tests_passed": 10,
+        "end_to_end_demo_dedicated_tests_total": 8,
+        "end_to_end_demo_dedicated_tests_passed": 8
+      },
+      "what_this_means": "The industrial software stack and its public-readiness specification are frozen and currently passing their recorded software regressions, but the public Industrial Intelligence interface, evidence-registry release validation, preserved public validation log, and final website release verification are still pending.",
+      "limitations": [
+        "The Industrial Intelligence public interface has not yet been released.",
+        "Public evidence-registry validation and a preserved release validation log are still pending.",
+        "REAL_SENSOR is not authorized for the public demo; public demo inputs remain SIMULATED and approved LOG_REPLAY only.",
+        "The free read-only field-validation milestone is a software safety gate and does not establish live machine connection or successful real-sensor acquisition.",
+        "No real industrial-machine validation, diagnosis, root-cause proof, causality, failure-prediction validation, RUL validation, safety certification, maintenance certification, or universal machine compatibility is established."
+      ],
+      "public_use": false
     }
   ]
 }
