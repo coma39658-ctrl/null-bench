@@ -277,7 +277,7 @@
       "module_id": "industrial_public_demo_readiness_v0_1",
       "display_name": "Industrial Intelligence \u2014 Public Demo Readiness V0.1",
       "status": "CLOSED_FROZEN",
-      "scope": "Controlled public-software-demo readiness for E-ZERO Industrial Intelligence using frozen simulated/log-replay, sensor-quality, textile/garment profile, end-to-end demo-flow, and free read-only field-validation safety milestones. Public release is not yet authorized.",
+      "scope": "Controlled public-software-demo readiness for E-ZERO Industrial Intelligence using frozen simulated/log-replay, sensor-quality, textile/garment profile, end-to-end demo-flow, and free read-only field-validation safety milestones. The controlled public software demo is released; REAL_SENSOR public acquisition remains unauthorized.",
       "evidence_status": "PASS",
       "evidence_reference": {
         "repository": "coma39658-ctrl/ezero-industrial-intelligence-condition-monitoring",
