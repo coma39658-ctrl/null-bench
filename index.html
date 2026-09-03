@@ -840,13 +840,7 @@ svg{
 
  <div class="vehicle-grid">
 
-  <div class="vehicle-card">
-   <span class="vehicle-status ready" id="fleetSharedStatus">LOADING</span>
-   <h3>Software Validation V0.1</h3>
-   <p id="fleetSharedSummary">Loading validated evidence registry…</p>
-   <p id="fleetSharedBoundary" class="sub"></p>
-   <p><a href="#evidence">View evidence &amp; limitations</a></p>
-  </div>
+
 
   <div class="vehicle-card">
    <span class="vehicle-status ready">500+ VEHICLE SEARCH</span>
@@ -877,7 +871,30 @@ svg{
 
  </div>
 
- <p class="vehicle-note">
+
+<details id="fleet-technical-evidence" class="public-obd-evidence">
+ <summary>Show Technical Evidence &amp; Validation</summary>
+
+ <div class="vehicle-grid">
+<div class="vehicle-card">
+   <span class="vehicle-status ready" id="fleetSharedStatus">LOADING</span>
+   <h3>Software Validation V0.1</h3>
+   <p id="fleetSharedSummary">Loading validated evidence registry…</p>
+   <p id="fleetSharedBoundary" class="sub"></p>
+   <p><a href="#evidence">View evidence &amp; limitations</a></p>
+  </div>
+ </div>
+
+ <p class="sub">
+  Software validation evidence only. Live GPS, real tracker integration,
+  physical proximity validation, and public precise-location deployment
+  are not established by this evidence.
+ </p>
+
+ <p><a href="#evidence">Open Full Evidence Registry</a></p>
+</details>
+
+<p class="vehicle-note">
   SOFTWARE VALIDATED · PRIVATE AUTHORIZED ACCESS ·
   PUBLIC PRECISE LOCATION DISABLED · NO VEHICLE CONTROL ·
   LIVE GPS / REAL TRACKER FIELD VALIDATION PENDING
