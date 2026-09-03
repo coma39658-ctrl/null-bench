@@ -591,50 +591,13 @@ svg{
 
  <div class="vehicle-grid">
 
-  <div class="vehicle-card">
-   <span class="vehicle-status ready">READY</span>
-   <h3>Vehicle Sensor Screening</h3>
-   <p>
-    Reference-range screening with operating context,
-    provenance and clear out-of-range reporting.
-   </p>
-  </div>
 
-  <div class="vehicle-card">
-   <span class="vehicle-status ready">V0.2 SOFTWARE VALIDATED</span>
-   <h3>Read-Only OBD Stack</h3>
-   <p>
-    Hardened read-only software path for supported OBD data,
-    with unsafe vehicle-control commands blocked.
-    Software/read-only stack validation only; not real-vehicle or physical-hardware validation.
-   </p>
-  </div>
 
-  <div class="vehicle-card">
-   <span class="vehicle-status ready">414/414 PASS</span>
-   <h3>Wi-Fi TCP Loopback Validation</h3>
-   <p>
-    Localhost-only ELM/STN protocol and session validation,
-    including READ_TIMEOUT, ECU_NO_RESPONSE, INVALID_RESPONSE
-    and ADAPTER_ERROR handling. No real vehicle connection is active.
-   </p>
-  </div>
 
-  <div class="vehicle-card" id="obd-v3-validation-card">
-   <span class="vehicle-status ready" id="obdV3Status">LOADING</span>
-   <h3>Wi-Fi TCP Network-Capable Bench Validation V0.3</h3>
-   <p id="obdV3Summary">Loading validated evidence registry…</p>
-   <p id="obdV3Boundary" class="sub"></p>
-   <p><a href="#evidence">View validated evidence &amp; limitations</a></p>
-  </div>
 
-  <div class="vehicle-card" id="obd-ble-v1-validation-card">
-   <span class="vehicle-status ready" id="obdBleV1Status">LOADING</span>
-   <h3>BLE Mock Backend Software Validation V0.1</h3>
-   <p id="obdBleV1Summary">Loading validated evidence registry…</p>
-   <p id="obdBleV1Boundary" class="sub"></p>
-   <p><a href="#evidence">View validated evidence &amp; limitations</a></p>
-  </div>
+
+
+
 
   <div class="vehicle-card">
    <span class="vehicle-status simulated">SIMULATED</span>
@@ -656,7 +619,63 @@ svg{
 
  </div>
 
- <div class="actions vehicle-actions">
+
+<details id="vehicle-obd-technical-evidence" class="public-obd-evidence">
+ <summary>Show Technical Evidence &amp; Validation</summary>
+
+ <div class="vehicle-grid">
+<div class="vehicle-card">
+   <span class="vehicle-status ready">READY</span>
+   <h3>Vehicle Sensor Screening</h3>
+   <p>
+    Reference-range screening with operating context,
+    provenance and clear out-of-range reporting.
+   </p>
+  </div>
+
+  <div class="vehicle-card">
+   <span class="vehicle-status ready">V0.2 SOFTWARE VALIDATED</span>
+   <h3>Read-Only OBD Stack</h3>
+   <p>
+    Hardened read-only software path for supported OBD data,
+    with unsafe vehicle-control commands blocked.
+    Software/read-only stack validation only; not real-vehicle or physical-hardware validation.
+   </p>
+  </div>
+<div class="vehicle-card">
+   <span class="vehicle-status ready">414/414 PASS</span>
+   <h3>Wi-Fi TCP Loopback Validation</h3>
+   <p>
+    Localhost-only ELM/STN protocol and session validation,
+    including READ_TIMEOUT, ECU_NO_RESPONSE, INVALID_RESPONSE
+    and ADAPTER_ERROR handling. No real vehicle connection is active.
+   </p>
+  </div>
+<div class="vehicle-card" id="obd-v3-validation-card">
+   <span class="vehicle-status ready" id="obdV3Status">LOADING</span>
+   <h3>Wi-Fi TCP Network-Capable Bench Validation V0.3</h3>
+   <p id="obdV3Summary">Loading validated evidence registry…</p>
+   <p id="obdV3Boundary" class="sub"></p>
+   <p><a href="#evidence">View validated evidence &amp; limitations</a></p>
+  </div>
+<div class="vehicle-card" id="obd-ble-v1-validation-card">
+   <span class="vehicle-status ready" id="obdBleV1Status">LOADING</span>
+   <h3>BLE Mock Backend Software Validation V0.1</h3>
+   <p id="obdBleV1Summary">Loading validated evidence registry…</p>
+   <p id="obdBleV1Boundary" class="sub"></p>
+   <p><a href="#evidence">View validated evidence &amp; limitations</a></p>
+  </div>
+ </div>
+
+ <p class="sub">
+  Software validation evidence only. These records do not establish
+  real-vehicle, physical-hardware, diagnostic, or control validation.
+ </p>
+
+ <p><a href="#evidence">Open Full Evidence Registry</a></p>
+</details>
+
+<div class="actions vehicle-actions">
   <a
    class="btn"
    href="https://e-zero-dashboard.onrender.com/dashboard#sensor-screening-panel"
