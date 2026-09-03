@@ -434,6 +434,7 @@ svg{
   <a href="#try">Run Test</a>
    <a href="#vehicle-obd">Vehicle / OBD</a>
   <a href="#industrial-intelligence">Industrial</a>
+  <a href="#fleet-shared-access">Fleet</a>
   <a href="#support">Support</a>
   <a href="#method">Method</a>
   <a href="#limits">Limits</a>
@@ -729,6 +730,62 @@ svg{
   PUBLIC DEMO: SIMULATED / APPROVED LOG_REPLAY ONLY ·
   REAL_SENSOR NOT PUBLIC · READ-ONLY · NO PLC/VFD CONTROL ·
   NO DIAGNOSTIC OR RUL CLAIM
+ </p>
+</section>
+
+<section id="fleet-shared-access" class="vehicle-obd-section">
+ <div class="eyebrow">Fleet Intelligence / Shared Access</div>
+
+ <h2>Fleet & Shared Vehicle Access</h2>
+
+ <p class="sub vehicle-intro">
+  E-ZERO includes a software-validated private fleet-access layer for
+  authorized owners, families, partners, drivers, and fleet managers.
+ </p>
+
+ <div class="vehicle-grid">
+
+  <div class="vehicle-card">
+   <span class="vehicle-status ready" id="fleetSharedStatus">LOADING</span>
+   <h3>Software Validation V0.1</h3>
+   <p id="fleetSharedSummary">Loading validated evidence registry…</p>
+   <p id="fleetSharedBoundary" class="sub"></p>
+   <p><a href="#evidence">View evidence &amp; limitations</a></p>
+  </div>
+
+  <div class="vehicle-card">
+   <span class="vehicle-status ready">500+ VEHICLE SEARCH</span>
+   <h3>Fleet Search</h3>
+   <p>
+    Authorized fleet search supports vehicle alias, license plate, VIN,
+    driver name, fleet ID, adapter ID, and tracker ID.
+   </p>
+  </div>
+
+  <div class="vehicle-card">
+   <span class="vehicle-status ready">SHARED ACCESS</span>
+   <h3>Family / Partner / Fleet Roles</h3>
+   <p>
+    Software roles include OWNER, CO_OWNER, FLEET_MANAGER, DRIVER, and VIEWER,
+    with vehicle-scoped permissions and connected/offline member presence.
+   </p>
+  </div>
+
+  <div class="vehicle-card">
+   <span class="vehicle-status inactive">LIVE GPS PENDING</span>
+   <h3>Current Location Boundary</h3>
+   <p>
+    Live GPS, real tracker integration, and physical proximity validation are
+    not yet field validated. Precise vehicle location is not public.
+   </p>
+  </div>
+
+ </div>
+
+ <p class="vehicle-note">
+  SOFTWARE VALIDATED · PRIVATE AUTHORIZED ACCESS ·
+  PUBLIC PRECISE LOCATION DISABLED · NO VEHICLE CONTROL ·
+  LIVE GPS / REAL TRACKER FIELD VALIDATION PENDING
  </p>
 </section>
 
@@ -1050,6 +1107,37 @@ b,c
     const industrialReadiness = registry.modules.find(function(module){
      return module.module_id === "industrial_public_demo_readiness_v0_1";
     });
+
+    const fleetSharedV1 = registry.modules.find(function(module){
+     return module.module_id === "owner_live_vehicle_shared_access_software_validation_v0_1";
+    });
+
+    if(fleetSharedV1){
+     const fleetSharedStatus =
+      document.getElementById("fleetSharedStatus");
+     const fleetSharedSummary =
+      document.getElementById("fleetSharedSummary");
+     const fleetSharedBoundary =
+      document.getElementById("fleetSharedBoundary");
+
+     const m = fleetSharedV1.metrics || {};
+
+     if(fleetSharedStatus){
+      fleetSharedStatus.textContent =
+       String(m.dedicated_tests_passed) + "/" +
+       String(m.dedicated_tests_total) + " PASS";
+     }
+
+     if(fleetSharedSummary){
+      fleetSharedSummary.textContent =
+       fleetSharedV1.what_this_means;
+     }
+
+     if(fleetSharedBoundary){
+      fleetSharedBoundary.textContent =
+       (fleetSharedV1.limitations || []).slice(0,3).join(" ");
+     }
+    }
 
     if(industrialReadiness){
      const industrialStatus =

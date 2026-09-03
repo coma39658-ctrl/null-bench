@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "registry_name": "E-ZERO Evidence Registry",
-  "last_verified": "2026-09-02",
+  "last_verified": "2026-09-03",
   "principle": "Scientific claims are data, not UI text.",
   "modules": [
     {
@@ -308,6 +308,42 @@
       ],
       "public_use": true,
       "public_url": "https://coma39658-ctrl.github.io/null-bench/#industrial-intelligence"
+    },
+    {
+      "module_id": "owner_live_vehicle_shared_access_software_validation_v0_1",
+      "display_name": "Fleet & Shared Access \u2014 Software Validation V0.1",
+      "status": "CLOSED_FROZEN",
+      "scope": "Software-only validation of E-ZERO owner/fleet vehicle search, shared family/partner access, role-based permissions, connected-member presence, cross-account isolation, and remote-location rejection logic. No live GPS, real tracker, or physical proximity validation was performed.",
+      "evidence_status": "PASS",
+      "evidence_reference": {
+        "repository": "coma39658-ctrl/E-ZERO-Dashboard",
+        "branch": "obd-hardware-activation-prep-v0.1",
+        "proximity_spec_commit": "1465b368db87195c6d3a0437060e4654a1c02363",
+        "proximity_spec_tag": "ezero-owner-live-vehicle-location-proximity-spec-v0.1",
+        "shared_access_addendum_commit": "2d07a307d6ded9fcb3e2cf7cef17898899dd60ae",
+        "shared_access_addendum_tag": "ezero-owner-live-vehicle-shared-access-addendum-v0.1",
+        "implementation_commit": "2ff49a2",
+        "audit_commit": "1c2221648669c4a0b8567acb5c3032551d31b99b",
+        "tag": "ezero-owner-live-vehicle-shared-access-implementation-v0.1",
+        "regression_suite": "python -m unittest discover -v"
+      },
+      "metrics": {
+        "dedicated_tests_total": 24,
+        "dedicated_tests_passed": 24,
+        "full_regression_tests_total": 607,
+        "full_regression_tests_passed": 607,
+        "validated_fleet_search_scale": 500
+      },
+      "what_this_means": "The software layer for authorized fleet search and shared vehicle access passed its dedicated and full regression suites. The validated software supports scoped search across a 500-vehicle test fleet, family/partner sharing, member roles, connected/offline presence, permission-aware search, and rejection of unverified remote mobile-location assertions.",
+      "limitations": [
+        "No live GPS tracking was performed.",
+        "No real GPS tracker, phone proximity, or physical OBD adapter proximity was validated.",
+        "Connected-member presence does not prove that a person or phone is physically near the vehicle.",
+        "Precise vehicle location is not authorized for public display.",
+        "This software validation does not establish anti-spoofing perfection, anti-theft accuracy, production identity-security certification, regulatory compliance, universal tracker compatibility, or vehicle-control capability."
+      ],
+      "public_use": true,
+      "public_url": "https://coma39658-ctrl.github.io/null-bench/#fleet-shared-access"
     }
   ]
 }
