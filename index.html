@@ -765,31 +765,9 @@ svg{
 
  <div class="vehicle-grid">
 
-  <div class="vehicle-card">
-   <span class="vehicle-status simulated" id="industrialReadinessStatus">LOADING</span>
-   <h3>Public Demo Readiness V0.1</h3>
-   <p id="industrialReadinessSummary">Loading evidence registry…</p>
-   <p id="industrialReadinessBoundary" class="sub"></p>
-   <p><a href="#evidence">View evidence &amp; limitations</a></p>
-  </div>
 
-  <div class="vehicle-card">
-   <span class="vehicle-status simulated">SIMULATED / LOG_REPLAY</span>
-   <h3>Current Public Data Boundary</h3>
-   <p>
-    Public industrial demonstrations use simulated data or approved replay
-    logs. REAL_SENSOR acquisition is not authorized in the public demo.
-   </p>
-  </div>
 
-  <div class="vehicle-card">
-   <span class="vehicle-status ready">READ-ONLY DESIGN</span>
-   <h3>Field Validation Safety Gate</h3>
-   <p>
-    A separate free read-only field-validation software safety gate has been
-    completed. It does not itself authorize live machinery connection.
-   </p>
-  </div>
+
 
   <div class="vehicle-card">
    <span class="vehicle-status inactive">NO DIAGNOSIS</span>
@@ -802,7 +780,48 @@ svg{
 
  </div>
 
- <p class="vehicle-note">
+
+<div class="vehicle-card">
+   <span class="vehicle-status simulated">SIMULATED / LOG_REPLAY</span>
+   <h3>Current Public Data Boundary</h3>
+   <p>
+    Public industrial demonstrations use simulated data or approved replay
+    logs. REAL_SENSOR acquisition is not authorized in the public demo.
+   </p>
+  </div>
+
+<details id="industrial-technical-evidence" class="public-obd-evidence">
+ <summary>Show Technical Evidence &amp; Validation</summary>
+
+ <div class="vehicle-grid">
+<div class="vehicle-card">
+   <span class="vehicle-status simulated" id="industrialReadinessStatus">LOADING</span>
+   <h3>Public Demo Readiness V0.1</h3>
+   <p id="industrialReadinessSummary">Loading evidence registry…</p>
+   <p id="industrialReadinessBoundary" class="sub"></p>
+   <p><a href="#evidence">View evidence &amp; limitations</a></p>
+  </div>
+
+
+  <div class="vehicle-card">
+   <span class="vehicle-status ready">READ-ONLY DESIGN</span>
+   <h3>Field Validation Safety Gate</h3>
+   <p>
+    A separate free read-only field-validation software safety gate has been
+    completed. It does not itself authorize live machinery connection.
+   </p>
+  </div>
+ </div>
+
+ <p class="sub">
+  Software/public-readiness evidence only. REAL_SENSOR acquisition and live
+  machinery connection are not established by these records.
+ </p>
+
+ <p><a href="#evidence">Open Full Evidence Registry</a></p>
+</details>
+
+<p class="vehicle-note">
   PUBLIC DEMO: SIMULATED / APPROVED LOG_REPLAY ONLY ·
   REAL_SENSOR NOT PUBLIC · READ-ONLY · NO PLC/VFD CONTROL ·
   NO DIAGNOSTIC OR RUL CLAIM
