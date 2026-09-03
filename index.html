@@ -431,16 +431,44 @@ svg{
   <span class="mark"></span>Null Bench
  </div>
  <nav>
-  <a href="#try">Run Test</a>
-   <a href="#vehicle-obd">Vehicle / OBD</a>
-  <a href="#industrial-intelligence">Industrial</a>
-  <a href="#fleet-shared-access">Fleet</a>
-  <a href="#support">Support</a>
-  <a href="#method">Method</a>
-  <a href="#limits">Limits</a>
-  <a href="#api">API</a>
-  <a href="#evidence">Evidence</a>
+  <a href="#try" data-i18n="run_test">Run Test</a>
+   <a href="#vehicle-obd" data-i18n="vehicle_obd">Vehicle / OBD</a>
+  <a href="#industrial-intelligence" data-i18n="industrial">Industrial</a>
+  <a href="#fleet-shared-access" data-i18n="fleet">Fleet</a>
+  <a href="#support" data-i18n="support">Support</a>
+  <a href="#method" data-i18n="method">Method</a>
+  <a href="#limits" data-i18n="limits">Limits</a>
+  <a href="#api" data-i18n="api">API</a>
+  <a href="#evidence" data-i18n="evidence">Evidence</a>
  </nav>
+
+<div id="languageControl" style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+ <label for="languageSelect" style="font-weight:700;white-space:nowrap;">
+  🌐 Language
+ </label>
+ <select
+  id="languageSelect"
+  aria-label="Select language"
+  style="padding:8px 10px;border-radius:6px;border:1px solid #9fb6bd;background:#ffffff;color:#1b2430;font-weight:600;"
+ >
+  <option value="en">English</option>
+  <option value="ar">العربية</option>
+  <option value="ur">اردو</option>
+  <option value="hi">हिंदी</option>
+  <option value="zh-CN">中文（简体）</option>
+  <option value="es">Español</option>
+  <option value="fr">Français</option>
+  <option value="pt">Português</option>
+  <option value="bn">বাংলা</option>
+  <option value="ru">Русский</option>
+  <option value="id">Bahasa Indonesia</option>
+  <option value="ja">日本語</option>
+  <option value="de">Deutsch</option>
+  <option value="tr">Türkçe</option>
+  <option value="ko">한국어</option>
+ </select>
+</div>
+
 </header>
 
 <div class="public-banner">
@@ -454,22 +482,19 @@ svg{
 </div>
 
 <section class="hero">
- <div class="eyebrow">E-ZERO Evidence-First Intelligence Platform</div>
+ <div class="eyebrow" data-i18n="hero_eyebrow">E-ZERO Evidence-First Intelligence Platform</div>
 
- <h1>
-  Evidence-first tools for testing, screening, and validating
-  <em>network, vehicle, industrial, and fleet data.</em>
+ <h1 data-i18n="hero_title">
+  Evidence-first tools for testing, screening, and validating network, vehicle, industrial, and fleet data.
  </h1>
 
- <p class="lede">
-  E-ZERO helps researchers, vehicle owners, industrial users, and fleet
-  operators inspect data with clear evidence, visible limitations, and
-  strict separation between software validation and real-world proof.
+ <p class="lede" data-i18n="hero_text">
+  E-ZERO helps users inspect data with clear evidence, visible limitations, and strict separation between software validation and real-world proof.
  </p>
 
  <div class="actions">
-  <a class="btn" href="#try">Run Null Bench</a>
-  <a class="btn ghost" href="#platform-modules">Explore E-ZERO Modules</a>
+  <a class="btn" href="#try" data-i18n="run_null_bench">Run Null Bench</a>
+  <a class="btn ghost" href="#platform-modules" data-i18n="explore_modules">Explore E-ZERO Modules</a>
  </div>
 
  <p class="vehicle-note">
@@ -527,7 +552,7 @@ svg{
 
 <section id="platform-modules" class="vehicle-obd-section">
  <div class="eyebrow">E-ZERO Platform Modules</div>
- <h2>Choose What You Want to Explore</h2>
+ <h2 data-i18n="modules_title">Choose What You Want to Explore</h2>
 
  <p class="sub vehicle-intro">
   Start with the tool that matches your need. Technical evidence and
@@ -538,8 +563,8 @@ svg{
 
   <div class="vehicle-card">
    <span class="vehicle-status ready">LIVE TOOL</span>
-   <h3>Null Bench</h3>
-   <p>Test whether a network pattern stands out from degree-preserving random rewiring.</p>
+   <h3 data-i18n="null_bench">Null Bench</h3>
+   <p data-i18n="null_bench_benefit">Test whether a network pattern stands out from degree-preserving random rewiring.</p>
    <div class="actions">
     <a class="btn" href="#try">Run a Free Test</a>
    </div>
@@ -548,8 +573,8 @@ svg{
   <div class="vehicle-card">
    <span class="vehicle-status ready">SOFTWARE VALIDATED</span>
    <span class="vehicle-status simulated">SIMULATION</span>
-   <h3>Vehicle / OBD Intelligence</h3>
-   <p>Explore read-only vehicle sensor and OBD screening without changing vehicle state.</p>
+   <h3 data-i18n="vehicle_title">Vehicle / OBD Intelligence</h3>
+   <p data-i18n="vehicle_benefit">Explore read-only vehicle sensor and OBD screening without changing vehicle state.</p>
    <div class="actions">
     <a class="btn" href="#vehicle-obd">Open Vehicle / OBD</a>
    </div>
@@ -558,8 +583,8 @@ svg{
   <div class="vehicle-card">
    <span class="vehicle-status ready">SOFTWARE VALIDATED</span>
    <span class="vehicle-status simulated">SIMULATION</span>
-   <h3>Industrial Intelligence</h3>
-   <p>Screen industrial sensor and replay data using evidence-aware condition-monitoring workflows.</p>
+   <h3 data-i18n="industrial_title">Industrial Intelligence</h3>
+   <p data-i18n="industrial_benefit">Screen industrial sensor and replay data using evidence-aware condition-monitoring workflows.</p>
    <div class="actions">
     <a class="btn" href="#industrial-intelligence">Open Industrial</a>
    </div>
@@ -568,8 +593,8 @@ svg{
   <div class="vehicle-card">
    <span class="vehicle-status ready">SOFTWARE VALIDATED</span>
    <span class="vehicle-status inactive">LIVE GPS PENDING</span>
-   <h3>Fleet & Shared Access</h3>
-   <p>Organize authorized vehicle fleets, shared family/partner access, and permission-aware vehicle search.</p>
+   <h3 data-i18n="fleet_title">Fleet & Shared Access</h3>
+   <p data-i18n="fleet_benefit">Organize authorized vehicle fleets, shared family/partner access, and permission-aware vehicle search.</p>
    <div class="actions">
     <a class="btn" href="#fleet-shared-access">Open Fleet</a>
    </div>
@@ -2121,6 +2146,171 @@ if ("serviceWorker" in navigator) {
    replayBtn.disabled=lastScan===null;
   }
  });
+})();
+</script>
+
+
+<script src="data/i18n_public_v0_1.js"></script>
+<script id="ezero-language-runtime">
+(function(){
+  "use strict";
+
+  const SUPPORTED_LANGUAGES = [
+    "en","ar","ur","hi","zh-CN","es","fr","pt",
+    "bn","ru","id","ja","de","tr","ko"
+  ];
+
+  const RTL_LANGUAGES = new Set(["ar","ur"]);
+  const STORAGE_KEY = "ezero_public_language_v0_1";
+
+  function normalizeLanguage(value){
+    if(!value) return "en";
+
+    const raw = String(value).trim();
+
+    if(SUPPORTED_LANGUAGES.includes(raw)){
+      return raw;
+    }
+
+    const lower = raw.toLowerCase();
+
+    if(lower === "zh" || lower === "zh-cn" || lower === "zh-hans"){
+      return "zh-CN";
+    }
+
+    const base = lower.split("-")[0];
+
+    const match = SUPPORTED_LANGUAGES.find(function(code){
+      return code.toLowerCase() === base;
+    });
+
+    return match || "en";
+  }
+
+  function applyTranslations(lang){
+    const packs = window.EZERO_I18N || {};
+    const fallback = packs.en || {};
+    const pack = packs[lang] || fallback;
+
+    document.querySelectorAll("[data-i18n]").forEach(function(el){
+      const key = el.getAttribute("data-i18n");
+      const value = Object.prototype.hasOwnProperty.call(pack, key)
+        ? pack[key]
+        : fallback[key];
+
+      if(typeof value === "string" && value.length){
+        el.textContent = value;
+      }
+    });
+
+    const languageLabel = document.querySelector('label[for="languageSelect"]');
+    if(languageLabel){
+      languageLabel.textContent = "🌐 " + (pack.language || fallback.language || "Language");
+    }
+  }
+
+  function applyLanguage(language, persist){
+    const lang = normalizeLanguage(language);
+    const dir = RTL_LANGUAGES.has(lang) ? "rtl" : "ltr";
+
+    document.documentElement.lang = lang;
+    document.documentElement.dir = dir;
+
+    if(document.body){
+      document.body.dir = dir;
+    }
+
+    applyTranslations(lang);
+
+    const select = document.getElementById("languageSelect");
+
+    if(select){
+      select.value = lang;
+      select.setAttribute(
+        "aria-label",
+        lang === "ar" ? "اختر اللغة" :
+        lang === "ur" ? "زبان منتخب کریں" :
+        "Select language"
+      );
+    }
+
+    if(persist){
+      try{
+        localStorage.setItem(STORAGE_KEY, lang);
+      }catch(_err){
+        /* local preference failure must not break the site */
+      }
+    }
+
+    document.dispatchEvent(new CustomEvent(
+      "ezero:languagechange",
+      {detail:{language:lang,direction:dir}}
+    ));
+  }
+
+  function storedLanguage(){
+    try{
+      return localStorage.getItem(STORAGE_KEY);
+    }catch(_err){
+      return null;
+    }
+  }
+
+  function browserSuggestion(){
+    const values = [];
+
+    if(Array.isArray(navigator.languages)){
+      values.push.apply(values, navigator.languages);
+    }
+
+    if(navigator.language){
+      values.push(navigator.language);
+    }
+
+    for(const value of values){
+      const normalized = normalizeLanguage(value);
+
+      if(normalized !== "en" || String(value).toLowerCase().startsWith("en")){
+        return normalized;
+      }
+    }
+
+    return "en";
+  }
+
+  function initializeLanguage(){
+    const select = document.getElementById("languageSelect");
+
+    if(!select){
+      console.warn("E-ZERO language selector not found");
+      return;
+    }
+
+    const saved = storedLanguage();
+    const initial = saved ? normalizeLanguage(saved) : browserSuggestion();
+
+    applyLanguage(initial, false);
+
+    select.addEventListener("change", function(){
+      applyLanguage(select.value, true);
+    });
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", initializeLanguage);
+  }else{
+    initializeLanguage();
+  }
+
+  window.EZERO_LANGUAGE = Object.freeze({
+    supported: SUPPORTED_LANGUAGES.slice(),
+    apply: function(language){
+      applyLanguage(language, true);
+    },
+    current: function(){
+      return document.documentElement.lang || "en";
+    }
+  });
 })();
 </script>
 
