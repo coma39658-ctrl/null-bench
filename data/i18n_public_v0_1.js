@@ -196,6 +196,12 @@ window.EZERO_I18N = Object.freeze({
     support_status_whatsapp: "WHATSAPP SUPPORT",
     support_title: "Chat with E-ZERO Support",
     support_whatsapp_button: "Chat on WhatsApp",
+    null_limit_outside_interval: "A result outside the null interval means the observed pattern is unusual relative to this particular degree-preserving null model.",
+    null_limit_no_causality: "It does not establish causality or a physical law.",
+    null_limit_small_networks: "Small networks and too few null samples can produce unstable results.",
+    null_limit_independent_replication: "Important findings should be independently replicated and checked by domain experts.",
+    null_limit_research_use: "This public version is intended for research, education and exploratory analysis.",
+    review_feedback_placeholder: "Write your feedback here...",
   },
 
   ur: {
@@ -395,6 +401,12 @@ window.EZERO_I18N = Object.freeze({
     null_step_2: "02 — Edges rewire کریں",
     null_step_3: "03 — Structure compare کریں",
     null_what_it_does_title: "02 — یہ کیا کرتا ہے",
+    null_limit_outside_interval: "اگر نتیجہ null interval سے باہر ہو تو اس کا مطلب ہے کہ observed pattern اس مخصوص degree-preserving null model کے مقابلے میں غیر معمولی ہے۔",
+    null_limit_no_causality: "یہ causality یا کسی physical law کو ثابت نہیں کرتا۔",
+    null_limit_small_networks: "چھوٹے networks اور بہت کم null samples غیر مستحکم نتائج پیدا کر سکتے ہیں۔",
+    null_limit_independent_replication: "اہم نتائج کو آزادانہ طور پر دوبارہ replicate کرنا اور متعلقہ domain experts سے جانچ کروانا چاہیے۔",
+    null_limit_research_use: "یہ public version research، education اور exploratory analysis کے لیے بنایا گیا ہے۔",
+    review_feedback_placeholder: "اپنا feedback یہاں لکھیں...",
   },
 
   ar: {
@@ -594,6 +606,12 @@ window.EZERO_I18N = Object.freeze({
     null_step_2: "02 — إعادة توصيل الحواف",
     null_step_3: "03 — مقارنة البنية",
     null_what_it_does_title: "02 — ماذا تفعل",
+    null_limit_outside_interval: "إذا كانت النتيجة خارج فاصل null فهذا يعني أن النمط المرصود غير معتاد مقارنة بهذا النموذج الصفري المحدد الذي يحافظ على درجات العقد.",
+    null_limit_no_causality: "هذا لا يثبت السببية ولا أي قانون فيزيائي.",
+    null_limit_small_networks: "قد تؤدي الشبكات الصغيرة أو قلة عينات null إلى نتائج غير مستقرة.",
+    null_limit_independent_replication: "ينبغي تكرار النتائج المهمة بصورة مستقلة ومراجعتها من خبراء المجال.",
+    null_limit_research_use: "هذه النسخة العامة مخصصة للبحث والتعليم والتحليل الاستكشافي.",
+    review_feedback_placeholder: "اكتب ملاحظاتك هنا...",
   },
   hi: {
     language: "भाषा",
@@ -792,6 +810,12 @@ window.EZERO_I18N = Object.freeze({
     null_step_2: "02 — Edges rewire करें",
     null_step_3: "03 — Structure की तुलना करें",
     null_what_it_does_title: "02 — यह क्या करता है",
+    null_limit_outside_interval: "यदि परिणाम null interval के बाहर है, तो इसका अर्थ है कि observed pattern इस विशेष degree-preserving null model की तुलना में असामान्य है।",
+    null_limit_no_causality: "यह causality या किसी physical law को सिद्ध नहीं करता।",
+    null_limit_small_networks: "छोटे networks और बहुत कम null samples अस्थिर परिणाम दे सकते हैं।",
+    null_limit_independent_replication: "महत्वपूर्ण निष्कर्षों को स्वतंत्र रूप से replicate किया जाना चाहिए और संबंधित domain experts से जाँच करवानी चाहिए।",
+    null_limit_research_use: "यह public version research, education और exploratory analysis के लिए बनाया गया है।",
+    review_feedback_placeholder: "अपना feedback यहाँ लिखें...",
   },
 
   "zh-CN": {
@@ -991,6 +1015,12 @@ window.EZERO_I18N = Object.freeze({
     null_step_2: "02 — 重新连接边",
     null_step_3: "03 — 比较结构",
     null_what_it_does_title: "02 — 它的作用",
+    null_limit_outside_interval: "如果结果位于 null 区间之外，则表示观测到的模式相对于该特定的保度 null 模型而言较为异常。",
+    null_limit_no_causality: "这并不能证明因果关系或任何物理定律。",
+    null_limit_small_networks: "较小的网络和过少的 null 样本可能产生不稳定的结果。",
+    null_limit_independent_replication: "重要结果应进行独立复现，并由相关领域专家进行核查。",
+    null_limit_research_use: "此公开版本用于研究、教育和探索性分析。",
+    review_feedback_placeholder: "请在此填写您的反馈...",
   },
 
   es: {
@@ -1190,6 +1220,12 @@ window.EZERO_I18N = Object.freeze({
     null_step_2: "02 — Recablear aristas",
     null_step_3: "03 — Comparar estructura",
     null_what_it_does_title: "02 — Qué hace",
+    null_limit_outside_interval: "Si el resultado queda fuera del intervalo null, significa que el patrón observado es inusual en comparación con este modelo null específico que preserva los grados.",
+    null_limit_no_causality: "Esto no demuestra causalidad ni una ley física.",
+    null_limit_small_networks: "Las redes pequeñas y un número insuficiente de muestras null pueden producir resultados inestables.",
+    null_limit_independent_replication: "Los hallazgos importantes deben reproducirse de forma independiente y ser revisados por expertos del área.",
+    null_limit_research_use: "Esta versión pública está destinada a investigación, educación y análisis exploratorio.",
+    review_feedback_placeholder: "Escriba aquí sus comentarios...",
   },
 
   fr: {
@@ -1389,6 +1425,12 @@ window.EZERO_I18N = Object.freeze({
     null_step_2: "02 — Recâbler les arêtes",
     null_step_3: "03 — Comparer la structure",
     null_what_it_does_title: "02 — Ce que fait l’outil",
+    null_limit_outside_interval: "Si le résultat se situe en dehors de l’intervalle null, cela signifie que le motif observé est inhabituel par rapport à ce modèle null spécifique préservant les degrés.",
+    null_limit_no_causality: "Cela ne démontre ni causalité ni loi physique.",
+    null_limit_small_networks: "Les petits réseaux et un nombre insuffisant d’échantillons null peuvent produire des résultats instables.",
+    null_limit_independent_replication: "Les résultats importants doivent être reproduits indépendamment et vérifiés par des experts du domaine.",
+    null_limit_research_use: "Cette version publique est destinée à la recherche, à l’éducation et à l’analyse exploratoire.",
+    review_feedback_placeholder: "Écrivez vos commentaires ici...",
   },
 
   pt: {
@@ -1588,6 +1630,12 @@ window.EZERO_I18N = Object.freeze({
     null_step_2: "02 — Reconfigurar as arestas",
     null_step_3: "03 — Comparar a estrutura",
     null_what_it_does_title: "02 — O que faz",
+    null_limit_outside_interval: "Se o resultado ficar fora do intervalo null, isso significa que o padrão observado é incomum em comparação com este modelo null específico que preserva os graus.",
+    null_limit_no_causality: "Isso não demonstra causalidade nem uma lei física.",
+    null_limit_small_networks: "Redes pequenas e poucas amostras null podem produzir resultados instáveis.",
+    null_limit_independent_replication: "Resultados importantes devem ser reproduzidos de forma independente e verificados por especialistas da área.",
+    null_limit_research_use: "Esta versão pública é destinada à pesquisa, educação e análise exploratória.",
+    review_feedback_placeholder: "Escreva seu feedback aqui...",
   },
 
   bn: {
@@ -1787,6 +1835,12 @@ window.EZERO_I18N = Object.freeze({
     null_step_2: "02 — Edges rewire করুন",
     null_step_3: "03 — Structure compare করুন",
     null_what_it_does_title: "02 — এটি কী করে",
+    null_limit_outside_interval: "ফলাফল null interval-এর বাইরে হলে তার মানে observed pattern এই নির্দিষ্ট degree-preserving null model-এর তুলনায় অস্বাভাবিক।",
+    null_limit_no_causality: "এটি causality বা কোনো physical law প্রমাণ করে না।",
+    null_limit_small_networks: "ছোট networks এবং খুব কম null samples অস্থিতিশীল ফলাফল তৈরি করতে পারে।",
+    null_limit_independent_replication: "গুরুত্বপূর্ণ ফলাফল স্বাধীনভাবে replicate করা এবং সংশ্লিষ্ট domain experts দিয়ে যাচাই করা উচিত।",
+    null_limit_research_use: "এই public version research, education এবং exploratory analysis-এর জন্য তৈরি।",
+    review_feedback_placeholder: "আপনার feedback এখানে লিখুন...",
   },
 
   ru: {
@@ -1986,6 +2040,12 @@ window.EZERO_I18N = Object.freeze({
     null_step_2: "02 — Перенастроить рёбра",
     null_step_3: "03 — Сравнить структуру",
     null_what_it_does_title: "02 — Что делает инструмент",
+    null_limit_outside_interval: "Если результат находится за пределами null-интервала, это означает, что наблюдаемый паттерн необычен по сравнению с данной моделью null, сохраняющей степени узлов.",
+    null_limit_no_causality: "Это не доказывает причинность или какой-либо физический закон.",
+    null_limit_small_networks: "Небольшие сети и слишком малое число null-выборок могут давать нестабильные результаты.",
+    null_limit_independent_replication: "Важные результаты следует независимо воспроизводить и проверять экспертами соответствующей области.",
+    null_limit_research_use: "Эта публичная версия предназначена для исследований, образования и разведочного анализа.",
+    review_feedback_placeholder: "Напишите свой отзыв здесь...",
   },
 
   id: {
@@ -2185,6 +2245,12 @@ window.EZERO_I18N = Object.freeze({
     null_step_2: "02 — Rewire edge",
     null_step_3: "03 — Bandingkan struktur",
     null_what_it_does_title: "02 — Apa yang dilakukan",
+    null_limit_outside_interval: "Jika hasil berada di luar interval null, berarti pola yang diamati tidak biasa dibandingkan dengan model null khusus yang mempertahankan derajat ini.",
+    null_limit_no_causality: "Hal ini tidak membuktikan kausalitas atau hukum fisika.",
+    null_limit_small_networks: "Jaringan kecil dan terlalu sedikit sampel null dapat menghasilkan hasil yang tidak stabil.",
+    null_limit_independent_replication: "Temuan penting harus direplikasi secara independen dan diperiksa oleh pakar bidang terkait.",
+    null_limit_research_use: "Versi publik ini ditujukan untuk penelitian, pendidikan, dan analisis eksploratif.",
+    review_feedback_placeholder: "Tulis feedback Anda di sini...",
   },
 
   ja: {
@@ -2384,6 +2450,12 @@ window.EZERO_I18N = Object.freeze({
     null_step_2: "02 — エッジを再配線",
     null_step_3: "03 — 構造を比較",
     null_what_it_does_title: "02 — このツールの動作",
+    null_limit_outside_interval: "結果が null 区間の外にある場合、観測されたパターンがこの特定の次数保存 null モデルと比べて異常であることを意味します。",
+    null_limit_no_causality: "これは因果関係や物理法則を証明するものではありません。",
+    null_limit_small_networks: "小さなネットワークや少なすぎる null サンプルは、不安定な結果を生む可能性があります。",
+    null_limit_independent_replication: "重要な結果は独立して再現し、関連分野の専門家による確認を受けるべきです。",
+    null_limit_research_use: "この公開版は研究、教育、探索的分析を目的としています。",
+    review_feedback_placeholder: "ここにフィードバックを入力してください...",
   },
 
   de: {
@@ -2583,6 +2655,12 @@ window.EZERO_I18N = Object.freeze({
     null_step_2: "02 — Kanten neu verdrahten",
     null_step_3: "03 — Struktur vergleichen",
     null_what_it_does_title: "02 — Funktionsweise",
+    null_limit_outside_interval: "Liegt das Ergebnis außerhalb des Null-Intervalls, bedeutet dies, dass das beobachtete Muster im Vergleich zu diesem spezifischen grad-erhaltenden Nullmodell ungewöhnlich ist.",
+    null_limit_no_causality: "Dies beweist weder Kausalität noch ein physikalisches Gesetz.",
+    null_limit_small_networks: "Kleine Netzwerke und zu wenige Null-Stichproben können zu instabilen Ergebnissen führen.",
+    null_limit_independent_replication: "Wichtige Ergebnisse sollten unabhängig reproduziert und von Fachleuten des jeweiligen Bereichs überprüft werden.",
+    null_limit_research_use: "Diese öffentliche Version ist für Forschung, Bildung und explorative Analyse vorgesehen.",
+    review_feedback_placeholder: "Schreiben Sie hier Ihr Feedback...",
   },
 
   tr: {
@@ -2782,6 +2860,12 @@ window.EZERO_I18N = Object.freeze({
     null_step_2: "02 — Kenarları yeniden bağla",
     null_step_3: "03 — Yapıyı karşılaştır",
     null_what_it_does_title: "02 — Ne yapar",
+    null_limit_outside_interval: "Sonuç null aralığının dışındaysa, gözlenen örüntünün bu belirli derece-koruyan null modele göre olağandışı olduğu anlamına gelir.",
+    null_limit_no_causality: "Bu, nedenselliği veya herhangi bir fiziksel yasayı kanıtlamaz.",
+    null_limit_small_networks: "Küçük ağlar ve çok az null örneği kararsız sonuçlar üretebilir.",
+    null_limit_independent_replication: "Önemli bulgular bağımsız olarak tekrarlanmalı ve ilgili alan uzmanları tarafından kontrol edilmelidir.",
+    null_limit_research_use: "Bu herkese açık sürüm araştırma, eğitim ve keşifsel analiz için tasarlanmıştır.",
+    review_feedback_placeholder: "Geri bildiriminizi buraya yazın...",
   },
 
   ko: {
@@ -2981,6 +3065,12 @@ window.EZERO_I18N = Object.freeze({
     null_step_2: "02 — edge 재배선",
     null_step_3: "03 — 구조 비교",
     null_what_it_does_title: "02 — 작동 방식",
+    null_limit_outside_interval: "결과가 null 구간 밖에 있다면 관측된 패턴이 이 특정 차수 보존 null 모델과 비교해 비정상적이라는 뜻입니다.",
+    null_limit_no_causality: "이는 인과관계나 물리 법칙을 증명하지 않습니다.",
+    null_limit_small_networks: "작은 네트워크와 너무 적은 null 샘플은 불안정한 결과를 만들 수 있습니다.",
+    null_limit_independent_replication: "중요한 결과는 독립적으로 재현하고 관련 분야 전문가의 검토를 받아야 합니다.",
+    null_limit_research_use: "이 공개 버전은 연구, 교육 및 탐색적 분석을 위한 것입니다.",
+    review_feedback_placeholder: "여기에 피드백을 작성하세요...",
   }
 
 });
