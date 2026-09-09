@@ -1,0 +1,23 @@
+PASS: runner success status
+PASS: synthetic provenance visible
+PASS: PUBLIC_INTERACTIVE namespace visible
+PASS: summary displayed
+PASS: realized Frobenius displayed
+PASS: runtime timing limitation displayed
+PASS: evidence panel displayed
+PASS: evidence provenance exact
+PASS: seed namespace exact
+PASS: registered evidence false
+PASS: independent GSRL validation false
+PASS: real sensor validation false
+PASS: physical validation false
+PASS: diagnostic claim false
+PASS: safety certification false
+PASS: HIL qualification false
+PASS: protected seed fail-closed status
+PASS: protected seed does not show summary
+PASS: protected seed hides evidence
+PASS: unsupported matrix fail-closed
+-----
+PASSED = 20
+FAILED = 0

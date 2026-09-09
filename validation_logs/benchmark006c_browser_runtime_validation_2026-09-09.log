@@ -1,0 +1,74 @@
+PASS: deterministic PRNG
+PASS: protected seed 6201 rejected
+PASS: protected seed 6210 rejected
+PASS: invalid negative seed rejected
+PASS: non-finite seed rejected
+PASS: unsupported matrix rejected
+PASS: unsupported magnitude rejected
+PASS: unsupported noise level rejected
+PASS: unsupported perturbation family rejected
+PASS: unsupported noise family rejected
+PASS: GAUSSIAN deterministic
+PASS: GAUSSIAN finite
+PASS: LAPLACE deterministic
+PASS: LAPLACE finite
+PASS: STUDENT_T_DF3 deterministic
+PASS: STUDENT_T_DF3 finite
+PASS: UNIFORM deterministic
+PASS: UNIFORM finite
+PASS: invalid noise count rejected
+PASS: baseline N=48 size
+PASS: baseline N=48 diagonal
+PASS: baseline N=48 superdiagonal
+PASS: baseline N=48 wrap entry
+PASS: baseline N=48 finite
+PASS: baseline N=100 size
+PASS: baseline N=100 diagonal
+PASS: baseline N=100 superdiagonal
+PASS: baseline N=100 wrap entry
+PASS: baseline N=100 finite
+PASS: baseline N=250 size
+PASS: baseline N=250 diagonal
+PASS: baseline N=250 superdiagonal
+PASS: baseline N=250 wrap entry
+PASS: baseline N=250 finite
+PASS: baseline N=500 size
+PASS: baseline N=500 diagonal
+PASS: baseline N=500 superdiagonal
+PASS: baseline N=500 wrap entry
+PASS: baseline N=500 finite
+PASS: baseline unregistered N rejected
+PASS: LOCALIZED support size
+PASS: LOCALIZED Frobenius norm
+PASS: LOCALIZED deterministic
+PASS: DISTRIBUTED support size
+PASS: DISTRIBUTED Frobenius norm
+PASS: DISTRIBUTED deterministic
+PASS: HUB_CENTRIC support size
+PASS: HUB_CENTRIC Frobenius norm
+PASS: HUB_CENTRIC deterministic
+PASS: RANDOM_SPARSE support size
+PASS: RANDOM_SPARSE Frobenius norm
+PASS: RANDOM_SPARSE deterministic
+PASS: LOW_RANK support size
+PASS: LOW_RANK Frobenius norm
+PASS: LOW_RANK deterministic
+PASS: TRANSIENT support size
+PASS: TRANSIENT Frobenius norm
+PASS: TRANSIENT deterministic
+PASS: GRADUAL_DRIFT support size
+PASS: GRADUAL_DRIFT Frobenius norm
+PASS: GRADUAL_DRIFT deterministic
+PASS: STEP_CHANGE support size
+PASS: STEP_CHANGE Frobenius norm
+PASS: STEP_CHANGE deterministic
+PASS: LOCALIZED [0,1] equals magnitude
+PASS: LOCALIZED exactly one nonzero entry
+PASS: DISTRIBUTED entry magnitude/N
+PASS: TRANSIENT boundaries
+PASS: GRADUAL_DRIFT boundaries
+PASS: STEP_CHANGE boundaries
+PASS: temporal index 2000 rejected
+-----
+PASSED = 71
+FAILED = 0

@@ -600,7 +600,146 @@ svg{
    </div>
   </div>
 
+  <div class="vehicle-card">
+   <span class="vehicle-status inactive" data-i18n="benchmark006c_status_development">PUBLIC TOOL IN DEVELOPMENT</span>
+   <span class="vehicle-status simulated" data-i18n="status_simulation">SIMULATION</span>
+   <h3 data-i18n="benchmark006c_card_title">Benchmark 006-C</h3>
+   <p data-i18n="benchmark006c_card_text">Run the GSRL-reviewed collaborative synthetic structural benchmark locally in your browser.</p>
+   <div class="actions">
+    <a class="btn" href="#benchmark006c" data-i18n="benchmark006c_open_tool">Open Benchmark 006-C</a>
+   </div>
+  </div>
+
  </div>
+</section>
+
+<section id="benchmark006c" class="vehicle-obd-section">
+ <div class="eyebrow" data-i18n="benchmark006c_eyebrow">GSRL-Reviewed Collaborative Synthetic Benchmark</div>
+
+ <h2 data-i18n="benchmark006c_title">Benchmark 006-C — Public Synthetic Tool</h2>
+
+ <p class="sub vehicle-intro" data-i18n="benchmark006c_intro">
+  Explore registered synthetic structural perturbation scenarios locally
+  in your browser. Public interactive runs are not registered evaluation
+  evidence and do not establish independent GSRL, physical, diagnostic,
+  safety, real-sensor, or HIL validation.
+ </p>
+
+ <div class="vehicle-grid">
+  <div class="vehicle-card">
+   <span class="vehicle-status simulated" data-i18n="status_simulation">SIMULATION</span>
+   <h3 data-i18n="benchmark006c_scope_title">Registered Synthetic Scope</h3>
+   <p data-i18n="benchmark006c_scope_text">
+    Matrix sizes 48, 100, 250 and 500 with eight registered perturbation
+    families, five magnitudes, four standardized noise families and four
+    noise levels.
+   </p>
+  </div>
+
+  <div class="vehicle-card">
+   <span class="vehicle-status ready">PUBLIC_INTERACTIVE</span>
+   <h3 data-i18n="benchmark006c_seed_title">Public Seed Boundary</h3>
+   <p data-i18n="benchmark006c_seed_text">
+    Public runs use a separate interactive seed namespace. Protected
+    evaluation seeds 6201–6210 are not available to the public runner.
+   </p>
+  </div>
+
+  <div class="vehicle-card">
+   <span class="vehicle-status inactive" id="benchmark006cRunnerStatus">IMPLEMENTATION VALIDATION</span>
+   <h3 data-i18n="benchmark006c_runner_title">Browser Runner</h3>
+   <p>
+    Local synthetic browser execution using frozen Track 006-C semantics.
+    Public runs are exploratory and are not registered evaluation evidence.
+   </p>
+  </div>
+ </div>
+
+ <div id="benchmark006c-runner" class="public-obd-runner">
+  <h3>Run Benchmark 006-C Synthetic Scenario</h3>
+
+  <p class="sub">
+   Runs locally in your browser. No vehicle, machine, OBD, PLC, ECU,
+   sensor, or hardware connection is used.
+  </p>
+
+  <label for="benchmark006cMatrix">Matrix dimension</label>
+  <select id="benchmark006cMatrix">
+   <option value="48">48</option>
+   <option value="100">100</option>
+   <option value="250">250</option>
+   <option value="500">500</option>
+  </select>
+
+  <label for="benchmark006cFamily">Perturbation family</label>
+  <select id="benchmark006cFamily">
+   <option value="LOCALIZED">LOCALIZED</option>
+   <option value="DISTRIBUTED">DISTRIBUTED</option>
+   <option value="HUB_CENTRIC">HUB_CENTRIC</option>
+   <option value="RANDOM_SPARSE">RANDOM_SPARSE</option>
+   <option value="LOW_RANK">LOW_RANK</option>
+   <option value="TRANSIENT">TRANSIENT</option>
+   <option value="GRADUAL_DRIFT">GRADUAL_DRIFT</option>
+   <option value="STEP_CHANGE">STEP_CHANGE</option>
+  </select>
+
+  <label for="benchmark006cMagnitude">Perturbation magnitude</label>
+  <select id="benchmark006cMagnitude">
+   <option value="0.05">0.05</option>
+   <option value="0.10">0.10</option>
+   <option value="0.25" selected>0.25</option>
+   <option value="0.50">0.50</option>
+   <option value="1.00">1.00</option>
+  </select>
+
+  <label for="benchmark006cNoiseFamily">Noise family</label>
+  <select id="benchmark006cNoiseFamily">
+   <option value="GAUSSIAN">GAUSSIAN</option>
+   <option value="LAPLACE">LAPLACE</option>
+   <option value="STUDENT_T_DF3">STUDENT_T_DF3</option>
+   <option value="UNIFORM">UNIFORM</option>
+  </select>
+
+  <label for="benchmark006cNoiseLevel">Noise level</label>
+  <select id="benchmark006cNoiseLevel">
+   <option value="0.01">0.01</option>
+   <option value="0.03" selected>0.03</option>
+   <option value="0.05">0.05</option>
+   <option value="0.10">0.10</option>
+  </select>
+
+  <label for="benchmark006cSeed">PUBLIC_INTERACTIVE seed</label>
+  <input
+   id="benchmark006cSeed"
+   type="number"
+   value="7001"
+   min="0"
+   max="4294967295"
+   step="1">
+
+  <div class="actions">
+   <button id="benchmark006cRun" type="button">
+    Run Synthetic Scenario
+   </button>
+  </div>
+
+  <div id="benchmark006cStatus" class="public-obd-status">
+   Ready — SYNTHETIC_SIMULATED only.
+  </div>
+
+  <div id="benchmark006cSummary" class="public-obd-summary" hidden></div>
+
+  <details id="benchmark006cEvidence" class="public-obd-evidence" hidden>
+   <summary>Show run provenance &amp; evidence boundary</summary>
+   <pre id="benchmark006cRaw"></pre>
+  </details>
+ </div>
+
+ <p class="vehicle-note" data-i18n="benchmark006c_boundary">
+  PROVENANCE = SYNTHETIC_SIMULATED. This tool does not diagnose a vehicle
+  or machine and does not establish physical validation, real-sensor
+  validation, safety certification or independent GSRL validation.
+ </p>
 </section>
 
 <section id="vehicle-obd" class="vehicle-obd-section">
@@ -2150,6 +2289,8 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
+<script src="js/benchmark006c_runtime_v0_1.js"></script>
+<script src="js/benchmark006c_public_runner_v0_1.js"></script>
 <script src="data/i18n_public_v0_1.js"></script>
 <script id="ezero-language-runtime">
 (function(){
