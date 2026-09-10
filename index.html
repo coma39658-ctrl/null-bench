@@ -1274,6 +1274,81 @@ b,c
 </section>
 
 
+
+<section id="adaptive-decision-lab" class="vehicle-obd-section">
+ <div class="eyebrow">Adaptive Decision Intelligence / Research Lab</div>
+
+ <h2>E-ZERO Adaptive Decision Lab</h2>
+
+ <p class="sub vehicle-intro">
+  E-ZERO is developing a separate offline learning laboratory for studying
+  decision policies under deterministic safety boundaries. The current
+  public milestone is the frozen Phase 1.6.1 deterministic state encoder.
+ </p>
+
+ <div class="vehicle-obd-grid">
+  <div class="card">
+   <span class="vehicle-status ready">CLOSED / FROZEN</span>
+   <h3>Phase 1.6.1 State Encoder</h3>
+   <p>
+    The registered 11-feature deterministic state representation has been
+    implemented and frozen for later tabular Q-learning development.
+   </p>
+   <p class="sub">
+    Dedicated tests: 10/10 PASS · Full regression: 113/113 PASS
+   </p>
+  </div>
+
+  <div class="card">
+   <span class="vehicle-status simulated">SYNTHETIC / OFFLINE ONLY</span>
+   <h3>Current Learning Boundary</h3>
+   <p>
+    No trained learned policy is claimed at this milestone. No protected
+    held-out evaluation has been performed, and the laboratory remains
+    limited to synthetic/offline research.
+   </p>
+  </div>
+
+  <div class="card">
+   <span class="vehicle-status inactive">NO AUTONOMOUS CONTROL</span>
+   <h3>Safety Authority</h3>
+   <p>
+    The learning agent is not the safety authority. A deterministic Safety
+    Shield remains final authority and cannot be overridden by the learned
+    policy.
+   </p>
+  </div>
+ </div>
+
+ <details class="public-obd-evidence">
+  <summary>Show Technical Evidence &amp; Validation</summary>
+
+  <div class="card">
+   <h3>Frozen Evidence Reference</h3>
+   <p><b>Repository:</b> coma39658-ctrl/ezero-adaptive-decision-lab</p>
+   <p><b>Evidence commit:</b> 461b9f03e4fc002a46f5765f5116a54bfa5e9c87</p>
+   <p><b>Freeze tag:</b> ezero-adaptive-phase1.6.1-state-encoder-v1</p>
+   <p><b>Evidence status:</b> PASS</p>
+  </div>
+
+  <p class="sub">
+   This evidence establishes deterministic software implementation and
+   regression validation of the state encoder only. It does not establish
+   trained-policy performance, independent validation, physical validation,
+   diagnostic validation, safety certification, or real-world control.
+  </p>
+
+  <p><a href="#evidence">View Full Evidence Registry</a></p>
+ </details>
+
+ <p class="vehicle-note">
+  Current public status: SHADOW-oriented research architecture only.
+  No real vehicle, machine, ECU, PLC, VFD, actuator, or physical system
+  is controlled by this milestone.
+ </p>
+</section>
+
+
 <section id="evidence-governance" class="vehicle-obd-section">
  <div class="eyebrow" data-i18n="evidence_governance_eyebrow">Evidence Governance</div>
  <h2 data-i18n="claims_section_title">How E-ZERO Handles Claims</h2>

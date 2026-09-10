@@ -26,7 +26,7 @@
     },
     {
       "module_id": "benchmark002",
-      "display_name": "Benchmark 002 \u2014 Non-Gaussian Telemetry Validation",
+      "display_name": "Benchmark 002 — Non-Gaussian Telemetry Validation",
       "status": "CLOSED_FROZEN",
       "scope": "Controlled computational validation under registered non-Gaussian telemetry conditions.",
       "evidence_status": "PASS",
@@ -56,7 +56,7 @@
     },
     {
       "module_id": "benchmark003",
-      "display_name": "Benchmark 003 \u2014 Distribution-Shift Stress Test",
+      "display_name": "Benchmark 003 — Distribution-Shift Stress Test",
       "status": "CLOSED_FROZEN",
       "scope": "Controlled computational stress testing across Gaussian, Laplace, Student-t df3 and Uniform noise families.",
       "evidence_status": "FAIL",
@@ -88,7 +88,7 @@
     },
     {
       "module_id": "benchmark004",
-      "display_name": "Benchmark 004 \u2014 Frozen Held-Out Detector Validation",
+      "display_name": "Benchmark 004 — Frozen Held-Out Detector Validation",
       "status": "CLOSED_FROZEN",
       "scope": "First frozen held-out evaluation on seeds 4201-4210, with no post-result detector retuning.",
       "evidence_status": "FAIL",
@@ -123,7 +123,7 @@
     },
     {
       "module_id": "benchmark005",
-      "display_name": "Benchmark 005 \u2014 Multisensor Fault Diagnosis",
+      "display_name": "Benchmark 005 — Multisensor Fault Diagnosis",
       "status": "CLOSED_FROZEN",
       "scope": "Controlled synthetic multisensor fault detection and subsystem localization across registered operating regimes, non-Gaussian noise families and held-out seeds.",
       "evidence_status": "PASS",
@@ -154,7 +154,7 @@
     },
     {
       "module_id": "benchmark006",
-      "display_name": "Benchmark 006 \u2014 GSRL External Validation Readiness",
+      "display_name": "Benchmark 006 — GSRL External Validation Readiness",
       "status": "DEVELOPMENT",
       "scope": "Pre-registered readiness for an independently supplied external benchmark specification, with immutable intake, hashing and audit controls prepared before execution.",
       "evidence_status": "PARTIAL",
@@ -175,7 +175,7 @@
     },
     {
       "module_id": "obd_wifi_tcp_loopback_validation_v0_1",
-      "display_name": "Read-Only OBD \u2014 Wi-Fi TCP Loopback Validation V0.1",
+      "display_name": "Read-Only OBD — Wi-Fi TCP Loopback Validation V0.1",
       "status": "DEVELOPMENT",
       "scope": "Localhost-only Wi-Fi TCP transport validation for the E-ZERO read-only OBD stack, including ELM/STN text-protocol normalization, session integration and deterministic failure-state mapping.",
       "evidence_status": "PASS",
@@ -204,7 +204,7 @@
     },
     {
       "module_id": "obd_wifi_tcp_network_capable_bench_validation_v0_3",
-      "display_name": "Read-Only OBD \u2014 Wi-Fi TCP Network-Capable Bench Validation V0.3",
+      "display_name": "Read-Only OBD — Wi-Fi TCP Network-Capable Bench Validation V0.3",
       "status": "CLOSED_FROZEN",
       "scope": "Network-capable Wi-Fi TCP physical-backend code path validated under pre-registered non-vehicle bench conditions using deterministic mocked socket infrastructure. Real network activation remained disabled by default.",
       "evidence_status": "PASS",
@@ -239,7 +239,7 @@
     },
     {
       "module_id": "obd_ble_mock_backend_software_validation_v0_1",
-      "display_name": "Read-Only OBD \u2014 BLE Mock Backend Software Validation V0.1",
+      "display_name": "Read-Only OBD — BLE Mock Backend Software Validation V0.1",
       "status": "CLOSED_FROZEN",
       "scope": "Deterministic software/mock validation of the E-ZERO BLE transport backend using explicit BLE service/characteristic profile metadata, central read-only command policy, exact timeout contracts, mocked process-local single-session enforcement, and zero real BLE/GATT I/O.",
       "evidence_status": "PASS",
@@ -275,7 +275,7 @@
     },
     {
       "module_id": "industrial_public_demo_readiness_v0_1",
-      "display_name": "Industrial Intelligence \u2014 Public Demo Readiness V0.1",
+      "display_name": "Industrial Intelligence — Public Demo Readiness V0.1",
       "status": "CLOSED_FROZEN",
       "scope": "Controlled public-software-demo readiness for E-ZERO Industrial Intelligence using frozen simulated/log-replay, sensor-quality, textile/garment profile, end-to-end demo-flow, and free read-only field-validation safety milestones. The controlled public software demo is released; REAL_SENSOR public acquisition remains unauthorized.",
       "evidence_status": "PASS",
@@ -311,7 +311,7 @@
     },
     {
       "module_id": "owner_live_vehicle_shared_access_software_validation_v0_1",
-      "display_name": "Fleet & Shared Access \u2014 Software Validation V0.1",
+      "display_name": "Fleet & Shared Access — Software Validation V0.1",
       "status": "CLOSED_FROZEN",
       "scope": "Software-only validation of E-ZERO owner/fleet vehicle search, shared family/partner access, role-based permissions, connected-member presence, cross-account isolation, and remote-location rejection logic. No live GPS, real tracker, or physical proximity validation was performed.",
       "evidence_status": "PASS",
@@ -344,6 +344,39 @@
       ],
       "public_use": true,
       "public_url": "https://coma39658-ctrl.github.io/null-bench/#fleet-shared-access"
+    },
+    {
+      "module_id": "adaptive_decision_phase1_6_1_state_encoder_v1",
+      "display_name": "E-ZERO Adaptive Decision Lab — Phase 1.6.1 Deterministic State Encoder",
+      "status": "CLOSED_FROZEN",
+      "scope": "Deterministic state-encoding software milestone for the isolated E-ZERO Adaptive Decision Lab. Converts registered synthetic/offline machine-state inputs into the frozen 11-feature tabular Q-learning state representation. This milestone covers state encoding only and does not establish trained-policy, held-out, physical, diagnostic, or autonomous-control validation.",
+      "evidence_status": "PASS",
+      "evidence_reference": {
+        "repository": "coma39658-ctrl/ezero-adaptive-decision-lab",
+        "branch": "main",
+        "implementation_commit": "d86af7651f8788dd8b2563ae1cddb75df8dca064",
+        "evidence_commit": "461b9f03e4fc002a46f5765f5116a54bfa5e9c87",
+        "tag": "ezero-adaptive-phase1.6.1-state-encoder-v1",
+        "regression_suite": "python -m unittest discover -v"
+      },
+      "metrics": {
+        "dedicated_tests_total": 10,
+        "dedicated_tests_passed": 10,
+        "full_regression_tests_total": 113,
+        "full_regression_tests_passed": 113
+      },
+      "what_this_means": "The frozen deterministic Phase 1.6.1 state encoder passed all 10 dedicated tests and the complete 113-test project regression suite. The encoder implements the registered 11-feature state representation required for later tabular Q-learning development.",
+      "limitations": [
+        "No learned policy has been trained or validated by this milestone.",
+        "No 5,000-episode development training result is claimed.",
+        "No protected held-out evaluation has been performed.",
+        "The Adaptive Decision Lab remains synthetic/offline and initially SHADOW-oriented.",
+        "The learned agent is not the safety authority; the deterministic Safety Shield remains final authority.",
+        "No real vehicle, machine, ECU, PLC, VFD, actuator, or other physical system was controlled.",
+        "No physical validation, diagnostic validation, safety certification, or autonomous-control capability is established."
+      ],
+      "public_use": true,
+      "public_url": "https://coma39658-ctrl.github.io/null-bench/#adaptive-decision-lab"
     }
   ]
 }
