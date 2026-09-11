@@ -1,0 +1,79 @@
+{
+  "manifest_version": "0.1",
+  "status": "PRE_IMPLEMENTATION_APPROVED_SOURCE_LIST",
+  "purpose": "Approved read-only knowledge sources for the E-ZERO Qwen Public Agent.",
+  "rules": {
+    "evidence_priority": true,
+    "read_only_retrieval": true,
+    "live_self_training": false,
+    "agent_may_edit_sources": false,
+    "backup_files_allowed": false,
+    "unlisted_repository_files_allowed": false,
+    "scientific_claims_require_evidence_registry_support": true
+  },
+  "sources": [
+    {
+      "path": "data/evidence_registry.json",
+      "source_class": "EVIDENCE_REGISTRY",
+      "authority": "SCIENTIFIC_EVIDENCE_AUTHORITY",
+      "read_only": true,
+      "agent_may_modify": false
+    },
+    {
+      "path": "data/benchmark006_public_readiness.json",
+      "source_class": "VALIDATED_PUBLIC_READINESS",
+      "authority": "VALIDATED_STATUS_SOURCE",
+      "read_only": true,
+      "agent_may_modify": false
+    },
+    {
+      "path": "js/ezero_voice_guide_knowledge_v0_1.js",
+      "source_class": "VOICE_GUIDE_KNOWLEDGE",
+      "authority": "APPROVED_EXPLANATION_SOURCE",
+      "read_only": true,
+      "agent_may_modify": false
+    },
+    {
+      "path": "js/ezero_voice_guide_feature_registry_v0_1.js",
+      "source_class": "FEATURE_REGISTRY",
+      "authority": "APPROVED_FEATURE_DESCRIPTION",
+      "read_only": true,
+      "agent_may_modify": false
+    },
+    {
+      "path": "docs/EZERO_PUBLIC_WEBSITE_INFORMATION_ARCHITECTURE_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "ARCHITECTURE_BOUNDARY",
+      "read_only": true,
+      "agent_may_modify": false
+    },
+    {
+      "path": "docs/EZERO_VOICE_GUIDE_FEATURE_INTEGRATION_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "VOICE_GUIDE_BOUNDARY",
+      "read_only": true,
+      "agent_may_modify": false
+    },
+    {
+      "path": "docs/EZERO_VOICE_GUIDE_PHASE0_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "VOICE_GUIDE_PHASE_BOUNDARY",
+      "read_only": true,
+      "agent_may_modify": false
+    },
+    {
+      "path": "docs/EZERO_VOICE_GUIDE_QWEN_AI_TTS_INTEGRATION_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "AI_TTS_INTEGRATION_BOUNDARY",
+      "read_only": true,
+      "agent_may_modify": false
+    },
+    {
+      "path": "docs/EZERO_QWEN_PUBLIC_AGENT_GATEWAY_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "QWEN_AGENT_GOVERNANCE",
+      "read_only": true,
+      "agent_may_modify": false
+    }
+  ]
+}
