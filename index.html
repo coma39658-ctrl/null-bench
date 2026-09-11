@@ -2471,13 +2471,134 @@ function drawHistogram(vals,observed){
 
 
 <script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("service-worker.js")
-      .then(() => console.log("E-ZERO Service Worker registered"))
-      .catch(err => console.error("Service Worker registration failed:", err));
+(function () {
+  if (!("serviceWorker" in navigator)) {
+    return;
+  }
+
+  const UPDATE_INTERVAL_MS = 5 * 60 * 1000;
+  let ezeroRegistration = null;
+  let ezeroReloading = false;
+
+  function createSystemUpdateButton() {
+    if (document.getElementById("ezeroSystemUpdateButton")) {
+      return;
+    }
+
+    const button = document.createElement("button");
+
+    button.id = "ezeroSystemUpdateButton";
+    button.type = "button";
+    button.textContent = "🔄 System Update";
+    button.title = "Check for the latest E-ZERO public version";
+
+    button.style.position = "fixed";
+    button.style.left = "12px";
+    button.style.bottom = "12px";
+    button.style.zIndex = "99999";
+    button.style.minHeight = "42px";
+    button.style.padding = "0 14px";
+    button.style.border = "1px solid #c7dfe8";
+    button.style.borderRadius = "12px";
+    button.style.background = "#ffffff";
+    button.style.color = "#0b4f66";
+    button.style.fontWeight = "800";
+    button.style.fontSize = "13px";
+    button.style.cursor = "pointer";
+    button.style.boxShadow = "0 4px 16px rgba(0,0,0,0.12)";
+
+    button.addEventListener("click", async function () {
+      const originalText = button.textContent;
+
+      button.disabled = true;
+      button.textContent = "🔄 Updating…";
+
+      try {
+        const cacheKeys = await caches.keys();
+
+        await Promise.all(
+          cacheKeys
+            .filter(key => key.startsWith("ezero-null-bench-"))
+            .map(key => caches.delete(key))
+        );
+
+        if (ezeroRegistration) {
+          await ezeroRegistration.update();
+        }
+
+        const latestUrl = new URL(window.location.href);
+        latestUrl.searchParams.set(
+          "ezupdate",
+          Date.now().toString()
+        );
+
+        window.location.replace(latestUrl.toString());
+
+      } catch (error) {
+        console.error("E-ZERO manual update failed:", error);
+        button.textContent = "Update failed · Retry";
+        button.disabled = false;
+
+        setTimeout(function () {
+          button.textContent = originalText;
+        }, 3000);
+      }
+    });
+
+    document.body.appendChild(button);
+  }
+
+  async function checkForSystemUpdate() {
+    if (!ezeroRegistration) {
+      return;
+    }
+
+    try {
+      await ezeroRegistration.update();
+    } catch (error) {
+      console.warn("E-ZERO automatic update check unavailable:", error);
+    }
+  }
+
+  navigator.serviceWorker.addEventListener(
+    "controllerchange",
+    function () {
+      if (ezeroReloading) {
+        return;
+      }
+
+      ezeroReloading = true;
+      window.location.reload();
+    }
+  );
+
+  window.addEventListener("load", async function () {
+    createSystemUpdateButton();
+
+    try {
+      ezeroRegistration =
+        await navigator.serviceWorker.register(
+          "service-worker.js",
+          { updateViaCache: "none" }
+        );
+
+      console.log("E-ZERO Service Worker registered");
+
+      await checkForSystemUpdate();
+
+      window.setInterval(
+        checkForSystemUpdate,
+        UPDATE_INTERVAL_MS
+      );
+
+    } catch (error) {
+      console.error(
+        "E-ZERO Service Worker registration failed:",
+        error
+      );
+    }
   });
-}
+})();
 </script>
 
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = "ezero-null-bench-v1";
+const CACHE_NAME = "ezero-null-bench-v2-system-update";
 
 const APP_FILES = [
   "./",
@@ -29,13 +29,21 @@ self.addEventListener("activate", event => {
 });
 
 self.addEventListener("fetch", event => {
+  if (event.request.method !== "GET") {
+    return;
+  }
+
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: "no-store" })
       .then(response => {
         const copy = response.clone();
-        caches.open(CACHE_NAME).then(cache => {
-          cache.put(event.request, copy);
-        });
+
+        if (response.ok) {
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, copy);
+          });
+        }
+
         return response;
       })
       .catch(() => caches.match(event.request))
