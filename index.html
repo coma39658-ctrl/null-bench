@@ -467,6 +467,16 @@ svg{
   <option value="tr" data-i18n="language_name_tr">Türkçe</option>
   <option value="ko">한국어</option>
  </select>
+
+ <button
+  id="ezeroVoiceGuideButton"
+  type="button"
+  aria-label="Open E-ZERO Voice Guide"
+  title="E-ZERO Voice Guide"
+  style="padding:8px 12px;border-radius:6px;border:1px solid #9fb6bd;background:#ffffff;color:#1b2430;font-weight:700;cursor:pointer;white-space:nowrap;"
+ >
+  🎤 Voice Guide
+ </button>
 </div>
 
 </header>
@@ -2540,6 +2550,160 @@ if ("serviceWorker" in navigator) {
   });
 })();
 </script>
+
+
+<div
+ id="ezeroVoiceGuidePanel"
+ aria-hidden="true"
+ style="
+  display:none;
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  width:min(380px,calc(100vw - 36px));
+  max-height:72vh;
+  overflow:auto;
+  z-index:9999;
+  background:#ffffff;
+  border:1px solid #9fb6bd;
+  border-radius:14px;
+  box-shadow:0 14px 40px rgba(0,0,0,.18);
+  padding:16px;
+ "
+>
+ <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+  <div>
+   <div style="font-size:18px;font-weight:800;color:#1b2430;">🎤 E-ZERO Voice Guide</div>
+   <div style="font-size:12px;color:#52606d;margin-top:2px;">
+    Evidence-grounded website guidance
+   </div>
+  </div>
+
+  <button
+   id="ezeroVoiceGuideClose"
+   type="button"
+   aria-label="Close E-ZERO Voice Guide"
+   style="border:0;background:transparent;font-size:22px;cursor:pointer;line-height:1;"
+  >×</button>
+ </div>
+
+ <div
+  id="ezeroVoiceGuideStatus"
+  style="
+   margin-top:12px;
+   padding:9px 10px;
+   border-radius:8px;
+   background:#f3f6f7;
+   font-size:13px;
+   font-weight:700;
+   color:#334155;
+  "
+ >
+  Ready · Verified website guidance only
+ </div>
+
+ <div style="margin-top:14px;">
+  <label for="ezeroVoiceGuideInput" style="display:block;font-weight:700;margin-bottom:6px;">
+   Ask about E-ZERO
+  </label>
+
+  <textarea
+   id="ezeroVoiceGuideInput"
+   rows="3"
+   placeholder="Example: What is Null Bench? / یہ بٹن کس لیے ہے؟"
+   style="
+    width:100%;
+    box-sizing:border-box;
+    resize:vertical;
+    padding:10px;
+    border:1px solid #9fb6bd;
+    border-radius:8px;
+    font:inherit;
+   "
+  ></textarea>
+ </div>
+
+ <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+  <button
+   id="ezeroVoiceGuideAsk"
+   type="button"
+   style="padding:9px 12px;border-radius:8px;border:1px solid #1b2430;background:#1b2430;color:white;font-weight:700;cursor:pointer;"
+  >
+   Ask
+  </button>
+
+  <button
+   id="ezeroVoiceGuideMic"
+   type="button"
+   style="padding:9px 12px;border-radius:8px;border:1px solid #9fb6bd;background:white;font-weight:700;cursor:pointer;"
+  >
+   🎤 Mic
+  </button>
+
+  <button
+   id="ezeroVoiceGuideSpeak"
+   type="button"
+   style="padding:9px 12px;border-radius:8px;border:1px solid #9fb6bd;background:white;font-weight:700;cursor:pointer;"
+  >
+   🔊 Speak
+  </button>
+ </div>
+
+ <div
+  id="ezeroVoiceGuideAnswer"
+  role="status"
+  aria-live="polite"
+  style="
+   margin-top:14px;
+   padding:12px;
+   min-height:72px;
+   border-radius:8px;
+   border:1px solid #d7e0e3;
+   background:#fafcfc;
+   color:#1f2937;
+   line-height:1.5;
+  "
+ >
+  Ask a question about the website, its modules, controls, evidence, or limitations.
+ </div>
+
+ <div style="margin-top:10px;font-size:11px;color:#64748b;line-height:1.45;">
+  This guide does not provide definitive diagnosis, safety certification,
+  or autonomous machine control. Unsupported claims must fail closed.
+ </div>
+</div>
+
+<script>
+(function(){
+  const openBtn = document.getElementById("ezeroVoiceGuideButton");
+  const panel = document.getElementById("ezeroVoiceGuidePanel");
+  const closeBtn = document.getElementById("ezeroVoiceGuideClose");
+
+  if(!openBtn || !panel || !closeBtn){
+    console.warn("E-ZERO Voice Guide UI elements not found");
+    return;
+  }
+
+  function openGuide(){
+    panel.style.display = "block";
+    panel.setAttribute("aria-hidden","false");
+  }
+
+  function closeGuide(){
+    panel.style.display = "none";
+    panel.setAttribute("aria-hidden","true");
+  }
+
+  openBtn.addEventListener("click", openGuide);
+  closeBtn.addEventListener("click", closeGuide);
+})();
+</script>
+
+
+<script src="js/ezero_voice_guide_knowledge_v0_1.js?v=20260911-1005"></script>
+<script src="js/ezero_voice_guide_feature_registry_v0_1.js?v=20260911-1005"></script>
+<script src="js/ezero_voice_guide_ui_v0_1.js?v=20260911-1005"></script>
+
 
 </body>
 </html>

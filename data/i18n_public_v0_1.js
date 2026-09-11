@@ -217,6 +217,9 @@ window.EZERO_I18N = Object.freeze({
     benchmark006c_runner_text: "The browser execution engine will be activated only after frozen-semantics parity tests and public claims validation pass.",
     benchmark006c_boundary: "PROVENANCE = SYNTHETIC_SIMULATED. This tool does not diagnose a vehicle or machine and does not establish physical validation, real-sensor validation, safety certification or independent GSRL validation.",
     review_feedback_placeholder: "Write your feedback here...",
+    adaptive_decision_lab_title: "E-ZERO Adaptive Decision Lab",
+    adaptive_decision_lab_intro: "A research module for controlled offline decision-learning experiments. The current public milestone is the frozen Phase 1.6.1 deterministic state encoder.",
+    adaptive_decision_lab_boundary: "Synthetic and offline research only. No trained-policy validation, physical validation, diagnostic authority, safety certification, or autonomous real-world control.",
   },
 
   ur: {
@@ -437,6 +440,9 @@ window.EZERO_I18N = Object.freeze({
     benchmark006c_runner_text: "Browser execution engine صرف frozen-semantics parity tests اور public claims validation پاس ہونے کے بعد فعال ہوگا۔",
     benchmark006c_boundary: "PROVENANCE = SYNTHETIC_SIMULATED۔ یہ ٹول گاڑی یا مشین کی تشخیص نہیں کرتا اور physical validation، real-sensor validation، safety certification یا independent GSRL validation ثابت نہیں کرتا۔",
     review_feedback_placeholder: "اپنا feedback یہاں لکھیں...",
+    adaptive_decision_lab_title: "ای زیرو موافق فیصلہ تحقیقی لیبارٹری",
+    adaptive_decision_lab_intro: "قابو میں رکھے گئے آف لائن فیصلہ سیکھنے کے تجربات کے لیے تحقیقی حصہ۔ موجودہ عوامی مرحلہ منجمد مرحلہ 1.6.1 کا قطعی حالت رمزکار ہے۔",
+    adaptive_decision_lab_boundary: "صرف مصنوعی اور آف لائن تحقیق۔ تربیت یافتہ پالیسی کی توثیق، جسمانی توثیق، تشخیصی اختیار، حفاظتی سند یا حقیقی دنیا میں خودکار کنٹرول ثابت نہیں ہے۔",
   },
 
   ar: {
@@ -657,6 +663,9 @@ window.EZERO_I18N = Object.freeze({
     benchmark006c_runner_text: "لن يتم تفعيل محرك التنفيذ في المتصفح إلا بعد نجاح اختبارات مطابقة الدلالات المجمدة والتحقق من الادعاءات العامة.",
     benchmark006c_boundary: "PROVENANCE = SYNTHETIC_SIMULATED. هذه الأداة لا تشخص مركبة أو آلة ولا تثبت تحققاً فيزيائياً أو بالمستشعرات الحقيقية أو شهادة سلامة أو تحققاً مستقلاً من GSRL.",
     review_feedback_placeholder: "اكتب ملاحظاتك هنا...",
+    adaptive_decision_lab_title: "مختبر E-ZERO للقرارات التكيفية",
+    adaptive_decision_lab_intro: "وحدة بحثية لتجارب تعلم القرار غير المتصلة والمضبوطة. المرحلة العامة الحالية هي مُشفّر الحالة الحتمي المجمّد للمرحلة 1.6.1.",
+    adaptive_decision_lab_boundary: "بحث اصطناعي وغير متصل فقط. لا توجد مصادقة على سياسة مدرّبة أو تحقق مادي أو صلاحية تشخيصية أو اعتماد سلامة أو تحكم ذاتي في العالم الحقيقي.",
   },
   hi: {
     language: "भाषा",
@@ -876,6 +885,9 @@ window.EZERO_I18N = Object.freeze({
     benchmark006c_runner_text: "Browser execution engine frozen-semantics parity tests और public claims validation पास होने के बाद ही सक्रिय होगा।",
     benchmark006c_boundary: "PROVENANCE = SYNTHETIC_SIMULATED। यह टूल वाहन या मशीन का निदान नहीं करता और physical validation, real-sensor validation, safety certification या independent GSRL validation स्थापित नहीं करता।",
     review_feedback_placeholder: "अपना feedback यहाँ लिखें...",
+    adaptive_decision_lab_title: "E-ZERO अनुकूली निर्णय प्रयोगशाला",
+    adaptive_decision_lab_intro: "नियंत्रित ऑफ़लाइन निर्णय-अधिगम प्रयोगों के लिए एक शोध मॉड्यूल। वर्तमान सार्वजनिक उपलब्धि जमी हुई चरण 1.6.1 नियतात्मक अवस्था एन्कोडर है।",
+    adaptive_decision_lab_boundary: "केवल कृत्रिम और ऑफ़लाइन शोध। प्रशिक्षित नीति सत्यापन, भौतिक सत्यापन, निदान अधिकार, सुरक्षा प्रमाणन या वास्तविक दुनिया का स्वायत्त नियंत्रण स्थापित नहीं है।",
   },
 
   "zh-CN": {
@@ -1096,6 +1108,9 @@ window.EZERO_I18N = Object.freeze({
     benchmark006c_runner_text: "只有在冻结语义一致性测试和公共声明验证通过后，才会启用浏览器执行引擎。",
     benchmark006c_boundary: "PROVENANCE = SYNTHETIC_SIMULATED。本工具不诊断车辆或机器，也不构成物理验证、真实传感器验证、安全认证或独立 GSRL 验证。",
     review_feedback_placeholder: "请在此填写您的反馈...",
+    adaptive_decision_lab_title: "E-ZERO 自适应决策实验室",
+    adaptive_decision_lab_intro: "用于受控离线决策学习实验的研究模块。当前公开里程碑是已冻结的 1.6.1 阶段确定性状态编码器。",
+    adaptive_decision_lab_boundary: "仅限合成和离线研究。尚未建立训练策略验证、物理验证、诊断权限、安全认证或真实世界自主控制。",
   },
 
   es: {
@@ -1316,6 +1331,9 @@ window.EZERO_I18N = Object.freeze({
     benchmark006c_runner_text: "El motor de ejecución del navegador solo se activará después de superar las pruebas de paridad de semántica congelada y la validación de afirmaciones públicas.",
     benchmark006c_boundary: "PROVENANCE = SYNTHETIC_SIMULATED. Esta herramienta no diagnostica vehículos ni máquinas y no establece validación física, de sensores reales, certificación de seguridad ni validación independiente de GSRL.",
     review_feedback_placeholder: "Escriba aquí sus comentarios...",
+    adaptive_decision_lab_title: "Laboratorio de Decisión Adaptativa E-ZERO",
+    adaptive_decision_lab_intro: "Módulo de investigación para experimentos controlados de aprendizaje de decisiones sin conexión. El hito público actual es el codificador de estado determinista congelado de la fase 1.6.1.",
+    adaptive_decision_lab_boundary: "Solo investigación sintética y sin conexión. No se ha establecido validación de política entrenada, validación física, autoridad diagnóstica, certificación de seguridad ni control autónomo real.",
   },
 
   fr: {
@@ -1536,6 +1554,9 @@ window.EZERO_I18N = Object.freeze({
     benchmark006c_runner_text: "Le moteur d’exécution du navigateur ne sera activé qu’après réussite des tests de parité des sémantiques gelées et de la validation des affirmations publiques.",
     benchmark006c_boundary: "PROVENANCE = SYNTHETIC_SIMULATED. Cet outil ne diagnostique ni véhicule ni machine et n’établit aucune validation physique, validation par capteurs réels, certification de sécurité ou validation indépendante GSRL.",
     review_feedback_placeholder: "Écrivez vos commentaires ici...",
+    adaptive_decision_lab_title: "Laboratoire de Décision Adaptative E-ZERO",
+    adaptive_decision_lab_intro: "Module de recherche destiné à des expériences contrôlées d’apprentissage décisionnel hors ligne. Le jalon public actuel est l’encodeur d’état déterministe gelé de la phase 1.6.1.",
+    adaptive_decision_lab_boundary: "Recherche synthétique et hors ligne uniquement. Aucune validation de politique entraînée, validation physique, autorité diagnostique, certification de sécurité ou commande autonome réelle n’est établie.",
   },
 
   pt: {
@@ -1756,6 +1777,9 @@ window.EZERO_I18N = Object.freeze({
     benchmark006c_runner_text: "O mecanismo de execução no navegador só será ativado depois que os testes de paridade das semânticas congeladas e a validação das alegações públicas forem aprovados.",
     benchmark006c_boundary: "PROVENANCE = SYNTHETIC_SIMULATED. Esta ferramenta não diagnostica veículo ou máquina e não estabelece validação física, validação com sensores reais, certificação de segurança ou validação independente da GSRL.",
     review_feedback_placeholder: "Escreva seu feedback aqui...",
+    adaptive_decision_lab_title: "Laboratório de Decisão Adaptativa E-ZERO",
+    adaptive_decision_lab_intro: "Módulo de pesquisa para experimentos controlados de aprendizagem de decisões offline. O marco público atual é o codificador de estado determinístico congelado da fase 1.6.1.",
+    adaptive_decision_lab_boundary: "Somente pesquisa sintética e offline. Não há validação de política treinada, validação física, autoridade diagnóstica, certificação de segurança ou controle autônomo no mundo real.",
   },
 
   bn: {
@@ -1976,6 +2000,9 @@ window.EZERO_I18N = Object.freeze({
     benchmark006c_runner_text: "Frozen-semantics parity tests এবং public claims validation পাস করার পরেই browser execution engine সক্রিয় হবে।",
     benchmark006c_boundary: "PROVENANCE = SYNTHETIC_SIMULATED। এই টুল কোনো যানবাহন বা মেশিন diagnose করে না এবং physical validation, real-sensor validation, safety certification বা independent GSRL validation প্রতিষ্ঠা করে না।",
     review_feedback_placeholder: "আপনার feedback এখানে লিখুন...",
+    adaptive_decision_lab_title: "E-ZERO অভিযোজিত সিদ্ধান্ত গবেষণাগার",
+    adaptive_decision_lab_intro: "নিয়ন্ত্রিত অফলাইন সিদ্ধান্ত-শেখার পরীক্ষার জন্য একটি গবেষণা মডিউল। বর্তমান প্রকাশ্য মাইলফলক হলো স্থিরকৃত ধাপ 1.6.1 নির্ধারক অবস্থা এনকোডার।",
+    adaptive_decision_lab_boundary: "শুধু কৃত্রিম ও অফলাইন গবেষণা। প্রশিক্ষিত নীতি যাচাই, ভৌত যাচাই, রোগনির্ণয় কর্তৃত্ব, নিরাপত্তা সনদ বা বাস্তব জগতে স্বয়ংক্রিয় নিয়ন্ত্রণ প্রতিষ্ঠিত নয়।",
   },
 
   ru: {
@@ -2196,6 +2223,9 @@ window.EZERO_I18N = Object.freeze({
     benchmark006c_runner_text: "Браузерный движок выполнения будет активирован только после прохождения тестов паритета замороженной семантики и проверки публичных утверждений.",
     benchmark006c_boundary: "PROVENANCE = SYNTHETIC_SIMULATED. Этот инструмент не диагностирует транспортное средство или машину и не устанавливает физическую валидацию, валидацию реальных датчиков, сертификацию безопасности или независимую валидацию GSRL.",
     review_feedback_placeholder: "Напишите свой отзыв здесь...",
+    adaptive_decision_lab_title: "Лаборатория адаптивных решений E-ZERO",
+    adaptive_decision_lab_intro: "Исследовательский модуль для контролируемых автономных от сети экспериментов по обучению принятию решений. Текущий публичный этап — замороженный детерминированный кодировщик состояния фазы 1.6.1.",
+    adaptive_decision_lab_boundary: "Только синтетические и офлайн-исследования. Не подтверждены обученная политика, физическая валидация, диагностические полномочия, сертификация безопасности или автономное управление в реальном мире.",
   },
 
   id: {
@@ -2416,6 +2446,9 @@ window.EZERO_I18N = Object.freeze({
     benchmark006c_runner_text: "Mesin eksekusi browser hanya akan diaktifkan setelah tes paritas semantik beku dan validasi klaim publik lulus.",
     benchmark006c_boundary: "PROVENANCE = SYNTHETIC_SIMULATED. Alat ini tidak mendiagnosis kendaraan atau mesin dan tidak menetapkan validasi fisik, validasi sensor nyata, sertifikasi keselamatan, atau validasi independen GSRL.",
     review_feedback_placeholder: "Tulis feedback Anda di sini...",
+    adaptive_decision_lab_title: "Laboratorium Keputusan Adaptif E-ZERO",
+    adaptive_decision_lab_intro: "Modul riset untuk eksperimen pembelajaran keputusan offline yang terkontrol. Tonggak publik saat ini adalah encoder keadaan deterministik Phase 1.6.1 yang dibekukan.",
+    adaptive_decision_lab_boundary: "Hanya riset sintetis dan offline. Belum ada validasi kebijakan terlatih, validasi fisik, kewenangan diagnosis, sertifikasi keselamatan, atau kontrol otonom di dunia nyata.",
   },
 
   ja: {
@@ -2636,6 +2669,9 @@ window.EZERO_I18N = Object.freeze({
     benchmark006c_runner_text: "ブラウザ実行エンジンは、凍結セマンティクスのパリティテストと公開主張の検証に合格した後にのみ有効化されます。",
     benchmark006c_boundary: "PROVENANCE = SYNTHETIC_SIMULATED。このツールは車両や機械を診断せず、物理検証、実センサー検証、安全認証、または独立 GSRL 検証を確立しません。",
     review_feedback_placeholder: "ここにフィードバックを入力してください...",
+    adaptive_decision_lab_title: "E-ZERO 適応意思決定ラボ",
+    adaptive_decision_lab_intro: "制御されたオフライン意思決定学習実験のための研究モジュールです。現在の公開マイルストーンは、凍結済みのフェーズ 1.6.1 決定論的状態エンコーダーです。",
+    adaptive_decision_lab_boundary: "合成・オフライン研究のみです。学習済み方策の検証、物理検証、診断権限、安全認証、実世界での自律制御は確立されていません。",
   },
 
   de: {
@@ -2856,6 +2892,9 @@ window.EZERO_I18N = Object.freeze({
     benchmark006c_runner_text: "Die Browser-Ausführungsengine wird erst aktiviert, nachdem die Paritätstests der eingefrorenen Semantik und die Validierung öffentlicher Aussagen bestanden wurden.",
     benchmark006c_boundary: "PROVENANCE = SYNTHETIC_SIMULATED. Dieses Tool diagnostiziert weder Fahrzeuge noch Maschinen und begründet keine physische Validierung, Real-Sensor-Validierung, Sicherheitszertifizierung oder unabhängige GSRL-Validierung.",
     review_feedback_placeholder: "Schreiben Sie hier Ihr Feedback...",
+    adaptive_decision_lab_title: "E-ZERO Labor für adaptive Entscheidungen",
+    adaptive_decision_lab_intro: "Ein Forschungsmodul für kontrollierte Offline-Experimente zum Entscheidungslernen. Der aktuelle öffentliche Meilenstein ist der eingefrorene deterministische Zustandsencoder der Phase 1.6.1.",
+    adaptive_decision_lab_boundary: "Nur synthetische und Offline-Forschung. Keine Validierung einer trainierten Richtlinie, keine physische Validierung, keine Diagnosebefugnis, keine Sicherheitszertifizierung und keine autonome Steuerung in der realen Welt.",
   },
 
   tr: {
@@ -3076,6 +3115,9 @@ window.EZERO_I18N = Object.freeze({
     benchmark006c_runner_text: "Tarayıcı yürütme motoru yalnızca dondurulmuş semantik parite testleri ve kamuya açık iddia doğrulaması geçtikten sonra etkinleştirilecektir.",
     benchmark006c_boundary: "PROVENANCE = SYNTHETIC_SIMULATED. Bu araç bir araç veya makineyi teşhis etmez ve fiziksel doğrulama, gerçek sensör doğrulaması, güvenlik sertifikası veya bağımsız GSRL doğrulaması oluşturmaz.",
     review_feedback_placeholder: "Geri bildiriminizi buraya yazın...",
+    adaptive_decision_lab_title: "E-ZERO Uyarlanabilir Karar Laboratuvarı",
+    adaptive_decision_lab_intro: "Kontrollü çevrimdışı karar öğrenme deneyleri için bir araştırma modülü. Mevcut halka açık kilometre taşı, dondurulmuş Faz 1.6.1 deterministik durum kodlayıcısıdır.",
+    adaptive_decision_lab_boundary: "Yalnızca sentetik ve çevrimdışı araştırma. Eğitilmiş politika doğrulaması, fiziksel doğrulama, teşhis yetkisi, güvenlik sertifikası veya gerçek dünyada otonom kontrol kanıtlanmış değildir.",
   },
 
   ko: {
@@ -3296,6 +3338,9 @@ window.EZERO_I18N = Object.freeze({
     benchmark006c_runner_text: "브라우저 실행 엔진은 동결된 의미론 패리티 테스트와 공개 주장 검증을 통과한 뒤에만 활성화됩니다.",
     benchmark006c_boundary: "PROVENANCE = SYNTHETIC_SIMULATED. 이 도구는 차량이나 기계를 진단하지 않으며 물리 검증, 실제 센서 검증, 안전 인증 또는 독립 GSRL 검증을 확립하지 않습니다.",
     review_feedback_placeholder: "여기에 피드백을 작성하세요...",
+    adaptive_decision_lab_title: "E-ZERO 적응형 의사결정 연구실",
+    adaptive_decision_lab_intro: "통제된 오프라인 의사결정 학습 실험을 위한 연구 모듈입니다. 현재 공개 마일스톤은 동결된 Phase 1.6.1 결정론적 상태 인코더입니다.",
+    adaptive_decision_lab_boundary: "합성 및 오프라인 연구만 해당합니다. 학습된 정책 검증, 물리적 검증, 진단 권한, 안전 인증 또는 실제 환경의 자율 제어는 확립되지 않았습니다.",
   }
 
 });
