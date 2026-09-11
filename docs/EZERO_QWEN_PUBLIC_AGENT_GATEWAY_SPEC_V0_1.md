@@ -218,3 +218,142 @@ Conversational quality MUST remain separate from:
 - physical proof
 - sensor provenance
 - safety authority
+
+## 14. Learning and Improvement Architecture
+
+The Qwen Public Agent may improve over time, but it MUST NOT perform
+uncontrolled live self-training from public conversations.
+
+Improvement is divided into separate layers:
+
+### A. E-ZERO Knowledge Learning
+
+The agent should be able to retrieve and use approved E-ZERO knowledge,
+including:
+
+- frozen specifications
+- evidence registry
+- validated benchmark summaries
+- module capabilities and limitations
+- approved technical documentation
+- verified public reports
+- approved sensor / OBD boundaries
+- governance and safety rules
+
+Retrieval does not change the scientific evidence itself.
+
+### B. Session Learning
+
+The agent may use recent conversation context to maintain a natural dialogue.
+
+Session context MUST remain bounded and MUST NOT silently become permanent
+personal memory.
+
+### C. User Feedback Learning
+
+User interactions may be used to identify:
+
+- common questions
+- confusing interface areas
+- repeated unmet needs
+- requested features
+- recurring failure modes
+- language and usability problems
+
+Public conversations MUST NOT directly retrain or modify the production model.
+
+Any data retained for improvement must follow explicit privacy,
+consent, minimization, and review rules.
+
+### D. Offline Improvement
+
+Model, retrieval, prompt, tool, or knowledge improvements must happen through
+a reviewed offline process.
+
+A candidate improvement must be evaluated before production activation.
+
+Production behaviour MUST NOT change itself solely because users repeatedly
+asked for something.
+
+## 15. E-ZERO Team Advisor
+
+The Qwen Agent may generate improvement proposals for the E-ZERO team.
+
+Examples:
+
+- documentation improvements
+- interface improvements
+- missing knowledge areas
+- requested capabilities
+- recurring user problems
+- potential validation experiments
+- benchmark expansion suggestions
+- possible sensor coverage improvements
+
+Every proposal should include, where possible:
+
+- observed reason
+- supporting evidence or interaction pattern
+- confidence
+- expected benefit
+- possible risk
+- affected module
+- recommended validation
+- rollback consideration
+
+Advisor output is a proposal, not an approved change.
+
+## 16. Human Approval Boundary
+
+The Qwen Agent MUST NOT autonomously:
+
+- change scientific claims
+- edit the evidence registry
+- change thresholds
+- change frozen specifications
+- alter raw sensor evidence
+- approve diagnostic claims
+- deploy production code
+- promote experimental modules
+- change safety rules
+
+All such changes require explicit human review and approval.
+
+## 17. Learning Separation
+
+The following systems remain separate:
+
+E-ZERO Evidence Core
+→ scientific authority
+
+Qwen Knowledge Layer
+→ retrieval and explanation
+
+Conversation Layer
+→ temporary dialogue context
+
+Feedback Learning Layer
+→ reviewed improvement signals
+
+Team Advisor
+→ recommendations only
+
+Implementation / Deployment
+→ human-approved process
+
+Learning quality MUST NOT be represented as increased scientific evidence.
+
+## 18. Improvement Promotion Gate
+
+Before a learned or suggested improvement reaches production, it should pass:
+
+1. source review
+2. privacy review
+3. evidence-boundary review
+4. offline test
+5. regression test
+6. safety test
+7. evidence validator
+8. human approval
+9. staged deployment
+10. rollback readiness
