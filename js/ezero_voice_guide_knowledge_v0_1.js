@@ -27,8 +27,16 @@
       ],
       en:
         "E-ZERO is an evidence-first intelligence platform for testing, screening, and validating network, vehicle, industrial, and fleet data. It keeps software validation separate from real-world proof and makes limitations visible.",
+      en_short:
+        "E-ZERO is an evidence-first platform for testing and screening network, vehicle, industrial, and fleet data while keeping software evidence separate from real-world proof.",
+      en_detailed:
+        "E-ZERO is an evidence-first intelligence platform for testing, screening, and validating network, vehicle, industrial, and fleet data. Its design keeps computational or software validation separate from statistical evidence and real-world physical proof. The platform includes research tools such as Null Bench, read-only Vehicle / OBD workflows, industrial condition-screening components, fleet/shared-access interfaces, and evidence-governance layers. Results must stay within registered evidence boundaries, and limitations are shown explicitly rather than converted into unsupported diagnosis, safety certification, or autonomous control claims.",
       ur:
-        "E-ZERO ایک evidence-first intelligence platform ہے جو network، vehicle، industrial اور fleet data کی testing، screening اور validation کے لیے بنایا گیا ہے۔ یہ software validation کو real-world proof سے الگ رکھتا ہے اور limitations واضح دکھاتا ہے۔"
+        "E-ZERO ایک evidence-first intelligence platform ہے جو network، vehicle، industrial اور fleet data کی testing، screening اور validation کے لیے بنایا گیا ہے۔ یہ software validation کو real-world proof سے الگ رکھتا ہے اور limitations واضح دکھاتا ہے۔",
+      ur_short:
+        "E-ZERO ایک evidence-first platform ہے جو network، vehicle، industrial اور fleet data کی testing اور screening کرتا ہے، جبکہ software evidence کو real-world proof سے الگ رکھتا ہے۔",
+      ur_detailed:
+        "E-ZERO ایک evidence-first intelligence platform ہے جو network، vehicle، industrial اور fleet data کی testing، screening اور validation کے لیے بنایا گیا ہے۔ اس کا بنیادی اصول یہ ہے کہ computational یا software validation، statistical evidence اور real-world physical proof کو الگ رکھا جائے۔ Platform میں Null Bench research tool، read-only Vehicle / OBD workflows، industrial condition-screening components، fleet/shared-access interfaces اور evidence-governance layers شامل ہیں۔ ہر result کو registered evidence boundaries کے اندر پیش کیا جاتا ہے، limitations واضح دکھائی جاتی ہیں، اور بغیر الگ validation کے definitive diagnosis، safety certification یا autonomous control claim نہیں کیا جاتا۔"
     },
 
     {

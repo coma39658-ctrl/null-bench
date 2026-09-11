@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" translate="no" class="notranslate">
 <head>
 <!-- Google Analytics 4 -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-YTVCF5JZCY"></script>
@@ -10,6 +10,7 @@
   gtag('config', 'G-YTVCF5JZCY');
 </script>
 <meta charset="UTF-8">
+<meta name="google" content="notranslate">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
 <title>Null Bench — Degree-Preserving Null Model Testing</title>
@@ -38,6 +39,67 @@ header{
  background:var(--signal);margin-right:9px;
  box-shadow:0 0 0 4px var(--signalSoft)
 }
+
+.ezero-master-brand{
+ display:flex;
+ align-items:center;
+ gap:12px;
+ min-width:230px;
+}
+.ezero-brand-mark{
+ width:48px;
+ height:48px;
+ border-radius:12px;
+ flex:0 0 auto;
+ box-shadow:0 7px 18px rgba(11,39,64,.18);
+}
+.ezero-brand-copy{
+ display:flex;
+ flex-direction:column;
+ line-height:1.05;
+}
+.ezero-brand-name{
+ color:#0b2740;
+ font-size:20px;
+ font-weight:900;
+ letter-spacing:.04em;
+}
+.ezero-brand-tagline{
+ margin-top:4px;
+ color:#278fa3;
+ font-size:10px;
+ font-weight:800;
+ letter-spacing:.08em;
+ text-transform:uppercase;
+}
+.ezero-brand-module{
+ margin-top:5px;
+ color:#536b74;
+ font-size:10px;
+ font-weight:700;
+ letter-spacing:.02em;
+}
+@media(max-width:800px){
+ header{
+  align-items:flex-start;
+  gap:12px;
+ }
+ .ezero-master-brand{
+  min-width:0;
+ }
+ .ezero-brand-mark{
+  width:42px;
+  height:42px;
+ }
+ .ezero-brand-name{
+  font-size:17px;
+ }
+ .ezero-brand-tagline,
+ .ezero-brand-module{
+  font-size:9px;
+ }
+}
+
 nav a{margin-left:20px;font-size:13px;color:var(--soft);text-decoration:none}
 .public-banner{
  border-top:1px solid var(--line);
@@ -410,11 +472,175 @@ svg{
  }
 }
 
+
+
+/* E-ZERO RESPONSIVE HEADER LAYOUT V0.1 */
+header{
+  flex-wrap:wrap;
+  gap:14px 18px;
+}
+
+.ezero-master-brand{
+  direction:ltr;
+  flex:0 0 auto;
+}
+
+#languageControl{
+  direction:ltr;
+  margin-left:auto;
+}
+
+#languageControl label{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+@media(max-width:800px){
+  header{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    padding:14px 16px !important;
+    gap:12px !important;
+  }
+
+  .ezero-master-brand{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    padding:4px 0 8px;
+  }
+
+  .ezero-brand-mark{
+    width:54px !important;
+    height:54px !important;
+  }
+
+  .ezero-brand-name{
+    font-size:20px !important;
+  }
+
+  .ezero-brand-tagline{
+    font-size:10px !important;
+  }
+
+  .ezero-brand-module{
+    font-size:10px !important;
+  }
+
+  #languageControl{
+    width:100%;
+    margin:0 !important;
+    display:grid !important;
+    grid-template-columns:1fr auto;
+    gap:8px 10px !important;
+    align-items:center !important;
+  }
+
+  #languageControl label{
+    grid-column:1 / -1;
+    width:100%;
+    margin:0;
+    font-size:12px;
+    color:#536b74;
+    justify-content:flex-start;
+  }
+
+  #languageSelect{
+    width:100% !important;
+    min-width:0 !important;
+    min-height:46px;
+    padding:10px 12px !important;
+    border-radius:10px !important;
+    font-size:16px;
+  }
+
+  #ezeroVoiceGuideButton{
+    min-height:46px;
+    padding:10px 14px !important;
+    border-radius:10px !important;
+  }
+}
+
+/* E-ZERO PROFESSIONAL STATUS SYSTEM V0.1 */
+#ezeroVoiceGuidePanel{
+  border:1px solid #b7cbd5 !important;
+  box-shadow:
+    0 18px 48px rgba(11,39,64,.16),
+    0 0 0 1px rgba(39,143,163,.05) !important;
+  background:
+    linear-gradient(180deg,#ffffff 0%,#fbfdfe 100%) !important;
+}
+
+#ezeroVoiceGuideStatus{
+  background:#eaf4f8 !important;
+  color:#17425a !important;
+  border:1px solid #c7dfe8;
+  box-shadow:inset 4px 0 0 #278fa3;
+}
+
+#ezeroVoiceGuideAsk{
+  background:#0b2740 !important;
+  border-color:#0b2740 !important;
+  color:#ffffff !important;
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    background .18s ease,
+    border-color .18s ease !important;
+}
+
+#ezeroVoiceGuideAsk:hover{
+  box-shadow:0 7px 18px rgba(11,39,64,.20);
+}
+
+#ezeroVoiceGuideMic{
+  background:#eef7fa !important;
+  border-color:#9fc8d5 !important;
+  color:#0b4f66 !important;
+}
+
+#ezeroVoiceGuideSpeak{
+  background:#f7f9fa !important;
+  border-color:#c8d4da !important;
+  color:#40545d !important;
+}
+
+#ezeroVoiceGuideInput{
+  border-color:#b7cbd5 !important;
+  background:#ffffff !important;
+  box-shadow:inset 0 1px 2px rgba(11,39,64,.04);
+}
+
+#ezeroVoiceGuideInput:focus{
+  outline:none;
+  border-color:#278fa3 !important;
+  box-shadow:0 0 0 3px rgba(39,143,163,.14);
+}
+
+@media(max-width:600px){
+  #ezeroVoiceGuidePanel{
+    right:10px !important;
+    bottom:10px !important;
+    width:calc(100vw - 20px) !important;
+    border-radius:16px !important;
+    padding:14px !important;
+  }
+
+  #ezeroVoiceGuideAsk,
+  #ezeroVoiceGuideMic,
+  #ezeroVoiceGuideSpeak{
+    min-height:44px;
+  }
+}
+
 </style>
   <link rel="manifest" href="manifest.json">
 </head>
 
-<body>
+<body translate="no" class="notranslate">
 <div style="text-align:center;padding:12px;background:#dceff2;border-bottom:1px solid #bfd9df;">
   <a href="https://e-zero-dashboard.onrender.com/dashboard"
      target="_blank"
@@ -427,8 +653,19 @@ svg{
 
 
 <header>
- <div class="brand" data-i18n="global_null_bench_label">
-  <span class="mark"></span>Null Bench
+ <div class="brand ezero-master-brand">
+  <img
+    src="assets/brand/ezero-monogram-v0.1.svg"
+    alt="E-ZERO"
+    class="ezero-brand-mark"
+  >
+  <div class="ezero-brand-copy">
+    <div class="ezero-brand-name">E-ZERO</div>
+    <div class="ezero-brand-tagline">Evidence First Intelligence</div>
+    <div class="ezero-brand-module" data-i18n="global_null_bench_label">
+      Null Bench · Public Research Module
+    </div>
+  </div>
  </div>
  <nav>
   <a href="#try" data-i18n="run_test">Run Test</a>
@@ -2278,6 +2515,31 @@ if ("serviceWorker" in navigator) {
   summary.hidden=false;
  }
 
+ function emitEzeroResult(detail){
+  const language=
+   window.EZERO_LANGUAGE &&
+   typeof window.EZERO_LANGUAGE.current==="function"
+    ? window.EZERO_LANGUAGE.current()
+    : (document.documentElement.lang||"en");
+
+  document.dispatchEvent(
+   new CustomEvent("ezero:result",{
+    detail:Object.freeze({
+     module:String(detail.module||"UNKNOWN"),
+     result_type:String(detail.result_type||"UNKNOWN"),
+     status:String(detail.status||"UNKNOWN"),
+     summary:String(detail.summary||""),
+     raw_data:detail.raw_data||null,
+     provenance:String(detail.provenance||"UNKNOWN"),
+     evidence_level:String(detail.evidence_level||"SOFTWARE_RESULT"),
+     timestamp:new Date().toISOString(),
+     language:language,
+     diagnostic_authority:false
+    })
+   })
+  );
+ }
+
  runBtn.addEventListener("click",async function(){
   runBtn.disabled=true;
   replayBtn.disabled=true;
@@ -2323,6 +2585,23 @@ if ("serviceWorker" in navigator) {
    status.textContent=
     "Simulation complete — no physical vehicle connection used.";
 
+   emitEzeroResult({
+    module:"VEHICLE_OBD",
+    result_type:"OBD_SIMULATION",
+    status:"COMPLETE",
+    summary:
+     "OBD simulation completed. Scenario="+
+     String(result.scenario_id||"UNKNOWN")+
+     "; sensors="+String(screening.total_sensors??"UNKNOWN")+
+     "; out_of_range="+String(screening.out_of_range_sensors??"UNKNOWN")+
+     "; dtcs="+String(Array.isArray(result.dtcs)?result.dtcs.length:0)+
+     "; diagnostic_claim="+
+     (result.diagnostic_claim===false?"FALSE":String(result.diagnostic_claim)),
+    raw_data:result,
+    provenance:String(result.data_provenance||"SIMULATED"),
+    evidence_level:"SIMULATED_SOFTWARE_RESULT"
+   });
+
   }catch(error){
    status.textContent="Simulation unavailable: "+error.message;
   }finally{
@@ -2363,6 +2642,21 @@ if ("serviceWorker" in navigator) {
    status.textContent=result.match===true
     ?"Replay validated — canonical match."
     :"Replay completed — canonical mismatch.";
+
+   emitEzeroResult({
+    module:"VEHICLE_OBD",
+    result_type:"OBD_REPLAY",
+    status:result.match===true?"CANONICAL_MATCH":"CANONICAL_MISMATCH",
+    summary:
+     "OBD replay completed. Scenario="+
+     String(result.scenario_id||"UNKNOWN")+
+     "; canonical_match="+String(result.match===true)+
+     "; diagnostic_claim="+
+     (result.diagnostic_claim===false?"FALSE":String(result.diagnostic_claim)),
+    raw_data:result,
+    provenance:String(result.data_provenance||"LOG_REPLAY"),
+    evidence_level:"LOG_REPLAY_SOFTWARE_RESULT"
+   });
 
   }catch(error){
    status.textContent="Replay unavailable: "+error.message;
@@ -2579,12 +2873,123 @@ if ("serviceWorker" in navigator) {
    </div>
   </div>
 
+  <div style="display:flex;align-items:center;gap:6px;">
+   <button
+    id="ezeroVoiceGuideSettingsButton"
+    type="button"
+    aria-label="Open E-ZERO Voice Guide settings"
+    title="Voice Guide Settings"
+    style="
+     width:38px;
+     height:38px;
+     display:grid;
+     place-items:center;
+     padding:0;
+     border:1px solid #c7dfe8;
+     border-radius:10px;
+     background:#eef7fa;
+     color:#0b4f66;
+     font-size:18px;
+     cursor:pointer;
+    "
+   >⚙️</button>
+
+   <button
+    id="ezeroVoiceGuideClose"
+    type="button"
+    aria-label="Close E-ZERO Voice Guide"
+    style="border:0;background:transparent;font-size:22px;cursor:pointer;line-height:1;"
+   >×</button>
+  </div>
+ </div>
+
+ <div
+  id="ezeroVoiceGuideSettingsPanel"
+  hidden
+  style="
+   margin-top:12px;
+   padding:12px;
+   border:1px solid #c7dfe8;
+   border-radius:12px;
+   background:#f8fbfd;
+  "
+ >
+  <div style="font-weight:800;color:#0b2740;margin-bottom:10px;">
+   ⚙️ Voice Guide Settings
+  </div>
+
+  <label style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin:9px 0;">
+   <span>🔊 Auto Speak</span>
+   <input id="ezeroSettingAutoSpeak" type="checkbox">
+  </label>
+
+  <label style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin:9px 0;">
+   <span>🎤 Auto-submit after Mic</span>
+   <input id="ezeroSettingAutoSubmit" type="checkbox">
+  </label>
+
+  <label style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin:9px 0;">
+   <span>📊 Auto Result Explain</span>
+   <input id="ezeroSettingAutoResultExplain" type="checkbox">
+  </label>
+
+  <label style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin:9px 0;">
+   <span>🔊 Auto Speak Results</span>
+   <input id="ezeroSettingAutoSpeakResults" type="checkbox">
+  </label>
+
+  <label style="display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;margin:9px 0;">
+   <span>📝 Answer Length</span>
+   <select id="ezeroSettingAnswerLength" style="padding:6px 8px;border-radius:8px;">
+    <option value="short">Short</option>
+    <option value="normal" selected>Normal</option>
+    <option value="detailed">Detailed</option>
+   </select>
+  </label>
+
+  <label style="display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;margin:9px 0;">
+   <span>🎚️ Voice Speed</span>
+   <select id="ezeroSettingVoiceSpeed" style="padding:6px 8px;border-radius:8px;">
+    <option value="0.85">Slow</option>
+    <option value="1" selected>Normal</option>
+    <option value="1.15">Fast</option>
+   </select>
+  </label>
+
+  <div
+   style="
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    margin:10px 0;
+    padding:9px 10px;
+    border-radius:9px;
+    background:#eaf8f0;
+    border:1px solid #bce6cc;
+   "
+  >
+   <span>🛡️ Safety Governance</span>
+   <strong style="color:#15803d;">LOCKED ON</strong>
+  </div>
+
   <button
-   id="ezeroVoiceGuideClose"
+   id="ezeroSettingReset"
    type="button"
-   aria-label="Close E-ZERO Voice Guide"
-   style="border:0;background:transparent;font-size:22px;cursor:pointer;line-height:1;"
-  >×</button>
+   style="
+    width:100%;
+    margin-top:6px;
+    padding:8px 10px;
+    border-radius:8px;
+    border:1px solid #c8d4da;
+    background:white;
+    color:#40545d;
+    font-weight:700;
+    cursor:pointer;
+   "
+  >
+   Reset Settings
+  </button>
  </div>
 
  <div
@@ -2655,13 +3060,17 @@ if ("serviceWorker" in navigator) {
   aria-live="polite"
   style="
    margin-top:14px;
-   padding:12px;
-   min-height:72px;
-   border-radius:8px;
+   padding:16px;
+   min-height:160px;
+   max-height:340px;
+   overflow:auto;
+   border-radius:12px;
    border:1px solid #d7e0e3;
    background:#fafcfc;
    color:#1f2937;
-   line-height:1.5;
+   line-height:1.75;
+   font-size:15px;
+   white-space:pre-wrap;
   "
  >
   Ask a question about the website, its modules, controls, evidence, or limitations.
@@ -2699,10 +3108,108 @@ if ("serviceWorker" in navigator) {
 })();
 </script>
 
+<script>
+(function () {
+  "use strict";
 
-<script src="js/ezero_voice_guide_knowledge_v0_1.js?v=20260911-1005"></script>
-<script src="js/ezero_voice_guide_feature_registry_v0_1.js?v=20260911-1005"></script>
-<script src="js/ezero_voice_guide_ui_v0_1.js?v=20260911-1005"></script>
+  const button = document.getElementById("ezeroVoiceGuideSettingsButton");
+  const panel = document.getElementById("ezeroVoiceGuideSettingsPanel");
+  const autoSpeak = document.getElementById("ezeroSettingAutoSpeak");
+  const autoSubmit = document.getElementById("ezeroSettingAutoSubmit");
+  const autoResultExplain = document.getElementById("ezeroSettingAutoResultExplain");
+  const autoSpeakResults = document.getElementById("ezeroSettingAutoSpeakResults");
+  const answerLength = document.getElementById("ezeroSettingAnswerLength");
+  const voiceSpeed = document.getElementById("ezeroSettingVoiceSpeed");
+  const reset = document.getElementById("ezeroSettingReset");
+
+  if (!button || !panel || !autoSpeak || !autoSubmit || !autoResultExplain || !autoSpeakResults || !answerLength || !voiceSpeed || !reset) {
+    console.warn("E-ZERO Voice Guide settings controls not found");
+    return;
+  }
+
+  const KEY = "ezero.voiceGuide.settings.v0.1";
+
+  const defaults = Object.freeze({
+    autoSpeak: false,
+    autoSubmit: false,
+    autoResultExplain: true,
+    autoSpeakResults: false,
+    answerLength: "normal",
+    voiceSpeed: "1"
+  });
+
+  function readSettings() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(KEY) || "{}");
+      return Object.assign({}, defaults, saved);
+    } catch (_) {
+      return Object.assign({}, defaults);
+    }
+  }
+
+  function publish(settings) {
+    window.EZERO_VOICE_GUIDE_SETTINGS = Object.freeze({
+      autoSpeak: !!settings.autoSpeak,
+      autoSubmit: !!settings.autoSubmit,
+      autoResultExplain: !!settings.autoResultExplain,
+      autoSpeakResults: !!settings.autoSpeakResults,
+      answerLength: settings.answerLength || "normal",
+      voiceSpeed: Number(settings.voiceSpeed) || 1,
+      safetyGovernance: true
+    });
+  }
+
+  function apply(settings) {
+    autoSpeak.checked = !!settings.autoSpeak;
+    autoSubmit.checked = !!settings.autoSubmit;
+    autoResultExplain.checked = !!settings.autoResultExplain;
+    autoSpeakResults.checked = !!settings.autoSpeakResults;
+    answerLength.value = settings.answerLength || "normal";
+    voiceSpeed.value = settings.voiceSpeed || "1";
+    publish(settings);
+  }
+
+  function save() {
+    const settings = {
+      autoSpeak: autoSpeak.checked,
+      autoSubmit: autoSubmit.checked,
+      autoResultExplain: autoResultExplain.checked,
+      autoSpeakResults: autoSpeakResults.checked,
+      answerLength: answerLength.value,
+      voiceSpeed: voiceSpeed.value
+    };
+
+    try {
+      localStorage.setItem(KEY, JSON.stringify(settings));
+    } catch (_) {}
+
+    publish(settings);
+  }
+
+  button.addEventListener("click", function () {
+    panel.hidden = !panel.hidden;
+    button.setAttribute("aria-expanded", String(!panel.hidden));
+  });
+
+  [autoSpeak, autoSubmit, autoResultExplain, autoSpeakResults, answerLength, voiceSpeed].forEach(function (control) {
+    control.addEventListener("change", save);
+  });
+
+  reset.addEventListener("click", function () {
+    try {
+      localStorage.removeItem(KEY);
+    } catch (_) {}
+    apply(defaults);
+  });
+
+  apply(readSettings());
+})();
+</script>
+
+
+<script src="js/ezero_voice_guide_knowledge_v0_1.js?v=20260911-1310"></script>
+<script src="js/ezero_voice_guide_feature_registry_v0_1.js?v=20260911-1310"></script>
+<script src="js/ezero_voice_guide_ui_v0_1.js?v=20260911-1310"></script>
 
 
 </body>

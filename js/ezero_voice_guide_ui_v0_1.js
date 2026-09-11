@@ -49,6 +49,28 @@
     const key = knowledgeI18nKey(entry && entry.id);
     const i18n = window.EZERO_I18N;
 
+    const answerLength =
+      window.EZERO_VOICE_GUIDE_SETTINGS &&
+      window.EZERO_VOICE_GUIDE_SETTINGS.answerLength
+        ? window.EZERO_VOICE_GUIDE_SETTINGS.answerLength
+        : "normal";
+
+    if (entry) {
+      const lengthField =
+        answerLength === "short"
+          ? language + "_short"
+          : answerLength === "detailed"
+            ? language + "_detailed"
+            : language;
+
+      if (
+        typeof entry[lengthField] === "string" &&
+        entry[lengthField].trim()
+      ) {
+        return entry[lengthField];
+      }
+    }
+
     if (
       key &&
       i18n &&
@@ -176,21 +198,138 @@
       return;
     }
 
-    function runQuestion() {
-      const result = findAnswer(input.value);
+    async function runQuestion() {
+      const question = (input.value || "").trim();
+      const deterministicResult = findAnswer(question);
+      const language = currentLanguage();
 
-      answer.textContent = result.text;
+      if (!question) {
+        answer.textContent =
+          language === "ur"
+            ? "براہِ کرم سوال لکھیں یا 🎤 دباکر بولیں۔"
+            : "Please enter a question or tap 🎤 and speak.";
+        return;
+      }
 
-      if (result.matched) {
+      if (language !== "en" && deterministicResult.matched) {
+        answer.textContent = deterministicResult.text;
+
         status.textContent =
-          currentLanguage() === "ur"
-            ? "✓ جواب تیار ہے"
-            : "✓ Answer ready";
-      } else {
+          language === "ur"
+            ? "✓ تصدیق شدہ E-ZERO جواب تیار ہے"
+            : "✓ Verified E-ZERO answer ready";
+
+        if (
+          (
+            window.EZERO_VOICE_GUIDE_SETTINGS &&
+            window.EZERO_VOICE_GUIDE_SETTINGS.autoSpeak
+          ) ||
+          window.EZERO_RESULT_AUTO_SPEAK_PENDING
+        ) {
+          window.EZERO_RESULT_AUTO_SPEAK_PENDING = false;
+          setTimeout(function () {
+            const speakButton =
+              document.getElementById("ezeroVoiceGuideSpeak");
+
+            if (speakButton) {
+              speakButton.click();
+            }
+          }, 180);
+        }
+
+        return;
+      }
+
+      status.textContent =
+        language === "ur"
+          ? "⏳ E-ZERO AI جواب تیار کر رہا ہے…"
+          : "⏳ E-ZERO AI is preparing an answer…";
+
+      try {
+        const response = await fetch("http://127.0.0.1:8091/ask", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            question: question,
+            response_language: language,
+            answer_length:
+              window.EZERO_VOICE_GUIDE_SETTINGS &&
+              window.EZERO_VOICE_GUIDE_SETTINGS.answerLength
+                ? window.EZERO_VOICE_GUIDE_SETTINGS.answerLength
+                : "normal"
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error("AI_BRIDGE_HTTP_" + response.status);
+        }
+
+        const data = await response.json();
+
+        if (
+          !data ||
+          typeof data.answer !== "string" ||
+          !data.answer.trim()
+        ) {
+          throw new Error("AI_BRIDGE_INVALID_RESPONSE");
+        }
+
+        if (data.answer === "INSUFFICIENT_VERIFIED_EZERO_EVIDENCE") {
+          answer.textContent =
+            language === "ur"
+              ? "اس سوال کے لیے کافی تصدیق شدہ E-ZERO evidence دستیاب نہیں۔"
+              : "Insufficient verified E-ZERO evidence for this question.";
+
+          status.textContent =
+            language === "ur"
+              ? "تصدیق شدہ evidence ناکافی · Fail-closed"
+              : "Insufficient verified evidence · Fail-closed";
+
+          return;
+        }
+
+        answer.textContent = data.answer;
+
         status.textContent =
-          currentLanguage() === "ur"
-            ? "تصدیق شدہ جواب دستیاب نہیں · Fail-closed"
-            : "Verified answer unavailable · Fail-closed";
+          language === "ur"
+            ? "✓ Governed AI جواب تیار ہے"
+            : "✓ Governed AI answer ready";
+
+        if (
+          window.EZERO_VOICE_GUIDE_SETTINGS &&
+          window.EZERO_VOICE_GUIDE_SETTINGS.autoSpeak
+        ) {
+          setTimeout(function () {
+            const speakButton =
+              document.getElementById("ezeroVoiceGuideSpeak");
+
+            if (speakButton) {
+              speakButton.click();
+            }
+          }, 180);
+        }
+
+      } catch (error) {
+        console.warn(
+          "E-ZERO governed AI unavailable; deterministic fallback used:",
+          error
+        );
+
+        answer.textContent = deterministicResult.text;
+
+        if (deterministicResult.matched) {
+          status.textContent =
+            language === "ur"
+              ? "✓ Verified local جواب · AI دستیاب نہیں"
+              : "✓ Verified local answer · AI unavailable";
+        } else {
+          status.textContent =
+            language === "ur"
+              ? "تصدیق شدہ جواب دستیاب نہیں · Fail-closed"
+              : "Verified answer unavailable · Fail-closed";
+        }
       }
     }
 
@@ -344,18 +483,50 @@
         }
 
         input.value = transcript;
+
         status.textContent =
           voiceLanguage() === "ur-PK"
-            ? "⏳ سوال مل گیا · جواب تیار ہو رہا ہے…"
-            : "⏳ Question captured · Preparing answer…";
+            ? "✓ سوال مکمل ہے · سبز Ask بٹن دبائیں"
+            : "✓ Question ready · Tap the green Ask button";
 
-        if (window.EZERO_MIC_VISUAL) {
-          window.EZERO_MIC_VISUAL.processing();
+        askButton.textContent = "✓ Ask";
+        askButton.style.background = "#16a34a";
+        askButton.style.color = "#ffffff";
+        askButton.style.borderColor = "#15803d";
+        askButton.style.boxShadow = "0 0 0 4px rgba(22,163,74,.18)";
+        askButton.style.transform = "scale(1.04)";
+
+        if (
+          window.EZERO_VOICE_GUIDE_SETTINGS &&
+          window.EZERO_VOICE_GUIDE_SETTINGS.autoSubmit
+        ) {
+          status.textContent =
+            voiceLanguage() === "ur-PK"
+              ? "⏳ سوال مل گیا · AI جواب تیار کر رہا ہے…"
+              : "⏳ Question captured · AI is preparing the answer…";
+
+          if (window.EZERO_MIC_VISUAL) {
+            window.EZERO_MIC_VISUAL.processing();
+          }
+
+          askButton.click();
+        } else {
+          if (window.EZERO_MIC_VISUAL) {
+            window.EZERO_MIC_VISUAL.idle();
+          }
         }
 
-        askButton.click();
-        autoSpeakAfterRecognition = true;
+        autoSpeakAfterRecognition = false;
       };
+
+      askButton.addEventListener("click", function () {
+        askButton.textContent = "Ask";
+        askButton.style.background = "";
+        askButton.style.color = "";
+        askButton.style.borderColor = "";
+        askButton.style.boxShadow = "";
+        askButton.style.transform = "";
+      });
 
       recognition.onerror = function (event) {
         const code = event && event.error ? event.error : "unknown";
@@ -426,6 +597,13 @@
         window.speechSynthesis.cancel();
 
         const utterance = new SpeechSynthesisUtterance(text);
+
+        utterance.rate =
+          window.EZERO_VOICE_GUIDE_SETTINGS &&
+          Number(window.EZERO_VOICE_GUIDE_SETTINGS.voiceSpeed)
+            ? Number(window.EZERO_VOICE_GUIDE_SETTINGS.voiceSpeed)
+            : 1;
+
         const requestedLang = voiceLanguage();
         const voices = window.speechSynthesis.getVoices() || [];
 
@@ -848,4 +1026,113 @@
   } else {
     initMicVisualState();
   }
+})();
+
+/* E-ZERO Result Intelligence Listener V0.1 */
+(function () {
+  "use strict";
+
+  document.addEventListener("ezero:result", function (event) {
+    const detail = event && event.detail ? event.detail : null;
+
+    if (!detail) return;
+
+    const panel = document.getElementById("ezeroVoiceGuidePanel");
+    const input = document.getElementById("ezeroVoiceGuideInput");
+    const answer = document.getElementById("ezeroVoiceGuideAnswer");
+    const status = document.getElementById("ezeroVoiceGuideStatus");
+    const askButton = document.getElementById("ezeroVoiceGuideAsk");
+
+    if (!panel || !input || !answer || !status || !askButton) {
+      console.warn("E-ZERO result listener: Voice Guide UI unavailable");
+      return;
+    }
+
+    panel.style.display = "block";
+    panel.setAttribute("aria-hidden", "false");
+
+    const lang =
+      window.EZERO_LANGUAGE &&
+      typeof window.EZERO_LANGUAGE.current === "function"
+        ? window.EZERO_LANGUAGE.current()
+        : (document.documentElement.lang || "en");
+
+    const isUrdu = lang === "ur";
+
+    const prompt =
+      isUrdu
+        ? (
+            "اس E-ZERO result کی مکمل مگر evidence-grounded وضاحت کریں۔ " +
+            "اصل result یا status تبدیل نہ کریں۔ " +
+            "تشخیص یا safety claim نہ بنائیں۔ " +
+            "Module: " + detail.module +
+            " | Result type: " + detail.result_type +
+            " | Status: " + detail.status +
+            " | Provenance: " + detail.provenance +
+            " | Evidence level: " + detail.evidence_level +
+            " | Diagnostic authority: FALSE" +
+            " | Summary: " + detail.summary
+          )
+        : (
+            "Explain this E-ZERO result clearly and in detail within its evidence boundary. " +
+            "Do not alter the original result or status. " +
+            "Do not create diagnosis or safety claims. " +
+            "Module: " + detail.module +
+            " | Result type: " + detail.result_type +
+            " | Status: " + detail.status +
+            " | Provenance: " + detail.provenance +
+            " | Evidence level: " + detail.evidence_level +
+            " | Diagnostic authority: FALSE" +
+            " | Summary: " + detail.summary
+          );
+
+    input.value = prompt;
+
+    answer.textContent =
+      isUrdu
+        ? "نیا E-ZERO result موصول ہوا ہے۔ وضاحت تیار کرنے کے لیے Ask دبائیں۔"
+        : "A new E-ZERO result was received. Tap Ask to prepare an explanation.";
+
+    status.textContent =
+      isUrdu
+        ? "✓ نیا result موصول ہوا · وضاحت تیار ہے"
+        : "✓ New result received · Ready to explain";
+
+    askButton.textContent = "✓ Ask";
+    askButton.style.background = "#16a34a";
+    askButton.style.color = "#ffffff";
+    askButton.style.borderColor = "#15803d";
+    askButton.style.boxShadow = "0 0 0 4px rgba(22,163,74,.18)";
+
+    const settings =
+      window.EZERO_VOICE_GUIDE_SETTINGS || {};
+
+    if (settings.autoResultExplain) {
+      status.textContent =
+        isUrdu
+          ? "⏳ Result موصول ہوا · وضاحت تیار کی جا رہی ہے…"
+          : "⏳ Result received · Preparing explanation…";
+
+      setTimeout(function () {
+        askButton.click();
+      }, 120);
+    }
+
+    window.EZERO_RESULT_AUTO_SPEAK_PENDING =
+      !!(
+        window.EZERO_VOICE_GUIDE_SETTINGS &&
+        window.EZERO_VOICE_GUIDE_SETTINGS.autoSpeakResults
+      );
+
+    window.EZERO_LAST_RESULT = Object.freeze({
+      module: detail.module,
+      result_type: detail.result_type,
+      status: detail.status,
+      summary: detail.summary,
+      provenance: detail.provenance,
+      evidence_level: detail.evidence_level,
+      timestamp: detail.timestamp,
+      diagnostic_authority: false
+    });
+  });
 })();
