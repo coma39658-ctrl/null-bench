@@ -240,13 +240,38 @@
         return;
       }
 
+      const publicAiEnabled =
+        window.EZERO_PUBLIC_AI_ENABLED === true;
+
+      const publicAiEndpoint =
+        typeof window.EZERO_PUBLIC_AI_ENDPOINT === "string"
+          ? window.EZERO_PUBLIC_AI_ENDPOINT.trim()
+          : "";
+
+      if (
+        !publicAiEnabled ||
+        !/^https:\/\//i.test(publicAiEndpoint)
+      ) {
+        answer.textContent =
+          language === "ur"
+            ? "اس سوال کے لیے ابھی تصدیق شدہ E-ZERO جواب دستیاب نہیں۔ Public AI ابھی فعال نہیں ہے۔"
+            : "No verified E-ZERO answer is available for this question yet. Public AI is not enabled yet.";
+
+        status.textContent =
+          language === "ur"
+            ? "تصدیق شدہ جواب دستیاب نہیں · Fail-closed"
+            : "Verified answer unavailable · Fail-closed";
+
+        return;
+      }
+
       status.textContent =
         language === "ur"
           ? "⏳ E-ZERO AI جواب تیار کر رہا ہے…"
           : "⏳ E-ZERO AI is preparing an answer…";
 
       try {
-        const response = await fetch("http://127.0.0.1:8091/ask", {
+        const response = await fetch(publicAiEndpoint, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -596,15 +621,94 @@
 
         window.speechSynthesis.cancel();
 
-        const utterance = new SpeechSynthesisUtterance(text);
+        const requestedLang = voiceLanguage();
 
-        utterance.rate =
+        const configuredRate =
           window.EZERO_VOICE_GUIDE_SETTINGS &&
           Number(window.EZERO_VOICE_GUIDE_SETTINGS.voiceSpeed)
             ? Number(window.EZERO_VOICE_GUIDE_SETTINGS.voiceSpeed)
             : 1;
 
-        const requestedLang = voiceLanguage();
+        if (
+          requestedLang === "ur-PK" &&
+          window.EZERO_URDU_AEGIS_TTS
+        ) {
+          status.textContent =
+            "🔊 Aegis اردو آواز تیار کی جا رہی ہے…";
+
+          if (window.EZERO_MIC_VISUAL) {
+            window.EZERO_MIC_VISUAL.speaking();
+          }
+
+          window.EZERO_URDU_AEGIS_TTS
+            .speak(text, {
+              rate: configuredRate,
+              onProgress: function (progress) {
+                if (
+                  progress &&
+                  Number(progress.total) > 0
+                ) {
+                  const pct = Math.max(
+                    0,
+                    Math.min(
+                      100,
+                      Math.round(
+                        Number(progress.loaded) *
+                        100 /
+                        Number(progress.total)
+                      )
+                    )
+                  );
+
+                  status.textContent =
+                    "🔊 اردو Aegis آواز تیار ہو رہی ہے… " +
+                    pct +
+                    "%";
+                }
+              }
+            })
+            .then(function () {
+              status.textContent =
+                "✓ تیار · نیا سوال پوچھنے کے لیے 🎤 دبائیں";
+
+              if (window.EZERO_MIC_VISUAL) {
+                window.EZERO_MIC_VISUAL.idle();
+              }
+            })
+            .catch(function (error) {
+              console.warn(
+                "E-ZERO Urdu Aegis TTS error:",
+                error
+              );
+
+              const errorName =
+                error && error.name ? error.name : "Error";
+              const errorMessage =
+                error && error.message
+                  ? error.message
+                  : String(error || "Unknown Aegis TTS error");
+
+              window.EZERO_LAST_AEGIS_ERROR = {
+                name: errorName,
+                message: errorMessage
+              };
+
+              status.textContent =
+                "AEGIS ERROR: " +
+                errorName +
+                " · " +
+                errorMessage;
+
+              if (window.EZERO_MIC_VISUAL) {
+                window.EZERO_MIC_VISUAL.error();
+              }
+            });
+
+          return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = configuredRate;
         const voices = window.speechSynthesis.getVoices() || [];
 
         let selectedVoice = null;
