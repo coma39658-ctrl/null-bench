@@ -271,27 +271,34 @@
           : "⏳ E-ZERO AI is preparing an answer…";
 
       try {
-        const response = await fetch(publicAiEndpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
+        if (
+          !window.EZERO_QWEN_PUBLIC_AGENT_V0_1 ||
+          typeof window.EZERO_QWEN_PUBLIC_AGENT_V0_1.ask !== "function"
+        ) {
+          throw new Error("AI_AGENT_ADAPTER_UNAVAILABLE");
+        }
+
+        const agentResult =
+          await window.EZERO_QWEN_PUBLIC_AGENT_V0_1.ask({
             question: question,
-            response_language: language,
-            answer_length:
+            responseLanguage: language,
+            answerLength:
               window.EZERO_VOICE_GUIDE_SETTINGS &&
               window.EZERO_VOICE_GUIDE_SETTINGS.answerLength
                 ? window.EZERO_VOICE_GUIDE_SETTINGS.answerLength
                 : "normal"
-          })
-        });
+          });
 
-        if (!response.ok) {
-          throw new Error("AI_BRIDGE_HTTP_" + response.status);
-        }
-
-        const data = await response.json();
+        const data =
+          agentResult.status ===
+          "INSUFFICIENT_VERIFIED_EZERO_EVIDENCE"
+            ? {
+                answer:
+                  "INSUFFICIENT_VERIFIED_EZERO_EVIDENCE"
+              }
+            : {
+                answer: agentResult.answer
+              };
 
         if (
           !data ||
@@ -383,6 +390,42 @@
 (function () {
   "use strict";
 
+  const conversationState = {
+    value: "READY"
+  };
+
+  function setConversationState(nextState) {
+    const allowed = [
+      "READY",
+      "LISTEN",
+      "THINKING",
+      "ANSWER",
+      "SPEAKING",
+      "ERROR"
+    ];
+
+    if (!allowed.includes(nextState)) {
+      return;
+    }
+
+    conversationState.value = nextState;
+
+    window.dispatchEvent(
+      new CustomEvent("ezero:voice-conversation-state", {
+        detail: Object.freeze({
+          state: nextState
+        })
+      })
+    );
+  }
+
+  window.EZERO_VOICE_CONVERSATION = Object.freeze({
+    getState: function () {
+      return conversationState.value;
+    },
+    setState: setConversationState
+  });
+
   function voiceLanguage() {
     const selector =
       document.getElementById("languageSelect");
@@ -467,6 +510,17 @@
         event.preventDefault();
         event.stopPropagation();
 
+        if (
+          window.EZERO_VOICE_CONVERSATION &&
+          window.EZERO_VOICE_CONVERSATION.getState() === "SPEAKING"
+        ) {
+          status.textContent =
+            voiceLanguage() === "ur-PK"
+              ? "🔊 پہلے موجود جواب مکمل ہونے دیں"
+              : "🔊 Please let the current answer finish first";
+          return;
+        }
+
         try {
           recognition.lang = voiceLanguage();
           status.textContent =
@@ -508,6 +562,7 @@
         }
 
         input.value = transcript;
+        setConversationState("ANSWER");
 
         status.textContent =
           voiceLanguage() === "ur-PK"
@@ -525,6 +580,8 @@
           window.EZERO_VOICE_GUIDE_SETTINGS &&
           window.EZERO_VOICE_GUIDE_SETTINGS.autoSubmit
         ) {
+          setConversationState("THINKING");
+
           status.textContent =
             voiceLanguage() === "ur-PK"
               ? "⏳ سوال مل گیا · AI جواب تیار کر رہا ہے…"
@@ -564,6 +621,8 @@
       };
 
       recognition.onstart = function () {
+        setConversationState("LISTEN");
+
         status.textContent =
           voiceLanguage() === "ur-PK"
             ? "🎤 بولیں… خاموش ہونے پر خود بند ہو جائے گا"
@@ -633,6 +692,9 @@
           requestedLang === "ur-PK" &&
           window.EZERO_URDU_AEGIS_TTS
         ) {
+          setConversationState("SPEAKING");
+          micButton.disabled = true;
+
           status.textContent =
             "🔊 Aegis اردو آواز تیار کی جا رہی ہے…";
 
@@ -668,6 +730,9 @@
               }
             })
             .then(function () {
+              setConversationState("READY");
+              micButton.disabled = false;
+
               status.textContent =
                 "✓ تیار · نیا سوال پوچھنے کے لیے 🎤 دبائیں";
 
@@ -676,6 +741,9 @@
               }
             })
             .catch(function (error) {
+              setConversationState("ERROR");
+              micButton.disabled = false;
+
               console.warn(
                 "E-ZERO Urdu Aegis TTS error:",
                 error
@@ -735,6 +803,9 @@
         }
 
         utterance.onerror = function (event) {
+          setConversationState("ERROR");
+          micButton.disabled = false;
+
           console.warn("E-ZERO Voice Guide speech synthesis error:", event.error || event);
           status.textContent =
             requestedLang === "ur-PK"
@@ -743,6 +814,9 @@
         };
 
         utterance.onstart = function () {
+          setConversationState("SPEAKING");
+          micButton.disabled = true;
+
           status.textContent =
             voiceLanguage() === "ur-PK"
               ? "🔊 جواب سنایا جا رہا ہے…"
@@ -754,6 +828,9 @@
         };
 
         utterance.onend = function () {
+          setConversationState("READY");
+          micButton.disabled = false;
+
           status.textContent =
             voiceLanguage() === "ur-PK"
               ? "✓ تیار · نیا سوال پوچھنے کے لیے 🎤 دبائیں"

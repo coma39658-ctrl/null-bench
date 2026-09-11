@@ -1,0 +1,610 @@
+{
+  "bundle_version": "0.1",
+  "status": "READ_ONLY_APPROVED_KNOWLEDGE",
+  "manifest": "data/ezero_agent_knowledge_manifest_v0_1.json",
+  "rules": {
+    "retrieval_only": true,
+    "agent_may_modify_sources": false,
+    "scientific_claims_require_evidence_support": true,
+    "live_self_training": false
+  },
+  "source_count": 9,
+  "chunk_count": 64,
+  "sources": [
+    {
+      "source_id": "SRC-001",
+      "path": "data/evidence_registry.json",
+      "source_class": "EVIDENCE_REGISTRY",
+      "authority": "SCIENTIFIC_EVIDENCE_AUTHORITY",
+      "sha256": "8409499e046e4f95435e21a7b0a408d52cb0e39873e4104dd828b84e90367a83",
+      "bytes": 22953,
+      "read_only": true
+    },
+    {
+      "source_id": "SRC-002",
+      "path": "data/benchmark006_public_readiness.json",
+      "source_class": "VALIDATED_PUBLIC_READINESS",
+      "authority": "VALIDATED_STATUS_SOURCE",
+      "sha256": "6d8ae3de6d8c8f51505d636ad737fc2a5592049359dace34315260e9e40a94e1",
+      "bytes": 1402,
+      "read_only": true
+    },
+    {
+      "source_id": "SRC-003",
+      "path": "js/ezero_voice_guide_knowledge_v0_1.js",
+      "source_class": "VOICE_GUIDE_KNOWLEDGE",
+      "authority": "APPROVED_EXPLANATION_SOURCE",
+      "sha256": "c75e6a0ba4207a685afa2e28c7b6589759ff386cc9ff734790d8cf1b9359faa1",
+      "bytes": 10947,
+      "read_only": true
+    },
+    {
+      "source_id": "SRC-004",
+      "path": "js/ezero_voice_guide_feature_registry_v0_1.js",
+      "source_class": "FEATURE_REGISTRY",
+      "authority": "APPROVED_FEATURE_DESCRIPTION",
+      "sha256": "cce09f08c1cb10e9d72fea0afed5a304c95fa5b4a4e8ad4643fde933e6800db8",
+      "bytes": 8954,
+      "read_only": true
+    },
+    {
+      "source_id": "SRC-005",
+      "path": "docs/EZERO_PUBLIC_WEBSITE_INFORMATION_ARCHITECTURE_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "ARCHITECTURE_BOUNDARY",
+      "sha256": "2e38a372c96626af892cc9e46cefec35bf723429ea48bee77c02caa3ac1ce6e8",
+      "bytes": 13875,
+      "read_only": true
+    },
+    {
+      "source_id": "SRC-006",
+      "path": "docs/EZERO_VOICE_GUIDE_FEATURE_INTEGRATION_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "VOICE_GUIDE_BOUNDARY",
+      "sha256": "8e73521f6b76e4bf84478deaadc2d65bd16b0893b27b4fa19675f2bfe4ddb21c",
+      "bytes": 5820,
+      "read_only": true
+    },
+    {
+      "source_id": "SRC-007",
+      "path": "docs/EZERO_VOICE_GUIDE_PHASE0_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "VOICE_GUIDE_PHASE_BOUNDARY",
+      "sha256": "640225855accd046c564bbdb8611843560e7e023b457b8587b5cd713943c06af",
+      "bytes": 2859,
+      "read_only": true
+    },
+    {
+      "source_id": "SRC-008",
+      "path": "docs/EZERO_VOICE_GUIDE_QWEN_AI_TTS_INTEGRATION_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "AI_TTS_INTEGRATION_BOUNDARY",
+      "sha256": "5ca1c477820dbff70e91fd78d1ee9f8528848aa3f4fcef6fb12451f83667c1a2",
+      "bytes": 2243,
+      "read_only": true
+    },
+    {
+      "source_id": "SRC-009",
+      "path": "docs/EZERO_QWEN_PUBLIC_AGENT_GATEWAY_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "QWEN_AGENT_GOVERNANCE",
+      "sha256": "3f440bd762620292c496e8689843e6d405b6ded1bf06f0305b5f330dd7999ab1",
+      "bytes": 7852,
+      "read_only": true
+    }
+  ],
+  "chunks": [
+    {
+      "chunk_id": "SRC-001-C001",
+      "source_id": "SRC-001",
+      "path": "data/evidence_registry.json",
+      "source_class": "EVIDENCE_REGISTRY",
+      "authority": "SCIENTIFIC_EVIDENCE_AUTHORITY",
+      "text": "{\n \"schema_version\": \"1.0\",\n \"registry_name\": \"E-ZERO Evidence Registry\",\n \"last_verified\": \"2026-09-03\",\n \"principle\": \"Scientific claims are data, not UI text.\",\n \"modules\": [\n {\n \"module_id\": \"null_bench\",\n \"display_name\": \"Null Bench\",\n \"status\": \"PUBLIC_TOOL\",\n \"scope\": \"Degree-preserving null-model testing for network structure.\",\n \"evidence_status\": \"COMPUTATIONAL_STATISTICAL_TOOL\",\n \"evidence_reference\": {\n \"repository\": \"coma39658-ctrl/null-bench\",\n \"site_commit\": \"d9fbf12\"\n },\n \"what_this_means\": \"The tool compares an observed network statistic against a degree-preserving null distribution.\",\n \"limitations\": [\n \"A result outside the null interval does not establish causality.\",\n \"It does not establish a physical law or mechanism.\",\n \"Small networks or insufficient null samples may produce unstable results.\",\n \"Important findings require independent replication and domain review.\"\n ],\n \"public_use\": true,\n \"public_url\": \"https://coma39658-ctrl.github.io/null-bench/\"\n },\n {\n \"module_id\": \"benchmark002\",\n \"display_name\": \"Benchmark 002 — Non-Gaussian Telemetry Validation\",\n \"status\": \"CLOSED_FROZEN\",\n \"scope\": \"Controlled computational validation under registered non-Gaussian telemetry conditions.\",\n \"evidence_status\": \"PASS\",\n \"evidence_reference\": {\n \"repository\": \"coma39658-ctrl/ezero-gsrl-benchmark\",\n \"tag\": \"benchmark002-final-v1.0\",\n \"commit\": \"5cd7615\"\n },\n \"metri"
+    },
+    {
+      "chunk_id": "SRC-001-C002",
+      "source_id": "SRC-001",
+      "path": "data/evidence_registry.json",
+      "source_class": "EVIDENCE_REGISTRY",
+      "authority": "SCIENTIFIC_EVIDENCE_AUTHORITY",
+      "text": "ns.\",\n \"evidence_status\": \"PASS\",\n \"evidence_reference\": {\n \"repository\": \"coma39658-ctrl/ezero-gsrl-benchmark\",\n \"tag\": \"benchmark002-final-v1.0\",\n \"commit\": \"5cd7615\"\n },\n \"metrics\": {\n \"pooled_rows\": 2560,\n \"noisy_cases\": 1920,\n \"unique_pre_change_cases\": 240,\n \"persistent_false_alarm_cases\": 4,\n \"persistent_false_alarm_rate_percent\": 1.667,\n \"gaussian_detection_percent\": 65.62,\n \"laplace_detection_percent\": 89.84,\n \"student_t_df3_detection_percent\": 85.94\n },\n \"what_this_means\": \"Benchmark 002 completed its registered reproducibility closure with a PASS under the tested computational conditions.\",\n \"limitations\": [\n \"This is controlled computational evidence, not physical-system certification.\",\n \"The result applies only to the tested benchmark conditions.\",\n \"It does not establish universal detector performance.\",\n \"Independent physical validation would be required for real-world safety claims.\"\n ],\n \"public_use\": false\n },\n {\n \"module_id\": \"benchmark003\",\n \"display_name\": \"Benchmark 003 — Distribution-Shift Stress Test\",\n \"status\": \"CLOSED_FROZEN\",\n \"scope\": \"Controlled computational stress testing across Gaussian, Laplace, Student-t df3 and Uniform noise families.\",\n \"evidence_status\": \"FAIL\",\n \"evidence_reference\": {\n \"repository\": \"coma39658-ctrl/ezero-gsrl-benchmark\",\n \"tag\": \"benchmark003-closed-frozen-v1\",\n \"closure_commit\": \"60b21bf\",\n \"methodological_erratum_commi"
+    },
+    {
+      "chunk_id": "SRC-001-C003",
+      "source_id": "SRC-001",
+      "path": "data/evidence_registry.json",
+      "source_class": "EVIDENCE_REGISTRY",
+      "authority": "SCIENTIFIC_EVIDENCE_AUTHORITY",
+      "text": "\"evidence_reference\": {\n \"repository\": \"coma39658-ctrl/ezero-gsrl-benchmark\",\n \"tag\": \"benchmark003-closed-frozen-v1\",\n \"closure_commit\": \"60b21bf\",\n \"methodological_erratum_commit\": \"5c02676\"\n },\n \"metrics\": {\n \"total_runs\": 2400,\n \"noisy_cases\": 1920,\n \"unique_pre_change_cases\": 480,\n \"pooled_detection_percent\": 56.094,\n \"gaussian_detection_percent\": 45.0,\n \"laplace_detection_percent\": 78.33,\n \"student_t_df3_detection_percent\": 73.33,\n \"uniform_detection_percent\": 27.71,\n \"persistent_false_alarm_rate_percent\": 2.5\n },\n \"what_this_means\": \"Benchmark 003 failed its registered primary stress criteria."
+    },
+    {
+      "chunk_id": "SRC-001-C004",
+      "source_id": "SRC-001",
+      "path": "data/evidence_registry.json",
+      "source_class": "EVIDENCE_REGISTRY",
+      "authority": "SCIENTIFIC_EVIDENCE_AUTHORITY",
+      "text": "cent\": 73.33,\n \"uniform_detection_percent\": 27.71,\n \"persistent_false_alarm_rate_percent\": 2.5\n },\n \"what_this_means\": \"Benchmark 003 failed its registered primary stress criteria. The failure is preserved as evidence rather than hidden or retuned.\",\n \"limitations\": [\n \"The protocol coverage was partial: multiple signal dynamics were not executed.\",\n \"The independent seed-batch replication criterion was not evaluated.\",\n \"No universal normalized failure boundary was established.\",\n \"This benchmark provides computational evidence only.\"\n ],\n \"public_use\": false\n },\n {\n \"module_id\": \"benchmark004\",\n \"display_name\": \"Benchmark 004 — Frozen Held-Out Detector Validation\",\n \"status\": \"CLOSED_FROZEN\",\n \"scope\": \"First frozen held-out evaluation on seeds 4201-4210, with no post-result detector retuning.\",\n \"evidence_status\": \"FAIL\",\n \"evidence_reference\": {\n \"repository\": \"coma39658-ctrl/ezero-gsrl-benchmark\",\n \"pre_heldout_tag\": \"benchmark004-pre-heldout-v1\",\n \"closed_tag\": \"benchmark004-closed-frozen-v1\",\n \"commit\": \"40784c7\"\n },\n \"metrics\": {\n \"noisy_cases\": 1920,\n \"detected_cases\": 1390,\n \"missed_cases\": 530,\n \"overall_detection_percent\": 72.4,\n \"gaussian_detection_percent\": 85.62,\n \"laplace_detection_percent\": 56.46,\n \"student_t_df3_detection_percent\": 47.5,\n \"uniform_detection_percent\": 100.0,\n \"pooled_unique_false_alarm_percent\": 2.5,\n \"maximum_local_false_alarm_percent\": 10.0,"
+    },
+    {
+      "chunk_id": "SRC-001-C005",
+      "source_id": "SRC-001",
+      "path": "data/evidence_registry.json",
+      "source_class": "EVIDENCE_REGISTRY",
+      "authority": "SCIENTIFIC_EVIDENCE_AUTHORITY",
+      "text": "cent\": 56.46,\n \"student_t_df3_detection_percent\": 47.5,\n \"uniform_detection_percent\": 100.0,\n \"pooled_unique_false_alarm_percent\": 2.5,\n \"maximum_local_false_alarm_percent\": 10.0,\n \"heldout_seed_spread_pp\": 18.75,\n \"baseline_detection_percent\": 54.11\n },\n \"what_this_means\": \"The selected detector improved pooled held-out detection over the frozen baseline, but failed mandatory family-generalization and held-out seed-stability criteria.\",\n \"limitations\": [\n \"Primary held-out result is FAIL despite 72.40% pooled detection.\",\n \"Student-t df3 detection was 47.50%, below the registered 50% requirement.\",\n \"Held-out seed spread was 18.75 percentage points, above the registered 10 pp limit.\",\n \"This is controlled computational evidence, not physical certification.\"\n ],\n \"public_use\": false\n },\n {\n \"module_id\": \"benchmark005\",\n \"display_name\": \"Benchmark 005 — Multisensor Fault Diagnosis\",\n \"status\": \"CLOSED_FROZEN\",\n \"scope\": \"Controlled synthetic multisensor fault detection and subsystem localization across registered operating regimes, non-Gaussian noise families and held-out seeds.\",\n \"evidence_status\": \"PASS\",\n \"evidence_reference\": {\n \"repository\": \"coma39658-ctrl/ezero-gsrl-benchmark\",\n \"tag\": \"benchmark005-closed-v1\",\n \"closure_commit\": \"2419a1b256047e8b2a3376b061cd066f03067054\",\n \"heldout_evidence_commit\": \"4a5aa3ac66c1a901f6a1574011e943b3fc568b1a\"\n },\n \"metrics\": {\n \"heldout_"
+    },
+    {
+      "chunk_id": "SRC-001-C006",
+      "source_id": "SRC-001",
+      "path": "data/evidence_registry.json",
+      "source_class": "EVIDENCE_REGISTRY",
+      "authority": "SCIENTIFIC_EVIDENCE_AUTHORITY",
+      "text": "rk005-closed-v1\",\n \"closure_commit\": \"2419a1b256047e8b2a3376b061cd066f03067054\",\n \"heldout_evidence_commit\": \"4a5aa3ac66c1a901f6a1574011e943b3fc568b1a\"\n },\n \"metrics\": {\n \"heldout_abnormal_cases\": 2880,\n \"heldout_detected_cases\": 2880,\n \"detection_percent\": 100.0,\n \"subsystem_accuracy_percent\": 98.8194,\n \"minimum_subsystem_recall_percent\": 92.9167,\n \"pooled_false_alarm_percent\": 1.25,\n \"maximum_local_false_alarm_percent\": 10.0,\n \"heldout_seed_spread_pp\": 1.3889\n },\n \"what_this_means\": \"Benchmark 005 passed all registered primary criteria in its one-shot frozen held-out evaluation under the tested controlled synthetic conditions.\",\n \"limitations\": [\n \"This is controlled synthetic evidence, not real-world automotive or industrial diagnostic validation.\",\n \"Subsystem localization does not establish unique component diagnosis.\",\n \"The result does not establish safety certification or universal fault-detection performance.\",\n \"No FPGA, ARM, HIL or real-world latency claim is established by this benchmark.\"\n ],\n \"public_use\": false\n },\n {\n \"module_id\": \"benchmark006\",\n \"display_name\": \"Benchmark 006 — GSRL External Validation Readiness\",\n \"status\": \"DEVELOPMENT\",\n \"scope\": \"Pre-registered readiness for an independently supplied external benchmark specification, with immutable intake, hashing and audit controls prepared before execution.\",\n \"evidence_status\": \"PARTIAL\",\n \"evidence_ref"
+    },
+    {
+      "chunk_id": "SRC-001-C007",
+      "source_id": "SRC-001",
+      "path": "data/evidence_registry.json",
+      "source_class": "EVIDENCE_REGISTRY",
+      "authority": "SCIENTIFIC_EVIDENCE_AUTHORITY",
+      "text": "ndependently supplied external benchmark specification, with immutable intake, hashing and audit controls prepared before execution.\",\n \"evidence_status\": \"PARTIAL\",\n \"evidence_reference\": {\n \"repository\": \"coma39658-ctrl/ezero-gsrl-benchmark\",\n \"pre_spec_tag\": \"benchmark006-pre-spec-readiness-v2\",\n \"readiness_commit\": \"1aabf5edcde5559854feeb1a49dddbfb87c2dc61\"\n },\n \"what_this_means\": \"Benchmark 006 is prepared for external specification intake but has not yet been executed and therefore has no external validation result.\",\n \"limitations\": [\n \"No GSRL external benchmark result has been produced yet.\",\n \"No PASS or FAIL claim is made before receipt and execution of the external specification.\",\n \"External acceptance criteria, datasets and latency constraints will not be invented or altered by E-ZERO.\",\n \"Any future result will apply only to the externally supplied benchmark conditions actually executed.\"\n ],\n \"public_use\": true,\n \"public_url\": \"https://coma39658-ctrl.github.io/null-bench/data/benchmark006_public_readiness.json\"\n },\n {\n \"module_id\": \"obd_wifi_tcp_loopback_validation_v0_1\",\n \"display_name\": \"Read-Only OBD — Wi-Fi TCP Loopback Validation V0.1\",\n \"status\": \"DEVELOPMENT\",\n \"scope\": \"Localhost-only Wi-Fi TCP transport validation for the E-ZERO read-only OBD stack, including ELM/STN text-protocol normalization, session integration and deterministic failure-state mappin"
+    },
+    {
+      "chunk_id": "SRC-001-C008",
+      "source_id": "SRC-001",
+      "path": "data/evidence_registry.json",
+      "source_class": "EVIDENCE_REGISTRY",
+      "authority": "SCIENTIFIC_EVIDENCE_AUTHORITY",
+      "text": "st-only Wi-Fi TCP transport validation for the E-ZERO read-only OBD stack, including ELM/STN text-protocol normalization, session integration and deterministic failure-state mapping.\",\n \"evidence_status\": \"PASS\",\n \"evidence_reference\": {\n \"repository\": \"coma39658-ctrl/E-ZERO-Dashboard\",\n \"branch\": \"obd-hardware-activation-prep-v0.1\",\n \"commit\": \"8b2076bccd413cc38814f1af1dde3f585f93132c\",\n \"regression_suite\": \"python -m unittest discover -v\"\n },\n \"metrics\": {\n \"regression_tests_total\": 414,\n \"regression_tests_passed\": 414,\n \"targeted_loopback_tests_total\": 26,\n \"targeted_loopback_tests_passed\": 26\n },\n \"what_this_means\": \"The localhost-only Wi-Fi TCP OBD transport path passed the registered software regression and targeted integration tests under the tested non-vehicle conditions.\",\n \"limitations\": [\n \"This is localhost/non-vehicle validation and is not real-vehicle validation.\",\n \"No physical OBD adapter or vehicle was connected during this validation.\",\n \"This evidence does not establish REAL_OBD provenance.\",\n \"No vehicle-control capability is enabled or authorized.\",\n \"The result does not establish automotive safety certification or universal hardware compatibility.\"\n ],\n \"public_use\": true,\n \"public_url\": \"https://coma39658-ctrl.github.io/null-bench/#vehicle-obd\"\n },\n {\n \"module_id\": \"obd_wifi_tcp_network_capable_bench_validation_v0_3\",\n \"display_name\": \"Read-Only OBD — Wi-"
+    },
+    {
+      "chunk_id": "SRC-001-C009",
+      "source_id": "SRC-001",
+      "path": "data/evidence_registry.json",
+      "source_class": "EVIDENCE_REGISTRY",
+      "authority": "SCIENTIFIC_EVIDENCE_AUTHORITY",
+      "text": "ic_url\": \"https://coma39658-ctrl.github.io/null-bench/#vehicle-obd\"\n },\n {\n \"module_id\": \"obd_wifi_tcp_network_capable_bench_validation_v0_3\",\n \"display_name\": \"Read-Only OBD — Wi-Fi TCP Network-Capable Bench Validation V0.3\",\n \"status\": \"CLOSED_FROZEN\",\n \"scope\": \"Network-capable Wi-Fi TCP physical-backend code path validated under pre-registered non-vehicle bench conditions using deterministic mocked socket infrastructure. Real network activation remained disabled by default.\",\n \"evidence_status\": \"PASS\",\n \"evidence_reference\": {\n \"repository\": \"coma39658-ctrl/E-ZERO-Dashboard\",\n \"branch\": \"obd-hardware-activation-prep-v0.1\",\n \"implementation_commit\": \"59aaf6e8783c02ceb16d129734a52d095f813afd\",\n \"audit_commit\": \"e8d6d14fd6fe3a2eec871a41cd4107a9b61114cb\",\n \"tag\": \"ezero-obd-network-capable-bench-validation-v0.3\",\n \"regression_suite\": \"python -m unittest discover -v\"\n },\n \"metrics\": {\n \"legacy_physical_skeleton_tests_total\": 13,\n \"legacy_physical_skeleton_tests_passed\": 13,\n \"targeted_preregistered_tests_total\": 24,\n \"targeted_preregistered_tests_passed\": 24,\n \"preregistered_requirements_total\": 25,\n \"preregistered_requirements_passed\": 25,\n \"regression_tests_total\": 453,\n \"regression_tests_passed\": 453\n },\n \"what_this_means\": \"The pre-registered network-capable Wi-Fi TCP physical-backend bench-validation stage passed all 25 requirements under mocked non-vehicle conditions whil"
+    },
+    {
+      "chunk_id": "SRC-001-C010",
+      "source_id": "SRC-001",
+      "path": "data/evidence_registry.json",
+      "source_class": "EVIDENCE_REGISTRY",
+      "authority": "SCIENTIFIC_EVIDENCE_AUTHORITY",
+      "text": "53\n },\n \"what_this_means\": \"The pre-registered network-capable Wi-Fi TCP physical-backend bench-validation stage passed all 25 requirements under mocked non-vehicle conditions while preserving the read-only safety boundary and separate network-activation gate.\",\n \"limitations\": [\n \"No real OBD adapter or real vehicle was connected during this validation.\",\n \"REAL_NETWORK_ACTIVATION_ALLOWED remained false by default and real network activation is not authorized.\",\n \"This evidence does not establish REAL_OBD provenance.\",\n \"diagnostic_claim remains false; transport validation is not a vehicle diagnosis.\",\n \"This result does not establish automotive safety certification, universal hardware compatibility, fault-localization validation, RUL validation or commercial certification.\"\n ],\n \"public_use\": true,\n \"public_url\": \"https://coma39658-ctrl.github.io/null-bench/#vehicle-obd\"\n },\n {\n \"module_id\": \"obd_ble_mock_backend_software_validation_v0_1\",\n \"display_name\": \"Read-Only OBD — BLE Mock Backend Software Validation V0.1\",\n \"status\": \"CLOSED_FROZEN\",\n \"scope\": \"Deterministic software/mock validation of the E-ZERO BLE transport backend using explicit BLE service/characteristic profile metadata, central read-only command policy, exact timeout contracts, mocked process-local single-session enforcement, and zero real BLE/GATT I/O.\",\n \"evidence_status\": \"PASS\",\n \"evidence_reference\": {"
+    },
+    {
+      "chunk_id": "SRC-001-C011",
+      "source_id": "SRC-001",
+      "path": "data/evidence_registry.json",
+      "source_class": "EVIDENCE_REGISTRY",
+      "authority": "SCIENTIFIC_EVIDENCE_AUTHORITY",
+      "text": "-only command policy, exact timeout contracts, mocked process-local single-session enforcement, and zero real BLE/GATT I/O.\",\n \"evidence_status\": \"PASS\",\n \"evidence_reference\": {\n \"repository\": \"coma39658-ctrl/E-ZERO-Dashboard\",\n \"branch\": \"obd-hardware-activation-prep-v0.1\",\n \"implementation_commit\": \"27e4e1ac07a98464311e9d0b8b4afb53f64115f4\",\n \"audit_commit\": \"6677d86668ea6196f974f413921caad6b4a8c37f\",\n \"tag\": \"ezero-obd-mocked-ble-backend-implementation-v0.1\",\n \"profile_spec_tag\": \"ezero-obd-ble-service-characteristic-profile-spec-v0.1\",\n \"profile_implementation_tag\": \"ezero-obd-ble-service-characteristic-profile-implementation-v0.1\",\n \"regression_suite\": \"python -m unittest discover -v\"\n },\n \"metrics\": {\n \"dedicated_tests_total\": 30,\n \"dedicated_tests_passed\": 30,\n \"targeted_regression_tests_total\": 100,\n \"targeted_regression_tests_passed\": 100,\n \"full_regression_tests_total\": 583,\n \"full_regression_tests_passed\": 583\n },\n \"what_this_means\": \"The frozen mocked BLE backend software milestone passed its dedicated, targeted, and full regression suites while preserving explicit BLE profile roles, the central read-only safety boundary, exact timeout contracts, deterministic mocked single-session behavior, simulated provenance, and zero real BLE/GATT activity.\",\n \"limitations\": [\n \"No real BLE adapter or physical GATT connection was used during this validation.\",\n \"No BLE scannin"
+    },
+    {
+      "chunk_id": "SRC-001-C012",
+      "source_id": "SRC-001",
+      "path": "data/evidence_registry.json",
+      "source_class": "EVIDENCE_REGISTRY",
+      "authority": "SCIENTIFIC_EVIDENCE_AUTHORITY",
+      "text": "or, simulated provenance, and zero real BLE/GATT activity.\",\n \"limitations\": [\n \"No real BLE adapter or physical GATT connection was used during this validation.\",\n \"No BLE scanning, pairing, bonding, real service discovery, characteristic read/write, or subscription was performed.\",\n \"No ECU or real vehicle was contacted.\",\n \"This evidence does not establish REAL_OBD provenance.\",\n \"diagnostic_claim remains false; software/mock transport validation is not a vehicle diagnosis.\",\n \"This result does not establish physical BLE interoperability, universal adapter compatibility, automotive safety certification, fault-localization validity, RUL validity, or commercial diagnostic certification.\"\n ],\n \"public_use\": true,\n \"public_url\": \"https://coma39658-ctrl.github.io/null-bench/#vehicle-obd\"\n },\n {\n \"module_id\": \"industrial_public_demo_readiness_v0_1\",\n \"display_name\": \"Industrial Intelligence — Public Demo Readiness V0.1\",\n \"status\": \"CLOSED_FROZEN\",\n \"scope\": \"Controlled public-software-demo readiness for E-ZERO Industrial Intelligence using frozen simulated/log-replay, sensor-quality, textile/garment profile, end-to-end demo-flow, and free read-only field-validation safety milestones."
+    },
+    {
+      "chunk_id": "SRC-001-C013",
+      "source_id": "SRC-001",
+      "path": "data/evidence_registry.json",
+      "source_class": "EVIDENCE_REGISTRY",
+      "authority": "SCIENTIFIC_EVIDENCE_AUTHORITY",
+      "text": "ERO Industrial Intelligence using frozen simulated/log-replay, sensor-quality, textile/garment profile, end-to-end demo-flow, and free read-only field-validation safety milestones. The controlled public software demo is released; REAL_SENSOR public acquisition remains unauthorized.\",\n \"evidence_status\": \"PASS\",\n \"evidence_reference\": {\n \"repository\": \"coma39658-ctrl/ezero-industrial-intelligence-condition-monitoring\",\n \"readiness_spec_commit\": \"c86d4ff39a86cfb56fa130232d826ab30ae7a6c3\",\n \"readiness_spec_tag\": \"ezero-industrial-public-demo-readiness-spec-v0.1\",\n \"end_to_end_implementation_tag\": \"ezero-industrial-end-to-end-demo-flow-implementation-v0.1\",\n \"field_validation_implementation_tag\": \"ezero-free-read-only-field-validation-implementation-v0.1\",\n \"readiness_audit_commit\": \"bd16922d8203805fec0488a9188395e931058a68\",\n \"tag\": \"ezero-industrial-public-demo-readiness-v0.1\",\n \"real_sensor_software_tag\": \"ezero-industrial-real-sensor-read-only-acquisition-implementation-v0.1\",\n \"public_validation_log\": \"validation_logs/evidence_registry_validation_industrial_public_readiness_2026-09-02.log\"\n },\n \"metrics\": {\n \"industrial_full_regression_tests_total\": 64,\n \"industrial_full_regression_tests_passed\": 64,\n \"field_validation_dedicated_tests_total\": 10,\n \"field_validation_dedicated_tests_passed\": 10,\n \"end_to_end_demo_dedicated_tests_total\": 8,\n \"end_to_end_demo_dedicated_tests_passe"
+    },
+    {
+      "chunk_id": "SRC-001-C014",
+      "source_id": "SRC-001",
+      "path": "data/evidence_registry.json",
+      "source_class": "EVIDENCE_REGISTRY",
+      "authority": "SCIENTIFIC_EVIDENCE_AUTHORITY",
+      "text": "\"field_validation_dedicated_tests_total\": 10,\n \"field_validation_dedicated_tests_passed\": 10,\n \"end_to_end_demo_dedicated_tests_total\": 8,\n \"end_to_end_demo_dedicated_tests_passed\": 8\n },\n \"what_this_means\": \"The E-ZERO Industrial Intelligence controlled public software demo is live and evidence-registry backed. The registered public-readiness validation passed with zero errors and zero warnings. Public industrial inputs remain limited to SIMULATED and approved LOG_REPLAY evidence.\",\n \"limitations\": [\n \"REAL_SENSOR is not authorized for the public demo; public demo inputs remain SIMULATED and approved LOG_REPLAY only.\",\n \"The separately validated real-sensor acquisition software is software-only and does not establish successful physical sensor or live machine connection.\",\n \"The public interface provides condition screening and evidence visibility, not diagnosis, root cause, causality, confirmed component failure, failure prediction, or RUL validation.\",\n \"No industrial safety certification, maintenance certification, regulatory approval, universal protocol compatibility, or universal machine compatibility is established.\",\n \"No PLC/VFD write, actuator-control, machine-control, or autonomous-control authority is provided.\"\n ],\n \"public_use\": true,\n \"public_url\": \"https://coma39658-ctrl.github.io/null-bench/#industrial-intelligence\"\n },\n {\n \"module_id\": \"owner_live_vehicle_sh"
+    },
+    {
+      "chunk_id": "SRC-001-C015",
+      "source_id": "SRC-001",
+      "path": "data/evidence_registry.json",
+      "source_class": "EVIDENCE_REGISTRY",
+      "authority": "SCIENTIFIC_EVIDENCE_AUTHORITY",
+      "text": "l authority is provided.\"\n ],\n \"public_use\": true,\n \"public_url\": \"https://coma39658-ctrl.github.io/null-bench/#industrial-intelligence\"\n },\n {\n \"module_id\": \"owner_live_vehicle_shared_access_software_validation_v0_1\",\n \"display_name\": \"Fleet & Shared Access — Software Validation V0.1\",\n \"status\": \"CLOSED_FROZEN\",\n \"scope\": \"Software-only validation of E-ZERO owner/fleet vehicle search, shared family/partner access, role-based permissions, connected-member presence, cross-account isolation, and remote-location rejection logic."
+    },
+    {
+      "chunk_id": "SRC-001-C016",
+      "source_id": "SRC-001",
+      "path": "data/evidence_registry.json",
+      "source_class": "EVIDENCE_REGISTRY",
+      "authority": "SCIENTIFIC_EVIDENCE_AUTHORITY",
+      "text": "of E-ZERO owner/fleet vehicle search, shared family/partner access, role-based permissions, connected-member presence, cross-account isolation, and remote-location rejection logic. No live GPS, real tracker, or physical proximity validation was performed.\",\n \"evidence_status\": \"PASS\",\n \"evidence_reference\": {\n \"repository\": \"coma39658-ctrl/E-ZERO-Dashboard\",\n \"branch\": \"obd-hardware-activation-prep-v0.1\",\n \"proximity_spec_commit\": \"1465b368db87195c6d3a0437060e4654a1c02363\",\n \"proximity_spec_tag\": \"ezero-owner-live-vehicle-location-proximity-spec-v0.1\",\n \"shared_access_addendum_commit\": \"2d07a307d6ded9fcb3e2cf7cef17898899dd60ae\",\n \"shared_access_addendum_tag\": \"ezero-owner-live-vehicle-shared-access-addendum-v0.1\",\n \"implementation_commit\": \"2ff49a2\",\n \"audit_commit\": \"1c2221648669c4a0b8567acb5c3032551d31b99b\",\n \"tag\": \"ezero-owner-live-vehicle-shared-access-implementation-v0.1\",\n \"regression_suite\": \"python -m unittest discover -v\"\n },\n \"metrics\": {\n \"dedicated_tests_total\": 24,\n \"dedicated_tests_passed\": 24,\n \"full_regression_tests_total\": 607,\n \"full_regression_tests_passed\": 607,\n \"validated_fleet_search_scale\": 500\n },\n \"what_this_means\": \"The software layer for authorized fleet search and shared vehicle access passed its dedicated and full regression suites."
+    },
+    {
+      "chunk_id": "SRC-001-C017",
+      "source_id": "SRC-001",
+      "path": "data/evidence_registry.json",
+      "source_class": "EVIDENCE_REGISTRY",
+      "authority": "SCIENTIFIC_EVIDENCE_AUTHORITY",
+      "text": "alidated_fleet_search_scale\": 500\n },\n \"what_this_means\": \"The software layer for authorized fleet search and shared vehicle access passed its dedicated and full regression suites. The validated software supports scoped search across a 500-vehicle test fleet, family/partner sharing, member roles, connected/offline presence, permission-aware search, and rejection of unverified remote mobile-location assertions.\",\n \"limitations\": [\n \"No live GPS tracking was performed.\",\n \"No real GPS tracker, phone proximity, or physical OBD adapter proximity was validated.\",\n \"Connected-member presence does not prove that a person or phone is physically near the vehicle.\",\n \"Precise vehicle location is not authorized for public display.\",\n \"This software validation does not establish anti-spoofing perfection, anti-theft accuracy, production identity-security certification, regulatory compliance, universal tracker compatibility, or vehicle-control capability.\"\n ],\n \"public_use\": true,\n \"public_url\": \"https://coma39658-ctrl.github.io/null-bench/#fleet-shared-access\"\n },\n {\n \"module_id\": \"adaptive_decision_phase1_6_1_state_encoder_v1\",\n \"display_name\": \"E-ZERO Adaptive Decision Lab — Phase 1.6.1 Deterministic State Encoder\",\n \"status\": \"CLOSED_FROZEN\",\n \"scope\": \"Deterministic state-encoding software milestone for the isolated E-ZERO Adaptive Decision Lab."
+    },
+    {
+      "chunk_id": "SRC-001-C018",
+      "source_id": "SRC-001",
+      "path": "data/evidence_registry.json",
+      "source_class": "EVIDENCE_REGISTRY",
+      "authority": "SCIENTIFIC_EVIDENCE_AUTHORITY",
+      "text": "ab — Phase 1.6.1 Deterministic State Encoder\",\n \"status\": \"CLOSED_FROZEN\",\n \"scope\": \"Deterministic state-encoding software milestone for the isolated E-ZERO Adaptive Decision Lab. Converts registered synthetic/offline machine-state inputs into the frozen 11-feature tabular Q-learning state representation. This milestone covers state encoding only and does not establish trained-policy, held-out, physical, diagnostic, or autonomous-control validation.\",\n \"evidence_status\": \"PASS\",\n \"evidence_reference\": {\n \"repository\": \"coma39658-ctrl/ezero-adaptive-decision-lab\",\n \"branch\": \"main\",\n \"implementation_commit\": \"d86af7651f8788dd8b2563ae1cddb75df8dca064\",\n \"evidence_commit\": \"461b9f03e4fc002a46f5765f5116a54bfa5e9c87\",\n \"tag\": \"ezero-adaptive-phase1.6.1-state-encoder-v1\",\n \"regression_suite\": \"python -m unittest discover -v\"\n },\n \"metrics\": {\n \"dedicated_tests_total\": 10,\n \"dedicated_tests_passed\": 10,\n \"full_regression_tests_total\": 113,\n \"full_regression_tests_passed\": 113\n },\n \"what_this_means\": \"The frozen deterministic Phase 1.6.1 state encoder passed all 10 dedicated tests and the complete 113-test project regression suite."
+    },
+    {
+      "chunk_id": "SRC-001-C019",
+      "source_id": "SRC-001",
+      "path": "data/evidence_registry.json",
+      "source_class": "EVIDENCE_REGISTRY",
+      "authority": "SCIENTIFIC_EVIDENCE_AUTHORITY",
+      "text": "ion_tests_passed\": 113\n },\n \"what_this_means\": \"The frozen deterministic Phase 1.6.1 state encoder passed all 10 dedicated tests and the complete 113-test project regression suite. The encoder implements the registered 11-feature state representation required for later tabular Q-learning development.\",\n \"limitations\": [\n \"No learned policy has been trained or validated by this milestone.\",\n \"No 5,000-episode development training result is claimed.\",\n \"No protected held-out evaluation has been performed.\",\n \"The Adaptive Decision Lab remains synthetic/offline and initially SHADOW-oriented.\",\n \"The learned agent is not the safety authority; the deterministic Safety Shield remains final authority.\",\n \"No real vehicle, machine, ECU, PLC, VFD, actuator, or other physical system was controlled.\",\n \"No physical validation, diagnostic validation, safety certification, or autonomous-control capability is established.\"\n ],\n \"public_use\": true,\n \"public_url\": \"https://coma39658-ctrl.github.io/null-bench/#adaptive-decision-lab\"\n }\n ]\n}"
+    },
+    {
+      "chunk_id": "SRC-002-C001",
+      "source_id": "SRC-002",
+      "path": "data/benchmark006_public_readiness.json",
+      "source_class": "VALIDATED_PUBLIC_READINESS",
+      "authority": "VALIDATED_STATUS_SOURCE",
+      "text": "{\n \"benchmark_id\": \"benchmark006\",\n \"display_name\": \"Benchmark 006 — GSRL External Validation Readiness\",\n \"status\": \"DEVELOPMENT\",\n \"evidence_status\": \"PARTIAL\",\n \"scope\": \"Pre-registered readiness for an independently supplied external benchmark specification.\",\n \"pre_spec_freeze\": {\n \"tag\": \"benchmark006-pre-spec-readiness-v2\",\n \"commit\": \"1aabf5edcde5559854feeb1a49dddbfb87c2dc61\"\n },\n \"audit_controls\": [\n \"External specification files will be preserved unchanged before execution.\",\n \"SHA-256 hashes will be recorded for supplied files before execution.\",\n \"Adapter implementation and execution mapping/configuration will be hashed before registered execution.\",\n \"Raw and result artifacts will be hashed before interpretation.\"\n ],\n \"execution_status\": \"NOT_YET_EXECUTED\",\n \"pass_fail_claim\": \"NONE\",\n \"statement\": \"No external Benchmark 006 result has been produced yet. No PASS or FAIL claim is made before receipt and execution of the independently supplied external specification.\",\n \"source_access_note\": \"The underlying benchmark repository remains private. The tag and commit above are provenance references and do not provide public source-code access.\",\n \"public_disclosure_scope\": \"Readiness metadata only. No private source code, external dataset, adapter logic, acceptance criteria, raw telemetry, or protected execution outputs are disclosed.\"\n}"
+    },
+    {
+      "chunk_id": "SRC-003-C001",
+      "source_id": "SRC-003",
+      "path": "js/ezero_voice_guide_knowledge_v0_1.js",
+      "source_class": "VOICE_GUIDE_KNOWLEDGE",
+      "authority": "APPROVED_EXPLANATION_SOURCE",
+      "text": "/*\n * E-ZERO Voice Guide — Verified Public Knowledge V0.1\n *\n * Role:\n * Deterministic public website guidance only.\n *\n * Boundaries:\n * - No definitive diagnosis\n * - No physical-validation claim\n * - No safety-certification claim\n * - No autonomous-control claim\n * - No unsupported scientific claim\n * - Unknown questions must fail closed\n */\n\n(function () {\n \"use strict\";\n\n const KNOWLEDGE_VERSION = \"ezero-voice-guide-knowledge-v0.1\";\n\n const entries = [\n {\n id: \"ezero_overview\",\n keywords: [\n \"e-zero\", \"ezero\", \"what is e-zero\", \"about e-zero\",\n \"ای زیرو\", \"ای زیرو کیا ہے\", \"سسٹم کیا ہے\"\n ],\n en:\n \"E-ZERO is an evidence-first intelligence platform for testing, screening, and validating network, vehicle, industrial, and fleet data. It keeps software validation separate from real-world proof and makes limitations visible.\",\n en_short:\n \"E-ZERO is an evidence-first platform for testing and screening network, vehicle, industrial, and fleet data while keeping software evidence separate from real-world proof.\",\n en_detailed:\n \"E-ZERO is an evidence-first intelligence platform for testing, screening, and validating network, vehicle, industrial, and fleet data. Its design keeps computational or software validation separate from statistical evidence and real-world physical proof."
+    },
+    {
+      "chunk_id": "SRC-003-C002",
+      "source_id": "SRC-003",
+      "path": "js/ezero_voice_guide_knowledge_v0_1.js",
+      "source_class": "VOICE_GUIDE_KNOWLEDGE",
+      "authority": "APPROVED_EXPLANATION_SOURCE",
+      "text": "and validating network, vehicle, industrial, and fleet data. Its design keeps computational or software validation separate from statistical evidence and real-world physical proof. The platform includes research tools such as Null Bench, read-only Vehicle / OBD workflows, industrial condition-screening components, fleet/shared-access interfaces, and evidence-governance layers. Results must stay within registered evidence boundaries, and limitations are shown explicitly rather than converted into unsupported diagnosis, safety certification, or autonomous control claims.\",\n ur:\n \"E-ZERO ایک evidence-first intelligence platform ہے جو network، vehicle، industrial اور fleet data کی testing، screening اور validation کے لیے بنایا گیا ہے۔ یہ software validation کو real-world proof سے الگ رکھتا ہے اور limitations واضح دکھاتا ہے۔\",\n ur_short:\n \"E-ZERO ایک evidence-first platform ہے جو network، vehicle، industrial اور fleet data کی testing اور screening کرتا ہے، جبکہ software evidence کو real-world proof سے الگ رکھتا ہے۔\",\n ur_detailed:\n \"E-ZERO ایک evidence-first intelligence platform ہے جو network، vehicle، industrial اور fleet data کی testing، screening اور validation کے لیے بنایا گیا ہے۔ اس کا بنیادی اصول یہ ہے کہ computational یا software validation، statistical evidence اور real-world physical proof کو الگ رکھا جائے۔"
+    },
+    {
+      "chunk_id": "SRC-003-C003",
+      "source_id": "SRC-003",
+      "path": "js/ezero_voice_guide_knowledge_v0_1.js",
+      "source_class": "VOICE_GUIDE_KNOWLEDGE",
+      "authority": "APPROVED_EXPLANATION_SOURCE",
+      "text": "screening اور validation کے لیے بنایا گیا ہے۔ اس کا بنیادی اصول یہ ہے کہ computational یا software validation، statistical evidence اور real-world physical proof کو الگ رکھا جائے۔ Platform میں Null Bench research tool، read-only Vehicle / OBD workflows، industrial condition-screening components، fleet/shared-access interfaces اور evidence-governance layers شامل ہیں۔ ہر result کو registered evidence boundaries کے اندر پیش کیا جاتا ہے، limitations واضح دکھائی جاتی ہیں، اور بغیر الگ validation کے definitive diagnosis، safety certification یا autonomous control claim نہیں کیا جاتا۔\"\n },\n\n {\n id: \"null_bench\",\n keywords: [\n \"null bench\", \"run test\", \"network test\", \"degree preserving\",\n \"نل بینچ\", \"نیٹ ورک ٹیسٹ\", \"رن ٹیسٹ\"\n ],\n en:\n \"Null Bench tests whether an observed network pattern stands out from degree-preserving random rewiring. The public tool runs locally in the browser. Its result is statistical or computational evidence, not physical proof.\",\n ur:\n \"Null Bench یہ جانچتا ہے کہ کسی network کا observed pattern degree-preserving random rewiring کے مقابلے میں واقعی نمایاں ہے یا نہیں۔ Public tool browser میں locally چلتا ہے۔ اس کا نتیجہ statistical یا computational evidence ہے، physical proof نہیں۔\"\n },"
+    },
+    {
+      "chunk_id": "SRC-003-C004",
+      "source_id": "SRC-003",
+      "path": "js/ezero_voice_guide_knowledge_v0_1.js",
+      "source_class": "VOICE_GUIDE_KNOWLEDGE",
+      "authority": "APPROVED_EXPLANATION_SOURCE",
+      "text": "ing random rewiring کے مقابلے میں واقعی نمایاں ہے یا نہیں۔ Public tool browser میں locally چلتا ہے۔ اس کا نتیجہ statistical یا computational evidence ہے، physical proof نہیں۔\"\n },\n\n {\n id: \"vehicle_obd\",\n keywords: [\n \"vehicle\", \"obd\", \"obd2\", \"car\", \"engine\", \"vehicle obd\",\n \"گاڑی\", \"او بی ڈی\", \"انجن\", \"کار\"\n ],\n en:\n \"The Vehicle / OBD area is for read-only vehicle data screening and supported OBD functions within registered E-ZERO boundaries. Sensor or OBD data must not be presented as a definitive component diagnosis unless separately validated.\",\n ur:\n \"Vehicle / OBD حصہ read-only vehicle data screening اور registered E-ZERO boundaries کے اندر supported OBD functions کے لیے ہے۔ Sensor یا OBD data کو الگ validation کے بغیر definitive component diagnosis نہیں کہا جاتا۔\"\n },\n\n {\n id: \"industrial\",\n keywords: [\n \"industrial\", \"machine\", \"machinery\", \"factory\",\n \"انڈسٹریل\", \"مشین\", \"مشینری\", \"فیکٹری\"\n ],\n en:\n \"Industrial Intelligence is intended for evidence-based condition screening of machinery and industrial sensor data. Its indicators must be driven by registered data and thresholds, with unknown or invalid data kept separate from normal status.\",\n ur:\n \"Industrial Intelligence مشینری اور industrial sensor data کی evidence-based condition screening کے لیے ہے۔"
+    },
+    {
+      "chunk_id": "SRC-003-C005",
+      "source_id": "SRC-003",
+      "path": "js/ezero_voice_guide_knowledge_v0_1.js",
+      "source_class": "VOICE_GUIDE_KNOWLEDGE",
+      "authority": "APPROVED_EXPLANATION_SOURCE",
+      "text": ", with unknown or invalid data kept separate from normal status.\",\n ur:\n \"Industrial Intelligence مشینری اور industrial sensor data کی evidence-based condition screening کے لیے ہے۔ اس کے indicators registered data اور thresholds سے چلنے چاہئیں، جبکہ unknown یا invalid data کو normal status سے الگ رکھا جاتا ہے۔\"\n },\n\n {\n id: \"fleet\",\n keywords: [\n \"fleet\", \"fleet access\", \"vehicles group\",\n \"فلیٹ\", \"گاڑیوں کا گروپ\"\n ],\n en:\n \"The Fleet section is the E-ZERO area for shared or multi-vehicle information and fleet-oriented workflows. It remains separate from individual vehicle diagnosis and from autonomous control.\",\n ur:\n \"Fleet section shared یا multi-vehicle information اور fleet-oriented workflows کے لیے ہے۔ اسے individual vehicle diagnosis اور autonomous control سے الگ رکھا جاتا ہے۔\"\n },\n\n {\n id: \"benchmark006c\",\n keywords: [\n \"benchmark 006-c\", \"006-c\", \"006c\", \"benchmark006c\",\n \"بینچ مارک 006\", \"006 سی\"\n ],\n en:\n \"Benchmark 006-C is a collaborative synthetic browser-runtime benchmark. Public runs are synthetic and exploratory computational outputs only. They are not independent GSRL validation, real-sensor validation, physical validation, diagnosis, safety certification, or HIL qualification.\",\n ur:\n \"Benchmark 006-C ایک collaborative synthetic browser-runtime benchmark ہے۔ Public runs صرف synthetic اور exploratory computational outputs ہیں۔"
+    },
+    {
+      "chunk_id": "SRC-003-C006",
+      "source_id": "SRC-003",
+      "path": "js/ezero_voice_guide_knowledge_v0_1.js",
+      "source_class": "VOICE_GUIDE_KNOWLEDGE",
+      "authority": "APPROVED_EXPLANATION_SOURCE",
+      "text": "ation, or HIL qualification.\",\n ur:\n \"Benchmark 006-C ایک collaborative synthetic browser-runtime benchmark ہے۔ Public runs صرف synthetic اور exploratory computational outputs ہیں۔ یہ independent GSRL validation، real-sensor validation، physical validation، diagnosis، safety certification یا HIL qualification نہیں ہیں۔\"\n },\n\n {\n id: \"adaptive_decision_lab\",\n keywords: [\n \"adaptive decision\", \"decision lab\", \"state encoder\",\n \"adaptive decision lab\", \"اڈیپٹو\", \"ڈسیژن لیب\", \"سٹیٹ انکوڈر\"\n ],\n en:\n \"The Adaptive Decision Lab is a separate offline and synthetic decision-intelligence research module. Its Phase 1.6.1 deterministic State Encoder is frozen with dedicated and full-regression test evidence. A trained public agent, protected held-out validation, and autonomous machine control are not established.\",\n ur:\n \"Adaptive Decision Lab ایک الگ offline اور synthetic decision-intelligence research module ہے۔ اس کا Phase 1.6.1 deterministic State Encoder test evidence کے ساتھ frozen ہے۔ Trained public agent، protected held-out validation اور autonomous machine control ابھی established نہیں ہیں۔\"\n },\n\n {\n id: \"evidence\",\n keywords: [\n \"evidence\", \"validation\", \"proof\", \"registry\",\n \"ایویڈنس\", \"ثبوت\", \"ویلیڈیشن\", \"رجسٹری\"\n ],\n en:\n \"E-ZERO separates computational observation, statistical evidence, software validation, and physical proof."
+    },
+    {
+      "chunk_id": "SRC-003-C007",
+      "source_id": "SRC-003",
+      "path": "js/ezero_voice_guide_knowledge_v0_1.js",
+      "source_class": "VOICE_GUIDE_KNOWLEDGE",
+      "authority": "APPROVED_EXPLANATION_SOURCE",
+      "text": "\"proof\", \"registry\",\n \"ایویڈنس\", \"ثبوت\", \"ویلیڈیشن\", \"رجسٹری\"\n ],\n en:\n \"E-ZERO separates computational observation, statistical evidence, software validation, and physical proof. Evidence status and limitations must remain visible, and unsupported claims must not be manufactured.\",\n ur:\n \"E-ZERO computational observation، statistical evidence، software validation اور physical proof کو الگ رکھتا ہے۔ Evidence status اور limitations واضح رہنی چاہئیں اور unsupported claims بنائے نہیں جاتے۔\"\n },\n\n {\n id: \"condition_status\",\n keywords: [\n \"red\", \"amber\", \"yellow\", \"green\", \"alarm\", \"condition status\",\n \"ریڈ\", \"لال\", \"امبر\", \"ییلو\", \"پیلا\", \"گرین\", \"سبز\", \"الارم\"\n ],\n en:\n \"Future registered condition interfaces may use Green for acceptable registered conditions, Amber for caution, and Red for high or critical registered risk. Missing, invalid, stale, unsupported, or contradictory data must not be shown as Green; it should use an Unknown or Review Required state.\",\n ur:\n \"Future registered condition interfaces میں Green acceptable registered condition، Amber caution، اور Red high یا critical registered risk کے لیے استعمال ہو سکتا ہے۔ Missing، invalid، stale، unsupported یا contradictory data کو Green نہیں دکھایا جائے گا بلکہ Unknown یا Review Required state دی جائے گی۔\"\n },"
+    },
+    {
+      "chunk_id": "SRC-003-C008",
+      "source_id": "SRC-003",
+      "path": "js/ezero_voice_guide_knowledge_v0_1.js",
+      "source_class": "VOICE_GUIDE_KNOWLEDGE",
+      "authority": "APPROVED_EXPLANATION_SOURCE",
+      "text": "ered risk کے لیے استعمال ہو سکتا ہے۔ Missing، invalid، stale، unsupported یا contradictory data کو Green نہیں دکھایا جائے گا بلکہ Unknown یا Review Required state دی جائے گی۔\"\n },\n\n {\n id: \"voice_guide\",\n keywords: [\n \"voice guide\", \"mic\", \"microphone\", \"speak\", \"assistant\",\n \"وائس گائیڈ\", \"مائک\", \"مائیک\", \"بول\", \"اسسٹنٹ\"\n ],\n en:\n \"E-ZERO Voice Guide is a read-only website guidance layer. It explains website sections, controls, evidence, results, and limitations. It does not control vehicles or machines and must say when verified information is unavailable.\",\n ur:\n \"E-ZERO Voice Guide ایک read-only website guidance layer ہے۔ یہ website کے sections، controls، evidence، results اور limitations سمجھاتا ہے۔ یہ گاڑی یا مشین کو control نہیں کرتا اور verified information نہ ہونے پر صاف بتاتا ہے۔\"\n }\n ];\n\n const fallback = Object.freeze({\n en:\n \"I do not have verified E-ZERO information for that question yet. Please use the registered website evidence or ask about a specific E-ZERO section.\",\n ur:\n \"میرے پاس اس سوال کے لیے ابھی verified E-ZERO information موجود نہیں ہے۔ براہِ کرم registered website evidence استعمال کریں یا E-ZERO کے کسی مخصوص section کے بارے میں پوچھیں۔\"\n });\n\n window.EZERO_VOICE_GUIDE_KNOWLEDGE = Object.freeze({\n version: KNOWLEDGE_VERSION,\n entries: Object.freeze(entries),\n fallback: fallback\n });\n})();"
+    },
+    {
+      "chunk_id": "SRC-004-C001",
+      "source_id": "SRC-004",
+      "path": "js/ezero_voice_guide_feature_registry_v0_1.js",
+      "source_class": "FEATURE_REGISTRY",
+      "authority": "APPROVED_FEATURE_DESCRIPTION",
+      "text": "(function () {\n \"use strict\";\n\n const FEATURE_REGISTRY_VERSION = \"ezero-voice-guide-feature-registry-v0.1\";\n\n const features = [\n {\n id: \"null_bench\",\n section_id: \"try\",\n title_en: \"Null Bench\",\n title_ur: \"نَل بینچ\",\n role: \"degree_preserving_null_model_testing\",\n keywords: [\n \"null bench\", \"network test\", \"degree preserving\",\n \"نل بینچ\", \"نیٹ ورک ٹیسٹ\"\n ],\n explanation_en:\n \"Null Bench compares an observed network with degree-preserving randomized networks to test whether the observed structure stands out from the null distribution.\",\n explanation_ur:\n \"Null Bench اصل نیٹ ورک کو degree-preserving randomized networks کے ساتھ compare کرتا ہے تاکہ دیکھا جا سکے کہ observed structure null distribution سے واقعی نمایاں ہے یا نہیں۔\",\n authority: \"COMPUTATIONAL_STATISTICAL_TOOL\",\n physical_claim: false,\n diagnostic_claim: false\n },\n\n {\n id: \"benchmark006c\",\n section_id: \"benchmark006c\",\n title_en: \"Benchmark 006-C\",\n title_ur: \"بینچ مارک 006-C\",\n role: \"public_synthetic_browser_benchmark\",\n keywords: [\n \"006c\", \"006-c\", \"benchmark 006\",\n \"synthetic benchmark\", \"بینچ مارک\"\n ],\n explanation_en:\n \"Benchmark 006-C is a public synthetic browser benchmark. Its runs are exploratory computational outputs and are not independent GSRL, physical, real-sensor, diagnostic, safety, or HIL validation.\",\n explanation_ur:\n \"Benchmark 006-C ایک public synthetic browser benchmark ہے۔"
+    },
+    {
+      "chunk_id": "SRC-004-C002",
+      "source_id": "SRC-004",
+      "path": "js/ezero_voice_guide_feature_registry_v0_1.js",
+      "source_class": "FEATURE_REGISTRY",
+      "authority": "APPROVED_FEATURE_DESCRIPTION",
+      "text": "outputs and are not independent GSRL, physical, real-sensor, diagnostic, safety, or HIL validation.\",\n explanation_ur:\n \"Benchmark 006-C ایک public synthetic browser benchmark ہے۔ اس کے runs exploratory computational outputs ہیں؛ یہ independent GSRL، physical، real-sensor، diagnostic، safety یا HIL validation نہیں ہیں۔\",\n authority: \"SYNTHETIC_COMPUTATIONAL\",\n physical_claim: false,\n diagnostic_claim: false\n },\n\n {\n id: \"vehicle_obd\",\n section_id: \"vehicle-obd\",\n title_en: \"Vehicle / OBD\",\n title_ur: \"وہیکل / OBD\",\n role: \"read_only_vehicle_data_interface\",\n keywords: [\n \"vehicle\", \"obd\", \"car\", \"engine data\",\n \"گاڑی\", \"او بی ڈی\", \"انجن ڈیٹا\"\n ],\n explanation_en:\n \"The Vehicle / OBD layer is designed for read-only vehicle data handling and registered status reporting. It does not provide unsupported definitive diagnosis or autonomous vehicle control.\",\n explanation_ur:\n \"Vehicle / OBD layer read-only گاڑی کے data اور registered status reporting کے لیے ہے۔ یہ unsupported definitive diagnosis یا autonomous vehicle control نہیں کرتا۔\",\n authority: \"READ_ONLY_DATA_INTERFACE\",\n physical_claim: false,\n diagnostic_claim: false\n },"
+    },
+    {
+      "chunk_id": "SRC-004-C003",
+      "source_id": "SRC-004",
+      "path": "js/ezero_voice_guide_feature_registry_v0_1.js",
+      "source_class": "FEATURE_REGISTRY",
+      "authority": "APPROVED_FEATURE_DESCRIPTION",
+      "text": "لیے ہے۔ یہ unsupported definitive diagnosis یا autonomous vehicle control نہیں کرتا۔\",\n authority: \"READ_ONLY_DATA_INTERFACE\",\n physical_claim: false,\n diagnostic_claim: false\n },\n\n {\n id: \"industrial_intelligence\",\n section_id: \"industrial-intelligence\",\n title_en: \"Industrial Intelligence\",\n title_ur: \"انڈسٹریل انٹیلیجنس\",\n role: \"industrial_condition_monitoring\",\n keywords: [\n \"industrial\", \"machine\", \"factory\", \"machinery\",\n \"مشین\", \"فیکٹری\", \"انڈسٹریل\"\n ],\n explanation_en:\n \"Industrial Intelligence is the E-ZERO condition-monitoring direction for industrial machinery. Result interpretation must remain within validated data, registered thresholds, and evidence boundaries.\",\n explanation_ur:\n \"Industrial Intelligence صنعتی مشینری کی condition monitoring کے لیے E-ZERO کی direction ہے۔ Result interpretation صرف validated data، registered thresholds اور evidence boundaries کے اندر رہنی چاہیے۔\",\n authority: \"CONDITION_MONITORING\",\n physical_claim: false,\n diagnostic_claim: false\n },"
+    },
+    {
+      "chunk_id": "SRC-004-C004",
+      "source_id": "SRC-004",
+      "path": "js/ezero_voice_guide_feature_registry_v0_1.js",
+      "source_class": "FEATURE_REGISTRY",
+      "authority": "APPROVED_FEATURE_DESCRIPTION",
+      "text": "on صرف validated data، registered thresholds اور evidence boundaries کے اندر رہنی چاہیے۔\",\n authority: \"CONDITION_MONITORING\",\n physical_claim: false,\n diagnostic_claim: false\n },\n\n {\n id: \"fleet_shared_access\",\n section_id: \"fleet-shared-access\",\n title_en: \"Fleet / Shared Access\",\n title_ur: \"فلیٹ / شیئرڈ ایکسس\",\n role: \"fleet_information_and_access_layer\",\n keywords: [\n \"fleet\", \"shared access\", \"vehicles\",\n \"فلیٹ\", \"شیئرڈ ایکسس\"\n ],\n explanation_en:\n \"Fleet / Shared Access organizes fleet-oriented information and shared access functions without changing the scientific authority of the underlying E-ZERO modules.\",\n explanation_ur:\n \"Fleet / Shared Access فلیٹ سے متعلق information اور shared access functions کو organize کرتا ہے، مگر underlying E-ZERO modules کی scientific authority نہیں بدلتا۔\",\n authority: \"PRESENTATION_ACCESS_LAYER\",\n physical_claim: false,\n diagnostic_claim: false\n },\n\n {\n id: \"evidence_governance\",\n section_id: \"evidence\",\n title_en: \"Evidence Governance\",\n title_ur: \"ایویڈنس گورننس\",\n role: \"evidence_registry_and_validation\",\n keywords: [\n \"evidence\", \"validation\", \"pass\", \"fail\",\n \"ثبوت\", \"ویلیڈیشن\", \"پاس\", \"فیل\"\n ],\n explanation_en:\n \"Evidence Governance records module status, provenance, validation boundaries, limitations, and evidence references."
+    },
+    {
+      "chunk_id": "SRC-004-C005",
+      "source_id": "SRC-004",
+      "path": "js/ezero_voice_guide_feature_registry_v0_1.js",
+      "source_class": "FEATURE_REGISTRY",
+      "authority": "APPROVED_FEATURE_DESCRIPTION",
+      "text": "\"fail\",\n \"ثبوت\", \"ویلیڈیشن\", \"پاس\", \"فیل\"\n ],\n explanation_en:\n \"Evidence Governance records module status, provenance, validation boundaries, limitations, and evidence references. Scientific claims must come from registered evidence rather than UI wording.\",\n explanation_ur:\n \"Evidence Governance module status، provenance، validation boundaries، limitations اور evidence references محفوظ کرتا ہے۔ Scientific claims UI text سے نہیں بلکہ registered evidence سے آنی چاہئیں۔\",\n authority: \"EVIDENCE_AUTHORITY\",\n physical_claim: false,\n diagnostic_claim: false\n },\n\n {\n id: \"adaptive_decision_lab\",\n section_id: \"adaptive-decision-lab\",\n title_en: \"Adaptive Decision Lab\",\n title_ur: \"اڈاپٹو ڈیسیژن لیب\",\n role: \"offline_synthetic_decision_research\",\n keywords: [\n \"adaptive decision\", \"decision lab\", \"learning agent\", \"q learning\",\n \"اڈاپٹو\", \"ڈیسیژن لیب\", \"کیو لرننگ\"\n ],\n explanation_en:\n \"The Adaptive Decision Lab is a separate offline and synthetic decision-learning research module. The deterministic Safety Shield remains final authority. No autonomous real-machine control is established.\",\n explanation_ur:\n \"Adaptive Decision Lab ایک الگ offline اور synthetic decision-learning research module ہے۔ Deterministic Safety Shield آخری authority ہے۔ حقیقی مشین کا autonomous control ثابت یا فعال نہیں ہے۔"
+    },
+    {
+      "chunk_id": "SRC-004-C006",
+      "source_id": "SRC-004",
+      "path": "js/ezero_voice_guide_feature_registry_v0_1.js",
+      "source_class": "FEATURE_REGISTRY",
+      "authority": "APPROVED_FEATURE_DESCRIPTION",
+      "text": "cision Lab ایک الگ offline اور synthetic decision-learning research module ہے۔ Deterministic Safety Shield آخری authority ہے۔ حقیقی مشین کا autonomous control ثابت یا فعال نہیں ہے۔\",\n authority: \"EXPERIMENTAL_OFFLINE_RESEARCH\",\n physical_claim: false,\n diagnostic_claim: false\n },\n\n {\n id: \"voice_guide\",\n section_id: null,\n title_en: \"E-ZERO Voice Guide\",\n title_ur: \"ای زیرو وائس گائیڈ\",\n role: \"informational_support\",\n keywords: [\n \"voice guide\", \"assistant\", \"help\", \"mic\",\n \"وائس گائیڈ\", \"مدد\", \"مائک\", \"اردو\"\n ],\n explanation_en:\n \"The E-ZERO Voice Guide explains registered website features, statuses, results, errors, and limitations. It is an informational support layer and not scientific or diagnostic authority.\",\n explanation_ur:\n \"E-ZERO Voice Guide registered website features، statuses، results، errors اور limitations سمجھاتا ہے۔ یہ informational support layer ہے، scientific یا diagnostic authority نہیں۔\",\n authority: \"INFORMATIONAL_SUPPORT\",\n physical_claim: false,\n diagnostic_claim: false\n }\n ];\n\n const controls = [\n {\n id: \"languageSelect\",\n type: \"select\",\n purpose_en: \"Changes the website display language where translations are available.\",\n purpose_ur: \"جہاں translation موجود ہو وہاں website کی زبان بدلتا ہے۔\"\n },\n {\n id: \"ezeroVoiceGuideButton\",\n type: \"button\",\n purpose_en: \"Opens the E-ZERO Voice Guide.\",\n purpose_ur: \"E-ZERO Voice Guide کھولتا ہے۔"
+    },
+    {
+      "chunk_id": "SRC-004-C007",
+      "source_id": "SRC-004",
+      "path": "js/ezero_voice_guide_feature_registry_v0_1.js",
+      "source_class": "FEATURE_REGISTRY",
+      "authority": "APPROVED_FEATURE_DESCRIPTION",
+      "text": "د ہو وہاں website کی زبان بدلتا ہے۔\"\n },\n {\n id: \"ezeroVoiceGuideButton\",\n type: \"button\",\n purpose_en: \"Opens the E-ZERO Voice Guide.\",\n purpose_ur: \"E-ZERO Voice Guide کھولتا ہے۔\"\n },\n {\n id: \"ezeroVoiceGuideAsk\",\n type: \"button\",\n purpose_en: \"Submits the typed question to the verified guide.\",\n purpose_ur: \"لکھا ہوا سوال verified guide کو بھیجتا ہے۔\"\n },\n {\n id: \"ezeroVoiceGuideMic\",\n type: \"button\",\n purpose_en: \"Starts browser speech recognition when supported.\",\n purpose_ur: \"Browser support ہونے پر آواز سے سوال سننے کی کوشش کرتا ہے۔\"\n },\n {\n id: \"ezeroVoiceGuideSpeak\",\n type: \"button\",\n purpose_en: \"Speaks the current guide answer using browser speech synthesis when supported.\",\n purpose_ur: \"Browser support ہونے پر موجودہ جواب آواز میں سناتا ہے۔\"\n }\n ];\n\n window.EZERO_VOICE_GUIDE_FEATURE_REGISTRY = Object.freeze({\n version: FEATURE_REGISTRY_VERSION,\n features: Object.freeze(features),\n controls: Object.freeze(controls)\n });\n})();"
+    },
+    {
+      "chunk_id": "SRC-005-C001",
+      "source_id": "SRC-005",
+      "path": "docs/EZERO_PUBLIC_WEBSITE_INFORMATION_ARCHITECTURE_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "ARCHITECTURE_BOUNDARY",
+      "text": "# E-ZERO Public Website Information Architecture Specification V0.1\n\nStatus: DRAFT / NOT FROZEN / NO IMPLEMENTATION AUTHORIZATION\n\n## 1. Purpose\n\nDefine a single reusable public information architecture for the E-ZERO platform.\n\nThe purpose is to make E-ZERO understandable to non-expert visitors while\npreserving full evidence, limitations, validation history, and scientific\nclaims boundaries for technical reviewers.\n\nThis specification governs presentation structure only.\n\nIt does NOT change:\n\n- evidence registry schema\n- validator logic\n- benchmark criteria\n- frozen scientific claims\n- module functionality\n- validation outcomes\n\n## 2. Non-Goals\n\nThis specification is NOT:\n\n- a rebrand\n- a Null Bench spin-off decision\n- a pricing specification\n- a scientific claims rewrite\n- a benchmark rewrite\n- an evidence deletion plan\n- an authorization for live GPS or physical deployment\n\nE-ZERO remains the platform identity.\n\n## 3. Binding Governance Constraints\n\n### 3.1 Platform Identity\n\nE-ZERO remains the primary platform identity.\n\nNull Bench may be presented as a Featured Live Tool but does not replace\nthe E-ZERO platform identity.\n\n### 3.2 Evidence Preservation\n\nEvidence is relocated, never silently deleted.\n\nExisting public:\n\n- PASS/FAIL results\n- test counts\n- commits\n- tags\n- validation logs\n- limitations\n- claims boundaries\n\nmust remain accessible after restructuring."
+    },
+    {
+      "chunk_id": "SRC-005-C002",
+      "source_id": "SRC-005",
+      "path": "docs/EZERO_PUBLIC_WEBSITE_INFORMATION_ARCHITECTURE_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "ARCHITECTURE_BOUNDARY",
+      "text": "tly deleted.\n\nExisting public:\n\n- PASS/FAIL results\n- test counts\n- commits\n- tags\n- validation logs\n- limitations\n- claims boundaries\n\nmust remain accessible after restructuring.\n\n### 3.3 Status Honesty\n\nPublic presentation must never imply a stronger validation state than the\nunderlying evidence supports.\n\nSoftware validation must not be presented as physical validation.\n\nSimulation must not be presented as real-world evidence.\n\nFleet software validation must not be presented as live GPS field validation.\n\n### 3.4 Frozen Evidence Integrity\n\nExisting frozen commits, tags, evidence records, validation logs and claims\nboundaries must not be silently rewritten during website restructuring.\n\n## 4. Audience Layers\n\n### L1 — General Visitor\n\nNeeds:\n\n- what E-ZERO is\n- what each module does\n- what is usable now\n- what is not yet validated\n\n### L2 — Practitioner\n\nNeeds:\n\n- module scope\n- current usable capability\n- setup/use guidance\n- current limitations\n\n### L3 — Technical Reviewer\n\nNeeds:\n\n- evidence status\n- commits\n- tags\n- test counts\n- validation logs\n- methodology\n- claims boundary\n- limitations\n\nThe L1 answer must be understandable without specialist terminology.\n\n## 5. Navigation Architecture\n\nThe platform landing page should expose four primary modules:\n\n1. Null Bench\n2. Vehicle / OBD Intelligence\n3. Industrial Intelligence\n4. Fleet & Shared Access"
+    },
+    {
+      "chunk_id": "SRC-005-C003",
+      "source_id": "SRC-005",
+      "path": "docs/EZERO_PUBLIC_WEBSITE_INFORMATION_ARCHITECTURE_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "ARCHITECTURE_BOUNDARY",
+      "text": "gation Architecture\n\nThe platform landing page should expose four primary modules:\n\n1. Null Bench\n2. Vehicle / OBD Intelligence\n3. Industrial Intelligence\n4. Fleet & Shared Access\n\nExisting public anchors must remain functional during V0.1 migration,\nincluding at minimum:\n\n- #try\n- #vehicle-obd\n- #industrial-intelligence\n- #fleet-shared-access\n- #support\n- #evidence\n\nDedicated module paths may be introduced later under a separate reviewed\nmigration step.\n\n## 6. Hero Contract\n\nThe hero must:\n\n- state what E-ZERO is in plain language\n- avoid benchmark/test-count overload\n- avoid unexplained acronyms\n- identify E-ZERO as the platform\n- provide a clear primary action\n\nSuggested plain-language statement:\n\n\"E-ZERO provides evidence-first tools for testing, screening, and validating\nnetwork, vehicle, industrial, and fleet data.\"\n\nNull Bench may be shown as:\n\n`Featured Live Tool`\n\nwith:\n\n`Run a Free Test`\n\nas a primary action.\n\n## 7. Module Card Contract\n\nEach primary module card must contain:\n\n1. module name\n2. one plain-language benefit statement\n3. a controlled status area\n4. one primary action\n\nThe status area may contain one or more approved public presentation badges\nwhen necessary to prevent ambiguity.\n\nExample for Fleet:\n\n`Software Validated`\n+\n`Live GPS Pending`\n\nModule cards must not be dominated by:"
+    },
+    {
+      "chunk_id": "SRC-005-C004",
+      "source_id": "SRC-005",
+      "path": "docs/EZERO_PUBLIC_WEBSITE_INFORMATION_ARCHITECTURE_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "ARCHITECTURE_BOUNDARY",
+      "text": "ore approved public presentation badges\nwhen necessary to prevent ambiguity.\n\nExample for Fleet:\n\n`Software Validated`\n+\n`Live GPS Pending`\n\nModule cards must not be dominated by:\n\n- commit hashes\n- tags\n- regression numbers\n- benchmark names\n- large PASS/FAIL tables\n\nThose belong to the technical evidence layer.\n\n## 8. Module Page / Section Contract\n\nEach module follows this order:\n\n### Layer 1 — Human Overview\n\nShow:\n\n- what it does\n- who it is for\n- current public capability\n- what it does not establish\n\n### Layer 2 — Use / Current Capability\n\nWhere a real public interactive tool already exists, show it here.\n\nExamples:\n\n- Null Bench run panel\n- OBD simulation\n\nWhere no public interactive implementation exists yet, show:\n\n`Current Public Capability / Software Validation Preview`\n\ninstead of implying an interactive feature exists.\n\nFleet 500+ search must currently be described as a software-validated\ncapability, not as a public live fleet database search interface.\n\n### Layer 3 — Technical Evidence & Validation\n\nCollapsed by default.\n\nMay contain:\n\n- evidence status\n- dedicated test counts\n- full regression counts\n- registry reference\n- public commit references\n- public tags\n- validation logs\n- detailed limitations\n- claims evidence\n\n## 9. Progressive Disclosure\n\nTechnical evidence may be visually collapsed by default."
+    },
+    {
+      "chunk_id": "SRC-005-C005",
+      "source_id": "SRC-005",
+      "path": "docs/EZERO_PUBLIC_WEBSITE_INFORMATION_ARCHITECTURE_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "ARCHITECTURE_BOUNDARY",
+      "text": "commit references\n- public tags\n- validation logs\n- detailed limitations\n- claims evidence\n\n## 9. Progressive Disclosure\n\nTechnical evidence may be visually collapsed by default.\n\nWhere practical, intentionally public evidence should remain present in the\ninitial HTML/DOM for accessibility and traceability.\n\nSearch-engine indexing of collapsed content is NOT guaranteed.\n\nPreferred implementation should use accessible disclosure patterns such as\nnative `<details>` / `<summary>` where appropriate.\n\nCollapsed content must NEVER expose:\n\n- passwords\n- tokens\n- credentials\n- private account identifiers\n- private member identities\n- precise private vehicle locations\n- non-public infrastructure secrets\n\nOnly intentionally public evidence may be included.\n\nDeep links to evidence should open or reveal the relevant evidence item where\ntechnically practical.\n\n## 10. Public Presentation Status Vocabulary\n\nThese are public-facing presentation badges.\n\n### Live Tool\n\nMeaning:\n\nA public user-facing tool is currently usable.\n\nThis badge does NOT by itself imply:\n\n- physical validation\n- diagnostic accuracy\n- safety certification\n- real-world field validation\n\n### Software Validated\n\nMeaning:\n\nThe registered software implementation passed its stated software validation.\n\nIt must NOT be used alone to imply physical validation."
+    },
+    {
+      "chunk_id": "SRC-005-C006",
+      "source_id": "SRC-005",
+      "path": "docs/EZERO_PUBLIC_WEBSITE_INFORMATION_ARCHITECTURE_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "ARCHITECTURE_BOUNDARY",
+      "text": "alidation\n\n### Software Validated\n\nMeaning:\n\nThe registered software implementation passed its stated software validation.\n\nIt must NOT be used alone to imply physical validation.\n\nIf later physical validation exists, software validation may remain true and be\nshown alongside a separate physical/field-validation status.\n\n### Simulation\n\nMeaning:\n\nThe current public interaction uses simulated, synthetic, replayed, or mocked\ndata.\n\nIt must not be presented as real-world physical evidence.\n\n### Development\n\nMeaning:\n\nThe user-facing module is still under active development and does not yet meet\na completed release milestone for the capability being described.\n\n### Field Validation Pending\n\nMeaning:\n\nSoftware preparation exists but controlled physical validation remains\nincomplete.\n\n### Live GPS Pending\n\nMeaning:\n\nFleet/location software exists, but live GPS/tracker physical validation is not\nyet established.\n\nWhenever Fleet software capability is presented publicly before physical GPS\nvalidation, `Live GPS Pending` must remain visible.\n\n## 11. Evidence Registry Status / Result Vocabulary\n\nEvidence-registry states remain separate from public presentation badges.\n\nExamples include:\n\n- CLOSED_FROZEN\n- DEVELOPMENT\n\nEvidence results include:\n\n- PASS\n- FAIL\n- PARTIAL\n\nThese evidence states/results must not be silently converted into promotional\nstatus labels."
+    },
+    {
+      "chunk_id": "SRC-005-C007",
+      "source_id": "SRC-005",
+      "path": "docs/EZERO_PUBLIC_WEBSITE_INFORMATION_ARCHITECTURE_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "ARCHITECTURE_BOUNDARY",
+      "text": "e:\n\n- CLOSED_FROZEN\n- DEVELOPMENT\n\nEvidence results include:\n\n- PASS\n- FAIL\n- PARTIAL\n\nThese evidence states/results must not be silently converted into promotional\nstatus labels.\n\nFAIL evidence must remain FAIL.\n\nPARTIAL must mean incomplete/partial evidence, not softened failure.\n\n## 12. Claims Boundary Block\n\nEvery module must retain a visible claims-boundary section.\n\nClaims boundaries must remain visible without requiring the visitor to open\ntechnical evidence.\n\nExamples:\n\n- Null Bench: statistical evidence, not proof\n- Vehicle/OBD: screening, not diagnosis\n- Industrial: no diagnosis / no RUL claim\n- Fleet: no vehicle control / no validated live GPS\n\nExisting frozen claims meaning must be preserved.\n\n## 13. Evidence Presentation Rules\n\nEvidence Registry remains authoritative for scientific public claims.\n\nA shared visual evidence format may be used across modules.\n\nEach module should display only its relevant evidence entries.\n\nDisplayed commit/tag references must correspond to the actual evidence target.\n\nBroken evidence links must not be silently replaced with fabricated or stale\nreferences.\n\n## 14. Global Evidence-Governance Strip\n\nA compact trust section may state principles such as:"
+    },
+    {
+      "chunk_id": "SRC-005-C008",
+      "source_id": "SRC-005",
+      "path": "docs/EZERO_PUBLIC_WEBSITE_INFORMATION_ARCHITECTURE_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "ARCHITECTURE_BOUNDARY",
+      "text": "n evidence links must not be silently replaced with fabricated or stale\nreferences.\n\n## 14. Global Evidence-Governance Strip\n\nA compact trust section may state principles such as:\n\n- Evidence-governed\n- Limitations shown publicly\n- PASS and FAIL preserved\n- Simulation labeled as simulation\n- Read-only where safety requires it\n- Software evidence is not physical proof\n\nThis trust strip should not overwhelm the hero.\n\n## 15. Demo / Visual Guidance\n\nEach module may eventually have one concise visual demonstration.\n\nAllowed:\n\n- screenshot\n- short screen recording\n- lightweight GIF\n\nThe demo must show only existing capability.\n\nIt must not present pending:\n\n- live GPS\n- physical diagnostics\n- RUL validation\n- vehicle control\n- machine control\n\nas completed.\n\n## 16. Social Proof\n\nOnly genuine, authorized testimonials or partner statements may be shown.\n\nForbidden:\n\n- fabricated testimonials\n- invented customers\n- invented adoption counts\n- unsupported partnership claims\n\n## 17. Mobile UX and Accessibility\n\nRequirements:\n\n- mobile-first layout\n- module cards stack cleanly\n- touch-friendly actions\n- no horizontal scrolling for core content\n- readable typography\n- status labels not dependent on color alone\n- keyboard-operable disclosure controls where applicable\n- expanded/collapsed state exposed to assistive technology\n- claims boundaries visible in normal page flow\n\n## 18."
+    },
+    {
+      "chunk_id": "SRC-005-C009",
+      "source_id": "SRC-005",
+      "path": "docs/EZERO_PUBLIC_WEBSITE_INFORMATION_ARCHITECTURE_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "ARCHITECTURE_BOUNDARY",
+      "text": "or alone\n- keyboard-operable disclosure controls where applicable\n- expanded/collapsed state exposed to assistive technology\n- claims boundaries visible in normal page flow\n\n## 18. SEO and URL Rules\n\nDuring the single-page anchor phase:\n\n- section headings and stable IDs provide module identity\n- one HTML document has one document-level `<title>`\n- module-specific `<title>` values are NOT possible for individual anchor\n sections\n\nIf dedicated module paths are introduced later, those pages may receive:\n\n- distinct `<title>`\n- distinct meta description\n- canonical URL\n\nExisting anchors must remain compatible during migration.\n\n## 19. Analytics and Privacy\n\nThis specification introduces no new tracking.\n\nPublic restructuring must not expose:\n\n- precise vehicle location\n- private fleet membership\n- private member IDs\n- authentication/session data\n- secrets\n\nPrivate owner/fleet applications require separate authentication/privacy\nreview.\n\n## 20. Migration Compatibility\n\nMigration must be incremental.\n\nCurrent public release remains the rollback baseline.\n\nRequired migration order:\n\n1. freeze this specification\n2. preserve current release rollback point\n3. simplify platform hero\n4. add four module cards\n5. migrate one module first\n6. validate layout/evidence\n7. migrate remaining modules incrementally\n8. preserve anchors\n9. run evidence validator\n10. verify public links\n11."
+    },
+    {
+      "chunk_id": "SRC-005-C010",
+      "source_id": "SRC-005",
+      "path": "docs/EZERO_PUBLIC_WEBSITE_INFORMATION_ARCHITECTURE_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "ARCHITECTURE_BOUNDARY",
+      "text": "e cards\n5. migrate one module first\n6. validate layout/evidence\n7. migrate remaining modules incrementally\n8. preserve anchors\n9. run evidence validator\n10. verify public links\n11. verify mobile layout\n12. commit and tag redesigned public release\n\nNo destructive big-bang rewrite is permitted.\n\n## 21. Monetization Boundary\n\nPricing is deferred.\n\nInitial priority:\n\nclarity -> usable demo -> trust -> validated adoption -> monetization\n\nAny paid tier requires a separate product/pricing specification.\n\n## 22. Acceptance Tests Before Freeze\n\nThe specification may be frozen only after confirming:\n\n1. E-ZERO remains the platform identity\n2. Null Bench remains a featured module, not the entire platform\n3. four primary modules are represented\n4. every module has a plain-language benefit statement\n5. module status area supports multiple controlled badges where needed\n6. Fleet requires Software Validated + Live GPS Pending before physical GPS validation\n7. public presentation statuses are separate from evidence-registry statuses/results\n8. technical evidence remains available\n9. evidence registry remains authoritative\n10. existing frozen evidence is not rewritten\n11. software validation remains distinct from physical validation\n12. simulation remains distinctly labeled\n13. precise private location is never rendered publicly\n14."
+    },
+    {
+      "chunk_id": "SRC-005-C011",
+      "source_id": "SRC-005",
+      "path": "docs/EZERO_PUBLIC_WEBSITE_INFORMATION_ARCHITECTURE_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "ARCHITECTURE_BOUNDARY",
+      "text": "ot rewritten\n11. software validation remains distinct from physical validation\n12. simulation remains distinctly labeled\n13. precise private location is never rendered publicly\n14. collapsed evidence exposes no private/security-sensitive data\n15. collapsed evidence indexing is not guaranteed\n16. claims boundaries remain visible without expansion\n17. PASS and FAIL evidence remain preserved\n18. #vehicle-obd remains functional\n19. #industrial-intelligence remains functional\n20. #fleet-shared-access remains functional\n21. #support remains functional\n22. #try remains functional\n23. #evidence remains functional\n24. existing WhatsApp Support remains accessible\n25. public Vehicle/OBD section remains accessible\n26. public Industrial section remains accessible\n27. public Fleet section remains accessible\n28. Null Bench remains runnable\n29. Fleet 500+ search is described as software-validated capability, not a public live fleet database\n30. Fleet never shows a bare Live/Active status before live GPS physical validation\n31. single-page anchors do not claim separate module `<title>` metadata\n32. evidence validator continues to PASS\n33. git diff --check passes\n34. no website restructuring implementation occurs before spec freeze\n\n## 23. Non-Goals / Claims Boundary\n\nThis specification does not authorize:"
+    },
+    {
+      "chunk_id": "SRC-005-C012",
+      "source_id": "SRC-005",
+      "path": "docs/EZERO_PUBLIC_WEBSITE_INFORMATION_ARCHITECTURE_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "ARCHITECTURE_BOUNDARY",
+      "text": "PASS\n33. git diff --check passes\n34. no website restructuring implementation occurs before spec freeze\n\n## 23. Non-Goals / Claims Boundary\n\nThis specification does not authorize:\n\n- new scientific claims\n- live GPS activation\n- real vehicle control\n- industrial machine control\n- diagnosis\n- RUL validation\n- fabricated testimonials\n- rewriting frozen evidence\n- removing FAIL evidence\n- changing validated module semantics\n\n## 24. Next Gate\n\nRequired before FREEZE:\n\n1. author review of Sections 3, 10/11 and 22\n2. consistency check against current live website\n3. verify all current public modules/anchors are accounted for\n4. verify no private data is introduced by progressive disclosure\n\nOnly after those checks may this draft be committed as:\n\n`Freeze E-ZERO Public Website Information Architecture Spec V0.1`\n\nSuggested tag:\n\n`ezero-website-ia-v0.1`\n\nNo website restructuring implementation is authorized before that freeze.\n\nFreeze metadata:\n\nPre-registration-status: DRAFT\nFreeze-commit: pending\nTag: pending\nCriteria-modified-after-freeze: N/A\n\nEND OF DRAFT"
+    },
+    {
+      "chunk_id": "SRC-006-C001",
+      "source_id": "SRC-006",
+      "path": "docs/EZERO_VOICE_GUIDE_FEATURE_INTEGRATION_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "VOICE_GUIDE_BOUNDARY",
+      "text": "# E-ZERO Voice Guide — Full Feature Integration Specification v0.1\n\nSTATUS = DEVELOPMENT_SPEC\nVOICE_GUIDE_ROLE = INFORMATIONAL_SUPPORT\nSCIENTIFIC_AUTHORITY = FALSE\nDIAGNOSTIC_AUTHORITY = FALSE\nAUTONOMOUS_CONTROL = FALSE\nSAFETY_SHIELD_OVERRIDE = FALSE\nSELF_MODIFYING_EVIDENCE = FALSE\n\n## 1. Purpose\n\nThe E-ZERO Voice Guide shall act as a multilingual, evidence-grounded support layer across the public E-ZERO website.\n\nIt shall help users understand:\n- website sections\n- buttons and controls\n- supported inputs\n- outputs and result meanings\n- registered PASS / FAIL / PARTIAL / UNKNOWN states\n- validation boundaries\n- common runtime and input errors\n- reasons a result or workflow stopped\n- available next safe actions\n\nThe Voice Guide shall not replace any E-ZERO scientific, diagnostic, safety, control, validation, or evidence module.\n\n## 2. Supported User Languages\n\nPrimary:\n- English\n- Urdu\n- Roman Urdu\n\nThe guide should normalize common Roman Urdu phrasing and respond in the user's active/requested language where possible.\n\n## 3. Website Feature Coverage\n\nThe guide shall include registered explanations for:\n- Null Bench\n- Benchmark 006 / 006-C\n- Vehicle / OBD\n- Industrial Intelligence\n- Fleet / Shared Access\n- Evidence Governance\n- Adaptive Decision Lab\n- Dashboard/result areas\n- public controls and navigation\n- supported data/input formats\n- limitations and provenance"
+    },
+    {
+      "chunk_id": "SRC-006-C002",
+      "source_id": "SRC-006",
+      "path": "docs/EZERO_VOICE_GUIDE_FEATURE_INTEGRATION_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "VOICE_GUIDE_BOUNDARY",
+      "text": "/ Shared Access\n- Evidence Governance\n- Adaptive Decision Lab\n- Dashboard/result areas\n- public controls and navigation\n- supported data/input formats\n- limitations and provenance\n\nEach feature shall retain its original system role and authority.\n\n## 4. Context-Aware Assistance\n\nThe guide should be able to answer:\n- What is this section?\n- What does this button do?\n- What input is required?\n- Why did this result appear?\n- Why did this test stop?\n- Why was my data rejected?\n- What does this status mean?\n- What can I safely do next?\n- Where can I find a specific feature?\n\nWhere possible, answers should be derived from:\n1. registered evidence\n2. registered feature metadata\n3. registered error/status mappings\n4. current visible website context\n\nIf verified information is unavailable:\nUNKNOWN / UNVERIFIED / REVIEW REQUIRED\n\n## 5. Result Explanation Layer\n\nThe guide may explain registered result fields and statuses.\n\nIt must distinguish:\n- computational output\n- statistical evidence\n- simulated/synthetic result\n- replay result\n- real sensor data\n- physical validation\n- diagnostic validation\n- safety certification\n\nThe guide must not convert one category into another.\n\n## 6. Error Explanation Layer"
+    },
+    {
+      "chunk_id": "SRC-006-C003",
+      "source_id": "SRC-006",
+      "path": "docs/EZERO_VOICE_GUIDE_FEATURE_INTEGRATION_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "VOICE_GUIDE_BOUNDARY",
+      "text": "esult\n- real sensor data\n- physical validation\n- diagnostic validation\n- safety certification\n\nThe guide must not convert one category into another.\n\n## 6. Error Explanation Layer\n\nRegistered errors/statuses should have:\n- machine-readable code\n- user-friendly English explanation\n- user-friendly Urdu explanation\n- likely cause\n- safe next step\n- evidence/source reference where applicable\n\nExamples include:\n- INVALID_INPUT\n- MISSING_REQUIRED_FIELD\n- UNSUPPORTED_FORMAT\n- NON_FINITE_VALUE\n- NO_RESULT\n- TEST_STOPPED\n- DATA_UNAVAILABLE\n- READ_TIMEOUT\n- ADAPTER_ERROR\n- ECU_NO_RESPONSE\n- INVALID_RESPONSE\n- UNSUPPORTED_BY_VEHICLE\n- NOT_QUERIED\n\nUnknown errors must not be guessed.\n\n## 7. Vehicle / OBD Status Rules\n\nThe guide shall preserve distinct statuses:\n- SUPPORTED\n- UNSUPPORTED_BY_VEHICLE\n- READ_TIMEOUT\n- ADAPTER_ERROR\n- ECU_NO_RESPONSE\n- INVALID_RESPONSE\n- NOT_QUERIED\n\nThese statuses must not be collapsed into generic success/failure wording.\n\n## 8. Condition Status Presentation\n\nWhere registered thresholds exist:\n\nGREEN:\nregistered normal/acceptable state\n\nAMBER:\nregistered intermediate/caution state\n\nRED:\nregistered high/critical risk state\n\nUNKNOWN / DATA UNAVAILABLE / REVIEW REQUIRED:\nmissing, invalid, stale, unsupported, contradictory, or insufficient data\n\nMissing or invalid data must never be shown as GREEN."
+    },
+    {
+      "chunk_id": "SRC-006-C004",
+      "source_id": "SRC-006",
+      "path": "docs/EZERO_VOICE_GUIDE_FEATURE_INTEGRATION_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "VOICE_GUIDE_BOUNDARY",
+      "text": "ate\n\nUNKNOWN / DATA UNAVAILABLE / REVIEW REQUIRED:\nmissing, invalid, stale, unsupported, contradictory, or insufficient data\n\nMissing or invalid data must never be shown as GREEN.\n\nCondition status does not equal definitive diagnosis or safety certification.\n\n## 9. Voice Interaction\n\nVoice input:\n- browser speech recognition where supported\n- text fallback always available\n\nVoice output:\n- browser speech synthesis where supported\n- text answer always preserved\n\nSpeech is presentation only and is not evidence.\n\n## 10. Navigation Assistance\n\nThe guide may direct or scroll the user to registered website sections.\n\nIt shall not:\n- change scientific settings silently\n- submit unsafe operations\n- control vehicles or machines\n- modify evidence\n- activate autonomous functions\n\n## 11. Fail-Closed Rules\n\nThe guide must fail closed when:\n- evidence is missing\n- question is outside registered scope\n- result provenance is unknown\n- status mapping is unavailable\n- data is contradictory\n- feature behavior cannot be verified\n\nApproved fallback:\n\"I do not have verified E-ZERO information for that yet.\"\n\nUrdu:\n\"میرے پاس اس بارے میں ابھی verified E-ZERO information موجود نہیں ہے۔\"\n\n## 12. AI / LLM Boundary\n\nA future AI/LLM layer may:\n- understand natural language\n- normalize Roman Urdu\n- paraphrase registered explanations\n- assist navigation\n- summarize verified evidence"
+    },
+    {
+      "chunk_id": "SRC-006-C005",
+      "source_id": "SRC-006",
+      "path": "docs/EZERO_VOICE_GUIDE_FEATURE_INTEGRATION_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "VOICE_GUIDE_BOUNDARY",
+      "text": "LM Boundary\n\nA future AI/LLM layer may:\n- understand natural language\n- normalize Roman Urdu\n- paraphrase registered explanations\n- assist navigation\n- summarize verified evidence\n\nIt must not:\n- create scientific evidence\n- change thresholds\n- fabricate results\n- diagnose unsupported faults\n- override deterministic safety logic\n- modify the evidence registry automatically\n\nRegistered E-ZERO evidence remains the authority.\n\n## 13. Controlled Improvement\n\nUser questions that are not covered may be logged as candidate knowledge.\n\nCandidate knowledge must:\n- remain separate from production verified knowledge\n- be reviewed\n- have provenance\n- pass validation\n- be versioned before activation\n\nNo automatic self-learning into production claims.\n\n## 14. Required Engineering Components\n\nFuture implementation should maintain separate files/modules for:\n- feature registry\n- knowledge registry\n- error/status registry\n- language normalization\n- result explainer\n- page-context detector\n- navigation helper\n- speech input\n- speech output\n- optional AI adapter\n- validation tests\n\n## 15. Core Principle\n\nDo not assume the answer.\nUse registered E-ZERO evidence.\nIf evidence is insufficient, say so."
+    },
+    {
+      "chunk_id": "SRC-007-C001",
+      "source_id": "SRC-007",
+      "path": "docs/EZERO_VOICE_GUIDE_PHASE0_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "VOICE_GUIDE_PHASE_BOUNDARY",
+      "text": "# E-ZERO Voice Guide — Phase 0 Specification V0.1\n\nSTATUS = DEVELOPMENT_SPEC\nPUBLIC_WEBSITE_GUIDE = TRUE\nVOICE_INPUT = TRUE\nVOICE_OUTPUT = TRUE\nURDU_ENGLISH = TRUE\nAUTONOMOUS_CONTROL = FALSE\nDIAGNOSTIC_AUTHORITY = FALSE\nSELF_MODIFYING_PRODUCTION_KNOWLEDGE = FALSE\nUNVERIFIED_CLAIMS_ALLOWED = FALSE\n\n## Purpose\n\nE-ZERO Voice Guide is a public website assistant that helps users understand\nthe E-ZERO website, its buttons, sections, tools, evidence, limitations,\nand result meanings through text and voice interaction.\n\n## Phase 0 Functions\n\n1. Floating microphone / voice-guide button on the public website.\n2. Accept supported browser speech input.\n3. Support Urdu and English guidance.\n4. Speak responses using browser text-to-speech where available.\n5. Explain:\n - Website navigation\n - Buttons and controls\n - Null Bench\n - Benchmark 006-C\n - Vehicle Intelligence\n - Industrial Intelligence\n - Fleet functions\n - Evidence Registry\n - Adaptive Decision Lab\n6. Explain result meaning only within registered evidence boundaries.\n7. Use deterministic verified website knowledge as the primary authority.\n8. If verified information is unavailable, explicitly say so.\n9. Never invent scientific results, validation, diagnosis, certification,\n hardware capability, or autonomous-control capability.\n\n## Accuracy Boundary\n\nThe system must not claim 100 percent universal accuracy."
+    },
+    {
+      "chunk_id": "SRC-007-C002",
+      "source_id": "SRC-007",
+      "path": "docs/EZERO_VOICE_GUIDE_PHASE0_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "VOICE_GUIDE_PHASE_BOUNDARY",
+      "text": "lts, validation, diagnosis, certification,\n hardware capability, or autonomous-control capability.\n\n## Accuracy Boundary\n\nThe system must not claim 100 percent universal accuracy.\n\nFor registered deterministic website-guide questions, the goal is:\n- evidence-grounded answers,\n- reproducible mappings,\n- explicit uncertainty,\n- fail-closed behavior for unsupported questions.\n\n## Safety and Governance\n\nThe Voice Guide:\n- cannot control vehicles, machines, ECU, PLC, VFD, or actuators;\n- cannot override the E-ZERO Safety Shield;\n- cannot create diagnostic claims;\n- cannot convert synthetic evidence into physical proof;\n- cannot change Evidence Registry claims by itself;\n- cannot silently learn or publish new facts.\n\n## Controlled Learning\n\nFuture improvement may use user questions and feedback as candidate knowledge.\n\nCandidate knowledge must:\n1. remain separate from production verified knowledge;\n2. be reviewed before activation;\n3. preserve provenance;\n4. pass validation before publication.\n\nNo autonomous self-modification of scientific claims is permitted.\n\n## Phase 0 Technical Direction\n\nPublic website:\n- Browser speech recognition when available\n- Browser speech synthesis when available\n- Deterministic E-ZERO knowledge base\n- Text fallback when microphone or speech services are unavailable"
+    },
+    {
+      "chunk_id": "SRC-007-C003",
+      "source_id": "SRC-007",
+      "path": "docs/EZERO_VOICE_GUIDE_PHASE0_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "VOICE_GUIDE_PHASE_BOUNDARY",
+      "text": "peech recognition when available\n- Browser speech synthesis when available\n- Deterministic E-ZERO knowledge base\n- Text fallback when microphone or speech services are unavailable\n\nFuture optional local/offline stack:\n- Whisper.cpp for speech-to-text\n- Qwen-class local language model\n- Piper for speech output\n\nThese future components require separate validation before public activation.\n\n## Evidence Principle\n\nDo not assume the answer.\nUse registered E-ZERO evidence.\nIf evidence is insufficient, say so."
+    },
+    {
+      "chunk_id": "SRC-008-C001",
+      "source_id": "SRC-008",
+      "path": "docs/EZERO_VOICE_GUIDE_QWEN_AI_TTS_INTEGRATION_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "AI_TTS_INTEGRATION_BOUNDARY",
+      "text": "# E-ZERO Voice Guide — Qwen AI + TTS Integration Specification V0.1\n\nSTATUS = DEVELOPMENT_SPEC\n\nPUBLIC_MIC_BASELINE = FROZEN_REFERENCE\nBASELINE_COMMIT = 4ee3e3e\n\nAI_ROLE = EXPLANATION_LAYER\nAI_EVIDENCE_AUTHORITY = FALSE\nAI_DIAGNOSTIC_AUTHORITY = FALSE\nAI_CONTROL_AUTHORITY = FALSE\n\nTTS_ROLE = PRESENTATION_LAYER\nTTS_EVIDENCE_AUTHORITY = FALSE\n\n## Architecture\n\nSpeech Input\n→ Speech-to-Text\n→ Verified E-ZERO Context\n→ Qwen Explanation Layer\n→ Deterministic Safety Validator\n→ Final Governed Text\n→ Text-to-Speech\n\n## Qwen Boundary\n\nQwen may:\n- explain verified E-ZERO information\n- summarize registered evidence\n- answer website navigation questions\n- explain registered statuses and limitations\n- respond in supported languages when reliable\n\nQwen must not:\n- invent evidence\n- invent thresholds\n- invent validation results\n- claim unsupported diagnosis\n- claim safety certification\n- claim physical validation without evidence\n- control vehicles, machines, ECUs, PLCs, VFDs, or actuators\n- modify the evidence registry\n- override deterministic safety rules\n\n## Safety Validator\n\nAll AI-generated answers must pass through a deterministic validator before public presentation.\n\nIf verified evidence is insufficient, final output must fail closed.\n\nCanonical sentinel:\n\nINSUFFICIENT_VERIFIED_EZERO_EVIDENCE\n\n## TTS Boundary\n\nTTS only speaks the final governed answer."
+    },
+    {
+      "chunk_id": "SRC-008-C002",
+      "source_id": "SRC-008",
+      "path": "docs/EZERO_VOICE_GUIDE_QWEN_AI_TTS_INTEGRATION_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "AI_TTS_INTEGRATION_BOUNDARY",
+      "text": "ed evidence is insufficient, final output must fail closed.\n\nCanonical sentinel:\n\nINSUFFICIENT_VERIFIED_EZERO_EVIDENCE\n\n## TTS Boundary\n\nTTS only speaks the final governed answer.\n\nTTS must never:\n- change scientific meaning\n- create additional claims\n- reinterpret risk status\n- generate independent diagnosis\n\nIf speech output is unavailable, the text answer remains authoritative.\n\n## Deployment Boundary\n\nThe current Qwen server is localhost-only.\n\nA localhost service must not be treated as a public GitHub Pages backend.\n\nPublic AI deployment requires a separately reviewed backend/API boundary.\n\n## Current Known Limitations\n\n- Qwen2.5 1.5B Urdu generation quality is not yet reliable enough to serve as unrestricted authority.\n- Browser/device TTS availability varies.\n- Public AI backend is not yet deployed.\n- Full AI validation has not been established.\n\n## Preservation Rule\n\nThe existing public Voice Guide microphone workflow at commit 4ee3e3e must remain recoverable and must not be overwritten by experimental AI/TTS work."
+    },
+    {
+      "chunk_id": "SRC-009-C001",
+      "source_id": "SRC-009",
+      "path": "docs/EZERO_QWEN_PUBLIC_AGENT_GATEWAY_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "QWEN_AGENT_GOVERNANCE",
+      "text": "# E-ZERO Qwen Public Agent Gateway Specification V0.1\n\nStatus: FROZEN / PRE-IMPLEMENTATION\nBranch: voice-guide-public-qwen-agent-v0.1\n\n## 1. Purpose\n\nProvide a public conversational AI layer for the E-ZERO Voice Guide.\n\nTarget interaction:\n\nUser Mic\n→ Speech-to-Text\n→ Verified local E-ZERO answer check\n→ Qwen Agent when needed\n→ Governed response\n→ Screen answer\n→ Urdu Aegis speech when Urdu is selected\n→ Ready for next conversational turn\n\nThe intended experience is natural turn-by-turn human-style conversation.\n\n## 2. Evidence Priority\n\nThe Qwen Agent MUST NOT override verified deterministic E-ZERO answers.\n\nPriority order:\n\n1. Frozen / verified E-ZERO evidence\n2. Deterministic local Voice Guide knowledge\n3. Governed Qwen response\n4. Fail-closed response\n\nAI output is interpretation, not evidence.\n\n## 3. Public Endpoint Boundary\n\nThe public website MUST NEVER call:\n\n- localhost\n- 127.0.0.1\n- private LAN addresses\n- non-HTTPS AI endpoints\n\nOnly an explicitly configured HTTPS public gateway may be used.\n\nDefault state:\n\nPUBLIC_AI_ENABLED = false\n\nThe agent may only be enabled after:\n\n- HTTPS endpoint exists\n- health check passes\n- response schema validation passes\n- public browser test passes\n- evidence validator passes\n\n## 4. Request Contract\n\nPOST /api/ezero-agent/v0.1/ask\n\nContent-Type: application/json\n\nRequest:"
+    },
+    {
+      "chunk_id": "SRC-009-C002",
+      "source_id": "SRC-009",
+      "path": "docs/EZERO_QWEN_PUBLIC_AGENT_GATEWAY_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "QWEN_AGENT_GOVERNANCE",
+      "text": "schema validation passes\n- public browser test passes\n- evidence validator passes\n\n## 4. Request Contract\n\nPOST /api/ezero-agent/v0.1/ask\n\nContent-Type: application/json\n\nRequest:\n\n{\n \"question\": \"string\",\n \"response_language\": \"string\",\n \"answer_length\": \"short|normal|detailed\",\n \"session_id\": \"ephemeral-string\",\n \"history\": [\n {\n \"role\": \"user|assistant\",\n \"content\": \"string\"\n }\n ]\n}\n\n## 5. Conversation Memory\n\nConversation history is session-only by default.\n\nMaximum history sent to the agent:\n\n6 conversational turns.\n\nThe frontend MUST NOT silently create permanent personal memory.\n\nRaw sensor evidence and diagnostic evidence MUST NOT be rewritten by conversational memory.\n\n## 6. Response Contract\n\nSuccessful response:\n\n{\n \"status\": \"OK\",\n \"answer\": \"string\",\n \"source_class\": \"GOVERNED_AI\",\n \"diagnostic_claim\": false,\n \"evidence_authority\": false\n}\n\nInsufficient evidence:\n\n{\n \"status\": \"INSUFFICIENT_VERIFIED_EZERO_EVIDENCE\",\n \"answer\": \"\",\n \"source_class\": \"FAIL_CLOSED\",\n \"diagnostic_claim\": false,\n \"evidence_authority\": false\n}\n\n## 7. Mandatory Safety Rules\n\nThe Qwen Agent MUST NOT:"
+    },
+    {
+      "chunk_id": "SRC-009-C003",
+      "source_id": "SRC-009",
+      "path": "docs/EZERO_QWEN_PUBLIC_AGENT_GATEWAY_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "QWEN_AGENT_GOVERNANCE",
+      "text": "_EZERO_EVIDENCE\",\n \"answer\": \"\",\n \"source_class\": \"FAIL_CLOSED\",\n \"diagnostic_claim\": false,\n \"evidence_authority\": false\n}\n\n## 7. Mandatory Safety Rules\n\nThe Qwen Agent MUST NOT:\n\n- invent E-ZERO test results\n- alter raw evidence\n- alter thresholds\n- alter module status\n- claim physical validation without evidence\n- claim diagnosis where only screening exists\n- claim real-world sensor provenance for simulated data\n- issue unsupported safety-critical instructions\n- become the evidence authority\n\n## 8. Voice Conversation\n\nWhen Urdu is selected:\n\nQwen text response\n→ E-ZERO Urdu Aegis TTS\n→ automatic spoken response if Auto Speak is enabled\n\nAegis voice:\n\nur_PK-aegis_female-medium\n\nAegis is Urdu-only in V0.1.\n\nOther languages continue using their configured browser/system speech path unless separately validated.\n\n## 9. Conversational Turn Loop\n\nV0.1 interaction:\n\nLISTEN\n→ THINKING\n→ ANSWER\n→ SPEAKING\n→ READY\n\nThe microphone MUST NOT listen while Aegis is speaking.\n\nAfter speech ends, the interface may return to READY.\n\nContinuous always-on microphone mode is NOT enabled in V0.1.\n\n## 10. Failure Behaviour\n\nOn timeout, invalid JSON, network failure, unavailable AI, unsafe response,\nor schema mismatch:\n\nFAIL CLOSED.\n\nThe existing verified deterministic Voice Guide remains available.\n\nThe website MUST continue functioning if the AI gateway is unavailable.\n\n## 11."
+    },
+    {
+      "chunk_id": "SRC-009-C004",
+      "source_id": "SRC-009",
+      "path": "docs/EZERO_QWEN_PUBLIC_AGENT_GATEWAY_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "QWEN_AGENT_GOVERNANCE",
+      "text": "schema mismatch:\n\nFAIL CLOSED.\n\nThe existing verified deterministic Voice Guide remains available.\n\nThe website MUST continue functioning if the AI gateway is unavailable.\n\n## 11. Separation of Responsibilities\n\nVoice Guide:\npresentation + interaction\n\nQwen Agent:\nconversational interpretation\n\nAegis:\nUrdu speech synthesis\n\nEvidence Registry:\nscientific/evidence authority\n\nSensor / OBD modules:\nraw result producers\n\nThese responsibilities MUST remain separate.\n\n## 12. Activation Gate\n\nPUBLIC_AI_ENABLED may become true only after all of the following pass:\n\n- HTTPS gateway reachable\n- CORS restricted appropriately\n- request/response schema validated\n- no localhost dependency\n- deterministic evidence priority preserved\n- invalid-response fail-closed test\n- AI-unavailable fallback test\n- Urdu Aegis response test\n- microphone turn-loop test\n- evidence registry validator PASS\n- public-device test\n\nUntil then:\n\nPUBLIC_AI_ENABLED = false\n\n## 13. Scientific Boundary\n\nA fluent AI response does not increase evidence strength.\n\nConversational quality MUST remain separate from:\n\n- scientific validation\n- diagnostic certainty\n- physical proof\n- sensor provenance\n- safety authority\n\n## 14. Learning and Improvement Architecture\n\nThe Qwen Public Agent may improve over time, but it MUST NOT perform\nuncontrolled live self-training from public conversations."
+    },
+    {
+      "chunk_id": "SRC-009-C005",
+      "source_id": "SRC-009",
+      "path": "docs/EZERO_QWEN_PUBLIC_AGENT_GATEWAY_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "QWEN_AGENT_GOVERNANCE",
+      "text": "rity\n\n## 14. Learning and Improvement Architecture\n\nThe Qwen Public Agent may improve over time, but it MUST NOT perform\nuncontrolled live self-training from public conversations.\n\nImprovement is divided into separate layers:\n\n### A. E-ZERO Knowledge Learning\n\nThe agent should be able to retrieve and use approved E-ZERO knowledge,\nincluding:\n\n- frozen specifications\n- evidence registry\n- validated benchmark summaries\n- module capabilities and limitations\n- approved technical documentation\n- verified public reports\n- approved sensor / OBD boundaries\n- governance and safety rules\n\nRetrieval does not change the scientific evidence itself.\n\n### B. Session Learning\n\nThe agent may use recent conversation context to maintain a natural dialogue.\n\nSession context MUST remain bounded and MUST NOT silently become permanent\npersonal memory.\n\n### C. User Feedback Learning\n\nUser interactions may be used to identify:\n\n- common questions\n- confusing interface areas\n- repeated unmet needs\n- requested features\n- recurring failure modes\n- language and usability problems\n\nPublic conversations MUST NOT directly retrain or modify the production model.\n\nAny data retained for improvement must follow explicit privacy,\nconsent, minimization, and review rules.\n\n### D. Offline Improvement\n\nModel, retrieval, prompt, tool, or knowledge improvements must happen through\na reviewed offline process."
+    },
+    {
+      "chunk_id": "SRC-009-C006",
+      "source_id": "SRC-009",
+      "path": "docs/EZERO_QWEN_PUBLIC_AGENT_GATEWAY_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "QWEN_AGENT_GOVERNANCE",
+      "text": "cy,\nconsent, minimization, and review rules.\n\n### D. Offline Improvement\n\nModel, retrieval, prompt, tool, or knowledge improvements must happen through\na reviewed offline process.\n\nA candidate improvement must be evaluated before production activation.\n\nProduction behaviour MUST NOT change itself solely because users repeatedly\nasked for something.\n\n## 15. E-ZERO Team Advisor\n\nThe Qwen Agent may generate improvement proposals for the E-ZERO team.\n\nExamples:\n\n- documentation improvements\n- interface improvements\n- missing knowledge areas\n- requested capabilities\n- recurring user problems\n- potential validation experiments\n- benchmark expansion suggestions\n- possible sensor coverage improvements\n\nEvery proposal should include, where possible:\n\n- observed reason\n- supporting evidence or interaction pattern\n- confidence\n- expected benefit\n- possible risk\n- affected module\n- recommended validation\n- rollback consideration\n\nAdvisor output is a proposal, not an approved change.\n\n## 16. Human Approval Boundary\n\nThe Qwen Agent MUST NOT autonomously:\n\n- change scientific claims\n- edit the evidence registry\n- change thresholds\n- change frozen specifications\n- alter raw sensor evidence\n- approve diagnostic claims\n- deploy production code\n- promote experimental modules\n- change safety rules\n\nAll such changes require explicit human review and approval.\n\n## 17. Learning Separation"
+    },
+    {
+      "chunk_id": "SRC-009-C007",
+      "source_id": "SRC-009",
+      "path": "docs/EZERO_QWEN_PUBLIC_AGENT_GATEWAY_SPEC_V0_1.md",
+      "source_class": "FROZEN_SPEC",
+      "authority": "QWEN_AGENT_GOVERNANCE",
+      "text": "stic claims\n- deploy production code\n- promote experimental modules\n- change safety rules\n\nAll such changes require explicit human review and approval.\n\n## 17. Learning Separation\n\nThe following systems remain separate:\n\nE-ZERO Evidence Core\n→ scientific authority\n\nQwen Knowledge Layer\n→ retrieval and explanation\n\nConversation Layer\n→ temporary dialogue context\n\nFeedback Learning Layer\n→ reviewed improvement signals\n\nTeam Advisor\n→ recommendations only\n\nImplementation / Deployment\n→ human-approved process\n\nLearning quality MUST NOT be represented as increased scientific evidence.\n\n## 18. Improvement Promotion Gate\n\nBefore a learned or suggested improvement reaches production, it should pass:\n\n1. source review\n2. privacy review\n3. evidence-boundary review\n4. offline test\n5. regression test\n6. safety test\n7. evidence validator\n8. human approval\n9. staged deployment\n10. rollback readiness"
+    }
+  ]
+}
