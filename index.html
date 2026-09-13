@@ -744,6 +744,63 @@ header{
   <a class="btn ghost" href="#platform-modules" data-i18n="explore_modules">Explore E-ZERO Modules</a>
  </div>
 
+ <div id="ezeroQwenFrontCard" style="
+  margin:18px 0 14px;
+  padding:16px;
+  border:1px solid #9fb6bd;
+  border-radius:14px;
+  background:#f7fbfc;
+  box-shadow:0 8px 24px rgba(0,0,0,.08);
+ ">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+   <div>
+    <div style="font-size:18px;font-weight:800;color:#1b2430;">
+     🤖 E-ZERO Qwen AI Guide
+    </div>
+    <div style="font-size:13px;color:#52606d;margin-top:4px;">
+     Governed conversational AI for E-ZERO guidance
+    </div>
+   </div>
+
+   <span id="ezeroQwenFrontStatus" style="
+    font-size:12px;
+    font-weight:700;
+    padding:6px 10px;
+    border-radius:999px;
+    background:#fff3cd;
+    color:#7a5a00;
+    border:1px solid #e8cf7a;
+   ">
+    Validation Mode
+   </span>
+  </div>
+
+  <div style="font-size:13px;color:#40505a;margin-top:10px;line-height:1.5;">
+   Qwen AI is integrated behind the E-ZERO governed gateway.
+   Public AI responses remain disabled until final validation is complete.
+  </div>
+
+  <button
+   id="ezeroQwenFrontOpen"
+   type="button"
+   onclick="document.getElementById('ezeroVoiceGuideButton')?.click()"
+   style="
+    margin-top:12px;
+    min-height:44px;
+    padding:10px 16px;
+    border:0;
+    border-radius:10px;
+    background:#0b4f66;
+    color:#ffffff;
+    font-weight:800;
+    font-size:14px;
+    cursor:pointer;
+   "
+  >
+   🤖 Open E-ZERO AI Guide
+  </button>
+ </div>
+
  <p class="vehicle-note" data-i18n="global_featured_tool_text">
   Featured Live Tool: Null Bench — degree-preserving network testing in your browser.
  </p>
@@ -3344,6 +3401,11 @@ function drawHistogram(vals,observed){
 <script src="js/ezero_voice_guide_knowledge_v0_1.js?v=20260911-1310"></script>
 <script src="js/ezero_voice_guide_feature_registry_v0_1.js?v=20260911-1310"></script>
 <script type="module" src="js/ezero_urdu_aegis_tts_v0_1.mjs?v=20260911-public01"></script>
+<script>
+window.EZERO_PUBLIC_AI_ENDPOINT = "https://ezero-qwen-gateway.coma39658.workers.dev/api/ezero-agent/v0.1/ask";
+window.EZERO_PUBLIC_AI_ENABLED = false;
+</script>
+
 <script src="js/ezero_agent_retrieval_v0_1.js?v=20260911-rag02"></script>
 <script src="js/ezero_qwen_public_agent_v0_1.js?v=20260911-qwen03"></script>
 <script src="js/ezero_voice_guide_ui_v0_1.js?v=20260911-qwen03"></script>
