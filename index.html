@@ -771,13 +771,13 @@ header{
     color:#7a5a00;
     border:1px solid #e8cf7a;
    ">
-    Validation Mode
+    Governed AI Live
    </span>
   </div>
 
   <div style="font-size:13px;color:#40505a;margin-top:10px;line-height:1.5;">
-   Qwen AI is integrated behind the E-ZERO governed gateway.
-   Public AI responses remain disabled until final validation is complete.
+   Qwen AI is available through the E-ZERO governed gateway.
+   Responses remain subject to evidence boundaries, fail-closed safety rules, and registered E-ZERO limitations.
   </div>
 
   <button
@@ -3403,7 +3403,7 @@ function drawHistogram(vals,observed){
 <script type="module" src="js/ezero_urdu_aegis_tts_v0_1.mjs?v=20260911-public01"></script>
 <script>
 window.EZERO_PUBLIC_AI_ENDPOINT = "https://ezero-qwen-gateway.coma39658.workers.dev/api/ezero-agent/v0.1/ask";
-window.EZERO_PUBLIC_AI_ENABLED = false;
+window.EZERO_PUBLIC_AI_ENABLED = true;
 </script>
 
 <script src="js/ezero_agent_retrieval_v0_1.js?v=20260911-rag02"></script>

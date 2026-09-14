@@ -240,7 +240,12 @@
         signal: controller.signal,
         body: JSON.stringify({
           question: question,
-          response_language: responseLanguage,
+          // AI language is independent of the website's 15-language UI.
+          // Qwen should answer in the language/script used by the user.
+          response_language: "auto",
+          // If the question is too short/ambiguous to identify a language,
+          // fall back to the language currently selected on the website.
+          fallback_language: responseLanguage,
           answer_length: answerLength,
           session_id: sessionId,
           history: history.slice(-MAX_HISTORY_MESSAGES),
