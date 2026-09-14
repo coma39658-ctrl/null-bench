@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img">
+  <defs>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7fbfd"/>
+      <stop offset=".42" stop-color="#a9c3cf"/>
+      <stop offset=".72" stop-color="#e9f4f7"/>
+      <stop offset="1" stop-color="#658896"/>
+    </linearGradient>
+
+    <linearGradient id="visor" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#071f35"/>
+      <stop offset=".55" stop-color="#0b3550"/>
+      <stop offset="1" stop-color="#041421"/>
+    </linearGradient>
+
+    <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#28e1ef"/>
+      <stop offset=".5" stop-color="#0ca6c4"/>
+      <stop offset="1" stop-color="#087596"/>
+    </linearGradient>
+
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.8" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- futuristic orbital frame -->
+  <path d="M24 31A50 50 0 0 1 50 16"
+        fill="none" stroke="url(#cyan)" stroke-width="7"
+        stroke-linecap="round"/>
+  <path d="M78 16A50 50 0 0 1 104 31"
+        fill="none" stroke="url(#cyan)" stroke-width="7"
+        stroke-linecap="round"/>
+  <path d="M104 97A50 50 0 0 1 79 112"
+        fill="none" stroke="url(#cyan)" stroke-width="7"
+        stroke-linecap="round"/>
+  <path d="M49 112A50 50 0 0 1 24 97"
+        fill="none" stroke="url(#cyan)" stroke-width="7"
+        stroke-linecap="round"/>
+
+  <circle cx="19" cy="64" r="6" fill="#071f35" stroke="#21d8e7" stroke-width="3"/>
+  <circle cx="109" cy="64" r="6" fill="#071f35" stroke="#21d8e7" stroke-width="3"/>
+
+  <!-- antenna / neural core -->
+  <rect x="59" y="7" width="10" height="23" rx="5"
+        fill="url(#metal)" stroke="#087596" stroke-width="2"/>
+  <rect x="62" y="10" width="4" height="15" rx="2"
+        fill="#2ce3ef" filter="url(#glow)"/>
+
+  <!-- robot head -->
+  <path d="M38 38
+           Q64 25 90 38
+           L96 68
+           Q93 94 64 108
+           Q35 94 32 68
+           Z"
+        fill="url(#metal)" stroke="#23495b" stroke-width="3"/>
+
+  <!-- side neural plates -->
+  <path d="M31 50L21 56V76L31 82Z"
+        fill="#0b7899" stroke="#22dbe8" stroke-width="2"/>
+  <path d="M97 50L107 56V76L97 82Z"
+        fill="#0b7899" stroke="#22dbe8" stroke-width="2"/>
+
+  <!-- visor -->
+  <rect x="40" y="48" width="48" height="31" rx="13"
+        fill="url(#visor)" stroke="#36dce8" stroke-width="2.5"/>
+
+  <!-- AI eyes -->
+  <rect x="49" y="60" width="12" height="4.5" rx="2.25"
+        fill="#55f4ff" filter="url(#glow)"/>
+  <rect x="67" y="60" width="12" height="4.5" rx="2.25"
+        fill="#55f4ff" filter="url(#glow)"/>
+
+  <!-- lower intelligence core -->
+  <path d="M52 88Q64 96 76 88"
+        fill="none" stroke="#087596" stroke-width="3"
+        stroke-linecap="round"/>
+  <circle cx="64" cy="88" r="3.5"
+          fill="#31e6ef" filter="url(#glow)"/>
+
+  <!-- micro circuitry -->
+  <path d="M43 35L35 27M85 35L93 27M44 98L36 105M84 98L92 105"
+        fill="none" stroke="#7bdce5" stroke-width="2"
+        stroke-linecap="round"/>
+</svg>
