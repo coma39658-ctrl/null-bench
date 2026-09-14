@@ -267,8 +267,8 @@
 
       status.textContent =
         language === "ur"
-          ? "⏳ E-ZERO AI جواب تیار کر رہا ہے…"
-          : "⏳ E-ZERO AI is preparing an answer…";
+          ? "⏳ E-ZERO AI Agent جواب تیار کر رہا ہے…"
+          : "⏳ E-ZERO AI Agent is preparing an answer…";
 
       try {
         if (
@@ -294,10 +294,12 @@
           "INSUFFICIENT_VERIFIED_EZERO_EVIDENCE"
             ? {
                 answer:
-                  "INSUFFICIENT_VERIFIED_EZERO_EVIDENCE"
+                  "INSUFFICIENT_VERIFIED_EZERO_EVIDENCE",
+                sourceClass: agentResult.source_class
               }
             : {
-                answer: agentResult.answer
+                answer: agentResult.answer,
+                sourceClass: agentResult.source_class
               };
 
         if (
@@ -325,9 +327,17 @@
         answer.textContent = data.answer;
 
         status.textContent =
-          language === "ur"
-            ? "✓ Governed AI جواب تیار ہے"
-            : "✓ Governed AI answer ready";
+          data.sourceClass === "VERIFIED_STATIC"
+            ? (
+                language === "ur"
+                  ? "✓ تصدیق شدہ E-ZERO جواب · فوری"
+                  : "✓ Verified E-ZERO answer · instant"
+              )
+            : (
+                language === "ur"
+                  ? "✓ E-ZERO AI Agent جواب تیار ہے"
+                  : "✓ E-ZERO AI Agent answer ready"
+              );
 
         if (
           window.EZERO_VOICE_GUIDE_SETTINGS &&
@@ -354,8 +364,8 @@
         if (deterministicResult.matched) {
           status.textContent =
             language === "ur"
-              ? "✓ Verified local جواب · AI دستیاب نہیں"
-              : "✓ Verified local answer · AI unavailable";
+              ? "✓ Local Verified Guide fallback · AI Agent دستیاب نہیں"
+              : "✓ Local Verified Guide fallback · AI Agent unavailable";
         } else {
           status.textContent =
             language === "ur"

@@ -86,8 +86,13 @@
     }
 
     if (data.status === "OK") {
+      const allowedSourceClasses = [
+        "GOVERNED_AI",
+        "VERIFIED_STATIC"
+      ];
+
       if (
-        data.source_class !== "GOVERNED_AI" ||
+        !allowedSourceClasses.includes(data.source_class) ||
         typeof data.answer !== "string" ||
         !data.answer.trim()
       ) {
