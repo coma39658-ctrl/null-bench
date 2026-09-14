@@ -3045,7 +3045,12 @@ function drawHistogram(vals,observed){
 >
  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
   <div>
-   <div style="font-size:18px;font-weight:800;color:#1b2430;">🤖 E-ZERO AI Agent</div>
+   <div style="display:flex;align-items:center;gap:10px;">
+     <span aria-hidden="true" style="font-size:36px;line-height:1;filter:drop-shadow(0 3px 7px rgba(11,79,102,.22));">🤖</span>
+     <div style="font-size:23px;font-weight:900;line-height:1.08;letter-spacing:-.3px;color:#0b2740;">
+      E-ZERO <span style="font-size:25px;color:#087596;">AI</span> Agent
+     </div>
+    </div>
    <div style="font-size:12px;color:#52606d;margin-top:2px;">
     Evidence-grounded website guidance
    </div>
@@ -3284,9 +3289,78 @@ function drawHistogram(vals,observed){
     return;
   }
 
+  function positionGuide(){
+    const margin = 10;
+    const gap = 8;
+    const rect = openBtn.getBoundingClientRect();
+
+    const viewportWidth =
+      window.innerWidth || document.documentElement.clientWidth;
+
+    const viewportHeight =
+      window.innerHeight || document.documentElement.clientHeight;
+
+    const panelWidth = Math.max(
+      1,
+      Math.min(420, viewportWidth - (margin * 2))
+    );
+
+    const maxPanelHeight = Math.max(
+      120,
+      Math.min(
+        Math.round(viewportHeight * 0.64),
+        viewportHeight - (margin * 2)
+      )
+    );
+
+    panel.style.width = panelWidth + "px";
+    panel.style.maxHeight = maxPanelHeight + "px";
+    panel.style.right = "auto";
+    panel.style.bottom = "auto";
+
+    const panelHeight = Math.min(
+      panel.scrollHeight,
+      maxPanelHeight
+    );
+
+    let left =
+      rect.left + (rect.width / 2) - (panelWidth / 2);
+
+    left = Math.max(
+      margin,
+      Math.min(left, viewportWidth - panelWidth - margin)
+    );
+
+    const spaceBelow =
+      viewportHeight - rect.bottom - gap - margin;
+
+    const spaceAbove =
+      rect.top - gap - margin;
+
+    let top;
+
+    if (
+      spaceBelow >= panelHeight ||
+      spaceBelow >= spaceAbove
+    ) {
+      top = rect.bottom + gap;
+    } else {
+      top = rect.top - gap - panelHeight;
+    }
+
+    top = Math.max(
+      margin,
+      Math.min(top, viewportHeight - panelHeight - margin)
+    );
+
+    panel.style.left = Math.round(left) + "px";
+    panel.style.top = Math.round(top) + "px";
+  }
+
   function openGuide(){
     panel.style.display = "block";
     panel.setAttribute("aria-hidden","false");
+    requestAnimationFrame(positionGuide);
   }
 
   function closeGuide(){
@@ -3294,8 +3368,16 @@ function drawHistogram(vals,observed){
     panel.setAttribute("aria-hidden","true");
   }
 
+  window.EZERO_POSITION_AI_AGENT_PANEL = positionGuide;
+
   openBtn.addEventListener("click", openGuide);
   closeBtn.addEventListener("click", closeGuide);
+
+  window.addEventListener("resize", function(){
+    if (panel.style.display !== "none") {
+      positionGuide();
+    }
+  }, { passive:true });
 })();
 </script>
 

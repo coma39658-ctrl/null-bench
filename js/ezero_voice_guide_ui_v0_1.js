@@ -1242,6 +1242,10 @@
     panel.style.display = "block";
     panel.setAttribute("aria-hidden", "false");
 
+    if (typeof window.EZERO_POSITION_AI_AGENT_PANEL === "function") {
+      window.EZERO_POSITION_AI_AGENT_PANEL();
+    }
+
     const lang =
       window.EZERO_LANGUAGE &&
       typeof window.EZERO_LANGUAGE.current === "function"
