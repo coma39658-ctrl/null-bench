@@ -783,7 +783,7 @@ header{
   <button
    id="ezeroQwenFrontOpen"
    type="button"
-   onclick="document.getElementById('ezeroVoiceGuideButton')?.click()"
+   onclick="window.EZERO_AI_AGENT_ANCHOR=this;document.getElementById('ezeroVoiceGuideButton')?.click()"
    style="
     margin-top:12px;
     min-height:44px;
@@ -3292,7 +3292,12 @@ function drawHistogram(vals,observed){
   function positionGuide(){
     const margin = 10;
     const gap = 8;
-    const rect = openBtn.getBoundingClientRect();
+    const anchor =
+      arguments[0] && typeof arguments[0].getBoundingClientRect === "function"
+        ? arguments[0]
+        : openBtn;
+
+    const rect = anchor.getBoundingClientRect();
 
     const viewportWidth =
       window.innerWidth || document.documentElement.clientWidth;
@@ -3305,11 +3310,20 @@ function drawHistogram(vals,observed){
       Math.min(420, viewportWidth - (margin * 2))
     );
 
+    const spaceBelow =
+      Math.max(0, viewportHeight - rect.bottom - gap - margin);
+
+    const spaceAbove =
+      Math.max(0, rect.top - gap - margin);
+
+    const openBelow = spaceBelow >= spaceAbove;
+    const availableSpace = openBelow ? spaceBelow : spaceAbove;
+
     const maxPanelHeight = Math.max(
-      120,
+      160,
       Math.min(
         Math.round(viewportHeight * 0.64),
-        viewportHeight - (margin * 2)
+        availableSpace
       )
     );
 
@@ -3331,22 +3345,9 @@ function drawHistogram(vals,observed){
       Math.min(left, viewportWidth - panelWidth - margin)
     );
 
-    const spaceBelow =
-      viewportHeight - rect.bottom - gap - margin;
-
-    const spaceAbove =
-      rect.top - gap - margin;
-
-    let top;
-
-    if (
-      spaceBelow >= panelHeight ||
-      spaceBelow >= spaceAbove
-    ) {
-      top = rect.bottom + gap;
-    } else {
-      top = rect.top - gap - panelHeight;
-    }
+    let top = openBelow
+      ? rect.bottom + gap
+      : rect.top - gap - panelHeight;
 
     top = Math.max(
       margin,
@@ -3357,10 +3358,20 @@ function drawHistogram(vals,observed){
     panel.style.top = Math.round(top) + "px";
   }
 
-  function openGuide(){
+  function openGuide(event){
     panel.style.display = "block";
     panel.setAttribute("aria-hidden","false");
-    requestAnimationFrame(positionGuide);
+
+    const anchor =
+      window.EZERO_AI_AGENT_ANCHOR ||
+      (event && event.currentTarget) ||
+      openBtn;
+
+    window.EZERO_AI_AGENT_ANCHOR = null;
+
+    requestAnimationFrame(function(){
+      positionGuide(anchor);
+    });
   }
 
   function closeGuide(){
