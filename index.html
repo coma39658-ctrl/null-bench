@@ -223,6 +223,167 @@ textarea{min-height:150px;font-family:monospace}
  gap:8px;
  margin:14px 0
 }
+
+/* E-ZERO ASSIST HUB PUBLIC PREVIEW V0.1 */
+#ezeroVoiceGuideButton.ezero-assist-launcher{
+  min-height:54px !important;
+  padding:6px 10px 6px 7px !important;
+  display:inline-flex !important;
+  align-items:center;
+  gap:9px;
+  border:1px solid rgba(39,143,163,.48) !important;
+  border-radius:16px !important;
+  background:linear-gradient(135deg,#ffffff 0%,#eef9fc 55%,#e5f4f8 100%) !important;
+  color:#0b2740 !important;
+  box-shadow:0 8px 22px rgba(11,79,102,.12), inset 0 1px 0 rgba(255,255,255,.9);
+  white-space:nowrap;
+  position:relative;
+  overflow:hidden;
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+}
+
+#ezeroVoiceGuideButton.ezero-assist-launcher:hover{
+  transform:translateY(-1px);
+  border-color:#278fa3 !important;
+  box-shadow:0 11px 28px rgba(11,79,102,.18),0 0 0 3px rgba(39,143,163,.08);
+}
+
+.ezero-assist-mic-shell{
+  width:40px;
+  height:40px;
+  flex:0 0 40px;
+  display:grid;
+  place-items:center;
+  border-radius:13px;
+  color:#ffffff;
+  background:linear-gradient(145deg,#0b4f66,#278fa3);
+  box-shadow:0 6px 16px rgba(11,79,102,.25),inset 0 1px 0 rgba(255,255,255,.24);
+  position:relative;
+}
+
+.ezero-assist-mic-shell::after{
+  content:"";
+  position:absolute;
+  inset:-4px;
+  border:1px solid rgba(39,143,163,.28);
+  border-radius:16px;
+  animation:ezeroAssistHalo 2.4s ease-in-out infinite;
+}
+
+.ezero-assist-mic-shell svg{
+  width:23px;
+  height:23px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.ezero-assist-copy{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  line-height:1.05;
+}
+
+.ezero-assist-copy strong{
+  font-size:14px;
+  letter-spacing:.1px;
+}
+
+.ezero-assist-copy small{
+  margin-top:4px;
+  font-size:10px;
+  font-weight:700;
+  color:#55717d;
+}
+
+.ezero-assist-preview-badge{
+  padding:4px 6px;
+  border-radius:999px;
+  background:#e7f4f8;
+  border:1px solid #b7dce6;
+  color:#0b6078;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.5px;
+}
+
+#ezeroAssistFutureDock{
+  margin-top:13px;
+  padding:10px;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  border:1px solid #c7dfe8;
+  border-radius:14px;
+  background:linear-gradient(180deg,#f8fcfd 0%,#f1f8fa 100%);
+}
+
+.ezero-assist-tool{
+  min-height:58px;
+  padding:8px 9px;
+  border:1px solid #c9dde4;
+  border-radius:11px;
+  background:#ffffff;
+  color:#304e5a;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  text-align:left;
+  font:inherit;
+}
+
+.ezero-assist-tool svg{
+  width:22px;
+  height:22px;
+  flex:0 0 22px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.7;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.ezero-assist-tool-copy{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  line-height:1.15;
+}
+
+.ezero-assist-tool-copy strong{
+  font-size:12px;
+  color:#173c4c;
+}
+
+.ezero-assist-tool-copy small{
+  margin-top:3px;
+  font-size:10px;
+  color:#71858d;
+}
+
+.ezero-assist-tool.is-current{
+  border-color:#8fc4d2;
+  background:#eef8fb;
+}
+
+.ezero-assist-tool[disabled]{
+  opacity:.72;
+  cursor:not-allowed;
+}
+
+@keyframes ezeroAssistHalo{
+  0%,100%{opacity:.45;transform:scale(.98)}
+  50%{opacity:1;transform:scale(1.05)}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .ezero-assist-mic-shell::after{animation:none}
+  #ezeroVoiceGuideButton.ezero-assist-launcher{transition:none}
+}
+
 @media(max-width:600px){
  .evidence-metrics{grid-template-columns:1fr}
 }
@@ -708,11 +869,23 @@ header{
  <button
   id="ezeroVoiceGuideButton"
   type="button"
-  aria-label="Open E-ZERO Voice Guide"
-  title="E-ZERO Voice Guide"
-  style="padding:8px 12px;border-radius:6px;border:1px solid #9fb6bd;background:#ffffff;color:#1b2430;font-weight:700;cursor:pointer;white-space:nowrap;"
+  aria-label="Open E-ZERO Voice Guide and Assist Hub"
+  title="E-ZERO Voice & Assist Hub"
+  class="ezero-assist-launcher"
  >
-  🎤 Voice Guide
+  <span class="ezero-assist-mic-shell" aria-hidden="true">
+   <svg viewBox="0 0 24 24" focusable="false">
+    <rect x="9" y="3" width="6" height="11" rx="3"></rect>
+    <path d="M6.5 10.5v.8a5.5 5.5 0 0 0 11 0v-.8"></path>
+    <path d="M12 16.8V21"></path>
+    <path d="M8.8 21h6.4"></path>
+   </svg>
+  </span>
+  <span class="ezero-assist-copy">
+   <strong>Voice &amp; Assist</strong>
+   <small>Voice Guide · Hub Preview</small>
+  </span>
+  <span class="ezero-assist-preview-badge">PREVIEW</span>
  </button>
 </div>
 
@@ -3105,6 +3278,52 @@ function drawHistogram(vals,observed){
    >← Back</button>
   </div>
  </div>
+   <div id="ezeroAssistFutureDock" aria-label="E-ZERO Assist Hub capabilities">
+    <div class="ezero-assist-tool is-current">
+     <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="9" y="3" width="6" height="11" rx="3"></rect>
+      <path d="M6.5 10.5v.8a5.5 5.5 0 0 0 11 0v-.8M12 16.8V21M8.8 21h6.4"></path>
+     </svg>
+     <span class="ezero-assist-tool-copy">
+      <strong>Voice Guide</strong>
+      <small>Available Preview</small>
+     </span>
+    </div>
+
+    <button type="button" class="ezero-assist-tool" disabled aria-disabled="true">
+     <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3" y="6" width="13" height="12" rx="2"></rect>
+      <path d="M16 10l5-3v10l-5-3z"></path>
+     </svg>
+     <span class="ezero-assist-tool-copy">
+      <strong>Video Call / Chat</strong>
+      <small>Coming Soon</small>
+     </span>
+    </button>
+
+    <button type="button" class="ezero-assist-tool" disabled aria-disabled="true">
+     <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 5h16v11H8l-4 4z"></path>
+      <path d="M8 9h8M8 12h5"></path>
+     </svg>
+     <span class="ezero-assist-tool-copy">
+      <strong>Messages</strong>
+      <small>Coming Soon</small>
+     </span>
+    </button>
+
+    <button type="button" class="ezero-assist-tool" disabled aria-disabled="true">
+     <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 16V4M8 8l4-4 4 4"></path>
+      <path d="M5 14v5h14v-5"></path>
+     </svg>
+     <span class="ezero-assist-tool-copy">
+      <strong>Media / Files</strong>
+      <small>Coming Soon</small>
+     </span>
+    </button>
+   </div>
+
 
  <div
   id="ezeroVoiceGuideSettingsPanel"

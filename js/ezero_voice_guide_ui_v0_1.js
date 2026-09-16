@@ -489,7 +489,6 @@
       recognition.continuous = false;
       recognition.interimResults = false;
 
-      micButton.textContent = "🎤";
       micButton.title = "E-ZERO Voice Guide";
       micButton.setAttribute(
         "aria-label",
@@ -1091,72 +1090,204 @@
 
     if (!micButton || !status) return;
 
+    /* E-ZERO PROFESSIONAL MIC VISUAL V0.1 */
+
+    const icons = Object.freeze({
+      mic: `
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <rect x="9" y="3" width="6" height="11" rx="3"></rect>
+          <path d="M6.5 10.5v.8a5.5 5.5 0 0 0 11 0v-.8"></path>
+          <path d="M12 16.8V21"></path>
+          <path d="M8.8 21h6.4"></path>
+        </svg>`,
+      processing: `
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <path d="M20 12a8 8 0 1 1-3-6.2"></path>
+          <path d="M17 3.8v4h-4"></path>
+        </svg>`,
+      speaking: `
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <path d="M4 10v4M8 7v10M12 5v14M16 8v8M20 10v4"></path>
+        </svg>`,
+      error: `
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <path d="M12 3 2.8 20h18.4L12 3z"></path>
+          <path d="M12 9v5M12 17.2h.01"></path>
+        </svg>`
+    });
+
+    function isUrdu() {
+      try {
+        return voiceLanguage() === "ur-PK";
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function render(state, en, ur) {
+      const icon =
+        state === "processing" ? icons.processing :
+        state === "speaking" ? icons.speaking :
+        state === "error" ? icons.error :
+        icons.mic;
+
+      micButton.dataset.ezeroMicState = state;
+      micButton.innerHTML =
+        '<span class="ezero-pro-mic-icon">' + icon + '</span>' +
+        '<span class="ezero-pro-mic-copy">' +
+          '<strong>' + (isUrdu() ? ur : en) + '</strong>' +
+          '<small>' + (isUrdu() ? "وائس گائیڈ" : "Voice Guide") + '</small>' +
+        '</span>';
+    }
+
     if (!document.getElementById("ezeroVoiceMicVisualStyles")) {
       const style = document.createElement("style");
       style.id = "ezeroVoiceMicVisualStyles";
       style.textContent = `
-        #ezeroVoiceGuideMic {
-          position: relative;
-          transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+        #ezeroVoiceGuideMic{
+          position:relative;
+          min-height:50px;
+          padding:6px 11px !important;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          gap:8px;
+          border-radius:14px !important;
+          overflow:visible;
+          transition:
+            transform .18s ease,
+            box-shadow .18s ease,
+            border-color .18s ease,
+            opacity .18s ease;
         }
 
-        #ezeroVoiceGuideMic.ezero-mic-listening {
-          transform: scale(1.06);
+        #ezeroVoiceGuideMic .ezero-pro-mic-icon{
+          width:34px;
+          height:34px;
+          flex:0 0 34px;
+          display:grid;
+          place-items:center;
+          position:relative;
+          border-radius:11px;
+          color:#fff;
+          background:linear-gradient(145deg,#0b4f66,#278fa3);
           box-shadow:
-            0 0 0 0 rgba(40, 120, 160, .35),
-            0 0 18px rgba(40, 120, 160, .22);
-          animation: ezeroMicPulse 1.1s infinite;
+            0 6px 14px rgba(11,79,102,.24),
+            inset 0 1px 0 rgba(255,255,255,.25);
         }
 
-        #ezeroVoiceGuideMic.ezero-mic-processing {
-          transform: scale(1.03);
-          opacity: .88;
+        #ezeroVoiceGuideMic .ezero-pro-mic-icon svg{
+          width:20px;
+          height:20px;
+          fill:none;
+          stroke:currentColor;
+          stroke-width:1.8;
+          stroke-linecap:round;
+          stroke-linejoin:round;
         }
 
-        #ezeroVoiceGuideMic.ezero-mic-error {
-          animation: ezeroMicError .35s linear 2;
+        #ezeroVoiceGuideMic .ezero-pro-mic-copy{
+          display:flex;
+          flex-direction:column;
+          align-items:flex-start;
+          line-height:1.05;
         }
 
-        #ezeroVoiceGuideMic.ezero-mic-listening::after {
-          content: ")))";
-          position: absolute;
-          right: -18px;
-          top: 50%;
-          transform: translateY(-50%);
-          font-size: 13px;
-          font-weight: 700;
-          letter-spacing: 1px;
-          animation: ezeroMicWave .8s infinite alternate;
-          pointer-events: none;
+        #ezeroVoiceGuideMic .ezero-pro-mic-copy strong{
+          font-size:12px;
+          font-weight:900;
+          color:#123b4b;
         }
 
-        @keyframes ezeroMicPulse {
-          0% {
-            box-shadow:
-              0 0 0 0 rgba(40, 120, 160, .35),
-              0 0 12px rgba(40, 120, 160, .18);
+        #ezeroVoiceGuideMic .ezero-pro-mic-copy small{
+          margin-top:3px;
+          font-size:9px;
+          font-weight:700;
+          color:#6b818a;
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-listening{
+          transform:scale(1.035);
+          border-color:#278fa3 !important;
+          background:#effafd !important;
+          box-shadow:
+            0 0 0 3px rgba(39,143,163,.09),
+            0 8px 20px rgba(11,79,102,.15);
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-listening .ezero-pro-mic-icon::after{
+          content:"";
+          position:absolute;
+          inset:-6px;
+          border:2px solid rgba(39,143,163,.32);
+          border-radius:15px;
+          animation:ezeroProMicPulse 1.15s ease-out infinite;
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-processing .ezero-pro-mic-icon{
+          background:linear-gradient(145deg,#4c6570,#718b96);
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-processing .ezero-pro-mic-icon svg{
+          animation:ezeroProMicSpin .9s linear infinite;
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-speaking{
+          border-color:#63b4c5 !important;
+          background:#f0fbfd !important;
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-speaking .ezero-pro-mic-icon{
+          background:linear-gradient(145deg,#0d6178,#35a2b6);
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-speaking .ezero-pro-mic-icon svg{
+          animation:ezeroProMicSpeak .7s ease-in-out infinite alternate;
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-error{
+          border-color:#d89a9a !important;
+          background:#fff7f7 !important;
+          animation:ezeroProMicError .35s linear 2;
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-error .ezero-pro-mic-icon{
+          background:linear-gradient(145deg,#913c3c,#bd5c5c);
+        }
+
+        #ezeroVoiceGuideMic:disabled{
+          opacity:.55;
+          cursor:not-allowed;
+          transform:none;
+        }
+
+        @keyframes ezeroProMicPulse{
+          0%{opacity:.85;transform:scale(.86)}
+          75%,100%{opacity:0;transform:scale(1.3)}
+        }
+
+        @keyframes ezeroProMicSpin{
+          to{transform:rotate(360deg)}
+        }
+
+        @keyframes ezeroProMicSpeak{
+          from{transform:scaleY(.84);opacity:.7}
+          to{transform:scaleY(1.08);opacity:1}
+        }
+
+        @keyframes ezeroProMicError{
+          0%,100%{transform:translateX(0)}
+          25%{transform:translateX(-3px)}
+          75%{transform:translateX(3px)}
+        }
+
+        @media(prefers-reduced-motion:reduce){
+          #ezeroVoiceGuideMic,
+          #ezeroVoiceGuideMic .ezero-pro-mic-icon,
+          #ezeroVoiceGuideMic .ezero-pro-mic-icon::after{
+            animation:none !important;
+            transition:none !important;
           }
-          70% {
-            box-shadow:
-              0 0 0 12px rgba(40, 120, 160, 0),
-              0 0 22px rgba(40, 120, 160, .24);
-          }
-          100% {
-            box-shadow:
-              0 0 0 0 rgba(40, 120, 160, 0),
-              0 0 12px rgba(40, 120, 160, .18);
-          }
-        }
-
-        @keyframes ezeroMicWave {
-          from { opacity: .35; transform: translateY(-50%) scaleX(.85); }
-          to   { opacity: 1; transform: translateY(-50%) scaleX(1.15); }
-        }
-
-        @keyframes ezeroMicError {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-3px); }
-          75% { transform: translateX(3px); }
         }
       `;
       document.head.appendChild(style);
@@ -1170,39 +1301,68 @@
           "ezero-mic-error",
           "ezero-mic-speaking"
         );
-        micButton.textContent = "🎤";
-        micButton.setAttribute("aria-label", "Start E-ZERO Voice Guide microphone");
+        render("idle", "Speak", "بولیں");
+        micButton.setAttribute(
+          "aria-label",
+          "Start E-ZERO Voice Guide microphone"
+        );
         micButton.title = "Tap once and speak";
       },
 
       listening: function () {
-        micButton.classList.remove("ezero-mic-processing", "ezero-mic-error", "ezero-mic-speaking");
+        micButton.classList.remove(
+          "ezero-mic-processing",
+          "ezero-mic-error",
+          "ezero-mic-speaking"
+        );
         micButton.classList.add("ezero-mic-listening");
-        micButton.textContent = "🎤";
-        micButton.setAttribute("aria-label", "E-ZERO Voice Guide is listening");
+        render("listening", "Listening", "سن رہا ہے");
+        micButton.setAttribute(
+          "aria-label",
+          "E-ZERO Voice Guide is listening"
+        );
         micButton.title = "Listening";
       },
 
       processing: function () {
-        micButton.classList.remove("ezero-mic-listening", "ezero-mic-error", "ezero-mic-speaking");
+        micButton.classList.remove(
+          "ezero-mic-listening",
+          "ezero-mic-error",
+          "ezero-mic-speaking"
+        );
         micButton.classList.add("ezero-mic-processing");
-        micButton.textContent = "⏳";
-        micButton.setAttribute("aria-label", "E-ZERO Voice Guide is processing");
+        render("processing", "Processing", "تیار ہو رہا ہے");
+        micButton.setAttribute(
+          "aria-label",
+          "E-ZERO Voice Guide is processing"
+        );
         micButton.title = "Preparing answer";
       },
 
       speaking: function () {
-        micButton.classList.remove("ezero-mic-listening", "ezero-mic-processing", "ezero-mic-error");
+        micButton.classList.remove(
+          "ezero-mic-listening",
+          "ezero-mic-processing",
+          "ezero-mic-error"
+        );
         micButton.classList.add("ezero-mic-speaking");
-        micButton.textContent = "🔊";
-        micButton.setAttribute("aria-label", "E-ZERO Voice Guide is speaking");
+        render("speaking", "Speaking", "جواب دے رہا ہے");
+        micButton.setAttribute(
+          "aria-label",
+          "E-ZERO Voice Guide is speaking"
+        );
         micButton.title = "Speaking";
       },
 
       error: function () {
-        micButton.classList.remove("ezero-mic-listening", "ezero-mic-processing", "ezero-mic-speaking");
+        micButton.classList.remove(
+          "ezero-mic-listening",
+          "ezero-mic-processing",
+          "ezero-mic-speaking"
+        );
         micButton.classList.add("ezero-mic-error");
-        micButton.textContent = "⚠️";
+        render("error", "Mic Error", "مائک مسئلہ");
+
         setTimeout(function () {
           window.EZERO_MIC_VISUAL.idle();
         }, 900);
