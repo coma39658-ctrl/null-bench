@@ -1094,12 +1094,8 @@
 
     const icons = Object.freeze({
       mic: `
-        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-          <rect x="9" y="3" width="6" height="11" rx="3"></rect>
-          <path d="M6.5 10.5v.8a5.5 5.5 0 0 0 11 0v-.8"></path>
-          <path d="M12 16.8V21"></path>
-          <path d="M8.8 21h6.4"></path>
-        </svg>`,
+        <span aria-hidden="true"
+          style="display:inline-flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:25px;line-height:1;">🎙️</span>`,
       processing: `
         <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
           <path d="M20 12a8 8 0 1 1-3-6.2"></path>
