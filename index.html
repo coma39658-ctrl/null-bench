@@ -797,6 +797,78 @@ header{
   }
 }
 
+
+/* E-ZERO MOBILE VOICE HEADER FIX V0.1 */
+
+/* Keep microphone SVG as an outline even if global SVG/rect rules exist. */
+.ezero-assist-mic-shell svg,
+.ezero-assist-mic-shell svg *{
+  fill:none !important;
+  stroke:currentColor !important;
+}
+
+/* Mobile header controls: preserve readable language selector and Voice launcher. */
+@media (max-width:640px){
+  #languageControl{
+    flex:0 0 112px !important;
+    min-width:112px !important;
+    max-width:112px !important;
+    gap:5px !important;
+    flex-wrap:wrap !important;
+  }
+
+  #languageControl label{
+    width:100% !important;
+    font-size:13px !important;
+    line-height:1.2 !important;
+  }
+
+  #languageSelect{
+    box-sizing:border-box !important;
+    width:112px !important;
+    min-width:112px !important;
+    max-width:112px !important;
+    font-size:16px !important;
+    line-height:1.2 !important;
+    padding:9px 30px 9px 10px !important;
+  }
+
+  #ezeroVoiceGuideButton.ezero-assist-launcher{
+    flex:1 1 0 !important;
+    min-width:0 !important;
+    gap:7px !important;
+  }
+
+  .ezero-assist-mic-shell{
+    width:38px !important;
+    height:38px !important;
+    flex:0 0 38px !important;
+  }
+
+  .ezero-assist-mic-shell svg{
+    width:22px !important;
+    height:22px !important;
+  }
+
+  .ezero-assist-copy{
+    min-width:0 !important;
+    overflow:hidden !important;
+  }
+
+  .ezero-assist-copy strong,
+  .ezero-assist-copy small{
+    max-width:100% !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+}
+
+@media (max-width:390px){
+  .ezero-assist-preview-badge{
+    display:none !important;
+  }
+}
+
 </style>
   <link rel="manifest" href="manifest.json">
 </head>
