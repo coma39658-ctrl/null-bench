@@ -869,6 +869,81 @@ header{
   }
 }
 
+
+/* E-ZERO MOBILE VOICE HEADER REPAIR V0.2 */
+@media (max-width:800px){
+  #languageControl{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    flex:none !important;
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:7px !important;
+    margin:0 !important;
+  }
+
+  #languageControl label{
+    width:100% !important;
+    grid-column:1 !important;
+    font-size:13px !important;
+  }
+
+  #languageSelect{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    box-sizing:border-box !important;
+    font-size:16px !important;
+    padding:10px 36px 10px 12px !important;
+  }
+
+  #ezeroVoiceGuideButton.ezero-assist-launcher{
+    width:100% !important;
+    max-width:none !important;
+    min-width:0 !important;
+    flex:none !important;
+    box-sizing:border-box !important;
+    justify-content:flex-start !important;
+    gap:10px !important;
+    overflow:visible !important;
+  }
+
+  .ezero-assist-mic-shell{
+    width:40px !important;
+    height:40px !important;
+    flex:0 0 40px !important;
+  }
+
+  .ezero-assist-copy{
+    flex:1 1 auto !important;
+    min-width:0 !important;
+  }
+
+  .ezero-assist-preview-badge{
+    flex:0 0 auto !important;
+    margin-left:auto !important;
+  }
+}
+
+@media (max-width:390px){
+  .ezero-assist-preview-badge{
+    display:none !important;
+  }
+}
+
+
+/* E-ZERO MIC GLYPH REPAIR V0.2 */
+.ezero-assist-mic-glyph{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  height:100%;
+  font-size:23px;
+  line-height:1;
+}
+
 </style>
   <link rel="manifest" href="manifest.json">
 </head>
@@ -946,12 +1021,7 @@ header{
   class="ezero-assist-launcher"
  >
   <span class="ezero-assist-mic-shell" aria-hidden="true">
-   <svg viewBox="0 0 24 24" focusable="false">
-    <rect x="9" y="3" width="6" height="11" rx="3"></rect>
-    <path d="M6.5 10.5v.8a5.5 5.5 0 0 0 11 0v-.8"></path>
-    <path d="M12 16.8V21"></path>
-    <path d="M8.8 21h6.4"></path>
-   </svg>
+   <span class="ezero-assist-mic-glyph">🎙️</span>
   </span>
   <span class="ezero-assist-copy">
    <strong>Voice &amp; Assist</strong>
