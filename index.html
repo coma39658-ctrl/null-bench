@@ -944,6 +944,151 @@ header{
   line-height:1;
 }
 
+
+/* E-ZERO CUSTOM LANGUAGE PICKER V0.1 */
+#languageSelect{
+  display:none !important;
+}
+
+.ezero-language-picker-button{
+  box-sizing:border-box;
+  min-height:46px;
+  padding:10px 12px;
+  border:1px solid #9fb6bd;
+  border-radius:10px;
+  background:#ffffff;
+  color:#1b2430;
+  font:inherit;
+  font-size:16px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  cursor:pointer;
+}
+
+.ezero-language-picker-chevron{
+  margin-left:auto;
+  font-size:18px;
+  line-height:1;
+}
+
+#ezeroLanguagePickerPanel{
+  position:fixed;
+  inset:0;
+  z-index:100000;
+  display:none;
+}
+
+#ezeroLanguagePickerPanel.is-open{
+  display:block;
+}
+
+.ezero-language-picker-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(6,18,28,.58);
+}
+
+.ezero-language-picker-dialog{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:min(92vw,460px);
+  max-height:82vh;
+  overflow:hidden;
+  background:#ffffff;
+  border-radius:18px;
+  box-shadow:0 24px 70px rgba(0,0,0,.28);
+  display:flex;
+  flex-direction:column;
+}
+
+.ezero-language-picker-head{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 14px 12px 18px;
+  border-bottom:1px solid #dbe5e8;
+}
+
+.ezero-language-picker-title{
+  flex:1;
+  margin:0;
+  font-size:18px;
+  font-weight:800;
+  color:#18313a;
+}
+
+.ezero-language-picker-close{
+  width:42px;
+  height:42px;
+  border:0;
+  border-radius:12px;
+  background:#eef4f5;
+  color:#18313a;
+  font-size:30px;
+  line-height:1;
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+}
+
+.ezero-language-picker-list{
+  padding:10px;
+  overflow:auto;
+}
+
+.ezero-language-option{
+  width:100%;
+  min-height:48px;
+  border:0;
+  border-radius:10px;
+  background:transparent;
+  color:#1b2430;
+  text-align:left;
+  padding:10px 12px;
+  font:inherit;
+  font-size:16px;
+  font-weight:650;
+  cursor:pointer;
+}
+
+.ezero-language-option:hover,
+.ezero-language-option:focus-visible{
+  background:#eef8f8;
+  outline:none;
+}
+
+.ezero-language-option[aria-selected="true"]{
+  background:#dff4f2;
+  color:#075f5a;
+  font-weight:800;
+}
+
+@media(max-width:800px){
+  .ezero-language-picker-button{
+    width:100%;
+  }
+
+  .ezero-language-picker-dialog{
+    left:0;
+    right:0;
+    top:auto;
+    bottom:0;
+    transform:none;
+    width:100%;
+    max-height:78vh;
+    border-radius:20px 20px 0 0;
+  }
+
+  .ezero-language-picker-close{
+    width:46px;
+    height:46px;
+  }
+}
+
 </style>
   <link rel="manifest" href="manifest.json">
 </head>
@@ -1012,6 +1157,20 @@ header{
   <option value="tr" data-i18n="language_name_tr">Türkçe</option>
   <option value="ko">한국어</option>
  </select>
+
+ <button
+  id="ezeroLanguagePickerButton"
+  type="button"
+  class="ezero-language-picker-button"
+  aria-haspopup="dialog"
+  aria-expanded="false"
+  aria-controls="ezeroLanguagePickerPanel"
+  aria-label="Choose language"
+ >
+  <span aria-hidden="true">🌐</span>
+  <span id="ezeroLanguagePickerCurrent">English</span>
+  <span class="ezero-language-picker-chevron" aria-hidden="true">⌄</span>
+ </button>
 
  <button
   id="ezeroVoiceGuideButton"
@@ -3871,6 +4030,141 @@ window.EZERO_PUBLIC_AI_ENABLED = true;
 <script src="js/ezero_qwen_public_agent_v0_1.js?v=20260911-qwen03"></script>
 <script src="js/ezero_voice_guide_ui_v0_1.js?v=20260911-qwen03"></script>
 
+
+
+<script>
+/* E-ZERO CUSTOM LANGUAGE PICKER V0.1 */
+(function(){
+  "use strict";
+
+  function initCustomLanguagePicker(){
+    const select = document.getElementById("languageSelect");
+    const openButton = document.getElementById("ezeroLanguagePickerButton");
+    const current = document.getElementById("ezeroLanguagePickerCurrent");
+
+    if(!select || !openButton || !current) return;
+
+    const panel = document.createElement("div");
+    panel.id = "ezeroLanguagePickerPanel";
+    panel.setAttribute("aria-hidden", "true");
+
+    panel.innerHTML = `
+      <div class="ezero-language-picker-backdrop" data-language-close="true"></div>
+      <section
+        class="ezero-language-picker-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="ezeroLanguagePickerTitle"
+      >
+        <div class="ezero-language-picker-head">
+          <h2 id="ezeroLanguagePickerTitle" class="ezero-language-picker-title">Choose language</h2>
+          <button
+            id="ezeroLanguagePickerClose"
+            class="ezero-language-picker-close"
+            type="button"
+            aria-label="Close language menu"
+            title="Close"
+          >×</button>
+        </div>
+        <div id="ezeroLanguagePickerList" class="ezero-language-picker-list" role="listbox"></div>
+      </section>
+    `;
+
+    document.body.appendChild(panel);
+
+    const closeButton = document.getElementById("ezeroLanguagePickerClose");
+    const list = document.getElementById("ezeroLanguagePickerList");
+    let previousOverflow = "";
+
+    function selectedOption(){
+      return select.options[select.selectedIndex] || select.options[0];
+    }
+
+    function syncCurrent(){
+      const option = selectedOption();
+      if(option) current.textContent = option.textContent.trim();
+    }
+
+    function buildList(){
+      list.innerHTML = "";
+
+      Array.from(select.options).forEach(function(option){
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "ezero-language-option";
+        button.setAttribute("role", "option");
+        button.setAttribute(
+          "aria-selected",
+          option.value === select.value ? "true" : "false"
+        );
+        button.dataset.value = option.value;
+        button.textContent = option.textContent.trim();
+
+        button.addEventListener("click", function(){
+          select.value = option.value;
+          select.dispatchEvent(new Event("change", { bubbles:true }));
+          syncCurrent();
+          closePicker();
+        });
+
+        list.appendChild(button);
+      });
+    }
+
+    function openPicker(){
+      buildList();
+      panel.classList.add("is-open");
+      panel.setAttribute("aria-hidden", "false");
+      openButton.setAttribute("aria-expanded", "true");
+
+      previousOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+
+      setTimeout(function(){
+        closeButton.focus();
+      }, 0);
+    }
+
+    function closePicker(){
+      panel.classList.remove("is-open");
+      panel.setAttribute("aria-hidden", "true");
+      openButton.setAttribute("aria-expanded", "false");
+      document.body.style.overflow = previousOverflow;
+      openButton.focus();
+    }
+
+    openButton.addEventListener("click", openPicker);
+    closeButton.addEventListener("click", closePicker);
+
+    panel.addEventListener("click", function(event){
+      if(event.target.matches("[data-language-close='true']")){
+        closePicker();
+      }
+    });
+
+    document.addEventListener("keydown", function(event){
+      if(event.key === "Escape" && panel.classList.contains("is-open")){
+        closePicker();
+      }
+    });
+
+    select.addEventListener("change", syncCurrent);
+
+    new MutationObserver(syncCurrent).observe(
+      document.documentElement,
+      { attributes:true, attributeFilter:["lang"] }
+    );
+
+    syncCurrent();
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", initCustomLanguagePicker);
+  }else{
+    initCustomLanguagePicker();
+  }
+})();
+</script>
 
 </body>
 </html>
