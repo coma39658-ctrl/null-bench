@@ -460,6 +460,10 @@
       return;
     }
 
+    if (conversationState.value === nextState) {
+      return;
+    }
+
     conversationState.value = nextState;
 
     window.dispatchEvent(
