@@ -211,8 +211,15 @@
         return;
       }
 
-      if (language !== "en" && deterministicResult.matched) {
+      if (deterministicResult.matched) {
         answer.textContent = deterministicResult.text;
+
+        if (
+          window.EZERO_VOICE_CONVERSATION &&
+          typeof window.EZERO_VOICE_CONVERSATION.setState === "function"
+        ) {
+          window.EZERO_VOICE_CONVERSATION.setState("ANSWER");
+        }
 
         status.textContent =
           language === "ur"
@@ -257,12 +264,26 @@
             ? "اس سوال کے لیے ابھی تصدیق شدہ E-ZERO جواب دستیاب نہیں۔ Public AI ابھی فعال نہیں ہے۔"
             : "No verified E-ZERO answer is available for this question yet. Public AI is not enabled yet.";
 
+        if (
+          window.EZERO_VOICE_CONVERSATION &&
+          typeof window.EZERO_VOICE_CONVERSATION.setState === "function"
+        ) {
+          window.EZERO_VOICE_CONVERSATION.setState("ANSWER");
+        }
+
         status.textContent =
           language === "ur"
             ? "تصدیق شدہ جواب دستیاب نہیں · Fail-closed"
             : "Verified answer unavailable · Fail-closed";
 
         return;
+      }
+
+      if (
+        window.EZERO_VOICE_CONVERSATION &&
+        typeof window.EZERO_VOICE_CONVERSATION.setState === "function"
+      ) {
+        window.EZERO_VOICE_CONVERSATION.setState("THINKING");
       }
 
       status.textContent =
@@ -316,6 +337,13 @@
               ? "اس سوال کے لیے کافی تصدیق شدہ E-ZERO evidence دستیاب نہیں۔"
               : "Insufficient verified E-ZERO evidence for this question.";
 
+          if (
+            window.EZERO_VOICE_CONVERSATION &&
+            typeof window.EZERO_VOICE_CONVERSATION.setState === "function"
+          ) {
+            window.EZERO_VOICE_CONVERSATION.setState("ANSWER");
+          }
+
           status.textContent =
             language === "ur"
               ? "تصدیق شدہ evidence ناکافی · Fail-closed"
@@ -325,6 +353,13 @@
         }
 
         answer.textContent = data.answer;
+
+        if (
+          window.EZERO_VOICE_CONVERSATION &&
+          typeof window.EZERO_VOICE_CONVERSATION.setState === "function"
+        ) {
+          window.EZERO_VOICE_CONVERSATION.setState("ANSWER");
+        }
 
         status.textContent =
           data.sourceClass === "VERIFIED_STATIC"
@@ -360,6 +395,13 @@
         );
 
         answer.textContent = deterministicResult.text;
+
+        if (
+          window.EZERO_VOICE_CONVERSATION &&
+          typeof window.EZERO_VOICE_CONVERSATION.setState === "function"
+        ) {
+          window.EZERO_VOICE_CONVERSATION.setState("ANSWER");
+        }
 
         if (deterministicResult.matched) {
           status.textContent =
@@ -571,7 +613,6 @@
         }
 
         input.value = transcript;
-        setConversationState("ANSWER");
 
         status.textContent =
           voiceLanguage() === "ur-PK"
@@ -602,6 +643,8 @@
 
           askButton.click();
         } else {
+          setConversationState("READY");
+
           if (window.EZERO_MIC_VISUAL) {
             window.EZERO_MIC_VISUAL.idle();
           }
