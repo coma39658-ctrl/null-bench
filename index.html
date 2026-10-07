@@ -1245,14 +1245,14 @@ header{
     color:#7a5a00;
     border:1px solid #e8cf7a;
    ">
-    Governed AI Live
+    Public AI Off
    </span>
   </div>
 
-  <div style="font-size:13px;color:#40505a;margin-top:10px;line-height:1.5;">
-   Qwen AI is available through the E-ZERO governed gateway.
-   Responses remain subject to evidence boundaries, fail-closed safety rules, and registered E-ZERO limitations.
-  </div>
+  <div id="ezeroQwenFrontDescription" style="font-size:13px;color:#40505a;margin-top:10px;line-height:1.5;">
+    The governed Qwen gateway is configured, but Public AI is not enabled yet.
+    Verified deterministic E-ZERO guidance remains available.
+   </div>
 
   <button
    id="ezeroQwenFrontOpen"
@@ -1271,7 +1271,7 @@ header{
     cursor:pointer;
    "
   >
-   🤖 Open E-ZERO AI Guide
+   🤖 Open E-ZERO Guide
   </button>
  </div>
 
@@ -4024,6 +4024,32 @@ function drawHistogram(vals,observed){
 <script>
 window.EZERO_PUBLIC_AI_ENDPOINT = "https://ezero-qwen-lab-adapter.onrender.com/api/ezero-agent/v0.1/ask";
 window.EZERO_PUBLIC_AI_ENABLED = false;
+
+(function () {
+  const enabled = window.EZERO_PUBLIC_AI_ENABLED === true;
+  const status = document.getElementById("ezeroQwenFrontStatus");
+  const description = document.getElementById("ezeroQwenFrontDescription");
+  const openButton = document.getElementById("ezeroQwenFrontOpen");
+
+  if (status) {
+    status.textContent = enabled ? "Governed AI Live" : "Public AI Off";
+    status.style.background = enabled ? "#dcfce7" : "#fff3cd";
+    status.style.color = enabled ? "#166534" : "#7a5a00";
+    status.style.borderColor = enabled ? "#86efac" : "#e8cf7a";
+  }
+
+  if (description) {
+    description.textContent = enabled
+      ? "Qwen AI is available through the E-ZERO governed gateway. Responses remain subject to evidence boundaries, fail-closed safety rules, and registered E-ZERO limitations."
+      : "The governed Qwen gateway is configured, but Public AI is not enabled yet. Verified deterministic E-ZERO guidance remains available.";
+  }
+
+  if (openButton) {
+    openButton.textContent = enabled
+      ? "🤖 Open E-ZERO AI Guide"
+      : "🤖 Open E-ZERO Guide";
+  }
+})();
 </script>
 
 <script src="js/ezero_agent_retrieval_v0_1.js?v=20260911-rag02"></script>
