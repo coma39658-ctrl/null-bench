@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>E-ZERO Gate 16 Browser Test</title>
+</head>
+<body>
+<h1>E-ZERO Gate 16 — Browser Integration Test</h1>
+<p>TEST ONLY. This page does not enable Public AI on the main E-ZERO interface.</p>
+<button id="run">Run governed browser test</button>
+<pre id="out">READY</pre>
+<script>
+"use strict";
+
+const endpoint =
+  "https://ezero-qwen-lab-adapter.onrender.com/api/ezero-agent/v0.1/ask";
+
+document.getElementById("run").addEventListener("click", async function () {
+  const out = document.getElementById("out");
+  out.textContent = "RUNNING...";
+
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        question: "What is the E-ZERO evidence registry?",
+        response_language: "en",
+        answer_length: "short",
+        session_id: "gate16-live-browser-test",
+        history: []
+      })
+    });
+
+    const data = await response.json();
+
+    const pass =
+      response.ok &&
+      data &&
+      data.status === "OK" &&
+      data.source_class === "GOVERNED_AI" &&
+      data.diagnostic_claim === false &&
+      data.evidence_authority === false &&
+      typeof data.answer === "string" &&
+      data.answer.trim().length > 0;
+
+    out.textContent =
+      (pass ? "GATE16_BROWSER_INTEGRATION: PASS" : "GATE16_BROWSER_INTEGRATION: FAIL") +
+      "\nHTTP_STATUS: " + response.status +
+      "\nSTATUS: " + String(data.status) +
+      "\nSOURCE_CLASS: " + String(data.source_class) +
+      "\nDIAGNOSTIC_CLAIM: " + String(data.diagnostic_claim) +
+      "\nEVIDENCE_AUTHORITY: " + String(data.evidence_authority) +
+      "\nANSWER: " + String(data.answer || "");
+  } catch (error) {
+    out.textContent =
+      "GATE16_BROWSER_INTEGRATION: FAIL\nERROR: " +
+      String(error && error.message ? error.message : error);
+  }
+});
+</script>
+</body>
+</html>
