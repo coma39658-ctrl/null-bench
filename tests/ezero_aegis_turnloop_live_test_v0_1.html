@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>E-ZERO Aegis Turn-Loop Live Test V0.1</title>
+  <style>
+    body{font-family:system-ui,sans-serif;max-width:720px;margin:30px auto;padding:18px;line-height:1.6}
+    button{font-size:18px;padding:14px 18px;border-radius:10px}
+    pre{white-space:pre-wrap;background:#f4f4f4;padding:14px;border-radius:10px;direction:ltr;text-align:left}
+  </style>
+</head>
+<body>
+  <h1>E-ZERO Aegis + Microphone Turn-Loop Test</h1>
+  <p>TEST ONLY · Public AI remains OFF. یہ test صرف browser microphone اور Urdu Aegis speech path کو verify کرتا ہے۔</p>
+
+  <button id="start">🎤 Start Live Test</button>
+  <p id="instruction">Button دبائیں، پھر مختصر اردو جملہ بولیں۔</p>
+  <pre id="result">STATE: READY</pre>
+
+<script type="module">
+  import "../js/ezero_urdu_aegis_tts_v0_1.mjs";
+
+  const start = document.getElementById("start");
+  const result = document.getElementById("result");
+  const instruction = document.getElementById("instruction");
+
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  let state = "READY";
+  let trace = [];
+
+  function setState(next) {
+    state = next;
+    trace.push(next);
+    result.textContent =
+      "STATE: " + state +
+      "\nTRACE: " + trace.join(" -> ");
+  }
+
+  function fail(reason) {
+    start.disabled = false;
+    result.textContent =
+      "AEGIS_MIC_TURNLOOP: FAIL" +
+      "\nREASON: " + reason +
+      "\nSTATE: " + state +
+      "\nTRACE: " + trace.join(" -> ");
+  }
+
+  if (!SpeechRecognition) {
+    fail("SPEECH_RECOGNITION_UNSUPPORTED");
+  } else {
+    const recognition = new SpeechRecognition();
+    recognition.lang = "ur-PK";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    start.addEventListener("click", () => {
+      trace = [];
+      start.disabled = true;
+      instruction.textContent = "اب مختصر اردو جملہ بولیں۔";
+
+      try {
+        recognition.start();
+      } catch (error) {
+        fail("MIC_START_" + (error?.name || "ERROR"));
+      }
+    });
+
+    recognition.onstart = () => {
+      setState("LISTEN");
+    };
+
+    recognition.onerror = event => {
+      fail("MIC_" + (event?.error || "UNKNOWN"));
+    };
+
+    recognition.onresult = async event => {
+      const transcript =
+        event?.results?.[0]?.[0]?.transcript?.trim() || "";
+
+      if (!transcript) {
+        fail("EMPTY_TRANSCRIPT");
+        return;
+      }
+
+      setState("ANSWER");
+      setState("THINKING");
+
+      if (
+        !window.EZERO_URDU_AEGIS_TTS ||
+        typeof window.EZERO_URDU_AEGIS_TTS.speak !== "function"
+      ) {
+        fail("AEGIS_MODULE_UNAVAILABLE");
+        return;
+      }
+
+      try {
+        setState("SPEAKING");
+
+        if (!start.disabled) {
+          fail("MIC_NOT_DISABLED_DURING_SPEAKING");
+          return;
+        }
+
+        await window.EZERO_URDU_AEGIS_TTS.speak(
+          "ای زیرو اردو آواز کا تجربہ مکمل کر رہا ہے۔",
+          { rate: 1 }
+        );
+
+        setState("READY");
+        start.disabled = false;
+
+        const expected =
+          "LISTEN -> ANSWER -> THINKING -> SPEAKING -> READY";
+
+        if (trace.join(" -> ") !== expected) {
+          fail("STATE_SEQUENCE_MISMATCH");
+          return;
+        }
+
+        result.textContent =
+          "AEGIS_MIC_TURNLOOP: PASS" +
+          "\nVOICE_ID: " + window.EZERO_URDU_AEGIS_TTS.voiceId +
+          "\nTRANSCRIPT_RECEIVED: YES" +
+          "\nMIC_DISABLED_DURING_SPEAKING: YES" +
+          "\nFINAL_STATE: READY" +
+          "\nTRACE: " + trace.join(" -> ");
+
+        instruction.textContent =
+          "PASS — آواز مکمل ہوئی اور system دوبارہ READY میں آ گیا۔";
+      } catch (error) {
+        fail("AEGIS_" + (error?.name || "ERROR") + " · " + (error?.message || ""));
+      }
+    };
+  }
+</script>
+</body>
+</html>
