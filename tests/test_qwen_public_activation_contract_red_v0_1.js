@@ -100,6 +100,14 @@ check(
     source.includes('setConversationState("READY")')
 );
 
+
+check(
+  "conversation state emitter suppresses duplicate same-state events",
+  source.includes("if (conversationState.value === nextState)") &&
+    source.indexOf("if (conversationState.value === nextState)") <
+      source.indexOf("conversationState.value = nextState")
+);
+
 console.log("-----");
 console.log("PASSED =", passed);
 console.log("FAILED =", failed);
