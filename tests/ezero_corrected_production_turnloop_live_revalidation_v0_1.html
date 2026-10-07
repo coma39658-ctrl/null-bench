@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ur">
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>E-ZERO Corrected Production Turn-Loop Revalidation V0.1</title>
+  <style>
+    body { font-family: sans-serif; max-width: 760px; margin: 24px auto; padding: 0 16px; line-height: 1.5; }
+    button, input, select { font-size: 18px; padding: 10px; margin: 6px 0; }
+    input { width: 95%; }
+    pre { white-space: pre-wrap; padding: 14px; border: 1px solid #bbb; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>E-ZERO Production Turn-Loop Revalidation</h1>
+  <p>Public AI must remain OFF. Press the microphone and say: <b>Null Bench کیا ہے؟</b></p>
+
+  <select id="languageSelect">
+    <option value="ur" selected>Urdu</option>
+  </select>
+
+  <div>
+    <button id="ezeroVoiceGuideMic" type="button">🎤 Mic</button>
+    <button id="ezeroVoiceGuideAsk" type="button">Ask</button>
+    <button id="ezeroVoiceGuideSpeak" type="button">🔊 Speak</button>
+  </div>
+
+  <input id="ezeroVoiceGuideInput" type="text">
+  <div id="ezeroVoiceGuideStatus">READY</div>
+  <div id="ezeroVoiceGuideAnswer"></div>
+
+  <h2>Validation</h2>
+  <pre id="validationOutput">WAITING_FOR_TEST</pre>
+
+  <script>
+    window.EZERO_PUBLIC_AI_ENDPOINT =
+      "https://ezero-qwen-lab-adapter.onrender.com/api/ezero-agent/v0.1/ask";
+
+    window.EZERO_PUBLIC_AI_ENABLED = false;
+
+    window.EZERO_VOICE_GUIDE_SETTINGS = {
+      autoSpeak: true,
+      autoSubmit: true,
+      autoResultExplain: true,
+      autoSpeakResults: false,
+      answerLength: "normal",
+      voiceSpeed: 1
+    };
+
+    window.EZERO_RESULT_AUTO_SPEAK_PENDING = false;
+
+    (function () {
+      "use strict";
+
+      const expected = ["LISTEN", "THINKING", "ANSWER", "SPEAKING", "READY"];
+      const trace = [];
+      let micDisabledDuringSpeaking = false;
+      let speakingSeen = false;
+
+      function render(finalCheck) {
+        const output = document.getElementById("validationOutput");
+        const input = document.getElementById("ezeroVoiceGuideInput");
+        const mic = document.getElementById("ezeroVoiceGuideMic");
+
+        const exactTrace =
+          trace.length === expected.length &&
+          trace.every((value, index) => value === expected[index]);
+
+        const aegis =
+          window.EZERO_URDU_AEGIS_TTS &&
+          window.EZERO_URDU_AEGIS_TTS.voiceId ===
+            "ur_PK-aegis_female-medium";
+
+        const pass =
+          finalCheck === true &&
+          exactTrace &&
+          micDisabledDuringSpeaking &&
+          window.EZERO_PUBLIC_AI_ENABLED === false &&
+          Boolean((input.value || "").trim()) &&
+          Boolean(aegis) &&
+          window.EZERO_VOICE_CONVERSATION &&
+          window.EZERO_VOICE_CONVERSATION.getState() === "READY";
+
+        output.textContent =
+          "CORRECTED_PRODUCTION_TURNLOOP: " + (pass ? "PASS" : (finalCheck ? "FAIL" : "RUNNING")) + "\n" +
+          "PUBLIC_AI_ENABLED: " + String(window.EZERO_PUBLIC_AI_ENABLED) + "\n" +
+          "VOICE_ID: " +
+            (window.EZERO_URDU_AEGIS_TTS
+              ? window.EZERO_URDU_AEGIS_TTS.voiceId
+              : "NOT_READY") + "\n" +
+          "TRANSCRIPT_RECEIVED: " + (input && input.value.trim() ? "YES" : "NO") + "\n" +
+          "MIC_DISABLED_DURING_SPEAKING: " +
+            (micDisabledDuringSpeaking ? "YES" : "NO") + "\n" +
+          "FINAL_STATE: " +
+            (window.EZERO_VOICE_CONVERSATION
+              ? window.EZERO_VOICE_CONVERSATION.getState()
+              : "NOT_READY") + "\n" +
+          "TRACE: " + trace.join(" -> ");
+      }
+
+      window.addEventListener(
+        "ezero:voice-conversation-state",
+        function (event) {
+          const state =
+            event && event.detail ? event.detail.state : "";
+
+          if (!state) return;
+
+          trace.push(state);
+
+          if (state === "SPEAKING") {
+            speakingSeen = true;
+
+            setTimeout(function () {
+              const mic = document.getElementById("ezeroVoiceGuideMic");
+              if (mic && mic.disabled === true) {
+                micDisabledDuringSpeaking = true;
+              }
+              render(false);
+            }, 0);
+          }
+
+          if (state === "READY" && speakingSeen) {
+            setTimeout(function () {
+              render(true);
+            }, 0);
+          } else {
+            render(false);
+          }
+        }
+      );
+    })();
+  </script>
+
+  <script src="../js/ezero_voice_guide_knowledge_v0_1.js"></script>
+  <script src="../js/ezero_voice_guide_feature_registry_v0_1.js"></script>
+  <script type="module" src="../js/ezero_urdu_aegis_tts_v0_1.mjs"></script>
+  <script src="../js/ezero_agent_retrieval_v0_1.js"></script>
+  <script src="../js/ezero_qwen_public_agent_v0_1.js"></script>
+  <script src="../js/ezero_voice_guide_ui_v0_1.js"></script>
+</body>
+</html>
