@@ -4024,6 +4024,42 @@ function drawHistogram(vals,observed){
 <script>
 window.EZERO_PUBLIC_AI_ENDPOINT = "https://ezero-qwen-lab-adapter.onrender.com/api/ezero-agent/v0.1/ask";
 window.EZERO_PUBLIC_AI_ENABLED = false;
+window.addEventListener("load", async function () {
+  try {
+    const response = await fetch(
+      "https://ezero-qwen-lab-adapter.onrender.com/health",
+      { cache: "no-store" }
+    );
+    if (!response.ok) return;
+    const data = await response.json();
+    const enabled =
+      data.status === "ONLINE" &&
+      data.public_ai_enabled === true &&
+      data.evidence_authority === false;
+
+    window.EZERO_PUBLIC_AI_ENABLED = enabled;
+
+    const status = document.getElementById("ezeroQwenFrontStatus");
+    const description = document.getElementById("ezeroQwenFrontDescription");
+    const button = document.getElementById("ezeroQwenFrontOpen");
+
+    if (status) {
+      status.textContent = enabled ? "Governed AI Live" : "Public AI Off";
+    }
+    if (description) {
+      description.textContent = enabled
+        ? "Qwen AI is available through the E-ZERO governed gateway."
+        : "Public AI is unavailable. Verified local guidance remains available.";
+    }
+    if (button) {
+      button.textContent = enabled
+        ? "🤖 Open E-ZERO AI Guide"
+        : "🤖 Open E-ZERO Guide";
+    }
+  } catch (_) {
+    window.EZERO_PUBLIC_AI_ENABLED = false;
+  }
+});
 
 (function () {
   const enabled = window.EZERO_PUBLIC_AI_ENABLED === true;
