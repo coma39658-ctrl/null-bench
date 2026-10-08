@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="ur">
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>E-ZERO Mic → Qwen → Aegis Pre-Activation E2E V0.1</title>
+  <style>
+    body { font-family: sans-serif; max-width: 760px; margin: 24px auto; padding: 0 16px; line-height: 1.5; }
+    button { font-size: 18px; padding: 12px 18px; margin: 8px 0; }
+    pre { white-space: pre-wrap; padding: 14px; border: 1px solid #bbb; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>E-ZERO Mic → Qwen → Aegis</h1>
+  <p><b>PRE-ACTIVATION TEST ONLY</b> — Public AI remains OFF.</p>
+  <p>🎤 دبائیں اور E-ZERO کے بارے میں ایک سوال بولیں۔</p>
+
+  <button id="mic" type="button">🎤 Speak to Governed AI</button>
+
+  <h2>Transcript</h2>
+  <pre id="transcript">WAITING</pre>
+
+  <h2>Answer</h2>
+  <pre id="answer">WAITING</pre>
+
+  <h2>Validation</h2>
+  <pre id="validation">WAITING_FOR_TEST</pre>
+
+  <script>
+    window.EZERO_PUBLIC_AI_ENABLED = false;
+    window.EZERO_PUBLIC_AI_ENDPOINT =
+      "https://ezero-qwen-lab-adapter.onrender.com/api/ezero-agent/v0.1/ask";
+  </script>
+
+  <script type="module" src="../js/ezero_urdu_aegis_tts_v0_1.mjs"></script>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const mic = document.getElementById("mic");
+      const transcriptBox = document.getElementById("transcript");
+      const answerBox = document.getElementById("answer");
+      const validation = document.getElementById("validation");
+
+      const trace = [];
+      let responseStatus = "";
+      let sourceClass = "";
+      let diagnosticClaim = null;
+      let evidenceAuthority = null;
+      let micDisabledDuringSpeaking = false;
+
+      function render(result) {
+        validation.textContent =
+          "MIC_QWEN_AEGIS_PREACTIVATION: " + result + "\n" +
+          "PUBLIC_AI_ENABLED: " + String(window.EZERO_PUBLIC_AI_ENABLED) + "\n" +
+          "RESPONSE_STATUS: " + responseStatus + "\n" +
+          "SOURCE_CLASS: " + sourceClass + "\n" +
+          "DIAGNOSTIC_CLAIM: " + String(diagnosticClaim) + "\n" +
+          "EVIDENCE_AUTHORITY: " + String(evidenceAuthority) + "\n" +
+          "MIC_DISABLED_DURING_SPEAKING: " +
+            (micDisabledDuringSpeaking ? "YES" : "NO") + "\n" +
+          "TRACE: " + trace.join(" -> ");
+      }
+
+      async function governedAsk(question) {
+        const controller = new AbortController();
+        const timeout = setTimeout(function () {
+          controller.abort();
+        }, 30000);
+
+        try {
+          const response = await fetch(window.EZERO_PUBLIC_AI_ENDPOINT, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            signal: controller.signal,
+            body: JSON.stringify({
+              question: question,
+              response_language: "auto",
+              fallback_language: "ur",
+              answer_length: "short",
+              session_id:
+                "preactivation-" +
+                Date.now().toString(36) +
+                "-" +
+                Math.random().toString(36).slice(2),
+              history: [],
+              retrieval_hints: {
+                protocol_version: "0.1",
+                chunk_ids: []
+              }
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error("HTTP_" + response.status);
+          }
+
+          const data = await response.json();
+
+          if (
+            !data ||
+            !["OK", "INSUFFICIENT_VERIFIED_EZERO_EVIDENCE"].includes(data.status) ||
+            data.diagnostic_claim !== false ||
+            data.evidence_authority !== false
+          ) {
+            throw new Error("GOVERNANCE_RESPONSE_INVALID");
+          }
+
+          if (
+            data.status === "OK" &&
+            (
+              !["GOVERNED_AI", "VERIFIED_STATIC"].includes(data.source_class) ||
+              typeof data.answer !== "string" ||
+              !data.answer.trim()
+            )
+          ) {
+            throw new Error("GOVERNED_RESPONSE_SCHEMA_FAILED");
+          }
+
+          if (
+            data.status === "INSUFFICIENT_VERIFIED_EZERO_EVIDENCE" &&
+            data.source_class !== "FAIL_CLOSED"
+          ) {
+            throw new Error("FAIL_CLOSED_SCHEMA_FAILED");
+          }
+
+          return data;
+        } finally {
+          clearTimeout(timeout);
+        }
+      }
+
+      const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        validation.textContent = "MIC_QWEN_AEGIS_PREACTIVATION: UNSUPPORTED_MIC";
+        mic.disabled = true;
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = "ur-PK";
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = function () {
+        trace.length = 0;
+        trace.push("LISTEN");
+        render("RUNNING");
+      };
+
+      recognition.onresult = async function (event) {
+        const question =
+          event &&
+          event.results &&
+          event.results[0] &&
+          event.results[0][0]
+            ? String(event.results[0][0].transcript || "").trim()
+            : "";
+
+        if (!question) {
+          render("FAIL_NO_TRANSCRIPT");
+          return;
+        }
+
+        transcriptBox.textContent = question;
+        trace.push("THINKING");
+        render("RUNNING");
+
+        try {
+          const data = await governedAsk(question);
+
+          responseStatus = data.status;
+          sourceClass = data.source_class;
+          diagnosticClaim = data.diagnostic_claim;
+          evidenceAuthority = data.evidence_authority;
+
+          const text =
+            data.status === "OK"
+              ? data.answer.trim()
+              : "اس سوال کے لیے کافی تصدیق شدہ E-ZERO evidence دستیاب نہیں۔";
+
+          answerBox.textContent = text;
+
+          trace.push("ANSWER");
+          render("RUNNING");
+
+          if (
+            !window.EZERO_URDU_AEGIS_TTS ||
+            typeof window.EZERO_URDU_AEGIS_TTS.speak !== "function"
+          ) {
+            throw new Error("AEGIS_NOT_READY");
+          }
+
+          trace.push("SPEAKING");
+          mic.disabled = true;
+          micDisabledDuringSpeaking = mic.disabled === true;
+          render("RUNNING");
+
+          await window.EZERO_URDU_AEGIS_TTS.speak(text, { rate: 1 });
+
+          trace.push("READY");
+          mic.disabled = false;
+
+          const exactTrace =
+            trace.join(">") ===
+            "LISTEN>THINKING>ANSWER>SPEAKING>READY";
+
+          const governed =
+            responseStatus === "OK" ||
+            responseStatus === "INSUFFICIENT_VERIFIED_EZERO_EVIDENCE";
+
+          const pass =
+            window.EZERO_PUBLIC_AI_ENABLED === false &&
+            governed &&
+            diagnosticClaim === false &&
+            evidenceAuthority === false &&
+            micDisabledDuringSpeaking &&
+            exactTrace;
+
+          render(pass ? "PASS" : "FAIL");
+        } catch (error) {
+          mic.disabled = false;
+          answerBox.textContent =
+            "ERROR: " +
+            (error && error.message ? error.message : String(error));
+          render("FAIL");
+        }
+      };
+
+      recognition.onerror = function (event) {
+        mic.disabled = false;
+        answerBox.textContent =
+          "MIC ERROR: " +
+          (event && event.error ? event.error : "unknown");
+        render("FAIL");
+      };
+
+      mic.addEventListener("click", function () {
+        recognition.start();
+      });
+
+      render("WAITING");
+    })();
+  </script>
+</body>
+</html>
