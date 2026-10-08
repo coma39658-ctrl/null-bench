@@ -55,8 +55,60 @@
 
       const expected = ["LISTEN", "THINKING", "ANSWER", "SPEAKING", "READY"];
       const trace = [];
+      const triggers = [];
       let micDisabledDuringSpeaking = false;
       let speakingSeen = false;
+
+      function currentState() {
+        return window.EZERO_VOICE_CONVERSATION
+          ? window.EZERO_VOICE_CONVERSATION.getState()
+          : "NOT_READY";
+      }
+
+      function callerLine() {
+        const stack = String(new Error().stack || "");
+        const match =
+          stack.match(/ezero_voice_guide_ui_v0_1\.js(?:\?[^:]*)?:(\d+):(\d+)/);
+        return match ? match[1] : "?";
+      }
+
+      ["ezeroVoiceGuideMic", "ezeroVoiceGuideAsk", "ezeroVoiceGuideSpeak"]
+        .forEach(function (id) {
+          const el = document.getElementById(id);
+          if (!el) return;
+
+          el.addEventListener(
+            "click",
+            function (event) {
+              triggers.push(
+                id + ":" +
+                (event.isTrusted ? "TRUSTED" : "PROGRAMMATIC") +
+                ":state=" + currentState()
+              );
+              render(false);
+            },
+            true
+          );
+        });
+
+      ["ezeroVoiceGuideAsk", "ezeroVoiceGuideSpeak"].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        const nativeClick = el.click;
+        el.click = function () {
+          triggers.push(
+            id + ".click@" + callerLine() +
+            ":state=" + currentState()
+          );
+          return nativeClick.call(this);
+        };
+      });
+
+      document.addEventListener("ezero:result", function () {
+        triggers.push("EZERO_RESULT_EVENT:state=" + currentState());
+        render(false);
+      });
 
       function render(finalCheck) {
         const output = document.getElementById("validationOutput");
@@ -96,7 +148,8 @@
             (window.EZERO_VOICE_CONVERSATION
               ? window.EZERO_VOICE_CONVERSATION.getState()
               : "NOT_READY") + "\n" +
-          "TRACE: " + trace.join(" -> ");
+          "TRACE: " + trace.join(" -> ") + "\n" +
+          "TRIGGERS: " + triggers.join(" | ");
       }
 
       window.addEventListener(
