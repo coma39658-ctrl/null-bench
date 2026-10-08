@@ -163,7 +163,17 @@
         if (q === k) {
           score += 10;
         } else if (q.includes(k)) {
-          score += Math.max(2, k.split(" ").length);
+          const broadOverviewAlias =
+            entry.id === "ezero_overview" &&
+            ["e-zero", "ezero", "ای زیرو"].includes(k);
+
+          const overviewIntent =
+            /^(?:what is|about|explain|tell me about)\s+(?:the\s+)?(?:e-zero|ezero)(?:\s+(?:system|platform))?[?.!؟]*$/i.test(q) ||
+            /^(?:e-zero|ezero|ای زیرو)\s+(?:کیا ہے|کیا کرتا ہے|کے بارے میں بتائیں|کا تعارف)[؟?.!]*$/u.test(q);
+
+          if (!broadOverviewAlias || overviewIntent) {
+            score += Math.max(2, k.split(" ").length);
+          }
         }
       }
 
