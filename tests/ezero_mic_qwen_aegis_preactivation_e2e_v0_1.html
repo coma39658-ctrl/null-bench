@@ -49,6 +49,7 @@
       let sourceClass = "";
       let diagnosticClaim = null;
       let evidenceAuthority = null;
+      let rawGatewayResponse = "";
       let micDisabledDuringSpeaking = false;
 
       function render(result) {
@@ -59,6 +60,7 @@
           "SOURCE_CLASS: " + sourceClass + "\n" +
           "DIAGNOSTIC_CLAIM: " + String(diagnosticClaim) + "\n" +
           "EVIDENCE_AUTHORITY: " + String(evidenceAuthority) + "\n" +
+          "RAW_GATEWAY_RESPONSE: " + rawGatewayResponse + "\n" +
           "MIC_DISABLED_DURING_SPEAKING: " +
             (micDisabledDuringSpeaking ? "YES" : "NO") + "\n" +
           "TRACE: " + trace.join(" -> ");
@@ -100,6 +102,24 @@
           }
 
           const data = await response.json();
+
+          rawGatewayResponse = JSON.stringify(data);
+          responseStatus =
+            data && typeof data.status === "string" ? data.status : "";
+          sourceClass =
+            data && typeof data.source_class === "string"
+              ? data.source_class
+              : "";
+          diagnosticClaim =
+            data && Object.prototype.hasOwnProperty.call(data, "diagnostic_claim")
+              ? data.diagnostic_claim
+              : null;
+          evidenceAuthority =
+            data && Object.prototype.hasOwnProperty.call(data, "evidence_authority")
+              ? data.evidence_authority
+              : null;
+
+          render("RUNNING");
 
           if (
             !data ||
