@@ -1177,6 +1177,30 @@
       }
     }
 
+    const arabicMicAccessibility = Object.freeze({
+      idle: { aria: "بدء ميكروفون إي زيرو", title: "اضغط مرة واحدة ثم تحدث" },
+      listening: { aria: "إي زيرو يستمع إليك", title: "جارٍ الاستماع إليك" },
+      processing: { aria: "إي زيرو يُعد الرد", title: "جارٍ إعداد الرد" },
+      speaking: { aria: "إي زيرو يقرأ الرد", title: "جارٍ قراءة الرد" },
+      error: { aria: "خطأ في الميكروفون", title: "خطأ في الميكروفون" }
+    });
+
+    function micLocalizedText(state, field, fallback) {
+      if (voiceLanguage() === "ar-SA") {
+        const entry = arabicMicAccessibility[state];
+        if (entry && entry[field]) return entry[field];
+      }
+      return fallback;
+    }
+
+    const arabicMicLabels = Object.freeze({
+      idle: "تحدث",
+      listening: "جارٍ الاستماع",
+      processing: "جارٍ إعداد الرد",
+      speaking: "جارٍ التحدث",
+      error: "خطأ في الميكروفون"
+    });
+
     function render(state, en, ur) {
       const icon =
         state === "processing" ? icons.processing :
@@ -1184,12 +1208,22 @@
         state === "error" ? icons.error :
         icons.mic;
 
+      const locale = voiceLanguage();
+      const label =
+        locale === "ar-SA" ? arabicMicLabels[state] :
+        locale === "ur-PK" ? ur : en;
+
+      const subtitle =
+        locale === "ar-SA" ? "المساعد الصوتي" :
+        locale === "ur-PK" ? "وائس گائیڈ" :
+        "Voice Guide";
+
       micButton.dataset.ezeroMicState = state;
       micButton.innerHTML =
         '<span class="ezero-pro-mic-icon">' + icon + '</span>' +
         '<span class="ezero-pro-mic-copy">' +
-          '<strong>' + (isUrdu() ? ur : en) + '</strong>' +
-          '<small>' + (isUrdu() ? "وائس گائیڈ" : "Voice Guide") + '</small>' +
+          '<strong>' + label + '</strong>' +
+          '<small>' + subtitle + '</small>' +
         '</span>';
     }
 
@@ -1346,6 +1380,8 @@
       document.head.appendChild(style);
     }
 
+    let micErrorGeneration = 0;
+
     window.EZERO_MIC_VISUAL = Object.freeze({
       idle: function () {
         micButton.classList.remove(
@@ -1357,9 +1393,9 @@
         render("idle", "Speak", "بولیں");
         micButton.setAttribute(
           "aria-label",
-          "Start E-ZERO Voice Guide microphone"
+          micLocalizedText("idle", "aria", (isUrdu() ? "ای زیرو کا مائیکروفون شروع کریں" : "Start E-ZERO Voice Guide microphone"))
         );
-        micButton.title = "Tap once and speak";
+        micButton.title = micLocalizedText("idle", "title", isUrdu() ? "ایک بار دبائیں اور بولیں" : "Tap once and speak");
       },
 
       listening: function () {
@@ -1372,9 +1408,9 @@
         render("listening", "Listening", "سن رہا ہے");
         micButton.setAttribute(
           "aria-label",
-          "E-ZERO Voice Guide is listening"
+          micLocalizedText("listening", "aria", (isUrdu() ? "ای زیرو آپ کی بات سن رہا ہے" : "E-ZERO Voice Guide is listening"))
         );
-        micButton.title = "Listening";
+        micButton.title = micLocalizedText("listening", "title", isUrdu() ? "آپ کی بات سنی جا رہی ہے" : "Listening");
       },
 
       processing: function () {
@@ -1387,9 +1423,9 @@
         render("processing", "Processing", "تیار ہو رہا ہے");
         micButton.setAttribute(
           "aria-label",
-          "E-ZERO Voice Guide is processing"
+          micLocalizedText("processing", "aria", (isUrdu() ? "ای زیرو جواب تیار کر رہا ہے" : "E-ZERO Voice Guide is processing"))
         );
-        micButton.title = "Preparing answer";
+        micButton.title = micLocalizedText("processing", "title", isUrdu() ? "جواب تیار ہو رہا ہے" : "Preparing answer");
       },
 
       speaking: function () {
@@ -1402,9 +1438,9 @@
         render("speaking", "Speaking", "جواب دے رہا ہے");
         micButton.setAttribute(
           "aria-label",
-          "E-ZERO Voice Guide is speaking"
+          micLocalizedText("speaking", "aria", (isUrdu() ? "ای زیرو جواب سنا رہا ہے" : "E-ZERO Voice Guide is speaking"))
         );
-        micButton.title = "Speaking";
+        micButton.title = micLocalizedText("speaking", "title", isUrdu() ? "جواب سنایا جا رہا ہے" : "Speaking");
       },
 
       error: function () {
@@ -1414,12 +1450,59 @@
           "ezero-mic-speaking"
         );
         micButton.classList.add("ezero-mic-error");
-        render("error", "Mic Error", "مائک مسئلہ");
+        render("error", "Microphone error", "مائیکروفون میں خرابی");
+        micButton.setAttribute(
+          "aria-label",
+          micLocalizedText("error", "aria",
+            isUrdu() ? "مائیکروفون میں خرابی" : "Microphone error")
+        );
+        micButton.title = micLocalizedText(
+          "error", "title",
+          isUrdu() ? "مائیکروفون میں خرابی" : "Microphone error"
+        );
 
+        const thisErrorGeneration = ++micErrorGeneration;
         setTimeout(function () {
-          window.EZERO_MIC_VISUAL.idle();
+          if (
+            micButton.dataset.ezeroMicState === "error" &&
+            thisErrorGeneration === micErrorGeneration
+          ) {
+            window.EZERO_MIC_VISUAL.idle();
+          }
         }, 900);
       }
+    });
+
+    document.addEventListener("ezero:languagechange", function () {
+      const state = micButton.dataset.ezeroMicState || "idle";
+      const labels = {
+        idle: ["Speak", "بولیں"],
+        listening: ["Listening", "سن رہا ہے"],
+        processing: ["Processing", "تیار ہو رہا ہے"],
+        speaking: ["Speaking", "جواب دے رہا ہے"],
+        error: ["Microphone error", "مائیکروفون میں خرابی"]
+      };
+      if (!Object.prototype.hasOwnProperty.call(labels, state)) return;
+
+      const entry = labels[state];
+      render(state, entry[0], entry[1]);
+
+      const accessibility = {
+        idle: ["Start E-ZERO Voice Guide microphone", "ای زیرو کا مائیکروفون شروع کریں", "Tap once and speak", "ایک بار دبائیں اور بولیں"],
+        listening: ["E-ZERO Voice Guide is listening", "ای زیرو آپ کی بات سن رہا ہے", "Listening", "آپ کی بات سنی جا رہی ہے"],
+        processing: ["E-ZERO Voice Guide is processing", "ای زیرو جواب تیار کر رہا ہے", "Preparing answer", "جواب تیار ہو رہا ہے"],
+        speaking: ["E-ZERO Voice Guide is speaking", "ای زیرو جواب سنا رہا ہے", "Speaking", "جواب سنایا جا رہا ہے"],
+        error: ["Microphone error", "مائیکروفون میں خرابی", "Microphone error", "مائیکروفون میں خرابی"]
+      };
+
+      const a = accessibility[state];
+      micButton.setAttribute(
+        "aria-label",
+        micLocalizedText(state, "aria", isUrdu() ? a[1] : a[0])
+      );
+      micButton.title = micLocalizedText(
+        state, "title", isUrdu() ? a[3] : a[2]
+      );
     });
 
     window.EZERO_MIC_VISUAL.idle();
