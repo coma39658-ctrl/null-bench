@@ -743,8 +743,8 @@ header{
 }
 
 #ezeroVoiceGuideAsk{
-  background:#0b2740 !important;
-  border-color:#0b2740 !important;
+  background:#147d64 !important;
+  border-color:#147d64 !important;
   color:#ffffff !important;
   transition:
     transform .18s ease,
@@ -3679,6 +3679,20 @@ function drawHistogram(vals,observed){
    </select>
   </label>
 
+  <label style="display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;margin:9px 0;">
+   <span>🌍 Voice Accent / آواز کا لہجہ</span>
+   <select id="ezeroSettingVoiceLocale" style="padding:6px 8px;border-radius:8px;max-width:190px;">
+    <option value="auto">Automatic / خودکار</option>
+
+    <option value="ur-IN">Urdu - India</option>
+    <option value="en-US">English - USA</option>
+    <option value="en-GB">English - UK</option>
+    <option value="ar-SA">Arabic - Saudi Arabia</option>
+    <option value="ar-EG">Arabic - Egypt</option>
+    <option value="hi-IN">Hindi - India</option>
+   </select>
+  </label>
+
   <div
    style="
     display:flex;
@@ -3737,6 +3751,7 @@ function drawHistogram(vals,observed){
 
   <textarea
    id="ezeroVoiceGuideInput"
+   dir="auto"
    rows="3"
    placeholder="Example: What is Null Bench? / یہ بٹن کس لیے ہے؟"
    style="
@@ -3747,6 +3762,9 @@ function drawHistogram(vals,observed){
     border:1px solid #9fb6bd;
     border-radius:8px;
     font:inherit;
+    text-align:start;
+    line-height:1.65;
+    white-space:pre-wrap;
    "
   ></textarea>
  </div>
@@ -3755,9 +3773,9 @@ function drawHistogram(vals,observed){
   <button
    id="ezeroVoiceGuideAsk"
    type="button"
-   style="padding:9px 12px;border-radius:8px;border:1px solid #1b2430;background:#1b2430;color:white;font-weight:700;cursor:pointer;"
+   style="padding:9px 12px;border-radius:8px;border:1px solid #147d64;background:#147d64;color:white;font-weight:700;cursor:pointer;"
   >
-   Ask
+   ✓ Ask
   </button>
 
   <button
@@ -3931,14 +3949,17 @@ function drawHistogram(vals,observed){
   const autoSpeakResults = document.getElementById("ezeroSettingAutoSpeakResults");
   const answerLength = document.getElementById("ezeroSettingAnswerLength");
   const voiceSpeed = document.getElementById("ezeroSettingVoiceSpeed");
+  const voiceLocale = document.getElementById("ezeroSettingVoiceLocale");
   const reset = document.getElementById("ezeroSettingReset");
 
-  if (!button || !panel || !autoSpeak || !autoSubmit || !autoResultExplain || !autoSpeakResults || !answerLength || !voiceSpeed || !reset) {
+  if (!button || !panel || !autoSpeak || !autoSubmit || !autoResultExplain || !autoSpeakResults || !answerLength || !voiceSpeed || !voiceLocale || !reset) {
     console.warn("E-ZERO Voice Guide settings controls not found");
     return;
   }
 
   const KEY = "ezero.voiceGuide.settings.v0.1";
+
+  const allowedVoiceLocales = Object.freeze(["auto", "ur-IN", "en-US", "en-GB", "ar-SA", "ar-EG", "hi-IN"]);
 
   const defaults = Object.freeze({
     autoSpeak: false,
@@ -3946,7 +3967,8 @@ function drawHistogram(vals,observed){
     autoResultExplain: true,
     autoSpeakResults: false,
     answerLength: "normal",
-    voiceSpeed: "1"
+    voiceSpeed: "1",
+    voiceLocale: "ur-IN"
   });
 
   function readSettings() {
@@ -3966,6 +3988,7 @@ function drawHistogram(vals,observed){
       autoSpeakResults: !!settings.autoSpeakResults,
       answerLength: settings.answerLength || "normal",
       voiceSpeed: Number(settings.voiceSpeed) || 1,
+      voiceLocale: allowedVoiceLocales.includes(settings.voiceLocale) ? settings.voiceLocale : "ur-IN",
       safetyGovernance: true
     });
   }
@@ -3977,6 +4000,7 @@ function drawHistogram(vals,observed){
     autoSpeakResults.checked = !!settings.autoSpeakResults;
     answerLength.value = settings.answerLength || "normal";
     voiceSpeed.value = settings.voiceSpeed || "1";
+    voiceLocale.value = allowedVoiceLocales.includes(settings.voiceLocale) ? settings.voiceLocale : "ur-IN";
     publish(settings);
   }
 
@@ -3987,7 +4011,8 @@ function drawHistogram(vals,observed){
       autoResultExplain: autoResultExplain.checked,
       autoSpeakResults: autoSpeakResults.checked,
       answerLength: answerLength.value,
-      voiceSpeed: voiceSpeed.value
+      voiceSpeed: voiceSpeed.value,
+      voiceLocale: voiceLocale.value
     };
 
     try {
@@ -4002,7 +4027,7 @@ function drawHistogram(vals,observed){
     button.setAttribute("aria-expanded", String(!panel.hidden));
   });
 
-  [autoSpeak, autoSubmit, autoResultExplain, autoSpeakResults, answerLength, voiceSpeed].forEach(function (control) {
+  [autoSpeak, autoSubmit, autoResultExplain, autoSpeakResults, answerLength, voiceSpeed, voiceLocale].forEach(function (control) {
     control.addEventListener("change", save);
   });
 
@@ -4018,9 +4043,9 @@ function drawHistogram(vals,observed){
 </script>
 
 
-<script src="js/ezero_voice_guide_knowledge_v0_1.js?v=20260911-1310"></script>
+<script src="js/ezero_voice_guide_knowledge_v0_1.js?v=20261017-voice01"></script>
 <script src="js/ezero_voice_guide_feature_registry_v0_1.js?v=20260911-1310"></script>
-<script type="module" src="js/ezero_urdu_aegis_tts_v0_1.mjs?v=20260911-public01"></script>
+<!-- Pakistani Aegis voice paused; source preserved for later validation. -->
 <script>
 window.EZERO_PUBLIC_AI_ENDPOINT = "https://ezero-qwen-gateway.coma39658.workers.dev/api/ezero-agent/v0.1/ask";
 window.EZERO_PUBLIC_AI_ENABLED = false;
@@ -4090,7 +4115,7 @@ window.addEventListener("load", async function () {
 
 <script src="js/ezero_agent_retrieval_v0_1.js?v=20260911-rag02"></script>
 <script src="js/ezero_qwen_public_agent_v0_1.js?v=20260911-qwen03"></script>
-<script src="js/ezero_voice_guide_ui_v0_1.js?v=20260911-qwen03"></script>
+<script src="js/ezero_voice_guide_ui_v0_1.js?v=20261017-voice01"></script>
 
 
 

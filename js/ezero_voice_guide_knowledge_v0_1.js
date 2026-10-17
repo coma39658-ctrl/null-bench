@@ -152,7 +152,7 @@
     en:
       "I do not have verified E-ZERO information for that question yet. Please use the registered website evidence or ask about a specific E-ZERO section.",
     ur:
-      "میرے پاس اس سوال کے لیے ابھی verified E-ZERO information موجود نہیں ہے۔ براہِ کرم registered website evidence استعمال کریں یا E-ZERO کے کسی مخصوص section کے بارے میں پوچھیں۔"
+      "میرے پاس اس سوال کے لیے ابھی ای زیرو کی تصدیق شدہ معلومات موجود نہیں ہیں۔ براہِ کرم ای زیرو کی ویب سائٹ پر درج تصدیق شدہ شواہد دیکھیں یا ای زیرو کے کسی مخصوص حصے کے بارے میں پوچھیں۔"
   });
 
   window.EZERO_VOICE_GUIDE_KNOWLEDGE = Object.freeze({
