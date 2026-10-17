@@ -221,7 +221,8 @@
         return;
       }
 
-      if (deterministicResult.matched) {
+      if (deterministicResult.matched &&
+          window.EZERO_PUBLIC_AI_ENABLED !== true) {
         answer.textContent = deterministicResult.text;
 
         if (
