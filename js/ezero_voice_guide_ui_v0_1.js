@@ -271,7 +271,7 @@
       ) {
         answer.textContent =
           language === "ur"
-            ? "اس سوال کے لیے ابھی تصدیق شدہ E-ZERO جواب دستیاب نہیں۔ Public AI ابھی فعال نہیں ہے۔"
+            ? "اس سوال کے لیے ابھی ای زیرو کا تصدیق شدہ جواب دستیاب نہیں۔ عوامی معاون ابھی فعال نہیں ہے۔"
             : "No verified E-ZERO answer is available for this question yet. Public AI is not enabled yet.";
 
         if (
@@ -283,7 +283,7 @@
 
         status.textContent =
           language === "ur"
-            ? "تصدیق شدہ جواب دستیاب نہیں · Fail-closed"
+            ? "تصدیق شدہ جواب دستیاب نہیں · حفاظتی طور پر جواب روکا گیا"
             : "Verified answer unavailable · Fail-closed";
 
         return;
@@ -298,7 +298,7 @@
 
       status.textContent =
         language === "ur"
-          ? "⏳ E-ZERO AI Agent جواب تیار کر رہا ہے…"
+          ? "⏳ ای زیرو کا ذہین معاون جواب تیار کر رہا ہے…"
           : "⏳ E-ZERO AI Agent is preparing an answer…";
 
       try {
@@ -421,7 +421,7 @@
         } else {
           status.textContent =
             language === "ur"
-              ? "تصدیق شدہ جواب دستیاب نہیں · Fail-closed"
+              ? "تصدیق شدہ جواب دستیاب نہیں · حفاظتی طور پر جواب روکا گیا"
               : "Verified answer unavailable · Fail-closed";
         }
       }
@@ -627,6 +627,9 @@
         }
 
         input.value = transcript;
+        input.dir = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/.test(transcript)
+          ? "rtl" : "auto";
+        input.setSelectionRange(input.value.length, input.value.length);
 
         status.textContent =
           voiceLanguage() === "ur-PK"
@@ -668,7 +671,7 @@
       };
 
       askButton.addEventListener("click", function () {
-        askButton.textContent = "Ask";
+        askButton.textContent = "✓ Ask";
         askButton.style.background = "";
         askButton.style.color = "";
         askButton.style.borderColor = "";
@@ -709,8 +712,16 @@
               : "Microphone stopped · No clear speech detected · Tap 🎤 again";
         }
 
-        if (window.EZERO_MIC_VISUAL) {
-          window.EZERO_MIC_VISUAL.idle();
+        const currentState =
+          window.EZERO_VOICE_CONVERSATION &&
+          typeof window.EZERO_VOICE_CONVERSATION.getState === "function"
+            ? window.EZERO_VOICE_CONVERSATION.getState()
+            : null;
+
+        if (currentState !== "THINKING" && currentState !== "SPEAKING") {
+          if (window.EZERO_MIC_VISUAL) {
+            window.EZERO_MIC_VISUAL.idle();
+          }
         }
 
         if (autoSpeakAfterRecognition) {
@@ -736,6 +747,38 @@
     }
 
     if ("speechSynthesis" in window && window.SpeechSynthesisUtterance) {
+      let browserSpeechVersion = 0;
+      let aegisPhase = "idle";
+      let aegisText = "";
+      let aegisTimer = null;
+      let aegisVersion = 0;
+      const originalSpeakLabel = speakButton.textContent;
+
+      function resetAegis() {
+        aegisVersion += 1;
+        if (aegisTimer !== null) {
+          clearTimeout(aegisTimer);
+          aegisTimer = null;
+        }
+        if (window.EZERO_URDU_AEGIS_TTS) {
+          try { window.EZERO_URDU_AEGIS_TTS.stop(); }
+          catch (_) {}
+        }
+        aegisPhase = "idle";
+        aegisText = "";
+        speakButton.textContent = originalSpeakLabel;
+        speakButton.disabled = false;
+        micButton.disabled = false;
+      }
+
+      askButton.addEventListener("click", function () {
+        if (aegisPhase !== "idle") resetAegis();
+      });
+
+      micButton.addEventListener("click", function () {
+        if (aegisPhase !== "idle") resetAegis();
+      });
+
       speakButton.addEventListener("click", function () {
         const text = (answer.textContent || "").trim();
 
@@ -744,9 +787,21 @@
           return;
         }
 
-        window.speechSynthesis.cancel();
-
-        const requestedLang = voiceLanguage();
+        const answerLang = voiceLanguage();
+        const configuredLocale = String(
+          (window.EZERO_VOICE_GUIDE_SETTINGS &&
+           window.EZERO_VOICE_GUIDE_SETTINGS.voiceLocale) || "auto"
+        );
+        const allowedLocales = [
+          "ur-PK", "ur-IN", "en-US", "en-GB",
+          "ar-SA", "ar-EG", "hi-IN"
+        ];
+        const requestedLang =
+          allowedLocales.includes(configuredLocale) &&
+          configuredLocale.split("-")[0].toLowerCase() ===
+            answerLang.split("-")[0].toLowerCase()
+            ? configuredLocale
+            : answerLang;
 
         const configuredRate =
           window.EZERO_VOICE_GUIDE_SETTINGS &&
@@ -754,112 +809,184 @@
             ? Number(window.EZERO_VOICE_GUIDE_SETTINGS.voiceSpeed)
             : 1;
 
-        if (
+        const useAegis =
           requestedLang === "ur-PK" &&
-          window.EZERO_URDU_AEGIS_TTS
-        ) {
-          setConversationState("SPEAKING");
-          micButton.disabled = true;
+          (configuredLocale === "auto" ||
+           configuredLocale === "ur-PK") &&
+          window.EZERO_URDU_AEGIS_TTS &&
+          typeof window.EZERO_URDU_AEGIS_TTS.prepareAudio === "function" &&
+          typeof window.EZERO_URDU_AEGIS_TTS.playPrepared === "function";
 
-          status.textContent =
-            "🔊 Aegis اردو آواز تیار کی جا رہی ہے…";
+        if (aegisPhase !== "idle" &&
+            (!useAegis || aegisText !== text)) {
+          resetAegis();
+        }
 
-          if (window.EZERO_MIC_VISUAL) {
-            window.EZERO_MIC_VISUAL.speaking();
+        if (useAegis) {
+          const tts = window.EZERO_URDU_AEGIS_TTS;
+
+          if (aegisPhase === "preparing" ||
+              aegisPhase === "playing") {
+            resetAegis();
+            setConversationState("READY");
+            status.textContent = "⏹ پاکستانی اردو کی آواز روک دی گئی";
+            if (window.EZERO_MIC_VISUAL) {
+              window.EZERO_MIC_VISUAL.idle();
+            }
+            return;
           }
 
-          window.EZERO_URDU_AEGIS_TTS
-            .speak(text, {
-              rate: configuredRate,
-              onProgress: function (progress) {
-                if (
-                  progress &&
-                  Number(progress.total) > 0
-                ) {
-                  const pct = Math.max(
-                    0,
-                    Math.min(
-                      100,
-                      Math.round(
-                        Number(progress.loaded) *
-                        100 /
-                        Number(progress.total)
-                      )
-                    )
-                  );
+          if (aegisPhase === "prepared") {
+            const currentVersion = aegisVersion;
+            aegisPhase = "playing";
+            speakButton.textContent = "⏹ آواز بند کریں";
+            status.textContent = "🔊 پاکستانی اردو کی آواز چل رہی ہے…";
+            setConversationState("SPEAKING");
+            if (window.EZERO_MIC_VISUAL) {
+              window.EZERO_MIC_VISUAL.speaking();
+            }
 
-                  status.textContent =
-                    "🔊 اردو Aegis آواز تیار ہو رہی ہے… " +
-                    pct +
-                    "%";
-                }
-              }
-            })
-            .then(function () {
+            tts.playPrepared().then(function () {
+              if (currentVersion !== aegisVersion ||
+                  aegisPhase !== "playing") return;
+              resetAegis();
               setConversationState("READY");
-              micButton.disabled = false;
-
-              status.textContent =
-                "✓ تیار · نیا سوال پوچھنے کے لیے 🎤 دبائیں";
-
+              status.textContent = "✅ پاکستانی اردو کی آواز مکمل ہوگئی";
               if (window.EZERO_MIC_VISUAL) {
                 window.EZERO_MIC_VISUAL.idle();
               }
-            })
-            .catch(function (error) {
+            }).catch(function (error) {
+              if (currentVersion !== aegisVersion ||
+                  aegisPhase !== "playing") return;
+              resetAegis();
               setConversationState("ERROR");
-              micButton.disabled = false;
-
-              console.warn(
-                "E-ZERO Urdu Aegis TTS error:",
-                error
-              );
-
-              const errorName =
-                error && error.name ? error.name : "Error";
-              const errorMessage =
-                error && error.message
-                  ? error.message
-                  : String(error || "Unknown Aegis TTS error");
-
-              window.EZERO_LAST_AEGIS_ERROR = {
-                name: errorName,
-                message: errorMessage
-              };
-
               status.textContent =
-                "AEGIS ERROR: " +
-                errorName +
-                " · " +
-                errorMessage;
-
+                "آواز چلانے میں مسئلہ: " +
+                (error && error.name ? error.name : "Error");
               if (window.EZERO_MIC_VISUAL) {
                 window.EZERO_MIC_VISUAL.error();
               }
             });
+            return;
+          }
 
+          window.speechSynthesis.cancel();
+          resetAegis();
+          const currentVersion = aegisVersion;
+          aegisPhase = "preparing";
+          aegisText = text;
+          speakButton.textContent = "⏹ تیاری روکیں";
+          micButton.disabled = true;
+          setConversationState("SPEAKING");
+          status.textContent =
+            "⏳ پاکستانی اردو کی آواز تیار ہو رہی ہے…";
+          if (window.EZERO_MIC_VISUAL) {
+            window.EZERO_MIC_VISUAL.speaking();
+          }
+
+          aegisTimer = setTimeout(function () {
+            if (currentVersion !== aegisVersion ||
+                aegisPhase !== "preparing") return;
+            resetAegis();
+            setConversationState("ERROR");
+            status.textContent =
+              "پاکستانی اردو کی آواز 180 سیکنڈ میں تیار نہیں ہوئی · تحریری جواب موجود ہے";
+            if (window.EZERO_MIC_VISUAL) {
+              window.EZERO_MIC_VISUAL.error();
+            }
+          }, 180000);
+
+          tts.prepareAudio(text, {
+            rate: configuredRate,
+            onProgress: function (progress) {
+              if (currentVersion !== aegisVersion ||
+                  aegisPhase !== "preparing") return;
+              if (progress && Number(progress.total) > 0) {
+                const pct = Math.max(0, Math.min(100,
+                  Math.round(
+                    Number(progress.loaded) * 100 /
+                    Number(progress.total)
+                  )
+                ));
+                status.textContent =
+                  "⏳ اردو صوتی وسائل: " + pct +
+                  "% · آواز کی تیاری جاری ہے";
+              }
+            }
+          }).then(function () {
+            if (currentVersion !== aegisVersion ||
+                aegisPhase !== "preparing") return;
+            clearTimeout(aegisTimer);
+            aegisTimer = null;
+            aegisPhase = "prepared";
+            micButton.disabled = false;
+            speakButton.textContent = "🔊 آواز سنیں";
+            setConversationState("READY");
+            status.textContent =
+              "✅ پاکستانی اردو کی آواز تیار ہے · 🔊 آواز سنیں دبائیں";
+            if (window.EZERO_MIC_VISUAL) {
+              window.EZERO_MIC_VISUAL.idle();
+            }
+          }).catch(function (error) {
+            if (currentVersion !== aegisVersion ||
+                aegisPhase !== "preparing") return;
+            resetAegis();
+            setConversationState("ERROR");
+            console.warn("E-ZERO Aegis preparation:", error);
+            status.textContent =
+              "پاکستانی اردو کی آواز تیار نہیں ہوئی: " +
+              (error && error.name ? error.name : "Error");
+            if (window.EZERO_MIC_VISUAL) {
+              window.EZERO_MIC_VISUAL.error();
+            }
+          });
           return;
         }
 
-        const utterance = new SpeechSynthesisUtterance(text);
+        const speechRun = ++browserSpeechVersion;
+        window.speechSynthesis.cancel();
+
+        const speechParts = [];
+        let remainingSpeech = text;
+
+        while (remainingSpeech.length > 140) {
+          const portion = remainingSpeech.slice(0, 140);
+          let cut = Math.max(
+            portion.lastIndexOf(" "),
+            portion.lastIndexOf("\n"),
+            portion.lastIndexOf("۔") + 1,
+            portion.lastIndexOf("؟") + 1
+          );
+          if (cut < 70) cut = 140;
+          speechParts.push(remainingSpeech.slice(0, cut).trim());
+          remainingSpeech = remainingSpeech.slice(cut).trimStart();
+        }
+
+        if (remainingSpeech) speechParts.push(remainingSpeech);
+
+        const utterance = new SpeechSynthesisUtterance(
+          speechParts.shift()
+        );
         utterance.rate = configuredRate;
+        let activeSpeech = utterance;
+        let speechStarted = false;
+        let recoveryUsed = false;
         const voices = window.speechSynthesis.getVoices() || [];
 
         let selectedVoice = null;
 
-        if (requestedLang === "ur-PK") {
-          selectedVoice =
-            voices.find(v => /^ur(-|_)/i.test(v.lang)) ||
-            voices.find(v => /^hi(-|_)/i.test(v.lang)) ||
-            voices.find(v => /^ar(-|_)/i.test(v.lang)) ||
-            null;
-        } else {
-          const base = requestedLang.split("-")[0];
-          selectedVoice =
-            voices.find(v => v.lang === requestedLang) ||
-            voices.find(v => v.lang && v.lang.toLowerCase().startsWith(base.toLowerCase())) ||
-            null;
-        }
+        const normalizedLocale = value =>
+          String(value || "").replace(/_/g, "-").toLowerCase();
+
+        const wanted = normalizedLocale(requestedLang);
+        const base = wanted.split("-")[0];
+
+        selectedVoice =
+          voices.find(v => normalizedLocale(v.lang) === wanted) ||
+          voices.find(v =>
+            normalizedLocale(v.lang).split("-")[0] === base
+          ) ||
+          null;
 
         if (selectedVoice) {
           utterance.voice = selectedVoice;
@@ -869,17 +996,84 @@
         }
 
         utterance.onerror = function (event) {
+          if (speechRun !== browserSpeechVersion ||
+              this !== activeSpeech) return;
+
+          if (event && event.error === "synthesis-failed" &&
+              !speechStarted && !recoveryUsed) {
+            recoveryUsed = true;
+
+            const retry = new SpeechSynthesisUtterance(
+              activeSpeech.text
+            );
+            retry.rate = utterance.rate;
+            retry.lang = utterance.lang;
+            retry.voice = utterance.voice;
+            retry.onstart = utterance.onstart;
+            retry.onerror = utterance.onerror;
+            retry.onend = utterance.onend;
+
+            activeSpeech = retry;
+            status.textContent =
+              requestedLang.toLowerCase().startsWith("ur-")
+                ? "🔄 اردو آواز دوبارہ شروع کرنے کی کوشش…"
+                : "🔄 Retrying speech once…";
+
+            setTimeout(function () {
+              if (speechRun !== browserSpeechVersion ||
+                  activeSpeech !== retry) return;
+
+              try {
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.resume();
+                window.speechSynthesis.speak(retry);
+              } catch (_) {
+                retry.onerror({error:"synthesis-failed"});
+              }
+            }, 350);
+            return;
+          }
+
           setConversationState("ERROR");
           micButton.disabled = false;
 
-          console.warn("E-ZERO Voice Guide speech synthesis error:", event.error || event);
+          const errorCode =
+            event &&
+            typeof event.error === "string" &&
+            /^[a-z-]+$/.test(event.error)
+              ? event.error
+              : "unknown";
+
+          window.EZERO_LAST_SPEECH_ERROR = Object.freeze({
+            code: errorCode,
+            requestedLocale: requestedLang,
+            selectedLocale: selectedVoice ? selectedVoice.lang : null,
+            voiceFound: !!selectedVoice
+          });
+
+          console.warn(
+            "E-ZERO Voice Guide speech synthesis error:",
+            window.EZERO_LAST_SPEECH_ERROR
+          );
+
           status.textContent =
-            requestedLang === "ur-PK"
-              ? "Urdu voice unavailable on this device · Text answer is available"
-              : "Speech output unavailable · Text answer is available";
+            requestedLang.toLowerCase().startsWith("ur-")
+              ? "اردو آواز نہیں چل سکی · خرابی: " +
+                errorCode +
+                " · تحریری جواب موجود ہے"
+              : "Speech playback failed · " +
+                errorCode +
+                " · Text answer is available";
+
+          if (window.EZERO_MIC_VISUAL) {
+            window.EZERO_MIC_VISUAL.error();
+          }
         };
 
         utterance.onstart = function () {
+          if (speechRun !== browserSpeechVersion ||
+              this !== activeSpeech) return;
+          speechStarted = true;
           setConversationState("SPEAKING");
           micButton.disabled = true;
 
@@ -894,20 +1088,39 @@
         };
 
         utterance.onend = function () {
+          if (speechRun !== browserSpeechVersion ||
+              this !== activeSpeech) return;
+
+          if (speechParts.length > 0) {
+            speechStarted = false;
+            recoveryUsed = false;
+            const next = new SpeechSynthesisUtterance(
+              speechParts.shift()
+            );
+            next.rate = utterance.rate;
+            next.lang = utterance.lang;
+            next.voice = utterance.voice;
+            next.onstart = utterance.onstart;
+            next.onerror = utterance.onerror;
+            next.onend = utterance.onend;
+            activeSpeech = next;
+            window.speechSynthesis.speak(next);
+            return;
+          }
+
           setConversationState("READY");
           micButton.disabled = false;
 
           status.textContent =
             voiceLanguage() === "ur-PK"
-              ? "✓ تیار · نیا سوال پوچھنے کے لیے 🎤 دبائیں"
-              : "✓ Ready · Tap 🎤 to ask another question";
+              ? "✅ تیار · نیا سوال پوچھنے کے لیے 🎤 دبائیں"
+              : "✅ Ready · Tap 🎤 to ask another question";
 
           if (window.EZERO_MIC_VISUAL) {
             window.EZERO_MIC_VISUAL.idle();
           }
         };
 
-        window.speechSynthesis.cancel();
         window.speechSynthesis.resume();
         window.speechSynthesis.speak(utterance);
       });
