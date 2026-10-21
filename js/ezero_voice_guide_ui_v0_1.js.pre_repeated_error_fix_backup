@@ -1,0 +1,1623 @@
+/*
+ * E-ZERO Voice Guide — Public UI Logic V0.1
+ *
+ * Deterministic website guidance using only
+ * window.EZERO_VOICE_GUIDE_KNOWLEDGE.
+ */
+
+(function () {
+  "use strict";
+
+  function normalizeText(value) {
+    return String(value || "")
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function currentLanguage() {
+    const selector =
+      document.getElementById("languageSelect");
+
+    if (selector && selector.value) {
+      return selector.value;
+    }
+
+    const lang =
+      (document.documentElement.lang || "en").toLowerCase();
+
+    return lang || "en";
+  }
+
+  function knowledgeI18nKey(entryId) {
+    const map = {
+      ezero_overview: "global_modules_intro",
+      null_bench: "null_public_tool_note",
+      vehicle_obd: "vehicle_intro",
+      industrial: "industrial_intro",
+      fleet: "fleet_section_title",
+      benchmark006c: "benchmark006c_intro",
+      adaptive_decision_lab: "adaptive_decision_lab_intro",
+      evidence: "evidence_section_intro",
+      condition_status: "claims_follow_evidence_text"
+    };
+
+    return map[entryId] || null;
+  }
+
+  function knowledgeTextFromI18n(entry, language) {
+    const key = knowledgeI18nKey(entry && entry.id);
+    const i18n = window.EZERO_I18N;
+
+    const answerLength =
+      window.EZERO_VOICE_GUIDE_SETTINGS &&
+      window.EZERO_VOICE_GUIDE_SETTINGS.answerLength
+        ? window.EZERO_VOICE_GUIDE_SETTINGS.answerLength
+        : "normal";
+
+    if (entry) {
+      const lengthField =
+        answerLength === "short"
+          ? language + "_short"
+          : answerLength === "detailed"
+            ? language + "_detailed"
+            : language;
+
+      if (
+        typeof entry[lengthField] === "string" &&
+        entry[lengthField].trim()
+      ) {
+        return entry[lengthField];
+      }
+    }
+
+    if (
+      key &&
+      i18n &&
+      i18n[language] &&
+      typeof i18n[language][key] === "string" &&
+      i18n[language][key].trim()
+    ) {
+      return i18n[language][key];
+    }
+
+    if (entry) {
+      if (
+        typeof entry[language] === "string" &&
+        entry[language].trim()
+      ) {
+        return entry[language];
+      }
+
+      if (
+        language === "ur" &&
+        typeof entry.ur === "string" &&
+        entry.ur.trim()
+      ) {
+        return entry.ur;
+      }
+
+      if (
+        typeof entry.en === "string" &&
+        entry.en.trim()
+      ) {
+        return entry.en;
+      }
+    }
+
+    return "";
+  }
+
+  function findAnswer(question) {
+    const kb = window.EZERO_VOICE_GUIDE_KNOWLEDGE;
+    if (!kb) {
+      return {
+        text: currentLanguage() === "ur"
+          ? "Voice Guide knowledge ابھی load نہیں ہوئی۔"
+          : "Voice Guide knowledge is not loaded.",
+        matched: false
+      };
+    }
+
+    const q = normalizeText(question);
+    const language = currentLanguage();
+
+    if (!q) {
+      return {
+        text: language === "ur"
+          ? "براہِ کرم E-ZERO کے بارے میں سوال لکھیں۔"
+          : "Please enter a question about E-ZERO.",
+        matched: false
+      };
+    }
+
+    const registryLookup = window.EZERO_VOICE_GUIDE_REGISTRY_LOOKUP;
+
+    if (registryLookup) {
+      const controlAnswer =
+        registryLookup.findControlRegistryAnswer(question);
+
+      if (controlAnswer && controlAnswer.matched) {
+        return controlAnswer;
+      }
+
+      const featureAnswer =
+        registryLookup.findFeatureRegistryAnswer(question);
+
+      if (featureAnswer && featureAnswer.matched) {
+        return featureAnswer;
+      }
+    }
+
+    let best = null;
+    let bestScore = 0;
+
+    for (const entry of kb.entries) {
+      let score = 0;
+
+      for (const keyword of entry.keywords) {
+        const k = normalizeText(keyword);
+
+        if (!k) continue;
+
+        if (q === k) {
+          score += 10;
+        } else if (q.includes(k)) {
+          const broadOverviewAlias =
+            entry.id === "ezero_overview" &&
+            ["e-zero", "ezero", "ای زیرو"].includes(k);
+
+          const overviewIntent =
+            /^(?:what is|about|explain|tell me about)\s+(?:the\s+)?(?:e-zero|ezero)(?:\s+(?:system|platform))?[?.!؟]*$/i.test(q) ||
+            /^(?:e-zero|ezero|ای زیرو)\s+(?:کیا ہے|کیا کرتا ہے|کے بارے میں بتائیں|کا تعارف)[؟?.!]*$/u.test(q);
+
+          if (!broadOverviewAlias || overviewIntent) {
+            score += Math.max(2, k.split(" ").length);
+          }
+        }
+      }
+
+      if (score > bestScore) {
+        bestScore = score;
+        best = entry;
+      }
+    }
+
+    if (!best || bestScore < 2) {
+      return {
+        text: kb.fallback[language] || kb.fallback.en,
+        matched: false
+      };
+    }
+
+    return {
+      text: knowledgeTextFromI18n(best, language),
+      matched: true,
+      entryId: best.id
+    };
+  }
+
+  function initializeVoiceGuide() {
+    const askButton = document.getElementById("ezeroVoiceGuideAsk");
+    const input = document.getElementById("ezeroVoiceGuideInput");
+    const answer = document.getElementById("ezeroVoiceGuideAnswer");
+    const status = document.getElementById("ezeroVoiceGuideStatus");
+
+    if (!askButton || !input || !answer || !status) {
+      console.warn("E-ZERO Voice Guide controls not found");
+      return;
+    }
+
+    async function runQuestion() {
+      const question = (input.value || "").trim();
+      const deterministicResult = findAnswer(question);
+      const language = currentLanguage();
+
+      if (!question) {
+        answer.textContent =
+          language === "ur"
+            ? "براہِ کرم سوال لکھیں یا 🎤 دباکر بولیں۔"
+            : "Please enter a question or tap 🎤 and speak.";
+        return;
+      }
+
+      if (deterministicResult.matched) {
+        answer.textContent = deterministicResult.text;
+
+        if (
+          window.EZERO_VOICE_CONVERSATION &&
+          typeof window.EZERO_VOICE_CONVERSATION.setState === "function"
+        ) {
+          window.EZERO_VOICE_CONVERSATION.setState("ANSWER");
+        }
+
+        status.textContent =
+          language === "ur"
+            ? "✓ تصدیق شدہ E-ZERO جواب تیار ہے"
+            : "✓ Verified E-ZERO answer ready";
+
+        if (
+          (
+            window.EZERO_VOICE_GUIDE_SETTINGS &&
+            window.EZERO_VOICE_GUIDE_SETTINGS.autoSpeak
+          ) ||
+          window.EZERO_RESULT_AUTO_SPEAK_PENDING
+        ) {
+          window.EZERO_RESULT_AUTO_SPEAK_PENDING = false;
+          setTimeout(function () {
+            const speakButton =
+              document.getElementById("ezeroVoiceGuideSpeak");
+
+            if (speakButton) {
+              speakButton.click();
+            }
+          }, 180);
+        }
+
+        return;
+      }
+
+      const publicAiEnabled =
+        window.EZERO_PUBLIC_AI_ENABLED === true;
+
+      const publicAiEndpoint =
+        typeof window.EZERO_PUBLIC_AI_ENDPOINT === "string"
+          ? window.EZERO_PUBLIC_AI_ENDPOINT.trim()
+          : "";
+
+      if (
+        !publicAiEnabled ||
+        !/^https:\/\//i.test(publicAiEndpoint)
+      ) {
+        answer.textContent =
+          language === "ur"
+            ? "اس سوال کے لیے ابھی تصدیق شدہ E-ZERO جواب دستیاب نہیں۔ Public AI ابھی فعال نہیں ہے۔"
+            : "No verified E-ZERO answer is available for this question yet. Public AI is not enabled yet.";
+
+        if (
+          window.EZERO_VOICE_CONVERSATION &&
+          typeof window.EZERO_VOICE_CONVERSATION.setState === "function"
+        ) {
+          window.EZERO_VOICE_CONVERSATION.setState("ANSWER");
+        }
+
+        status.textContent =
+          language === "ur"
+            ? "تصدیق شدہ جواب دستیاب نہیں · Fail-closed"
+            : "Verified answer unavailable · Fail-closed";
+
+        return;
+      }
+
+      if (
+        window.EZERO_VOICE_CONVERSATION &&
+        typeof window.EZERO_VOICE_CONVERSATION.setState === "function"
+      ) {
+        window.EZERO_VOICE_CONVERSATION.setState("THINKING");
+      }
+
+      status.textContent =
+        language === "ur"
+          ? "⏳ E-ZERO AI Agent جواب تیار کر رہا ہے…"
+          : "⏳ E-ZERO AI Agent is preparing an answer…";
+
+      try {
+        if (
+          !window.EZERO_QWEN_PUBLIC_AGENT_V0_1 ||
+          typeof window.EZERO_QWEN_PUBLIC_AGENT_V0_1.ask !== "function"
+        ) {
+          throw new Error("AI_AGENT_ADAPTER_UNAVAILABLE");
+        }
+
+        const agentResult =
+          await window.EZERO_QWEN_PUBLIC_AGENT_V0_1.ask({
+            question: question,
+            responseLanguage: language,
+            answerLength:
+              window.EZERO_VOICE_GUIDE_SETTINGS &&
+              window.EZERO_VOICE_GUIDE_SETTINGS.answerLength
+                ? window.EZERO_VOICE_GUIDE_SETTINGS.answerLength
+                : "normal"
+          });
+
+        const data =
+          agentResult.status ===
+          "INSUFFICIENT_VERIFIED_EZERO_EVIDENCE"
+            ? {
+                answer:
+                  "INSUFFICIENT_VERIFIED_EZERO_EVIDENCE",
+                sourceClass: agentResult.source_class
+              }
+            : {
+                answer: agentResult.answer,
+                sourceClass: agentResult.source_class
+              };
+
+        if (
+          !data ||
+          typeof data.answer !== "string" ||
+          !data.answer.trim()
+        ) {
+          throw new Error("AI_BRIDGE_INVALID_RESPONSE");
+        }
+
+        if (data.answer === "INSUFFICIENT_VERIFIED_EZERO_EVIDENCE") {
+          answer.textContent =
+            language === "ur"
+              ? "اس سوال کے لیے کافی تصدیق شدہ E-ZERO evidence دستیاب نہیں۔"
+              : "Insufficient verified E-ZERO evidence for this question.";
+
+          if (
+            window.EZERO_VOICE_CONVERSATION &&
+            typeof window.EZERO_VOICE_CONVERSATION.setState === "function"
+          ) {
+            window.EZERO_VOICE_CONVERSATION.setState("ANSWER");
+          }
+
+          status.textContent =
+            language === "ur"
+              ? "تصدیق شدہ evidence ناکافی · Fail-closed"
+              : "Insufficient verified evidence · Fail-closed";
+
+          return;
+        }
+
+        answer.textContent = data.answer;
+
+        if (
+          window.EZERO_VOICE_CONVERSATION &&
+          typeof window.EZERO_VOICE_CONVERSATION.setState === "function"
+        ) {
+          window.EZERO_VOICE_CONVERSATION.setState("ANSWER");
+        }
+
+        status.textContent =
+          data.sourceClass === "VERIFIED_STATIC"
+            ? (
+                language === "ur"
+                  ? "✓ تصدیق شدہ E-ZERO جواب · فوری"
+                  : "✓ Verified E-ZERO answer · instant"
+              )
+            : (
+                language === "ur"
+                  ? "✓ E-ZERO AI Agent جواب تیار ہے"
+                  : "✓ E-ZERO AI Agent answer ready"
+              );
+
+        if (
+          window.EZERO_VOICE_GUIDE_SETTINGS &&
+          window.EZERO_VOICE_GUIDE_SETTINGS.autoSpeak
+        ) {
+          setTimeout(function () {
+            const speakButton =
+              document.getElementById("ezeroVoiceGuideSpeak");
+
+            if (speakButton) {
+              speakButton.click();
+            }
+          }, 180);
+        }
+
+      } catch (error) {
+        console.warn(
+          "E-ZERO governed AI unavailable; deterministic fallback used:",
+          error
+        );
+
+        answer.textContent = deterministicResult.text;
+
+        if (
+          window.EZERO_VOICE_CONVERSATION &&
+          typeof window.EZERO_VOICE_CONVERSATION.setState === "function"
+        ) {
+          window.EZERO_VOICE_CONVERSATION.setState("ANSWER");
+        }
+
+        if (deterministicResult.matched) {
+          status.textContent =
+            language === "ur"
+              ? "✓ Local Verified Guide fallback · AI Agent دستیاب نہیں"
+              : "✓ Local Verified Guide fallback · AI Agent unavailable";
+        } else {
+          status.textContent =
+            language === "ur"
+              ? "تصدیق شدہ جواب دستیاب نہیں · Fail-closed"
+              : "Verified answer unavailable · Fail-closed";
+        }
+      }
+    }
+
+    askButton.addEventListener("click", runQuestion);
+
+    input.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        runQuestion();
+      }
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initializeVoiceGuide);
+  } else {
+    initializeVoiceGuide();
+  }
+
+  window.EZERO_VOICE_GUIDE = Object.freeze({
+    findAnswer: findAnswer
+  });
+})();
+
+/* Phase 0 browser speech input/output */
+(function () {
+  "use strict";
+
+  const conversationState = {
+    value: "READY"
+  };
+
+  function setConversationState(nextState) {
+    const allowed = [
+      "READY",
+      "LISTEN",
+      "THINKING",
+      "ANSWER",
+      "SPEAKING",
+      "ERROR"
+    ];
+
+    if (!allowed.includes(nextState)) {
+      return;
+    }
+
+    if (conversationState.value === nextState) {
+      return;
+    }
+
+    conversationState.value = nextState;
+
+    window.dispatchEvent(
+      new CustomEvent("ezero:voice-conversation-state", {
+        detail: Object.freeze({
+          state: nextState
+        })
+      })
+    );
+  }
+
+  window.EZERO_VOICE_CONVERSATION = Object.freeze({
+    getState: function () {
+      return conversationState.value;
+    },
+    setState: setConversationState
+  });
+
+  function voiceLanguage() {
+    const selector =
+      document.getElementById("languageSelect");
+
+    const selected =
+      selector && selector.value
+        ? selector.value
+        : "en";
+
+    const localeMap = Object.freeze({
+      "en": "en-US",
+      "ar": "ar-SA",
+      "ur": "ur-PK",
+      "hi": "hi-IN",
+      "zh-CN": "zh-CN",
+      "es": "es-ES",
+      "fr": "fr-FR",
+      "pt": "pt-PT",
+      "bn": "bn-BD",
+      "ru": "ru-RU",
+      "id": "id-ID",
+      "ja": "ja-JP",
+      "de": "de-DE",
+      "tr": "tr-TR",
+      "ko": "ko-KR"
+    });
+
+    return localeMap[selected] || "en-US";
+  }
+
+  function initializeSpeechLayer() {
+    const micButton = document.getElementById("ezeroVoiceGuideMic");
+    const speakButton = document.getElementById("ezeroVoiceGuideSpeak");
+    const input = document.getElementById("ezeroVoiceGuideInput");
+    const answer = document.getElementById("ezeroVoiceGuideAnswer");
+    const status = document.getElementById("ezeroVoiceGuideStatus");
+    const askButton = document.getElementById("ezeroVoiceGuideAsk");
+
+    if (!micButton || !speakButton || !input || !answer || !status || !askButton) {
+      console.warn("E-ZERO Voice Guide speech controls not found");
+      return;
+    }
+
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      let autoSpeakAfterRecognition = false;
+
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      micButton.title = "E-ZERO Voice Guide";
+      micButton.setAttribute(
+        "aria-label",
+        "Start E-ZERO Voice Guide microphone"
+      );
+
+      micButton.style.userSelect = "none";
+      micButton.style.webkitUserSelect = "none";
+      micButton.style.webkitTouchCallout = "none";
+      micButton.style.touchAction = "manipulation";
+      micButton.style.webkitTapHighlightColor = "transparent";
+
+      micButton.addEventListener("selectstart", function (event) {
+        event.preventDefault();
+      });
+
+      micButton.addEventListener("contextmenu", function (event) {
+        event.preventDefault();
+      });
+
+      micButton.addEventListener("pointerdown", function () {
+        if (window.getSelection) {
+          window.getSelection().removeAllRanges();
+        }
+      });
+
+      micButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (
+          window.EZERO_VOICE_CONVERSATION &&
+          window.EZERO_VOICE_CONVERSATION.getState() === "SPEAKING"
+        ) {
+          status.textContent =
+            voiceLanguage() === "ur-PK"
+              ? "🔊 پہلے موجود جواب مکمل ہونے دیں"
+              : "🔊 Please let the current answer finish first";
+          return;
+        }
+
+        try {
+          recognition.lang = voiceLanguage();
+          status.textContent =
+            voiceLanguage() === "ur-PK"
+              ? "🎤 مائک شروع ہو رہا ہے…"
+              : "🎤 Starting microphone…";
+
+          recognition.start();
+        } catch (error) {
+          const name =
+            error && error.name ? error.name : "UNKNOWN";
+
+          status.textContent =
+            "MIC START ERROR: " + name;
+
+          console.warn(
+            "E-ZERO microphone start error:",
+            error
+          );
+
+          if (window.EZERO_MIC_VISUAL) {
+            window.EZERO_MIC_VISUAL.error();
+          }
+        }
+      });
+
+      recognition.onresult = function (event) {
+        const transcript =
+          event &&
+          event.results &&
+          event.results[0] &&
+          event.results[0][0]
+            ? event.results[0][0].transcript
+            : "";
+
+        if (!transcript) {
+          status.textContent = "No speech detected · Use text input";
+          return;
+        }
+
+        input.value = transcript;
+
+        status.textContent =
+          voiceLanguage() === "ur-PK"
+            ? "✓ سوال مکمل ہے · سبز Ask بٹن دبائیں"
+            : "✓ Question ready · Tap the green Ask button";
+
+        askButton.textContent = "✓ Ask";
+        askButton.style.background = "#16a34a";
+        askButton.style.color = "#ffffff";
+        askButton.style.borderColor = "#15803d";
+        askButton.style.boxShadow = "0 0 0 4px rgba(22,163,74,.18)";
+        askButton.style.transform = "scale(1.04)";
+
+        if (
+          window.EZERO_VOICE_GUIDE_SETTINGS &&
+          window.EZERO_VOICE_GUIDE_SETTINGS.autoSubmit
+        ) {
+          setConversationState("THINKING");
+
+          status.textContent =
+            voiceLanguage() === "ur-PK"
+              ? "⏳ سوال مل گیا · AI جواب تیار کر رہا ہے…"
+              : "⏳ Question captured · AI is preparing the answer…";
+
+          if (window.EZERO_MIC_VISUAL) {
+            window.EZERO_MIC_VISUAL.processing();
+          }
+
+          askButton.click();
+        } else {
+          setConversationState("READY");
+
+          if (window.EZERO_MIC_VISUAL) {
+            window.EZERO_MIC_VISUAL.idle();
+          }
+        }
+
+        autoSpeakAfterRecognition = false;
+      };
+
+      askButton.addEventListener("click", function () {
+        askButton.textContent = "Ask";
+        askButton.style.background = "";
+        askButton.style.color = "";
+        askButton.style.borderColor = "";
+        askButton.style.boxShadow = "";
+        askButton.style.transform = "";
+      });
+
+      recognition.onerror = function (event) {
+        const code = event && event.error ? event.error : "unknown";
+        status.textContent = "MIC ERROR: " + code;
+        console.warn("E-ZERO Voice Guide microphone error:", code);
+
+        if (window.EZERO_MIC_VISUAL) {
+          window.EZERO_MIC_VISUAL.error();
+        }
+      };
+
+      recognition.onstart = function () {
+        setConversationState("LISTEN");
+
+        status.textContent =
+          voiceLanguage() === "ur-PK"
+            ? "🎤 بولیں… خاموش ہونے پر خود بند ہو جائے گا"
+            : "🎤 Speak now… it will stop automatically after you finish";
+        if (window.EZERO_MIC_VISUAL) {
+          window.EZERO_MIC_VISUAL.listening();
+        }
+      };
+
+      recognition.onend = function () {
+        if (
+          status.textContent.includes("بولیں") ||
+          status.textContent.includes("Speak now")
+        ) {
+          status.textContent =
+            voiceLanguage() === "ur-PK"
+              ? "مائک بند ہوا · کوئی واضح آواز نہیں ملی · دوبارہ 🎤 دبائیں"
+              : "Microphone stopped · No clear speech detected · Tap 🎤 again";
+        }
+
+        if (window.EZERO_MIC_VISUAL) {
+          window.EZERO_MIC_VISUAL.idle();
+        }
+
+        if (autoSpeakAfterRecognition) {
+          autoSpeakAfterRecognition = false;
+
+          setTimeout(function () {
+            const spokenAnswer =
+              (answer.textContent || "").trim();
+
+            if (spokenAnswer) {
+              status.textContent =
+                voiceLanguage() === "ur-PK"
+                  ? "🔊 جواب تیار ہے · اب سنیں…"
+                  : "🔊 Answer ready · Speaking…";
+              speakButton.click();
+            }
+          }, 150);
+        }
+      };
+    } else {
+      micButton.disabled = true;
+      micButton.title = "Speech recognition is not supported in this browser";
+    }
+
+    if ("speechSynthesis" in window && window.SpeechSynthesisUtterance) {
+      speakButton.addEventListener("click", function () {
+        const text = (answer.textContent || "").trim();
+
+        if (!text) {
+          status.textContent = "Nothing available to speak";
+          return;
+        }
+
+        window.speechSynthesis.cancel();
+
+        const requestedLang = voiceLanguage();
+
+        const configuredRate =
+          window.EZERO_VOICE_GUIDE_SETTINGS &&
+          Number(window.EZERO_VOICE_GUIDE_SETTINGS.voiceSpeed)
+            ? Number(window.EZERO_VOICE_GUIDE_SETTINGS.voiceSpeed)
+            : 1;
+
+        if (
+          requestedLang === "ur-PK" &&
+          window.EZERO_URDU_AEGIS_TTS
+        ) {
+          setConversationState("SPEAKING");
+          micButton.disabled = true;
+
+          status.textContent =
+            "🔊 Aegis اردو آواز تیار کی جا رہی ہے…";
+
+          if (window.EZERO_MIC_VISUAL) {
+            window.EZERO_MIC_VISUAL.speaking();
+          }
+
+          window.EZERO_URDU_AEGIS_TTS
+            .speak(text, {
+              rate: configuredRate,
+              onProgress: function (progress) {
+                if (
+                  progress &&
+                  Number(progress.total) > 0
+                ) {
+                  const pct = Math.max(
+                    0,
+                    Math.min(
+                      100,
+                      Math.round(
+                        Number(progress.loaded) *
+                        100 /
+                        Number(progress.total)
+                      )
+                    )
+                  );
+
+                  status.textContent =
+                    "🔊 اردو Aegis آواز تیار ہو رہی ہے… " +
+                    pct +
+                    "%";
+                }
+              }
+            })
+            .then(function () {
+              setConversationState("READY");
+              micButton.disabled = false;
+
+              status.textContent =
+                "✓ تیار · نیا سوال پوچھنے کے لیے 🎤 دبائیں";
+
+              if (window.EZERO_MIC_VISUAL) {
+                window.EZERO_MIC_VISUAL.idle();
+              }
+            })
+            .catch(function (error) {
+              setConversationState("ERROR");
+              micButton.disabled = false;
+
+              console.warn(
+                "E-ZERO Urdu Aegis TTS error:",
+                error
+              );
+
+              const errorName =
+                error && error.name ? error.name : "Error";
+              const errorMessage =
+                error && error.message
+                  ? error.message
+                  : String(error || "Unknown Aegis TTS error");
+
+              window.EZERO_LAST_AEGIS_ERROR = {
+                name: errorName,
+                message: errorMessage
+              };
+
+              status.textContent =
+                "AEGIS ERROR: " +
+                errorName +
+                " · " +
+                errorMessage;
+
+              if (window.EZERO_MIC_VISUAL) {
+                window.EZERO_MIC_VISUAL.error();
+              }
+            });
+
+          return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = configuredRate;
+        const voices = window.speechSynthesis.getVoices() || [];
+
+        let selectedVoice = null;
+
+        if (requestedLang === "ur-PK") {
+          selectedVoice =
+            voices.find(v => /^ur(-|_)/i.test(v.lang)) ||
+            voices.find(v => /^hi(-|_)/i.test(v.lang)) ||
+            voices.find(v => /^ar(-|_)/i.test(v.lang)) ||
+            null;
+        } else {
+          const base = requestedLang.split("-")[0];
+          selectedVoice =
+            voices.find(v => v.lang === requestedLang) ||
+            voices.find(v => v.lang && v.lang.toLowerCase().startsWith(base.toLowerCase())) ||
+            null;
+        }
+
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+          utterance.lang = selectedVoice.lang;
+        } else {
+          utterance.lang = requestedLang;
+        }
+
+        utterance.onerror = function (event) {
+          setConversationState("ERROR");
+          micButton.disabled = false;
+
+          console.warn("E-ZERO Voice Guide speech synthesis error:", event.error || event);
+          status.textContent =
+            requestedLang === "ur-PK"
+              ? "Urdu voice unavailable on this device · Text answer is available"
+              : "Speech output unavailable · Text answer is available";
+        };
+
+        utterance.onstart = function () {
+          setConversationState("SPEAKING");
+          micButton.disabled = true;
+
+          status.textContent =
+            voiceLanguage() === "ur-PK"
+              ? "🔊 جواب سنایا جا رہا ہے…"
+              : "🔊 Speaking answer…";
+
+          if (window.EZERO_MIC_VISUAL) {
+            window.EZERO_MIC_VISUAL.speaking();
+          }
+        };
+
+        utterance.onend = function () {
+          setConversationState("READY");
+          micButton.disabled = false;
+
+          status.textContent =
+            voiceLanguage() === "ur-PK"
+              ? "✓ تیار · نیا سوال پوچھنے کے لیے 🎤 دبائیں"
+              : "✓ Ready · Tap 🎤 to ask another question";
+
+          if (window.EZERO_MIC_VISUAL) {
+            window.EZERO_MIC_VISUAL.idle();
+          }
+        };
+
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.resume();
+        window.speechSynthesis.speak(utterance);
+      });
+    } else {
+      speakButton.disabled = true;
+      speakButton.title = "Speech output is not supported in this browser";
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initializeSpeechLayer);
+  } else {
+    initializeSpeechLayer();
+  }
+})();
+
+/* Phase 0.2 — Feature Registry answer integration */
+(function () {
+  "use strict";
+
+  function normalizeFeatureText(value) {
+    return String(value || "")
+      .toLowerCase()
+      .replace(/[؟?.,!،؛:()[\]{}"'`]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function activeGuideLanguage() {
+    const selector =
+      document.getElementById("languageSelect");
+
+    if (selector && selector.value) {
+      return selector.value;
+    }
+
+    const lang =
+      (document.documentElement.lang || "en").toLowerCase();
+
+    return lang || "en";
+  }
+
+
+  function getI18nText(key, fallback) {
+    const lang = activeGuideLanguage();
+    const i18n = window.EZERO_I18N;
+
+    if (
+      i18n &&
+      i18n[lang] &&
+      typeof i18n[lang][key] === "string" &&
+      i18n[lang][key].trim()
+    ) {
+      return i18n[lang][key];
+    }
+
+    if (
+      i18n &&
+      i18n.en &&
+      typeof i18n.en[key] === "string" &&
+      i18n.en[key].trim()
+    ) {
+      return i18n.en[key];
+    }
+
+    return fallback || "";
+  }
+
+  function featureI18nKey(featureId) {
+    const map = {
+      vehicle_obd: "vehicle_intro",
+      industrial_intelligence: "industrial_intro",
+      fleet_shared_access: "fleet_section_title",
+      benchmark006c: "benchmark006c_intro",
+      evidence_governance: "evidence_section_intro",
+      adaptive_decision_lab: "adaptive_decision_lab_intro"
+    };
+
+    return map[featureId] || null;
+  }
+
+  function findFeatureRegistryAnswer(question) {
+    const registry = window.EZERO_VOICE_GUIDE_FEATURE_REGISTRY;
+
+    if (!registry || !Array.isArray(registry.features)) {
+      return null;
+    }
+
+    const q = normalizeFeatureText(question);
+
+    if (!q) return null;
+
+    let bestFeature = null;
+    let bestScore = 0;
+
+    registry.features.forEach(function (feature) {
+      let score = 0;
+
+      const searchable = []
+        .concat(feature.keywords || [])
+        .concat([
+          feature.id || "",
+          feature.title_en || "",
+          feature.title_ur || ""
+        ]);
+
+      searchable.forEach(function (term) {
+        const t = normalizeFeatureText(term);
+
+        if (!t) return;
+
+        if (q === t) {
+          score += 20;
+        } else if (q.includes(t)) {
+          score += Math.max(3, t.split(" ").length * 2);
+        }
+      });
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestFeature = feature;
+      }
+    });
+
+    if (!bestFeature || bestScore < 3) {
+      return null;
+    }
+
+    const lang = activeGuideLanguage();
+    const i18nKey = featureI18nKey(bestFeature.id);
+    const fallbackText =
+      lang === "ur"
+        ? bestFeature.explanation_ur
+        : bestFeature.explanation_en;
+
+    return {
+      matched: true,
+      source: "FEATURE_REGISTRY",
+      feature_id: bestFeature.id,
+      section_id: bestFeature.section_id,
+      text: i18nKey
+        ? getI18nText(i18nKey, fallbackText)
+        : fallbackText
+    };
+  }
+
+  function findControlRegistryAnswer(question) {
+    const registry = window.EZERO_VOICE_GUIDE_FEATURE_REGISTRY;
+
+    if (!registry || !Array.isArray(registry.controls)) {
+      return null;
+    }
+
+    const q = normalizeFeatureText(question);
+    const lang = activeGuideLanguage();
+
+    const aliases = {
+      languageSelect: [
+        "language",
+        "language button",
+        "language select",
+        "زبان",
+        "لینگویج"
+      ],
+      ezeroVoiceGuideButton: [
+        "voice guide button",
+        "voice button",
+        "وائس گائیڈ بٹن",
+        "وائس بٹن"
+      ],
+      ezeroVoiceGuideAsk: [
+        "ask button",
+        "ask",
+        "سوال بٹن",
+        "آسک بٹن"
+      ],
+      ezeroVoiceGuideMic: [
+        "mic",
+        "microphone",
+        "mic button",
+        "مائک",
+        "مائیک",
+        "مائک بٹن"
+      ],
+      ezeroVoiceGuideSpeak: [
+        "speak",
+        "speak button",
+        "speaker",
+        "سپیک",
+        "بولنے والا بٹن",
+        "آواز"
+      ]
+    };
+
+    for (const control of registry.controls) {
+      const terms = aliases[control.id] || [];
+
+      for (const term of terms) {
+        if (q.includes(normalizeFeatureText(term))) {
+          const controlKeyMap = {
+            languageSelect: "global_language_label"
+          };
+
+          const controlFallback =
+            lang === "ur"
+              ? control.purpose_ur
+              : control.purpose_en;
+
+          return {
+            matched: true,
+            source: "CONTROL_REGISTRY",
+            control_id: control.id,
+            text: controlKeyMap[control.id]
+              ? getI18nText(controlKeyMap[control.id], controlFallback)
+              : controlFallback
+          };
+        }
+      }
+    }
+
+    return null;
+  }
+
+  window.EZERO_VOICE_GUIDE_REGISTRY_LOOKUP = Object.freeze({
+    findFeatureRegistryAnswer,
+    findControlRegistryAnswer
+  });
+})();
+
+/* E-ZERO Voice Guide — Microphone Visual State */
+(function () {
+  "use strict";
+
+  function initMicVisualState() {
+    const micButton = document.getElementById("ezeroVoiceGuideMic");
+    const status = document.getElementById("ezeroVoiceGuideStatus");
+
+    if (!micButton || !status) return;
+
+    /* E-ZERO PROFESSIONAL MIC VISUAL V0.1 */
+
+    const icons = Object.freeze({
+      mic: `
+        <span aria-hidden="true"
+          style="display:inline-flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:25px;line-height:1;">🎙️</span>`,
+      processing: `
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <path d="M20 12a8 8 0 1 1-3-6.2"></path>
+          <path d="M17 3.8v4h-4"></path>
+        </svg>`,
+      speaking: `
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <path d="M4 10v4M8 7v10M12 5v14M16 8v8M20 10v4"></path>
+        </svg>`,
+      error: `
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <path d="M12 3 2.8 20h18.4L12 3z"></path>
+          <path d="M12 9v5M12 17.2h.01"></path>
+        </svg>`
+    });
+
+    function isUrdu() {
+      try {
+        return voiceLanguage() === "ur-PK";
+      } catch (_) {
+        return false;
+      }
+    }
+
+    const arabicMicAccessibility = Object.freeze({
+      idle: { aria: "بدء ميكروفون إي زيرو", title: "اضغط مرة واحدة ثم تحدث" },
+      listening: { aria: "إي زيرو يستمع إليك", title: "جارٍ الاستماع إليك" },
+      processing: { aria: "إي زيرو يُعد الرد", title: "جارٍ إعداد الرد" },
+      speaking: { aria: "إي زيرو يقرأ الرد", title: "جارٍ قراءة الرد" },
+      error: { aria: "خطأ في الميكروفون", title: "خطأ في الميكروفون" }
+    });
+
+    function micLocalizedText(state, field, fallback) {
+      if (voiceLanguage() === "ar-SA") {
+        const entry = arabicMicAccessibility[state];
+        if (entry && entry[field]) return entry[field];
+      }
+      return fallback;
+    }
+
+    const arabicMicLabels = Object.freeze({
+      idle: "تحدث",
+      listening: "جارٍ الاستماع",
+      processing: "جارٍ إعداد الرد",
+      speaking: "جارٍ التحدث",
+      error: "خطأ في الميكروفون"
+    });
+
+    function render(state, en, ur) {
+      const icon =
+        state === "processing" ? icons.processing :
+        state === "speaking" ? icons.speaking :
+        state === "error" ? icons.error :
+        icons.mic;
+
+      const locale = voiceLanguage();
+      const label =
+        locale === "ar-SA" ? arabicMicLabels[state] :
+        locale === "ur-PK" ? ur : en;
+
+      const subtitle =
+        locale === "ar-SA" ? "المساعد الصوتي" :
+        locale === "ur-PK" ? "وائس گائیڈ" :
+        "Voice Guide";
+
+      micButton.dataset.ezeroMicState = state;
+      micButton.innerHTML =
+        '<span class="ezero-pro-mic-icon">' + icon + '</span>' +
+        '<span class="ezero-pro-mic-copy">' +
+          '<strong>' + label + '</strong>' +
+          '<small>' + subtitle + '</small>' +
+        '</span>';
+    }
+
+    if (!document.getElementById("ezeroVoiceMicVisualStyles")) {
+      const style = document.createElement("style");
+      style.id = "ezeroVoiceMicVisualStyles";
+      style.textContent = `
+        #ezeroVoiceGuideMic{
+          position:relative;
+          min-height:50px;
+          padding:6px 11px !important;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          gap:8px;
+          border-radius:14px !important;
+          overflow:visible;
+          transition:
+            transform .18s ease,
+            box-shadow .18s ease,
+            border-color .18s ease,
+            opacity .18s ease;
+        }
+
+        #ezeroVoiceGuideMic .ezero-pro-mic-icon{
+          width:34px;
+          height:34px;
+          flex:0 0 34px;
+          display:grid;
+          place-items:center;
+          position:relative;
+          border-radius:11px;
+          color:#fff;
+          background:linear-gradient(145deg,#0b4f66,#278fa3);
+          box-shadow:
+            0 6px 14px rgba(11,79,102,.24),
+            inset 0 1px 0 rgba(255,255,255,.25);
+        }
+
+        #ezeroVoiceGuideMic .ezero-pro-mic-icon svg{
+          width:20px;
+          height:20px;
+          fill:none;
+          stroke:currentColor;
+          stroke-width:1.8;
+          stroke-linecap:round;
+          stroke-linejoin:round;
+        }
+
+        #ezeroVoiceGuideMic .ezero-pro-mic-copy{
+          display:flex;
+          flex-direction:column;
+          align-items:flex-start;
+          line-height:1.05;
+        }
+
+        #ezeroVoiceGuideMic .ezero-pro-mic-copy strong{
+          font-size:12px;
+          font-weight:900;
+          color:#123b4b;
+        }
+
+        #ezeroVoiceGuideMic .ezero-pro-mic-copy small{
+          margin-top:3px;
+          font-size:9px;
+          font-weight:700;
+          color:#6b818a;
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-listening{
+          transform:scale(1.035);
+          border-color:#278fa3 !important;
+          background:#effafd !important;
+          box-shadow:
+            0 0 0 3px rgba(39,143,163,.09),
+            0 8px 20px rgba(11,79,102,.15);
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-listening .ezero-pro-mic-icon::after{
+          content:"";
+          position:absolute;
+          inset:-6px;
+          border:2px solid rgba(39,143,163,.32);
+          border-radius:15px;
+          animation:ezeroProMicPulse 1.15s ease-out infinite;
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-processing .ezero-pro-mic-icon{
+          background:linear-gradient(145deg,#4c6570,#718b96);
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-processing .ezero-pro-mic-icon svg{
+          animation:ezeroProMicSpin .9s linear infinite;
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-speaking{
+          border-color:#63b4c5 !important;
+          background:#f0fbfd !important;
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-speaking .ezero-pro-mic-icon{
+          background:linear-gradient(145deg,#0d6178,#35a2b6);
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-speaking .ezero-pro-mic-icon svg{
+          animation:ezeroProMicSpeak .7s ease-in-out infinite alternate;
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-error{
+          border-color:#d89a9a !important;
+          background:#fff7f7 !important;
+          animation:ezeroProMicError .35s linear 2;
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-error .ezero-pro-mic-icon{
+          background:linear-gradient(145deg,#913c3c,#bd5c5c);
+        }
+
+        #ezeroVoiceGuideMic:disabled{
+          opacity:.55;
+          cursor:not-allowed;
+          transform:none;
+        }
+
+        @keyframes ezeroProMicPulse{
+          0%{opacity:.85;transform:scale(.86)}
+          75%,100%{opacity:0;transform:scale(1.3)}
+        }
+
+        @keyframes ezeroProMicSpin{
+          to{transform:rotate(360deg)}
+        }
+
+        @keyframes ezeroProMicSpeak{
+          from{transform:scaleY(.84);opacity:.7}
+          to{transform:scaleY(1.08);opacity:1}
+        }
+
+        @keyframes ezeroProMicError{
+          0%,100%{transform:translateX(0)}
+          25%{transform:translateX(-3px)}
+          75%{transform:translateX(3px)}
+        }
+
+        @media(prefers-reduced-motion:reduce){
+          #ezeroVoiceGuideMic,
+          #ezeroVoiceGuideMic .ezero-pro-mic-icon,
+          #ezeroVoiceGuideMic .ezero-pro-mic-icon::after{
+            animation:none !important;
+            transition:none !important;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    window.EZERO_MIC_VISUAL = Object.freeze({
+      idle: function () {
+        micButton.classList.remove(
+          "ezero-mic-listening",
+          "ezero-mic-processing",
+          "ezero-mic-error",
+          "ezero-mic-speaking"
+        );
+        render("idle", "Speak", "بولیں");
+        micButton.setAttribute(
+          "aria-label",
+          micLocalizedText("idle", "aria", (isUrdu() ? "ای زیرو کا مائیکروفون شروع کریں" : "Start E-ZERO Voice Guide microphone"))
+        );
+        micButton.title = micLocalizedText("idle", "title", isUrdu() ? "ایک بار دبائیں اور بولیں" : "Tap once and speak");
+      },
+
+      listening: function () {
+        micButton.classList.remove(
+          "ezero-mic-processing",
+          "ezero-mic-error",
+          "ezero-mic-speaking"
+        );
+        micButton.classList.add("ezero-mic-listening");
+        render("listening", "Listening", "سن رہا ہے");
+        micButton.setAttribute(
+          "aria-label",
+          micLocalizedText("listening", "aria", (isUrdu() ? "ای زیرو آپ کی بات سن رہا ہے" : "E-ZERO Voice Guide is listening"))
+        );
+        micButton.title = micLocalizedText("listening", "title", isUrdu() ? "آپ کی بات سنی جا رہی ہے" : "Listening");
+      },
+
+      processing: function () {
+        micButton.classList.remove(
+          "ezero-mic-listening",
+          "ezero-mic-error",
+          "ezero-mic-speaking"
+        );
+        micButton.classList.add("ezero-mic-processing");
+        render("processing", "Processing", "تیار ہو رہا ہے");
+        micButton.setAttribute(
+          "aria-label",
+          micLocalizedText("processing", "aria", (isUrdu() ? "ای زیرو جواب تیار کر رہا ہے" : "E-ZERO Voice Guide is processing"))
+        );
+        micButton.title = micLocalizedText("processing", "title", isUrdu() ? "جواب تیار ہو رہا ہے" : "Preparing answer");
+      },
+
+      speaking: function () {
+        micButton.classList.remove(
+          "ezero-mic-listening",
+          "ezero-mic-processing",
+          "ezero-mic-error"
+        );
+        micButton.classList.add("ezero-mic-speaking");
+        render("speaking", "Speaking", "جواب دے رہا ہے");
+        micButton.setAttribute(
+          "aria-label",
+          micLocalizedText("speaking", "aria", (isUrdu() ? "ای زیرو جواب سنا رہا ہے" : "E-ZERO Voice Guide is speaking"))
+        );
+        micButton.title = micLocalizedText("speaking", "title", isUrdu() ? "جواب سنایا جا رہا ہے" : "Speaking");
+      },
+
+      error: function () {
+        micButton.classList.remove(
+          "ezero-mic-listening",
+          "ezero-mic-processing",
+          "ezero-mic-speaking"
+        );
+        micButton.classList.add("ezero-mic-error");
+        render("error", "Microphone error", "مائیکروفون میں خرابی");
+        micButton.setAttribute(
+          "aria-label",
+          micLocalizedText("error", "aria",
+            isUrdu() ? "مائیکروفون میں خرابی" : "Microphone error")
+        );
+        micButton.title = micLocalizedText(
+          "error", "title",
+          isUrdu() ? "مائیکروفون میں خرابی" : "Microphone error"
+        );
+
+        setTimeout(function () {
+          if (micButton.dataset.ezeroMicState === "error") {
+            window.EZERO_MIC_VISUAL.idle();
+          }
+        }, 900);
+      }
+    });
+
+    document.addEventListener("ezero:languagechange", function () {
+      const state = micButton.dataset.ezeroMicState || "idle";
+      const labels = {
+        idle: ["Speak", "بولیں"],
+        listening: ["Listening", "سن رہا ہے"],
+        processing: ["Processing", "تیار ہو رہا ہے"],
+        speaking: ["Speaking", "جواب دے رہا ہے"],
+        error: ["Microphone error", "مائیکروفون میں خرابی"]
+      };
+      if (!Object.prototype.hasOwnProperty.call(labels, state)) return;
+
+      const entry = labels[state];
+      render(state, entry[0], entry[1]);
+
+      const accessibility = {
+        idle: ["Start E-ZERO Voice Guide microphone", "ای زیرو کا مائیکروفون شروع کریں", "Tap once and speak", "ایک بار دبائیں اور بولیں"],
+        listening: ["E-ZERO Voice Guide is listening", "ای زیرو آپ کی بات سن رہا ہے", "Listening", "آپ کی بات سنی جا رہی ہے"],
+        processing: ["E-ZERO Voice Guide is processing", "ای زیرو جواب تیار کر رہا ہے", "Preparing answer", "جواب تیار ہو رہا ہے"],
+        speaking: ["E-ZERO Voice Guide is speaking", "ای زیرو جواب سنا رہا ہے", "Speaking", "جواب سنایا جا رہا ہے"],
+        error: ["Microphone error", "مائیکروفون میں خرابی", "Microphone error", "مائیکروفون میں خرابی"]
+      };
+
+      const a = accessibility[state];
+      micButton.setAttribute(
+        "aria-label",
+        micLocalizedText(state, "aria", isUrdu() ? a[1] : a[0])
+      );
+      micButton.title = micLocalizedText(
+        state, "title", isUrdu() ? a[3] : a[2]
+      );
+    });
+
+    window.EZERO_MIC_VISUAL.idle();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initMicVisualState);
+  } else {
+    initMicVisualState();
+  }
+})();
+
+/* E-ZERO Result Intelligence Listener V0.1 */
+(function () {
+  "use strict";
+
+  document.addEventListener("ezero:result", function (event) {
+    const detail = event && event.detail ? event.detail : null;
+
+    if (!detail) return;
+
+    const panel = document.getElementById("ezeroVoiceGuidePanel");
+    const input = document.getElementById("ezeroVoiceGuideInput");
+    const answer = document.getElementById("ezeroVoiceGuideAnswer");
+    const status = document.getElementById("ezeroVoiceGuideStatus");
+    const askButton = document.getElementById("ezeroVoiceGuideAsk");
+
+    if (!panel || !input || !answer || !status || !askButton) {
+      console.warn("E-ZERO result listener: Voice Guide UI unavailable");
+      return;
+    }
+
+    panel.style.display = "block";
+    panel.setAttribute("aria-hidden", "false");
+
+    if (typeof window.EZERO_POSITION_AI_AGENT_PANEL === "function") {
+      window.EZERO_POSITION_AI_AGENT_PANEL();
+    }
+
+    const lang =
+      window.EZERO_LANGUAGE &&
+      typeof window.EZERO_LANGUAGE.current === "function"
+        ? window.EZERO_LANGUAGE.current()
+        : (document.documentElement.lang || "en");
+
+    const isUrdu = lang === "ur";
+
+    const prompt =
+      isUrdu
+        ? (
+            "اس E-ZERO result کی مکمل مگر evidence-grounded وضاحت کریں۔ " +
+            "اصل result یا status تبدیل نہ کریں۔ " +
+            "تشخیص یا safety claim نہ بنائیں۔ " +
+            "Module: " + detail.module +
+            " | Result type: " + detail.result_type +
+            " | Status: " + detail.status +
+            " | Provenance: " + detail.provenance +
+            " | Evidence level: " + detail.evidence_level +
+            " | Diagnostic authority: FALSE" +
+            " | Summary: " + detail.summary
+          )
+        : (
+            "Explain this E-ZERO result clearly and in detail within its evidence boundary. " +
+            "Do not alter the original result or status. " +
+            "Do not create diagnosis or safety claims. " +
+            "Module: " + detail.module +
+            " | Result type: " + detail.result_type +
+            " | Status: " + detail.status +
+            " | Provenance: " + detail.provenance +
+            " | Evidence level: " + detail.evidence_level +
+            " | Diagnostic authority: FALSE" +
+            " | Summary: " + detail.summary
+          );
+
+    input.value = prompt;
+
+    answer.textContent =
+      isUrdu
+        ? "نیا E-ZERO result موصول ہوا ہے۔ وضاحت تیار کرنے کے لیے Ask دبائیں۔"
+        : "A new E-ZERO result was received. Tap Ask to prepare an explanation.";
+
+    status.textContent =
+      isUrdu
+        ? "✓ نیا result موصول ہوا · وضاحت تیار ہے"
+        : "✓ New result received · Ready to explain";
+
+    askButton.textContent = "✓ Ask";
+    askButton.style.background = "#16a34a";
+    askButton.style.color = "#ffffff";
+    askButton.style.borderColor = "#15803d";
+    askButton.style.boxShadow = "0 0 0 4px rgba(22,163,74,.18)";
+
+    const settings =
+      window.EZERO_VOICE_GUIDE_SETTINGS || {};
+
+    if (settings.autoResultExplain) {
+      status.textContent =
+        isUrdu
+          ? "⏳ Result موصول ہوا · وضاحت تیار کی جا رہی ہے…"
+          : "⏳ Result received · Preparing explanation…";
+
+      setTimeout(function () {
+        askButton.click();
+      }, 120);
+    }
+
+    window.EZERO_RESULT_AUTO_SPEAK_PENDING =
+      !!(
+        window.EZERO_VOICE_GUIDE_SETTINGS &&
+        window.EZERO_VOICE_GUIDE_SETTINGS.autoSpeakResults
+      );
+
+    window.EZERO_LAST_RESULT = Object.freeze({
+      module: detail.module,
+      result_type: detail.result_type,
+      status: detail.status,
+      summary: detail.summary,
+      provenance: detail.provenance,
+      evidence_level: detail.evidence_level,
+      timestamp: detail.timestamp,
+      diagnostic_authority: false
+    });
+  });
+})();

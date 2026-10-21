@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E-ZERO Urdu Voice Diagnostic</title>
+<style>
+body{font:17px system-ui,sans-serif;padding:18px;line-height:1.8}
+button{padding:13px;background:#147d64;color:white;border:0;border-radius:9px}
+pre{direction:ltr;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;background:#eef5f7;padding:12px;border-radius:9px}
+</style>
+</head>
+<body>
+<h2>ای زیرو — اردو آواز کی تشخیص</h2>
+<p>یہ جانچ صرف براؤزر میں دستیاب آوازیں اور محفوظ صوتی ماڈل دیکھے گی۔</p>
+<button id="run">جانچ شروع کریں</button>
+<pre id="output">ابھی جانچ شروع نہیں ہوئی۔</pre>
+<script>
+document.getElementById("run").onclick=async function(){
+ const lines=[];
+ const add=s=>lines.push(s);
+ add("SPEECH_API: "+("speechSynthesis" in window));
+ if("speechSynthesis" in window){
+   const voices=window.speechSynthesis.getVoices();
+   add("BROWSER_VOICES_COUNT: "+voices.length);
+   const urdu=voices.filter(v=>/^ur([-_]|$)/i.test(v.lang));
+   add("URDU_VOICES_COUNT: "+urdu.length);
+   urdu.forEach(v=>add("VOICE: "+v.name+" | "+v.lang));
+ }
+ add("OPFS_SUPPORTED: "+!!navigator.storage?.getDirectory);
+ try{
+   const root=await navigator.storage.getDirectory();
+   const folder=await root.getDirectoryHandle("piper",{create:false});
+   let count=0,urdu=0;
+   for await(const [name,handle] of folder.entries()){
+     count++;
+     if(/ur_PK|aegis/i.test(name)){
+       urdu++;
+       const f=await handle.getFile();
+       add("URDU_STORED_FILE: "+name+" | "+f.size+" bytes");
+     }
+   }
+   add("PIPER_STORED_FILES: "+count);
+   add("URDU_STORED_MATCHES: "+urdu);
+ }catch(e){
+   add("PIPER_STORAGE: "+e.name+" | "+e.message);
+ }
+ document.getElementById("output").textContent=lines.join("\n");
+};
+</script>
+</body>
+</html>

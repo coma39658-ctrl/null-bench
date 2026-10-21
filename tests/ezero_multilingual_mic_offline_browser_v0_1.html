@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E-ZERO Offline Mic UI Test</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:650px;margin:25px auto;padding:15px}
+button,select{padding:12px;margin:6px;font-size:16px}
+#result{white-space:pre-wrap;background:#eee;color:#111;padding:15px;border-radius:8px}
+</style>
+</head>
+<body>
+<h2>E-ZERO — Offline Microphone UI Test</h2>
+<p>Visual test only. No microphone access, Qwen or network requests.</p>
+<label>Language:
+<select id="languageSelect">
+<option value="en">English</option>
+<option value="ur">اردو</option>
+<option value="ar">العربية</option>
+</select></label>
+<div>
+<button id="ezeroVoiceGuideMic" type="button">Mic</button>
+<span id="ezeroVoiceGuideStatus"></span>
+</div>
+<div id="controls"></div>
+<pre id="result">WAITING</pre>
+<script>
+"use strict";
+window.EZERO_PUBLIC_AI_ENABLED = false;
+window.fetch = function(){throw Error("NETWORK_FORBIDDEN");};
+window.XMLHttpRequest = undefined;
+window.WebSocket = undefined;
+function voiceLanguage(){
+const x=document.getElementById("languageSelect").value;
+return {en:"en-US",ur:"ur-PK",ar:"ar-SA"}[x]||"en-US";
+}
+</script>
+<script>
+/* E-ZERO Voice Guide — Microphone Visual State */
+(function () {
+  "use strict";
+
+  function initMicVisualState() {
+    const micButton = document.getElementById("ezeroVoiceGuideMic");
+    const status = document.getElementById("ezeroVoiceGuideStatus");
+
+    if (!micButton || !status) return;
+
+    /* E-ZERO PROFESSIONAL MIC VISUAL V0.1 */
+
+    const icons = Object.freeze({
+      mic: `
+        <span aria-hidden="true"
+          style="display:inline-flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:25px;line-height:1;">🎙️</span>`,
+      processing: `
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <path d="M20 12a8 8 0 1 1-3-6.2"></path>
+          <path d="M17 3.8v4h-4"></path>
+        </svg>`,
+      speaking: `
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <path d="M4 10v4M8 7v10M12 5v14M16 8v8M20 10v4"></path>
+        </svg>`,
+      error: `
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <path d="M12 3 2.8 20h18.4L12 3z"></path>
+          <path d="M12 9v5M12 17.2h.01"></path>
+        </svg>`
+    });
+
+    function isUrdu() {
+      try {
+        return voiceLanguage() === "ur-PK";
+      } catch (_) {
+        return false;
+      }
+    }
+
+    const arabicMicAccessibility = Object.freeze({
+      idle: { aria: "بدء ميكروفون إي زيرو", title: "اضغط مرة واحدة ثم تحدث" },
+      listening: { aria: "إي زيرو يستمع إليك", title: "جارٍ الاستماع إليك" },
+      processing: { aria: "إي زيرو يُعد الرد", title: "جارٍ إعداد الرد" },
+      speaking: { aria: "إي زيرو يقرأ الرد", title: "جارٍ قراءة الرد" },
+      error: { aria: "خطأ في الميكروفون", title: "خطأ في الميكروفون" }
+    });
+
+    function micLocalizedText(state, field, fallback) {
+      if (voiceLanguage() === "ar-SA") {
+        const entry = arabicMicAccessibility[state];
+        if (entry && entry[field]) return entry[field];
+      }
+      return fallback;
+    }
+
+    const arabicMicLabels = Object.freeze({
+      idle: "تحدث",
+      listening: "جارٍ الاستماع",
+      processing: "جارٍ إعداد الرد",
+      speaking: "جارٍ التحدث",
+      error: "خطأ في الميكروفون"
+    });
+
+    function render(state, en, ur) {
+      const icon =
+        state === "processing" ? icons.processing :
+        state === "speaking" ? icons.speaking :
+        state === "error" ? icons.error :
+        icons.mic;
+
+      const locale = voiceLanguage();
+      const label =
+        locale === "ar-SA" ? arabicMicLabels[state] :
+        locale === "ur-PK" ? ur : en;
+
+      const subtitle =
+        locale === "ar-SA" ? "المساعد الصوتي" :
+        locale === "ur-PK" ? "وائس گائیڈ" :
+        "Voice Guide";
+
+      micButton.dataset.ezeroMicState = state;
+      micButton.innerHTML =
+        '<span class="ezero-pro-mic-icon">' + icon + '</span>' +
+        '<span class="ezero-pro-mic-copy">' +
+          '<strong>' + label + '</strong>' +
+          '<small>' + subtitle + '</small>' +
+        '</span>';
+    }
+
+    if (!document.getElementById("ezeroVoiceMicVisualStyles")) {
+      const style = document.createElement("style");
+      style.id = "ezeroVoiceMicVisualStyles";
+      style.textContent = `
+        #ezeroVoiceGuideMic{
+          position:relative;
+          min-height:50px;
+          padding:6px 11px !important;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          gap:8px;
+          border-radius:14px !important;
+          overflow:visible;
+          transition:
+            transform .18s ease,
+            box-shadow .18s ease,
+            border-color .18s ease,
+            opacity .18s ease;
+        }
+
+        #ezeroVoiceGuideMic .ezero-pro-mic-icon{
+          width:34px;
+          height:34px;
+          flex:0 0 34px;
+          display:grid;
+          place-items:center;
+          position:relative;
+          border-radius:11px;
+          color:#fff;
+          background:linear-gradient(145deg,#0b4f66,#278fa3);
+          box-shadow:
+            0 6px 14px rgba(11,79,102,.24),
+            inset 0 1px 0 rgba(255,255,255,.25);
+        }
+
+        #ezeroVoiceGuideMic .ezero-pro-mic-icon svg{
+          width:20px;
+          height:20px;
+          fill:none;
+          stroke:currentColor;
+          stroke-width:1.8;
+          stroke-linecap:round;
+          stroke-linejoin:round;
+        }
+
+        #ezeroVoiceGuideMic .ezero-pro-mic-copy{
+          display:flex;
+          flex-direction:column;
+          align-items:flex-start;
+          line-height:1.05;
+        }
+
+        #ezeroVoiceGuideMic .ezero-pro-mic-copy strong{
+          font-size:12px;
+          font-weight:900;
+          color:#123b4b;
+        }
+
+        #ezeroVoiceGuideMic .ezero-pro-mic-copy small{
+          margin-top:3px;
+          font-size:9px;
+          font-weight:700;
+          color:#6b818a;
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-listening{
+          transform:scale(1.035);
+          border-color:#278fa3 !important;
+          background:#effafd !important;
+          box-shadow:
+            0 0 0 3px rgba(39,143,163,.09),
+            0 8px 20px rgba(11,79,102,.15);
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-listening .ezero-pro-mic-icon::after{
+          content:"";
+          position:absolute;
+          inset:-6px;
+          border:2px solid rgba(39,143,163,.32);
+          border-radius:15px;
+          animation:ezeroProMicPulse 1.15s ease-out infinite;
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-processing .ezero-pro-mic-icon{
+          background:linear-gradient(145deg,#4c6570,#718b96);
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-processing .ezero-pro-mic-icon svg{
+          animation:ezeroProMicSpin .9s linear infinite;
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-speaking{
+          border-color:#63b4c5 !important;
+          background:#f0fbfd !important;
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-speaking .ezero-pro-mic-icon{
+          background:linear-gradient(145deg,#0d6178,#35a2b6);
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-speaking .ezero-pro-mic-icon svg{
+          animation:ezeroProMicSpeak .7s ease-in-out infinite alternate;
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-error{
+          border-color:#d89a9a !important;
+          background:#fff7f7 !important;
+          animation:ezeroProMicError .35s linear 2;
+        }
+
+        #ezeroVoiceGuideMic.ezero-mic-error .ezero-pro-mic-icon{
+          background:linear-gradient(145deg,#913c3c,#bd5c5c);
+        }
+
+        #ezeroVoiceGuideMic:disabled{
+          opacity:.55;
+          cursor:not-allowed;
+          transform:none;
+        }
+
+        @keyframes ezeroProMicPulse{
+          0%{opacity:.85;transform:scale(.86)}
+          75%,100%{opacity:0;transform:scale(1.3)}
+        }
+
+        @keyframes ezeroProMicSpin{
+          to{transform:rotate(360deg)}
+        }
+
+        @keyframes ezeroProMicSpeak{
+          from{transform:scaleY(.84);opacity:.7}
+          to{transform:scaleY(1.08);opacity:1}
+        }
+
+        @keyframes ezeroProMicError{
+          0%,100%{transform:translateX(0)}
+          25%{transform:translateX(-3px)}
+          75%{transform:translateX(3px)}
+        }
+
+        @media(prefers-reduced-motion:reduce){
+          #ezeroVoiceGuideMic,
+          #ezeroVoiceGuideMic .ezero-pro-mic-icon,
+          #ezeroVoiceGuideMic .ezero-pro-mic-icon::after{
+            animation:none !important;
+            transition:none !important;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    let micErrorGeneration = 0;
+
+    window.EZERO_MIC_VISUAL = Object.freeze({
+      idle: function () {
+        micButton.classList.remove(
+          "ezero-mic-listening",
+          "ezero-mic-processing",
+          "ezero-mic-error",
+          "ezero-mic-speaking"
+        );
+        render("idle", "Speak", "بولیں");
+        micButton.setAttribute(
+          "aria-label",
+          micLocalizedText("idle", "aria", (isUrdu() ? "ای زیرو کا مائیکروفون شروع کریں" : "Start E-ZERO Voice Guide microphone"))
+        );
+        micButton.title = micLocalizedText("idle", "title", isUrdu() ? "ایک بار دبائیں اور بولیں" : "Tap once and speak");
+      },
+
+      listening: function () {
+        micButton.classList.remove(
+          "ezero-mic-processing",
+          "ezero-mic-error",
+          "ezero-mic-speaking"
+        );
+        micButton.classList.add("ezero-mic-listening");
+        render("listening", "Listening", "سن رہا ہے");
+        micButton.setAttribute(
+          "aria-label",
+          micLocalizedText("listening", "aria", (isUrdu() ? "ای زیرو آپ کی بات سن رہا ہے" : "E-ZERO Voice Guide is listening"))
+        );
+        micButton.title = micLocalizedText("listening", "title", isUrdu() ? "آپ کی بات سنی جا رہی ہے" : "Listening");
+      },
+
+      processing: function () {
+        micButton.classList.remove(
+          "ezero-mic-listening",
+          "ezero-mic-error",
+          "ezero-mic-speaking"
+        );
+        micButton.classList.add("ezero-mic-processing");
+        render("processing", "Processing", "تیار ہو رہا ہے");
+        micButton.setAttribute(
+          "aria-label",
+          micLocalizedText("processing", "aria", (isUrdu() ? "ای زیرو جواب تیار کر رہا ہے" : "E-ZERO Voice Guide is processing"))
+        );
+        micButton.title = micLocalizedText("processing", "title", isUrdu() ? "جواب تیار ہو رہا ہے" : "Preparing answer");
+      },
+
+      speaking: function () {
+        micButton.classList.remove(
+          "ezero-mic-listening",
+          "ezero-mic-processing",
+          "ezero-mic-error"
+        );
+        micButton.classList.add("ezero-mic-speaking");
+        render("speaking", "Speaking", "جواب دے رہا ہے");
+        micButton.setAttribute(
+          "aria-label",
+          micLocalizedText("speaking", "aria", (isUrdu() ? "ای زیرو جواب سنا رہا ہے" : "E-ZERO Voice Guide is speaking"))
+        );
+        micButton.title = micLocalizedText("speaking", "title", isUrdu() ? "جواب سنایا جا رہا ہے" : "Speaking");
+      },
+
+      error: function () {
+        micButton.classList.remove(
+          "ezero-mic-listening",
+          "ezero-mic-processing",
+          "ezero-mic-speaking"
+        );
+        micButton.classList.add("ezero-mic-error");
+        render("error", "Microphone error", "مائیکروفون میں خرابی");
+        micButton.setAttribute(
+          "aria-label",
+          micLocalizedText("error", "aria",
+            isUrdu() ? "مائیکروفون میں خرابی" : "Microphone error")
+        );
+        micButton.title = micLocalizedText(
+          "error", "title",
+          isUrdu() ? "مائیکروفون میں خرابی" : "Microphone error"
+        );
+
+        const thisErrorGeneration = ++micErrorGeneration;
+        setTimeout(function () {
+          if (
+            micButton.dataset.ezeroMicState === "error" &&
+            thisErrorGeneration === micErrorGeneration
+          ) {
+            window.EZERO_MIC_VISUAL.idle();
+          }
+        }, 900);
+      }
+    });
+
+    document.addEventListener("ezero:languagechange", function () {
+      const state = micButton.dataset.ezeroMicState || "idle";
+      const labels = {
+        idle: ["Speak", "بولیں"],
+        listening: ["Listening", "سن رہا ہے"],
+        processing: ["Processing", "تیار ہو رہا ہے"],
+        speaking: ["Speaking", "جواب دے رہا ہے"],
+        error: ["Microphone error", "مائیکروفون میں خرابی"]
+      };
+      if (!Object.prototype.hasOwnProperty.call(labels, state)) return;
+
+      const entry = labels[state];
+      render(state, entry[0], entry[1]);
+
+      const accessibility = {
+        idle: ["Start E-ZERO Voice Guide microphone", "ای زیرو کا مائیکروفون شروع کریں", "Tap once and speak", "ایک بار دبائیں اور بولیں"],
+        listening: ["E-ZERO Voice Guide is listening", "ای زیرو آپ کی بات سن رہا ہے", "Listening", "آپ کی بات سنی جا رہی ہے"],
+        processing: ["E-ZERO Voice Guide is processing", "ای زیرو جواب تیار کر رہا ہے", "Preparing answer", "جواب تیار ہو رہا ہے"],
+        speaking: ["E-ZERO Voice Guide is speaking", "ای زیرو جواب سنا رہا ہے", "Speaking", "جواب سنایا جا رہا ہے"],
+        error: ["Microphone error", "مائیکروفون میں خرابی", "Microphone error", "مائیکروفون میں خرابی"]
+      };
+
+      const a = accessibility[state];
+      micButton.setAttribute(
+        "aria-label",
+        micLocalizedText(state, "aria", isUrdu() ? a[1] : a[0])
+      );
+      micButton.title = micLocalizedText(
+        state, "title", isUrdu() ? a[3] : a[2]
+      );
+    });
+
+    window.EZERO_MIC_VISUAL.idle();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initMicVisualState);
+  } else {
+    initMicVisualState();
+  }
+})();
+
+
+</script>
+<script>
+(function(){
+const states=["idle","listening","processing","speaking","error"];
+const select=document.getElementById("languageSelect");
+const result=document.getElementById("result");
+const controls=document.getElementById("controls");
+function show(){
+const mic=document.getElementById("ezeroVoiceGuideMic");
+result.textContent="LANGUAGE: "+voiceLanguage()+"\nSTATE: "+
+mic.dataset.ezeroMicState+"\nARIA: "+
+mic.getAttribute("aria-label")+"\nTITLE: "+mic.title+
+"\nPUBLIC_AI_ENABLED: "+window.EZERO_PUBLIC_AI_ENABLED;
+}
+states.forEach(function(state){
+const b=document.createElement("button");
+b.textContent=state;
+b.onclick=function(){window.EZERO_MIC_VISUAL[state]();show();};
+controls.appendChild(b);
+});
+select.onchange=function(){
+document.dispatchEvent(new Event("ezero:languagechange"));
+show();
+};
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", show);
+} else {
+  show();
+}
+})();
+</script>
+</body>
+</html>

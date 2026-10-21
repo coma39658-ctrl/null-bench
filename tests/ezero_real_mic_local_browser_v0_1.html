@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ur">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E-ZERO Real Microphone Test</title>
+<style>
+body{font-family:system-ui,sans-serif;padding:20px;max-width:650px;margin:auto}
+button,select{padding:14px;font-size:17px;margin:8px}
+#status,#result{padding:15px;background:#eee;color:#111;
+border-radius:10px;white-space:pre-wrap;overflow-wrap:anywhere}
+</style>
+</head>
+<body>
+<h2>E-ZERO — Real Microphone Test</h2>
+<p>Speech-to-Text only. No Qwen or AI requests.</p>
+<label>Language:
+<select id="lang">
+<option value="ur-PK">اردو</option>
+<option value="ar-SA">العربية</option>
+<option value="en-US">English</option>
+</select>
+</label>
+<p><button id="start" type="button">🎤 بولنا شروع کریں</button></p>
+<p id="status" role="status">READY</p>
+<h3>پہچانا گیا متن</h3>
+<p id="result">ابھی کوئی آواز نہیں</p>
+<script>
+"use strict";
+window.EZERO_PUBLIC_AI_ENABLED = false;
+const button = document.getElementById("start");
+const status = document.getElementById("status");
+const result = document.getElementById("result");
+const Recognition = window.SpeechRecognition ||
+                    window.webkitSpeechRecognition;
+if (!Recognition) {
+  status.textContent = "UNSUPPORTED: Browser speech recognition unavailable";
+  button.disabled = true;
+} else {
+  const recognition = new Recognition();
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.onstart = function () {
+    status.textContent = "LISTENING";
+    button.disabled = true;
+  };
+  recognition.onresult = function (event) {
+    const text = event.results[0][0].transcript;
+    result.textContent = text || "NO SPEECH";
+    status.textContent = text ? "TRANSCRIPT_READY" : "NO SPEECH";
+  };
+  recognition.onerror = function (event) {
+    status.textContent = "MIC_ERROR: " + event.error;
+  };
+  recognition.onend = function () {
+    button.disabled = false;
+    if (status.textContent === "LISTENING") {
+      status.textContent = "ENDED_NO_RESULT";
+    }
+  };
+  button.onclick = function () {
+    recognition.lang = document.getElementById("lang").value;
+    result.textContent = "انتظار کریں...";
+    try {
+      recognition.start();
+    } catch (error) {
+      status.textContent = "START_ERROR: " + error.name;
+    }
+  };
+}
+</script>
+</body>
+</html>

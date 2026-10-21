@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ur" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E-ZERO Urdu Voice Comparison</title>
+<style>
+body{font-family:system-ui;margin:24px;line-height:1.8}
+button{display:block;font-size:20px;margin:15px 0;padding:14px}
+pre{white-space:pre-wrap;background:#eee;padding:15px}
+</style>
+</head>
+<body>
+<h2>E-ZERO — اردو آوازوں کا موازنہ</h2>
+<p>ایک ہی جملہ، دو مختلف اردو آوازیں۔</p>
+
+<button id="pk">🔊 پاکستانی اردو سنیں</button>
+<button id="in">🔊 بھارتی اردو سنیں</button>
+<button id="stop">⏹ آواز بند کریں</button>
+
+<pre id="status">WAITING</pre>
+
+<script>
+let run = 0;
+const statusBox = document.getElementById("status");
+const sentence = "السلام علیکم۔ میں ای زیرو کی اردو آواز ہوں۔";
+
+function playVoice(lang) {
+  if (!("speechSynthesis" in window)) {
+    statusBox.textContent = "UNSUPPORTED";
+    return;
+  }
+
+  const voices = speechSynthesis.getVoices();
+  const voice = voices.find(v =>
+    v.lang.replace(/_/g, "-").toLowerCase() === lang.toLowerCase()
+  );
+
+  if (!voice) {
+    statusBox.textContent = "VOICE_NOT_FOUND: " + lang;
+    return;
+  }
+
+  const current = ++run;
+  speechSynthesis.cancel();
+
+  const speech = new SpeechSynthesisUtterance(sentence);
+  speech.voice = voice;
+  speech.lang = lang;
+  speech.rate = 0.9;
+
+  speech.onstart = () => {
+    if (current === run)
+      statusBox.textContent = "STARTED: " + voice.name;
+  };
+
+  speech.onend = () => {
+    if (current === run)
+      statusBox.textContent = "ENDED: " + voice.name;
+  };
+
+  speech.onerror = e => {
+    if (current === run)
+      statusBox.textContent = "ERROR: " + e.error;
+  };
+
+  statusBox.textContent = "REQUESTED: " + voice.name;
+  speechSynthesis.speak(speech);
+}
+
+document.getElementById("pk").onclick = () => playVoice("ur-PK");
+document.getElementById("in").onclick = () => playVoice("ur-IN");
+document.getElementById("stop").onclick = () => {
+  ++run;
+  speechSynthesis.cancel();
+  statusBox.textContent = "STOPPED";
+};
+</script>
+</body>
+</html>

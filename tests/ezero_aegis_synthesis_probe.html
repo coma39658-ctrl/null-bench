@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E-ZERO Aegis Synthesis Test</title>
+<h2>پاکستانی اردو آواز کا تجربہ</h2>
+<p>یہ تجربہ صرف "السلام علیکم" کی آواز بنائے گا۔</p>
+<button id="start">تجربہ شروع کریں</button>
+<button id="stop" disabled>روکیں</button>
+<pre id="result">تجربہ ابھی شروع نہیں ہوا</pre>
+<script type="module">
+const start = document.getElementById("start");
+const stop = document.getElementById("stop");
+const out = document.getElementById("result");
+let worker = null, timer = null, url = null;
+
+function finish(message) {
+  clearTimeout(timer);
+  if (worker) worker.terminate();
+  if (url) URL.revokeObjectURL(url);
+  worker = null;
+  url = null;
+  start.disabled = false;
+  stop.disabled = true;
+  out.textContent = message;
+}
+
+start.onclick = () => {
+  start.disabled = true;
+  stop.disabled = false;
+  out.textContent = "آواز تیار کی جا رہی ہے...";
+  const moduleUrl = new URL(
+    "../js/vendor/ezero-piper-urdu/piper-tts-web-urdu.mjs",
+    location.href
+  ).href;
+  const source = `
+self.onmessage = async () => {
+  try {
+    const engine = await import(${JSON.stringify(moduleUrl)});
+    const wav = await engine.predict({
+      text: "السلام علیکم",
+      voiceId: "ur_PK-aegis_female-medium"
+    }, p => self.postMessage({
+      kind: "progress",
+      loaded: p?.loaded,
+      total: p?.total
+    }));
+    self.postMessage({kind: "pass", bytes: wav.size});
+  } catch(e) {
+    self.postMessage({kind: "fail", error: String(e)});
+  }
+};`;
+  url = URL.createObjectURL(
+    new Blob([source], {type: "text/javascript"})
+  );
+  try {
+    worker = new Worker(url, {type: "module"});
+    worker.onmessage = e => {
+      const d = e.data;
+      if (d.kind === "progress") {
+        out.textContent = "PROGRESS: " +
+          JSON.stringify({loaded:d.loaded,total:d.total});
+      } else {
+        finish(JSON.stringify(d));
+      }
+    };
+    worker.onerror = e => finish("WORKER ERROR: " + e.message);
+    timer = setTimeout(
+      () => finish("TIMEOUT: 90 seconds"),
+      90000
+    );
+    worker.postMessage("start");
+  } catch(e) {
+    finish("ERROR: " + String(e));
+  }
+};
+stop.onclick = () => finish("STOPPED");
+</script>
+</html>

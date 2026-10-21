@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E-ZERO Aegis Test</title>
+<style>
+body{font:18px system-ui;padding:16px;line-height:1.8}
+button{padding:14px;background:#147d64;color:white;border:0;border-radius:9px}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;direction:ltr;text-align:left;background:#eef5f7;padding:12px}
+</style>
+<h2>پاکستانی اردو — اصل آواز کی جانچ</h2>
+<button id="start">جانچ شروع کریں</button>
+<button id="play" disabled>🔊 آواز سنیں</button>
+<pre id="result">ابھی جانچ شروع نہیں ہوئی</pre>
+<script>
+document.querySelector("#start").onclick = function(){
+ const button=document.querySelector("#start");
+ const output=document.querySelector("#result");
+ button.disabled=true;
+ output.textContent="STARTING_WORKER";
+ let worker, finished=false;
+ const log=s=>output.textContent+="\n"+s;
+ function finish(s){
+   if(finished)return;
+   finished=true;
+   clearTimeout(timer);
+   log(s);
+   if(worker)worker.terminate();
+   button.disabled=false;
+ }
+ const timer=setTimeout(()=>finish("TIMEOUT_AFTER_90_SECONDS"),90000);
+ try{
+   worker=new Worker("../js/ezero_urdu_aegis_worker_v0_1.mjs",{type:"module"});
+   worker.onerror=e=>finish("WORKER_ERROR: "+(e.message||"unknown"));
+   worker.onmessageerror=()=>finish("MESSAGE_ERROR");
+   worker.onmessage=e=>{
+     const d=e.data||{};
+     if(d.type==="PROGRESS"){
+       if(Number(d.total)>0)log("PROGRESS: "+Math.round(d.loaded*100/d.total)+"%");
+     }
+     if(d.type==="ERROR")finish("ENGINE_ERROR: "+d.message);
+     if(d.type==="DONE"){
+       if(!(d.wav instanceof Blob) || d.wav.size <= 44){
+         finish("INVALID_AUDIO_FILE");
+         return;
+       }
+       window.ezeroTestWav=d.wav;
+       document.querySelector("#play").disabled=false;
+       finish("AUDIO_CREATED_BYTES: "+d.wav.size+"\\nREADY_TO_PLAY");
+     }
+   };
+   worker.postMessage({type:"SPEAK",id:1,text:"السلام علیکم، یہ ای زیرو کی آواز کی جانچ ہے۔"});
+   log("WORKER_REQUEST_SENT");
+ }catch(e){finish("START_ERROR: "+e.message);}
+};
+document.querySelector("#play").onclick=async function(){
+ const out=document.querySelector("#result");
+ const audio=new Audio(URL.createObjectURL(window.ezeroTestWav));
+ audio.onended=()=>out.textContent+="\\nPLAYBACK_FINISHED";
+ audio.onerror=()=>out.textContent+="\\nPLAYBACK_ERROR";
+ try{
+   await audio.play();
+   out.textContent+="\\nPLAYBACK_STARTED";
+ }catch(e){
+   out.textContent+="\\nPLAYBACK_BLOCKED: "+e.name;
+ }
+};
+</script>
+</html>

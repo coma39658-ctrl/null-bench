@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<meta charset="utf-8">
+<title>E-ZERO Aegis Worker Test</title>
+<h3>ایجس آواز: الگ ورکر کی جانچ</h3>
+<pre id="result">جانچ جاری ہے...</pre>
+<script type="module">
+const out = document.getElementById("result");
+const url = new URL(
+  "../js/vendor/ezero-piper-urdu/piper-tts-web-urdu.mjs",
+  location.href
+).href;
+
+const source = `
+(async () => {
+  try {
+    const engine = await import(${JSON.stringify(url)});
+    const storage = typeof navigator.storage?.getDirectory;
+    self.postMessage({
+      result: "PASS",
+      predict: typeof engine.predict,
+      storage
+    });
+  } catch (error) {
+    self.postMessage({
+      result: "FAIL",
+      error: String(error)
+    });
+  }
+})();
+`;
+
+const blob = new Blob([source], {
+  type: "text/javascript"
+});
+const blobUrl = URL.createObjectURL(blob);
+
+try {
+  const worker = new Worker(blobUrl, {
+    type: "module"
+  });
+
+  const timer = setTimeout(() => {
+    out.textContent = "TIMEOUT: Worker did not respond";
+    worker.terminate();
+  }, 12000);
+
+  worker.onmessage = event => {
+    clearTimeout(timer);
+    out.textContent = JSON.stringify(
+      event.data, null, 2
+    );
+    worker.terminate();
+  };
+
+  worker.onerror = event => {
+    clearTimeout(timer);
+    out.textContent = "WORKER ERROR: " +
+      event.message;
+    worker.terminate();
+  };
+} catch (error) {
+  out.textContent = "UNSUPPORTED: " + error;
+}
+</script>
+</html>

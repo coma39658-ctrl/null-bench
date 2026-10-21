@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ur">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E-ZERO Urdu Voice Availability</title>
+<body style="font-family:system-ui;padding:20px">
+<h2>E-ZERO — اردو آواز کی دستیابی</h2>
+<p>صرف Browser Voices کی جانچ۔ کوئی AI Request نہیں۔</p>
+<button onclick="check()">Check Available Voices</button>
+<button type="button" onclick="speakUrdu()">🔊 پاکستانی اردو آواز سنیں</button>
+<pre id="playback" style="white-space:pre-wrap">AUDIO_PLAYBACK: NOT_STARTED</pre>
+<pre id="result" style="white-space:pre-wrap">WAITING</pre>
+<script>
+function check() {
+  if (!("speechSynthesis" in window)) {
+    document.getElementById("result").textContent =
+      "SPEECH_SYNTHESIS: UNSUPPORTED";
+    return;
+  }
+  const voices = speechSynthesis.getVoices();
+  const urdu = voices.filter(v => /^ur[-_]/i.test(v.lang));
+  document.getElementById("result").textContent =
+    "TOTAL_VOICES: " + voices.length +
+    "\nURDU_VOICES: " + urdu.length +
+    "\n" + urdu.map(v => v.name + " | " + v.lang).join("\n") +
+    "\nAUDIO_PLAYBACK: NOT_STARTED";
+}
+
+function speakUrdu() {
+  const status = document.getElementById("playback");
+  if (!("speechSynthesis" in window)) {
+    status.textContent = "AUDIO_PLAYBACK: UNSUPPORTED";
+    return;
+  }
+
+  const voices = speechSynthesis.getVoices();
+  const voice = voices.find(v =>
+    v.lang.replace(/_/g, "-").toLowerCase() === "ur-pk"
+  );
+
+  if (!voice) {
+    status.textContent = "URDU_PAKISTAN_VOICE: NOT_FOUND";
+    return;
+  }
+
+  const utterance = new SpeechSynthesisUtterance(
+    "السلام علیکم۔ میں ای زیرو کی اردو آواز ہوں۔"
+  );
+  utterance.lang = "ur-PK";
+  utterance.voice = voice;
+  utterance.rate = 0.9;
+
+  utterance.onstart = () => {
+    status.textContent = "AUDIO_PLAYBACK: STARTED | " + voice.name;
+  };
+  utterance.onend = () => {
+    status.textContent = "AUDIO_PLAYBACK: ENDED | " + voice.name;
+  };
+  utterance.onerror = event => {
+    status.textContent = "AUDIO_PLAYBACK: ERROR | " + event.error;
+  };
+
+  speechSynthesis.cancel();
+  status.textContent = "AUDIO_PLAYBACK: REQUESTED | " + voice.name;
+  speechSynthesis.speak(utterance);
+}
+if ("speechSynthesis" in window) {
+  speechSynthesis.addEventListener("voiceschanged", check);
+}
+check();
+</script>
+</body>
+</html>
