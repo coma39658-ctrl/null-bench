@@ -3769,7 +3769,24 @@ function drawHistogram(vals,observed){
   ></textarea>
  </div>
 
- <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+
+<div style="margin-top:12px;">
+  <label for="ezeroVoiceGuideImageInput">
+    تصویر یا اسکرین شاٹ منتخب کریں
+  </label>
+  <input id="ezeroVoiceGuideImageInput"
+         type="file"
+         accept="image/png,image/jpeg,image/webp"
+         style="display:block;margin-top:6px;max-width:100%;">
+  <img id="ezeroVoiceGuideImagePreview"
+       alt="منتخب تصویر کا مقامی پیش منظر"
+       hidden
+       style="max-width:100%;max-height:250px;margin-top:10px;border-radius:8px;">
+  <p id="ezeroVoiceGuideImageStatus" role="status">
+    تصویر ابھی AI سرور کو نہیں بھیجی جائے گی۔
+  </p>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
   <button
    id="ezeroVoiceGuideAsk"
    type="button"
@@ -4253,6 +4270,7 @@ window.addEventListener("load", async function () {
 })();
 </script>
 
+<script src="js/ezero_qwen_local_image_preview_v0_1.js"></script>
 </body>
 </html>
 
