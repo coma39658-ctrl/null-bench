@@ -19,7 +19,7 @@
 
     let busy = false;
 
-    button.addEventListener("click", async function () {
+    async function mockClick() {
       if (busy || button.disabled) return;
 
       const file = (gallery.files && gallery.files[0]) ||
@@ -65,7 +65,15 @@
         busy = false;
         button.disabled = false;
       }
-    });
+    }
+
+    const previewApi = window.EZERO_LOCAL_IMAGE_PREVIEW_V0_1;
+    if (previewApi &&
+        typeof previewApi.setMockClickHandler === "function") {
+      previewApi.setMockClickHandler(mockClick);
+    } else {
+      button.addEventListener("click", mockClick);
+    }
   }
 
   window.EZERO_VISION_LOCAL_BRIDGE_CANDIDATE_V0_1 =

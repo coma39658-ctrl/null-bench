@@ -129,7 +129,7 @@ async function clickButton() {
   assert.equal(button.disabled, false);
   console.log("IMAGE_SELECTION: PASS");
 
-  assert.equal(events["button:click"].length, 2);
+  assert.equal(events["button:click"].length, 1, "DUPLICATE_CLICK_HANDLERS");
 
   await clickButton();
 

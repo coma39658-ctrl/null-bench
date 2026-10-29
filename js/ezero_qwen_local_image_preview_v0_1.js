@@ -2,6 +2,15 @@
   "use strict";
   const MAX_BYTES = 5 * 1024 * 1024;
   let currentUrl = null;
+  let mockClickHandler = null;
+
+  window.EZERO_LOCAL_IMAGE_PREVIEW_V0_1 = Object.freeze({
+    setMockClickHandler(handler) {
+      if (typeof handler !== "function")
+        throw new Error("INVALID_MOCK_CLICK_HANDLER");
+      mockClickHandler = handler;
+    }
+  });
 
   function initialize() {
     const input = document.getElementById("ezeroVoiceGuideImageInput");
@@ -46,6 +55,7 @@
 
     sendButton.addEventListener("click", function () {
       if (!selectedFile || sendButton.disabled) return;
+      if (mockClickHandler) return mockClickHandler();
       status.textContent = "مقامی اجازت کا بٹن دبایا گیا۔ تصویر AI کو نہیں بھیجی گئی۔";
     });
     input.addEventListener("change", onImageChange);
