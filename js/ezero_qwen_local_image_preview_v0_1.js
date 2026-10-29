@@ -5,32 +5,38 @@
 
   function initialize() {
     const input = document.getElementById("ezeroVoiceGuideImageInput");
+    const camera = document.getElementById("ezeroVoiceGuideCameraInput");
     const preview = document.getElementById("ezeroVoiceGuideImagePreview");
     const status = document.getElementById("ezeroVoiceGuideImageStatus");
-    if (!input || !preview || !status) return;
+    if (!input || !camera || !preview || !status) return;
 
-    input.addEventListener("change", function () {
+    function onImageChange(event) {
       if (currentUrl) URL.revokeObjectURL(currentUrl);
       currentUrl = null;
       preview.hidden = true;
       preview.removeAttribute("src");
 
-      const file = input.files && input.files[0];
+      const chosen = event.currentTarget;
+      const file = chosen.files && chosen.files[0];
       if (!file) {
         status.textContent = "کوئی تصویر منتخب نہیں ہوئی۔";
         return;
       }
       if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)
           || file.size > MAX_BYTES) {
-        input.value = "";
+        chosen.value = "";
         status.textContent = "صرف PNG، JPEG یا WEBP تصویر، زیادہ سے زیادہ 5 MB۔";
         return;
       }
+      (chosen === camera ? input : camera).value = "";
       currentUrl = URL.createObjectURL(file);
       preview.src = currentUrl;
       preview.hidden = false;
       status.textContent = "مقامی پیش منظر تیار ہے۔ تصویر AI کو نہیں بھیجی گئی۔";
-    });
+    }
+
+    input.addEventListener("change", onImageChange);
+    camera.addEventListener("change", onImageChange);
 
     window.addEventListener("pagehide", function () {
       if (currentUrl) URL.revokeObjectURL(currentUrl);
