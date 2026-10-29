@@ -12,6 +12,17 @@ const input = {
   value: "",
   addEventListener: (name, fn) => events[name] = fn
 };
+
+const camera = {
+  files: [], value: "",
+  addEventListener: (name, fn) => events["camera_" + name] = fn
+};
+const sendButton = {
+  disabled: true,
+  setAttribute(name, value) { this[name] = value; },
+  addEventListener: (name, fn) => events["button_" + name] = fn
+};
+
 const preview = {
   hidden: true,
   removeAttribute(key) { delete this[key]; }
@@ -19,6 +30,8 @@ const preview = {
 const status = { textContent: "" };
 const elements = {
   ezeroVoiceGuideImageInput: input,
+  ezeroVoiceGuideCameraInput: camera,
+  ezeroVoiceGuideImageSend: sendButton,
   ezeroVoiceGuideImagePreview: preview,
   ezeroVoiceGuideImageStatus: status
 };
@@ -44,22 +57,22 @@ vm.runInNewContext(
 assert.strictEqual(typeof events.change, "function");
 
 input.files = [{ type: "image/png", size: 1024 }];
-events.change();
+events.change({ currentTarget: input });
 assert.strictEqual(preview.hidden, false);
 assert.strictEqual(preview.src, "blob:test-1");
 
 input.files = [{ type: "application/pdf", size: 1024 }];
-events.change();
+events.change({ currentTarget: input });
 assert.strictEqual(preview.hidden, true);
 assert.strictEqual(input.value, "");
 assert(revoked.includes("blob:test-1"));
 
 input.files = [{ type: "image/jpeg", size: 6 * 1024 * 1024 }];
-events.change();
+events.change({ currentTarget: input });
 assert.strictEqual(preview.hidden, true);
 
-input.files = [{ type: "image/webp", size: 1024 }];
-events.change();
+camera.files = [{ type: "image/webp", size: 1024 }];
+events.camera_change({ currentTarget: camera });
 assert.strictEqual(preview.hidden, false);
 assert.strictEqual(preview.src, "blob:test-2");
 
