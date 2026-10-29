@@ -39,13 +39,23 @@
 
     const requestFetch = config.fetchImpl || window.fetch.bind(window);
 
+    const controller =
+      typeof window.AbortController === "function"
+        ? new window.AbortController() : null;
+    const timer =
+      controller && typeof window.setTimeout === "function"
+        ? window.setTimeout(() => controller.abort(), 30000)
+        : null;
+
+    try {
     const response = await requestFetch(STAGING_URL, {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       credentials: "omit",
       redirect: "error",
       cache: "no-store",
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
+      ...(controller ? {signal: controller.signal} : {})
     });
 
     if (!response.ok)
@@ -64,6 +74,15 @@
       source_class: data.source_class || "UNKNOWN",
       diagnostic_claim: false
     });
+    } catch (error) {
+      if (controller && controller.signal.aborted)
+        throw new Error("VISION_REQUEST_TIMEOUT");
+      throw error;
+    } finally {
+      if (timer !== null &&
+          typeof window.clearTimeout === "function")
+        window.clearTimeout(timer);
+    }
   }
 
   window.EZERO_QWEN_VISION_TRANSPORT_CANDIDATE_V0_1 =

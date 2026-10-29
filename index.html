@@ -4279,6 +4279,18 @@ window.addEventListener("load", async function () {
 </script>
 
 <script src="js/ezero_qwen_local_image_preview_v0_1.js"></script>
+<script src="js/ezero_qwen_vision_payload_candidate_v0_1.js"></script>
+<script src="js/ezero_qwen_vision_transport_candidate_v0_1.js"></script>
+<script src="js/ezero_qwen_vision_real_bridge_candidate_v0_1.js"></script>
+<script>
+(function () {
+  "use strict";
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("ezero_vision_staging") !== "1") return;
+
+  window.EZERO_VISION_REAL_BRIDGE_CANDIDATE_V0_1.install();
+})();
+</script>
 </body>
 </html>
 
