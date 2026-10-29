@@ -8,9 +8,14 @@
     const camera = document.getElementById("ezeroVoiceGuideCameraInput");
     const preview = document.getElementById("ezeroVoiceGuideImagePreview");
     const status = document.getElementById("ezeroVoiceGuideImageStatus");
-    if (!input || !camera || !preview || !status) return;
+    const sendButton = document.getElementById("ezeroVoiceGuideImageSend");
+    if (!input || !camera || !preview || !status || !sendButton) return;
+    let selectedFile = null;
 
     function onImageChange(event) {
+      selectedFile = null;
+      sendButton.disabled = true;
+      sendButton.setAttribute("aria-disabled", "true");
       if (currentUrl) URL.revokeObjectURL(currentUrl);
       currentUrl = null;
       preview.hidden = true;
@@ -29,12 +34,20 @@
         return;
       }
       (chosen === camera ? input : camera).value = "";
+      selectedFile = file;
       currentUrl = URL.createObjectURL(file);
       preview.src = currentUrl;
       preview.hidden = false;
-      status.textContent = "مقامی پیش منظر تیار ہے۔ تصویر AI کو نہیں بھیجی گئی۔";
+      status.textContent = "تصویر تیار ہے۔ ابھی AI کو نہیں بھیجی گئی۔";
+      sendButton.disabled = false;
+      sendButton.setAttribute("aria-disabled", "false");
+      sendButton.textContent = "تصویر کی اجازت جانچیں (مقامی آزمائش)";
     }
 
+    sendButton.addEventListener("click", function () {
+      if (!selectedFile || sendButton.disabled) return;
+      status.textContent = "مقامی اجازت کا بٹن دبایا گیا۔ تصویر AI کو نہیں بھیجی گئی۔";
+    });
     input.addEventListener("change", onImageChange);
     camera.addEventListener("change", onImageChange);
 
