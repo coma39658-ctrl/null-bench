@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>E-ZERO — تصویری AI تجرباتی صفحہ</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#edf5f7;color:#173746;font-family:system-ui,Arial,sans-serif;line-height:1.8}
+main{max-width:660px;margin:24px auto;padding:22px;background:white;border-radius:16px}
+label{display:block;margin-top:14px;font-weight:650}
+input[type=file],textarea,select{display:block;width:100%;font:inherit;padding:9px;border:1px solid #a5bfc7;border-radius:9px}
+textarea{min-height:85px}img{display:block;max-width:100%;max-height:320px;margin:14px auto;border-radius:9px}
+button{font:inherit;background:#087d91;color:white;border:0;border-radius:9px;padding:11px 19px;margin-top:15px}
+button:disabled{opacity:.5} .note{background:#fff4df;padding:11px;border-radius:9px}
+#visionAnswer{white-space:pre-wrap;overflow-wrap:anywhere;background:#eaf5f7;padding:12px;border-radius:9px;min-height:45px}
+</style>
+</head>
+<body>
+<main>
+<a href="./ezero_public_media_preview_v0_1.html">← مقامی میڈیا پیش منظر</a>
+<h1>E-ZERO — تصویر سمجھنے والا AI</h1>
+<p class="note">یہ تجرباتی صفحہ ہے۔ منتخب تصویر پہلے صرف آپ کے فون پر دکھائی جائے گی۔ واضح اجازت اور بٹن دبانے کے بعد ایک تصویر AI سرور کو بھیجی جائے گی۔ AI کا جواب حتمی گاڑی تشخیص نہیں ہے۔</p>
+<form id="visionForm">
+<label for="visionFile">تصویر یا اسکرین شاٹ منتخب کریں (PNG، JPG، WebP؛ زیادہ سے زیادہ 5 MB)</label>
+<input id="visionFile" type="file" accept="image/png,image/jpeg,image/webp">
+<img id="visionPreview" alt="منتخب تصویر کا مقامی پیش منظر" hidden>
+<label for="visionQuestion">AI سے اپنا سوال پوچھیں</label>
+<textarea id="visionQuestion" maxlength="4000">اس تصویر میں کیا نظر آ رہا ہے؟ آسان اردو میں وضاحت کریں۔</textarea>
+<label for="visionLanguage">جواب کی زبان</label>
+<select id="visionLanguage">
+<option value="ur">اردو</option>
+<option value="en">English</option>
+<option value="ar">العربية</option>
+<option value="hi">हिन्दी</option>
+</select>
+<label><input id="visionConsent" type="checkbox"> میں اجازت دیتا/دیتی ہوں کہ منتخب تصویر تجزیے کے لیے E-ZERO AI سرور کو بھیجی جائے۔</label>
+<button id="visionSend" type="submit" disabled>تصویر AI سے سمجھائیں</button>
+</form>
+<p id="visionStatus" role="status" aria-live="polite">ابھی کوئی تصویر نہیں بھیجی گئی۔</p>
+<h2>AI کا جواب</h2>
+<div id="visionAnswer" aria-live="polite">ابھی کوئی جواب نہیں۔</div>
+<p>حفاظتی اصول: کوئی ECU کمانڈ نہیں، کوئی DTC صاف نہیں، اور غیر مصدقہ تشخیص کا دعویٰ نہیں۔</p>
+</main>
+<script src="./js/ezero_qwen_vision_payload_candidate_v0_1.js"></script>
+<script src="./js/ezero_qwen_vision_transport_candidate_v0_1.js"></script>
+<script>
+(function(){
+"use strict";
+const ENDPOINT="https://ezero-qwen-vision-gateway-public.coma39658.workers.dev/api/ezero-agent/v0.1/ask";
+const get=id=>document.getElementById(id);
+const fileInput=get("visionFile"),consent=get("visionConsent"),send=get("visionSend");
+const preview=get("visionPreview"),status=get("visionStatus"),answer=get("visionAnswer");
+let url=null,busy=false;
+function valid(f){return !!f&&["image/png","image/jpeg","image/webp"].includes(f.type)&&f.size>0&&f.size<=5*1024*1024;}
+function refresh(){send.disabled=busy||!valid(fileInput.files[0])||!consent.checked;}
+function clearPreview(){if(url)URL.revokeObjectURL(url);url=null;preview.hidden=true;preview.removeAttribute("src");}
+fileInput.addEventListener("change",function(){
+ clearPreview();consent.checked=false;answer.textContent="ابھی کوئی جواب نہیں۔";
+ const f=fileInput.files[0];
+ if(f&&!valid(f)){status.textContent="فائل کی قسم یا حجم درست نہیں۔";fileInput.value="";}
+ else if(f){url=URL.createObjectURL(f);preview.src=url;preview.hidden=false;status.textContent="مقامی پیش منظر تیار ہے؛ ابھی تصویر نہیں بھیجی گئی۔";}
+ else status.textContent="کوئی تصویر منتخب نہیں۔";
+ refresh();
+});
+consent.addEventListener("change",refresh);
+window.addEventListener("pagehide",clearPreview);
+get("visionForm").addEventListener("submit",async function(event){
+ event.preventDefault();
+ const f=fileInput.files[0];
+ if(busy||!valid(f)||!consent.checked)return;
+ const payload=window.EZERO_VISION_PAYLOAD_CANDIDATE_V0_1;
+ const transport=window.EZERO_QWEN_VISION_TRANSPORT_CANDIDATE_V0_1;
+ if(!payload||!transport){status.textContent="AI ماڈیول دستیاب نہیں۔";return;}
+ busy=true;refresh();answer.textContent="";status.textContent="تصویر AI کو بھیجی جا رہی ہے۔";
+ try{
+   const question=get("visionQuestion").value.trim()||"Describe this image.";
+   const data=await payload.prepare(f,question,true);
+   data.response_language=get("visionLanguage").value;
+   const result=await transport.send(data,{userInitiated:true,stagingEnabled:true,endpoint:ENDPOINT});
+   if(result.source_class!=="GOVERNED_AI")throw Error("UNVERIFIED_AI_RESPONSE");
+   if(fileInput.files[0]!==f){status.textContent="تصویر بدل گئی؛ پچھلا جواب نہیں دکھایا گیا۔";return;}
+   answer.textContent=result.answer;
+   status.textContent="AI کا جواب موصول ہوا؛ یہ حتمی تشخیص نہیں ہے۔";
+ }catch(error){
+   status.textContent="درخواست ناکام: "+(error.message||"UNKNOWN_ERROR");
+ }finally{busy=false;refresh();}
+});
+refresh();
+})();
+</script>
+</body>
+</html>
