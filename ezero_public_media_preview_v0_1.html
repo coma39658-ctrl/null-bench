@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>E-ZERO — عوامی ماڈیولز اور مقامی تصویر/ویڈیو پیش منظر</title>
+<style>
+:root{color-scheme:light;--ink:#173746;--muted:#526c77;--teal:#087d91;--line:#cbdce0;--bg:#f2f8f9}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,"Noto Naskh Arabic",Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.8}
+header{background:#123548;color:white;padding:22px max(18px,calc((100vw - 1080px)/2))}header a{color:#d8f8ff}header h1{margin:0;font-size:clamp(23px,4vw,34px)}header p{margin:5px 0;color:#d1e7ed}
+main{max-width:1080px;margin:auto;padding:20px 16px 70px}h2{margin:0 0 10px;font-size:1.4rem}h3{margin:0;font-size:1.1rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}.card,.panel{background:white;border:1px solid var(--line);border-radius:15px;padding:18px;margin-bottom:16px}
+p{margin:9px 0}a{color:#05637a}a.action,button{font:inherit;background:var(--teal);color:white;border:0;border-radius:10px;padding:10px 14px;display:inline-block;cursor:pointer;text-decoration:none;font-weight:700}
+a.action:focus-visible,button:focus-visible{outline:3px solid #ffb940;outline-offset:3px}.tag{display:inline-block;border-radius:99px;background:#e6f1f4;padding:2px 11px;font-size:.86rem;font-weight:700;margin:5px 0}.note{font-size:.94rem;color:var(--muted)}.warn{background:#fff6e7;border-inline-start:4px solid #c27a16;padding:12px;border-radius:6px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.media{min-height:180px;background:#edf5f7;border:1px dashed #8babb6;border-radius:10px;padding:12px;display:grid;place-items:center;margin-top:13px;overflow:hidden}.media img,.media video{max-width:100%;max-height:380px;border-radius:8px}.media video{width:100%}input[type=file]{width:100%;font:inherit} .media [hidden]{display:none} .status{min-height:28px;color:#385a67;font-size:.95rem}button.secondary{background:#466675}footer{padding:18px;text-align:center;color:var(--muted);font-size:.9rem}code,bdi{direction:ltr;unicode-bidi:isolate}
+@media(max-width:500px){main{padding:15px 12px 55px}header{padding:18px 16px}.card,.panel{padding:14px}}
+.ezero-photo-gallery.has-items{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:10px;align-items:start}
+.ezero-photo-gallery .ezero-photo-tile{width:100%;margin:0;display:grid;gap:6px;min-width:0}
+.ezero-photo-gallery .ezero-photo-thumb{max-width:100%;width:100%;height:140px;object-fit:contain;background:#fff;border-radius:8px;border:1px solid #cbdce0}
+.ezero-photo-gallery figcaption{font-size:.8rem;word-break:break-word;line-height:1.25}
+.ezero-photo-gallery button{font-size:.8rem;padding:6px 8px}
+
+</style>
+</head>
+<body>
+<!-- E-ZERO_PUBLIC_MEDIA_LOCAL_PREVIEW_V0_1: public UI only; no server upload -->
+<header>
+  <a href="./index.html#vehicle-obd">← E-ZERO / Null Bench</a>
+  <h1>E-ZERO — عوامی تحقیقی ماڈیولز</h1>
+  <p>Verified evidence, baseline boundaries, and private-on-device media preview</p>
+</header>
+<main>
+<section class="panel" aria-labelledby="verifiedTitle">
+  <h2 id="verifiedTitle">موجودہ عوامی سہولتیں</h2>
+  <div class="cards">
+    <article class="card"><span class="tag">PUBLIC / COMPUTATIONAL</span><h3>Null Bench</h3><p>نیٹ ورک کے ساختی تجزیے اور شماریاتی نل ماڈل کی آزمائش۔ یہ طبیعی ثبوت یا وجہ کا فیصلہ نہیں۔</p><a class="action" href="./index.html#try">آزمائش کھولیں</a></article>
+    <article class="card"><span class="tag">SIMULATED / LOG_REPLAY</span><h3>E-ZERO OBD Simulation</h3><p>پہلے سے متعین A–H سمیولیشن حالات؛ اصل گاڑی یا ECU کے ساتھ کوئی رابطہ نہیں۔</p><a class="action" href="./index.html#vehicle-obd">محفوظ سمیولیشن</a></article>
+    <article class="card"><span class="tag">EXISTING PUBLIC LINK — LIVE STATUS UNVERIFIED</span><h3>E-ZERO Dashboard</h3><p>موجودہ بیرونی ڈیش بورڈ کا رابطہ۔ دستیابی اور تازہ تعیناتی کی الگ تصدیق ضروری ہے۔</p><a class="action" href="https://e-zero-dashboard.onrender.com/dashboard" rel="noopener noreferrer" target="_blank">ڈیش بورڈ کھولیں</a></article>
+    <article class="card"><span class="tag">READ-ONLY / PARTIAL EVIDENCE</span><h3>Vehicle Baseline</h3><p>محفوظ read-only سافٹ ویئر اور محدود جسمانی OBD شواہد؛ مکمل گاڑی اسکین، تشخیص یا آزاد فیلڈ تصدیق کا دعویٰ نہیں۔ اصل نجی رپورٹس یہاں شائع نہیں کی جاتیں۔</p><a class="action" href="./index.html#evidence">شواہد اور حدود</a></article>
+  </div>
+</section>
+<section class="panel" aria-labelledby="mediaTitle">
+  <h2 id="mediaTitle">تصویر، اسکرین شاٹ اور ویڈیو</h2>
+  <p class="warn">یہ صرف <strong>آپ کے فون/براؤزر میں مقامی پیش منظر</strong> ہے۔ کوئی تصویر یا ویڈیو سرور، Qwen یا کسی دوسرے AI کو نہیں بھیجی جاتی۔ تصویر کی شناخت، ترجمہ، خرابی کی تشخیص یا ویڈیو AI تجزیہ ابھی فعال نہیں ہے۔</p>
+  <div class="grid">
+    <article class="card">
+      <h3>📷 تصویر یا اسکرین شاٹ</h3>
+      <label for="ezeroPhotoInput">اپنی محفوظ کردہ تصویر منتخب کریں</label>
+      <input id="ezeroPhotoInput" type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif" aria-describedby="ezeroPhotoStatus">
+      <div class="media ezero-photo-gallery has-items" id="ezeroPhotoGallery"><span id="ezeroPhotoEmpty">ابھی کوئی تصویر منتخب نہیں</span><img id="ezeroPhotoPreview" alt="منتخب تصویر کا مقامی پیش منظر" hidden></div>
+      <p id="ezeroPhotoStatus" class="status" role="status" aria-live="polite">زیادہ سے زیادہ 10 تصاویر؛ ہر تصویر 12 MB تک اور مجموعی حجم 60 MB تک۔ تمام تصاویر فون پر رہیں گی۔</p>
+      <button id="ezeroClearPhoto" class="secondary" type="button">تصویر ہٹائیں</button>
+    </article>
+    <article class="card">
+      <h3>🎬 ویڈیو پیش منظر</h3>
+      <label for="ezeroVideoInput">اپنی محفوظ کردہ ویڈیو منتخب کریں</label>
+      <input id="ezeroVideoInput" type="file" accept="video/mp4,video/webm,video/quicktime,video/3gpp" aria-describedby="ezeroVideoStatus">
+      <div class="media"><span id="ezeroVideoEmpty">ابھی کوئی ویڈیو منتخب نہیں</span><video id="ezeroVideoPreview" controls playsinline preload="metadata" hidden></video></div>
+      <p id="ezeroVideoStatus" class="status" role="status" aria-live="polite">فائل مقامی رہے گی؛ زیادہ سے زیادہ 150 MB۔ کچھ فارمیٹ براؤزر میں نہ چل سکیں گے۔</p>
+      <button id="ezeroClearVideo" class="secondary" type="button">ویڈیو ہٹائیں</button>
+    </article>
+  </div>
+  <p class="note">Status: <bdi>LOCAL_PREVIEW_ONLY</bdi>. A future AI upload requires a separate, explicit user consent step, a verified secure endpoint, and bounded privacy and cost controls.</p>
+</section>
+<section class="panel"><h2>سائنسی اور حفاظتی حدود</h2><p>تمام گاڑی کے ماڈیولز صرف read-only ہیں؛ Mode 04، DTC صاف کرنا، ECU پر لکھنا، فلیشنگ، ایکچویٹر یا گاڑی کا کنٹرول شامل نہیں۔ SIMULATED، LOG_REPLAY اور REAL_OBD کو الگ رکھا جائے گا۔ ناکام یا نامکمل نتیجے کو کامیاب تشخیص ظاہر نہیں کیا جائے گا۔</p></section>
+</main>
+<footer>E-ZERO · Public evidence-first preview · <bdi>2026-10-30</bdi></footer>
+<script>
+(function(){
+  'use strict';
+  // Local previews only: no fetch(), XMLHttpRequest, POST, analytics, or remote upload.
+  function setup(kind, allowed, maxBytes){
+    const picker=document.getElementById('ezero'+kind+'Input');
+    const display=document.getElementById('ezero'+kind+'Preview');
+    const placeholder=document.getElementById('ezero'+kind+'Empty');
+    const status=document.getElementById('ezero'+kind+'Status');
+    const clear=document.getElementById('ezeroClear'+kind);
+    let objectURL=null;
+    function reset(){
+      if(kind==='Video'){display.pause();display.removeAttribute('src');display.load();}
+      else{display.removeAttribute('src');}
+      if(objectURL){URL.revokeObjectURL(objectURL);objectURL=null;}
+      display.hidden=true;placeholder.hidden=false;picker.value='';
+      status.textContent='کوئی فائل منتخب نہیں؛ کوئی ڈیٹا سرور کو نہیں بھیجا گیا۔';
+    }
+    picker.addEventListener('change',function(){
+      const file=picker.files&&picker.files[0];
+      reset();
+      if(!file)return;
+      if(!allowed.includes(file.type)){
+        status.textContent='اس قسم کی فائل کی مقامی پیش منظر سہولت دستیاب نہیں۔';return;
+      }
+      if(!file.size||file.size>maxBytes){
+        status.textContent='فائل خالی ہے یا مقررہ حد سے بڑی ہے۔ براہ کرم چھوٹی فائل منتخب کریں۔';return;
+      }
+      objectURL=URL.createObjectURL(file);
+      display.src=objectURL;display.hidden=false;placeholder.hidden=true;
+      status.textContent='مقامی پیش منظر تیار ہے ('+Math.round(file.size/1024)+' KB)۔ کوئی سرور اپ لوڈ یا AI تجزیہ نہیں ہوا۔';
+    });
+    clear.addEventListener('click',reset);
+    window.addEventListener('pagehide',function(){if(objectURL)URL.revokeObjectURL(objectURL);});
+    if(kind==='Video')display.addEventListener('error',function(){status.textContent='ویڈیو منتخب ہوئی لیکن براؤزر اس کا فارمیٹ نہیں چلا سکا۔ اپ لوڈ نہیں ہوا۔';});
+  }
+
+      // EZERO_PUBLIC_MULTI_IMAGE_PREVIEW_V0_2 — local-only; no upload or AI analysis.
+      function setupPhotos(){
+        const picker=document.getElementById('ezeroPhotoInput');
+        const legacy=document.getElementById('ezeroPhotoPreview');
+        const placeholder=document.getElementById('ezeroPhotoEmpty');
+        const gallery=document.getElementById('ezeroPhotoGallery');
+        const status=document.getElementById('ezeroPhotoStatus');
+        const clear=document.getElementById('ezeroClearPhoto');
+        const types=['image/jpeg','image/png','image/webp','image/gif'];
+        const maxFiles=10, maxBytes=12*1024*1024, maxTotal=60*1024*1024;
+        const entries=[];
+        legacy.hidden=true;
+        function updateStatus(message){
+          placeholder.hidden=entries.length>0;
+          const bytes=entries.reduce(function(total,entry){return total+entry.size;},0);
+          const summary=entries.length
+            ? entries.length+' / 10 تصاویر منتخب ہیں؛ مجموعی حجم '+Math.round(bytes/1024)+' KB۔ '
+            : 'ابھی کوئی تصویر منتخب نہیں۔ ';
+          status.textContent=summary+(message||'تمام تصاویر فون پر رہیں گی؛ کوئی سرور اپ لوڈ یا AI تجزیہ نہیں ہوا۔');
+        }
+        function forget(entry){
+          const idx=entries.indexOf(entry);
+          if(idx<0)return;
+          URL.revokeObjectURL(entry.url);
+          entries.splice(idx,1);
+          entry.tile.remove();
+          updateStatus('منتخب تصویر ہٹا دی گئی؛ کوئی سرور اپ لوڈ نہیں ہوا۔');
+        }
+        function clearAll(){
+          entries.slice().forEach(forget);
+          picker.value='';
+          updateStatus('تمام تصاویر ہٹا دی گئیں؛ کوئی سرور اپ لوڈ نہیں ہوا۔');
+        }
+        picker.addEventListener('change',function(){
+          const files=Array.from(picker.files||[]);
+          picker.value=''; // Allow adding photos in successive selections.
+          if(!files.length)return;
+          const existing=new Set(entries.map(function(entry){return entry.key;}));
+          const selected=new Set();
+          const unique=files.filter(function(file){
+            const key=[file.name,file.size,file.lastModified,file.type].join('|');
+            if(existing.has(key)||selected.has(key))return false;
+            selected.add(key);return true;
+          });
+          if(entries.length+unique.length>maxFiles){
+            updateStatus('زیادہ سے زیادہ 10 تصاویر کی گنجائش ہے؛ کچھ تصاویر ہٹا کر دوبارہ منتخب کریں۔');return;
+          }
+          if(unique.some(function(file){return !types.includes(file.type);})){
+            updateStatus('صرف JPG، PNG، WebP یا GIF تصاویر منتخب کریں۔');return;
+          }
+          if(unique.some(function(file){return !file.size||file.size>maxBytes;})){
+            updateStatus('ہر تصویر 12 MB یا اس سے کم ہونی چاہیے۔');return;
+          }
+          const prior=entries.reduce(function(sum,entry){return sum+entry.size;},0);
+          const incoming=unique.reduce(function(sum,file){return sum+file.size;},0);
+          if(prior+incoming>maxTotal){
+            updateStatus('تصاویر کا مجموعی حجم 60 MB سے زیادہ ہے؛ کم تصاویر منتخب کریں۔');return;
+          }
+          unique.forEach(function(file){
+            const url=URL.createObjectURL(file);
+            const tile=document.createElement('figure');
+            tile.className='ezero-photo-tile';
+            const img=document.createElement('img');
+            img.className='ezero-photo-thumb';
+            img.alt='منتخب تصویر کا مقامی پیش منظر';
+            img.loading='lazy';img.src=url;
+            const name=document.createElement('figcaption');
+            name.textContent=file.name;
+            const remove=document.createElement('button');
+            remove.type='button';remove.className='secondary';
+            remove.textContent='یہ تصویر ہٹائیں';
+            const entry={url:url,size:file.size,key:[file.name,file.size,file.lastModified,file.type].join('|'),tile:tile};
+            remove.addEventListener('click',function(){forget(entry);});
+            tile.appendChild(img);tile.appendChild(name);tile.appendChild(remove);
+            entries.push(entry);gallery.appendChild(tile);
+          });
+          updateStatus(unique.length===0
+            ? 'یہ تصاویر پہلے ہی منتخب ہیں؛ کوئی نئی تصویر شامل نہیں ہوئی۔'
+            : 'آپ مزید تصاویر شامل کر سکتے ہیں، زیادہ سے زیادہ 10 تک؛ کوئی اپ لوڈ یا AI تجزیہ نہیں ہوا۔');
+        });
+        clear.addEventListener('click',clearAll);
+        window.addEventListener('pagehide',function(){
+          entries.forEach(function(entry){URL.revokeObjectURL(entry.url);});
+          entries.length=0;
+        });
+        updateStatus();
+      }
+
+      setupPhotos();
+  setup('Video',['video/mp4','video/webm','video/quicktime','video/3gpp'],150*1024*1024);
+})();
+</script>
+</body>
+</html>
