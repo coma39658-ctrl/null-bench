@@ -49,7 +49,20 @@ let busy=false;
 function add(text,kind){
  const item=document.createElement("div");
  item.className="message "+kind;
- item.textContent=text;
+ if(kind==="answer" && text.includes("**") &&
+    text.split("**").length%2===1){
+   text.split("**").forEach(function(part,i){
+     if(i%2===1){
+       const strong=document.createElement("strong");
+       strong.textContent=part;
+       item.appendChild(strong);
+     }else{
+       item.appendChild(document.createTextNode(part));
+     }
+   });
+ }else{
+   item.textContent=text;
+ }
  get("conversation").appendChild(item);
 }
 form.addEventListener("submit",async function(event){
