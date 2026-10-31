@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>E-ZERO — AI گفتگو</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#eef6f8;color:#183847;font-family:system-ui,Arial,sans-serif;line-height:1.8}
+main{max-width:720px;margin:16px auto;background:white;padding:20px;border-radius:15px}
+textarea,select{width:100%;font:inherit;padding:10px;border:1px solid #adc6ce;border-radius:9px}
+textarea{min-height:110px}
+label{display:block;margin-top:12px;font-weight:bold}
+button{font:inherit;background:#087d91;color:white;padding:11px 18px;border:0;border-radius:9px;margin-top:12px}
+button:disabled{opacity:.5}
+.message{white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;margin:10px 0;border-radius:9px;background:#edf5f7}
+.answer{background:#e8f5eb}
+.note{background:#fff5df;padding:11px;border-radius:9px}
+</style>
+</head>
+<body>
+<main>
+<h1>E-ZERO — AI سے بات کریں</h1>
+<p class="note">یہ تجرباتی AI چیٹ ہے۔ سوال صرف بٹن دبانے پر سرور کو بھیجا جاتا ہے۔ AI کا جواب حتمی گاڑی تشخیص نہیں۔</p>
+<form id="chatForm">
+<label for="question">اپنا سوال لکھیں</label>
+<textarea id="question" maxlength="2000" required placeholder="مثال: OBD-II کیا ہے؟"></textarea>
+<label for="language">جواب کی زبان</label>
+<select id="language">
+<option value="ur">اردو</option>
+<option value="en">English</option>
+<option value="ar">العربية</option>
+<option value="hi">हिन्दी</option>
+</select>
+<button id="send" type="submit">AI سے جواب حاصل کریں</button>
+</form>
+<p id="status" role="status" aria-live="polite">سوال لکھیں اور بٹن دبائیں۔</p>
+<section id="conversation" aria-live="polite"></section>
+<p>AI کو گاڑی یا ECU تک رسائی نہیں دی گئی۔ اس صفحے میں گفتگو مستقل محفوظ نہیں ہوتی۔</p>
+</main>
+<script>
+(function(){
+"use strict";
+const endpoint="https://ezero-qwen-vision-gateway-public.coma39658.workers.dev/api/ezero-agent/v0.1/ask";
+const get=id=>document.getElementById(id);
+const form=get("chatForm"),send=get("send"),status=get("status");
+let busy=false;
+function add(text,kind){
+ const item=document.createElement("div");
+ item.className="message "+kind;
+ item.textContent=text;
+ get("conversation").appendChild(item);
+}
+form.addEventListener("submit",async function(event){
+ event.preventDefault();
+ if(busy)return;
+ const question=get("question").value.trim();
+ if(!question||question.length>2000)return;
+ const language=get("language").value;
+ busy=true;send.disabled=true;
+ status.textContent="AI سے رابطہ ہو رہا ہے...";
+ const controller=new AbortController();
+ const timer=setTimeout(()=>controller.abort(),60000);
+ try{
+  const response=await fetch(endpoint,{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   credentials:"omit",
+   cache:"no-store",
+   redirect:"error",
+   signal:controller.signal,
+   body:JSON.stringify({
+    question:question,
+    response_language:language,
+    answer_length:"short"
+   })
+  });
+  const data=await response.json();
+  if(!response.ok)throw Error(
+   "HTTP_"+response.status+"_"+String(data.detail||"UNKNOWN").slice(0,100)
+  );
+  if(data.status!=="OK"||
+     data.source_class!=="GOVERNED_AI"||
+     data.diagnostic_claim!==false||
+     typeof data.answer!=="string"||
+     !data.answer.trim())
+    throw Error("AI_RESPONSE_NOT_VERIFIED_"+String(data.detail||"UNKNOWN").slice(0,100));
+  add("آپ: "+question,"question");
+  add("E-ZERO AI: "+data.answer.trim(),"answer");
+  status.textContent="AI کا جواب موصول ہوگیا۔";
+  get("question").value="";
+ }catch(error){
+  status.textContent="رابطے میں خرابی: "+
+   (error.name==="AbortError"?"TIMEOUT":error.message);
+ }finally{
+  clearTimeout(timer);
+  busy=false;send.disabled=false;
+ }
+});
+})();
+</script>
+</body>
+</html>
