@@ -20,8 +20,9 @@
       const reader = new FileReader();
 
       reader.onerror = function () {
-        reject(new Error("IMAGE_READ_FAILED"));
-      };
+      const reason = reader.error && reader.error.name ? reader.error.name : "UNKNOWN";
+      reject(new Error("IMAGE_READ_FAILED_" + reason));
+    };
 
       reader.onload = function () {
         const data = String(reader.result || "");
