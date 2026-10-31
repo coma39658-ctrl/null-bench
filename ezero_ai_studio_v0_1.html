@@ -79,18 +79,40 @@ function setHealth(state,label){els.health.dataset.state=state;els.healthText.te
 function resizeEntry(){els.prompt.style.height="auto";els.prompt.style.height=Math.min(els.prompt.scrollHeight,150)+"px"}
 function jump(force){if(force||els.scroll.scrollHeight-els.scroll.scrollTop-els.scroll.clientHeight<260){els.scroll.scrollTop=els.scroll.scrollHeight;els.bottomBtn.classList.add("hidden")}}
 function renderSafeText(target,value){
-  const lines=String(value||"").replace(/\r\n/g,"\n").split("\n");
-  lines.forEach((line,i)=>{
-    if(i)target.appendChild(document.createTextNode("\n"));
-    const normalized=line.replace(/^(#{1,3}\s+|[-*]\s+)/,prefix=>prefix.startsWith("#")?"":"• ");
-    const pattern=/\*\*([^*\n]+)\*\*/g;let cursor=0,match;
-    while((match=pattern.exec(normalized))!==null){
-      if(match.index>cursor)target.appendChild(document.createTextNode(normalized.slice(cursor,match.index)));
-      const strong=document.createElement("strong");strong.textContent=match[1];target.appendChild(strong);
-      cursor=pattern.lastIndex;
+  const lines=String(value||"").replace(/\r\n?/g,"\n").split("\n");
+  let first=true;
+  for(let line of lines){
+    if(/^\s*```/.test(line))continue;
+    if(/^\s*\|?[-|:\s]{3,}\|?\s*$/.test(line)&&line.includes("-"))continue;
+    line=line.replace(/^\s{0,3}#{1,6}\s+/,"")
+             .replace(/^\s*>\s?/,"")
+             .replace(/^\s*[-*+]\s+/,"• ");
+    if(/^\s*\|.*\|.*\|\s*$/.test(line)){
+      line=line.trim().replace(/^\||\|$/g,"").split("|")
+               .map(x=>x.trim()).filter(Boolean).join(" — ");
     }
-    if(cursor<normalized.length)target.appendChild(document.createTextNode(normalized.slice(cursor)));
-  });
+    line=line.replace(/`([^`\n]+)`/g,"$1")
+             .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,"$1 ($2)");
+    if(!first)target.appendChild(document.createTextNode("\n"));
+    first=false;
+    const pattern=/\*\*([^*\n]+)\*\*|__([^_\n]+)__|\*([^*\n]+)\*/g;
+    let last=0,match;
+    while((match=pattern.exec(line))!==null){
+      if(match.index>last)target.appendChild(
+        document.createTextNode(line.slice(last,match.index)));
+      const element=document.createElement(match[3]?"em":"strong");
+      element.textContent=match[1]||match[2]||match[3];
+      target.appendChild(element);
+      last=pattern.lastIndex;
+    }
+    if(last<line.length)target.appendChild(
+      document.createTextNode(line.slice(last)));
+  }
+}
+function readableText(value){
+  const node=document.createElement("div");
+  renderSafeText(node,value);
+  return node.textContent;
 }
 function createMessage(role,text,imageURL,previewOnly){
   const box=document.createElement("article");box.className="msg "+(role==="user"?"user":"assistant");
@@ -103,7 +125,7 @@ function createMessage(role,text,imageURL,previewOnly){
   body.append(byline,bubble);
   if(role!=="user"&&!previewOnly){const tools=document.createElement("div");tools.className="messageTools";
     const copy=document.createElement("button");copy.className="miniButton";copy.type="button";copy.textContent="⧉ جواب نقل کریں";
-    copy.addEventListener("click",()=>{copyText(text).then(ok=>{copy.textContent=ok?"✓ نقل ہوگیا":"متن منتخب کرکے نقل کریں"})});
+    copy.addEventListener("click",()=>{copyText(readableText(text)).then(ok=>{copy.textContent=ok?"✓ نقل ہوگیا":"متن منتخب کرکے نقل کریں"})});
     const speak=document.createElement("button");speak.className="miniButton";speak.type="button";speak.textContent="◉ سنیں";
     speak.addEventListener("click",()=>speakAnswer(text,speak));
     tools.append(copy,speak);body.appendChild(tools);
@@ -115,7 +137,7 @@ function createMessage(role,text,imageURL,previewOnly){
 async function copyText(value){try{await navigator.clipboard.writeText(value);return true}catch(_){return false}}
 function speechLocale(){return ({ur:"ur-PK",en:"en-US",ar:"ar-SA",hi:"hi-IN"})[els.lang.value]||"ur-PK"}
 function speakAnswer(text,button){if(!("speechSynthesis" in window)){showNotice("اس براؤزر میں آواز سے جواب سننے کی سہولت دستیاب نہیں۔","error");return}let synthesis=window.speechSynthesis;if(synthesis.speaking){synthesis.cancel();button.textContent="◉ سنیں";return}
-  const utter=new SpeechSynthesisUtterance(text);utter.lang=speechLocale();utter.rate=.96;const voices=synthesis.getVoices();const chosen=voices.find(v=>v.lang.toLowerCase()===utter.lang.toLowerCase())||voices.find(v=>v.lang.toLowerCase().startsWith(utter.lang.slice(0,2).toLowerCase()));if(chosen)utter.voice=chosen;
+  const utter=new SpeechSynthesisUtterance(readableText(text));utter.lang=speechLocale();utter.rate=.96;const voices=synthesis.getVoices();const chosen=voices.find(v=>v.lang.toLowerCase()===utter.lang.toLowerCase())||voices.find(v=>v.lang.toLowerCase().startsWith(utter.lang.slice(0,2).toLowerCase()));if(chosen)utter.voice=chosen;
   button.textContent="■ بند کریں";utter.onend=utter.onerror=()=>{button.textContent="◉ سنیں"};synthesis.speak(utter);
 }
 function validFile(f){return f&&["image/png","image/jpeg","image/webp"].includes(f.type)&&f.size>0&&f.size<=MAX_BYTES}
