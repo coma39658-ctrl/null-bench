@@ -66,7 +66,7 @@
        <button id="attachBtn" class="tool" type="button" title="تصویر منتخب کریں" aria-label="تصویر منتخب کریں"><svg viewBox="0 0 24 24"><path d="M9 12.5 14.5 7A3.2 3.2 0 0 1 19 11.5l-8 8A5 5 0 0 1 4 12.5L13 3.5"/></svg></button>
        <button id="micBtn" class="tool" type="button" title="مائیک سے سوال بولیں" aria-label="مائیک سے سوال بولیں"><svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/></svg></button>
        <button id="stopVoiceBtn" class="tool hidden" type="button" title="بولنا بند کریں" aria-label="بولنا بند کریں"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg></button>
-       <select id="lang" class="select" aria-label="جواب کی ترجیحی زبان"><option value="ur">اردو</option><option value="en">English</option><option value="ar">العربية</option><option value="hi">हिन्दी</option></select>
+       <select id="lang" class="select" aria-label="جواب کی ترجیحی زبان"><option value="auto" selected>خودکار</option><option value="ur">اردو</option><option value="en">English</option><option value="ar">العربية</option><option value="hi">हिन्दी</option></select>
        <select id="answerLength" class="select" aria-label="جواب کی طوالت"><option value="short">مختصر</option><option value="normal" selected>متوازن</option><option value="detailed">تفصیلی</option></select>
        <span class="toolbarGrow"></span><button id="send" class="send" type="submit" aria-label="سوال بھیجیں"><svg viewBox="0 0 24 24"><path d="m4 12 16-8-5 16-3-7z"/></svg><span>بھیجیں</span></button>
      </div></form><details id="ezeroVoiceSettings" class="voiceSettings">
@@ -77,7 +77,7 @@
   <button id="ezeroTtsSample" type="button">نمونہ سنیں</button>
   <button id="ezeroTtsStop" type="button">■ آواز بند کریں</button>
  </div>
- <small id="ezeroTtsHint" class="voiceHint">آواز کا معیار آپ کے فون میں دستیاب صوتی انجن پر منحصر ہے؛ بہتر اردو آواز فون کی ترتیبات سے منتخب کی جاسکتی ہے۔</small>
+ <small id="ezeroTtsHint" class="voiceHint">جواب کا متن جس زبان میں ہوگا، اسی زبان کی دستیاب آواز کو ترجیح دی جائے گی۔ لہجے کا معیار فون میں نصب آوازوں پر منحصر ہے۔ مائیک سے بولنے سے پہلے ضرورت ہو تو زبان منتخب کریں۔</small>
 </details>
 <p class="tiny">AI کے جواب میں غلطی ممکن ہے۔ کوئی ECU کمانڈ یا حتمی تشخیص نہیں۔ مائیک کی دستیابی براؤزر پر منحصر ہے۔</p></div></div>
  </main>
@@ -155,26 +155,107 @@ function createMessage(role,text,imageURL,previewOnly){
   return {box,content};
 }
 async function copyText(value){try{await navigator.clipboard.writeText(value);return true}catch(_){return false}}
-function speechLocale(){return ({ur:"ur-PK",en:"en-US",ar:"ar-SA",hi:"hi-IN"})[els.lang.value]||"ur-PK"}
+// E-ZERO v0.4: chosen language, script-aware replies and voice selection.
+function ezeroDetectLocale(value){
+  const t=String(value||"").trim();
+  if(!t)return null;
+  if(/[\u0900-\u097f]/u.test(t))return "hi-IN";
+  if(/[\u0980-\u09ff]/u.test(t))return "bn-BD";
+  if(/[\u0400-\u052f]/u.test(t))return "ru-RU";
+  if(/[\u3040-\u30ff]/u.test(t))return "ja-JP";
+  if(/[\uac00-\ud7af]/u.test(t))return "ko-KR";
+  if(/[\u4e00-\u9fff]/u.test(t))return "zh-CN";
+  if(/[\u0e00-\u0e7f]/u.test(t))return "th-TH";
+  if(/[\u0590-\u05ff]/u.test(t))return "he-IL";
+  if(/[\u0600-\u06ff]/u.test(t)){
+    // Strong Persian lexical cues before ambiguous shared Urdu/Persian letters.
+    if(/(?:^|\s)(است|هست|هستم|چطور|چیست|برای|میکند|می‌کند)(?=\s|[،.؟]|$)/u.test(t))return "fa-IR";
+    if(/[ٹڈڑںےھپچگ]/u.test(t)||/(?:^|\s)(کیا|کیوں|میں|مجھے|آپ|ہے|ہیں|نہیں|کرنا|بتائیں|سمجھائیں|کیسے|گاڑی)(?=\s|[،۔؟!.]|$)/u.test(t))return "ur-PK";
+    return "ar-SA";
+  }
+  // Roman Urdu is inherently ambiguous with romanized Hindi; user can override.
+  if(/\b(?:mujhe|batao|batayein|samjhao|samjhaen|kyun|kaise|gaari|gari|mein|hai|hain|kya|meri|mera|aap)\b/i.test(t)){
+    const markers=(t.match(/\b(?:mujhe|batao|batayein|samjhao|samjhaen|kyun|kaise|gaari|gari|mein|hai|hain|kya|meri|mera|aap)\b/gi)||[]);
+    if(markers.length>=2)return "ur-PK";
+  }
+  if(/[\u00bf\u00a1]/u.test(t)||/(?:^|\s)(hola|gracias|¿cómo|usted|buenos|por favor)(?=\s|[.!?]|$)/iu.test(t))return "es-ES";
+  if(/(?:^|\s)(bonjour|merci|comment allez|s'il vous plaît)(?=\s|[.!?]|$)/iu.test(t))return "fr-FR";
+  if(/(?:^|\s)(guten tag|danke|bitte|wie geht)(?=\s|[.!?]|$)/iu.test(t))return "de-DE";
+  // Conversational Latin-script replies can lack greetings or accents.
+  // At least two independent lexical signals reduce false detections.
+  const patterns=[
+    ["es-ES",/\b(?:el|la|los|las|del|que|para|tiene|mide|flujo|aire|coche|batería|está|están|cómo|qué|puede)\b/giu],
+    ["fr-FR",/\b(?:le|les|des|est|une|pour|vous|avec|dans|voiture|mesure|quantité|moteur|cette|peut)\b/giu],
+    ["de-DE",/\b(?:der|die|das|den|und|ist|nicht|eine|einen|für|auch|misst|luftmenge|strömt)\b/giu]
+  ];
+  const scores=patterns.map(([locale,re])=>({locale,score:new Set((t.toLowerCase().match(re)||[])).size}));
+  scores.sort((a,b)=>b.score-a.score);
+  if(scores[0].score>=2&&scores[0].score>scores[1].score)return scores[0].locale;
+  const latin=(t.match(/[A-Za-z]/g)||[]).length;
+  const arabic=(t.match(/[\u0600-\u06ff]/g)||[]).length;
+  if(latin>=4&&latin>arabic*2)return "en-US";
+  return null;
+}
+function ezeroRegionForLocale(locale){
+  const code=String(locale||"ur-PK");
+  const base=code.toLowerCase().split("-")[0];
+  const options=(typeof navigator!=="undefined"&&(navigator.languages||[navigator.language]))||[];
+  const preferred=options.find(v=>typeof v==="string"&&v.toLowerCase().split("-")[0]===base&&v.includes("-"));
+  return preferred||code;
+}
+function ezeroGatewayLanguage(question){
+  const selected=els.lang.value;
+  if(["ur","en","ar","hi"].includes(selected))return selected;
+  const found=ezeroDetectLocale(question);
+  const code=found?found.toLowerCase().split("-")[0]:"ur";
+  // Gateway fallback_language accepts only the existing supported choices.
+  return ["ur","en","ar","hi"].includes(code)?code:"en";
+}
+function speechLocale(answer){
+  if(answer){
+    const detected=ezeroDetectLocale(readableText(answer));
+    if(detected)return ezeroRegionForLocale(detected);
+  }
+  const selected=els.lang.value;
+  const defaults={ur:"ur-PK",en:"en-US",ar:"ar-SA",hi:"hi-IN"};
+  if(defaults[selected])return ezeroRegionForLocale(defaults[selected]);
+  // For microphone recognition in auto mode, use a supported device locale;
+  // otherwise keep the Urdu-first UI default. Spoken language is unknown before recognition.
+  const candidate=(typeof navigator!=="undefined"&&navigator.language)||"";
+  const base=candidate.toLowerCase().split("-")[0];
+  return ["ur","en","ar","hi"].includes(base)?ezeroRegionForLocale(defaults[base]):"ur-PK";
+}
+function ezeroSampleText(){
+  const lang=els.lang.value;
+  if(lang==="en")return "Hello. Welcome to E-ZERO. Ask me about vehicles, science, or everyday questions.";
+  if(lang==="ar")return "مرحباً بك في إي زيرو. يمكنك أن تسألني عن السيارات والعلوم والموضوعات العامة.";
+  if(lang==="hi")return "नमस्ते। ई ज़ीरो में आपका स्वागत है। आप गाड़ियों और विज्ञान के बारे में सवाल पूछ सकते हैं।";
+  return "السلام علیکم۔ میں ای زیرو ہوں۔ آپ مجھ سے گاڑی، سائنس یا روزمرہ موضوعات کے بارے میں پوچھ سکتے ہیں۔";
+}
 // E-ZERO human-friendly read-aloud, independent of the AI request and evidence.
 let ezeroSpeechSerial=0;
 let ezeroActiveSpeech=null;
 let ezeroBrowserVoices=[];
-function voiceSpeakText(value){
+function voiceSpeakText(value,locale){
+  const current=(locale||speechLocale(value)).toLowerCase();
+  const base=current.split("-")[0];
   let text=readableText(value).replace(/\r/g,"").replace(/\u00a0/g," ");
-  text=text.replace(/\bE-ZERO\b/gi,"ای زیرو")
-           .replace(/\bOBD[ -]?II\b/gi,"او بی ڈی ٹو")
-           .replace(/\bECU\b/gi,"ای سی یو")
-           .replace(/\bMAF\b/gi,"ایم اے ایف")
-           .replace(/\bDTC\b/gi,"ڈی ٹی سی")
-           .replace(/\bAI\b/gi,"اے آئی")
-           .replace(/(-?\d+(?:\.\d+)?)\s*%/g,"$1 فیصد")
-           .replace(/[★☆▪■◆●◉✓✔✅🔊🎙🎤]/g, " ")
-           .replace(/[ \t]+/g," ").replace(/\n{3,}/g,"\n\n");
-  return text.trim();
+  // Do not turn English/Arabic/Hindi technical words into Urdu phonetics.
+  if(base==="ur"){
+    text=text.replace(/\bE-ZERO\b/gi,"ای زیرو")
+             .replace(/\bOBD[ -]?II\b/gi,"او بی ڈی ٹو")
+             .replace(/\bECU\b/gi,"ای سی یو")
+             .replace(/\bMAF\b/gi,"ایم اے ایف")
+             .replace(/\bDTC\b/gi,"ڈی ٹی سی")
+             .replace(/\bAI\b/gi,"اے آئی");
+  }
+  const percents={ur:"فیصد",en:"percent",ar:"بالمئة",hi:"प्रतिशत"};
+  if(percents[base])text=text.replace(/(-?\d+(?:\.\d+)?)\s*%/g,"$1 "+percents[base]);
+  return text.replace(/[★☆▪■◆●◉✓✔✅🔊🎙🎤]/g," ")
+             .replace(/[ \t]+/g," ").replace(/\n{3,}/g,"\n\n").trim();
 }
 function voiceChunks(value){
-  const text=voiceSpeakText(value);
+  const text=voiceSpeakText(value,speechLocale(value));
   if(!text)return [];
   const units=text.split(/(?<=[۔؟!?؛])\s+|\n+/u).map(v=>v.trim()).filter(Boolean);
   const out=[];
@@ -199,17 +280,18 @@ function ezeroStopSpeech(){
   }
   ezeroActiveSpeech=null;
 }
-function ezeroPreferredVoice(){
+function ezeroPreferredVoice(locale){
   const preferred=document.getElementById("ezeroTtsVoice");
-  const lang=speechLocale().toLowerCase();
+  const lang=String(locale||speechLocale()).toLowerCase();
   const choice=preferred&&preferred.value;
   if(choice&&choice!=="auto"){
     const selected=ezeroBrowserVoices.find(v=>v.voiceURI===choice);
-    if(selected)return selected;
+    if(selected)return selected; // user explicitly selected this installed voice
   }
+  const base=lang.split("-")[0];
   return ezeroBrowserVoices.find(v=>v.lang.toLowerCase()===lang)
-    ||ezeroBrowserVoices.find(v=>v.lang.toLowerCase().startsWith(lang.split("-")[0]+"-"))
-    ||ezeroBrowserVoices.find(v=>v.lang.toLowerCase()===lang.split("-")[0])
+    ||ezeroBrowserVoices.find(v=>v.lang.toLowerCase().startsWith(base+"-"))
+    ||ezeroBrowserVoices.find(v=>v.lang.toLowerCase()===base)
     ||null;
 }
 function speakAnswer(text,button){
@@ -222,8 +304,8 @@ function speakAnswer(text,button){
   if(!chunks.length){showNotice("پڑھنے کے لیے متن موجود نہیں۔","normal");return}
   const serial=++ezeroSpeechSerial;
   const synth=window.speechSynthesis;
-  const voice=ezeroPreferredVoice();
-  const locale=speechLocale();
+  const locale=speechLocale(text);
+  const voice=ezeroPreferredVoice(locale);
   const rateSelect=document.getElementById("ezeroTtsRate");
   const speed=rateSelect?Number(rateSelect.value):0.95;
   const rate=[0.85,0.95,1.05].includes(speed)?speed:0.95;
@@ -231,9 +313,7 @@ function speakAnswer(text,button){
   button.textContent="■ بند کریں";
   button.setAttribute("aria-pressed","true");
   if(!voice){
-    const message=locale.startsWith("ur")
-      ?"فون میں اردو کی مخصوص آواز نہیں ملی۔ براؤزر کی دستیاب آواز سے کوشش ہوگی؛ بہتر تلفظ کے لیے فون کی اردو TTS آواز نصب کریں۔"
-      :"فون میں منتخب زبان کی مخصوص آواز نہیں ملی؛ دستیاب آواز سے کوشش ہوگی۔";
+    const message="اس زبان ("+locale+") کی مخصوص آواز فون میں نہیں ملی۔ براؤزر دستیاب آواز سے کوشش کرے گا؛ درست لہجے کے لیے فون کی صوتی ترتیبات دیکھیں۔";
     showNotice(message,"normal");
   }
   function next(){
@@ -263,7 +343,7 @@ function ezeroSetupVoiceSettings(){
     const previous=select.value;
     ezeroBrowserVoices=window.speechSynthesis.getVoices()||[];
     select.replaceChildren();
-    const auto=document.createElement("option");auto.value="auto";auto.textContent="خودکار — اردو کو ترجیح";select.appendChild(auto);
+    const auto=document.createElement("option");auto.value="auto";auto.textContent="خودکار — جواب کی زبان";select.appendChild(auto);
     ezeroBrowserVoices.sort((a,b)=>{
       const order=v=>/^ur([_-]|$)/i.test(v.lang)?0:/^(ar|hi|en)([_-]|$)/i.test(v.lang)?1:2;
       return order(a)-order(b)||a.lang.localeCompare(b.lang);
@@ -276,7 +356,7 @@ function ezeroSetupVoiceSettings(){
   load();
   if("speechSynthesis" in window&&window.speechSynthesis.addEventListener)
     window.speechSynthesis.addEventListener("voiceschanged",load);
-  sample.addEventListener("click",()=>speakAnswer("السلام علیکم۔ میں ای زیرو ہوں۔ آپ مجھ سے گاڑی، سائنس یا کسی بھی موضوع پر سوال پوچھ سکتے ہیں۔",sample));
+  sample.addEventListener("click",()=>speakAnswer(ezeroSampleText(),sample));
   stop.addEventListener("click",ezeroStopSpeech);
 }
 function validFile(f){return f&&["image/png","image/jpeg","image/webp"].includes(f.type)&&f.size>0&&f.size<=MAX_BYTES}
@@ -295,8 +375,8 @@ async function sendQuestion(e){if(e)e.preventDefault();if(busy)return;const ques
    let encoded=null;if(isImage)encoded=await fileToBase64(file);
    if(epoch!==requestEpoch)return;
    const payload=isImage?
-    {question:q,response_language:els.lang.value,image_share_consent:true,image:{mime_type:file.type,base64:encoded}}:
-    {question:q,response_language:"auto",fallback_language:els.lang.value,answer_length:els.answerLength.value,session_id:sessionId,history:history.slice(-MAX_HISTORY)};
+    {question:q,response_language:ezeroGatewayLanguage(q),image_share_consent:true,image:{mime_type:file.type,base64:encoded}}:
+    {question:q,response_language:"auto",fallback_language:ezeroGatewayLanguage(q),answer_length:els.answerLength.value,session_id:sessionId,history:history.slice(-MAX_HISTORY)};
    const preview=isImage?"data:"+file.type+";base64,"+encoded:null;
    // User input goes to the gateway only after explicit submit; images require checkbox consent.
    createMessage("user",q,preview,false);
