@@ -21,6 +21,16 @@
 @media(max-width:830px){.app{grid-template-columns:1fr}.rail{display:none}.topbar{padding:10px 13px}.topIdentity strong{font-size:15px}.topActions{gap:4px}.health{font-size:11px}.scroll{padding:20px 14px}.welcome{padding:28px 0 12px}.chips{grid-template-columns:1fr 1fr}.quick{padding:12px;min-height:76px}.quick strong{font-size:12px}.bubble{padding:13px 14px;font-size:15px}.composerShell{padding:8px 8px max(10px,env(safe-area-inset-bottom))}.composer{border-radius:18px;padding:10px}.atbottom{bottom:165px}}
 @media(max-width:390px){.topIdentity small{display:none}.topActions .optional{display:none}.chips{grid-template-columns:1fr}.welcome h1{font-size:29px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;scroll-behavior:auto!important}}
+
+/* E-ZERO expressive voice UI: compact and accessible */
+.voiceSettings{max-width:850px;margin:9px auto 0;border:1px solid var(--line);border-radius:13px;background:var(--surface);padding:8px 13px;color:var(--ink)}
+.voiceSettings summary{cursor:pointer;font-weight:700;font-size:13px;list-style:revert;padding:4px 2px;touch-action:manipulation}
+.voiceSettings .voiceRow{display:flex;flex-wrap:wrap;gap:11px;align-items:end;padding-top:12px}
+.voiceSettings label{display:flex;flex-direction:column;gap:5px;flex:1 1 160px;font-size:12px;color:var(--sub);font-weight:700}
+.voiceSettings select{border:1px solid var(--line);border-radius:10px;background:var(--surface2);color:var(--ink);min-height:42px;padding:8px;min-width:0;max-width:100%}
+.voiceSettings button{border-radius:11px;border:1px solid var(--line);color:var(--ink);background:var(--surface2);font-size:13px;font-weight:700;min-height:42px;padding:8px 13px}
+.voiceSettings .voiceHint{display:block;color:var(--sub);font-size:11px;line-height:1.6;margin-top:10px}
+
 </style>
 </head>
 <body>
@@ -59,7 +69,17 @@
        <select id="lang" class="select" aria-label="جواب کی ترجیحی زبان"><option value="ur">اردو</option><option value="en">English</option><option value="ar">العربية</option><option value="hi">हिन्दी</option></select>
        <select id="answerLength" class="select" aria-label="جواب کی طوالت"><option value="short">مختصر</option><option value="normal" selected>متوازن</option><option value="detailed">تفصیلی</option></select>
        <span class="toolbarGrow"></span><button id="send" class="send" type="submit" aria-label="سوال بھیجیں"><svg viewBox="0 0 24 24"><path d="m4 12 16-8-5 16-3-7z"/></svg><span>بھیجیں</span></button>
-     </div></form><p class="tiny">AI کے جواب میں غلطی ممکن ہے۔ کوئی ECU کمانڈ یا حتمی تشخیص نہیں۔ مائیک کی دستیابی براؤزر پر منحصر ہے۔</p></div></div>
+     </div></form><details id="ezeroVoiceSettings" class="voiceSettings">
+ <summary>🔊 آواز کی ترتیب</summary>
+ <div class="voiceRow">
+  <label>بولنے کی آواز <select id="ezeroTtsVoice" aria-label="بولنے کی آواز"><option value="auto">خودکار — اردو کو ترجیح</option></select></label>
+  <label>بولنے کی رفتار <select id="ezeroTtsRate" aria-label="بولنے کی رفتار"><option value="0.85">آہستہ</option><option value="0.95" selected>قدرتی</option><option value="1.05">قدرے تیز</option></select></label>
+  <button id="ezeroTtsSample" type="button">نمونہ سنیں</button>
+  <button id="ezeroTtsStop" type="button">■ آواز بند کریں</button>
+ </div>
+ <small id="ezeroTtsHint" class="voiceHint">آواز کا معیار آپ کے فون میں دستیاب صوتی انجن پر منحصر ہے؛ بہتر اردو آواز فون کی ترتیبات سے منتخب کی جاسکتی ہے۔</small>
+</details>
+<p class="tiny">AI کے جواب میں غلطی ممکن ہے۔ کوئی ECU کمانڈ یا حتمی تشخیص نہیں۔ مائیک کی دستیابی براؤزر پر منحصر ہے۔</p></div></div>
  </main>
 </div>
 <script>
@@ -136,9 +156,128 @@ function createMessage(role,text,imageURL,previewOnly){
 }
 async function copyText(value){try{await navigator.clipboard.writeText(value);return true}catch(_){return false}}
 function speechLocale(){return ({ur:"ur-PK",en:"en-US",ar:"ar-SA",hi:"hi-IN"})[els.lang.value]||"ur-PK"}
-function speakAnswer(text,button){if(!("speechSynthesis" in window)){showNotice("اس براؤزر میں آواز سے جواب سننے کی سہولت دستیاب نہیں۔","error");return}let synthesis=window.speechSynthesis;if(synthesis.speaking){synthesis.cancel();button.textContent="◉ سنیں";return}
-  const utter=new SpeechSynthesisUtterance(readableText(text));utter.lang=speechLocale();utter.rate=.96;const voices=synthesis.getVoices();const chosen=voices.find(v=>v.lang.toLowerCase()===utter.lang.toLowerCase())||voices.find(v=>v.lang.toLowerCase().startsWith(utter.lang.slice(0,2).toLowerCase()));if(chosen)utter.voice=chosen;
-  button.textContent="■ بند کریں";utter.onend=utter.onerror=()=>{button.textContent="◉ سنیں"};synthesis.speak(utter);
+// E-ZERO human-friendly read-aloud, independent of the AI request and evidence.
+let ezeroSpeechSerial=0;
+let ezeroActiveSpeech=null;
+let ezeroBrowserVoices=[];
+function voiceSpeakText(value){
+  let text=readableText(value).replace(/\r/g,"").replace(/\u00a0/g," ");
+  text=text.replace(/\bE-ZERO\b/gi,"ای زیرو")
+           .replace(/\bOBD[ -]?II\b/gi,"او بی ڈی ٹو")
+           .replace(/\bECU\b/gi,"ای سی یو")
+           .replace(/\bMAF\b/gi,"ایم اے ایف")
+           .replace(/\bDTC\b/gi,"ڈی ٹی سی")
+           .replace(/\bAI\b/gi,"اے آئی")
+           .replace(/(-?\d+(?:\.\d+)?)\s*%/g,"$1 فیصد")
+           .replace(/[★☆▪■◆●◉✓✔✅🔊🎙🎤]/g, " ")
+           .replace(/[ \t]+/g," ").replace(/\n{3,}/g,"\n\n");
+  return text.trim();
+}
+function voiceChunks(value){
+  const text=voiceSpeakText(value);
+  if(!text)return [];
+  const units=text.split(/(?<=[۔؟!?؛])\s+|\n+/u).map(v=>v.trim()).filter(Boolean);
+  const out=[];
+  for(const unit of units){
+    let remaining=unit;
+    while(remaining.length>165){
+      let cut=remaining.lastIndexOf(" ",165);
+      if(cut<70)cut=165;
+      out.push(remaining.slice(0,cut).trim());
+      remaining=remaining.slice(cut).trim();
+    }
+    if(remaining)out.push(remaining);
+  }
+  return out.slice(0,120);
+}
+function ezeroStopSpeech(){
+  ezeroSpeechSerial++;
+  if("speechSynthesis" in window){try{window.speechSynthesis.cancel()}catch(_){}}
+  if(ezeroActiveSpeech&&ezeroActiveSpeech.button){
+    ezeroActiveSpeech.button.textContent=ezeroActiveSpeech.originalLabel;
+    ezeroActiveSpeech.button.setAttribute("aria-pressed","false");
+  }
+  ezeroActiveSpeech=null;
+}
+function ezeroPreferredVoice(){
+  const preferred=document.getElementById("ezeroTtsVoice");
+  const lang=speechLocale().toLowerCase();
+  const choice=preferred&&preferred.value;
+  if(choice&&choice!=="auto"){
+    const selected=ezeroBrowserVoices.find(v=>v.voiceURI===choice);
+    if(selected)return selected;
+  }
+  return ezeroBrowserVoices.find(v=>v.lang.toLowerCase()===lang)
+    ||ezeroBrowserVoices.find(v=>v.lang.toLowerCase().startsWith(lang.split("-")[0]+"-"))
+    ||ezeroBrowserVoices.find(v=>v.lang.toLowerCase()===lang.split("-")[0])
+    ||null;
+}
+function speakAnswer(text,button){
+  if(!("speechSynthesis" in window)||!window.SpeechSynthesisUtterance){
+    showNotice("اس براؤزر میں آواز سے جواب سننے کی سہولت دستیاب نہیں۔","error");return;
+  }
+  if(ezeroActiveSpeech&&ezeroActiveSpeech.button===button){ezeroStopSpeech();return}
+  ezeroStopSpeech();
+  const chunks=voiceChunks(text);
+  if(!chunks.length){showNotice("پڑھنے کے لیے متن موجود نہیں۔","normal");return}
+  const serial=++ezeroSpeechSerial;
+  const synth=window.speechSynthesis;
+  const voice=ezeroPreferredVoice();
+  const locale=speechLocale();
+  const rateSelect=document.getElementById("ezeroTtsRate");
+  const speed=rateSelect?Number(rateSelect.value):0.95;
+  const rate=[0.85,0.95,1.05].includes(speed)?speed:0.95;
+  const state={button,index:0,originalLabel:button.textContent};ezeroActiveSpeech=state;
+  button.textContent="■ بند کریں";
+  button.setAttribute("aria-pressed","true");
+  if(!voice){
+    const message=locale.startsWith("ur")
+      ?"فون میں اردو کی مخصوص آواز نہیں ملی۔ براؤزر کی دستیاب آواز سے کوشش ہوگی؛ بہتر تلفظ کے لیے فون کی اردو TTS آواز نصب کریں۔"
+      :"فون میں منتخب زبان کی مخصوص آواز نہیں ملی؛ دستیاب آواز سے کوشش ہوگی۔";
+    showNotice(message,"normal");
+  }
+  function next(){
+    if(serial!==ezeroSpeechSerial||ezeroActiveSpeech!==state)return;
+    if(state.index>=chunks.length){ezeroStopSpeech();return}
+    const u=new window.SpeechSynthesisUtterance(chunks[state.index++]);
+    u.lang=voice?voice.lang:locale;u.rate=rate;u.pitch=1;u.volume=1;
+    if(voice)u.voice=voice;
+    u.onend=()=>{if(serial===ezeroSpeechSerial)setTimeout(next,105)};
+    u.onerror=(event)=>{
+      if(serial!==ezeroSpeechSerial)return;
+      ezeroStopSpeech();
+      if(event.error!=="canceled"&&event.error!=="interrupted")
+        showNotice("آواز رُک گئی۔ فون کی صوتی ترتیبات جانچیں یا دوبارہ سنیں دبائیں۔","error");
+    };
+    try{synth.speak(u)}catch(_){ezeroStopSpeech();showNotice("آواز شروع نہیں ہوسکی۔","error")}
+  }
+  next();
+}
+function ezeroSetupVoiceSettings(){
+  const select=document.getElementById("ezeroTtsVoice");
+  const sample=document.getElementById("ezeroTtsSample");
+  const stop=document.getElementById("ezeroTtsStop");
+  if(!select||!sample||!stop)return;
+  function load(){
+    if(!("speechSynthesis" in window))return;
+    const previous=select.value;
+    ezeroBrowserVoices=window.speechSynthesis.getVoices()||[];
+    select.replaceChildren();
+    const auto=document.createElement("option");auto.value="auto";auto.textContent="خودکار — اردو کو ترجیح";select.appendChild(auto);
+    ezeroBrowserVoices.sort((a,b)=>{
+      const order=v=>/^ur([_-]|$)/i.test(v.lang)?0:/^(ar|hi|en)([_-]|$)/i.test(v.lang)?1:2;
+      return order(a)-order(b)||a.lang.localeCompare(b.lang);
+    }).forEach(v=>{
+      const opt=document.createElement("option");opt.value=v.voiceURI;
+      opt.textContent=v.name+" ("+v.lang+")";select.appendChild(opt);
+    });
+    select.value=ezeroBrowserVoices.some(v=>v.voiceURI===previous)?previous:"auto";
+  }
+  load();
+  if("speechSynthesis" in window&&window.speechSynthesis.addEventListener)
+    window.speechSynthesis.addEventListener("voiceschanged",load);
+  sample.addEventListener("click",()=>speakAnswer("السلام علیکم۔ میں ای زیرو ہوں۔ آپ مجھ سے گاڑی، سائنس یا کسی بھی موضوع پر سوال پوچھ سکتے ہیں۔",sample));
+  stop.addEventListener("click",ezeroStopSpeech);
 }
 function validFile(f){return f&&["image/png","image/jpeg","image/webp"].includes(f.type)&&f.size>0&&f.size<=MAX_BYTES}
 function clearImage(){selected=null;if(objectURL){URL.revokeObjectURL(objectURL);objectURL=null}els.file.value="";els.attachment.classList.add("hidden");els.consentRow.classList.add("hidden");els.consent.checked=false;updateSend()}
@@ -178,7 +317,7 @@ async function sendQuestion(e){if(e)e.preventDefault();if(busy)return;const ques
  }catch(error){if(epoch===requestEpoch)showNotice(describeError(error),"error")}
  finally{if(epoch===requestEpoch){busy=false;updateSend();jump(true)}}
 }
-function newChat(){if(busy){showNotice("جاری درخواست مکمل ہونے کے بعد نئی گفتگو شروع کریں۔","normal");return}if(recognition&&listening){recognition.stop()}if("speechSynthesis" in window)window.speechSynthesis.cancel();clearImage();els.prompt.value="";resizeEntry();history=[];transcript=[];sessionId=newSessionId();els.thread.replaceChildren(els.welcome);els.welcome.classList.remove("hidden");showNotice("نئی گفتگو شروع ہوگئی؛ گزشتہ گفتگو اس صفحے میں محفوظ نہیں رہی۔","normal");els.prompt.focus()}
+function newChat(){if(busy){showNotice("جاری درخواست مکمل ہونے کے بعد نئی گفتگو شروع کریں۔","normal");return}if(recognition&&listening){recognition.stop()}ezeroStopSpeech();clearImage();els.prompt.value="";resizeEntry();history=[];transcript=[];sessionId=newSessionId();els.thread.replaceChildren(els.welcome);els.welcome.classList.remove("hidden");showNotice("نئی گفتگو شروع ہوگئی؛ گزشتہ گفتگو اس صفحے میں محفوظ نہیں رہی۔","normal");els.prompt.focus()}
 async function checkHealth(){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),10000);try{const resp=await fetch(HEALTH,{cache:"no-store",signal:controller.signal});if(!resp.ok)throw Error("HEALTH_HTTP_"+resp.status);const d=await resp.json();if(d.status==="ONLINE"&&d.public_ai_enabled===true&&d.evidence_authority===false)setHealth("online","AI دستیاب");else setHealth("offline","AI دستیابی محدود")}catch(_){setHealth("checking","رابطہ غیر مصدقہ")}finally{clearTimeout(timer)}}
 function setupMic(){const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;if(!Speech){els.micBtn.disabled=true;els.micBtn.title="اس براؤزر میں صوتی شناخت دستیاب نہیں";els.micBtn.setAttribute("aria-label","مائیک کی سہولت اس براؤزر میں دستیاب نہیں");return}
  els.micBtn.addEventListener("click",()=>{if(busy)return;if(listening){recognition.stop();return}try{recognition=new Speech();recognition.lang=speechLocale();recognition.continuous=false;recognition.interimResults=false;recognition.maxAlternatives=1;recognition.onstart=()=>{listening=true;els.micBtn.classList.add("active");showNotice("سن رہے ہیں… بولنا مکمل کریں۔ آپ کی آواز کی شناخت براؤزر کے فراہم کنندہ سے ہوسکتی ہے۔","normal")};recognition.onresult=ev=>{const spoken=ev.results&&ev.results[0]&&ev.results[0][0]?ev.results[0][0].transcript:"";if(spoken){els.prompt.value=(els.prompt.value?els.prompt.value.trim()+" ":"")+spoken;resizeEntry();updateSend();showNotice("آپ کی بات تحریر ہوگئی؛ بھیجنے سے پہلے جائزہ لے سکتے ہیں۔","success")}};recognition.onerror=ev=>{showNotice("مائیک کی شناخت ممکن نہیں: "+(ev.error||"UNKNOWN")+"۔ کی بورڈ سے سوال لکھ سکتے ہیں۔","error")};recognition.onend=()=>{listening=false;els.micBtn.classList.remove("active")};recognition.start()}catch(_){showNotice("مائیک شروع نہیں ہوسکا۔ براؤزر کی اجازت جانچیں۔","error")}});
@@ -191,9 +330,9 @@ $("quickImage").addEventListener("click",()=>els.file.click());document.querySel
 $("newChatBtn").addEventListener("click",newChat);$("newChatRail").addEventListener("click",newChat);$("exportBtn").addEventListener("click",exportConversation);
 $("themeBtn").addEventListener("click",()=>{const r=document.documentElement;r.dataset.theme=r.dataset.theme==="dark"?"light":"dark"});
 els.scroll.addEventListener("scroll",()=>{els.bottomBtn.classList.toggle("hidden",els.scroll.scrollHeight-els.scroll.scrollTop-els.scroll.clientHeight<280)},{passive:true});els.bottomBtn.addEventListener("click",()=>jump(true));
-$("stopVoiceBtn").addEventListener("click",()=>{if("speechSynthesis" in window)window.speechSynthesis.cancel()});
-window.addEventListener("pagehide",()=>{if(objectURL)URL.revokeObjectURL(objectURL);if("speechSynthesis" in window)window.speechSynthesis.cancel()});
-setupMic();updateSend();checkHealth();
+$("stopVoiceBtn").addEventListener("click",ezeroStopSpeech);
+window.addEventListener("pagehide",()=>{if(objectURL)URL.revokeObjectURL(objectURL);ezeroStopSpeech()});
+setupMic();ezeroSetupVoiceSettings();updateSend();checkHealth();
 })();
 </script>
 </body>
