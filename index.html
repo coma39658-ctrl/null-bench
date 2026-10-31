@@ -4051,12 +4051,12 @@ function drawHistogram(vals,observed){
 <script src="js/ezero_voice_guide_feature_registry_v0_1.js?v=20260911-1310"></script>
 <!-- Pakistani Aegis voice paused; source preserved for later validation. -->
 <script>
-window.EZERO_PUBLIC_AI_ENDPOINT = "https://ezero-qwen-gateway.coma39658.workers.dev/api/ezero-agent/v0.1/ask";
-window.EZERO_PUBLIC_AI_ENABLED = false;
+window.EZERO_PUBLIC_AI_ENDPOINT = "https://ezero-qwen-vision-gateway-public.coma39658.workers.dev/api/ezero-agent/v0.1/ask";
+window.EZERO_PUBLIC_AI_ENABLED = true;
 window.addEventListener("load", async function () {
   try {
     const response = await fetch(
-      "https://ezero-qwen-gateway.coma39658.workers.dev/health",
+      "https://ezero-qwen-vision-gateway-public.coma39658.workers.dev/health",
       { cache: "no-store" }
     );
     if (!response.ok) return;
@@ -4086,7 +4086,8 @@ window.addEventListener("load", async function () {
         : "🤖 Open E-ZERO Guide";
     }
   } catch (_) {
-    window.EZERO_PUBLIC_AI_ENABLED = false;
+    // A failed health probe does not block an authorized user request.
+    // The gateway and response validator remain authoritative.
   }
 });
 
