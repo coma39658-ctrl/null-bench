@@ -22,7 +22,7 @@ button:disabled{opacity:.5}
 <body>
 <main>
 <h1>E-ZERO — AI سے بات کریں</h1>
-<p class="note">یہ تجرباتی AI چیٹ ہے۔ سوال صرف بٹن دبانے پر سرور کو بھیجا جاتا ہے۔ AI کا جواب حتمی گاڑی تشخیص نہیں۔</p>
+<p class="note">یہ تجرباتی تحریری چیٹ E-ZERO AI v0.2 سے منسلک ہے۔ گاڑیوں اور پرزوں کے سوالات قابلِ قبول ہیں؛ موجودہ قیمت کے لیے مصدقہ لائیو سرچ فی الحال دستیاب نہیں۔ AI کا جواب حتمی گاڑی تشخیص نہیں۔</p>
 <form id="chatForm">
 <label for="question">اپنا سوال لکھیں</label>
 <textarea id="question" maxlength="2000" required placeholder="مثال: OBD-II کیا ہے؟"></textarea>
@@ -42,7 +42,7 @@ button:disabled{opacity:.5}
 <script>
 (function(){
 "use strict";
-const endpoint="https://ezero-qwen-vision-gateway-public.coma39658.workers.dev/api/ezero-agent/v0.1/ask";
+const endpoint="https://ezero-qwen-public-priceguard-v0-2.coma39658.workers.dev/api/ezero-agent/v0.1/ask";
 const get=id=>document.getElementById(id);
 const form=get("chatForm"),send=get("send"),status=get("status");
 let busy=false;
@@ -101,7 +101,9 @@ form.addEventListener("submit",async function(event){
     throw Error("AI_RESPONSE_NOT_VERIFIED_"+String(data.detail||"UNKNOWN").slice(0,100));
   add("آپ: "+question,"question");
   add("E-ZERO AI: "+data.answer.trim(),"answer");
-  status.textContent="AI کا جواب موصول ہوگیا۔";
+  status.textContent=data.market_price_verification==="NOT_VERIFIED"
+   ?"تحریری AI v0.2 · موجودہ قیمت کی براہِ راست ویب تصدیق نہیں ہوئی۔"
+   :"E-ZERO AI v0.2 کا جواب موصول ہوگیا؛ حتمی تشخیص نہیں۔";
   get("question").value="";
  }catch(error){
   status.textContent="رابطے میں خرابی: "+
