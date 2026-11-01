@@ -10,6 +10,15 @@ try{
   await page.route(/workers\.dev\//,async route=>{external.push(route.request().url());await route.fulfill({status:200,contentType:"application/json",body:'{"status":"OFFLINE","public_ai_enabled":false}'});});
   const r=await page.goto("http://127.0.0.1:8767/ezero_ai_studio_v0_1.html",{waitUntil:"networkidle"});
   assert.equal(r.status(),200);
+  assert.equal(await page.locator("html").getAttribute("data-theme"),null,"Classic light interface must be default");
+  const classic=await page.evaluate(()=>{
+   const c=getComputedStyle(document.documentElement);
+   return {page:c.getPropertyValue("--page").trim(),background:getComputedStyle(document.body).backgroundColor};
+  });
+  assert.equal(classic.page,"#f4f7fb","Original E-ZERO AI Studio light palette restored");
+  assert.equal(await page.locator('link[href*="ezero_ai_studio_visual_v0_1.css"]').count(),0);
+  assert.equal(await page.locator('link[href*="ezero_ai_studio_media_i18n_v0_1.css"]').count(),1);
+
   assert.equal(await page.locator("#aiVideoPanel").isVisible(),false);
   assert.equal(await page.locator("#quickVideo").count(),1);
   assert.equal(await page.locator("#aiStudioBack").count(),1);
@@ -51,6 +60,7 @@ try{
   await page.waitForURL("https://e-zero-dashboard.onrender.com/");
   await ctx.close();
  }
+ console.log("AI_STUDIO_CLASSIC_LIGHT_STYLE_RESTORED: PASS");
  console.log("AI_STUDIO_15_UI_LANGUAGES_AND_BACK: PASS");
  console.log("AI_STUDIO_LOCAL_VIDEO_ONLY_NO_UPLOAD: PASS");
  console.log("AI_GATEWAY_FOUR_REPLY_LANGUAGES_UNCHANGED: PASS");
