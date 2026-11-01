@@ -21,7 +21,7 @@ try{
   assert.equal(links[3],"#try");
   assert.equal(await page.locator('#try').count(),1,"Existing research tool must remain");
   assert.equal(await page.locator('#vehicle-obd').count(),1,"Existing vehicle section must remain");
-  for(const [lang,pattern] of [["ur",/گاڑیوں کا ڈیش بورڈ/],["en",/Vehicle dashboard/],["ar",/لوحة المركبات/],["es",/Panel de vehículos/],["zh-CN",/车辆仪表盘/],["ja",/車両ダッシュボード/]]){
+  for(const [lang,pattern] of [["ur",/گاڑیوں کا ڈیش بورڈ/],["en",/Vehicle dashboard/i],["ar",/لوحة المركبات/],["es",/Panel de vehículos/],["zh-CN",/车辆仪表盘/],["ja",/車両ダッシュボード/]]){
    await page.evaluate(lang=>window.EZERO_LANGUAGE.apply(lang),lang);
    assert.equal(await page.locator("html").getAttribute("lang"),lang);
    assert.match(await page.locator(".ezero-home-grid").innerText(),pattern);
