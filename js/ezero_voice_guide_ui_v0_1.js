@@ -427,18 +427,25 @@
           window.EZERO_VOICE_CONVERSATION.setState("ANSWER");
         }
 
-        status.textContent =
-          data.sourceClass === "VERIFIED_STATIC"
-            ? (
-                language === "ur"
-                  ? "✓ تصدیق شدہ E-ZERO جواب · فوری"
-                  : "✓ Verified E-ZERO answer · instant"
-              )
-            : (
-                language === "ur"
-                  ? "✓ E-ZERO AI Agent جواب تیار ہے"
-                  : "✓ E-ZERO AI Agent answer ready"
-              );
+        // Never imply that a live market price or recent event was verified
+        // when the gateway did not return current public web sources.
+        const freshnessQuestion =
+          /\b(?:latest|today|current|recent|prices?|market|news|availability|in stock)\b|(?:آج|ابھی|تازہ|حالیہ|قیمت|قیمتیں|مارکیٹ|خبر|خبریں|دستیاب|السعر|الأسعار|اليوم)/iu
+            .test(question);
+        const currentWebNotVerified = freshnessQuestion &&
+          agentResult.web_research_status !== "WEB_CONTEXT_AVAILABLE";
+
+        status.textContent = currentWebNotVerified
+          ? (language === "ur"
+              ? "تازہ مارکیٹ معلومات کی ویب تصدیق نہیں ہوئی؛ جواب عمومی AI معلومات ہے۔"
+              : "Live market information was not verified; this is a general AI answer.")
+          : data.sourceClass === "VERIFIED_STATIC"
+            ? (language === "ur"
+                ? "✓ تصدیق شدہ E-ZERO جواب · فوری"
+                : "✓ Verified E-ZERO answer · instant")
+            : (language === "ur"
+                ? "✓ E-ZERO AI Agent جواب تیار ہے"
+                : "✓ E-ZERO AI Agent answer ready");
 
         if (
           window.EZERO_VOICE_GUIDE_SETTINGS &&
