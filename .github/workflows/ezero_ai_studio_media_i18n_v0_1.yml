@@ -1,12 +1,13 @@
 name: E-ZERO AI Studio Mobile Video and 15 Language QA
 on:
   push:
-    branches: [ezero-ai-studio-classic-style-keep-features-v0.1]
+    branches: [ezero-ai-studio-final-eye-comfort-v0.1]
     paths:
       - '.github/workflows/ezero_ai_studio_media_i18n_v0_1.yml'
       - 'ezero_ai_studio_v0_1.html'
       - 'js/ezero_ai_studio_media_i18n_v0_1.js'
       - 'css/ezero_ai_studio_media_i18n_v0_1.css'
+      - 'css/ezero_ai_studio_comfort_v0_1.css'
       - 'tests/test_ezero_ai_studio_media_i18n_v0_1.mjs'
   workflow_dispatch:
 permissions: {contents: read}
