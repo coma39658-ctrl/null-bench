@@ -1,0 +1,39 @@
+/* E-ZERO AI Studio · luminous, fast, accessible brand skin */
+:root[data-theme="dark"]{
+ --page:#081522;--surface:#0f2737;--surface2:#15364a;--navy:#e5feff;
+ --ink:#ebf8fa;--sub:#b3d0da;--line:#3f6878;--accent:#4ce0d1;
+ --accent2:#8bf4df;--tint:#163a4a;--green:#7af1b4;--danger:#ffb3ac;
+ --shadow:0 13px 35px #02111daa,0 0 16px #26d5ad14;
+}
+:root[data-theme="dark"] body{background:radial-gradient(circle at 80% 10%,#125b644a,transparent 32%),radial-gradient(circle at 10% 85%,#10355d77,transparent 40%),var(--page);}
+:root[data-theme="dark"] .app{background-image:linear-gradient(#5df4c607 1px,transparent 1px),linear-gradient(90deg,#5df4c607 1px,transparent 1px);background-size:34px 34px}
+.rail{background:linear-gradient(155deg,var(--surface),var(--page));box-shadow:inset -1px 0 0 var(--line)}
+.logo{background:linear-gradient(128deg,#077b9e,#0ddec5);box-shadow:0 0 23px #1fe7cf4d,0 8px 23px #051e36aa}
+.brand strong,.topIdentity strong{letter-spacing:.02em}
+.topbar{box-shadow:0 8px 21px #04192733;backdrop-filter:blur(6px)}
+.aiBackButton{border-color:var(--accent)!important;box-shadow:0 0 14px #28d6a62a;background:var(--tint)}
+.aiUILanguage{border-color:#52c6bc;background:var(--surface2);box-shadow:0 0 12px #1bbca326}
+.welcome{position:relative;isolation:isolate}
+.welcome:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 32% 20%,#1bafac19,transparent 60%)}
+.welcome h1{letter-spacing:-.04em;text-shadow:0 0 21px #42e7d92e}
+.welcome h1 em{background:linear-gradient(100deg,#1adfc5,#b8ffe3 70%,#63b4ef);background-clip:text;color:transparent}
+.eyebrow{color:var(--accent2);text-shadow:0 0 15px #30eacb40}
+.chips{grid-template-columns:repeat(2,minmax(0,1fr))}
+.quick{position:relative;isolation:isolate;overflow:hidden;border:1px solid #4a8b96;background:linear-gradient(135deg,var(--surface2),var(--surface));box-shadow:0 7px 20px #05192935;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.quick:before{content:"";position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,transparent,#39e8d1,#c1fff0,transparent);opacity:.7;pointer-events:none}
+.quick svg{color:var(--accent2);filter:drop-shadow(0 0 7px #3afed963)}
+.quick:hover,.quick:focus-visible{transform:translateY(-2px);border-color:#7bf7db;box-shadow:0 9px 28px #18c4b333}
+.quick strong{font-size:13px;color:var(--ink)}
+.railButton{border-color:#538898;background:linear-gradient(125deg,var(--surface),var(--surface2))}
+.composer{border-color:#51969b;box-shadow:0 0 17px #17b7af22,0 14px 35px #03172855}
+.tool{border-color:#4d7f87}.tool:hover,.tool:focus-visible{border-color:var(--accent);box-shadow:0 0 15px #25e9bb2e}
+.send{background:linear-gradient(120deg,#147d88,#06c4aa);border:1px solid #4bf2d6;box-shadow:0 0 16px #1edec035}
+.bubble{box-shadow:0 7px 22px #03182642}
+.aiVideoCard{border:1px solid #42b6af;box-shadow:0 18px 80px #0009,0 0 28px #12bbad2c}
+.aiVideoHead h2{color:var(--navy)}
+.aiVideoBoundary{background:var(--tint);border-inline-start-color:var(--accent2)}
+.aiVideoActions button:hover,.aiVideoClose:hover{border-color:var(--accent);background:var(--tint)}
+@media(max-width:830px){.chips{grid-template-columns:repeat(2,minmax(0,1fr))}.welcome h1{font-size:clamp(28px,7.8vw,42px)}.scroll{scrollbar-gutter:auto}}
+@media(max-width:450px){.chips{grid-template-columns:1fr 1fr;gap:9px}.quick{padding:11px;min-height:76px}.quick strong{font-size:12px}.quick small{font-size:10px}.aiBackButton{min-width:48px}}
+@media(max-width:350px){.chips{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.quick{transition:none!important}.quick:hover{transform:none}}
