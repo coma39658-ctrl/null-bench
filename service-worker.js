@@ -1,4 +1,4 @@
-const CACHE_NAME = "ezero-null-bench-v4-branded-priceguard-20261101";
+const CACHE_NAME = "ezero-null-bench-v5-unified-ai-20261101";
 
 const APP_FILES = [
   "./",
