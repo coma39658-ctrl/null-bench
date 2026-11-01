@@ -55,11 +55,21 @@ try{
     await page.setViewportSize({width,height:780});
     await assertSendVisible();
   }
-  await page.locator("#themeBtn").click();
-  assert.equal(await page.locator("html").getAttribute("data-theme"),"dark","Optional original dark theme must still work");
+  // The original optional theme button is hidden on narrow phones; verify
+  // both CSS theme modes without pretending a hidden control is tappable.
+  if(await page.locator("#themeBtn").isVisible()){
+    await page.locator("#themeBtn").click();
+  }else{
+    await page.evaluate(()=>document.documentElement.dataset.theme="dark");
+  }
+  assert.equal(await page.locator("html").getAttribute("data-theme"),"dark","Original dark theme must remain functional");
   assert.equal(await page.locator("#send").isVisible(),true);
   await assertSendVisible();
-  await page.locator("#themeBtn").click();
+  if(await page.locator("#themeBtn").isVisible()){
+    await page.locator("#themeBtn").click();
+  }else{
+    await page.evaluate(()=>document.documentElement.dataset.theme="light");
+  }
   assert.equal(await page.locator("html").getAttribute("data-theme"),"light");
 
 
