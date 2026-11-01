@@ -485,8 +485,8 @@
 
         status.textContent = currentWebNotVerified
           ? (language === "ur"
-              ? "تازہ مارکیٹ معلومات کی ویب تصدیق نہیں ہوئی؛ جواب عمومی AI معلومات ہے۔"
-              : "Live market information was not verified; this is a general AI answer.")
+              ? "تازہ مارکیٹ قیمت یا دستیابی کی ویب تصدیق نہیں ہوئی؛ صرف غیر تصدیق شدہ معلومات دستیاب ہیں۔"
+              : "Live market prices and availability were not verified; any guidance is not a current quote.")
           : data.sourceClass === "VERIFIED_STATIC"
             ? (language === "ur"
                 ? "✓ تصدیق شدہ E-ZERO جواب · فوری"
