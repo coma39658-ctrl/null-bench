@@ -73,5 +73,28 @@ jobs:
             console.log(name+"_SCOPE_REFUSAL:",/(?:صرف E-ZERO|صرف ای زیرو|دائرہ کار میں نہیں|outside (?:my|the) scope|only (?:about|for) E-ZERO)/iu.test(String(d.answer||""))?"YES":"NO");
             if(r.status!==200)throw Error(name+"_HTTP_FAILED");
           }
+          const exactPrompt="ای زیرو اے آئی گائیڈ، سعودی عرب میں 2018 ماڈل ٹویوٹا کرولا کی موجودہ مارکیٹ قیمت کیا ہے؟ کیا آپ نئی اور استعمال شدہ گاڑیوں کی قیمتیں، دستیابی اور معتبر ویب ذرائع بتا سکتے ہیں؟ اگر براہِ راست ویب سرچ دستیاب نہیں تو واضح بتائیں اور کوئی فرضی قیمت یا مارکیٹ کا نام نہ دیں۔";
+          const variants=[
+            ["EXACT_PROMPT_AUTO",exactPrompt,"auto"],
+            ["EXACT_PROMPT_UR",exactPrompt,"ur"],
+            ["EXACT_PROMPT_HISTORY",exactPrompt,"auto"]
+          ];
+          for(const [name,question,language] of variants){
+            const res=await req(worker+"/api/ezero-agent/v0.1/ask",{
+              method:"POST",
+              headers:{"Origin":origin,"Content-Type":"application/json"},
+              body:JSON.stringify({
+                question,response_language:language,fallback_language:"ur",answer_length:"normal",
+                ...(name==="EXACT_PROMPT_HISTORY"?{session_id:"diagnostic-no-private-data",history:[{role:"user",content:"انجن میں پسٹن کا کام کیا ہے؟"},{role:"assistant",content:"پسٹن سلنڈر کے اندر حرکت کرتا ہے۔"}]}:{})
+              })
+            });
+            const d=await res.json();
+            console.log(name+"_HTTP:",res.status);
+            console.log(name+"_STATUS:",d.status||"UNKNOWN");
+            console.log(name+"_MARKET_VERIFICATION:",d.market_price_verification||"NOT_REPORTED");
+            console.log(name+"_WEB_STATUS:",d.web_research_status||"NOT_REPORTED");
+            console.log(name+"_UNSUPPORTED_MARKET_REFUSAL:",/(?:صرف E-ZERO|صرف ای زیرو|دائرہ کار سے باہر|دائرہ کار میں نہیں|e-zero.*(?:scope|platform only))/iu.test(String(d.answer||""))?"YES":"NO");
+            console.log(name+"_SAFE_PRICE_FALLBACK:",String(d.answer||"").includes("براہِ راست ویب تصدیق دستیاب نہیں")?"YES":"NO");
+          }
           console.log("LIVE_PUBLIC_PRICE_REPLY_DIAGNOSTICS: PASS");
           CHECK
