@@ -5,7 +5,7 @@ try{
  for(const width of [320,390,768,1280]){
   const ctx=await browser.newContext({viewport:{width,height:850},reducedMotion:"reduce"});
   const page=await ctx.newPage();
-  await page.route(url=>url.includes(".workers.dev/"),r=>r.fulfill({status:200,contentType:"application/json",body:'{"status":"OFFLINE","public_ai_enabled":false}'}));
+  await page.route(url=>url.hostname.endsWith("workers.dev"),r=>r.fulfill({status:200,contentType:"application/json",body:'{"status":"OFFLINE","public_ai_enabled":false}'}));
   const response=await page.goto("http://127.0.0.1:8767/index.html",{waitUntil:"domcontentloaded"});
   assert.equal(response.status(),200);
   await page.waitForFunction(()=>window.EZERO_LANGUAGE&&window.EZERO_NULL_BENCH_HOME_V0_2);
