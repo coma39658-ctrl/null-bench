@@ -27,7 +27,7 @@ try{
   await page.locator("#quickVideo").click();
   assert.equal(await page.locator("#aiVideoPanel").isVisible(),true);
   assert.match(await page.locator("#aiVideoBoundary").innerText(),/not uploaded/);
-  assert.equal(await page.locator("#aiVideoClose").isFocused(),true);
+  assert.equal(await page.locator("#aiVideoClose").evaluate(el=>el===document.activeElement),true);
   await page.locator("#aiVideoInput").setInputFiles({name:"bad.txt",mimeType:"text/plain",buffer:Buffer.from("test")});
   assert.match(await page.locator("#aiVideoStatus").innerText(),/Unsupported video type/);
   await page.locator("#aiVideoInput").setInputFiles({name:"clip.mp4",mimeType:"video/mp4",buffer:Buffer.from("not-real-video-data")});
