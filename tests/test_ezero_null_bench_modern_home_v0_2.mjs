@@ -3,7 +3,7 @@ import {chromium} from "playwright";
 const browser=await chromium.launch({headless:true});
 try{
  for(const width of [320,390,768,1280]){
-  const ctx=await browser.newContext({viewport:{width,height:850},reducedMotion:"reduce"});
+  const ctx=await browser.newContext({viewport:{width,height:850},reducedMotion:"reduce",serviceWorkers:"block"});
   const page=await ctx.newPage();
   await page.route(url=>url.hostname.endsWith("workers.dev"),r=>r.fulfill({status:200,contentType:"application/json",body:'{"status":"OFFLINE","public_ai_enabled":false}'}));
   const response=await page.goto("http://127.0.0.1:8767/index.html",{waitUntil:"domcontentloaded"});
