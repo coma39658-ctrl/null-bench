@@ -1,4 +1,4 @@
-const CACHE_NAME = "ezero-null-bench-v2-system-update";
+const CACHE_NAME = "ezero-null-bench-v3-priceguard-20261101";
 
 const APP_FILES = [
   "./",
@@ -20,7 +20,7 @@ self.addEventListener("activate", event => {
     caches.keys().then(keys =>
       Promise.all(
         keys
-          .filter(key => key !== CACHE_NAME)
+          .filter(key => key.startsWith("ezero-null-bench-") && key !== CACHE_NAME)
           .map(key => caches.delete(key))
       )
     )
@@ -29,9 +29,13 @@ self.addEventListener("activate", event => {
 });
 
 self.addEventListener("fetch", event => {
-  if (event.request.method !== "GET") {
+  if (event.request.method !== "GET") return;
+  // Never cache or proxy third-party sites, Cloudflare AI responses, or
+  // unrelated same-origin paths. Offline support is only for this PWA.
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin ||
+      !url.pathname.startsWith(new URL(self.registration.scope).pathname))
     return;
-  }
 
   event.respondWith(
     fetch(event.request, { cache: "no-store" })
