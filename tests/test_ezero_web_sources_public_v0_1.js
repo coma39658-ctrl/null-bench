@@ -14,12 +14,23 @@ window.clearTimeout = clearTimeout;
 const agentSource = fs.readFileSync("js/ezero_qwen_public_agent_v0_1.js", "utf8");
 const voiceSource = fs.readFileSync("js/ezero_voice_guide_ui_v0_1.js", "utf8");
 const website = fs.readFileSync("index.html", "utf8");
-const canaryHost = "https://ezero-qwen-webresearch-candidate-v0-1.coma39658.workers.dev";
+const canaryHost = "https://ezero-qwen-public-free-market-v0-1.coma39658.workers.dev";
 assert.ok(website.includes(canaryHost + "/api/ezero-agent/v0.1/ask"), "Public AI must use verified canary");
 assert.ok(website.includes(canaryHost + "/health"), "Health must match chat gateway");
 assert.ok(!website.includes("https://ezero-qwen-vision-gateway-public.coma39658.workers.dev"), "Avoid stale fallback or mismatched health");
 assert.match(voiceSource, /currentWebNotVerified/, "Market freshness disclosure required");
 assert.match(voiceSource, /Live market information was not verified/, "No false live-source claims");
+assert.match(voiceSource, /offerPublicSearchLinks\(question,language\)/,
+  "Offer optional search engine links only for unverified market questions");
+assert.ok(voiceSource.includes('data-ezero-search-alternatives'));
+assert.ok(voiceSource.includes('https://duckduckgo.com/?q='));
+assert.ok(voiceSource.includes('https://www.bing.com/search?q='));
+assert.ok(voiceSource.includes('encodeURIComponent(question)'));
+assert.ok(voiceSource.includes('link.rel="noopener noreferrer nofollow"'));
+assert.ok(voiceSource.includes('if(oldAlternatives)oldAlternatives.remove()'));
+assert.ok(voiceSource.includes('پاسورڈ') && voiceSource.includes('bank.account'),
+  "Do not forward secrets or bank details to external search engines");
+
 vm.runInThisContext(agentSource, {filename:"ezero_qwen_public_agent_v0_1.js"});
 const agent = window.EZERO_QWEN_PUBLIC_AGENT_V0_1;
 assert.equal(typeof agent.ask, "function");
