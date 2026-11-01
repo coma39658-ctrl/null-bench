@@ -327,11 +327,13 @@
             ? {
                 answer:
                   "INSUFFICIENT_VERIFIED_EZERO_EVIDENCE",
-                sourceClass: agentResult.source_class
+                sourceClass: agentResult.source_class,
+                sources: agentResult.sources
               }
             : {
                 answer: agentResult.answer,
-                sourceClass: agentResult.source_class
+                sourceClass: agentResult.source_class,
+                sources: agentResult.sources
               };
 
         if (
@@ -341,6 +343,9 @@
         ) {
           throw new Error("AI_BRIDGE_INVALID_RESPONSE");
         }
+
+        const staleLinks = answer.parentElement?.querySelector("[data-ezero-web-sources]");
+        if (staleLinks) staleLinks.remove();
 
         if (data.answer === "INSUFFICIENT_VERIFIED_EZERO_EVIDENCE") {
           answer.textContent =
@@ -364,6 +369,54 @@
         }
 
         answer.textContent = data.answer;
+
+        if (answer.parentElement && Array.isArray(data.sources)) {
+          const list = document.createElement("ul");
+          const seen = new Set();
+
+          for (const item of data.sources.slice(0, 5)) {
+            if (!item || item.sourceClass !== "WEB_SEARCH_UNVERIFIED"
+                || typeof item.url !== "string") continue;
+
+            let url;
+            try { url = new URL(item.url); }
+            catch { continue; }
+
+            const host = url.hostname.toLowerCase();
+            if (url.protocol !== "https:" || url.username || url.password
+                || host === "localhost"
+                || host.endsWith(".localhost")
+                || host.endsWith(".local")
+                || /^(127|10|192\.168|169\.254)\./.test(host)
+                || /^172\.(1[6-9]|2[0-9]|3[01])\./.test(host)
+                || /^\[(::1|fc|fd|fe80)/.test(host)
+                || seen.has(url.href)) continue;
+
+            seen.add(url.href);
+            const li = document.createElement("li");
+            const link = document.createElement("a");
+            link.href = url.href;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer nofollow";
+            link.textContent = typeof item.title === "string"
+              ? item.title.slice(0, 140) : host;
+            li.appendChild(link);
+            list.appendChild(li);
+          }
+
+          if (list.children.length) {
+            const panel = document.createElement("section");
+            panel.setAttribute("data-ezero-web-sources", "true");
+            const heading = document.createElement("strong");
+            heading.textContent = language === "ur"
+              ? "بیرونی ویب روابط (غیر تصدیق شدہ)"
+              : "External web links (unverified)";
+            panel.appendChild(heading);
+            panel.appendChild(list);
+            answer.insertAdjacentElement("afterend", panel);
+          }
+        }
+
 
         if (
           window.EZERO_VOICE_CONVERSATION &&

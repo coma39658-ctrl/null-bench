@@ -275,6 +275,10 @@
             ? data.answer.trim()
             : "",
         source_class: data.source_class,
+          sources: data.status === "OK" && Array.isArray(data.sources)
+            ? data.sources.slice(0, 5) : [],
+          web_research_status: typeof data.web_research_status === "string"
+            ? data.web_research_status : "UNKNOWN",
         diagnostic_claim: false,
         evidence_authority: false
       });
