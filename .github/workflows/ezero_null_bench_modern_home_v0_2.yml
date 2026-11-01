@@ -1,0 +1,50 @@
+name: E-ZERO Null Bench Modern Mobile Home QA
+on:
+  push:
+    branches: [ezero-null-bench-modern-home-v0.2]
+    paths:
+      - 'index.html'
+      - 'css/ezero_null_bench_modern_home_v0_2.css'
+      - 'js/ezero_null_bench_modern_home_v0_2.js'
+      - 'tests/test_ezero_null_bench_modern_home_v0_2.mjs'
+      - '.github/workflows/ezero_null_bench_modern_home_v0_2.yml'
+  workflow_dispatch:
+permissions: {contents: read}
+concurrency:
+  group: ezero-null-bench-modern-home-v0-2
+  cancel-in-progress: true
+jobs:
+  mobile_home:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Install browser for isolated web QA
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.57.0
+          npx playwright install --with-deps chromium
+      - name: Run original research-engine regressions and new home browser QA
+        run: |
+          node --check js/ezero_null_bench_modern_home_v0_2.js
+          node --check tests/test_ezero_null_bench_modern_home_v0_2.mjs
+          node tests/test_benchmark006c_runtime_v0_1.js
+          node tests/test_benchmark006c_public_runner_v0_1.js
+          python -m http.server 8767 --bind 127.0.0.1 >/tmp/ezero-null-home-qa.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8767/index.html >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8767/index.html >/dev/null
+          node tests/test_ezero_null_bench_modern_home_v0_2.mjs
+      - name: Assert deployment boundary
+        run: |
+          echo 'BENCHMARK_ENGINE: UNCHANGED'
+          echo 'OBD_COMMANDS: NONE'
+          echo 'AI_GATEWAY: UNCHANGED'
+          echo 'PRODUCTION_DEPLOYMENT: NOT_PERFORMED_BY_THIS_WORKFLOW'

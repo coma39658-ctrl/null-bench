@@ -1,0 +1,110 @@
+/* E-ZERO Null Bench public-home polish — visual/layout only, safe benchmark unchanged. */
+body.ezero-home-modern{
+ --ez-navy:#09263a;--ez-teal:#078f88;--ez-mint:#6dedd1;
+ font-family:system-ui,-apple-system,"Segoe UI","Noto Naskh Arabic",Arial,sans-serif;
+ background:radial-gradient(ellipse at 80% 2%,#b9ede750,transparent 40%),linear-gradient(#9dbec520 1px,transparent 1px),linear-gradient(90deg,#9dbec520 1px,transparent 1px),#eff6f7;
+ background-size:auto,34px 34px,34px 34px;
+ overflow-x:hidden;
+ overflow-wrap:anywhere;
+}
+body.ezero-home-modern .wrap{max-width:1170px;padding-inline:clamp(16px,3.5vw,40px)}
+body.ezero-home-modern .ezero-public-launch{padding:9px 16px!important;background:linear-gradient(105deg,#08263d,#0c4756)!important}
+body.ezero-home-modern .ezero-public-launch a{
+ border:1px solid #78e8ca!important;background:linear-gradient(120deg,#126f7e,#109b8b)!important;
+ box-shadow:0 0 19px #13cbb04d;border-radius:999px!important;
+ padding:9px 17px!important;font-size:clamp(12px,2vw,14px);
+}
+body.ezero-home-modern>header{
+ max-width:none;width:100%;padding:16px clamp(16px,4vw,45px);
+ display:flex;flex-wrap:wrap;gap:16px;align-items:center;
+ background:linear-gradient(120deg,#092439,#0d3747);color:#f5fffd;
+ border-bottom:1px solid #68d5c870;
+}
+body.ezero-home-modern .ezero-master-brand{min-width:0;gap:11px}
+body.ezero-home-modern .ezero-brand-mark{width:53px;height:53px;padding:4px;background:white;border:1px solid #67dfca;border-radius:14px;box-shadow:0 0 21px #1bebb64f}
+body.ezero-home-modern .ezero-brand-name{font-size:clamp(20px,3vw,25px);color:#fff;letter-spacing:.09em}
+body.ezero-home-modern .ezero-brand-tagline{color:#74e7d3}
+body.ezero-home-modern .ezero-brand-module{color:#c9e2e8}
+body.ezero-home-modern header nav{flex:1;display:flex;flex-wrap:wrap;justify-content:center;gap:2px}
+body.ezero-home-modern header nav a{margin:0;padding:8px;border-radius:8px;color:#d4eceb;font-size:12px}
+body.ezero-home-modern header nav a:hover{background:#184958;color:#fff}
+body.ezero-home-modern #languageControl{
+ flex:0 1 auto!important;width:auto!important;max-width:100%!important;min-width:0!important;
+ display:flex!important;flex-wrap:wrap!important;gap:8px!important;align-items:center!important;
+}
+body.ezero-home-modern #languageControl>label{width:auto!important;color:#e5f8f6!important;white-space:nowrap;font-size:12px}
+body.ezero-home-modern #languageSelect{display:none!important}
+body.ezero-home-modern .ezero-language-picker-button{min-height:44px;width:auto!important;min-width:125px;background:#1a5262;border:1px solid #66e3d2;color:#fff;box-shadow:0 0 15px #24e6c12a}
+body.ezero-home-modern #ezeroVoiceGuideButton.ezero-assist-launcher{
+ flex:0 1 auto!important;width:auto!important;min-width:140px!important;max-width:260px!important;
+ background:linear-gradient(120deg,#f0fffc,#d4f6f0)!important;border-color:#60cbbd!important;box-shadow:0 0 15px #22d2a93a;
+}
+body.ezero-home-modern .ezero-public-quickbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;max-width:1170px;margin:0 auto;padding:12px clamp(16px,3.5vw,40px)}
+body.ezero-home-modern .ezero-public-quickbar a{display:inline-flex;align-items:center;justify-content:center;min-height:43px;padding:9px 13px;background:#fff;border:1px solid #9acac9;border-radius:11px;color:#124354;text-decoration:none;font-size:12px;font-weight:800;box-shadow:0 5px 15px #1d7d8420}
+body.ezero-home-modern .ezero-public-quickbar a:first-child{color:white;background:linear-gradient(110deg,#1b798a,#0c9b89);border-color:#1db9a6}
+body.ezero-home-modern .ezero-public-quickbar a:hover{border-color:#2bcbb5;box-shadow:0 0 15px #23c5b844}
+body.ezero-home-modern .public-banner{padding:10px 14px;font-size:clamp(10px,1.7vw,12px);letter-spacing:0;line-height:1.65;color:#1c4b59;background:#d9edef}
+body.ezero-home-modern .creator-line{max-width:1170px;padding:12px clamp(16px,3.5vw,40px) 0;font-size:12px}
+body.ezero-home-modern section.hero{
+ isolation:isolate;position:relative;overflow:hidden;
+ background:radial-gradient(circle at 80% 12%,#1c7d7b75,transparent 42%),linear-gradient(133deg,#061b2e,#0a3445);
+ color:#edfffc;border:1px solid #46b6af;border-radius:clamp(17px,3vw,26px);
+ padding:clamp(23px,5vw,48px);margin:12px 0 26px;
+ box-shadow:0 17px 38px #082e3e38,0 0 29px #25d3ad1b;
+}
+body.ezero-home-modern section.hero:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.35;background:radial-gradient(circle at 12% 15%,#bafff4 0 1px,transparent 2px),radial-gradient(circle at 78% 58%,#c5fff8 0 1px,transparent 2px),linear-gradient(#ddfff909 1px,transparent 1px),linear-gradient(90deg,#ddfff909 1px,transparent 1px);background-size:auto,auto,34px 34px,34px 34px}
+body.ezero-home-modern section.hero h1{
+ max-width:940px;width:100%;font-size:clamp(27px,4.5vw,52px)!important;
+ line-height:1.45!important;letter-spacing:0!important;color:#f8fffe;
+ word-break:normal;overflow-wrap:break-word;hyphens:none;
+ text-shadow:0 0 20px #54f7cb23;margin:15px 0;
+}
+body.ezero-home-modern section.hero h1 em{color:#93f4d7}
+body.ezero-home-modern section.hero .eyebrow{color:#96f8e0;font-size:clamp(10px,1.6vw,12px);letter-spacing:.05em;text-transform:none}
+body.ezero-home-modern section.hero .lede{max-width:800px;color:#d3eef0;font-size:clamp(14px,2vw,18px);line-height:1.9}
+body.ezero-home-modern .ezero-home-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin:24px 0 12px}
+body.ezero-home-modern .ezero-home-tile{
+ min-height:121px;position:relative;display:flex;flex-direction:column;gap:8px;
+ text-decoration:none;background:linear-gradient(140deg,#16495b,#0c3046);border:1px solid #4a9698;
+ padding:15px;border-radius:16px;color:#ecfffc;
+ box-shadow:0 7px 23px #0004;transition:transform .18s,border-color .18s,box-shadow .18s;
+}
+body.ezero-home-modern .ezero-home-tile:before{content:"";position:absolute;top:0;left:14%;right:14%;height:2px;background:linear-gradient(90deg,transparent,#78f0d3,transparent)}
+body.ezero-home-modern .ezero-home-tile:hover{transform:translateY(-2px);border-color:#8bffe4;box-shadow:0 0 20px #0ad2aa46}
+body.ezero-home-modern .ezero-home-tile b{width:max-content;padding:4px 8px;border:1px solid #64d2c2;border-radius:8px;color:#8fffe6;font:800 12px/1.2 ui-monospace,monospace}
+body.ezero-home-modern .ezero-home-tile strong{font-size:clamp(12px,1.6vw,16px);line-height:1.4}
+body.ezero-home-modern .ezero-home-tile small{font-size:11px;line-height:1.6;color:#c2e7e7}
+body.ezero-home-modern section.hero .actions .btn{min-height:45px;border:1px solid #5bdfc7;border-radius:12px;padding:12px 17px;color:white;background:linear-gradient(120deg,#128a80,#0ba998);box-shadow:0 0 17px #12e0b536}
+body.ezero-home-modern section.hero .actions .btn.ghost{color:#eafffb;background:#204559;border-color:#6296a1}
+body.ezero-home-modern section.hero #ezeroQwenFrontCard{
+ border:1px solid #77b4b9!important;background:#e8faf9!important;border-radius:16px!important;
+ box-shadow:0 9px 29px #03182c40!important;
+}
+body.ezero-home-modern section.hero #ezeroQwenFrontCard :is(p,div,span,button,a){text-shadow:none}
+body.ezero-home-modern section.hero .vehicle-note{color:#c4eced;font-size:11px}
+body.ezero-home-modern section.hero>svg{background:#f7fffe;border:1px solid #74b7bf;border-radius:12px;max-height:260px}
+body.ezero-home-modern .vehicle-card{border-radius:15px;background:#faffff;border-color:#bedbdd;box-shadow:0 7px 22px #2a6b7f19}
+body.ezero-home-modern .vehicle-card h3{color:#163d4e}
+body.ezero-home-modern .card{border-radius:13px}
+body.ezero-home-modern :is(.ezero-home-tile,.ezero-public-quickbar a,.ezero-language-picker-button):focus-visible{outline:3px solid #25c6a5;outline-offset:3px}
+@media(max-width:900px){
+ body.ezero-home-modern>header nav{display:none}
+ body.ezero-home-modern .ezero-home-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:600px){
+ body.ezero-home-modern>header{padding:13px 16px;gap:12px;align-items:center}
+ body.ezero-home-modern .ezero-master-brand{width:100%}
+ body.ezero-home-modern #languageControl{width:100%!important;display:flex!important;gap:7px!important;justify-content:flex-start}
+ body.ezero-home-modern #languageControl>label{width:auto!important}
+ body.ezero-home-modern .ezero-language-picker-button{width:auto!important;min-width:116px}
+ body.ezero-home-modern #ezeroVoiceGuideButton.ezero-assist-launcher{flex:1 1 150px!important;min-width:135px!important;max-width:none!important}
+ body.ezero-home-modern section.hero{padding:21px 15px;margin:8px 0 20px}
+ body.ezero-home-modern section.hero h1{font-size:clamp(25px,6.9vw,32px)!important;line-height:1.56!important}
+ body.ezero-home-modern .ezero-home-grid{gap:8px}
+ body.ezero-home-modern .ezero-home-tile{padding:11px;min-height:112px}
+ body.ezero-home-modern .ezero-home-tile small{font-size:10px}
+ body.ezero-home-modern .ezero-public-quickbar a{font-size:11px}
+ body.ezero-home-modern .creator-line{padding-top:11px}
+}
+@media(max-width:350px){body.ezero-home-modern .ezero-home-grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){body.ezero-home-modern .ezero-home-tile{transition:none}body.ezero-home-modern .ezero-home-tile:hover{transform:none}}
