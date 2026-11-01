@@ -1,0 +1,47 @@
+name: E-ZERO Real Public Source Link UI Readiness
+on:
+  push:
+    branches:
+      - ezero-live-price-diagnosis-v0.1
+    paths:
+      - '.github/workflows/ezero_public_source_links_livecheck_v0_1.yml'
+permissions:
+  contents: read
+jobs:
+  verify-public-url:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check served Studio links and v6 mobile cache
+        run: |
+          node --input-type=module - <<'CHECK'
+          const base="https://coma39658-ctrl.github.io/null-bench/";
+          const take=async name=>{
+            const response=await fetch(base+name+(name.includes("?")?"&":"?")+"check=public-source-20261101",{
+              signal:AbortSignal.timeout(12000),cache:"no-store"});
+            if(response.status!==200)throw Error("PUBLIC_HTTP_"+response.status+"_"+name);
+            return response.text();
+          };
+          const studio=await take("ezero_ai_studio_v0_1.html");
+          for(const token of [
+            "appendUnverifiedWebSources",
+            "source.sourceClass!==\"WEB_SEARCH_UNVERIFIED\"",
+            "const linkedSources=!isImage?appendUnverifiedWebSources",
+            "noopener noreferrer nofollow",
+            "https://ezero-qwen-public-priceguard-v0-2.coma39658.workers.dev",
+            "appendOptionalMarketSearch(finalMessage.box,q)"
+          ])if(!studio.includes(token))throw Error("STUDIO_MISSING_"+token);
+          console.log("LIVE_STUDIO_PUBLIC_SOURCE_LINKS: PASS");
+          const sw=await take("service-worker.js");
+          if(!sw.includes("ezero-null-bench-v6-public-sources-20261101"))
+            throw Error("STALE_SERVICE_WORKER");
+          console.log("LIVE_PUBLIC_MOBILE_CACHE_V06: PASS");
+          const home=await take("index.html");
+          if(!home.includes("ezero-qwen-public-priceguard-v0-2.coma39658.workers.dev"))
+            throw Error("PUBLIC_AI_BACKEND_UNEXPECTED");
+          console.log("PUBLIC_GOVERNED_QWEN_V02_PRESERVED: PASS");
+          console.log("LIVE_EXTERNAL_SEARCH_STATUS: NOT_ENABLED_WITHOUT_APPROVED_SEARXNG");
+          CHECK
