@@ -44,7 +44,7 @@
   <div class="railFooter"><strong>Evidence first · Human in control</strong><br>AI کی وضاحت حتمی گاڑی تشخیص نہیں۔ ECU کو کوئی کمانڈ نہیں بھیجی جاتی۔</div>
  </aside>
  <main class="main">
-  <header class="topbar"><div class="topIdentity"><span class="logo" style="height:39px;width:39px;border-radius:13px;font-size:16px" aria-hidden="true">E₀</span><span><strong>E-ZERO AI Studio</strong><small>سوال، تصویر اور آواز — ایک جگہ</small></span></div>
+  <header class="topbar"><div class="topIdentity"><span class="logo" style="height:39px;width:39px;border-radius:13px;font-size:16px" aria-hidden="true">E₀</span><span><strong>E-ZERO AI Studio</strong><small>تحریری AI v0.2 · تصویر کا الگ محفوظ رابطہ</small></span></div>
     <div class="topActions"><span id="health" class="health" data-state="checking" title="سرور کی اختیاری صحت کی جانچ"><span class="healthDot"></span><span id="healthText">رابطہ جانچ رہے ہیں</span></span>
      <button id="themeBtn" class="iconButton optional" type="button" aria-label="رنگ بدلیں" title="Light / Dark"><svg viewBox="0 0 24 24"><path d="M20 15.4A8.4 8.4 0 0 1 8.6 4a8.5 8.5 0 1 0 11.4 11.4z"/></svg></button>
      <button id="exportBtn" class="iconButton optional" type="button" aria-label="گفتگو کی نقل محفوظ کریں" title="Save text transcript"><svg viewBox="0 0 24 24"><path d="M12 3v13m-4-4 4 4 4-4M4 18v3h16v-3"/></svg></button>
@@ -85,8 +85,10 @@
 <script>
 (function(){
 "use strict";
-const ENDPOINT="https://ezero-qwen-vision-gateway-public.coma39658.workers.dev/api/ezero-agent/v0.1/ask";
-const HEALTH="https://ezero-qwen-vision-gateway-public.coma39658.workers.dev/health";
+const ENDPOINT="https://ezero-qwen-public-priceguard-v0-2.coma39658.workers.dev/api/ezero-agent/v0.1/ask";
+// Preserve the separately governed vision route until its own full live smoke test.
+const IMAGE_ENDPOINT="https://ezero-qwen-vision-gateway-public.coma39658.workers.dev/api/ezero-agent/v0.1/ask";
+const HEALTH="https://ezero-qwen-public-priceguard-v0-2.coma39658.workers.dev/health";
 const ORIGIN="https://coma39658-ctrl.github.io";
 const MAX_BYTES=5*1024*1024,MAX_QUESTION=4000,MAX_HISTORY=12,MAX_ANSWER=12000;
 const $=id=>document.getElementById(id);
@@ -366,7 +368,7 @@ function updateSend(){els.send.disabled=busy||(!els.prompt.value.trim()&&!select
 async function fileToBase64(f){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(new Error("IMAGE_READ_FAILED"));reader.onabort=()=>reject(new Error("IMAGE_READ_ABORTED"));reader.onload=()=>{const data=String(reader.result||"");const prefix="data:"+f.type+";base64,";if(!data.startsWith(prefix)){reject(new Error("IMAGE_INVALID_DATA"));return}const b64=data.slice(prefix.length);if(b64.length<16||b64.length>6990508){reject(new Error("IMAGE_INVALID_SIZE"));return}resolve(b64)};try{reader.readAsDataURL(f)}catch(_){reject(new Error("IMAGE_READ_FAILED"))}})}
 function validateReply(d,isImage){if(!d||typeof d!=="object")throw Error("AI_RESPONSE_INVALID");if(d.diagnostic_claim!==false||d.evidence_authority!==false)throw Error("AI_SAFETY_BOUNDARY");
  if(d.status==="INSUFFICIENT_VERIFIED_EZERO_EVIDENCE"&&d.source_class==="FAIL_CLOSED")return {text:"اس سوال کے لیے کافی تصدیق شدہ E-ZERO شواہد دستیاب نہیں ہیں۔",source:d.source_class};
- if(d.status!=="OK"||!(isImage?["GOVERNED_AI"]:["GOVERNED_AI","VERIFIED_STATIC"]).includes(d.source_class)||typeof d.answer!=="string"||!d.answer.trim()||d.answer.length>MAX_ANSWER)throw Error("AI_RESPONSE_NOT_VERIFIED");return {text:d.answer.trim(),source:d.source_class};}
+ if(d.status!=="OK"||!(isImage?["GOVERNED_AI"]:["GOVERNED_AI","VERIFIED_STATIC"]).includes(d.source_class)||typeof d.answer!=="string"||!d.answer.trim()||d.answer.length>MAX_ANSWER)throw Error("AI_RESPONSE_NOT_VERIFIED");return {text:d.answer.trim(),source:d.source_class,marketPriceVerification:d.market_price_verification||"UNKNOWN",webResearchStatus:d.web_research_status||"UNKNOWN"};}
 function describeError(err){const s=String(err&&err.message||err);if(s.includes("IMAGE_READ"))return "تصویر فون سے پڑھی نہیں جاسکی۔ Files میں موجود دوسری تصویر منتخب کریں یا نئی تصویر لیں۔";if(s.includes("TIMEOUT")||s.includes("AbortError"))return "سرور نے مقررہ وقت میں جواب نہیں دیا۔ دوبارہ کوشش کی جاسکتی ہے۔";if(s.includes("HTTP_429"))return "فی الحال درخواستوں کی حد پوری ہوگئی ہے۔ کچھ دیر بعد خود دوبارہ کوشش کریں۔";if(s.includes("HTTP_"))return "AI سرور نے درخواست قبول نہیں کی ("+s+")۔";if(s.includes("Failed to fetch")||s.includes("NetworkError"))return "نیٹ ورک یا براؤزر رابطے میں مسئلہ ہے۔ انٹرنیٹ اور براؤزر کی اجازتیں جانچیں۔";if(s.includes("AI_SAFETY"))return "جواب حفاظتی حدود پر پورا نہیں اترا، اس لیے نہیں دکھایا گیا۔";return "AI درخواست مکمل نہیں ہوئی: "+s.slice(0,120)}
 async function sendQuestion(e){if(e)e.preventDefault();if(busy)return;const question=els.prompt.value.trim();const file=selected;const isImage=!!file;
  if(!question&&!file){els.prompt.focus();return}if(question.length>MAX_QUESTION){showNotice("سوال زیادہ سے زیادہ 4000 حروف کا ہوسکتا ہے۔","error");return}if(isImage&&!els.consent.checked){showNotice("تصویر بھیجنے سے پہلے واضح اجازت دیں۔","error");return}
@@ -385,20 +387,23 @@ async function sendQuestion(e){if(e)e.preventDefault();if(busy)return;const ques
    let loading=createMessage("assistant","جواب تیار کیا جا رہا ہے…",null,true);
    const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),isImage?50000:35000);
    try{
-    const response=await fetch(ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},credentials:"omit",redirect:"error",cache:"no-store",body:JSON.stringify(payload),signal:controller.signal});
+    const response=await fetch(isImage?IMAGE_ENDPOINT:ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},credentials:"omit",redirect:"error",cache:"no-store",body:JSON.stringify(payload),signal:controller.signal});
     if(!response.ok)throw Error("HTTP_"+response.status);
     const result=validateReply(await response.json(),isImage);
     if(epoch!==requestEpoch)return;
     loading.box.remove();createMessage("assistant",result.text,null,false);
     transcript.push({role:"assistant",text:result.text,source:result.source});
     if(!isImage&&result.source!=="FAIL_CLOSED"){history.push({role:"user",content:q},{role:"assistant",content:result.text});history=history.slice(-MAX_HISTORY)}
-    showNotice("جواب موصول ہوگیا۔ ماخذ: "+(result.source==="GOVERNED_AI"?"AI کی وضاحت":"تصدیق شدہ متن")+"؛ حتمی گاڑی تشخیص نہیں۔","success");
+    showNotice(!isImage&&result.marketPriceVerification==="NOT_VERIFIED"
+      ?"تحریری AI v0.2 · موجودہ مارکیٹ قیمت کی براہِ راست ویب تصدیق نہیں ہوئی۔ کسی فروخت کنندہ یا رقم کو مصدقہ نہ سمجھیں۔"
+      :"جواب موصول ہوگیا۔ راستہ: "+(isImage?"تصویری معاون":"تحریری AI v0.2")+"؛ حتمی گاڑی تشخیص نہیں۔",
+      result.marketPriceVerification==="NOT_VERIFIED"?"normal":"success");
    }catch(error){if(epoch===requestEpoch){loading.box.remove();showNotice(describeError(error),"error");createMessage("assistant","درخواست مکمل نہیں ہوسکی۔ اوپر دی گئی خرابی دیکھیں؛ کوئی تشخیصی نتیجہ نہیں بنایا گیا۔",null,true)}}finally{clearTimeout(timer)}
  }catch(error){if(epoch===requestEpoch)showNotice(describeError(error),"error")}
  finally{if(epoch===requestEpoch){busy=false;updateSend();jump(true)}}
 }
 function newChat(){if(busy){showNotice("جاری درخواست مکمل ہونے کے بعد نئی گفتگو شروع کریں۔","normal");return}if(recognition&&listening){recognition.stop()}ezeroStopSpeech();clearImage();els.prompt.value="";resizeEntry();history=[];transcript=[];sessionId=newSessionId();els.thread.replaceChildren(els.welcome);els.welcome.classList.remove("hidden");showNotice("نئی گفتگو شروع ہوگئی؛ گزشتہ گفتگو اس صفحے میں محفوظ نہیں رہی۔","normal");els.prompt.focus()}
-async function checkHealth(){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),10000);try{const resp=await fetch(HEALTH,{cache:"no-store",signal:controller.signal});if(!resp.ok)throw Error("HEALTH_HTTP_"+resp.status);const d=await resp.json();if(d.status==="ONLINE"&&d.public_ai_enabled===true&&d.evidence_authority===false)setHealth("online","AI دستیاب");else setHealth("offline","AI دستیابی محدود")}catch(_){setHealth("checking","رابطہ غیر مصدقہ")}finally{clearTimeout(timer)}}
+async function checkHealth(){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),10000);try{const resp=await fetch(HEALTH,{cache:"no-store",signal:controller.signal});if(!resp.ok)throw Error("HEALTH_HTTP_"+resp.status);const d=await resp.json();if(d.status==="ONLINE"&&d.public_ai_enabled===true&&d.evidence_authority===false)setHealth("online","تحریری AI v0.2 دستیاب");else setHealth("offline","AI دستیابی محدود")}catch(_){setHealth("checking","رابطہ غیر مصدقہ")}finally{clearTimeout(timer)}}
 function setupMic(){const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;if(!Speech){els.micBtn.disabled=true;els.micBtn.title="اس براؤزر میں صوتی شناخت دستیاب نہیں";els.micBtn.setAttribute("aria-label","مائیک کی سہولت اس براؤزر میں دستیاب نہیں");return}
  els.micBtn.addEventListener("click",()=>{if(busy)return;if(listening){recognition.stop();return}try{recognition=new Speech();recognition.lang=speechLocale();recognition.continuous=false;recognition.interimResults=false;recognition.maxAlternatives=1;recognition.onstart=()=>{listening=true;els.micBtn.classList.add("active");showNotice("سن رہے ہیں… بولنا مکمل کریں۔ آپ کی آواز کی شناخت براؤزر کے فراہم کنندہ سے ہوسکتی ہے۔","normal")};recognition.onresult=ev=>{const spoken=ev.results&&ev.results[0]&&ev.results[0][0]?ev.results[0][0].transcript:"";if(spoken){els.prompt.value=(els.prompt.value?els.prompt.value.trim()+" ":"")+spoken;resizeEntry();updateSend();showNotice("آپ کی بات تحریر ہوگئی؛ بھیجنے سے پہلے جائزہ لے سکتے ہیں۔","success")}};recognition.onerror=ev=>{showNotice("مائیک کی شناخت ممکن نہیں: "+(ev.error||"UNKNOWN")+"۔ کی بورڈ سے سوال لکھ سکتے ہیں۔","error")};recognition.onend=()=>{listening=false;els.micBtn.classList.remove("active")};recognition.start()}catch(_){showNotice("مائیک شروع نہیں ہوسکا۔ براؤزر کی اجازت جانچیں۔","error")}});
 }
