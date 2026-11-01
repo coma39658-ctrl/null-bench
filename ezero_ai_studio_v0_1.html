@@ -7,6 +7,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#f4f7fb">
 <title>E-ZERO Intelligence — AI Studio</title>
+<link rel="stylesheet" href="./css/ezero_ai_studio_media_i18n_v0_1.css">
 <style>
 :root{--page:#f4f7fb;--surface:#fff;--surface2:#f7f9fc;--navy:#112c44;--ink:#183448;--sub:#627888;--line:#dce6ec;--accent:#087e96;--accent2:#0c6578;--tint:#e4f3f6;--green:#137e63;--danger:#ab4c43;--shadow:0 16px 50px rgba(19,49,71,.09);font-family:system-ui,"Noto Naskh Arabic","Noto Sans Arabic",sans-serif;color-scheme:light}
 :root[data-theme="dark"]{--page:#0b1825;--surface:#14283b;--surface2:#1a3248;--navy:#def3ff;--ink:#e8f4f9;--sub:#a4bdca;--line:#304a60;--accent:#47c6dc;--accent2:#6cdeeb;--tint:#183b4e;--green:#73d5b5;--danger:#ffafa4;--shadow:0 18px 65px rgba(0,0,0,.2);color-scheme:dark}
@@ -37,6 +38,7 @@
 <div class="app">
  <aside class="rail" aria-label="E-ZERO Studio controls">
   <a class="brand" href="./index.html"><span class="logo" aria-hidden="true">E₀</span><span><strong>E-ZERO</strong><small>INTELLIGENCE STUDIO</small></span></a>
+  <section><label class="aiUILanguageLabel" for="aiUILanguage" data-ai-ui="language">انٹرفیس کی زبان</label><select id="aiUILanguage" class="aiUILanguage" aria-label="AI Studio interface language"><option value="ur">اردو</option><option value="en">English</option><option value="ar">العربية</option><option value="hi">हिन्दी</option><option value="zh-CN">简体中文</option><option value="es">Español</option><option value="fr">Français</option><option value="pt">Português</option><option value="bn">বাংলা</option><option value="ru">Русский</option><option value="id">Bahasa Indonesia</option><option value="ja">日本語</option><option value="de">Deutsch</option><option value="tr">Türkçe</option><option value="ko">한국어</option></select></section>
   <section><p class="railTitle">آپ کا معاون</p><button id="newChatRail" class="railButton" type="button"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> نئی گفتگو</button></section>
   <section><p class="railTitle">اہم سہولتیں</p><p class="railNote">تحریر، مائیک اور تصویر — سب ایک ہی گفتگو میں۔ گفتگو خودبخود مستقل محفوظ نہیں ہوتی۔</p></section>
   <div class="railGrow"></div>
@@ -44,18 +46,19 @@
   <div class="railFooter"><strong>Evidence first · Human in control</strong><br>AI کی وضاحت حتمی گاڑی تشخیص نہیں۔ ECU کو کوئی کمانڈ نہیں بھیجی جاتی۔</div>
  </aside>
  <main class="main">
-  <header class="topbar"><div class="topIdentity"><span class="logo" style="height:39px;width:39px;border-radius:13px;font-size:16px" aria-hidden="true">E₀</span><span><strong>E-ZERO AI Studio</strong><small>تحریری AI v0.2 · تصویر کا الگ محفوظ رابطہ</small></span></div>
-    <div class="topActions"><span id="health" class="health" data-state="checking" title="سرور کی اختیاری صحت کی جانچ"><span class="healthDot"></span><span id="healthText">رابطہ جانچ رہے ہیں</span></span>
+  <header class="topbar"><div class="topIdentity"><span class="logo" style="height:39px;width:39px;border-radius:13px;font-size:16px" aria-hidden="true">E₀</span><span><strong>E-ZERO AI Studio</strong><small data-ai-ui="subtitle">تحریری AI · تصویر کا الگ محفوظ رابطہ</small></span></div>
+    <div class="topActions"><select id="aiUIMobileLanguage" class="aiUILanguage mobile" aria-label="Studio language" title="Language"><option value="ur">اردو</option><option value="en">English</option><option value="ar">العربية</option><option value="hi">हिन्दी</option><option value="zh-CN">中文</option><option value="es">Español</option><option value="fr">Français</option><option value="pt">Português</option><option value="bn">বাংলা</option><option value="ru">Русский</option><option value="id">Indonesia</option><option value="ja">日本語</option><option value="de">Deutsch</option><option value="tr">Türkçe</option><option value="ko">한국어</option></select><button type="button" id="aiStudioBack" class="aiBackButton" aria-label="Go back" title="Back">← <span data-ai-ui="back">واپس</span></button><span id="health" class="health" data-state="checking" title="سرور کی اختیاری صحت کی جانچ"><span class="healthDot"></span><span id="healthText">رابطہ جانچ رہے ہیں</span></span>
      <button id="themeBtn" class="iconButton optional" type="button" aria-label="رنگ بدلیں" title="Light / Dark"><svg viewBox="0 0 24 24"><path d="M20 15.4A8.4 8.4 0 0 1 8.6 4a8.5 8.5 0 1 0 11.4 11.4z"/></svg></button>
      <button id="exportBtn" class="iconButton optional" type="button" aria-label="گفتگو کی نقل محفوظ کریں" title="Save text transcript"><svg viewBox="0 0 24 24"><path d="M12 3v13m-4-4 4 4 4-4M4 18v3h16v-3"/></svg></button>
      <button id="newChatBtn" class="iconButton" type="button" aria-label="نئی گفتگو" title="New chat"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
     </div>
   </header>
-  <div id="chatScroll" class="scroll" role="region" aria-label="گفتگو" tabindex="0"><div id="thread" class="thread" aria-live="polite"><section id="welcome" class="welcome"><div class="eyebrow">EVIDENCE-FIRST · PUBLIC AI</div><h1>سوچیں، پوچھیں، <em>دریافت کریں۔</em></h1><p>آپ کا E-ZERO معاون: گاڑیوں، سائنس، سینسرز اور روزمرہ سوالات پر آسان اردو میں گفتگو کریں۔ تصویر لگائیں یا مائیک سے سوال بولیں۔</p><div class="chips">
+  <div id="chatScroll" class="scroll" role="region" aria-label="گفتگو" tabindex="0"><div id="thread" class="thread" aria-live="polite"><section id="welcome" class="welcome"><div class="eyebrow">EVIDENCE-FIRST · PUBLIC AI</div><h1 data-ai-ui="welcome">سوچیں، پوچھیں، دریافت کریں۔</h1><p data-ai-ui="welcomeDesc">گاڑیوں، سائنس، سینسرز اور روزمرہ سوالات پر گفتگو کریں۔</p><div class="chips">
    <button class="quick" type="button" data-prompt="OBD-II کیا ہے؟ آسان اردو میں تین نکات بتائیں۔"><svg viewBox="0 0 24 24"><path d="M5 16h14l-1-8H6zM7 16v3m10-3v3M8 11h2m4 0h2"/></svg><span><strong>گاڑی کی بنیادی تشخیص</strong><small>OBD-II اور خرابی کے کوڈ</small></span></button>
    <button class="quick" type="button" data-prompt="MAF اور آکسیجن سینسر میں کیا فرق ہے؟ آسان اردو میں سمجھائیں۔"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m12 12 4-3M8 16h8"/></svg><span><strong>سینسر کیسے کام کرتے ہیں؟</strong><small>عملی اور سائنسی وضاحت</small></span></button>
    <button class="quick" type="button" data-prompt="مجھے ایک چھوٹی ورکشاپ کے لیے read-only گاڑی اسکیننگ سروس کا منصوبہ بنائیں۔"><svg viewBox="0 0 24 24"><path d="M3 20V9l9-5 9 5v11M8 20v-7h8v7"/></svg><span><strong>ورکشاپ کاروبار</strong><small>محفوظ اور قابلِ عمل منصوبہ</small></span></button>
    <button class="quick" type="button" id="quickImage"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m3 18 6-6 4 4 3-3 5 5"/></svg><span><strong>تصویر AI سے سمجھیں</strong><small>منتخب کریں، اجازت دیں، پھر سوال کریں</small></span></button>
+   <button class="quick" type="button" id="quickVideo" data-ai-ui-title="video" aria-label="Local video preview"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="16" height="14" rx="3"/><path d="m18 10 4-3v10l-4-3z"/></svg><span><strong data-ai-ui="video">ویڈیو پیش منظر</strong><small data-ai-ui="videoBoundary">صرف فون پر، AI تجزیہ فعال نہیں</small></span></button>
   </div></section></div></div>
   <button id="bottomBtn" class="atbottom hidden" type="button">↓ تازہ جواب</button>
   <div class="composerShell"><div class="composerMax"><div id="notice" class="notice hidden" role="status" aria-live="polite"></div><form id="form" class="composer">
@@ -63,10 +66,11 @@
      <label id="consentRow" class="consent hidden"><input id="consent" type="checkbox"><span>میں واضح اجازت دیتا/دیتی ہوں کہ یہ منتخب تصویر E-ZERO کے AI سرور کو تجزیے کے لیے بھیجی جائے۔</span></label>
      <label for="prompt" class="srOnly">اپنا سوال لکھیں</label><textarea id="prompt" class="entry" maxlength="4000" rows="1" placeholder="اپنا سوال پوچھیں..." dir="auto"></textarea>
      <div class="composerToolbar"><input id="file" class="srOnly" type="file" accept="image/png,image/jpeg,image/webp" aria-label="تصویر منتخب کریں">
+       <button type="button" id="aiVideoBtn" class="tool" aria-label="Video preview only" title="Video preview only"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="16" height="14" rx="3"/><path d="m18 10 4-3v10l-4-3z"/></svg></button>
        <button id="attachBtn" class="tool" type="button" title="تصویر منتخب کریں" aria-label="تصویر منتخب کریں"><svg viewBox="0 0 24 24"><path d="M9 12.5 14.5 7A3.2 3.2 0 0 1 19 11.5l-8 8A5 5 0 0 1 4 12.5L13 3.5"/></svg></button>
        <button id="micBtn" class="tool" type="button" title="مائیک سے سوال بولیں" aria-label="مائیک سے سوال بولیں"><svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/></svg></button>
        <button id="stopVoiceBtn" class="tool hidden" type="button" title="بولنا بند کریں" aria-label="بولنا بند کریں"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg></button>
-       <select id="lang" class="select" aria-label="جواب کی ترجیحی زبان"><option value="auto" selected>خودکار</option><option value="ur">اردو</option><option value="en">English</option><option value="ar">العربية</option><option value="hi">हिन्दी</option></select>
+       <select id="lang" class="select" aria-label="AI reply language (gateway supports Urdu, English, Arabic and Hindi)"><option value="auto" selected>خودکار</option><option value="ur">اردو</option><option value="en">English</option><option value="ar">العربية</option><option value="hi">हिन्दी</option></select>
        <select id="answerLength" class="select" aria-label="جواب کی طوالت"><option value="short">مختصر</option><option value="normal" selected>متوازن</option><option value="detailed">تفصیلی</option></select>
        <span class="toolbarGrow"></span><button id="send" class="send" type="submit" aria-label="سوال بھیجیں"><svg viewBox="0 0 24 24"><path d="m4 12 16-8-5 16-3-7z"/></svg><span>بھیجیں</span></button>
      </div></form><details id="ezeroVoiceSettings" class="voiceSettings">
@@ -79,7 +83,18 @@
  </div>
  <small id="ezeroTtsHint" class="voiceHint">جواب کا متن جس زبان میں ہوگا، اسی زبان کی دستیاب آواز کو ترجیح دی جائے گی۔ لہجے کا معیار فون میں نصب آوازوں پر منحصر ہے۔ مائیک سے بولنے سے پہلے ضرورت ہو تو زبان منتخب کریں۔</small>
 </details>
-<p class="tiny">AI کے جواب میں غلطی ممکن ہے۔ کوئی ECU کمانڈ یا حتمی تشخیص نہیں۔ مائیک کی دستیابی براؤزر پر منحصر ہے۔</p></div></div>
+<p class="tiny" data-ai-ui="limitations">AI کے جواب میں غلطی ممکن ہے۔ کوئی ECU کمانڈ یا حتمی تشخیص نہیں۔ مائیک کی دستیابی براؤزر پر منحصر ہے۔</p><p class="tiny" data-ai-ui="replyLimits">تمام 15 زبانوں میں انٹرفیس؛ AI جواب کے لیے فی الحال صرف اردو، انگریزی، عربی اور ہندی منتخب کی جا سکتی ہیں۔</p></div></div>
+ <section class="aiVideoPanel hidden" id="aiVideoPanel" role="dialog" aria-modal="true" aria-labelledby="aiVideoHeading" aria-describedby="aiVideoBoundary">
+    <div class="aiVideoCard">
+      <div class="aiVideoHead"><h2 id="aiVideoHeading" data-ai-ui="video">🎬 ویڈیو پیش منظر</h2><button type="button" id="aiVideoClose" class="aiVideoClose" data-ai-ui="close">بند کریں</button></div>
+      <p id="aiVideoBoundary" class="aiVideoBoundary" data-ai-ui="videoBoundaryFull">یہ صرف آپ کے فون کے اندر ویڈیو چلانے کے لیے ہے۔ ویڈیو AI سرور کو نہیں بھیجی جائے گی اور AI ویڈیو تجزیہ ابھی فعال نہیں۔</p>
+      <label for="aiVideoInput" data-ai-ui="chooseVideo">اپنی ویڈیو منتخب کریں</label>
+      <input id="aiVideoInput" type="file" accept="video/mp4,video/webm,video/quicktime,video/3gpp" aria-describedby="aiVideoStatus">
+      <video id="aiVideoPreview" playsinline controls preload="metadata" class="hidden"></video>
+      <p id="aiVideoStatus" role="status" aria-live="polite" data-ai-ui="videoReady">MP4، WebM، MOV یا 3GP · زیادہ سے زیادہ 150 MB · کوئی اپلوڈ نہیں۔</p>
+      <div class="aiVideoActions"><button type="button" id="aiVideoClear" data-ai-ui="removeVideo">ویڈیو ہٹائیں</button><a href="./index.html" data-ai-ui="homeLink">مرکزی ویب سائٹ</a></div>
+    </div>
+  </section>
  </main>
 </div>
 <script>
@@ -473,5 +488,6 @@ window.addEventListener("pagehide",()=>{if(objectURL)URL.revokeObjectURL(objectU
 setupMic();ezeroSetupVoiceSettings();updateSend();checkHealth();
 })();
 </script>
+<script src="./js/ezero_ai_studio_media_i18n_v0_1.js" defer></script>
 </body>
 </html>
