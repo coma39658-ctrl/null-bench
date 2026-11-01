@@ -38,8 +38,9 @@ try{
   assert.equal(await page.locator("#aiVideoPreview").getAttribute("src"),null);
   await page.locator("#aiVideoBtn").click();
   assert.equal(await page.locator("#aiVideoPanel").isVisible(),true);
-  await page.locator("#aiStudioBack").click();
+  await page.locator("#aiVideoClose").click();
   assert.equal(await page.locator("#aiVideoPanel").isVisible(),false);
+  // Main back button is outside modal and available after the video is closed.
   assert.equal(await page.locator("#lang option").count(),5,"The governed text AI reply selector remains auto + four languages");
   assert.equal(await page.locator("#file").getAttribute("accept"),"image/png,image/jpeg,image/webp");
   assert.equal(external.filter(x=>x.includes("/api/")).length,0,"No video upload or AI request should occur");
