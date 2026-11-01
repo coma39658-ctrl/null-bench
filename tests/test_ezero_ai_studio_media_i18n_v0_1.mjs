@@ -44,8 +44,9 @@ try{
   assert.equal(await page.locator("#file").getAttribute("accept"),"image/png,image/jpeg,image/webp");
   assert.equal(external.filter(x=>x.includes("/api/")).length,0,"No video upload or AI request should occur");
   assert.deepEqual(errors,[],"Browser page must be error-free");
+  await page.route("https://e-zero-dashboard.onrender.com/**",route=>route.fulfill({status:200,contentType:"text/html",body:"<h1>E-ZERO Intelligence Studio</h1>"}));
   await page.locator("#aiStudioBack").click();
-  await page.waitForURL("**/index.html");
+  await page.waitForURL("https://e-zero-dashboard.onrender.com/");
   await ctx.close();
  }
  console.log("AI_STUDIO_15_UI_LANGUAGES_AND_BACK: PASS");
