@@ -14,12 +14,13 @@ window.clearTimeout = clearTimeout;
 const agentSource = fs.readFileSync("js/ezero_qwen_public_agent_v0_1.js", "utf8");
 const voiceSource = fs.readFileSync("js/ezero_voice_guide_ui_v0_1.js", "utf8");
 const website = fs.readFileSync("index.html", "utf8");
-const canaryHost = "https://ezero-qwen-public-free-market-v0-1.coma39658.workers.dev";
+const canaryHost = "https://ezero-qwen-public-priceguard-v0-1.coma39658.workers.dev";
 assert.ok(website.includes(canaryHost + "/api/ezero-agent/v0.1/ask"), "Public AI must use verified canary");
 assert.ok(website.includes(canaryHost + "/health"), "Health must match chat gateway");
 assert.ok(!website.includes("https://ezero-qwen-vision-gateway-public.coma39658.workers.dev"), "Avoid stale fallback or mismatched health");
 assert.match(voiceSource, /currentWebNotVerified/, "Market freshness disclosure required");
-assert.match(voiceSource, /Live market information was not verified/, "No false live-source claims");
+assert.match(voiceSource, /Live market prices and availability were not verified/, "No false live-source claims");
+assert.match(voiceSource, /تازہ مارکیٹ قیمت یا دستیابی کی ویب تصدیق نہیں ہوئی/, "Urdu market price evidence warning");
 assert.match(voiceSource, /offerPublicSearchLinks\(question,language\)/,
   "Offer optional search engine links only for unverified market questions");
 assert.ok(voiceSource.includes('data-ezero-search-alternatives'));
