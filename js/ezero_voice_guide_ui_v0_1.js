@@ -208,12 +208,48 @@
       return;
     }
 
+    // Never claim these are AI-verified results. Search is opened by user.
+    function offerPublicSearchLinks(question, language) {
+      if (!answer.parentElement || typeof question !== "string" ||
+          !question.trim() || question.length > 240) return;
+      if (/https?:\/\/|\b[^\s@]+@[^\s@]+\.[^\s@]+\b|\b[A-HJ-NPR-Z0-9]{17}\b|\b\+?\d(?:[ ()-]*\d){7,}\b|(?:password|passcode|secret|api[_ -]?key|private key|otp|credit.card|bank.account|پاسورڈ|خفیہ|شناختی نمبر|میرا وِن)/iu.test(question)) return;
+      const prior=answer.parentElement.querySelector("[data-ezero-search-alternatives]");
+      if(prior)prior.remove();
+      const panel=document.createElement("section");
+      panel.setAttribute("data-ezero-search-alternatives","true");
+      const heading=document.createElement("strong");
+      heading.textContent=language==="ur"
+        ?"مفت بیرونی ویب سرچ — خود کھولیں":"Open public web search — optional";
+      const note=document.createElement("p");
+      note.textContent=language==="ur"
+        ?"E-ZERO نے موجودہ قیمت یا دستیابی کی ویب تصدیق نہیں کی۔ لنک کھولنے پر سوال بیرونی سرچ انجن کو جائے گا؛ قیمت، تاریخ اور مفت رسائی خود چیک کریں۔"
+        :"E-ZERO did not verify current prices or availability. Clicking sends your question to an external search engine; check prices, dates and access yourself.";
+      panel.appendChild(heading);panel.appendChild(note);
+      const list=document.createElement("ul");
+      for(const engine of [
+        {name:"DuckDuckGo",prefix:"https://duckduckgo.com/?q="},
+        {name:"Bing",prefix:"https://www.bing.com/search?q="}
+      ]){
+        const item=document.createElement("li");
+        const link=document.createElement("a");
+        link.href=engine.prefix+encodeURIComponent(question);
+        link.target="_blank";
+        link.rel="noopener noreferrer nofollow";
+        link.textContent=engine.name;
+        item.appendChild(link);list.appendChild(item);
+      }
+      panel.appendChild(list);
+      answer.insertAdjacentElement("afterend",panel);
+    }
+
     async function runQuestion() {
       const question = (input.value || "").trim();
       // A new answer must never inherit links from an older question, even
       // when AI is disabled, times out, or falls back to static guidance.
       const oldSources = answer.parentElement?.querySelector("[data-ezero-web-sources]");
       if (oldSources) oldSources.remove();
+      const oldAlternatives=answer.parentElement?.querySelector("[data-ezero-search-alternatives]");
+      if(oldAlternatives)oldAlternatives.remove();
       const deterministicResult = findAnswer(question);
       const language = currentLanguage();
 
@@ -367,6 +403,7 @@
               ? "تصدیق شدہ evidence ناکافی · Fail-closed"
               : "Insufficient verified evidence · Fail-closed";
 
+          if (/\b(?:prices?|market|used|listings?|for sale|availability|dealers?)\b|(?:قیمت|قیمتیں|مارکیٹ|فروخت|پرانی گاڑی|مستعملة|أسعار|سعر)/iu.test(question)) offerPublicSearchLinks(question,language);
           return;
         }
 
@@ -430,10 +467,21 @@
         // Never imply that a live market price or recent event was verified
         // when the gateway did not return current public web sources.
         const freshnessQuestion =
-          /\b(?:latest|today|current|recent|prices?|market|news|availability|in stock)\b|(?:آج|ابھی|تازہ|حالیہ|قیمت|قیمتیں|مارکیٹ|خبر|خبریں|دستیاب|السعر|الأسعار|اليوم)/iu
+          /\b(?:latest|today|current|recent|prices?|market|news|availability|in stock|used|pre-owned|for sale|listings?|dealers?|resale|auction|new car|spare parts?)\b|(?:آج|ابھی|تازہ|حالیہ|قیمت|قیمتیں|مارکیٹ|خبر|خبریں|دستیاب|فروخت|پرانی گاڑی|نئی گاڑی|ڈیلر|نیلامی|السعر|الأسعار|اليوم|مستعملة|بيع)/iu
             .test(question);
         const currentWebNotVerified = freshnessQuestion &&
           agentResult.web_research_status !== "WEB_CONTEXT_AVAILABLE";
+
+        // Do not expose AI-guessed asking prices as current market quotes.
+        // Real dealer prices must come from fetched dated sources, not text
+        // generation. The visitor can optionally open public search links.
+        const requestedCurrentPrice =
+          /\b(?:prices?|costs?|msrp|valuation|resale value)\b|(?:قیمت|قیمتیں|ریٹ|قیمتوں|السعر|الأسعار|कीमत|价格)/iu.test(question);
+        if (currentWebNotVerified && requestedCurrentPrice) {
+          answer.textContent = language === "ur"
+            ? "اس سوال کے لیے E-ZERO نے موجودہ مارکیٹ قیمت کی براہِ راست تصدیق نہیں کی۔ نیچے مفت بیرونی سرچ کھول کر ماڈل، سال، انجن، ملک اور قیمت چیک کریں۔"
+            : "E-ZERO could not verify current market prices for this question. Open the public search links below to check the model, year, engine, country and listed price.";
+        }
 
         status.textContent = currentWebNotVerified
           ? (language === "ur"
@@ -446,6 +494,8 @@
             : (language === "ur"
                 ? "✓ E-ZERO AI Agent جواب تیار ہے"
                 : "✓ E-ZERO AI Agent answer ready");
+
+        if(currentWebNotVerified)offerPublicSearchLinks(question,language);
 
         if (
           window.EZERO_VOICE_GUIDE_SETTINGS &&
@@ -468,6 +518,7 @@
         );
 
         answer.textContent = deterministicResult.text;
+        if (/\b(?:prices?|market|used|listings?|for sale|availability|dealers?)\b|(?:قیمت|قیمتیں|مارکیٹ|فروخت|پرانی گاڑی|مستعملة|أسعار|سعر)/iu.test(question)) offerPublicSearchLinks(question,language);
 
         if (
           window.EZERO_VOICE_CONVERSATION &&
