@@ -16,14 +16,15 @@ try{
   assert.equal(await page.locator("#aiUILanguage option").count(),15);
   assert.equal(await page.locator("#aiUIMobileLanguage option").count(),15);
   assert.equal(await page.evaluate(()=>window.EZERO_AI_STUDIO_MEDIA_V0_1?.video_ai_enabled),false);
+  const localeSelect=width>830?"#aiUILanguage":"#aiUIMobileLanguage";
   for(const [locale,phrase,dir] of [["ur","سوچیں","rtl"],["ar","فكّر","rtl"],["hi","सोचें","ltr"],["en","Think","ltr"],["zh-CN","思考","ltr"],["es","Piensa","ltr"],["fr","Réfléchir","ltr"],["ko","생각하고","ltr"]]){
-   await page.locator("#aiUIMobileLanguage").selectOption(locale);
+   await page.locator(localeSelect).selectOption(locale);
    assert.equal(await page.locator("html").getAttribute("lang"),locale);
    assert.equal(await page.locator("html").getAttribute("dir"),dir);
    assert.match(await page.locator("#welcome h1").innerText(),new RegExp(phrase));
    assert.equal(await page.locator("#aiUILanguage").inputValue(),locale);
   }
-  await page.locator("#aiUIMobileLanguage").selectOption("en");
+  await page.locator(localeSelect).selectOption("en");
   await page.locator("#quickVideo").click();
   assert.equal(await page.locator("#aiVideoPanel").isVisible(),true);
   assert.match(await page.locator("#aiVideoBoundary").innerText(),/not uploaded/);
