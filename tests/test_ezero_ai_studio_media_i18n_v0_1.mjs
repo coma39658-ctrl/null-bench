@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import {chromium} from "playwright";
 const browser=await chromium.launch({headless:true});
 try{
- for(const width of [320,390,1280]){
+ for(const width of [320,360,390,412,768,1280]){
   const ctx=await browser.newContext({viewport:{width,height:780}});
   const page=await ctx.newPage();
   const errors=[],external=[];
@@ -15,9 +15,53 @@ try{
    const c=getComputedStyle(document.documentElement);
    return {page:c.getPropertyValue("--page").trim(),background:getComputedStyle(document.body).backgroundColor};
   });
-  assert.equal(classic.page,"#f4f7fb","Original E-ZERO AI Studio light palette restored");
+  assert.equal(classic.page,"#cfdee5","Calm classic palette should reduce pure-white glare");
   assert.equal(await page.locator('link[href*="ezero_ai_studio_visual_v0_1.css"]').count(),0);
   assert.equal(await page.locator('link[href*="ezero_ai_studio_media_i18n_v0_1.css"]').count(),1);
+  assert.equal(await page.locator('link[href*="ezero_ai_studio_comfort_v0_1.css"]').count(),1);
+  const comfort=await page.evaluate(()=>{
+    const header=document.querySelector("#welcome h1");
+    const lead=header.querySelector(".aiHeadlineLead");
+    const accent=header.querySelector(".aiHeadlineAccent");
+    return {
+      first:lead?.textContent||"",
+      second:accent?.textContent||"",
+      gradient:getComputedStyle(lead).backgroundImage,
+      pageColor:getComputedStyle(document.body).backgroundColor,
+      root:getComputedStyle(document.documentElement).getPropertyValue("--surface").trim()
+    };
+  });
+  assert.ok(comfort.first.length>3&&comfort.second.length>2,"Both headline phrases must be colored");
+  assert.match(comfort.gradient,/gradient/);
+  assert.equal(comfort.root,"#e7f0f2");
+  async function assertSendVisible(){
+    const rect=await page.evaluate(()=>{
+      const v=document.querySelector("#send").getBoundingClientRect();
+      const shell=document.querySelector(".composerShell").getBoundingClientRect();
+      const r=document.querySelector("#form").getBoundingClientRect();
+      return {x:v.x,y:v.y,right:v.right,bottom:v.bottom,w:v.width,h:v.height,
+        shellRight:shell.right,shellBottom:shell.bottom,formRight:r.right,
+        viewportWidth:document.documentElement.clientWidth,viewportHeight:window.innerHeight};
+    });
+    assert.ok(rect.w>=49 && rect.h>=43,"Send requires a full tap target: "+JSON.stringify(rect));
+    assert.ok(rect.x>=-1 && rect.right<=rect.viewportWidth+1,"Send cropped horizontally: "+JSON.stringify(rect));
+    assert.ok(rect.y>=0 && rect.bottom<=rect.viewportHeight+1,"Send cropped vertically: "+JSON.stringify(rect));
+    assert.ok(rect.formRight<=rect.viewportWidth+1,"Composer cropped: "+JSON.stringify(rect));
+  }
+  await assertSendVisible();
+  if(width<=830){
+    await page.setViewportSize({width,height:440});
+    await assertSendVisible();
+    await page.setViewportSize({width,height:780});
+    await assertSendVisible();
+  }
+  await page.locator("#themeBtn").click();
+  assert.equal(await page.locator("html").getAttribute("data-theme"),"dark","Optional original dark theme must still work");
+  assert.equal(await page.locator("#send").isVisible(),true);
+  await assertSendVisible();
+  await page.locator("#themeBtn").click();
+  assert.equal(await page.locator("html").getAttribute("data-theme"),"light");
+
 
   assert.equal(await page.locator("#aiVideoPanel").isVisible(),false);
   assert.equal(await page.locator("#quickVideo").count(),1);
@@ -32,6 +76,9 @@ try{
    assert.equal(await page.locator("html").getAttribute("dir"),dir);
    assert.match(await page.locator("#welcome h1").innerText(),new RegExp(phrase));
    assert.equal(await page.locator("#aiUILanguage").inputValue(),locale);
+   const spans=await page.locator("#welcome h1 .aiHeadlineLead, #welcome h1 .aiHeadlineAccent").count();
+   assert.ok(spans>=1,"Colored heading must survive language change");
+   await assertSendVisible();
   }
   await page.locator(localeSelect).selectOption("en");
   await page.locator("#quickVideo").click();
@@ -60,6 +107,8 @@ try{
   await page.waitForURL("https://e-zero-dashboard.onrender.com/");
   await ctx.close();
  }
+ console.log("AI_STUDIO_SOFT_EYE_COMFORT_AND_COLORED_HEADLINE: PASS");
+ console.log("AI_STUDIO_SEND_BUTTON_FULLY_VISIBLE_320_360_390_412_768_1280: PASS");
  console.log("AI_STUDIO_CLASSIC_LIGHT_STYLE_RESTORED: PASS");
  console.log("AI_STUDIO_15_UI_LANGUAGES_AND_BACK: PASS");
  console.log("AI_STUDIO_LOCAL_VIDEO_ONLY_NO_UPLOAD: PASS");
