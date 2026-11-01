@@ -211,7 +211,7 @@
     // Never claim these are AI-verified results. Search is opened by user.
     function offerPublicSearchLinks(question, language) {
       if (!answer.parentElement || typeof question !== "string" ||
-          !question.trim() || question.length > 240) return;
+          !question.trim() || question.length > 500) return;
       if (/https?:\/\/|\b[^\s@]+@[^\s@]+\.[^\s@]+\b|\b[A-HJ-NPR-Z0-9]{17}\b|\b\+?\d(?:[ ()-]*\d){7,}\b|(?:password|passcode|secret|api[_ -]?key|private key|otp|credit.card|bank.account|پاسورڈ|خفیہ|شناختی نمبر|میرا وِن)/iu.test(question)) return;
       const prior=answer.parentElement.querySelector("[data-ezero-search-alternatives]");
       if(prior)prior.remove();
