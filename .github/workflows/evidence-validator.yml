@@ -27,6 +27,19 @@ jobs:
           python scripts/validate_evidence_registry.py \
             | tee "validation_logs/evidence_registry_validation_ci_${DATE}_run-${GITHUB_RUN_ID}.log"
 
+      - name: Set up Node for public AI client checks
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check AI browser contract and external link safety
+        shell: bash
+        run: |
+          node --check js/ezero_qwen_public_agent_v0_1.js
+          node --check js/ezero_voice_guide_ui_v0_1.js
+          node tests/test_qwen_public_agent_runtime_gates_v0_1.js
+          node tests/test_ezero_web_sources_public_v0_1.js
+
       - name: Preserve validation log
         if: always()
         uses: actions/upload-artifact@v4
