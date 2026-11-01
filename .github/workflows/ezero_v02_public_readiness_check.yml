@@ -1,0 +1,55 @@
+name: E-ZERO Public v0.2 Live Readiness
+on:
+  push:
+    branches:
+      - ezero-live-price-diagnosis-v0.1
+    paths:
+      - '.github/workflows/ezero_v02_public_readiness_check.yml'
+permissions:
+  contents: read
+jobs:
+  check-live-site-and-ai:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify live GitHub Pages website, SW cache and v0.2 API
+        run: |
+          node --input-type=module - <<'CHECK'
+          const site="https://coma39658-ctrl.github.io/null-bench/";
+          const host="https://ezero-qwen-public-priceguard-v0-2.coma39658.workers.dev";
+          const origin="https://coma39658-ctrl.github.io";
+          const load=(url,opts={})=>fetch(url,{signal:AbortSignal.timeout(14000),...opts});
+          const page=await load(site+"?fresh=v02-public-readiness");
+          if(page.status!==200)throw Error("SITE_HTTP_"+page.status);
+          const html=await page.text();
+          if(!html.includes(host+"/api/ezero-agent/v0.1/ask")||
+             !html.includes(host+"/health")||
+             !html.includes("Governed AI Live · v0.2")||
+             !html.includes("20261101-branded-priceguard04"))throw Error("PUBLIC_SITE_OLD_VERSION");
+          console.log("LIVE_PAGES_V02: PASS");
+          const sw=await load(site+"service-worker.js?v=v04");
+          const swText=await sw.text();
+          if(sw.status!==200||!swText.includes("ezero-null-bench-v4-branded-priceguard-20261101"))
+             throw Error("PUBLIC_SERVICE_WORKER_OLD");
+          console.log("LIVE_MOBILE_CACHE_V04: PASS");
+          const voice=await load(site+"js/ezero_voice_guide_ui_v0_1.js?v=20261101-branded-priceguard04");
+          const voiceText=await voice.text();
+          if(voice.status!==200||!voiceText.includes("currentWebNotVerified && requestedCurrentPrice"))
+             throw Error("PUBLIC_VOICE_OLD");
+          console.log("LIVE_PUBLIC_GUIDE_V04: PASS");
+          const q="ای زیرو اے آئی گائیڈ سعودی عرب میں ٹویوٹا کرولا 2018 کی قیمت بتائیں";
+          const r=await load(host+"/api/ezero-agent/v0.1/ask",{
+            method:"POST",headers:{Origin:origin,"Content-Type":"application/json"},
+            body:JSON.stringify({question:q,response_language:"ur",fallback_language:"ur",answer_length:"short"})
+          });
+          const d=await r.json();
+          if(r.status!==200||d.status!=="OK"||d.market_price_verification!=="NOT_VERIFIED"||
+             d.web_research_status!=="DISABLED"||!String(d.answer||"").includes("تصدیق")||
+             /پاکستان|Jomoo|Saraya|صرف ای زیرو|دائرہ کار میں نہیں/i.test(String(d.answer||"")))
+             throw Error("REAL_BRANDED_PRICE_ANSWER_FAILED");
+          console.log("LIVE_PUBLIC_BRANDED_CAR_PRICE_GUARD: PASS");
+          console.log("PUBLIC_V02_READINESS: PASS");
+          CHECK
