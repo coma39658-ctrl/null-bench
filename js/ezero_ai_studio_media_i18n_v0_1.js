@@ -57,7 +57,7 @@ function goBack(){
  let ref=null;try{ref=new URL(document.referrer)}catch(_){}
  const allowed=ref&&(ref.origin===location.origin||ref.origin==="https://e-zero-dashboard.onrender.com");
  if(allowed&&history.length>1){history.back();return}
- location.assign("./index.html");
+ location.assign("https://e-zero-dashboard.onrender.com/");
 }
 function selectVideo(){
  clear();
