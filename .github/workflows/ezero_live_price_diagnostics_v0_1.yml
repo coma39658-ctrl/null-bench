@@ -21,16 +21,16 @@ jobs:
           node --input-type=module - <<'CHECK'
           const origin="https://coma39658-ctrl.github.io";
           const site=origin+"/null-bench/";
-          const worker="https://ezero-qwen-public-priceguard-v0-1.coma39658.workers.dev";
+          const worker="https://ezero-qwen-public-priceguard-v0-2.coma39658.workers.dev";
           const req=(url,opts={})=>fetch(url,{signal:AbortSignal.timeout(22000),...opts});
           const page=await req(site+"?livecheck=20261101-priceguard-v0-1");
           console.log("PUBLIC_SITE_HTTP:",page.status);
           if(!page.ok) throw Error("PUBLIC_SITE_UNAVAILABLE");
           const html=await page.text();
           console.log("PUBLIC_SITE_PRICEGUARD_ENDPOINT:",html.includes(worker+"/api/ezero-agent/v0.1/ask")?"PRESENT":"MISSING");
-          console.log("PUBLIC_SITE_PRICEGUARD_SCRIPT:",html.includes("20261101-priceguard03")?"PRESENT":"MISSING");
+          console.log("PUBLIC_SITE_PRICEGUARD_SCRIPT:",html.includes("20261101-branded-priceguard04")?"PRESENT":"MISSING");
           if(!html.includes(worker+"/api/ezero-agent/v0.1/ask"))throw Error("STALE_SITE_ENDPOINT");
-          const asset=await req(site+"js/ezero_voice_guide_ui_v0_1.js?v=20261101-priceguard03");
+          const asset=await req(site+"js/ezero_voice_guide_ui_v0_1.js?v=20261101-branded-priceguard04");
           const script=await asset.text();
           console.log("PUBLIC_VOICE_SCRIPT_HTTP:",asset.status);
           console.log("PUBLIC_VOICE_SCRIPT_PROVENANCE_GUARD:",script.includes("currentWebNotVerified && requestedCurrentPrice")?"PRESENT":"MISSING");
