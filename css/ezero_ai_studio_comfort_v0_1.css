@@ -1,0 +1,138 @@
+/* E-ZERO AI Studio FINAL COMFORT PATCH V0.1
+ * Restore calm classic light identity without pure-white glare.
+ * Keep original user theme toggle; dark scheme receives no palette override.
+ * The composer grid prevents hidden or cropped Send controls at small widths.
+ */
+:root:not([data-theme="dark"]){
+ --page:#cfdee5;
+ --surface:#e7f0f2;
+ --surface2:#dae8ec;
+ --navy:#123849;
+ --ink:#173749;
+ --sub:#3f6274;
+ --line:#a5c3ca;
+ --accent:#087f86;
+ --accent2:#0b687b;
+ --tint:#d1e5e8;
+ --green:#12684e;
+ --shadow:0 10px 27px rgba(10,46,66,.11);
+ color-scheme:light;
+}
+:root:not([data-theme="dark"]) body{
+ background:radial-gradient(ellipse at 85% 3%,#b2d8da73,transparent 55%),
+            linear-gradient(155deg,#cfdee5,#d8e6e9 60%,#c8dce3);
+}
+:root:not([data-theme="dark"]) .rail,
+:root:not([data-theme="dark"]) .topbar{
+ background:#dce9ed;
+}
+:root:not([data-theme="dark"]) .quick,
+:root:not([data-theme="dark"]) .bubble,
+:root:not([data-theme="dark"]) .composer{
+ background:var(--surface);
+ border-color:#99bdc8;
+}
+:root:not([data-theme="dark"]) .quick{
+ box-shadow:0 5px 17px rgba(25,83,103,.09);
+}
+:root:not([data-theme="dark"]) .quick:hover,
+:root:not([data-theme="dark"]) .quick:focus-visible{
+ border-color:#2ca4a2;
+ box-shadow:0 0 0 2px #39b5ae35,0 8px 23px #0d6c8040;
+}
+/* The welcoming phrase is two genuinely colored text spans, including in RTL. */
+.welcome h1{
+ line-height:1.48;
+ overflow-wrap:break-word;
+ word-break:normal;
+ letter-spacing:0;
+}
+.welcome h1 .aiHeadlineLead,
+.welcome h1 .aiHeadlineAccent{
+ display:inline;
+ -webkit-box-decoration-break:clone;
+ box-decoration-break:clone;
+}
+.welcome h1 .aiHeadlineLead{
+ font-weight:850;
+ background-image:linear-gradient(105deg,#07567a 0%,#0c8f97 70%,#208372);
+ -webkit-background-clip:text;
+ background-clip:text;
+ -webkit-text-fill-color:transparent;
+ color:#086b80;
+}
+.welcome h1 .aiHeadlineAccent{
+ font-style:normal;
+ font-weight:850;
+ background-image:linear-gradient(105deg,#8653a8,#207fa8 55%,#0c936f);
+ -webkit-background-clip:text;
+ background-clip:text;
+ -webkit-text-fill-color:transparent;
+ color:#7155a3;
+}
+:root[data-theme="dark"] .welcome h1 .aiHeadlineLead{
+ background-image:linear-gradient(105deg,#86e6ef,#35d7b9,#a2f8d7);
+}
+:root[data-theme="dark"] .welcome h1 .aiHeadlineAccent{
+ background-image:linear-gradient(105deg,#c6a3ff,#66ccee,#86f3c3);
+}
+/* Stable mobile layout: Send is never pushed outside the right/left viewport. */
+.main,.app,.scroll,.composerShell,.composerMax,.composer{min-width:0}
+.composerToolbar{min-width:0}
+.send{flex-shrink:0;min-height:44px}
+@media(max-width:830px){
+ .app{width:100%;max-width:100vw;min-height:0}
+ .main{height:100dvh;max-height:100dvh;min-height:0}
+ .scroll{min-height:0;overflow-y:auto}
+ .composerShell{
+  min-width:0;flex:0 0 auto;
+  padding:8px 9px calc(13px + env(safe-area-inset-bottom,0px));
+ }
+ .composer{min-width:0;padding:10px 11px 9px;border-radius:17px}
+ .composerToolbar{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,42px)) minmax(0,1fr);
+  grid-template-rows:minmax(44px,auto) minmax(42px,auto);
+  gap:7px;
+  align-items:center;
+  width:100%;
+  min-width:0;
+  overflow:visible;
+ }
+ .composerToolbar #aiVideoBtn{grid-column:1;grid-row:1}
+ .composerToolbar #attachBtn{grid-column:2;grid-row:1}
+ .composerToolbar #micBtn{grid-column:3;grid-row:1}
+ .composerToolbar #stopVoiceBtn{grid-column:3;grid-row:1}
+ .composerToolbar:has(#stopVoiceBtn:not(.hidden)) #micBtn{display:none}
+ .composerToolbar .toolbarGrow{display:none}
+ .composerToolbar #send{
+  grid-column:4;grid-row:1;justify-self:stretch;align-self:stretch;
+  width:100%;max-width:none;min-width:0;
+  padding:0 8px;min-height:44px;
+  white-space:nowrap;border-radius:11px;
+ }
+ .composerToolbar #send svg{width:17px;height:17px;flex:0 0 17px}
+ .composerToolbar #send span{font-size:clamp(11px,2.8vw,13px)}
+ .composerToolbar #lang{
+  grid-column:1/span 2;grid-row:2;min-width:0;width:100%;max-width:none;
+ }
+ .composerToolbar #answerLength{
+  grid-column:3/span 2;grid-row:2;min-width:0;width:100%;max-width:none;
+ }
+ .composerToolbar .tool{width:42px;height:44px;min-width:0}
+ .tiny{font-size:10px;margin-top:5px;line-height:1.45}
+ .welcome{padding-top:24px}
+ .welcome h1{font-size:clamp(27px,7vw,36px);line-height:1.55}
+}
+@media(max-width:350px){
+ .composerShell{padding-inline:6px}
+ .composer{padding-inline:8px}
+ .composerToolbar{grid-template-columns:repeat(3,minmax(0,38px)) minmax(0,1fr);gap:5px}
+ .composerToolbar .tool{width:38px}
+ .composerToolbar #send{gap:4px}
+ .composerToolbar #send svg{width:15px;height:15px;flex-basis:15px}
+ .welcome h1{font-size:26px}
+}
+@media(prefers-reduced-motion:reduce){
+ .welcome h1 .aiHeadlineLead,.welcome h1 .aiHeadlineAccent{animation:none}
+}
