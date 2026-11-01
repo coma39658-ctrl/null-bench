@@ -472,6 +472,17 @@
         const currentWebNotVerified = freshnessQuestion &&
           agentResult.web_research_status !== "WEB_CONTEXT_AVAILABLE";
 
+        // Do not expose AI-guessed asking prices as current market quotes.
+        // Real dealer prices must come from fetched dated sources, not text
+        // generation. The visitor can optionally open public search links.
+        const requestedCurrentPrice =
+          /\b(?:prices?|costs?|msrp|valuation|resale value)\b|(?:قیمت|قیمتیں|ریٹ|قیمتوں|السعر|الأسعار|कीमत|价格)/iu.test(question);
+        if (currentWebNotVerified && requestedCurrentPrice) {
+          answer.textContent = language === "ur"
+            ? "اس سوال کے لیے E-ZERO نے موجودہ مارکیٹ قیمت کی براہِ راست تصدیق نہیں کی۔ نیچے مفت بیرونی سرچ کھول کر ماڈل، سال، انجن، ملک اور قیمت چیک کریں۔"
+            : "E-ZERO could not verify current market prices for this question. Open the public search links below to check the model, year, engine, country and listed price.";
+        }
+
         status.textContent = currentWebNotVerified
           ? (language === "ur"
               ? "تازہ مارکیٹ معلومات کی ویب تصدیق نہیں ہوئی؛ جواب عمومی AI معلومات ہے۔"
