@@ -1,0 +1,59 @@
+name: E-ZERO Live Price Reply Diagnostics (No Deployment)
+on:
+  push:
+    branches:
+      - ezero-live-price-diagnosis-v0.1
+    paths:
+      - '.github/workflows/ezero_live_price_diagnostics_v0_1.yml'
+permissions:
+  contents: read
+jobs:
+  check-live-public-path:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate live site version and actual AI responses
+        run: |
+          node --input-type=module - <<'CHECK'
+          const origin="https://coma39658-ctrl.github.io";
+          const site=origin+"/null-bench/";
+          const worker="https://ezero-qwen-public-priceguard-v0-1.coma39658.workers.dev";
+          const req=(url,opts={})=>fetch(url,{signal:AbortSignal.timeout(22000),...opts});
+          const page=await req(site+"?livecheck=20261101-priceguard-v0-1");
+          console.log("PUBLIC_SITE_HTTP:",page.status);
+          if(!page.ok) throw Error("PUBLIC_SITE_UNAVAILABLE");
+          const html=await page.text();
+          console.log("PUBLIC_SITE_PRICEGUARD_ENDPOINT:",html.includes(worker+"/api/ezero-agent/v0.1/ask")?"PRESENT":"MISSING");
+          console.log("PUBLIC_SITE_PRICEGUARD_SCRIPT:",html.includes("20261101-priceguard03")?"PRESENT":"MISSING");
+          if(!html.includes(worker+"/api/ezero-agent/v0.1/ask"))throw Error("STALE_SITE_ENDPOINT");
+          const asset=await req(site+"js/ezero_voice_guide_ui_v0_1.js?v=20261101-priceguard03");
+          const script=await asset.text();
+          console.log("PUBLIC_VOICE_SCRIPT_HTTP:",asset.status);
+          console.log("PUBLIC_VOICE_SCRIPT_PROVENANCE_GUARD:",script.includes("currentWebNotVerified && requestedCurrentPrice")?"PRESENT":"MISSING");
+          if(!asset.ok||!script.includes("currentWebNotVerified && requestedCurrentPrice")) throw Error("VOICE_ASSET_STALE");
+          for(const [name,question] of [
+            ["SAUDI_COROLLA_2018","سعودی عرب میں 2018 ماڈل ٹویوٹا کرولا کی موجودہ قیمت کیا ہے؟"],
+            ["SAUDI_COROLLA_SHORT","2018 ماڈل ٹویوٹا کرولا کی قیمت سعودی عرب میں"]
+          ]){
+            const response=await req(worker+"/api/ezero-agent/v0.1/ask",{
+              method:"POST",headers:{"Origin":origin,"Content-Type":"application/json"},
+              body:JSON.stringify({question,response_language:"ur",fallback_language:"ur",answer_length:"normal"})
+            });
+            let d=await response.json();
+            const answer=String(d.answer||"");
+            console.log(name+"_HTTP:",response.status);
+            console.log(name+"_STATUS:",d.status||"UNKNOWN");
+            console.log(name+"_PRICE_VERIFICATION:",d.market_price_verification||"NOT_REPORTED");
+            console.log(name+"_WEB_STATUS:",d.web_research_status||"NOT_REPORTED");
+            console.log(name+"_SAFE_FALLBACK:",answer.includes("براہِ راست ویب تصدیق دستیاب نہیں")?"YES":"NO");
+            console.log(name+"_MADE_UP_MARKETS:",/پاکستان|Jomoo|Saudi Auto Show|Saraya|Dubizzle Saudi/i.test(answer)?"YES":"NO");
+            if(response.status!==200||d.status!=="OK"||d.market_price_verification!=="NOT_VERIFIED"
+              ||d.web_research_status!=="DISABLED"||!answer.includes("براہِ راست ویب تصدیق دستیاب نہیں")
+              ||/پاکستان|Jomoo|Saudi Auto Show|Saraya|Dubizzle Saudi/i.test(answer))throw Error("UNSAFE_"+name);
+          }
+          console.log("LIVE_PUBLIC_PRICE_REPLY_DIAGNOSTICS: PASS");
+          CHECK
