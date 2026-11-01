@@ -1090,11 +1090,12 @@ header{
 }
 
 </style>
+<link rel="stylesheet" href="css/ezero_null_bench_modern_home_v0_2.css">
   <link rel="manifest" href="manifest.json">
 </head>
 
-<body translate="no" class="notranslate">
-<div style="text-align:center;padding:12px;background:#dceff2;border-bottom:1px solid #bfd9df;">
+<body translate="no" class="notranslate ezero-home-modern">
+<div class="ezero-public-launch" style="text-align:center;padding:12px;background:#dceff2;border-bottom:1px solid #bfd9df;">
   <a href="https://e-zero-dashboard.onrender.com/dashboard"
      target="_blank"
      rel="noopener"
@@ -1191,6 +1192,12 @@ header{
 </div>
 
 </header>
+<nav class="ezero-public-quickbar" aria-label="E-ZERO public tools">
+ <a href="https://e-zero-dashboard.onrender.com/studio" data-ezhome="main">⌂ E-ZERO Studio</a>
+ <a href="https://e-zero-dashboard.onrender.com/dashboard" data-ezhome="dashboard">🚘 Dashboard</a>
+ <a href="./ezero_ai_studio_v0_1.html" data-ezhome="ai">✦ AI Studio</a>
+ <a href="#try" data-ezhome="bench">◈ Null Bench</a>
+</nav>
 
 <div class="public-banner" data-i18n="global_public_tool_note">
  FREE PUBLIC RESEARCH TOOL · NULL BENCH RUNS LOCALLY IN YOUR BROWSER · OBD SIMULATION USES THE E-ZERO BACKEND
@@ -1213,6 +1220,20 @@ header{
   E-ZERO helps users inspect data with clear evidence, visible limitations, and strict separation between software validation and real-world proof.
  </p>
 
+ <div class="ezero-home-grid" aria-label="Quick access to E-ZERO services">
+  <a class="ezero-home-tile" href="https://e-zero-dashboard.onrender.com/studio">
+   <b>01</b><strong data-ezhome="tileStudio">E-ZERO Studio</strong><small data-ezhome="tileStudioNote">Main modern website and modules</small>
+  </a>
+  <a class="ezero-home-tile" href="https://e-zero-dashboard.onrender.com/dashboard">
+   <b>02</b><strong data-ezhome="tileOBD">Vehicle Dashboard</strong><small data-ezhome="tileOBDNote">Read-only OBD reports and evidence</small>
+  </a>
+  <a class="ezero-home-tile" href="./ezero_ai_studio_v0_1.html">
+   <b>03</b><strong data-ezhome="tileAI">AI Studio</strong><small data-ezhome="tileAINote">Chat, images and local video preview</small>
+  </a>
+  <a class="ezero-home-tile" href="#try">
+   <b>04</b><strong data-ezhome="tileNull">Null Bench</strong><small data-ezhome="tileNullNote">Local degree-preserving network test</small>
+  </a>
+ </div>
  <div class="actions">
   <a class="btn" href="#try" data-i18n="run_null_bench">Run Null Bench</a>
   <a class="btn ghost" href="#platform-modules" data-i18n="explore_modules">Explore E-ZERO Modules</a>
@@ -3326,6 +3347,7 @@ function drawHistogram(vals,observed){
 </script>
 
 
+<script src="js/ezero_null_bench_modern_home_v0_2.js" defer></script>
 <script src="js/benchmark006c_runtime_v0_1.js"></script>
 <script src="js/benchmark006c_public_runner_v0_1.js"></script>
 <script src="data/i18n_public_v0_1.js"></script>
