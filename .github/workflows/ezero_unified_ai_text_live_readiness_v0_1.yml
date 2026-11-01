@@ -1,0 +1,52 @@
+name: E-ZERO Unified Public Text AI Live Readiness
+on:
+  push:
+    branches:
+      - ezero-live-price-diagnosis-v0.1
+    paths:
+      - '.github/workflows/ezero_unified_ai_text_live_readiness_v0_1.yml'
+permissions:
+  contents: read
+jobs:
+  verify-live-public-urls:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Inspect served HTML, text routes, separate image route and cache
+        run: |
+          node --input-type=module - <<'CHECK'
+          const base="https://coma39658-ctrl.github.io/null-bench/";
+          const textWorker="https://ezero-qwen-public-priceguard-v0-2.coma39658.workers.dev";
+          const oldVision="https://ezero-qwen-vision-gateway-public.coma39658.workers.dev";
+          const load=async p=>{
+            const r=await fetch(base+p+(p.includes("?")?"&":"?")+"verify=unifiedtext-20261101",{
+              signal:AbortSignal.timeout(16000),cache:"no-store"
+            });
+            if(r.status!==200)throw Error("PUBLIC_FILE_HTTP_"+r.status+"_"+p);
+            return r.text();
+          };
+          const home=await load("index.html");
+          if(!home.includes(textWorker+"/api/ezero-agent/v0.1/ask"))throw Error("HOME_TEXT_GATEWAY_OLD");
+          console.log("PUBLIC_HOME_TEXT_V02: PASS");
+          const studio=await load("ezero_ai_studio_v0_1.html");
+          if(!studio.includes('const ENDPOINT="'+textWorker+'/api/ezero-agent/v0.1/ask"')||
+             !studio.includes('const HEALTH="'+textWorker+'/health"')||
+             !studio.includes('fetch(isImage?IMAGE_ENDPOINT:ENDPOINT,')||
+             !studio.includes('const IMAGE_ENDPOINT="'+oldVision+'/api/ezero-agent/v0.1/ask"'))
+            throw Error("AI_STUDIO_BACKEND_MISMATCH");
+          console.log("PUBLIC_STUDIO_TEXT_V02: PASS");
+          console.log("PUBLIC_STUDIO_IMAGE_LEGACY_PRESERVED: PASS");
+          const legacy=await load("ezero_public_ai_chat_candidate_v0_1.html");
+          if(!legacy.includes('const endpoint="'+textWorker+'/api/ezero-agent/v0.1/ask"'))throw Error("LEGACY_CHAT_BACKEND_OLD");
+          console.log("PUBLIC_LEGACY_TEXT_V02: PASS");
+          const sw=await load("service-worker.js");
+          if(!sw.includes('ezero-null-bench-v5-unified-ai-20261101'))throw Error("STALE_PUBLIC_CACHE");
+          console.log("PUBLIC_PWA_V05: PASS");
+          const voice=await load("js/ezero_voice_guide_ui_v0_1.js");
+          if(!voice.includes("question.length > 500")||!voice.includes("offerPublicSearchLinks"))throw Error("VOICE_FREE_SOURCE_FALLBACK_OLD");
+          console.log("PUBLIC_LONG_QUESTION_SEARCH_LINKS: PASS");
+          console.log("UNIFIED_PUBLIC_TEXT_READINESS: PASS");
+          CHECK
