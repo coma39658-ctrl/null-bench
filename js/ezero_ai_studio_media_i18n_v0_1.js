@@ -60,8 +60,8 @@ function goBack(){
  location.assign("https://e-zero-dashboard.onrender.com/");
 }
 function selectVideo(){
- clear();
  const v=file?.files?.[0];
+ clear();
  if(!v){status.textContent=localize("videoEmpty");return}
  if(!["video/mp4","video/webm","video/quicktime","video/3gpp"].includes(v.type)){
   status.textContent=localize("videoFormat");return;
