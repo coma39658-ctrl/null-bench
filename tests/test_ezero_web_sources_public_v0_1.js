@@ -41,7 +41,7 @@ assert.ok(visionPage.includes(oldImageHost),
 for(const [name,html] of [
   ["E-ZERO_AI_STUDIO",studio],["E-ZERO_PUBLIC_AI_CHAT",simpleChat]
 ]){
-  const scripts=[...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/gi)];
+  const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
   assert.ok(scripts.length>=1,name+" must contain executable code");
   for(let i=0;i<scripts.length;i++)new vm.Script(scripts[i][1],{filename:name+"_"+i+".js"});
 }
