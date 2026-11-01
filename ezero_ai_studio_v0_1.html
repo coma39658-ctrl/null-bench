@@ -370,6 +370,23 @@ function validateReply(d,isImage){if(!d||typeof d!=="object")throw Error("AI_RES
  if(d.status==="INSUFFICIENT_VERIFIED_EZERO_EVIDENCE"&&d.source_class==="FAIL_CLOSED")return {text:"اس سوال کے لیے کافی تصدیق شدہ E-ZERO شواہد دستیاب نہیں ہیں۔",source:d.source_class};
  if(d.status!=="OK"||!(isImage?["GOVERNED_AI"]:["GOVERNED_AI","VERIFIED_STATIC"]).includes(d.source_class)||typeof d.answer!=="string"||!d.answer.trim()||d.answer.length>MAX_ANSWER)throw Error("AI_RESPONSE_NOT_VERIFIED");return {text:d.answer.trim(),source:d.source_class,marketPriceVerification:d.market_price_verification||"UNKNOWN",webResearchStatus:d.web_research_status||"UNKNOWN"};}
 function describeError(err){const s=String(err&&err.message||err);if(s.includes("IMAGE_READ"))return "تصویر فون سے پڑھی نہیں جاسکی۔ Files میں موجود دوسری تصویر منتخب کریں یا نئی تصویر لیں۔";if(s.includes("TIMEOUT")||s.includes("AbortError"))return "سرور نے مقررہ وقت میں جواب نہیں دیا۔ دوبارہ کوشش کی جاسکتی ہے۔";if(s.includes("HTTP_429"))return "فی الحال درخواستوں کی حد پوری ہوگئی ہے۔ کچھ دیر بعد خود دوبارہ کوشش کریں۔";if(s.includes("HTTP_"))return "AI سرور نے درخواست قبول نہیں کی ("+s+")۔";if(s.includes("Failed to fetch")||s.includes("NetworkError"))return "نیٹ ورک یا براؤزر رابطے میں مسئلہ ہے۔ انٹرنیٹ اور براؤزر کی اجازتیں جانچیں۔";if(s.includes("AI_SAFETY"))return "جواب حفاظتی حدود پر پورا نہیں اترا، اس لیے نہیں دکھایا گیا۔";return "AI درخواست مکمل نہیں ہوئی: "+s.slice(0,120)}
+// User-initiated public search options, not verified E-ZERO sources.
+function appendOptionalMarketSearch(messageNode,question){
+ if(!messageNode||typeof question!=="string"||!question.trim()||question.length>500)return;
+ if(/https?:\/\/|\b[^\s@]+@[^\s@]+\.[^\s@]+\b|\b[A-HJ-NPR-Z0-9]{17}\b|\b\+?\d(?:[ ()-]*\d){7,}\b|(?:password|passcode|secret|api[_ -]?key|private key|otp|credit.card|bank.account|پاسورڈ|خفیہ|شناختی نمبر|میرا وِن)/iu.test(question))return;
+ const body=messageNode.querySelector(".messageBody");
+ if(!body)return;
+ const note=document.createElement("div");note.className="railNote";note.style.marginTop="9px";
+ note.textContent="اختیاری عوامی سرچ: لنک دبانے پر آپ کا سوال بیرونی سرچ انجن کو بھیجا جائے گا۔ فہرست کی قیمت، تاریخ اور مفت رسائی خود چیک کریں۔";
+ const links=document.createElement("div");links.className="messageTools";
+ for(const engine of [{name:"DuckDuckGo",url:"https://duckduckgo.com/?q="},{name:"Bing",url:"https://www.bing.com/search?q="}]){
+   const a=document.createElement("a");a.className="miniButton";
+   a.href=engine.url+encodeURIComponent(question);
+   a.target="_blank";a.rel="noopener noreferrer nofollow";a.textContent=engine.name;
+   links.appendChild(a);
+ }
+ body.append(note,links);
+}
 async function sendQuestion(e){if(e)e.preventDefault();if(busy)return;const question=els.prompt.value.trim();const file=selected;const isImage=!!file;
  if(!question&&!file){els.prompt.focus();return}if(question.length>MAX_QUESTION){showNotice("سوال زیادہ سے زیادہ 4000 حروف کا ہوسکتا ہے۔","error");return}if(isImage&&!els.consent.checked){showNotice("تصویر بھیجنے سے پہلے واضح اجازت دیں۔","error");return}
  busy=true;const epoch=++requestEpoch;updateSend();showNotice("","normal");let q=question||(isImage?"اس تصویر میں کیا نظر آتا ہے؟ آسان اردو میں سمجھائیں۔":"");
@@ -391,7 +408,8 @@ async function sendQuestion(e){if(e)e.preventDefault();if(busy)return;const ques
     if(!response.ok)throw Error("HTTP_"+response.status);
     const result=validateReply(await response.json(),isImage);
     if(epoch!==requestEpoch)return;
-    loading.box.remove();createMessage("assistant",result.text,null,false);
+    loading.box.remove();const finalMessage=createMessage("assistant",result.text,null,false);
+    if(!isImage&&result.marketPriceVerification==="NOT_VERIFIED")appendOptionalMarketSearch(finalMessage.box,q);
     transcript.push({role:"assistant",text:result.text,source:result.source});
     if(!isImage&&result.source!=="FAIL_CLOSED"){history.push({role:"user",content:q},{role:"assistant",content:result.text});history=history.slice(-MAX_HISTORY)}
     showNotice(!isImage&&result.marketPriceVerification==="NOT_VERIFIED"
