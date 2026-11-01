@@ -210,6 +210,10 @@
 
     async function runQuestion() {
       const question = (input.value || "").trim();
+      // A new answer must never inherit links from an older question, even
+      // when AI is disabled, times out, or falls back to static guidance.
+      const oldSources = answer.parentElement?.querySelector("[data-ezero-web-sources]");
+      if (oldSources) oldSources.remove();
       const deterministicResult = findAnswer(question);
       const language = currentLanguage();
 
@@ -344,8 +348,6 @@
           throw new Error("AI_BRIDGE_INVALID_RESPONSE");
         }
 
-        const staleLinks = answer.parentElement?.querySelector("[data-ezero-web-sources]");
-        if (staleLinks) staleLinks.remove();
 
         if (data.answer === "INSUFFICIENT_VERIFIED_EZERO_EVIDENCE") {
           answer.textContent =
