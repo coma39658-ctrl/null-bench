@@ -19,6 +19,27 @@ function ui(lang){
   const key=item.getAttribute("data-ai-ui");
   if(Object.hasOwn(LOCALES[currentLanguage],key))item.textContent=localize(key);
  }
+ // Make the first line clearly colorful in every language. Only UI welcome
+ // wording is split into spans; original conversation and user text are untouched.
+ const heading=el("welcome")?.querySelector("h1[data-ai-ui='welcome']");
+ if(heading){
+  const title=localize("welcome");
+  const comma=Math.max(title.lastIndexOf(","),title.lastIndexOf("،"),title.lastIndexOf("，"));
+  const split=comma>=0?comma+1:title.lastIndexOf(" ");
+  if(split>0&&split<title.length-1){
+   const lead=document.createElement("span");
+   lead.className="aiHeadlineLead";
+   lead.textContent=title.slice(0,split);
+   const accent=document.createElement("em");
+   accent.className="aiHeadlineAccent";
+   accent.textContent=title.slice(split);
+   heading.replaceChildren(lead,document.createTextNode(" "),accent);
+  }else{
+   const lead=document.createElement("span");
+   lead.className="aiHeadlineLead";lead.textContent=title;
+   heading.replaceChildren(lead);
+  }
+ }
  const prompt=el("prompt");if(prompt)prompt.placeholder=localize("placeholder");
  const submit=el("send")?.querySelector("span");if(submit)submit.textContent=localize("send");
  const newChat=el("newChatRail");if(newChat)newChat.textContent="+ "+localize("newChat");
