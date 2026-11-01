@@ -1,0 +1,56 @@
+name: E-ZERO Branded Automotive Price Guard Live Smoke
+on:
+  push:
+    branches:
+      - ezero-public-branded-priceguard-live-smoke-v0.1
+    paths:
+      - '.github/workflows/ezero_public_branded_priceguard_live_smoke_v0_1.yml'
+permissions:
+  contents: read
+jobs:
+  real-live-price-only:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify live Qwen v0.2 branded car questions with no inference calls
+        run: |
+          node --input-type=module - <<'TEST'
+          const origin="https://coma39658-ctrl.github.io";
+          const worker="https://ezero-qwen-public-priceguard-v0-2.coma39658.workers.dev";
+          const fail=(reason)=>{throw new Error(reason);};
+          const health=await fetch(worker+"/health",{headers:{Origin:origin},signal:AbortSignal.timeout(12000)});
+          if(health.status!==200)fail("HEALTH_"+health.status);
+          const h=await health.json();
+          if(h.status!=="ONLINE"||h.evidence_authority!==false)fail("HEALTH_CONTRACT");
+          console.log("PRICEGUARD_V02_HEALTH: PASS");
+          for(const [name,q,language] of [
+            ["BASIC_UR","سعودی عرب میں 2018 ماڈل ٹویوٹا کرولا کی قیمت","ur"],
+            ["BRAND_UR","E-ZERO 2018 ماڈل ٹویوٹا کرولا کی سعودی عرب میں قیمت بتائیں","ur"],
+            ["GUIDE_UR","ای زیرو اے آئی گائیڈ سعودی عرب میں ٹویوٹا کرولا 2018 کی قیمت بتائیں","ur"],
+            ["GUIDE_EN","E-ZERO Public Guide, what is the price of a 2018 Corolla in Saudi Arabia?","en"]
+          ]){
+            const response=await fetch(worker+"/api/ezero-agent/v0.1/ask",{
+              method:"POST",
+              headers:{Origin:origin,"Content-Type":"application/json"},
+              body:JSON.stringify({question:q,response_language:language,fallback_language:language,answer_length:"short"}),
+              signal:AbortSignal.timeout(14000)
+            });
+            const d=await response.json();
+            console.log(name+"_HTTP:",response.status);
+            console.log(name+"_STATUS:",d.status||"UNKNOWN");
+            console.log(name+"_PRICE_VERIFICATION:",d.market_price_verification||"NOT_REPORTED");
+            console.log(name+"_WEB_RESEARCH:",d.web_research_status||"NOT_REPORTED");
+            console.log(name+"_SOURCE_COUNT:",d.sources?.length||0);
+            console.log(name+"_UNVERIFIED_MARKET_NAMES:",/پاکستان|Jomoo|Saudi Auto Show|Saraya|Dubizzle Saudi|صرف E-ZERO|دائرہ کار میں نہیں/i.test(String(d.answer||""))?"FOUND":"NONE");
+            if(response.status!==200||d.status!=="OK"||d.market_price_verification!=="NOT_VERIFIED"||
+              d.web_research_status!=="DISABLED"||d.sources?.length!==0||
+              !String(d.answer||"").trim()||
+              /پاکستان|Jomoo|Saudi Auto Show|Saraya|Dubizzle Saudi|صرف E-ZERO|دائرہ کار میں نہیں/i.test(String(d.answer||"")))
+              fail(name+"_CONTRACT_FAILED");
+            console.log(name+"_PASS");
+          }
+          console.log("BRANDED_CAR_PRICE_LIVE_SMOKE: PASS");
+          TEST
