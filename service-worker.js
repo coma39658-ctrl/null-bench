@@ -1,4 +1,4 @@
-const CACHE_NAME = "ezero-null-bench-v5-unified-ai-20261101";
+const CACHE_NAME = "ezero-null-bench-v6-public-sources-20261101";
 
 const APP_FILES = [
   "./",

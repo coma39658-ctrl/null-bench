@@ -16,6 +16,16 @@ const voiceSource = fs.readFileSync("js/ezero_voice_guide_ui_v0_1.js", "utf8");
 const website = fs.readFileSync("index.html", "utf8");
 const serviceWorker=fs.readFileSync("service-worker.js","utf8");
 const studio=fs.readFileSync("ezero_ai_studio_v0_1.html","utf8");
+assert.ok(studio.includes("appendUnverifiedWebSources"),"AI Studio must show real external sources");
+assert.ok(studio.includes("source.sourceClass!==\"WEB_SEARCH_UNVERIFIED\""),
+  "Ignore malformed or model-invented source records");
+assert.ok(studio.includes('a.rel="noopener noreferrer nofollow"'),
+  "Prevent referrer leaks from user-clicked source URLs");
+assert.ok(studio.includes('result.marketPriceVerification==="NOT_VERIFIED"||'),
+  "If no actual video links were returned, allow only user-clicked search");
+assert.ok(studio.includes('▶ '),"Identify actual returned video links");
+assert.ok(studio.includes('const linkedSources=!isImage?appendUnverifiedWebSources'),
+  "Keep public search source rendering separate from user images");
 const simpleChat=fs.readFileSync("ezero_public_ai_chat_candidate_v0_1.html","utf8");
 const visionPage=fs.readFileSync("ezero_public_vision_ai_candidate_v0_1.html","utf8");
 const latestTextHost="https://ezero-qwen-public-priceguard-v0-2.coma39658.workers.dev";
@@ -46,7 +56,7 @@ for(const [name,html] of [
   for(let i=0;i<scripts.length;i++)new vm.Script(scripts[i][1],{filename:name+"_"+i+".js"});
 }
 
-assert.match(serviceWorker,/ezero-null-bench-v5-unified-ai-20261101/,"Updated mobile PWA cache version is required");
+assert.match(serviceWorker,/ezero-null-bench-v6-public-sources-20261101/,"Updated mobile PWA cache version is required");
 assert.match(serviceWorker,/url\.origin !== self\.location\.origin/,"Do not intercept or cache external websites or Cloudflare AI calls");
 assert.match(serviceWorker,/url\.pathname\.startsWith\(new URL\(self\.registration\.scope\)\.pathname\)/,"Only intercept this website project");
 assert.match(serviceWorker,/key\.startsWith\("ezero-null-bench-"\)/,"Do not delete other apps' caches");
