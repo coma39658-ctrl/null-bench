@@ -1,0 +1,43 @@
+name: E-ZERO AI Studio Mobile Video and 15 Language QA
+on:
+  push:
+    branches: [ezero-ai-studio-video-back-i18n-v0.1]
+    paths:
+      - '.github/workflows/ezero_ai_studio_media_i18n_v0_1.yml'
+      - 'ezero_ai_studio_v0_1.html'
+      - 'js/ezero_ai_studio_media_i18n_v0_1.js'
+      - 'css/ezero_ai_studio_media_i18n_v0_1.css'
+      - 'tests/test_ezero_ai_studio_media_i18n_v0_1.mjs'
+  workflow_dispatch:
+permissions: {contents: read}
+concurrency: {group: ezero-ai-studio-video-i18n-v0-1, cancel-in-progress: true}
+jobs:
+  safe_preview:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Install browser test dependencies
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.57.0
+          npx playwright install --with-deps chromium
+      - name: Verify safe local-only media in real Chromium
+        run: |
+          node --check js/ezero_ai_studio_media_i18n_v0_1.js
+          python -m http.server 8767 --bind 127.0.0.1 >/tmp/ezero-video-i18n.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8767/ezero_ai_studio_v0_1.html >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8767/ezero_ai_studio_v0_1.html > /dev/null
+          node tests/test_ezero_ai_studio_media_i18n_v0_1.mjs
+          echo "VIDEO_UPLOAD: NONE"
+          echo "NEW_AI_ENDPOINT: NONE"
+          echo "OBD_COMMANDS: NONE"
+          echo "PUBLIC_DEPLOYMENT: NONE"

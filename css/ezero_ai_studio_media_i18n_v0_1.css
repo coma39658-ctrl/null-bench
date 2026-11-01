@@ -1,0 +1,19 @@
+/* E-ZERO AI Studio isolated multimedia & international navigation controls */
+.aiBackButton,.aiVideoClose{display:inline-flex;align-items:center;gap:5px;min-height:40px;padding:8px 11px;border-radius:11px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);font-size:12px;font-weight:800;white-space:nowrap}
+.aiUILanguage,.aiUILanguageLabel{font-size:12px;font-weight:750;color:var(--ink)}
+.aiUILanguage{width:100%;max-width:240px;min-height:42px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:8px}
+.aiUILanguage.mobile{width:auto;max-width:125px;min-width:83px;display:none}
+.aiVideoPanel{position:fixed;inset:0;z-index:30;background:rgba(6,18,32,.77);display:grid;place-items:center;padding:16px;overscroll-behavior:contain}
+.aiVideoCard{width:min(100%,710px);max-height:90dvh;overflow-y:auto;padding:20px;border:1px solid var(--line);border-radius:20px;background:var(--surface);color:var(--ink);box-shadow:0 18px 70px rgba(0,0,0,.35)}
+.aiVideoHead{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:10px}
+.aiVideoHead h2{font-size:clamp(16px,3vw,21px);margin:0}
+.aiVideoBoundary{background:var(--tint);border-inline-start:4px solid var(--accent);padding:10px;border-radius:9px;font-size:13px;line-height:1.7}
+.aiVideoCard label{display:block;margin:15px 0 8px;font-size:13px;font-weight:800}
+.aiVideoCard input[type=file]{font-size:13px;max-width:100%;color:var(--ink)}
+.aiVideoCard video{display:block;width:100%;max-height:46dvh;margin-top:14px;background:#091827;border-radius:12px}
+#aiVideoStatus{min-height:25px;font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+.aiVideoActions{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:12px}
+.aiVideoActions button,.aiVideoActions a{min-height:43px;display:inline-flex;align-items:center;padding:10px 14px;border:1px solid var(--line);border-radius:11px;background:var(--surface2);color:var(--ink);text-decoration:none;font-size:13px;font-weight:800}
+.aiVideoPanel :is(button,input,a):focus-visible,.aiBackButton:focus-visible,.aiUILanguage:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+@media(max-width:830px){.aiUILanguage.mobile{display:block}.aiBackButton{padding:8px;min-width:51px}.topActions{gap:5px}.health{display:none}.aiVideoCard{padding:14px}.aiVideoPanel{padding:9px}}
+@media(max-width:360px){.aiUILanguage.mobile{max-width:89px}.aiBackButton{font-size:11px;padding:8px 5px}}
