@@ -55,5 +55,23 @@ jobs:
               ||d.web_research_status!=="DISABLED"||!answer.includes("براہِ راست ویب تصدیق دستیاب نہیں")
               ||/پاکستان|Jomoo|Saudi Auto Show|Saraya|Dubizzle Saudi/i.test(answer))throw Error("UNSAFE_"+name);
           }
+          for(const [name,question] of [
+            ["EZERO_BRAND_PREFIX","E-ZERO 2018 ماڈل ٹویوٹا کرولا کی سعودی عرب میں قیمت بتائیں"],
+            ["URDU_GUIDE_PREFIX","ای زیرو اے آئی گائیڈ سعودی عرب میں ٹویوٹا کرولا 2018 کی قیمت بتائیں"],
+            ["URDU_SCOPE_ONLY","سعودی عرب میں استعمال شدہ ٹویوٹا کرولا 2018 کی مارکیٹ معلومات"],
+            ["EN_MARKET","What is the current price of a used 2018 Toyota Corolla in Saudi Arabia?"]
+          ]){
+            const r=await req(worker+"/api/ezero-agent/v0.1/ask",{
+              method:"POST",headers:{"Origin":origin,"Content-Type":"application/json"},
+              body:JSON.stringify({question,response_language:name==="EN_MARKET"?"en":"ur",fallback_language:"ur",answer_length:"short"})
+            });
+            const d=await r.json();
+            console.log(name+"_HTTP:",r.status);
+            console.log(name+"_STATUS:",d.status||"UNKNOWN");
+            console.log(name+"_VERIFICATION:",d.market_price_verification||"NOT_REPORTED");
+            console.log(name+"_WEB:",d.web_research_status||"NOT_REPORTED");
+            console.log(name+"_SCOPE_REFUSAL:",/(?:صرف E-ZERO|صرف ای زیرو|دائرہ کار میں نہیں|outside (?:my|the) scope|only (?:about|for) E-ZERO)/iu.test(String(d.answer||""))?"YES":"NO");
+            if(r.status!==200)throw Error(name+"_HTTP_FAILED");
+          }
           console.log("LIVE_PUBLIC_PRICE_REPLY_DIAGNOSTICS: PASS");
           CHECK
