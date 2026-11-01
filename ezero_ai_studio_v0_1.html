@@ -42,7 +42,7 @@
   <section><p class="railTitle">آپ کا معاون</p><button id="newChatRail" class="railButton" type="button"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> نئی گفتگو</button></section>
   <section><p class="railTitle">اہم سہولتیں</p><p class="railNote">تحریر، مائیک اور تصویر — سب ایک ہی گفتگو میں۔ گفتگو خودبخود مستقل محفوظ نہیں ہوتی۔</p></section>
   <div class="railGrow"></div>
-  <nav aria-label="Navigation"><a class="railLink" href="https://e-zero-dashboard.onrender.com/"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10H3zM9 20v-7h6v7"/></svg> مرکزی ویب سائٹ</a><a class="railLink" href="./ezero_public_media_preview_v0_1.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m3 18 6-6 4 4 3-3 5 5"/></svg> مقامی میڈیا پیش منظر</a></nav>
+  <nav aria-label="Navigation"><a class="railLink" href="https://e-zero-dashboard.onrender.com/"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10H3zM9 20v-7h6v7"/></svg><span data-ai-ui="homeLink">مرکزی ویب سائٹ</span></a><a class="railLink" href="./ezero_public_media_preview_v0_1.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m3 18 6-6 4 4 3-3 5 5"/></svg> مقامی میڈیا پیش منظر</a></nav>
   <div class="railFooter"><strong>Evidence first · Human in control</strong><br>AI کی وضاحت حتمی گاڑی تشخیص نہیں۔ ECU کو کوئی کمانڈ نہیں بھیجی جاتی۔</div>
  </aside>
  <main class="main">
@@ -54,10 +54,10 @@
     </div>
   </header>
   <div id="chatScroll" class="scroll" role="region" aria-label="گفتگو" tabindex="0"><div id="thread" class="thread" aria-live="polite"><section id="welcome" class="welcome"><div class="eyebrow">EVIDENCE-FIRST · PUBLIC AI</div><h1 data-ai-ui="welcome">سوچیں، پوچھیں، دریافت کریں۔</h1><p data-ai-ui="welcomeDesc">گاڑیوں، سائنس، سینسرز اور روزمرہ سوالات پر گفتگو کریں۔</p><div class="chips">
-   <button class="quick" type="button" data-prompt="OBD-II کیا ہے؟ آسان اردو میں تین نکات بتائیں۔"><svg viewBox="0 0 24 24"><path d="M5 16h14l-1-8H6zM7 16v3m10-3v3M8 11h2m4 0h2"/></svg><span><strong>گاڑی کی بنیادی تشخیص</strong><small>OBD-II اور خرابی کے کوڈ</small></span></button>
-   <button class="quick" type="button" data-prompt="MAF اور آکسیجن سینسر میں کیا فرق ہے؟ آسان اردو میں سمجھائیں۔"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m12 12 4-3M8 16h8"/></svg><span><strong>سینسر کیسے کام کرتے ہیں؟</strong><small>عملی اور سائنسی وضاحت</small></span></button>
-   <button class="quick" type="button" data-prompt="مجھے ایک چھوٹی ورکشاپ کے لیے read-only گاڑی اسکیننگ سروس کا منصوبہ بنائیں۔"><svg viewBox="0 0 24 24"><path d="M3 20V9l9-5 9 5v11M8 20v-7h8v7"/></svg><span><strong>ورکشاپ کاروبار</strong><small>محفوظ اور قابلِ عمل منصوبہ</small></span></button>
-   <button class="quick" type="button" id="quickImage"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m3 18 6-6 4 4 3-3 5 5"/></svg><span><strong>تصویر AI سے سمجھیں</strong><small>منتخب کریں، اجازت دیں، پھر سوال کریں</small></span></button>
+   <button class="quick" type="button" data-prompt="OBD-II کیا ہے؟ آسان اردو میں تین نکات بتائیں۔"><svg viewBox="0 0 24 24"><path d="M5 16h14l-1-8H6zM7 16v3m10-3v3M8 11h2m4 0h2"/></svg><span><strong data-ai-ui="quickCar">گاڑی کی بنیادی تشخیص</strong><small>OBD-II اور خرابی کے کوڈ</small></span></button>
+   <button class="quick" type="button" data-prompt="MAF اور آکسیجن سینسر میں کیا فرق ہے؟ آسان اردو میں سمجھائیں۔"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m12 12 4-3M8 16h8"/></svg><span><strong data-ai-ui="quickSensor">سینسر کیسے کام کرتے ہیں؟</strong><small>عملی اور سائنسی وضاحت</small></span></button>
+   <button class="quick" type="button" data-prompt="مجھے ایک چھوٹی ورکشاپ کے لیے read-only گاڑی اسکیننگ سروس کا منصوبہ بنائیں۔"><svg viewBox="0 0 24 24"><path d="M3 20V9l9-5 9 5v11M8 20v-7h8v7"/></svg><span><strong data-ai-ui="quickWorkshop">ورکشاپ کاروبار</strong><small>محفوظ اور قابلِ عمل منصوبہ</small></span></button>
+   <button class="quick" type="button" id="quickImage"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m3 18 6-6 4 4 3-3 5 5"/></svg><span><strong data-ai-ui="quickImage">تصویر AI سے سمجھیں</strong><small>منتخب کریں، اجازت دیں، پھر سوال کریں</small></span></button>
    <button class="quick" type="button" id="quickVideo" data-ai-ui-title="video" aria-label="Local video preview"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="16" height="14" rx="3"/><path d="m18 10 4-3v10l-4-3z"/></svg><span><strong data-ai-ui="video">ویڈیو پیش منظر</strong><small data-ai-ui="videoBoundary">صرف فون پر، AI تجزیہ فعال نہیں</small></span></button>
   </div></section></div></div>
   <button id="bottomBtn" class="atbottom hidden" type="button">↓ تازہ جواب</button>
@@ -74,7 +74,7 @@
        <select id="answerLength" class="select" aria-label="جواب کی طوالت"><option value="short">مختصر</option><option value="normal" selected>متوازن</option><option value="detailed">تفصیلی</option></select>
        <span class="toolbarGrow"></span><button id="send" class="send" type="submit" aria-label="سوال بھیجیں"><svg viewBox="0 0 24 24"><path d="m4 12 16-8-5 16-3-7z"/></svg><span>بھیجیں</span></button>
      </div></form><details id="ezeroVoiceSettings" class="voiceSettings">
- <summary>🔊 آواز کی ترتیب</summary>
+ <summary data-ai-ui="voice">🔊 آواز کی ترتیب</summary>
  <div class="voiceRow">
   <label>بولنے کی آواز <select id="ezeroTtsVoice" aria-label="بولنے کی آواز"><option value="auto">خودکار — اردو کو ترجیح</option></select></label>
   <label>بولنے کی رفتار <select id="ezeroTtsRate" aria-label="بولنے کی رفتار"><option value="0.85">آہستہ</option><option value="0.95" selected>قدرتی</option><option value="1.05">قدرے تیز</option></select></label>
