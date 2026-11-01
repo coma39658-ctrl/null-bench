@@ -10,7 +10,6 @@ window.EZERO_PUBLIC_AI_ENABLED = true;
 window.EZERO_PUBLIC_AI_ENDPOINT = "https://example.org/api/ezero-agent/v0.1/ask";
 window.setTimeout = setTimeout;
 window.clearTimeout = clearTimeout;
-window.crypto = { randomUUID: () => "test-session" };
 
 const agentSource = fs.readFileSync("js/ezero_qwen_public_agent_v0_1.js", "utf8");
 const voiceSource = fs.readFileSync("js/ezero_voice_guide_ui_v0_1.js", "utf8");
