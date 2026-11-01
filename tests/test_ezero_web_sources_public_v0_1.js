@@ -15,7 +15,38 @@ const agentSource = fs.readFileSync("js/ezero_qwen_public_agent_v0_1.js", "utf8"
 const voiceSource = fs.readFileSync("js/ezero_voice_guide_ui_v0_1.js", "utf8");
 const website = fs.readFileSync("index.html", "utf8");
 const serviceWorker=fs.readFileSync("service-worker.js","utf8");
-assert.match(serviceWorker,/ezero-null-bench-v4-branded-priceguard-20261101/,"Updated mobile PWA cache version is required");
+const studio=fs.readFileSync("ezero_ai_studio_v0_1.html","utf8");
+const simpleChat=fs.readFileSync("ezero_public_ai_chat_candidate_v0_1.html","utf8");
+const visionPage=fs.readFileSync("ezero_public_vision_ai_candidate_v0_1.html","utf8");
+const latestTextHost="https://ezero-qwen-public-priceguard-v0-2.coma39658.workers.dev";
+const oldImageHost="https://ezero-qwen-vision-gateway-public.coma39658.workers.dev";
+assert.ok(studio.includes('const ENDPOINT="'+latestTextHost+'/api/ezero-agent/v0.1/ask"'),
+  "AI Studio text requests must use current global automotive v0.2");
+assert.ok(studio.includes('const HEALTH="'+latestTextHost+'/health"'),
+  "Studio health should inspect the same public text endpoint");
+assert.ok(studio.includes('const IMAGE_ENDPOINT="'+oldImageHost+'/api/ezero-agent/v0.1/ask"'),
+  "Do not change the image AI endpoint without a separate image smoke test");
+assert.ok(studio.includes('fetch(isImage?IMAGE_ENDPOINT:ENDPOINT,'),
+  "Studio image and text request selection must be explicit");
+assert.ok(studio.includes('result.marketPriceVerification==="NOT_VERIFIED"'),
+  "Clearly label price information as not live-verified");
+assert.ok(studio.includes('appendOptionalMarketSearch(finalMessage.box,q)'),
+  "Expose voluntary search links without inventing prices");
+assert.ok(studio.includes('a.rel="noopener noreferrer nofollow"'),
+  "Never pass referrer through external search links");
+assert.ok(simpleChat.includes('const endpoint="'+latestTextHost+'/api/ezero-agent/v0.1/ask"'),
+  "Experimental text chat must not use deprecated platform-only gateway");
+assert.ok(visionPage.includes(oldImageHost),
+  "Keep separately tested vision candidate route unchanged");
+for(const [name,html] of [
+  ["E-ZERO_AI_STUDIO",studio],["E-ZERO_PUBLIC_AI_CHAT",simpleChat]
+]){
+  const scripts=[...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/gi)];
+  assert.ok(scripts.length>=1,name+" must contain executable code");
+  for(let i=0;i<scripts.length;i++)new vm.Script(scripts[i][1],{filename:name+"_"+i+".js"});
+}
+
+assert.match(serviceWorker,/ezero-null-bench-v5-unified-ai-20261101/,"Updated mobile PWA cache version is required");
 assert.match(serviceWorker,/url\.origin !== self\.location\.origin/,"Do not intercept or cache external websites or Cloudflare AI calls");
 assert.match(serviceWorker,/url\.pathname\.startsWith\(new URL\(self\.registration\.scope\)\.pathname\)/,"Only intercept this website project");
 assert.match(serviceWorker,/key\.startsWith\("ezero-null-bench-"\)/,"Do not delete other apps' caches");
@@ -34,6 +65,7 @@ assert.ok(voiceSource.includes('data-ezero-search-alternatives'));
 assert.ok(voiceSource.includes('https://duckduckgo.com/?q='));
 assert.ok(voiceSource.includes('https://www.bing.com/search?q='));
 assert.ok(voiceSource.includes('encodeURIComponent(question)'));
+assert.ok(voiceSource.includes('question.length > 500'),"Long user vehicle-market questions must not hide public search options");
 assert.ok(voiceSource.includes('link.rel="noopener noreferrer nofollow"'));
 assert.ok(voiceSource.includes('if(oldAlternatives)oldAlternatives.remove()'));
 assert.ok(voiceSource.includes('پاسورڈ') && voiceSource.includes('bank.account'),
