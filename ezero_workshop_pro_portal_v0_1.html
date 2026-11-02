@@ -3,224 +3,162 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="E-ZERO Workshop Pro single-entry customer registration, licensing, subscriptions and secure record-management preparation. Not accepting customer records yet.">
-<title>E-ZERO Workshop Pro | کسٹمر، لائسنس اور سبسکرپشن</title>
+<meta name="robots" content="index,follow">
+<meta name="theme-color" content="#092337">
+<meta name="description" content="E-ZERO Workshop Pro: trilingual research preview, private customer records, planned field workflow and safe read-only OBD. No live sales, payments or activations.">
+<title>E-ZERO Workshop Pro | محفوظ ورکشاپ مستقبل</title>
 <style>
-:root{color-scheme:light;--bg:#f2f7fa;--paper:#fff;--ink:#143447;--muted:#526b7a;--line:#cbdce5;--accent:#087e9b;--soft:#e6f3f7}
+:root{color-scheme:light;--navy:#092337;--navy2:#12374a;--ink:#183849;--muted:#57717f;--teal:#137f89;--mint:#d9f2ee;--outline:#d9e6ec;--surface:#fff;--bg:#f5f9fb;--shadow:0 18px 42px rgba(12,43,62,.07)}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.8 system-ui,"Noto Naskh Arabic",sans-serif}
-header,main,footer{max-width:1010px;margin:auto;padding:18px}
-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-.brand{font-size:1.35rem;font-weight:900;letter-spacing:.02em}
-a{color:var(--accent)}.back{display:inline-block;padding:9px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;text-decoration:none}
-.hero{padding:28px;background:linear-gradient(135deg,#133e56,#087c98);color:#fff;border-radius:20px}
-.hero h1{font-size:clamp(1.9rem,5vw,3rem);line-height:1.4;margin:8px 0}
-.hero p{max-width:720px;margin:8px 0}
-.tag{display:inline-block;font-size:.8rem;padding:2px 12px;border:1px solid #96c3d2;border-radius:20px;background:#d8eff4;color:#154356;font-weight:800}
-.hero .tag{border:1px solid #d3f0f6;background:#fff}
-.hero-action{display:inline-block;margin-top:14px;padding:12px 16px;border-radius:11px;background:#fff;color:#143e54;font-weight:800;text-decoration:none}
-.hero-action:focus-visible{outline:3px solid #f4d578;outline-offset:3px}
-.preview-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
-.preview-form label{display:block;font-weight:700;font-size:.95rem}
-.preview-form input{display:block;width:100%;margin-top:5px;padding:12px;border:1px solid #b6cbd4;border-radius:9px;background:#f4f6f7;color:#455f6d;font:inherit}
-.preview-form button{padding:12px;border-radius:9px;border:0;background:#a2b2b8;color:#243c46;font:inherit;font-weight:800}
-@media(max-width:650px){.preview-form{grid-template-columns:1fr}}
-section{margin:19px 0}
-.notice{padding:18px 20px;border:1px solid #a9ccd8;border-right:5px solid var(--accent);background:var(--soft);border-radius:13px}
-.notice p{margin:8px 0}
-h2{font-size:1.35rem;margin:0 0 12px}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
-.card{background:var(--paper);padding:20px;border:1px solid var(--line);border-radius:15px;min-width:0}
-.card h3{margin:0 0 6px;font-size:1.1rem}
-.card p{color:var(--muted);margin:6px 0}
-.card strong{color:var(--ink)}
-.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
-.tab{font:inherit;cursor:pointer;padding:10px 14px;border:1px solid #94b0bc;background:#fff;color:var(--ink);border-radius:10px;font-weight:700;min-height:45px}
-.tab[aria-selected="true"]{background:var(--ink);color:#fff}
-.tab:focus-visible,a:focus-visible{outline:3px solid #0aa2d0;outline-offset:3px}
-.panel{background:white;border:1px solid var(--line);border-radius:15px;padding:22px;min-height:180px}
-.panel[hidden]{display:none}
-.panel p{color:var(--muted)}
-.fields{display:flex;flex-wrap:wrap;gap:8px}
-.fields span{padding:7px 11px;border:1px solid #c4dbe5;border-radius:99px;background:#f4f9fb;font-size:.9rem}
-.lock{padding:12px 16px;background:#f4f7f8;border:1px dashed #9fb5c0;border-radius:12px;color:#455f6d}
-table{width:100%;border-collapse:collapse}
-th,td{padding:11px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
-th{width:38%}
-footer{font-size:.85rem;color:var(--muted)}
-@media(max-width:650px){.grid{grid-template-columns:1fr}header,main,footer{padding:12px}.hero{padding:19px}.panel{padding:15px}}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;line-height:1.85}
+a{text-decoration:none;color:inherit}
+button{font:inherit}
+.wrap{width:min(1160px,calc(100% - 40px));margin-inline:auto}
+.topline{background:#082236;color:#daebf1;padding:9px 0;font-size:.78rem;letter-spacing:.03em;text-align:center}
+.top{background:#fff;border-bottom:1px solid var(--outline);position:relative;z-index:2}
+.top-inner{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-block:16px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:12px;font-weight:900;font-size:1.3rem;letter-spacing:.09em;color:#092337}
+.brandmark{display:grid;place-items:center;width:42px;height:42px;color:#fff;border-radius:13px;background:linear-gradient(135deg,#092b44,#178c92);box-shadow:0 7px 17px #157a8540}
+.brandmark::after{content:"E";font-weight:900;font-size:1.35rem}
+.logo small{display:block;font-size:.59rem;font-weight:700;color:var(--muted);letter-spacing:.14em;line-height:1.4}
+.top-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.home{padding:8px 14px;border:1px solid var(--outline);border-radius:11px;font-weight:650;font-size:.87rem;background:#fff}
+.home:hover,.home:focus-visible{border-color:var(--teal)}
+.languages{display:flex;gap:3px;padding:4px;background:#edf4f7;border:1px solid #dce6eb;border-radius:12px}
+.languages button{cursor:pointer;color:#466371;background:transparent;border:0;padding:6px 12px;border-radius:9px;font-size:.82rem;font-weight:720}
+.languages button[aria-pressed=true]{background:#fff;color:#0c5362;box-shadow:0 2px 6px #12374a21}
+button:focus-visible,a:focus-visible{outline:3px solid #28afb4;outline-offset:3px}
+.hero{position:relative;overflow:hidden;background:radial-gradient(circle at 18% 0%,#21586e 0,transparent 40%),linear-gradient(120deg,#0b293e 0%,#0d3649 65%,#0c4348 100%);color:#fff;padding:92px 0 95px}
+.hero:before,.hero:after{content:"";position:absolute;border:1px solid #ffffff13;border-radius:100%;pointer-events:none}
+.hero:before{width:540px;height:540px;top:-180px;inset-inline-end:-100px}
+.hero:after{width:380px;height:380px;bottom:-260px;inset-inline-start:25%}
+.hero-inner{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr);align-items:center;gap:54px}
+.eyebrow{font-size:.73rem;font-weight:850;letter-spacing:.16em;text-transform:uppercase;color:#a8e4da}
+.hero h1{font-size:clamp(2.1rem,5.1vw,4.1rem);line-height:1.34;margin:16px 0 18px;letter-spacing:-.02em}
+.hero p{color:#c9dce4;line-height:2;font-size:1.07rem;margin:0;max-width:700px}
+.pill{display:inline-block;border:1px solid #80bcb78c;border-radius:40px;background:#2f6a682e;color:#c5f2e8;padding:6px 14px;font-size:.77rem;font-weight:750}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:29px}
+.btn{display:inline-block;padding:13px 20px;font-weight:800;font-size:.95rem;border:1px solid #b8e2e0;border-radius:12px;background:#d8f5ee;color:#123f49}
+.btn.outline{background:transparent;color:#ebfbfb;border-color:#87b3c0}
+.trust{display:flex;gap:10px;flex-wrap:wrap;margin-top:30px}
+.trust span{font-size:.75rem;border-radius:99px;border:1px solid #ffffff30;padding:5px 11px;color:#d3eaee}
+.dashboard{background:#eff9f810;border:1px solid #d9f7f737;box-shadow:0 30px 70px #001d2d45;border-radius:22px;padding:18px;backdrop-filter:blur(6px)}
+.dash-top{display:flex;align-items:center;gap:8px;color:#d5f0ef;font-size:.73rem;padding-bottom:14px;border-bottom:1px solid #ffffff2a}
+.dot{display:inline-block;width:9px;height:9px;border-radius:99px;background:#80e2c4}
+.dash-status{margin-top:16px;padding:16px;background:#d8ffec12;border-radius:13px}
+.dash-status strong{display:block;font-size:1rem;color:#e1fff4}
+.dash-status small{font-size:.78rem;color:#a9cbd1}
+.signal{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.signal div{min-width:0;padding:13px;border-radius:12px;border:1px solid #ffffff25;color:#d3ebee;font-size:.76rem}
+.signal b{display:block;color:#fff;font-size:1.15rem}
+.section{padding:76px 0}
+.section.soft{background:#edf5f7}
+.section-head{max-width:780px;margin-bottom:28px}
+.kicker{display:block;color:#167583;font-size:.79rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.section h2{font-size:clamp(1.6rem,3.3vw,2.45rem);margin:8px 0 14px;line-height:1.45}
+.section-head p,.subtext{color:var(--muted);margin:0;font-size:1rem}
+.feature-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.feature{padding:25px 20px;background:#fff;border:1px solid var(--outline);border-radius:18px;box-shadow:var(--shadow)}
+.feature-icon{font-size:1.6rem;line-height:1;margin-bottom:20px}
+.feature h3{font-size:1.1rem;line-height:1.6;margin:0 0 9px}
+.feature p{margin:0;color:var(--muted);font-size:.89rem}
+.steps{list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:0;margin:24px 0 0;gap:15px}
+.step{background:#fff;padding:23px 19px;border:1px solid var(--outline);border-radius:16px;min-width:0}
+.step-num{display:grid;place-items:center;width:43px;height:43px;background:var(--mint);border-radius:12px;color:#0f6171;font-weight:900;margin-bottom:18px}
+.step h3{font-size:1rem;margin:0 0 10px}
+.step p{font-size:.9rem;color:var(--muted);margin:0}
+.access-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.access{border-radius:18px;padding:28px;border:1px solid var(--outline);background:#fff;position:relative;overflow:hidden}
+.access::before{content:"";position:absolute;inset-block-start:0;inset-inline-start:0;height:4px;width:100%;background:linear-gradient(90deg,#168c93,#b2ded2)}
+.access h3{font-size:1.3rem;margin:15px 0}
+.access p{color:var(--muted);margin:0 0 15px}
+.access .note{background:#eaf4f7;border-radius:12px;padding:12px 14px;font-size:.86rem;color:#3b6471}
+.state{display:inline-block;border:1px solid #cee2e6;border-radius:99px;padding:5px 12px;font-size:.69rem;font-weight:850;color:#44737c}
+.privacy{background:#0b2f41;color:#fff}
+.privacy .kicker{color:#8fe0d5}
+.privacy .section-head p{color:#b8d5dd}
+.privacy-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
+.checks{display:grid;gap:13px}
+.check{display:flex;align-items:center;gap:12px;border:1px solid #ffffff2b;border-radius:12px;padding:12px 16px;background:#ffffff09;color:#dcf0f2}
+.check span:first-child{display:grid;place-items:center;width:24px;height:24px;background:#2d796f;border-radius:99px;color:#f4fffa;flex:none}
+.business{border:1px solid var(--outline);background:#fff;border-radius:20px;padding:32px;box-shadow:var(--shadow)}
+.business p{color:var(--muted);margin:0}
+.statusline{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
+.statusline span{font-size:.72rem;font-weight:850;color:#4a6773;border:1px solid #dce5e9;border-radius:99px;padding:5px 12px;background:#f2f7f9}
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.bottom-card{border-radius:17px;background:#e8f2f5;border:1px solid #d5e4e8;padding:24px}
+.bottom-card h3{font-size:1.1rem;margin:0 0 11px}
+.bottom-card p{color:#476473;margin:0}
+footer{background:#092235;color:#b7d1da;padding:27px 0;font-size:.83rem;text-align:center}
+@media(max-width:1000px){.feature-grid,.steps{grid-template-columns:repeat(2,minmax(0,1fr))}.hero-inner{grid-template-columns:1fr;gap:25px}.dashboard{max-width:530px}}
+@media(max-width:640px){.wrap{width:min(100% - 28px,1160px)}.top-inner{gap:12px}.top-right{width:100%;justify-content:space-between}.topline{padding:8px 10px}.hero{padding:48px 0 52px}.hero h1{font-size:clamp(2rem,8vw,3rem)}.hero p{font-size:.94rem}.section{padding:50px 0}.feature-grid,.steps,.access-grid,.privacy-grid,.bottom-grid{grid-template-columns:1fr}.feature{padding:23px}.business{padding:22px}.languages button{padding:7px 10px}.dashboard{max-width:none}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
-<header>
-<div class="brand">E-ZERO · Workshop Pro</div>
-<a class="back" href="./index.html#vehicle-obd">⌂ مرکزی ویب سائٹ</a>
-</header>
+<div class="topline" data-i18n="tag">تحقیق و پیش منظر • تجارتی سروس غیر فعال</div>
+<header class="top"><div class="wrap top-inner">
+ <a class="logo" href="./index.html#vehicle-obd" aria-label="E-ZERO"><span class="brandmark" aria-hidden="true"></span><span>E-ZERO<small>WORKSHOP PRO</small></span></a>
+ <div class="top-right">
+ <a class="home" href="./index.html#vehicle-obd" data-i18n="home">مرکزی ویب سائٹ</a>
+ <div class="languages" role="group" aria-label="Choose language / زبان / اللغة">
+ <button type="button" data-lang="ur" aria-pressed="true" lang="ur">اردو</button><button type="button" data-lang="en" aria-pressed="false" lang="en">English</button><button type="button" data-lang="ar" aria-pressed="false" lang="ar">العربية</button>
+ </div></div></div></header>
 <main>
-<section class="hero">
-<span class="tag">SAFE PREVIEW • NOT LIVE REGISTRATION</span>
-<h1>ایک ہی جگہ: گاہک، لائسنس، سبسکرپشن اور ریکارڈ</h1>
-<p>مرکزی E-ZERO ویب سائٹ سے ایک بٹن کے ذریعے اس پورٹل تک رسائی۔ یہ محفوظ ابتدائی ڈیزائن ہے؛ حقیقی اکاؤنٹس، ادائیگیاں اور ذاتی ڈیٹا محفوظ کرنے کی سہولت ابھی فعال نہیں کی گئی۔</p>
-<a class="hero-action" href="#grant-access">🔑 گاہک کو رسائی دیں — ایڈمن فارم کا پیش منظر</a>
-</section>
-<section class="notice" aria-label="ڈیٹا تحفظ">
-<h2>اصل گاہک کا ڈیٹا ابھی درج نہ کریں</h2>
-<p>اس عوامی صفحے میں کوئی کسٹمر رجسٹریشن فارم، نجی ڈیٹا بیس، لائسنس تصدیق یا SMS/WhatsApp بھیجنے والا سرور فعال نہیں۔ ذاتی فون نمبر، ای میل، پاس ورڈ یا ادائیگی کی معلومات یہاں جمع نہیں کی جاتیں۔</p>
-<p><strong>اگلا تکنیکی قدم:</strong> الگ محفوظ بیک اینڈ، لاگ اِن، اجازتوں کی جانچ، نجی ڈیٹا بیس، بیک اپ اور آڈٹ لاگ؛ صرف ان کی آزمائش کے بعد حقیقی رجسٹریشن کھلے گی۔</p>
-</section>
-<section>
-<h2>Workshop Pro میں کیا ہوگا؟</h2>
-<div class="grid">
-<article class="card"><h3>👥 فیلڈ ٹیم اور کسٹمر رجسٹریشن</h3><p>ٹیم کا نمائندہ کسی علاقے میں ورکشاپ سے درخواست لے گا۔ گاہک کی ای میل، فون نمبر اور رضامندی صرف محفوظ بیک اینڈ تیار ہونے کے بعد درج ہوں گے۔</p></article>
-<article class="card"><h3>🔑 لائسنس اور ڈیوائس</h3><p>ہر خریداری کا الگ لائسنس؛ ایک وقت میں ایک فعال ڈیوائس۔ گاہک ای میل کی دوبارہ تصدیق سے خود، یا مالک کی منظوری سے ڈیوائس تبدیل کرسکے گا۔</p></article>
-<article class="card"><h3>📅 دستی ادائیگی اور مستقبل کی سبسکرپشن</h3><p>فی الحال رقم نقد یا دستی طور پر وصول کرنے کا منصوبہ ہے؛ ٹیم رسید کی اطلاع دے سکتی ہے، لیکن صرف مالک رقم کی تصدیق اور لائسنس کی منظوری دے گا۔ ڈیجیٹل ادائیگی بعد میں۔</p></article>
-<article class="card"><h3>🔒 پرائیویٹ ریکارڈ اور اطلاع</h3><p>صرف مجاز ایڈمن کے لیے کسٹمر ریکارڈ؛ اجازت یافتہ صارفین کو الگ رضامندی کے مطابق اطلاع۔</p></article>
-</div>
-</section>
-<section aria-label="مجوزہ خصوصیات کا جائزہ">
-<h2>ایک پورٹل میں پانچ شعبے</h2>
-<div class="tabs" role="tablist" aria-label="Workshop Pro شعبے">
-<button class="tab" type="button" role="tab" id="t-registration" aria-controls="p-registration" aria-selected="true" tabindex="0">رجسٹریشن</button>
-<button class="tab" type="button" role="tab" id="t-license" aria-controls="p-license" aria-selected="false" tabindex="-1">لائسنس</button>
-<button class="tab" type="button" role="tab" id="t-subscription" aria-controls="p-subscription" aria-selected="false" tabindex="-1">سبسکرپشن</button>
-<button class="tab" type="button" role="tab" id="t-records" aria-controls="p-records" aria-selected="false" tabindex="-1">ریکارڈ</button>
-<button class="tab" type="button" role="tab" id="t-messages" aria-controls="p-messages" aria-selected="false" tabindex="-1">پیغامات</button>
-</div>
-<div class="panel" id="p-registration" role="tabpanel" aria-labelledby="t-registration">
-<h3>گاہک کی رجسٹریشن</h3><p>مستقبل میں محفوظ سرور پر یہ معلومات صارف کی اجازت سے محفوظ ہوں گی:</p>
-<div class="fields"><span>کسٹمر نام</span><span>ورکشاپ کا نام</span><span>تصدیق شدہ ای میل</span><span>فون نمبر</span><span>تصدیق کی حالت</span></div>
-</div>
-<div class="panel" id="p-license" role="tabpanel" aria-labelledby="t-license" hidden>
-<h3>لائسنس کی حالت اور ڈیوائس تبدیل کریں</h3>
-<p>ای میل سے صارف کی شناخت کی تصدیق ہوگی، مگر ہر لائسنس ایک وقت میں صرف ایک فعال ڈیوائس پر چلے گا۔ کسٹمر کے لیے <strong>خود ڈیوائس تبدیل کریں</strong> اور ایڈمن کے لیے <strong>کسٹمر کی ڈیوائس منتقل کریں</strong> کے الگ اختیارات رکھے گئے ہیں۔</p>
-<div class="grid">
-<div class="card"><h3>📱 کسٹمر: خود ڈیوائس تبدیل کریں</h3><p>نئی ڈیوائس پر تصدیق شدہ ای میل سے محفوظ سائن اِن، تازہ OTP/تصدیقی چیلنج، نئی ڈیوائس کی تصدیق اور منتقلی کی واضح منظوری۔ نئی ڈیوائس فعال ہونے پر پرانا لائسنس سیشن منسوخ ہوگا۔</p><button class="tab" type="button" disabled aria-disabled="true">ڈیوائس منتقل کریں — ابھی غیر فعال</button></div>
-<div class="card"><h3>🛡️ ایڈمن: درخواست پر منتقلی</h3><p>گاہک شناخت/ملکیت ثابت کرے؛ مرکزی ایڈمن اس کا لائسنس دیکھ کر محفوظ منتقلی منظور کرے۔ پرانی ڈیوائس ریٹائر، نئی فعال، اور آڈٹ ریکارڈ محفوظ ہوگا۔</p><button class="tab" type="button" disabled aria-disabled="true">ایڈمن ڈیوائس تبدیل کرے — ابھی غیر فعال</button></div>
-</div>
-<div class="lock">TRANSFER_PREVIEW_ONLY • VERIFIED_ACCOUNT_REQUIRED • SINGLE_ACTIVE_DEVICE • NO_BACKEND_CONNECTED</div>
-<p>یہاں کوئی حقیقی ڈیوائس یا سیشن تبدیل نہیں ہوتا۔ مستقبل میں سرور پر منتقلی ایک مکمل ٹرانزیکشن میں ہوگی؛ نئی ڈیوائس/تصدیق ناکام ہو تو پرانی فعال رہے گی۔ آف لائن پرانی ڈیوائس کو فوری روکنے کی ضمانت نہیں، اس لیے آف لائن اجازت محدود مدت کی ہوگی۔</p>
-</div>
-<div class="panel" id="p-subscription" role="tabpanel" aria-labelledby="t-subscription" hidden>
-<h3>دستی وصولی، پلان اور مستقبل کی تجدید</h3>
-<div class="notice"><strong>ابھی صرف Manual Payment کی منصوبہ بندی:</strong> رقم براہِ راست/دستی وصول ہوگی؛ ویب سائٹ پر نہ آن لائن ادائیگی، نہ کارڈ، نہ ادائیگی کا لنک، نہ خودکار کٹوتی فعال ہے۔ <strong>فی الحال یہ صفحہ کسی قسم کی رقم بھی وصول نہیں کرتا۔</strong></div>
-<div class="grid">
-<div class="card"><h3>🧾 ٹیم کی وصولی رپورٹ</h3><p>ورکشاپ، مقررہ رقم، تاریخ، ادائیگی کا طریقہ اور منفرد رسید نمبر درج کیے جائیں گے۔ یہ ریکارڈ پہلے <strong>Reported / غیر تصدیق شدہ</strong> ہوگا۔</p></div>
-<div class="card"><h3>🔐 مالک کی منظوری</h3><p>آپ اصل رقم وصول ہونے اور گاہک کی تصدیق کے بعد اپنی محفوظ ایڈمن رسائی سے <strong>Verified</strong> کریں گے؛ پھر علیحدہ منظوری سے ایک ڈیوائس کا لائسنس جاری ہوگا۔</p></div>
-</div>
-<p>ورکشاپ کے لیے ایک مرتبہ خریداری اور بعد میں اختیاری ماہانہ/سالانہ سبسکرپشن الگ طریقے سے رکھی جائیں گی۔ پرانے خریدار کے طے شدہ حقوق اور قیمت کو اطلاع و مطلوبہ رضامندی کے بغیر تبدیل نہیں کیا جائے گا۔</p>
-<div class="grid">
-<div class="card"><h3>🧾 ایک بار خریداری</h3><p>499 سعودی ریال صرف زیرِ غور ابتدائی قیمت ہے، حتمی آفر نہیں۔ جو سروس اور اپ ڈیٹس شامل ہوں وہ تحریری شرائط میں واضح ہوں گی۔</p></div>
-<div class="card"><h3>📅 ماہانہ / سالانہ پلان</h3><p>مستقبل میں اختیاری سبسکرپشن؛ قیمت، ٹیکس، آغاز، اگلی ادائیگی اور ختم ہونے کی تاریخ واضح ہوگی۔ ابھی کوئی مقررہ فیس یا آٹو چارج فعال نہیں۔</p></div>
-<div class="card"><h3>🔔 تجدید کی یاددہانی</h3><p>متعلقہ رضامندی اور مجاز فراہم کنندہ کے بعد مقررہ تاریخ سے پہلے ای میل، SMS یا WhatsApp اطلاع۔ غیر متعلقہ تشہیر الگ اجازت سے ہوگی۔</p></div>
-<div class="card"><h3>🛟 منسوخی اور مدد</h3><p>منسوخی/تجدید، ادائیگی کے مسئلے، ریفنڈ درخواست اور ڈیوائس منتقلی کا قابلِ پیروی ریکارڈ۔ آخری تاریخ اور شرائط صارف کو دکھائی جائیں گی۔</p></div>
-</div>
-<p><strong>اصول:</strong> دستی تجدید پہلے سے منتخب ہوگی۔ خودکار تجدید صرف گاہک کی واضح الگ اجازت، قانونی ادائیگی کے انتظام اور آسان منسوخی کے بعد ممکن ہوگی۔</p>
-<div class="lock">SUBSCRIPTION_PREVIEW_ONLY • NO_PAYMENTS • NO_AUTORENEWAL • NO_CUSTOMER_BILLING_RECORDS</div>
-<div class="tabs" aria-label="مستقبل کے سبسکرپشن اختیارات">
-<button class="tab" type="button" disabled aria-disabled="true">میری سبسکرپشن — ابھی غیر فعال</button>
-<button class="tab" type="button" disabled aria-disabled="true">تجدید / اپ گریڈ — ابھی غیر فعال</button>
-<button class="tab" type="button" disabled aria-disabled="true">منسوخی / ریفنڈ — ابھی غیر فعال</button>
-</div>
-</div>
-<div class="panel" id="p-records" role="tabpanel" aria-labelledby="t-records" hidden>
-<h3>کسٹمر ریکارڈ اور رازداری</h3>
-<p>اصل ریکارڈ صرف ایڈمن لاگ اِن کے بعد نجی ڈیٹا بیس سے دستیاب ہوں گے؛ یہ عوامی صفحہ کسی حقیقی کسٹمر کی فہرست نہیں دکھاتا۔</p>
-<p>آئندہ مجاز صارف اپنی معلومات دیکھنے، درست کرنے، فراہم کردہ ڈیٹا کی کاپی لینے، حذف کرنے کی درخواست یا تشہیری رضامندی واپس لینے کا محفوظ طریقہ استعمال کرسکے گا؛ قانونی ریکارڈ رکھنے کی ضروریات الگ پوری ہوں گی۔</p>
-<div class="lock">PRIVACY_RIGHTS_PREVIEW • NO_LIVE_PERSONAL_DATA_REQUESTS</div>
-<div class="lock">🔒 ADMIN LOGIN &amp; PRIVATE STORAGE REQUIRED — NOT CONFIGURED</div>
-</div>
-<div class="panel" id="p-messages" role="tabpanel" aria-labelledby="t-messages" hidden>
-<h3>SMS / WhatsApp / Email اطلاعات</h3>
-<p>سبسکرپشن تجدید، ختم ہونے کی تاریخ یا فعال ہونے کی <strong>سروس اطلاع</strong> الگ ہوگی؛ تشہیری پیغامات صرف موزوں علیحدہ رضامندی (opt-in)، واضح بھیجنے والے، مفت آسان opt-out اور منظور شدہ فراہم کنندہ کے ساتھ ہوں گے۔</p>
-<p>ایک ہی اطلاع دوبارہ بھیجنے سے بچنے کا ریکارڈ، ناکامی پر محدود دوبارہ کوشش اور کسٹمر کی تازہ ترین اجازت کی دوبارہ جانچ ہوگی۔ ابھی کوئی پیغام نہیں بھیجا جاسکتا۔</p>
-</div>
-</section>
-<section class="card" id="grant-access">
-<h2>🔑 مرکزی ایڈمن: ای میل سے رسائی دیں</h2>
-<p>آپ یا آپ کی مجاز فیلڈ ٹیم ورکشاپ کی درخواست تیار کرسکے گی۔ صرف مرکزی ایڈمن کا محفوظ لاگ اِن، منظوری اور تصدیق شدہ ادائیگی گاہک کو لائسنس دینے کی اجازت دیں گے۔ ای میل دعوت اور تصدیق کے بعد گاہک اپنی مجاز ڈیوائس پر رسائی حاصل کرے گا؛ بعد میں وہ دوبارہ تصدیق کرکے خود ڈیوائس بدل سکے گا، یا ایڈمن سے منتقلی کی درخواست کرسکے گا۔ <strong>ایک لائسنس پر ایک فعال ڈیوائس</strong> ہوگی۔</p>
-<div class="notice" role="note"><strong>صرف فارم کا پیش منظر — حقیقی رجسٹریشن بند ہے۔</strong> سرور، ایڈمن لاگ اِن اور ای میل تصدیق تیار نہ ہونے کی وجہ سے نیچے کے خانوں میں کوئی اصل معلومات درج نہیں کی جاسکتیں اور رسائی جاری نہیں ہوگی۔</div>
-<form aria-label="غیر فعال ایڈمن رسائی فارم کا پیش منظر" onsubmit="return false">
-<fieldset disabled style="border:0;padding:0;margin:0">
-<div class="preview-form">
-<label>گاہک کا نام<input type="text" autocomplete="off" placeholder="کسٹمر کا نام — پیش منظر"></label>
-<label>ورکشاپ کا نام<input type="text" autocomplete="off" placeholder="ورکشاپ کا نام — پیش منظر"></label>
-<label>گاہک کی ای میل<input type="email" autocomplete="off" placeholder="customer@example.com"></label>
-<label>فون نمبر<input type="tel" autocomplete="off" placeholder="+966XXXXXXXXX"></label>
-<label>لائسنس کی حیثیت<input type="text" value="ایڈمن منظوری اور ای میل تصدیق درکار" readonly></label>
-<label>ڈیوائس کی حد<input type="text" value="1 فعال ڈیوائس" readonly></label>
-<button type="submit" disabled>ای میل دعوت بھیجیں — ابھی فعال نہیں</button>
-</div>
-</fieldset>
-</form>
-<p><strong>مستقبل کا محفوظ طریقہ:</strong> ایڈمن لاگ اِن → کسٹمر فارم → سرور پر محفوظ ریکارڈ → مختصر مدت کی یک بار استعمال دعوت → ای میل تصدیق → ایک ڈیوائس پر فعال لائسنس۔ دعوتی لنک خریدار کسی اور کو بھیجے تو اسے صرف لنک کی بنیاد پر رسائی نہ ملے؛ ای میل تصدیق لازم ہوگی۔</p>
-</section>
-<section class="card" id="team-remote-approval">
-<h2>🌍 فیلڈ ٹیم → آپ کی ریموٹ منظوری</h2>
-<p>ٹیم کا نمائندہ کسی بھی شہر یا علاقے میں ورکشاپ کا دورہ کرے۔ درخواست مرکزی نجی سرور میں زیرِ التوا رہے۔ آپ کہیں بھی بیٹھ کر اپنے ایڈمن اکاؤنٹ سے اسے دیکھیں، تفصیلات اور ادائیگی کی حیثیت تصدیق کریں اور پھر لائسنس جاری کریں۔</p>
-<div class="grid">
-<div class="card"><h3>📍 فیلڈ نمائندہ</h3><p>اپنے علاقے کی ورکشاپ، رابطہ معلومات، وزٹ نوٹس اور درخواست کی حالت۔ دوسرے نمائندوں کے گاہکوں تک رسائی نہیں۔ لائسنس فعال کرنے کی اجازت نہیں۔</p></div>
-<div class="card"><h3>🔒 مرکزی ایڈمن</h3><p>تمام مجاز زیرِ التوا درخواستیں، تصدیق، مسترد کرنے کا اختیار، ایکٹیویشن کی آڈٹ ہسٹری، اور ایک ڈیوائس کی حد۔</p></div>
-</div>
-<div class="notice"><strong>حقیقی رسائی ابھی غیر فعال:</strong> نہ فیلڈ درخواستیں سرور کو بھیجی جاتی ہیں، نہ ای میل دعوت بھیجی جاتی ہے اور نہ لائسنس فعال ہوتے ہیں۔</div>
-<form aria-label="غیر فعال فیلڈ درخواست کا بصری فارم" onsubmit="return false">
-<fieldset disabled style="border:0;padding:0;margin:0">
-<div class="preview-form">
-<label>ایریا / شہر<input type="text" placeholder="مثال: ریاض — پیش منظر" autocomplete="off"></label>
-<label>ورکشاپ<input type="text" placeholder="ورکشاپ کا نام — پیش منظر" autocomplete="off"></label>
-<label>گاہک کی ای میل<input type="email" placeholder="customer@example.com" autocomplete="off"></label>
-<label>فون نمبر<input type="tel" placeholder="+966XXXXXXXXX" autocomplete="off"></label>
-<label>ٹیم کا ممبر<input type="text" placeholder="ٹیم رکن — پیش منظر" autocomplete="off"></label>
-<label>درخواست کی حالت<input type="text" value="PENDING_OWNER_APPROVAL" readonly></label>
-<label>دستی ادائیگی کی اطلاع<input type="text" value="رقم رپورٹ شدہ، مالک کی تصدیق باقی" readonly></label>
-<label>رسید نمبر<input type="text" placeholder="رسید کی شناخت — پیش منظر" autocomplete="off"></label>
-<button type="submit" disabled>وزٹ درخواست جمع کریں — فی الحال غیر فعال</button>
-<button type="submit" disabled>مالک: لائسنس فعال کریں — فی الحال غیر فعال</button>
-</div>
-</fieldset>
-</form>
-<p>ہر منظوری پر <strong>کس نے، کس درخواست پر، کب اور کیوں</strong> کارروائی کی اس کا نجی آڈٹ ریکارڈ ہوگا۔ فیلڈ نمائندے کی دستی وصولی رپورٹ لائسنس فعال نہیں کرے گی؛ مالک کی الگ رقم تصدیق اور منظوری لازمی ہوگی۔ فعال لائسنس صرف تصدیق شدہ ای میل اور ایک منظور شدہ ڈیوائس کے لیے ہوگا۔</p>
-</section>
-<section class="card" id="legal-readiness">
-<h2>⚖️ سعودی عرب میں آئندہ کمپنی، سبسکرپشن اور قانونی تیاری</h2>
-<p><strong>موجودہ حالت:</strong> یہ تحقیقی/آزمائشی پورٹل ہے؛ نہ فروخت فعال ہے، نہ حقیقی کسٹمر رجسٹریشن، نہ تجارتی پیغامات۔ کاروباری رجسٹریشن، ضرورت کے مطابق سرمایہ کاری کی اجازت، ای کامرس ذمہ داریاں اور ذاتی ڈیٹا تحفظ مکمل ہونے کے بعد ہی باقاعدہ تجارت شروع کی جائے گی۔</p>
-<p>قانونی تقاضے مالک کی شہریت، اقامتی/سرمایہ کاری حیثیت اور سرگرمی کے مطابق مختلف ہوسکتے ہیں۔ انہیں کاروبار شروع کرنے سے پہلے متعلقہ سعودی حکام یا اہل قانونی مشیر سے تصدیق کرایا جائے گا۔ ہر سبسکرپشن کے لیے واضح شرائط، قیمت/ٹیکس، بل یا انوائس، تجدید اور منسوخی/ریفنڈ کا طریقہ شامل ہوگا۔</p>
-<p>کسٹمر فون/ای میل کے لیے واضح پرائیویسی نوٹس، کم سے کم معلومات، صرف مجاز رسائی، ڈیٹا حذف/درست کرنے کے طریقے، اور مارکیٹنگ کے لیے علیحدہ رضامندی اور opt-out رکھنا ضروری ہوگا۔</p>
-<p><a href="https://mc.gov.sa/en/eservices/Pages/ServiceDetails.aspx?sid=99" rel="noopener noreferrer">سعودی وزارت تجارت — کمپنی کے قیام کی معلومات</a> · <a href="https://misa.gov.sa/frequently-asked-questions/" rel="noopener noreferrer">وزارت سرمایہ کاری — غیر ملکی سرمایہ کاروں کے سوالات</a> · <a href="https://dgp.sdaia.gov.sa/" rel="noopener noreferrer">SDAIA — ذاتی ڈیٹا تحفظ</a></p>
-</section>
-<section class="card">
-<h2>کس کا ریکارڈ کون دیکھے گا؟</h2>
-<table><tbody>
-<tr><th>E-ZERO ایڈمن</th><td>مجاز کسٹمر ریکارڈ اور لائسنس انتظام، تصدیق شدہ لاگ اِن کے بعد</td></tr>
-<tr><th>فیلڈ ٹیم نمائندہ</th><td>صرف اپنے علاقے/ذمہ داری کی مجاز درخواستیں؛ نہ لائسنس فعال کرنے کا اختیار نہ تمام گاہکوں کی فہرست</td></tr>
-<tr><th>ورکشاپ خریدار</th><td>صرف اپنا اکاؤنٹ، لائسنس اور سبسکرپشن</td></tr>
-<tr><th>عام ویب وزیٹر</th><td>صرف عوامی تعارف؛ کسی کا نجی ریکارڈ نہیں</td></tr>
-</tbody></table>
-<p><strong>حدود:</strong> OBD/گاڑی رپورٹس اور لائسنس ڈیٹا الگ رہیں گے؛ کسی ECU کو کمانڈ، DTC clear یا گاڑی کا ریموٹ کنٹرول نہیں دیا جائے گا۔</p>
-</section>
-</main>
-<footer>© 2026 E-ZERO · Workshop Pro manual-payment-first preview V0.4 · One active device · No online payment, messaging or personal data collection.</footer>
+<section class="hero"><div class="wrap hero-inner"><div>
+<div class="eyebrow" data-i18n="eyebrow">E-ZERO WORKSHOP PRO / مستقبل کا وژن</div><h1 data-i18n="hero">ورکشاپ ٹیکنالوجی، اعتماد کے ساتھ۔</h1><p data-i18n="lede">ایک مربوط نظام کی تیاری: فیلڈ ٹیم، مرکزی منظوری، کسٹمر لائسنس اور محفوظ ریکارڈ۔ فی الحال یہ صرف تحقیقی اور معلوماتی صفحہ ہے؛ نہ حقیقی رجسٹریشن فعال ہے، نہ فیس، نہ لائسنس ایکٹیویشن۔</p>
+<div class="actions"><a class="btn" href="#overview" data-i18n="explore">منصوبہ دیکھیں</a><a class="btn outline" href="#privacy" data-i18n="privacyAction">رازداری اور تحفظ</a></div>
+<div class="trust"><span data-i18n="signal1">اردو • English • العربية</span><span data-i18n="signal2">ایک لائسنس، ایک فعال ڈیوائس</span><span data-i18n="signal3">شناخت اور ریکارڈ نجی</span></div>
+</div><aside class="dashboard" aria-label="Research preview summary"><div class="dash-top"><span class="dot" aria-hidden="true"></span><span>E-ZERO / PLATFORM OVERVIEW</span></div>
+<div class="dash-status"><small data-i18n="statusOverline">موجودہ حیثیت</small><strong data-i18n="statusTitle">صرف تحقیق اور محفوظ تیاری</strong></div>
+<div class="signal"><div><b>01</b><span data-i18n="signal2">ایک لائسنس، ایک فعال ڈیوائس</span></div><div><b>03</b><span data-i18n="signal1">اردو • English • العربية</span></div></div>
+</aside></div></section>
+<section class="section" id="overview"><div class="wrap"><div class="section-head">
+<span class="kicker" data-i18n="whatEyebrow">منصوبے کا نقشہ</span><h2 data-i18n="whatTitle">ہر ذمہ داری کے لیے واضح راستہ</h2><p data-i18n="whatDesc">مستقبل کے کردار الگ رہیں گے؛ معلومات عوامی، انتظامی کنٹرول مکمل طور پر نجی۔</p>
+</div><div class="feature-grid">
+<article class="feature"><div class="feature-icon" aria-hidden="true">◎</div><h3 data-i18n="roleField">فیلڈ ٹیم</h3><p data-i18n="roleFieldText">مستقبل میں نمائندہ صرف اپنے مجاز علاقے کا وزٹ فارم محفوظ طریقے سے ہیڈ آفس بھیجے گا۔ دوسرے گاہکوں کے ریکارڈ اور مالی امور تک رسائی نہیں ہوگی۔</p></article><article class="feature"><div class="feature-icon" aria-hidden="true">◈</div><h3 data-i18n="roleAdmin">مرکزی ایڈمن</h3><p data-i18n="roleAdminText">صرف مالک یا مجاز ایڈمن، تصدیق شدہ ای میل، مضبوط لاگ اِن اور منظور شدہ ڈیوائس کے بعد درخواست کی جانچ اور لائسنس کی منظوری کرسکے گا۔</p></article><article class="feature"><div class="feature-icon" aria-hidden="true">◉</div><h3 data-i18n="roleCustomer">کسٹمر لائسنس</h3><p data-i18n="roleCustomerText">مستقبل میں تصدیق شدہ کسٹمر صرف اپنا لائسنس دیکھے گا۔ ایک لائسنس ایک وقت میں صرف ایک فعال ڈیوائس؛ محفوظ منتقلی کی سہولت ہوگی۔</p></article><article class="feature"><div class="feature-icon" aria-hidden="true">▣</div><h3 data-i18n="roleSecure">پرائیویٹ ریکارڈ</h3><p data-i18n="roleSecureText">نام، ای میل، فون نمبر، ورکشاپ پتہ، رسید، لائسنس اور حقیقی OBD ثبوت عوامی ویب سائٹ پر ظاہر یا محفوظ نہیں کیے جائیں گے۔</p></article>
+</div></div></section>
+<section class="section soft" id="workflow"><div class="wrap"><div class="section-head">
+<span class="kicker" data-i18n="workflowEyebrow">مستقبل کا ورک فلو</span><h2 data-i18n="workflowTitle">فیلڈ سے ہیڈ آفس تک — منظم اور محفوظ</h2><p data-i18n="workflowDesc">نیچے بتایا گیا طریقہ ایک ڈیزائن ہے، فعال سروس نہیں۔</p>
+</div><ol class="steps"><li class="step"><span class="step-num">01</span><div><h3 data-i18n="step1">مجاز وزٹ</h3><p data-i18n="step1Text">قانونی اجازت اور کسٹمر کی رضامندی کے بعد مجاز نمائندہ ضروری معلومات حاصل کرے گا۔</p></div></li><li class="step"><span class="step-num">02</span><div><h3 data-i18n="step2">نجی درخواست</h3><p data-i18n="step2Text">درخواست صرف محفوظ سرور پر متعلقہ ہیڈ آفس کو جائے گی؛ عوامی فہرست میں نہیں۔</p></div></li><li class="step"><span class="step-num">03</span><div><h3 data-i18n="step3">مالک کی منظوری</h3><p data-i18n="step3Text">مرکزی ایڈمن شناخت، شرائط اور اجازت کی جانچ کرکے درخواست منظور یا مسترد کرے گا۔</p></div></li><li class="step"><span class="step-num">04</span><div><h3 data-i18n="step4">مستقبل کی اطلاع</h3><p data-i18n="step4Text">کامیاب ایکٹیویشن کے بعد، منظور شدہ برانڈڈ SMS Sender ID سے اطلاع بھیجی جا سکے گی۔ ابھی SMS فعال نہیں۔</p></div></li></ol></div></section>
+<section class="section" id="access"><div class="wrap"><div class="section-head"><span class="kicker" data-i18n="statusOverline">موجودہ حیثیت</span><h2 data-i18n="statusTitle">صرف تحقیق اور محفوظ تیاری</h2><p data-i18n="statusText">حقیقی ورکشاپ سروس، فیلڈ آپریشن، رقم وصولی یا گاہک کی ایکٹیویشن ابھی شروع نہیں کی گئی۔ متعلقہ کام/اقامتی اور کاروباری اجازت کی تصدیق کے بعد ہی اگلا مرحلہ فعال ہوگا۔</p></div>
+<div class="access-grid">
+<div class="access" id="field-team"><span class="state" data-i18n="fieldStatus">TEAM LOGIN NOT LIVE</span><h3 data-i18n="fieldTitle">فیلڈ ٹیم کی مجوزہ رسائی</h3><p data-i18n="fieldText">مستقبل میں محفوظ ٹیم اکاؤنٹ سے صرف اپنے علاقے کی درخواستیں بھیجی اور دیکھی جا سکیں گی۔ عام ویب سائٹ پر فارم یا اصلی کسٹمر ڈیٹا موجود نہیں۔</p><div class="note" data-i18n="fieldDetail">ٹیم کو قیمت، منافع، وصولی کی منظوری، لائسنس ایکٹیویشن یا دوسرے نمائندوں کی کسٹمر فہرست تک رسائی نہیں ہوگی۔</div></div>
+<div class="access"><span class="state" data-i18n="adminStatus">ADMIN ACCESS NOT DEPLOYED</span><h3 data-i18n="adminTitle">یہ انتظامی حصہ صرف مالک / مجاز ایڈمن کے لیے ہے</h3><p data-i18n="adminText">مالک کا نجی ڈیش بورڈ اس عوامی صفحے سے الگ ہوگا۔ صرف مالک کی تصدیق شدہ ای میل کافی نہیں؛ اضافی تصدیق اور منظور شدہ ایڈمن ڈیوائس بھی لازمی ہوں گے۔</p><div class="note" data-i18n="adminDetail">کوئی ایڈمن ایکٹیویشن بٹن، خفیہ رابطہ، کسٹمر سرچ یا نجی فارم یہاں دستیاب نہیں۔</div></div>
+</div><p class="subtext" style="margin-top:18px" data-i18n="statusNote">مفت معلومات بھی عملی کام کی قانونی اجازت کا متبادل نہیں۔</p>
+</div></section>
+<section class="section privacy" id="privacy"><div class="wrap privacy-grid"><div class="section-head">
+<span class="kicker" data-i18n="privacyEyebrow">اعتماد اور ذمہ داری</span><h2 data-i18n="privacyTitle">گاہک کی شناخت محفوظ، اختیار محدود</h2><p data-i18n="privacyText">عام وزیٹر کو صرف خدمت کا تعارف دکھایا جائے گا۔ حقیقی کسٹمر ریکارڈ مستقبل میں محفوظ سرور پر صرف متعلقہ مجاز شخص کو ملے گا۔ ہر درخواست پر سرور اجازت چیک کرے گا، صرف بٹن چھپانا سیکیورٹی نہیں۔</p>
+</div><div class="checks"><div class="check"><span aria-hidden="true">✓</span><span data-i18n="privacyOne">عام وزیٹر: کوئی نجی ریکارڈ نہیں</span></div><div class="check"><span aria-hidden="true">✓</span><span data-i18n="privacyTwo">کسٹمر: صرف اپنا ریکارڈ</span></div><div class="check"><span aria-hidden="true">✓</span><span data-i18n="privacyThree">فیلڈ نمائندہ: صرف اپنا مجاز علاقہ</span></div><div class="check"><span aria-hidden="true">✓</span><span data-i18n="privacyFour">مرکزی ایڈمن: ضروری منظوری اور آڈٹ</span></div></div></div></section>
+<section class="section" id="business"><div class="wrap"><div class="business">
+<span class="kicker" data-i18n="businessEyebrow">آئندہ کی تیاری</span><h2 data-i18n="businessTitle">پہلے تحقیق؛ قانونی اجازت کے بعد خدمات</h2><p data-i18n="businessText">تین ماہ کی مفت آزمائش، فی اسکین فیس، تربیت یا ماہانہ سبسکرپشن صرف مستقبل کی تجاویز ہیں۔ اس وقت کوئی فیس، دستی وصولی، فروخت، ٹریننگ چارج یا خودکار تجدید فعال نہیں۔ ہر آئندہ کسٹمر کے لیے الگ تاریخ، واضح شرائط اور ضروری رضامندی رکھی جائے گی۔</p>
+<div class="statusline"><span data-i18n="businessBadge1">NO SALES</span><span data-i18n="businessBadge2">NO PAYMENTS</span><span data-i18n="businessBadge3">NO LIVE LICENSES</span><span data-i18n="businessBadge4">READ-ONLY OBD</span></div>
+</div></div></section>
+<section class="section soft" id="legal"><div class="wrap bottom-grid">
+<div class="bottom-card"><h3 data-i18n="legalTitle">قانونی و پیشہ ورانہ اصول</h3><p data-i18n="legalText">حقیقی فیلڈ ٹریننگ، سافٹ ویئر فروخت، ورکشاپ سکیننگ، ذاتی ڈیٹا جمع کرنے یا فیس لینے سے پہلے متعلقہ سعودی اقامتی/کام کی اجازت، کاروباری اہلیت، پرائیویسی اور ٹیکس کے تقاضے تصدیق ہوں گے۔ مفت پیشکش خودکار قانونی استثنا نہیں ہے۔</p></div>
+<div class="bottom-card"><h3 data-i18n="safetyTitle">گاڑی اور ثبوت کی حفاظت</h3><p data-i18n="safetyText">E-ZERO کا OBD مقصد صرف مجاز read-only ریڈنگ ہے۔ ECU میں لکھنا، DTC صاف کرنا، کوڈنگ یا ایکچویشن نہیں ہوگی۔ فرضی ڈیمو اور اصل REAL_OBD شواہد الگ رہیں گے۔</p></div>
+</div></section>
+</main><footer><div class="wrap"><span data-i18n="footer">E-ZERO · Evidence First Intelligence · تحقیقی پیش منظر، نجی گاہک ڈیٹا اور حقیقی فعال سروس کے بغیر۔</span></div></footer>
 <script>
 (function(){
 "use strict";
-const tabs=Array.from(document.querySelectorAll('[role="tab"]'));
-function activate(tab){
- for(const item of tabs){
-  const yes=item===tab;
-  item.setAttribute("aria-selected",String(yes));
-  item.tabIndex=yes?0:-1;
-  document.getElementById(item.getAttribute("aria-controls")).hidden=!yes;
+const copy={"ur":{"home":"مرکزی ویب سائٹ","tag":"تحقیق و پیش منظر • تجارتی سروس غیر فعال","eyebrow":"E-ZERO WORKSHOP PRO / مستقبل کا وژن","hero":"ورکشاپ ٹیکنالوجی، اعتماد کے ساتھ۔","lede":"ایک مربوط نظام کی تیاری: فیلڈ ٹیم، مرکزی منظوری، کسٹمر لائسنس اور محفوظ ریکارڈ۔ فی الحال یہ صرف تحقیقی اور معلوماتی صفحہ ہے؛ نہ حقیقی رجسٹریشن فعال ہے، نہ فیس، نہ لائسنس ایکٹیویشن۔","explore":"منصوبہ دیکھیں","privacyAction":"رازداری اور تحفظ","signal1":"اردو • English • العربية","signal2":"ایک لائسنس، ایک فعال ڈیوائس","signal3":"شناخت اور ریکارڈ نجی","statusOverline":"موجودہ حیثیت","statusTitle":"صرف تحقیق اور محفوظ تیاری","statusText":"حقیقی ورکشاپ سروس، فیلڈ آپریشن، رقم وصولی یا گاہک کی ایکٹیویشن ابھی شروع نہیں کی گئی۔ متعلقہ کام/اقامتی اور کاروباری اجازت کی تصدیق کے بعد ہی اگلا مرحلہ فعال ہوگا۔","statusNote":"مفت معلومات بھی عملی کام کی قانونی اجازت کا متبادل نہیں۔","whatEyebrow":"منصوبے کا نقشہ","whatTitle":"ہر ذمہ داری کے لیے واضح راستہ","whatDesc":"مستقبل کے کردار الگ رہیں گے؛ معلومات عوامی، انتظامی کنٹرول مکمل طور پر نجی۔","roleField":"فیلڈ ٹیم","roleFieldText":"مستقبل میں نمائندہ صرف اپنے مجاز علاقے کا وزٹ فارم محفوظ طریقے سے ہیڈ آفس بھیجے گا۔ دوسرے گاہکوں کے ریکارڈ اور مالی امور تک رسائی نہیں ہوگی۔","roleAdmin":"مرکزی ایڈمن","roleAdminText":"صرف مالک یا مجاز ایڈمن، تصدیق شدہ ای میل، مضبوط لاگ اِن اور منظور شدہ ڈیوائس کے بعد درخواست کی جانچ اور لائسنس کی منظوری کرسکے گا۔","roleCustomer":"کسٹمر لائسنس","roleCustomerText":"مستقبل میں تصدیق شدہ کسٹمر صرف اپنا لائسنس دیکھے گا۔ ایک لائسنس ایک وقت میں صرف ایک فعال ڈیوائس؛ محفوظ منتقلی کی سہولت ہوگی۔","roleSecure":"پرائیویٹ ریکارڈ","roleSecureText":"نام، ای میل، فون نمبر، ورکشاپ پتہ، رسید، لائسنس اور حقیقی OBD ثبوت عوامی ویب سائٹ پر ظاہر یا محفوظ نہیں کیے جائیں گے۔","workflowEyebrow":"مستقبل کا ورک فلو","workflowTitle":"فیلڈ سے ہیڈ آفس تک — منظم اور محفوظ","workflowDesc":"نیچے بتایا گیا طریقہ ایک ڈیزائن ہے، فعال سروس نہیں۔","step1":"مجاز وزٹ","step1Text":"قانونی اجازت اور کسٹمر کی رضامندی کے بعد مجاز نمائندہ ضروری معلومات حاصل کرے گا۔","step2":"نجی درخواست","step2Text":"درخواست صرف محفوظ سرور پر متعلقہ ہیڈ آفس کو جائے گی؛ عوامی فہرست میں نہیں۔","step3":"مالک کی منظوری","step3Text":"مرکزی ایڈمن شناخت، شرائط اور اجازت کی جانچ کرکے درخواست منظور یا مسترد کرے گا۔","step4":"مستقبل کی اطلاع","step4Text":"کامیاب ایکٹیویشن کے بعد، منظور شدہ برانڈڈ SMS Sender ID سے اطلاع بھیجی جا سکے گی۔ ابھی SMS فعال نہیں۔","fieldTitle":"فیلڈ ٹیم کی مجوزہ رسائی","fieldText":"مستقبل میں محفوظ ٹیم اکاؤنٹ سے صرف اپنے علاقے کی درخواستیں بھیجی اور دیکھی جا سکیں گی۔ عام ویب سائٹ پر فارم یا اصلی کسٹمر ڈیٹا موجود نہیں۔","fieldStatus":"TEAM LOGIN NOT LIVE","fieldDetail":"ٹیم کو قیمت، منافع، وصولی کی منظوری، لائسنس ایکٹیویشن یا دوسرے نمائندوں کی کسٹمر فہرست تک رسائی نہیں ہوگی۔","adminTitle":"یہ انتظامی حصہ صرف مالک / مجاز ایڈمن کے لیے ہے","adminText":"مالک کا نجی ڈیش بورڈ اس عوامی صفحے سے الگ ہوگا۔ صرف مالک کی تصدیق شدہ ای میل کافی نہیں؛ اضافی تصدیق اور منظور شدہ ایڈمن ڈیوائس بھی لازمی ہوں گے۔","adminStatus":"ADMIN ACCESS NOT DEPLOYED","adminDetail":"کوئی ایڈمن ایکٹیویشن بٹن، خفیہ رابطہ، کسٹمر سرچ یا نجی فارم یہاں دستیاب نہیں۔","privacyEyebrow":"اعتماد اور ذمہ داری","privacyTitle":"گاہک کی شناخت محفوظ، اختیار محدود","privacyText":"عام وزیٹر کو صرف خدمت کا تعارف دکھایا جائے گا۔ حقیقی کسٹمر ریکارڈ مستقبل میں محفوظ سرور پر صرف متعلقہ مجاز شخص کو ملے گا۔ ہر درخواست پر سرور اجازت چیک کرے گا، صرف بٹن چھپانا سیکیورٹی نہیں۔","privacyOne":"عام وزیٹر: کوئی نجی ریکارڈ نہیں","privacyTwo":"کسٹمر: صرف اپنا ریکارڈ","privacyThree":"فیلڈ نمائندہ: صرف اپنا مجاز علاقہ","privacyFour":"مرکزی ایڈمن: ضروری منظوری اور آڈٹ","businessEyebrow":"آئندہ کی تیاری","businessTitle":"پہلے تحقیق؛ قانونی اجازت کے بعد خدمات","businessText":"تین ماہ کی مفت آزمائش، فی اسکین فیس، تربیت یا ماہانہ سبسکرپشن صرف مستقبل کی تجاویز ہیں۔ اس وقت کوئی فیس، دستی وصولی، فروخت، ٹریننگ چارج یا خودکار تجدید فعال نہیں۔ ہر آئندہ کسٹمر کے لیے الگ تاریخ، واضح شرائط اور ضروری رضامندی رکھی جائے گی۔","businessBadge1":"NO SALES","businessBadge2":"NO PAYMENTS","businessBadge3":"NO LIVE LICENSES","businessBadge4":"READ-ONLY OBD","legalTitle":"قانونی و پیشہ ورانہ اصول","legalText":"حقیقی فیلڈ ٹریننگ، سافٹ ویئر فروخت، ورکشاپ سکیننگ، ذاتی ڈیٹا جمع کرنے یا فیس لینے سے پہلے متعلقہ سعودی اقامتی/کام کی اجازت، کاروباری اہلیت، پرائیویسی اور ٹیکس کے تقاضے تصدیق ہوں گے۔ مفت پیشکش خودکار قانونی استثنا نہیں ہے۔","safetyTitle":"گاڑی اور ثبوت کی حفاظت","safetyText":"E-ZERO کا OBD مقصد صرف مجاز read-only ریڈنگ ہے۔ ECU میں لکھنا، DTC صاف کرنا، کوڈنگ یا ایکچویشن نہیں ہوگی۔ فرضی ڈیمو اور اصل REAL_OBD شواہد الگ رہیں گے۔","footer":"E-ZERO · Evidence First Intelligence · تحقیقی پیش منظر، نجی گاہک ڈیٹا اور حقیقی فعال سروس کے بغیر۔","languageLabel":"زبان منتخب کریں","pageTitle":"E-ZERO Workshop Pro | محفوظ ورکشاپ مستقبل"},"en":{"home":"Main website","tag":"Research preview • Commercial service inactive","eyebrow":"E-ZERO WORKSHOP PRO / THE ROAD AHEAD","hero":"Workshop technology, built on trust.","lede":"Preparing one connected platform for field teams, central approvals, customer licensing and private records. This page is informational only: no customer registration, fees, or live license activation.","explore":"Explore the roadmap","privacyAction":"Privacy & safeguards","signal1":"Urdu • English • Arabic","signal2":"One license, one active device","signal3":"Private identities and records","statusOverline":"CURRENT STATUS","statusTitle":"Research and secure preparation only","statusText":"No real workshop service, field operations, payments or customer activations have started. Future services require verification of applicable residence/work authorization and business permissions.","statusNote":"Offering free information does not authorize otherwise restricted hands-on work.","whatEyebrow":"THE PLATFORM","whatTitle":"A clear path for every role","whatDesc":"Different responsibilities stay separate: public information, private administration.","roleField":"Field team","roleFieldText":"In the future, representatives will securely submit visit forms for their assigned areas to head office. They will not access other customers' records or financial operations.","roleAdmin":"Central administration","roleAdminText":"Only the owner or an authorized administrator, with verified identity, strong authentication and an approved device, can review applications or approve licenses.","roleCustomer":"Customer licensing","roleCustomerText":"Verified customers will see only their own license. One license permits one active device at a time, with a secure transfer option.","roleSecure":"Private records","roleSecureText":"Names, emails, phone numbers, workshop addresses, receipts, licenses and real OBD evidence will not be displayed or stored on the public website.","workflowEyebrow":"PLANNED WORKFLOW","workflowTitle":"From field visit to head office","workflowDesc":"The process below is a concept, not an active service.","step1":"Authorized visit","step1Text":"After legal authorization and customer consent, an approved representative gathers only necessary information.","step2":"Private request","step2Text":"The request reaches head office through a secure server, never a public directory.","step3":"Owner approval","step3Text":"Central administration validates identity, terms and permissions before approving or declining.","step4":"Future notification","step4Text":"After successful activation, an approved branded SMS Sender ID could send confirmation. SMS is not enabled.","fieldTitle":"Planned field-team access","fieldText":"Future secure team accounts will access only assigned-area requests. There is no live application form or real customer information on this website.","fieldStatus":"TEAM LOGIN NOT LIVE","fieldDetail":"Field staff will not access prices, margins, payment verification, license activation or other agents' customer lists.","adminTitle":"This administrative area is for the owner / authorized admin only","adminText":"The private owner dashboard will be separate from this public page. A verified owner email is not enough: strong additional authentication and an enrolled admin device will be required.","adminStatus":"ADMIN ACCESS NOT DEPLOYED","adminDetail":"No admin activation button, secret contact information, customer search or private form is exposed here.","privacyEyebrow":"TRUST & ACCOUNTABILITY","privacyTitle":"Private identities. Carefully scoped access.","privacyText":"Public visitors see only service information. A secure server will release future customer records only to authorized people, checking permissions for every request. Hiding a button alone is not security.","privacyOne":"Visitors: no private records","privacyTwo":"Customers: their own account only","privacyThree":"Field team: assigned area only","privacyFour":"Owner/admin: audited approvals","businessEyebrow":"FUTURE OPTIONS","businessTitle":"Research first. Services only after legal authorization.","businessText":"A three-month free trial, pay-per-scan, training or subscriptions are future options only. No fees, cash collection, sales, training charges or automatic renewals are active. Future terms will require clear dates and appropriate customer agreement.","businessBadge1":"NO SALES","businessBadge2":"NO PAYMENTS","businessBadge3":"NO LIVE LICENSES","businessBadge4":"READ-ONLY OBD","legalTitle":"Legal and professional boundaries","legalText":"Before hands-on field training, software sales, workshop scans, personal-data collection or paid services, applicable Saudi residence/work permissions, business eligibility, privacy and tax requirements must be verified. Free service is not an automatic legal exemption.","safetyTitle":"Vehicle and evidence safety","safetyText":"E-ZERO vehicle features are intended for authorized read-only OBD. No ECU writes, DTC clearing, coding or actuation. Simulated demonstrations remain clearly separate from real REAL_OBD evidence.","footer":"E-ZERO · Evidence First Intelligence · Research preview only; no public customer records or live services.","languageLabel":"Choose language","pageTitle":"E-ZERO Workshop Pro | Secure workshop future"},"ar":{"home":"الموقع الرئيسي","tag":"معاينة بحثية • الخدمات التجارية غير مفعّلة","eyebrow":"E-ZERO WORKSHOP PRO / رؤيتنا المستقبلية","hero":"تقنية الورش، مبنية على الثقة.","lede":"نطوّر تصوراً لمنصة متكاملة تشمل الفريق الميداني والموافقات المركزية وتراخيص العملاء والسجلات الخاصة. هذه صفحة تعريفية فقط، ولا تتوفر حالياً تسجيلات فعلية أو رسوم أو تفعيل تراخيص.","explore":"استعرض خطة العمل","privacyAction":"الخصوصية والحماية","signal1":"الأردية • English • العربية","signal2":"ترخيص واحد، جهاز نشط واحد","signal3":"هويات وسجلات خاصة","statusOverline":"الحالة الحالية","statusTitle":"بحث وتطوير آمن فقط","statusText":"لم تبدأ أي خدمة فعلية للورش أو عمليات ميدانية أو تحصيل رسوم أو تفعيل تراخيص للعملاء. تتطلب الخدمات المستقبلية التحقق من تصاريح الإقامة والعمل والتراخيص التجارية المعمول بها.","statusNote":"تقديم معلومات مجانية لا يغني عن التصريح القانوني للأعمال الميدانية.","whatEyebrow":"المنصة","whatTitle":"مسار واضح لكل مسؤولية","whatDesc":"نفصل بين أدوار المستخدمين؛ المعلومات عامة، والإدارة خاصة ومحمية.","roleField":"الفريق الميداني","roleFieldText":"مستقبلاً، سيرسل المندوب نماذج زيارات منطقته المصرّح بها بأمان إلى المكتب الرئيسي، دون الاطلاع على سجلات العملاء الآخرين أو المعلومات المالية.","roleAdmin":"الإدارة المركزية","roleAdminText":"فقط المالك أو المسؤول المعتمد، بعد التحقق من الهوية والمصادقة القوية والجهاز المعتمد، يمكنه مراجعة الطلبات أو الموافقة على التراخيص.","roleCustomer":"ترخيص العميل","roleCustomerText":"سيطّلع العميل المعتمد على ترخيصه فقط. يُسمح بجهاز نشط واحد لكل ترخيص، مع خيار النقل الآمن.","roleSecure":"السجلات الخاصة","roleSecureText":"لن تُعرض أو تُخزّن على الموقع العام أسماء العملاء أو بريدهم أو هواتفهم أو عناوين الورش أو الإيصالات أو التراخيص أو أدلة OBD الحقيقية.","workflowEyebrow":"سير العمل المقترح","workflowTitle":"من الزيارة الميدانية إلى المكتب الرئيسي","workflowDesc":"الخطوات أدناه تصور مستقبلي وليست خدمة نشطة.","step1":"زيارة مصرح بها","step1Text":"بعد الحصول على التصاريح اللازمة وموافقة العميل، يجمع المندوب المعتمد البيانات الضرورية فقط.","step2":"طلب خاص","step2Text":"يُرسل الطلب إلى المكتب الرئيسي عبر خادم آمن، وليس ضمن قائمة عامة.","step3":"موافقة المالك","step3Text":"تتحقق الإدارة من الهوية والشروط والصلاحيات قبل القبول أو الرفض.","step4":"إشعار مستقبلي","step4Text":"بعد التفعيل الناجح، يمكن إرسال تأكيد برسالة SMS باسم مرسل معتمد للعلامة التجارية. الرسائل غير مفعّلة حالياً.","fieldTitle":"دخول الفريق الميداني المخطط","fieldText":"ستتيح الحسابات الآمنة مستقبلاً عرض طلبات المنطقة المخصصة فقط. لا يوجد حالياً نموذج فعّال أو بيانات عملاء حقيقية على هذه الصفحة.","fieldStatus":"دخول الفريق غير مفعّل","fieldDetail":"لن يتمكن المندوب من عرض الأسعار أو الأرباح أو توثيق المدفوعات أو تفعيل التراخيص أو قوائم عملاء المندوبين الآخرين.","adminTitle":"هذا القسم الإداري للمالك أو المسؤول المعتمد فقط","adminText":"ستكون لوحة تحكم المالك الخاصة منفصلة عن هذه الصفحة. البريد الإلكتروني المؤكد وحده لا يكفي؛ ستلزم مصادقة إضافية قوية وجهاز إداري معتمد.","adminStatus":"الإدارة الخاصة غير منشورة","adminDetail":"لا يظهر هنا زر تفعيل إداري أو معلومات اتصال سرية أو بحث عن العملاء أو نموذج خاص.","privacyEyebrow":"الثقة والمسؤولية","privacyTitle":"خصوصية الهوية وصلاحيات محددة","privacyText":"يشاهد الزائر معلومات عامة فقط. سيتيح الخادم الآمن سجلات العملاء مستقبلاً للأشخاص المخوّلين وحدهم، مع فحص الصلاحيات في كل طلب؛ إخفاء زر لا يكفي للحماية.","privacyOne":"الزائر: دون سجلات خاصة","privacyTwo":"العميل: حسابه فقط","privacyThree":"الفريق الميداني: منطقته فقط","privacyFour":"الإدارة: موافقات موثقة","businessEyebrow":"الخيارات المستقبلية","businessTitle":"البحث أولاً، والخدمات بعد التصاريح القانونية","businessText":"التجربة المجانية لثلاثة أشهر أو الدفع لكل فحص أو التدريب أو الاشتراك خيارات مستقبلية فقط. لا توجد حالياً رسوم أو تحصيل نقدي أو مبيعات أو تدريب مدفوع أو تجديد تلقائي. تتطلب الشروط المستقبلية تواريخ واضحة وموافقة مناسبة من العميل.","businessBadge1":"لا مبيعات","businessBadge2":"لا مدفوعات","businessBadge3":"لا تراخيص فعّالة","businessBadge4":"OBD للقراءة فقط","legalTitle":"الضوابط القانونية والمهنية","legalText":"قبل التدريب الميداني أو بيع البرامج أو فحص المركبات أو جمع البيانات الشخصية أو تقاضي الرسوم، يجب التحقق من تصاريح الإقامة والعمل والأهلية التجارية ومتطلبات الخصوصية والضرائب في السعودية. الخدمة المجانية ليست إعفاءً قانونياً تلقائياً.","safetyTitle":"سلامة المركبات والأدلة","safetyText":"تهدف ميزات E-ZERO إلى قراءة OBD المصرّح بها فقط، دون كتابة إلى ECU أو مسح رموز الأعطال أو برمجة أو تشغيل المشغلات. تبقى النماذج المحاكاة منفصلة بوضوح عن أدلة REAL_OBD الحقيقية.","footer":"E-ZERO · Evidence First Intelligence · معاينة بحثية فقط؛ دون سجلات عملاء عامة أو خدمات مفعّلة.","languageLabel":"اختر اللغة","pageTitle":"E-ZERO Workshop Pro | مستقبل الورش الآمن"}};
+const root=document.documentElement;
+const buttons=[...document.querySelectorAll("[data-lang]")];
+function setLanguage(lang){
+ if(!Object.prototype.hasOwnProperty.call(copy,lang))return;
+ const words=copy[lang];
+ root.lang=lang;
+ root.dir=lang==="en"?"ltr":"rtl";
+ for(const node of document.querySelectorAll("[data-i18n]")){
+  const key=node.getAttribute("data-i18n");
+  if(Object.prototype.hasOwnProperty.call(words,key))node.textContent=words[key];
  }
+ document.title=words.pageTitle;
+ for(const button of buttons)button.setAttribute("aria-pressed",String(button.dataset.lang===lang));
 }
-tabs.forEach((tab,i)=>{
- tab.addEventListener("click",()=>activate(tab));
- tab.addEventListener("keydown",e=>{
-  if(!["ArrowLeft","ArrowRight","Home","End"].includes(e.key))return;
-  e.preventDefault();
-  let next=e.key==="Home"?0:e.key==="End"?tabs.length-1:(i+(e.key==="ArrowLeft"?1:-1)+tabs.length)%tabs.length;
-  activate(tabs[next]);tabs[next].focus();
- });
-});
+for(const button of buttons)button.addEventListener("click",()=>setLanguage(button.dataset.lang));
 })();
 </script>
-</body>
-</html>
+</body></html>
