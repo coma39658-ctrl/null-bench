@@ -73,7 +73,7 @@ footer{font-size:.85rem;color:var(--muted)}
 <div class="grid">
 <article class="card"><h3>👥 فیلڈ ٹیم اور کسٹمر رجسٹریشن</h3><p>ٹیم کا نمائندہ کسی علاقے میں ورکشاپ سے درخواست لے گا۔ گاہک کی ای میل، فون نمبر اور رضامندی صرف محفوظ بیک اینڈ تیار ہونے کے بعد درج ہوں گے۔</p></article>
 <article class="card"><h3>🔑 لائسنس اور ڈیوائس</h3><p>ہر خریداری کا الگ لائسنس؛ ایک وقت میں ایک فعال ڈیوائس۔ گاہک ای میل کی دوبارہ تصدیق سے خود، یا مالک کی منظوری سے ڈیوائس تبدیل کرسکے گا۔</p></article>
-<article class="card"><h3>📅 سبسکرپشن</h3><p>شروع ہونے کی تاریخ، میعاد، تجدید اور ادائیگی کی تصدیق۔ بغیر ادائیگی کے خودکار فعال ہونے کا دعویٰ نہیں۔</p></article>
+<article class="card"><h3>📅 دستی ادائیگی اور مستقبل کی سبسکرپشن</h3><p>فی الحال رقم نقد یا دستی طور پر وصول کرنے کا منصوبہ ہے؛ ٹیم رسید کی اطلاع دے سکتی ہے، لیکن صرف مالک رقم کی تصدیق اور لائسنس کی منظوری دے گا۔ ڈیجیٹل ادائیگی بعد میں۔</p></article>
 <article class="card"><h3>🔒 پرائیویٹ ریکارڈ اور اطلاع</h3><p>صرف مجاز ایڈمن کے لیے کسٹمر ریکارڈ؛ اجازت یافتہ صارفین کو الگ رضامندی کے مطابق اطلاع۔</p></article>
 </div>
 </section>
@@ -101,7 +101,12 @@ footer{font-size:.85rem;color:var(--muted)}
 <p>یہاں کوئی حقیقی ڈیوائس یا سیشن تبدیل نہیں ہوتا۔ مستقبل میں سرور پر منتقلی ایک مکمل ٹرانزیکشن میں ہوگی؛ نئی ڈیوائس/تصدیق ناکام ہو تو پرانی فعال رہے گی۔ آف لائن پرانی ڈیوائس کو فوری روکنے کی ضمانت نہیں، اس لیے آف لائن اجازت محدود مدت کی ہوگی۔</p>
 </div>
 <div class="panel" id="p-subscription" role="tabpanel" aria-labelledby="t-subscription" hidden>
-<h3>پلان، سبسکرپشن اور تجدید — مستقبل کا محفوظ انتظام</h3>
+<h3>دستی وصولی، پلان اور مستقبل کی تجدید</h3>
+<div class="notice"><strong>ابھی صرف Manual Payment کی منصوبہ بندی:</strong> رقم براہِ راست/دستی وصول ہوگی؛ ویب سائٹ پر نہ آن لائن ادائیگی، نہ کارڈ، نہ ادائیگی کا لنک، نہ خودکار کٹوتی فعال ہے۔ <strong>فی الحال یہ صفحہ کسی قسم کی رقم بھی وصول نہیں کرتا۔</strong></div>
+<div class="grid">
+<div class="card"><h3>🧾 ٹیم کی وصولی رپورٹ</h3><p>ورکشاپ، مقررہ رقم، تاریخ، ادائیگی کا طریقہ اور منفرد رسید نمبر درج کیے جائیں گے۔ یہ ریکارڈ پہلے <strong>Reported / غیر تصدیق شدہ</strong> ہوگا۔</p></div>
+<div class="card"><h3>🔐 مالک کی منظوری</h3><p>آپ اصل رقم وصول ہونے اور گاہک کی تصدیق کے بعد اپنی محفوظ ایڈمن رسائی سے <strong>Verified</strong> کریں گے؛ پھر علیحدہ منظوری سے ایک ڈیوائس کا لائسنس جاری ہوگا۔</p></div>
+</div>
 <p>ورکشاپ کے لیے ایک مرتبہ خریداری اور بعد میں اختیاری ماہانہ/سالانہ سبسکرپشن الگ طریقے سے رکھی جائیں گی۔ پرانے خریدار کے طے شدہ حقوق اور قیمت کو اطلاع و مطلوبہ رضامندی کے بغیر تبدیل نہیں کیا جائے گا۔</p>
 <div class="grid">
 <div class="card"><h3>🧾 ایک بار خریداری</h3><p>499 سعودی ریال صرف زیرِ غور ابتدائی قیمت ہے، حتمی آفر نہیں۔ جو سروس اور اپ ڈیٹس شامل ہوں وہ تحریری شرائط میں واضح ہوں گی۔</p></div>
@@ -166,12 +171,14 @@ footer{font-size:.85rem;color:var(--muted)}
 <label>فون نمبر<input type="tel" placeholder="+966XXXXXXXXX" autocomplete="off"></label>
 <label>ٹیم کا ممبر<input type="text" placeholder="ٹیم رکن — پیش منظر" autocomplete="off"></label>
 <label>درخواست کی حالت<input type="text" value="PENDING_OWNER_APPROVAL" readonly></label>
+<label>دستی ادائیگی کی اطلاع<input type="text" value="رقم رپورٹ شدہ، مالک کی تصدیق باقی" readonly></label>
+<label>رسید نمبر<input type="text" placeholder="رسید کی شناخت — پیش منظر" autocomplete="off"></label>
 <button type="submit" disabled>وزٹ درخواست جمع کریں — فی الحال غیر فعال</button>
 <button type="submit" disabled>مالک: لائسنس فعال کریں — فی الحال غیر فعال</button>
 </div>
 </fieldset>
 </form>
-<p>ہر منظوری پر <strong>کس نے، کس درخواست پر، کب اور کیوں</strong> کارروائی کی اس کا نجی آڈٹ ریکارڈ ہوگا۔ فعال لائسنس صرف تصدیق شدہ ای میل اور ایک منظور شدہ ڈیوائس کے لیے ہوگا۔</p>
+<p>ہر منظوری پر <strong>کس نے، کس درخواست پر، کب اور کیوں</strong> کارروائی کی اس کا نجی آڈٹ ریکارڈ ہوگا۔ فیلڈ نمائندے کی دستی وصولی رپورٹ لائسنس فعال نہیں کرے گی؛ مالک کی الگ رقم تصدیق اور منظوری لازمی ہوگی۔ فعال لائسنس صرف تصدیق شدہ ای میل اور ایک منظور شدہ ڈیوائس کے لیے ہوگا۔</p>
 </section>
 <section class="card" id="legal-readiness">
 <h2>⚖️ سعودی عرب میں آئندہ کمپنی، سبسکرپشن اور قانونی تیاری</h2>
@@ -191,7 +198,7 @@ footer{font-size:.85rem;color:var(--muted)}
 <p><strong>حدود:</strong> OBD/گاڑی رپورٹس اور لائسنس ڈیٹا الگ رہیں گے؛ کسی ECU کو کمانڈ، DTC clear یا گاڑی کا ریموٹ کنٹرول نہیں دیا جائے گا۔</p>
 </section>
 </main>
-<footer>© 2026 E-ZERO · Workshop Pro subscription-ready public preview V0.3 · One active device · No payment, messaging or personal data collection.</footer>
+<footer>© 2026 E-ZERO · Workshop Pro manual-payment-first preview V0.4 · One active device · No online payment, messaging or personal data collection.</footer>
 <script>
 (function(){
 "use strict";
