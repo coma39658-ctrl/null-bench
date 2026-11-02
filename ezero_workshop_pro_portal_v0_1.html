@@ -18,6 +18,13 @@ a{color:var(--accent)}.back{display:inline-block;padding:9px 14px;border:1px sol
 .hero p{max-width:720px;margin:8px 0}
 .tag{display:inline-block;font-size:.8rem;padding:2px 12px;border:1px solid #96c3d2;border-radius:20px;background:#d8eff4;color:#154356;font-weight:800}
 .hero .tag{border:1px solid #d3f0f6;background:#fff}
+.hero-action{display:inline-block;margin-top:14px;padding:12px 16px;border-radius:11px;background:#fff;color:#143e54;font-weight:800;text-decoration:none}
+.hero-action:focus-visible{outline:3px solid #f4d578;outline-offset:3px}
+.preview-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+.preview-form label{display:block;font-weight:700;font-size:.95rem}
+.preview-form input{display:block;width:100%;margin-top:5px;padding:12px;border:1px solid #b6cbd4;border-radius:9px;background:#f4f6f7;color:#455f6d;font:inherit}
+.preview-form button{padding:12px;border-radius:9px;border:0;background:#a2b2b8;color:#243c46;font:inherit;font-weight:800}
+@media(max-width:650px){.preview-form{grid-template-columns:1fr}}
 section{margin:19px 0}
 .notice{padding:18px 20px;border:1px solid #a9ccd8;border-right:5px solid var(--accent);background:var(--soft);border-radius:13px}
 .notice p{margin:8px 0}
@@ -54,6 +61,7 @@ footer{font-size:.85rem;color:var(--muted)}
 <span class="tag">SAFE PREVIEW • NOT LIVE REGISTRATION</span>
 <h1>ایک ہی جگہ: گاہک، لائسنس، سبسکرپشن اور ریکارڈ</h1>
 <p>مرکزی E-ZERO ویب سائٹ سے ایک بٹن کے ذریعے اس پورٹل تک رسائی۔ یہ محفوظ ابتدائی ڈیزائن ہے؛ حقیقی اکاؤنٹس، ادائیگیاں اور ذاتی ڈیٹا محفوظ کرنے کی سہولت ابھی فعال نہیں کی گئی۔</p>
+<a class="hero-action" href="#grant-access">🔑 گاہک کو رسائی دیں — ایڈمن فارم کا پیش منظر</a>
 </section>
 <section class="notice" aria-label="ڈیٹا تحفظ">
 <h2>اصل گاہک کا ڈیٹا ابھی درج نہ کریں</h2>
@@ -64,7 +72,7 @@ footer{font-size:.85rem;color:var(--muted)}
 <h2>Workshop Pro میں کیا ہوگا؟</h2>
 <div class="grid">
 <article class="card"><h3>👥 کسٹمر رجسٹریشن</h3><p>ورکشاپ کا نام، نام، تصدیق شدہ ای میل اور فون نمبر۔ تشہیری پیغامات کی رضامندی الگ محفوظ ہوگی۔</p></article>
-<article class="card"><h3>🔑 لائسنس اور ڈیوائس</h3><p>ہر خریداری کا الگ لائسنس، مجاز ڈیوائس کی تصدیق اور فون تبدیل کرنے کا محفوظ طریقہ۔</p></article>
+<article class="card"><h3>🔑 لائسنس اور ڈیوائس</h3><p>ہر خریداری کا الگ لائسنس؛ ایک وقت میں صرف ایک فعال ڈیوائس۔ فون تبدیل کرنے پر پرانی ڈیوائس کی رسائی بند کرکے محفوظ منتقلی۔</p></article>
 <article class="card"><h3>📅 سبسکرپشن</h3><p>شروع ہونے کی تاریخ، میعاد، تجدید اور ادائیگی کی تصدیق۔ بغیر ادائیگی کے خودکار فعال ہونے کا دعویٰ نہیں۔</p></article>
 <article class="card"><h3>🔒 پرائیویٹ ریکارڈ اور اطلاع</h3><p>صرف مجاز ایڈمن کے لیے کسٹمر ریکارڈ؛ اجازت یافتہ صارفین کو الگ رضامندی کے مطابق اطلاع۔</p></article>
 </div>
@@ -83,7 +91,7 @@ footer{font-size:.85rem;color:var(--muted)}
 <div class="fields"><span>کسٹمر نام</span><span>ورکشاپ کا نام</span><span>تصدیق شدہ ای میل</span><span>فون نمبر</span><span>تصدیق کی حالت</span></div>
 </div>
 <div class="panel" id="p-license" role="tabpanel" aria-labelledby="t-license" hidden>
-<h3>لائسنس کی حالت</h3><p>الگ لائسنس شناخت، مجاز ڈیوائس، فعال/غیر فعال حالت، اور مالک کی تصدیق کے بعد محفوظ منتقلی۔ اصل ایکٹیویشن فیصلے سرور کرے گا۔</p>
+<h3>لائسنس کی حالت</h3><p>ای میل سے صارف کی تصدیق ہوگی، مگر ہر لائسنس ایک وقت میں صرف ایک فعال ڈیوائس کے لیے ہوگا۔ فون تبدیل کرنے پر پرانا سیشن/ڈیوائس منسوخ کرکے نئی ڈیوائس فعال کی جائے گی۔ اصل ایکٹیویشن فیصلے سرور کرے گا۔</p>
 </div>
 <div class="panel" id="p-subscription" role="tabpanel" aria-labelledby="t-subscription" hidden>
 <h3>سبسکرپشن</h3><p>تجویز کردہ قیمت: 499 SAR (حتمی قیمت/شرائط ابھی منظور نہیں)۔ تاریخ، مدت، تجدید، اور ادائیگی کی تصدیق کے بعد فعال حیثیت۔</p>
@@ -95,6 +103,25 @@ footer{font-size:.85rem;color:var(--muted)}
 <div class="panel" id="p-messages" role="tabpanel" aria-labelledby="t-messages" hidden>
 <h3>SMS / WhatsApp اطلاعات</h3><p>سبسکرپشن تجدید اور فعال ہونے کی الگ اطلاع؛ تشہیری پیغامات صرف واضح opt-in اور ان سبسکرائب اختیار کے ساتھ، منظور شدہ میسجنگ فراہم کنندہ کے ذریعے۔ ابھی کوئی پیغام نہیں بھیجا جاسکتا۔</p>
 </div>
+</section>
+<section class="card" id="grant-access">
+<h2>🔑 ایڈمن: گاہک کو رسائی دیں</h2>
+<p>آپ ایڈمن اکاؤنٹ سے گاہک کی ورکشاپ، نام، تصدیق شدہ ای میل اور فون نمبر درج کریں گے۔ محفوظ ای میل دعوت موصول ہونے اور ای میل کی تصدیق کے بعد گاہک کو اپنے لائسنس تک رسائی ملے گی۔ <strong>ایک لائسنس پر ایک فعال ڈیوائس</strong> ہوگی۔</p>
+<div class="notice" role="note"><strong>صرف فارم کا پیش منظر — حقیقی رجسٹریشن بند ہے۔</strong> سرور، ایڈمن لاگ اِن اور ای میل تصدیق تیار نہ ہونے کی وجہ سے نیچے کے خانوں میں کوئی اصل معلومات درج نہیں کی جاسکتیں اور رسائی جاری نہیں ہوگی۔</div>
+<form aria-label="غیر فعال ایڈمن رسائی فارم کا پیش منظر" onsubmit="return false">
+<fieldset disabled style="border:0;padding:0;margin:0">
+<div class="preview-form">
+<label>گاہک کا نام<input type="text" autocomplete="off" placeholder="کسٹمر کا نام — پیش منظر"></label>
+<label>ورکشاپ کا نام<input type="text" autocomplete="off" placeholder="ورکشاپ کا نام — پیش منظر"></label>
+<label>گاہک کی ای میل<input type="email" autocomplete="off" placeholder="customer@example.com"></label>
+<label>فون نمبر<input type="tel" autocomplete="off" placeholder="+966XXXXXXXXX"></label>
+<label>لائسنس کی حیثیت<input type="text" value="ایڈمن منظوری اور ای میل تصدیق درکار" readonly></label>
+<label>ڈیوائس کی حد<input type="text" value="1 فعال ڈیوائس" readonly></label>
+<button type="submit" disabled>ای میل دعوت بھیجیں — ابھی فعال نہیں</button>
+</div>
+</fieldset>
+</form>
+<p><strong>مستقبل کا محفوظ طریقہ:</strong> ایڈمن لاگ اِن → کسٹمر فارم → سرور پر محفوظ ریکارڈ → مختصر مدت کی یک بار استعمال دعوت → ای میل تصدیق → ایک ڈیوائس پر فعال لائسنس۔ دعوتی لنک خریدار کسی اور کو بھیجے تو اسے صرف لنک کی بنیاد پر رسائی نہ ملے؛ ای میل تصدیق لازم ہوگی۔</p>
 </section>
 <section class="card">
 <h2>کس کا ریکارڈ کون دیکھے گا؟</h2>
