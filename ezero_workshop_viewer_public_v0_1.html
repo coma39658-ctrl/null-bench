@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="E-ZERO Workshop Browser Catalog: verified read-only local saved report viewer milestone, test scope, safety boundaries and public preview.">
+<meta name="color-scheme" content="light">
+<title>E-ZERO | ورکشاپ رپورٹ ویور — عوامی پیش رفت</title>
+<style>
+:root{--bg:#f2f7fa;--ink:#193548;--muted:#4e6575;--line:#cbdce5;--blue:#0b6d86;--paper:#fff;--light:#e8f3f7}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 system-ui,"Noto Naskh Arabic",sans-serif}
+main,header,footer{max-width:940px;margin:auto;padding:20px}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{font-size:1.3rem;font-weight:900;letter-spacing:.04em}
+a{color:var(--blue)}
+nav a{display:inline-block;padding:7px 11px}
+h1{font-size:clamp(1.8rem,5.5vw,2.7rem);line-height:1.4;margin:0 0 14px}
+h2{font-size:1.3rem;margin:0 0 10px}
+h3{font-size:1.05rem;margin:0 0 8px}
+.hero{padding:26px;border-radius:18px;background:var(--paper);border:1px solid var(--line)}
+.kicker{font-size:.84rem;color:var(--blue);font-weight:700;letter-spacing:.04em}
+.lede{color:var(--muted);max-width:780px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:18px 0}
+.card{padding:18px;background:var(--paper);border:1px solid var(--line);border-radius:14px;min-width:0}
+.number{font-size:1.9rem;line-height:1.2;font-weight:800;direction:ltr;unicode-bidi:isolate}
+small,.muted{color:var(--muted)}
+.notice{border-right:4px solid var(--blue);background:var(--light);padding:14px 18px;border-radius:10px;margin:20px 0}
+.tag{display:inline-block;padding:3px 9px;background:var(--light);border-radius:99px;font-size:.8rem;font-weight:bold}
+label{display:block;margin:12px 0 5px;font-weight:700}
+select,button{font:inherit;min-height:48px;padding:10px 12px;border-radius:10px;border:1px solid #7c99a9}
+select{width:100%;max-width:500px;background:white;color:var(--ink)}
+button{background:var(--blue);color:#fff;font-weight:700;cursor:pointer;margin-top:12px}
+button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #0888ba;outline-offset:2px}
+.value{font-size:1.5rem;font-weight:800}
+.technical{direction:ltr;unicode-bidi:plaintext;overflow-wrap:anywhere;font-size:.85rem;color:var(--muted)}
+footer{border-top:1px solid var(--line);font-size:.92rem;color:var(--muted);margin-top:20px}
+@media(max-width:640px){header,main,footer{padding:13px}.hero{padding:18px}.grid{grid-template-columns:minmax(0,1fr)}.card{padding:14px}}
+</style>
+</head>
+<body>
+<header>
+ <div class="brand">E-ZERO <small>— Workshop Viewer</small></div>
+ <nav><a href="./index.html#vehicle-obd">E-ZERO Vehicle / OBD</a><a href="./index.html">مرکزی ویب سائٹ</a></nav>
+</header>
+<main>
+ <section class="hero">
+  <p class="kicker">PUBLIC PROJECT RECORD • 2 NOVEMBER 2026</p>
+  <h1>E-ZERO ورکشاپ رپورٹ ویور</h1>
+  <p class="lede">اینڈرائیڈ / Termux پر پہلے سے محفوظ، تصدیق شدہ OBD رپورٹس کے لیے ایک مقامی، read-only ویور تیار اور آزمودہ ہے۔ یہ صفحہ عوام کو مکمل شدہ مرحلے، اس کی حدود اور ایک الگ غیر حقیقی ڈیمو سے متعارف کراتا ہے۔</p>
+  <span class="tag">LOCAL VIEWER TESTED — PUBLIC INFORMATION PAGE</span>
+ </section>
+
+ <div class="grid" aria-label="تصدیق شدہ پراجیکٹ پیش رفت">
+  <section class="card"><div class="number">97 / 97</div><h2>سافٹ ویئر ٹیسٹ کامیاب</h2><p class="muted">مقامی Browser Catalog، موبائل ویور اور متعلقہ سیکیورٹی/انٹیگریشن ٹیسٹ۔ یہ فزیکل گاڑی کی صحت کی آزاد تصدیق نہیں۔</p></section>
+  <section class="card"><div class="number">4</div><h2>محفوظ REAL_OBD رپورٹس</h2><p class="muted">مالک کے مقامی ماحول میں integrity verified؛ اصل رپورٹس عوامی ویب سائٹ پر اپ لوڈ نہیں کی گئیں۔</p></section>
+  <section class="card"><h2>اردو میں رپورٹس</h2><p>تاریخ کے آسان اردو نام، واضح سینسر ریڈنگ، اور <span class="technical">UNKNOWN / INVALID_RESPONSE / NOT_QUERIED</span> جیسی اصل حالتوں کا احترام۔</p></section>
+  <section class="card"><h2>محفوظ مقامی رسائی</h2><p>عارضی انسانی اجازت، صرف مقامی ڈیوائس، read-only رپورٹ کھولنا، 5 منٹ کی سیشن حد اور براؤزر درخواست کی 30 سیکنڈ حد۔</p></section>
+ </div>
+
+ <section class="notice" aria-label="اہم حفاظتی وضاحت">
+  <h2>عوامی ویب پیج اور مقامی ورکشاپ ویور الگ ہیں</h2>
+  <p>یہ صفحہ کسی حقیقی گاڑی یا OBD اڈاپٹر سے رابطہ نہیں کرتا اور نہ یہاں پرائیویٹ رپورٹس، عارضی سیشن ٹوکن یا نجی سورس کوڈ دستیاب ہیں۔ اصل ویور مالک کے اجازت یافتہ Android/Termux ماحول میں چلتا ہے۔ ویب سائٹ سے اسے دور سے شروع نہیں کیا جاسکتا۔</p>
+ </section>
+
+ <section class="card">
+  <h2>عوامی بصری نمونہ — صرف SIMULATED</h2>
+  <p>یہ الگ جامد ڈیمو فرضی ڈیٹا استعمال کرتا ہے؛ کوئی حقیقی رپورٹ، تشخیص، ECU درخواست، سرور کال یا اپ لوڈ نہیں ہوتا۔</p>
+  <label for="sample">ڈیمو رپورٹ منتخب کریں</label>
+  <select id="sample">
+   <option value="a">نمونہ A — محفوظ ڈیٹا کی مثال</option>
+   <option value="b">نمونہ B — جواب غیر معتبر کی مثال</option>
+  </select>
+  <div id="demo" class="grid" role="status" aria-live="polite">
+   <div class="card"><h3>کولنٹ درجہ حرارت</h3><div class="value" id="temp">82°C</div><div class="technical" id="tempState">SIMULATED | SUPPORTED</div></div>
+   <div class="card"><h3>کنٹرول ماڈیول وولٹیج</h3><div class="value" id="volt">نامعلوم</div><div class="technical" id="voltState">SIMULATED | INVALID_RESPONSE</div></div>
+  </div>
+  <div class="technical">DEMO_ONLY | SIMULATED | NO_REAL_OBD | NO_DIAGNOSTIC_CLAIM</div>
+ </section>
+
+ <section class="card" style="margin-top:18px">
+  <h2>ثبوت اور حدود</h2>
+  <p>سافٹ ویئر آزمائش اور محفوظ حقیقی ریڈنگ دو مختلف درجے کے ثبوت ہیں۔ مقامی شواہد کی integrity verification گاڑی کے درست ہونے یا کسی خرابی کے نہ ہونے کی ضمانت نہیں۔ ناکام یا نہ بھیجی گئی VIN/DTC درخواستوں کو غلطی سے 'کوئی خرابی نہیں' نہیں کہا جائے گا۔</p>
+  <p><strong>اگلا مرحلہ:</strong> آپریٹر کی اجازت کے بعد حقیقی ورکشاپ پائلٹ؛ read-only OBD، محدود وقت اور واضح provenance کے ساتھ۔ یہ مرحلہ ابھی عوامی طور پر مصدقہ نہیں۔</p>
+ </section>
+</main>
+<footer>© 2026 E-ZERO · Founder: Qamar Abbas Cheema · Public milestone documentation · Private technical implementation retained separately.</footer>
+<script>
+(function(){
+"use strict";
+const choice=document.getElementById("sample");
+const temp=document.getElementById("temp");
+const volt=document.getElementById("volt");
+const tempState=document.getElementById("tempState");
+const voltState=document.getElementById("voltState");
+choice.addEventListener("change",function(){
+  if(choice.value==="b"){
+    temp.textContent="ریڈنگ نہیں ملی";
+    tempState.textContent="SIMULATED | READ_TIMEOUT";
+    volt.textContent="نامعلوم";
+    voltState.textContent="SIMULATED | INVALID_RESPONSE";
+  }else{
+    temp.textContent="82°C";
+    tempState.textContent="SIMULATED | SUPPORTED";
+    volt.textContent="نامعلوم";
+    voltState.textContent="SIMULATED | INVALID_RESPONSE";
+  }
+});
+})();
+</script>
+</body>
+</html>
