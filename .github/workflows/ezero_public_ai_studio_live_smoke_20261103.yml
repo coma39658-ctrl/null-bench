@@ -1,0 +1,54 @@
+name: E-ZERO Public AI Studio Release Smoke
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ezero_public_ai_studio_live_smoke_20261103.yml'
+      - 'ezero_ai_studio_v0_1.html'
+      - 'js/ezero_ai_studio_media_i18n_v0_1.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-published-ui:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Offline release prerequisites
+        run: |
+          set -euo pipefail
+          node tests/test_ezero_web_sources_public_v0_1.js
+          node tests/test_ezero_ai_video_frame_contract_v0_1.js
+      - name: Verify GitHub Pages has latest mobile AI Studio
+        run: |
+          set -euo pipefail
+          URL='https://coma39658-ctrl.github.io/null-bench/ezero_ai_studio_v0_1.html'
+          SCRIPT='https://coma39658-ctrl.github.io/null-bench/js/ezero_ai_studio_media_i18n_v0_1.js'
+          for i in $(seq 1 8); do
+            if curl -fLSs --retry 2 --retry-delay 2 --max-time 20 -H 'Cache-Control: no-cache' "$URL?release_check=$GITHUB_SHA" -o /tmp/ezero-live.html &&                grep -q 'function publicSearchStatusLabel(status)' /tmp/ezero-live.html &&                grep -q 'function needsPublicResearchSources(question)' /tmp/ezero-live.html &&                grep -q '20261103-mobilevideo02' /tmp/ezero-live.html; then
+              break
+            fi
+            sleep 8
+          done
+          grep -q 'function publicSearchStatusLabel(status)' /tmp/ezero-live.html || { echo 'PUBLIC_PAGE_NOT_UPDATED: SOURCE_STATUS'; exit 1; }
+          grep -q 'function needsPublicResearchSources(question)' /tmp/ezero-live.html || { echo 'PUBLIC_PAGE_NOT_UPDATED: RESEARCH_LINKS'; exit 1; }
+          grep -q '20261103-mobilevideo02' /tmp/ezero-live.html || { echo 'PUBLIC_PAGE_NOT_UPDATED: VIDEO_ASSET'; exit 1; }
+          curl -fLSs --max-time 20 -H 'Cache-Control: no-cache' "$SCRIPT?release_check=$GITHUB_SHA" -o /tmp/ezero-live-video.js
+          grep -q 'frame_ai_supported:true' /tmp/ezero-live-video.js
+          grep -q 'application/octet-stream' /tmp/ezero-live-video.js
+          echo 'PUBLIC_GITHUB_PAGES_LIVE: VERIFIED'
+          echo 'AI_SEARCH_STATUS_UI: VERIFIED'
+          echo 'LOCAL_VIDEO_FRAME_PREVIEW: VERIFIED_CODE_ONLY'
+          echo 'CLOUDFLARE_LIVE_SEARCH: NOT_VERIFIED'
+      - name: Report truthful release status
+        if: always()
+        run: |
+          {
+            echo '## E-ZERO public Studio verification'
+            echo '- Verified by live HTTPS request from GitHub Actions only if the smoke step passes.'
+            echo '- No Cloudflare deployment, paid web search or vehicle ECU requests.'
+            echo '- Full video AI upload and live web-search provider require separate verification.'
+          } >> "$GITHUB_STEP_SUMMARY"
