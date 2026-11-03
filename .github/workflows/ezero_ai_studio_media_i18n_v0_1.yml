@@ -1,7 +1,7 @@
 name: E-ZERO AI Studio Local Video Frame and Consent Browser QA
 on:
   push:
-    branches: [ezero-ai-video-frame-consent-mobile-20261103]
+    branches: [ezero-ai-video-frame-consent-mobile-20261103, main]
     paths:
       - '.github/workflows/ezero_ai_studio_media_i18n_v0_1.yml'
       - 'ezero_ai_studio_v0_1.html'
