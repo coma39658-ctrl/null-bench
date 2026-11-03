@@ -40,6 +40,7 @@ jobs:
           node tests/test_qwen_public_agent_runtime_gates_v0_1.js
           node tests/test_ezero_web_sources_public_v0_1.js
           node tests/test_ezero_public_site_state_v0_1.js
+          node tests/test_ezero_ai_video_frame_contract_v0_1.js
 
       - name: Preserve validation log
         if: always()
