@@ -1,0 +1,118 @@
+{
+  "schema_version": "1.0",
+  "status": "PUBLIC_APPROVED_SITE_STATE",
+  "as_of": "2026-11-03",
+  "visibility": "PUBLIC_ONLY",
+  "scope": "Existing public pages, controls, and verified published milestones; not private repositories or live vehicle telemetry.",
+  "origin": "https://coma39658-ctrl.github.io",
+  "public_site": "https://coma39658-ctrl.github.io/null-bench/",
+  "history_is_automatic": false,
+  "note_ur": "یہ عوامی ویب سائٹ کا مورخہ خلاصہ ہے۔ نئی تبدیلی اس فائل کی تازہ اشاعت کے بعد ہی معلوم ہوگی؛ نجی کوڈ یا حقیقی گاڑی کا Live ڈیٹا اس میں نہیں۔",
+  "note_en": "This is a dated summary of the public website, not automatic private-repository awareness or live vehicle data.",
+  "changes": [
+    {
+      "date": "2026-11-03",
+      "area": "vehicle-obd",
+      "title_ur": "وہیکل / OBD کی پیش رفت",
+      "title_en": "Vehicle / OBD progress",
+      "detail_ur": "206/206 اور 260/260 الگ آف لائن ٹیسٹ گروپ کامیاب؛ گروپوں میں تکرار ممکن۔ مصنوعی One-Visit رپورٹ اور SHA-256 سالمیت آزمودہ، نیا مربوط حقیقی گاڑی پائلٹ باقی ہے۔",
+      "detail_en": "Two offline test groups passed (206/206 and 260/260, possible overlap). Simulated One-Visit report and SHA-256 evidence passed; integrated real-vehicle pilot pending."
+    },
+    {
+      "date": "2026-11-03",
+      "area": "workshop-viewer",
+      "title_ur": "ورکشاپ رپورٹ ویور میں تازہ معلومات",
+      "title_en": "Workshop Viewer milestone updated",
+      "detail_ur": "موجودہ رپورٹ ویور کے اندر ماخذ، موبائل اردو رپورٹ، حفاظتی حدود اور نئی آف لائن آزمائش کی معلومات شامل ہوئیں۔ کوئی اضافی بٹن یا الگ صفحہ نہیں بنایا گیا۔",
+      "detail_en": "Existing report viewer updated with provenance, mobile Urdu report, safety boundaries and offline test details. No additional button or page."
+    }
+  ],
+  "features": [
+    {
+      "id": "ai-studio",
+      "section": "AI Studio",
+      "title_ur": "ای زیرو اے آئی اسٹوڈیو",
+      "title_en": "E-ZERO AI Studio",
+      "href": "ezero_ai_studio_v0_1.html",
+      "status": "PUBLIC_UI_AVAILABLE",
+      "note_ur": "متن، تصویر اور مقامی ویڈیو پیش منظر کا انٹرفیس؛ بیرونی قیمتوں کی براہِ راست ویب تصدیق ابھی ثابت نہیں۔",
+      "note_en": "Text, image, local video preview interface. Live third-party price verification has not been demonstrated."
+    },
+    {
+      "id": "voice-guide",
+      "section": "AI Guide",
+      "title_ur": "ای زیرو وائس گائیڈ",
+      "title_en": "E-ZERO Voice Guide",
+      "href": "index.html#ezero-voice-guide",
+      "status": "PUBLIC_UI_AVAILABLE",
+      "note_ur": "موجودہ عوامی گائیڈ؛ تازہ ویب سرچ صرف اس صورت میں دستیاب ہوگی جب محفوظ سرچ فراہم کنندہ عملی طور پر فعال اور آزمودہ ہو۔",
+      "note_en": "Existing public guide; live search needs an active verified search provider."
+    },
+    {
+      "id": "vehicle-obd",
+      "section": "Vehicle / OBD",
+      "title_ur": "وہیکل / او بی ڈی",
+      "title_en": "Vehicle / OBD",
+      "href": "index.html#vehicle-obd",
+      "status": "SOFTWARE_VALIDATED_PHYSICAL_PENDING",
+      "note_ur": "صرف محفوظ Read-Only سافٹ ویئر اور مصنوعی رپورٹس کی آزمائش؛ گاڑی کی حقیقی نئی آزمائش ابھی باقی۔",
+      "note_en": "Read-only software and simulated reporting tested; integrated real-vehicle pilot remains pending."
+    },
+    {
+      "id": "workshop-viewer",
+      "section": "Vehicle / OBD",
+      "title_ur": "ورکشاپ رپورٹ ویور",
+      "title_en": "Workshop Report Viewer",
+      "href": "ezero_workshop_viewer_public_v0_1.html",
+      "status": "PUBLIC_DEMO_ONLY",
+      "note_ur": "غیر حقیقی SIMULATED عوامی Demo؛ نجی Termux رپورٹس ویب پر نہیں۔",
+      "note_en": "Public SIMULATED demo only; private Termux evidence is not on the web."
+    },
+    {
+      "id": "workshop-pro",
+      "section": "Workshop Pro",
+      "title_ur": "ورکشاپ پرو پورٹل",
+      "title_en": "Workshop Pro Portal",
+      "href": "ezero_workshop_pro_portal_v0_1.html",
+      "status": "RESEARCH_PREVIEW_ONLY",
+      "note_ur": "رجسٹریشن، لائسنس، سبسکرپشن اور حقیقی ادائیگی ابھی فعال نہیں۔",
+      "note_en": "Registration, license activation, subscriptions and payments are not live."
+    },
+    {
+      "id": "media-preview",
+      "section": "AI Studio / Media",
+      "title_ur": "تصویر، اسکرین شاٹ اور ویڈیو پیش منظر",
+      "title_en": "Image / Screenshot / Video Preview",
+      "href": "ezero_public_media_preview_v0_1.html",
+      "status": "LOCAL_PREVIEW_ONLY",
+      "note_ur": "مقامی Demo؛ اس سے ویڈیو کی AI تشریح یا حقیقی آن لائن اپ لوڈ ثابت نہیں ہوتا۔",
+      "note_en": "Local preview only; it does not establish AI video analysis or uploads."
+    },
+    {
+      "id": "vision",
+      "section": "AI Studio / Media",
+      "title_ur": "تصویری اے آئی تجرباتی",
+      "title_en": "Experimental Vision AI",
+      "href": "ezero_public_vision_ai_candidate_v0_1.html",
+      "status": "EXPERIMENTAL",
+      "note_ur": "تصویر کی شیئرنگ سے پہلے صارف کی اجازت ضروری؛ پبلک Live کارکردگی کی مکمل تصدیق الگ مرحلہ ہے۔",
+      "note_en": "Requires user consent before image sharing; full public live verification is separate."
+    },
+    {
+      "id": "null-bench",
+      "section": "Null Bench",
+      "title_ur": "نل بینچ",
+      "title_en": "Null Bench",
+      "href": "index.html#try",
+      "status": "PUBLIC_RESEARCH_TOOL",
+      "note_ur": "گراف اور نیٹ ورک کا شماریاتی تحقیقی ٹول؛ گاڑی یا مشین کی تشخیص کا ثبوت نہیں۔",
+      "note_en": "Graph/network statistical research tool, not a real-vehicle or machine diagnosis."
+    }
+  ],
+  "constraints": [
+    "Only public web pages and dated milestones",
+    "No private GitHub repository content, credentials, VIN, OBD records or ECU control",
+    "No fabricated current prices, availability, physical validation or verified video contents",
+    "External web search availability is separately governed"
+  ]
+}
