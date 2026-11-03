@@ -1,7 +1,7 @@
-name: E-ZERO AI Studio Mobile Video and 15 Language QA
+name: E-ZERO AI Studio Local Video Frame and Consent Browser QA
 on:
   push:
-    branches: [ezero-ai-studio-final-eye-comfort-v0.1]
+    branches: [ezero-ai-video-frame-consent-mobile-20261103, main]
     paths:
       - '.github/workflows/ezero_ai_studio_media_i18n_v0_1.yml'
       - 'ezero_ai_studio_v0_1.html'
@@ -9,6 +9,7 @@ on:
       - 'css/ezero_ai_studio_media_i18n_v0_1.css'
       - 'css/ezero_ai_studio_comfort_v0_1.css'
       - 'tests/test_ezero_ai_studio_media_i18n_v0_1.mjs'
+      - 'tests/test_ezero_ai_video_frame_contract_v0_1.js'
   workflow_dispatch:
 permissions: {contents: read}
 concurrency: {group: ezero-ai-studio-video-i18n-v0-1, cancel-in-progress: true}
@@ -29,6 +30,7 @@ jobs:
       - name: Verify safe local-only media in real Chromium
         run: |
           node --check js/ezero_ai_studio_media_i18n_v0_1.js
+          node tests/test_ezero_ai_video_frame_contract_v0_1.js
           python -m http.server 8767 --bind 127.0.0.1 >/tmp/ezero-video-i18n.log 2>&1 &
           PID=$!
           trap 'kill "$PID" 2>/dev/null || true' EXIT

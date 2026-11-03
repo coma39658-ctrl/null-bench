@@ -1,0 +1,48 @@
+name: E-ZERO Vision Public Read-only Canary
+on:
+  push:
+    branches: [ezero-ai-video-frame-consent-mobile-20261103]
+    paths: [".github/workflows/ezero_vision_public_readonly_canary_20261103.yml"]
+permissions:
+  contents: read
+jobs:
+  vision-canary:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Check image gateway with synthetic image and explicit consent
+        run: |
+          node --input-type=module - <<'TEST'
+          const base='https://ezero-qwen-vision-gateway-public.coma39658.workers.dev';
+          const origin='https://coma39658-ctrl.github.io';
+          for(const path of ['/health']){
+            try{
+              const r=await fetch(base+path,{headers:{Origin:origin},redirect:'manual',signal:AbortSignal.timeout(15000)});
+              const raw=await r.text();let d={};try{d=JSON.parse(raw)}catch{}
+              console.log('VISION_HEALTH',r.status,r.headers.get('content-type'),'CORS',r.headers.get('access-control-allow-origin'),
+                 'STATUS',d.status||'NON_JSON','PUBLIC',d.public_ai_enabled,'IMAGE',d.vision_enabled??'UNKNOWN');
+            }catch(e){console.log('VISION_HEALTH_ERROR',String(e.name||e))}
+          }
+          const image='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jWZ0AAAAASUVORK5CYII=';
+          const question='Describe the dominant color of this tiny synthetic test image. State if it is too small.';
+          const body={question,response_language:'en',fallback_language:'en',image_share_consent:true,image:{mime_type:'image/png',base64:image}};
+          try{
+            const r=await fetch(base+'/api/ezero-agent/v0.1/ask',{
+              method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},
+              body:JSON.stringify(body),redirect:'manual',signal:AbortSignal.timeout(30000)
+            });
+            const raw=await r.text();let d={};try{d=JSON.parse(raw)}catch{}
+            console.log('VISION_TEST_HTTP',r.status,'TYPE',r.headers.get('content-type'),
+              'STATUS',d.status||'NON_JSON','SOURCE',d.source_class||'NONE',
+              'DETAIL',String(d.detail||d.error||'').slice(0,140),
+              'ANSWER_LENGTH',typeof d.answer==='string'?d.answer.length:0,
+              'DIAGNOSTIC',d.diagnostic_claim,'AUTHORITY',d.evidence_authority);
+            if(r.status===200&&d.status==='OK'&&d.source_class==='GOVERNED_AI'&&typeof d.answer==='string'&&d.answer.trim()&&d.diagnostic_claim===false&&d.evidence_authority===false){
+              console.log('PUBLIC_VISION_CONSENT_SMOKE: PASS');
+            }else{
+              console.log('PUBLIC_VISION_CONSENT_SMOKE: NOT_VERIFIED');
+            }
+          }catch(e){console.log('PUBLIC_VISION_ERROR',String(e.name||e).slice(0,160))}
+          TEST
