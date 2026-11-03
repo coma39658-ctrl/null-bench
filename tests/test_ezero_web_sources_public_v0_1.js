@@ -16,6 +16,7 @@ const voiceSource = fs.readFileSync("js/ezero_voice_guide_ui_v0_1.js", "utf8");
 const website = fs.readFileSync("index.html", "utf8");
 const serviceWorker=fs.readFileSync("service-worker.js","utf8");
 const studio=fs.readFileSync("ezero_ai_studio_v0_1.html","utf8");
+assert.ok(studio.includes("showAnswerProvenance") && studio.includes("PUBLIC_RELEASE_BUNDLED_DATED"),"Site-state fallback must be visible as dated, not live");
 assert.ok(studio.includes("appendUnverifiedWebSources"),"AI Studio must show real external sources");
 assert.ok(studio.includes("source.sourceClass!==\"WEB_SEARCH_UNVERIFIED\""),
   "Ignore malformed or model-invented source records");
@@ -28,10 +29,13 @@ assert.ok(studio.includes('const linkedSources=!isImage?appendUnverifiedWebSourc
   "Keep public search source rendering separate from user images");
 const simpleChat=fs.readFileSync("ezero_public_ai_chat_candidate_v0_1.html","utf8");
 const visionPage=fs.readFileSync("ezero_public_vision_ai_candidate_v0_1.html","utf8");
-const latestTextHost="https://ezero-qwen-public-priceguard-v0-2.coma39658.workers.dev";
+// Studio and the public Guide moved only after v0.3 passed live
+// Dashboard, AI release, safety, Qwen and CORS checks.
+const latestTextHost="https://ezero-qwen-public-siteaware-v0-3.coma39658.workers.dev";
+const legacyExperimentalHost="https://ezero-qwen-public-priceguard-v0-2.coma39658.workers.dev";
 const oldImageHost="https://ezero-qwen-vision-gateway-public.coma39658.workers.dev";
 assert.ok(studio.includes('const ENDPOINT="'+latestTextHost+'/api/ezero-agent/v0.1/ask"'),
-  "AI Studio text requests must use current global automotive v0.2");
+  "AI Studio text requests must use live-verified site-aware v0.3");
 assert.ok(studio.includes('const HEALTH="'+latestTextHost+'/health"'),
   "Studio health should inspect the same public text endpoint");
 assert.ok(studio.includes('const IMAGE_ENDPOINT="'+oldImageHost+'/api/ezero-agent/v0.1/ask"'),
@@ -44,7 +48,7 @@ assert.ok(studio.includes('appendOptionalMarketSearch(finalMessage.box,q)'),
   "Expose voluntary search links without inventing prices");
 assert.ok(studio.includes('a.rel="noopener noreferrer nofollow"'),
   "Never pass referrer through external search links");
-assert.ok(simpleChat.includes('const endpoint="'+latestTextHost+'/api/ezero-agent/v0.1/ask"'),
+assert.ok(simpleChat.includes('const endpoint="'+legacyExperimentalHost+'/api/ezero-agent/v0.1/ask"'),
   "Experimental text chat must not use deprecated platform-only gateway");
 assert.ok(visionPage.includes(oldImageHost),
   "Keep separately tested vision candidate route unchanged");
@@ -56,14 +60,14 @@ for(const [name,html] of [
   for(let i=0;i<scripts.length;i++)new vm.Script(scripts[i][1],{filename:name+"_"+i+".js"});
 }
 
-assert.match(serviceWorker,/ezero-null-bench-v6-public-sources-20261101/,"Updated mobile PWA cache version is required");
+assert.match(serviceWorker,/ezero-null-bench-v7-ai-studio-v03-20261103/,"Updated mobile PWA cache version is required");
 assert.match(serviceWorker,/url\.origin !== self\.location\.origin/,"Do not intercept or cache external websites or Cloudflare AI calls");
 assert.match(serviceWorker,/url\.pathname\.startsWith\(new URL\(self\.registration\.scope\)\.pathname\)/,"Only intercept this website project");
 assert.match(serviceWorker,/key\.startsWith\("ezero-null-bench-"\)/,"Do not delete other apps' caches");
-const canaryHost = "https://ezero-qwen-public-priceguard-v0-2.coma39658.workers.dev";
+const canaryHost = latestTextHost;
 assert.ok(website.includes(canaryHost + "/api/ezero-agent/v0.1/ask"), "Public AI must use verified canary");
 assert.ok(website.includes(canaryHost + "/health"), "Health must match chat gateway");
-assert.match(website,/Governed AI Live · v0\.2/,"Visible public AI build identifier should match tested version");
+assert.match(website,/Governed AI Live · v0\.3/,"Visible public AI build identifier should match tested version");
 assert.ok(website.includes('20261101-branded-priceguard04'),"Force newest AI guide JavaScript on mobile");
 assert.ok(!website.includes("https://ezero-qwen-vision-gateway-public.coma39658.workers.dev"), "Avoid stale fallback or mismatched health");
 assert.match(voiceSource, /currentWebNotVerified/, "Market freshness disclosure required");
