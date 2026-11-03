@@ -49,7 +49,7 @@
  </aside>
  <main class="main">
   <header class="topbar"><div class="topIdentity"><span class="logo" style="height:39px;width:39px;border-radius:13px;font-size:16px" aria-hidden="true">E₀</span><span><strong>E-ZERO AI Studio</strong><small data-ai-ui="subtitle">تحریری AI · تصویر کا الگ محفوظ رابطہ</small></span></div>
-    <div class="topActions"><select id="aiUIMobileLanguage" class="aiUILanguage mobile" aria-label="Studio language" title="Language"><option value="ur">اردو</option><option value="en">English</option><option value="ar">العربية</option><option value="hi">हिन्दी</option><option value="zh-CN">中文</option><option value="es">Español</option><option value="fr">Français</option><option value="pt">Português</option><option value="bn">বাংলা</option><option value="ru">Русский</option><option value="id">Indonesia</option><option value="ja">日本語</option><option value="de">Deutsch</option><option value="tr">Türkçe</option><option value="ko">한국어</option></select><button type="button" id="aiStudioBack" class="aiBackButton" aria-label="Go back" title="Back">← <span data-ai-ui="back">واپس</span></button><span id="health" class="health" data-state="checking" title="سرور کی اختیاری صحت کی جانچ"><span class="healthDot"></span><span id="healthText">رابطہ جانچ رہے ہیں</span></span>
+    <div class="topActions"><select id="aiUIMobileLanguage" class="aiUILanguage mobile" aria-label="Studio language" title="Language"><option value="ur">اردو</option><option value="en">English</option><option value="ar">العربية</option><option value="hi">हिन्दी</option><option value="zh-CN">中文</option><option value="es">Español</option><option value="fr">Français</option><option value="pt">Português</option><option value="bn">বাংলা</option><option value="ru">Русский</option><option value="id">Indonesia</option><option value="ja">日本語</option><option value="de">Deutsch</option><option value="tr">Türkçe</option><option value="ko">한국어</option></select><button type="button" id="aiStudioBack" class="aiBackButton" aria-label="Go back" title="Back"><span data-ai-ui="back">واپس</span></button><span id="health" class="health" data-state="checking" title="سرور کی اختیاری صحت کی جانچ"><span class="healthDot"></span><span id="healthText">رابطہ جانچ رہے ہیں</span></span>
      <button id="themeBtn" class="iconButton optional" type="button" aria-label="رنگ بدلیں" title="Light / Dark"><svg viewBox="0 0 24 24"><path d="M20 15.4A8.4 8.4 0 0 1 8.6 4a8.5 8.5 0 1 0 11.4 11.4z"/></svg></button>
      <button id="exportBtn" class="iconButton optional" type="button" aria-label="گفتگو کی نقل محفوظ کریں" title="Save text transcript"><svg viewBox="0 0 24 24"><path d="M12 3v13m-4-4 4 4 4-4M4 18v3h16v-3"/></svg></button>
      <button id="newChatBtn" class="iconButton" type="button" aria-label="نئی گفتگو" title="New chat"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
@@ -93,7 +93,11 @@
       <label for="aiVideoInput" data-ai-ui="chooseVideo">اپنی ویڈیو منتخب کریں</label>
       <input id="aiVideoInput" type="file" accept="video/mp4,video/webm,video/quicktime,video/3gpp" aria-describedby="aiVideoStatus">
       <video id="aiVideoPreview" playsinline controls preload="metadata" class="hidden"></video>
-      <p id="aiVideoStatus" role="status" aria-live="polite" data-ai-ui="videoReady">MP4، WebM، MOV یا 3GP · زیادہ سے زیادہ 150 MB · کوئی اپلوڈ نہیں۔</p>
+      <p id="aiVideoStatus" role="status" aria-live="polite" data-ai-ui="videoReady">MP4، WebM، MOV یا 3GP · زیادہ سے زیادہ 150 MB · مکمل ویڈیو اپلوڈ نہیں ہوگی۔</p>
+      <div class="aiVideoFrameArea" id="aiVideoFrameArea">
+        <button type="button" id="aiVideoFrameBtn" class="aiVideoFrameBtn" disabled aria-describedby="aiVideoFrameHint">منتخب فریم AI سے سمجھیں</button>
+        <p id="aiVideoFrameHint" class="aiVideoFrameHint">ویڈیو مطلوبہ منظر پر روکیں۔ صرف ایک فریم تصویر کی طرح تیار ہوگا؛ اگلے مرحلے میں آپ کی اجازت اور Send کے بغیر کچھ AI کو نہیں بھیجا جائے گا۔</p>
+      </div>
       <div class="aiVideoActions"><button type="button" id="aiVideoClear" data-ai-ui="removeVideo">ویڈیو ہٹائیں</button><a href="https://e-zero-dashboard.onrender.com/" data-ai-ui="homeLink">مرکزی ویب سائٹ</a></div>
     </div>
   </section>
@@ -382,6 +386,18 @@ function ezeroSetupVoiceSettings(){
 function validFile(f){return f&&["image/png","image/jpeg","image/webp"].includes(f.type)&&f.size>0&&f.size<=MAX_BYTES}
 function clearImage(){selected=null;if(objectURL){URL.revokeObjectURL(objectURL);objectURL=null}els.file.value="";els.attachment.classList.add("hidden");els.consentRow.classList.add("hidden");els.consent.checked=false;updateSend()}
 function selectFile(f){clearImage();if(!f)return;if(!validFile(f)){showNotice("صرف PNG، JPG یا WebP تصویر (زیادہ سے زیادہ 5 MB) منتخب کریں۔","error");return}selected=f;objectURL=URL.createObjectURL(f);els.filePreview.src=objectURL;els.fileName.textContent=f.name||"منتخب تصویر";els.fileSize.textContent=(f.size/1024/1024).toFixed(2)+" MB · صرف مقامی پیش منظر";els.attachment.classList.remove("hidden");els.consentRow.classList.remove("hidden");showNotice("تصویر منتخب ہوگئی ہے، مگر ابھی AI سرور کو نہیں بھیجی گئی۔","normal");updateSend()}
+// A local video frame is queued through the *existing* image consent flow.
+// Never bypass the image checkbox, maximum bytes or explicit Send action.
+window.EZERO_AI_STUDIO_QUEUE_VIDEO_FRAME_V0_1=function(file,question){
+ if(busy||!file||file.type!=="image/jpeg"||!validFile(file))return false;
+ selectFile(file);
+ if(selected!==file)return false;
+ els.prompt.value=String(question||"ویڈیو کے اس منتخب فریم میں کیا نظر آتا ہے؟ صرف اسی فریم کو سمجھائیں، پوری ویڈیو کے بارے میں اندازہ نہ لگائیں۔").slice(0,MAX_QUESTION);
+ resizeEntry();updateSend();
+ showNotice("ویڈیو کا صرف ایک مقامی فریم منتخب ہے۔ اجازت والے خانے کو نشان لگا کر بھیجیں۔ پوری ویڈیو اپلوڈ نہیں ہوگی۔","normal");
+ els.prompt.focus();
+ return true;
+};
 function updateSend(){els.send.disabled=busy||(!els.prompt.value.trim()&&!selected)||(!!selected&&!els.consent.checked);els.attachBtn.disabled=busy;els.micBtn.disabled=busy;els.consent.disabled=busy;els.file.disabled=busy}
 async function fileToBase64(f){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(new Error("IMAGE_READ_FAILED"));reader.onabort=()=>reject(new Error("IMAGE_READ_ABORTED"));reader.onload=()=>{const data=String(reader.result||"");const prefix="data:"+f.type+";base64,";if(!data.startsWith(prefix)){reject(new Error("IMAGE_INVALID_DATA"));return}const b64=data.slice(prefix.length);if(b64.length<16||b64.length>6990508){reject(new Error("IMAGE_INVALID_SIZE"));return}resolve(b64)};try{reader.readAsDataURL(f)}catch(_){reject(new Error("IMAGE_READ_FAILED"))}})}
 function validateReply(d,isImage){if(!d||typeof d!=="object")throw Error("AI_RESPONSE_INVALID");if(d.diagnostic_claim!==false||d.evidence_authority!==false)throw Error("AI_SAFETY_BOUNDARY");
