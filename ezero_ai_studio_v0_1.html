@@ -98,7 +98,7 @@
   </section>
  </main>
 </div>
-<script src="./js/ezero_public_site_state_v0_1.js?v=20261103-site02"></script>
+<script src="./js/ezero_public_site_state_v0_1.js?v=20261103-site03"></script>
 <script>
 (function(){
 "use strict";
@@ -456,6 +456,8 @@ async function sendQuestion(e){if(e)e.preventDefault();if(busy)return;const ques
    // Direct read-only E-ZERO site inventory: not a Qwen search result.
    // Keep image consent, price safeguards and all normal chat routes intact.
    const siteState=window.EZERO_PUBLIC_SITE_STATE_V0_1;
+   if(siteState&&typeof siteState.resetFocus==="function"&&
+      (isImage||!siteState.isSiteQuestion(q)))siteState.resetFocus();
    if(!isImage&&siteState&&siteState.isSiteQuestion(q)){
      let siteReply=null;
      try{siteReply=await siteState.answer(q,{language:ezeroGatewayLanguage(q)})}
@@ -491,7 +493,7 @@ async function sendQuestion(e){if(e)e.preventDefault();if(busy)return;const ques
  }catch(error){if(epoch===requestEpoch)showNotice(describeError(error),"error")}
  finally{if(epoch===requestEpoch){busy=false;updateSend();jump(true)}}
 }
-function newChat(){if(busy){showNotice("جاری درخواست مکمل ہونے کے بعد نئی گفتگو شروع کریں۔","normal");return}if(recognition&&listening){recognition.stop()}ezeroStopSpeech();clearImage();els.prompt.value="";resizeEntry();history=[];transcript=[];sessionId=newSessionId();els.thread.replaceChildren(els.welcome);els.welcome.classList.remove("hidden");showNotice("نئی گفتگو شروع ہوگئی؛ گزشتہ گفتگو اس صفحے میں محفوظ نہیں رہی۔","normal");els.prompt.focus()}
+function newChat(){if(busy){showNotice("جاری درخواست مکمل ہونے کے بعد نئی گفتگو شروع کریں۔","normal");return}if(recognition&&listening){recognition.stop()}ezeroStopSpeech();clearImage();els.prompt.value="";resizeEntry();history=[];transcript=[];sessionId=newSessionId();window.EZERO_PUBLIC_SITE_STATE_V0_1?.resetFocus?.();els.thread.replaceChildren(els.welcome);els.welcome.classList.remove("hidden");showNotice("نئی گفتگو شروع ہوگئی؛ گزشتہ گفتگو اس صفحے میں محفوظ نہیں رہی۔","normal");els.prompt.focus()}
 async function checkHealth(){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),10000);try{const resp=await fetch(HEALTH,{cache:"no-store",signal:controller.signal});if(!resp.ok)throw Error("HEALTH_HTTP_"+resp.status);const d=await resp.json();if(d.status==="ONLINE"&&d.public_ai_enabled===true&&d.evidence_authority===false)setHealth("online","تحریری AI v0.2 دستیاب");else setHealth("offline","AI دستیابی محدود")}catch(_){setHealth("checking","رابطہ غیر مصدقہ")}finally{clearTimeout(timer)}}
 function setupMic(){const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;if(!Speech){els.micBtn.disabled=true;els.micBtn.title="اس براؤزر میں صوتی شناخت دستیاب نہیں";els.micBtn.setAttribute("aria-label","مائیک کی سہولت اس براؤزر میں دستیاب نہیں");return}
  els.micBtn.addEventListener("click",()=>{if(busy)return;if(listening){recognition.stop();return}try{recognition=new Speech();recognition.lang=speechLocale();recognition.continuous=false;recognition.interimResults=false;recognition.maxAlternatives=1;recognition.onstart=()=>{listening=true;els.micBtn.classList.add("active");showNotice("سن رہے ہیں… بولنا مکمل کریں۔ آپ کی آواز کی شناخت براؤزر کے فراہم کنندہ سے ہوسکتی ہے۔","normal")};recognition.onresult=ev=>{const spoken=ev.results&&ev.results[0]&&ev.results[0][0]?ev.results[0][0].transcript:"";if(spoken){els.prompt.value=(els.prompt.value?els.prompt.value.trim()+" ":"")+spoken;resizeEntry();updateSend();showNotice("آپ کی بات تحریر ہوگئی؛ بھیجنے سے پہلے جائزہ لے سکتے ہیں۔","success")}};recognition.onerror=ev=>{showNotice("مائیک کی شناخت ممکن نہیں: "+(ev.error||"UNKNOWN")+"۔ کی بورڈ سے سوال لکھ سکتے ہیں۔","error")};recognition.onend=()=>{listening=false;els.micBtn.classList.remove("active")};recognition.start()}catch(_){showNotice("مائیک شروع نہیں ہوسکا۔ براؤزر کی اجازت جانچیں۔","error")}});
