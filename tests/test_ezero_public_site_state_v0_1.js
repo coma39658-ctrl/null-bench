@@ -11,14 +11,14 @@ assert.equal(record.status,"PUBLIC_APPROVED_SITE_STATE");
 assert.equal(record.visibility,"PUBLIC_ONLY");
 assert.equal(record.history_is_automatic,false);
 assert.ok(record.features.length>=6);
-assert.ok(html.includes('src="js/ezero_public_site_state_v0_1.js?v=20261103-site02"'));
-assert.ok(studio.includes('src="./js/ezero_public_site_state_v0_1.js?v=20261103-site02"'));
+assert.ok(html.includes('src="js/ezero_public_site_state_v0_1.js?v=20261103-site03"'));
+assert.ok(studio.includes('src="./js/ezero_public_site_state_v0_1.js?v=20261103-site03"'));
 assert.ok(guide.includes("siteState.isSiteQuestion(question)"));
 assert.ok(studio.includes("siteState.isSiteQuestion(q)"));
 assert.ok(html.includes('id="public-obd-runner"'));
 assert.ok(studio.includes("const IMAGE_ENDPOINT="));
 const simpleChat=fs.readFileSync("ezero_public_ai_chat_candidate_v0_1.html","utf8");
-assert.ok(simpleChat.includes("ezero_public_site_state_v0_1.js?v=20261103-site02"));
+assert.ok(simpleChat.includes("ezero_public_site_state_v0_1.js?v=20261103-site03"));
 assert.ok(simpleChat.includes("site.isSiteQuestion(question)"));
 
 let requests=[];
@@ -69,13 +69,29 @@ assert.equal(api.classify("E-ZERO dashboard میں کیا اپڈیٹ ہوئی؟"
  assert.ok(inEnglish.answer.includes("AI Studio"));
  assert.ok(!inEnglish.answer.includes("206/206"));
 
+ // Attention to a prior topic is temporary, bounded, and never stored.
+ assert.equal(api.getFocus().scope,"ai");
+ const f1=await api.answer("اور اس میں کیا نیا ہے؟",{language:"ur"});
+ assert.equal(f1.status,"OK");
+ assert.ok(f1.answer.includes("AI Studio"));
+ assert.ok(!f1.answer.includes("206/206"));
+ const f2=await api.answer("اور اس کی تازہ تبدیلی؟",{language:"ur"});
+ assert.equal(f2.status,"OK");
+ assert.equal(api.getFocus().remaining,0);
+ assert.equal(api.isSiteQuestion("اور اس میں کیا نیا ہے؟"),false);
+ assert.equal(api.isSiteQuestion("اور اس میں گاڑی کی قیمت؟"),false);
+ assert.equal(api.isSiteQuestion("اب ریاض میں موسم بتاؤ"),false);
  const features=await api.answer("E-ZERO کے کون سے بٹن اور سیکشن ہیں؟",{language:"ur"});
  assert.equal(features.status,"OK");
  assert.ok(features.answer.includes("اے آئی"));
  assert.ok(features.answer.includes("PUBLIC_DEMO_ONLY"));
- assert.equal(requests.length,5);
+ assert.equal(requests.length,7);
  assert.ok(requests.every(r=>r.url==="./data/ezero_public_site_state_v0_1.json"));
  assert.ok(requests.every(r=>r.options.cache==="no-store"&&r.options.credentials==="same-origin"&&r.options.redirect==="error"));
+ api.resetFocus();
+ assert.equal(api.getFocus(),null);
+ assert.equal(api.isSiteQuestion("اور اس میں کیا نیا ہے؟"),false);
+
  current={...record,visibility:"PRIVATE"};
  const invalid=await api.answer("E-ZERO ویب سائٹ میں تازہ تبدیلیاں کیا ہیں؟");
  assert.equal(invalid.status,"UNAVAILABLE");

@@ -264,6 +264,7 @@
       // Site-status questions use only the current approved public site
       // inventory. Do not ask Qwen to guess recently deployed buttons.
       const siteState = window.EZERO_PUBLIC_SITE_STATE_V0_1;
+      if (siteState && !siteState.isSiteQuestion(question)) siteState.resetFocus?.();
       if (siteState && siteState.isSiteQuestion(question)) {
         let siteReply = null;
         try {
