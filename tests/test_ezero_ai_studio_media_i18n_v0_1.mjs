@@ -15,7 +15,7 @@ try{
    const c=getComputedStyle(document.documentElement);
    return {page:c.getPropertyValue("--page").trim(),background:getComputedStyle(document.body).backgroundColor};
   });
-  assert.equal(classic.page,"#cfdee5","Calm classic palette should reduce pure-white glare");
+  assert.equal(classic.page,"#d2e1e7","Current polished teal light theme should reduce pure-white glare");
   assert.equal(await page.locator('link[href*="ezero_ai_studio_visual_v0_1.css"]').count(),0);
   assert.equal(await page.locator('link[href*="ezero_ai_studio_media_i18n_v0_1.css"]').count(),1);
   assert.equal(await page.locator('link[href*="ezero_ai_studio_comfort_v0_1.css"]').count(),1);
@@ -33,7 +33,7 @@ try{
   });
   assert.ok(comfort.first.length>3&&comfort.second.length>2,"Both headline phrases must be colored");
   assert.match(comfort.gradient,/gradient/);
-  assert.equal(comfort.root,"#e7f0f2");
+  assert.equal(comfort.root,"#e8f1f3");
   async function assertSendVisible(){
     const rect=await page.evaluate(()=>{
       const v=document.querySelector("#send").getBoundingClientRect();
@@ -79,6 +79,8 @@ try{
   assert.equal(await page.locator("#aiUILanguage option").count(),15);
   assert.equal(await page.locator("#aiUIMobileLanguage option").count(),15);
   assert.equal(await page.evaluate(()=>window.EZERO_AI_STUDIO_MEDIA_V0_1?.video_ai_enabled),false);
+  assert.equal(await page.evaluate(()=>window.EZERO_AI_STUDIO_MEDIA_V0_1?.frame_ai_supported),true);
+  assert.equal(await page.evaluate(()=>window.EZERO_AI_STUDIO_MEDIA_V0_1?.full_video_ai_enabled),false);
   const localeSelect=width>830?"#aiUILanguage":"#aiUIMobileLanguage";
   for(const [locale,phrase,dir] of [["ur","سوچیں","rtl"],["ar","فكّر","rtl"],["hi","सोचें","ltr"],["en","Think","ltr"],["zh-CN","思考","ltr"],["es","Piensa","ltr"],["fr","Réfléchir","ltr"],["ko","생각하고","ltr"]]){
    await page.locator(localeSelect).selectOption(locale);
@@ -93,6 +95,7 @@ try{
   await page.locator(localeSelect).selectOption("en");
   await page.locator("#quickVideo").click();
   assert.equal(await page.locator("#aiVideoPanel").isVisible(),true);
+  assert.equal(await page.locator("#aiVideoFrameBtn").isDisabled(),true);
   assert.match(await page.locator("#aiVideoBoundary").innerText(),/not uploaded/);
   assert.equal(await page.locator("#aiVideoClose").evaluate(el=>el===document.activeElement),true);
   await page.locator("#aiVideoInput").setInputFiles({name:"bad.txt",mimeType:"text/plain",buffer:Buffer.from("test")});
@@ -100,6 +103,33 @@ try{
   await page.locator("#aiVideoInput").setInputFiles({name:"clip.mp4",mimeType:"video/mp4",buffer:Buffer.from("not-real-video-data")});
   assert.match(await page.locator("#aiVideoPreview").getAttribute("src"),/^blob:/);
   assert.match(await page.locator("#aiVideoStatus").innerText(),/not uploaded/);
+  if(width===390){
+    // Synthetic decoded frame: test the real queue and consent flow without video upload.
+    await page.evaluate(()=>{
+      const v=document.querySelector("#aiVideoPreview");
+      Object.defineProperty(v,"readyState",{configurable:true,get:()=>4});
+      Object.defineProperty(v,"videoWidth",{configurable:true,get:()=>320});
+      Object.defineProperty(v,"videoHeight",{configurable:true,get:()=>180});
+      HTMLCanvasElement.prototype.getContext=function(){return {drawImage(){}}};
+      HTMLCanvasElement.prototype.toBlob=function(resolve){resolve(new Blob([new Uint8Array(128)],{type:"image/jpeg"}))};
+      v.dispatchEvent(new Event("loadeddata"));
+    });
+    assert.equal(await page.locator("#aiVideoFrameBtn").isEnabled(),true);
+    await page.locator("#aiVideoFrameBtn").click();
+    await page.locator("#aiVideoPanel.hidden").waitFor();
+    assert.equal(await page.locator("#attachment").isVisible(),true);
+    assert.equal(await page.locator("#consentRow").isVisible(),true);
+    assert.equal(await page.locator("#consent").isChecked(),false);
+    assert.equal(await page.locator("#send").isDisabled(),true);
+    assert.match(await page.locator("#prompt").inputValue(),/frame|فریم|image/i);
+    assert.equal(external.filter(x=>x.includes("/api/")).length,0);
+    await page.locator("#consent").check();
+    assert.equal(await page.locator("#send").isEnabled(),true);
+    await page.locator("#removeFile").click();
+    assert.equal(await page.locator("#attachment").isVisible(),false);
+    assert.equal(await page.locator("#consent").isChecked(),false);
+    await page.locator("#aiVideoBtn").click();
+  }
   await page.keyboard.press("Escape");
   assert.equal(await page.locator("#aiVideoPanel").isVisible(),false);
   assert.equal(await page.locator("#aiVideoPreview").getAttribute("src"),null);
@@ -121,7 +151,7 @@ try{
  console.log("AI_STUDIO_SEND_BUTTON_FULLY_VISIBLE_320_360_390_412_768_1280: PASS");
  console.log("AI_STUDIO_CLASSIC_LIGHT_STYLE_RESTORED: PASS");
  console.log("AI_STUDIO_15_UI_LANGUAGES_AND_BACK: PASS");
- console.log("AI_STUDIO_LOCAL_VIDEO_ONLY_NO_UPLOAD: PASS");
+ console.log("AI_STUDIO_LOCAL_VIDEO_AND_CONSENT_GATED_FRAME_AI: PASS");
  console.log("AI_GATEWAY_FOUR_REPLY_LANGUAGES_UNCHANGED: PASS");
  console.log("AI_STUDIO_MOBILE_DESKTOP_AND_EXIT: PASS");
 }catch(e){console.error("AI_STUDIO_MEDIA_BROWSER_FAILED:",String(e));process.exitCode=1;}
