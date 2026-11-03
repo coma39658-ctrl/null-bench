@@ -405,7 +405,7 @@ function showAnswerProvenance(messageNode,source,status,recordDate){
   }else{return}
   const note=document.createElement("div");
   note.className="answerProvenance";
-  note.textContent=label+(recordDate&&/^20\\d{2}-\\d{2}-\\d{2}$/.test(recordDate)?" · "+recordDate:"");
+  note.textContent=label+(recordDate&&/^20\d{2}-\d{2}-\d{2}$/.test(recordDate)?" · "+recordDate:"");
   body.appendChild(note);
 }
 function describeError(err){const s=String(err&&err.message||err);if(s.includes("IMAGE_READ"))return "تصویر فون سے پڑھی نہیں جاسکی۔ Files میں موجود دوسری تصویر منتخب کریں یا نئی تصویر لیں۔";if(s.includes("TIMEOUT")||s.includes("AbortError"))return "سرور نے مقررہ وقت میں جواب نہیں دیا۔ دوبارہ کوشش کی جاسکتی ہے۔";if(s.includes("HTTP_429"))return "فی الحال درخواستوں کی حد پوری ہوگئی ہے۔ کچھ دیر بعد خود دوبارہ کوشش کریں۔";if(s.includes("HTTP_"))return "AI سرور نے درخواست قبول نہیں کی ("+s+")۔";if(s.includes("Failed to fetch")||s.includes("NetworkError"))return "نیٹ ورک یا براؤزر رابطے میں مسئلہ ہے۔ انٹرنیٹ اور براؤزر کی اجازتیں جانچیں۔";if(s.includes("AI_SAFETY"))return "جواب حفاظتی حدود پر پورا نہیں اترا، اس لیے نہیں دکھایا گیا۔";return "AI درخواست مکمل نہیں ہوئی: "+s.slice(0,120)}
