@@ -1,0 +1,77 @@
+# Independent watch: no public releases, source scraping or paid API calls.
+name: E-ZERO AI Studio Automatic Mobile and Source QA
+on:
+  schedule:
+    - cron: '29 2 * * *'
+    - cron: '41 2 * * 1'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ezero_ai_studio_automatic_regression_20261103.yml'
+      - 'ezero_ai_studio_v0_1.html'
+      - 'js/ezero_ai_studio_media_i18n_v0_1.js'
+      - 'tests/test_ezero_web_sources_public_v0_1.js'
+      - 'tests/test_ezero_ai_video_frame_contract_v0_1.js'
+permissions:
+  contents: read
+concurrency:
+  group: ezero-ai-studio-automatic-regression
+  cancel-in-progress: true
+jobs:
+  daily-contracts:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check source links, no fake evidence and video consent contracts
+        run: |
+          set -euo pipefail
+          node --check js/ezero_ai_studio_media_i18n_v0_1.js
+          node tests/test_ezero_web_sources_public_v0_1.js
+          node tests/test_ezero_ai_video_frame_contract_v0_1.js
+      - name: Record result
+        if: always()
+        run: |
+          {
+            echo "## E-ZERO Public AI Studio regression"
+            echo "- Read-only checks: sources, original URLs, image/video consent, mobile UI integration"
+            echo "- Live endpoint/API calls, deployments, background polling: NONE"
+          } >> "$GITHUB_STEP_SUMMARY"
+  weekly-mobile-browser:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '41 2 * * 1'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install isolated Playwright Chromium
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.57.0
+          npx playwright install --with-deps chromium
+      - name: Test browser UI on phone/tablet/desktop widths
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8767 --bind 127.0.0.1 >/tmp/ezero-studio-qa.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8767/ezero_ai_studio_v0_1.html >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8767/ezero_ai_studio_v0_1.html >/dev/null
+          node tests/test_ezero_ai_studio_media_i18n_v0_1.mjs
+          echo 'LOCAL_VIDEO_ONLY: PASS'
+          echo 'PUBLIC_BACKEND_MODIFIED: NO'
