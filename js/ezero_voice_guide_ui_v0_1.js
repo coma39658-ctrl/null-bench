@@ -261,6 +261,31 @@
         return;
       }
 
+      // Site-status questions use only the current approved public site
+      // inventory. Do not ask Qwen to guess recently deployed buttons.
+      const siteState = window.EZERO_PUBLIC_SITE_STATE_V0_1;
+      if (siteState && siteState.isSiteQuestion(question)) {
+        let siteReply = null;
+        try {
+          siteReply = await siteState.answer(question, { language: language });
+        } catch (_) { /* Return to governed guide when the module fails. */ }
+        if (siteReply && typeof siteReply.answer === "string") {
+          answer.textContent = siteReply.answer;
+          status.textContent = siteReply.status === "OK"
+            ? (language === "ur"
+                ? "✓ شائع شدہ E-ZERO ویب سائٹ کا ریکارڈ"
+                : "✓ Published E-ZERO site record")
+            : (language === "ur"
+                ? "عوامی ویب سائٹ کا ریکارڈ دستیاب نہیں"
+                : "Public site record unavailable");
+          if (window.EZERO_VOICE_CONVERSATION &&
+              typeof window.EZERO_VOICE_CONVERSATION.setState === "function") {
+            window.EZERO_VOICE_CONVERSATION.setState("ANSWER");
+          }
+          return;
+        }
+      }
+
       if (deterministicResult.matched &&
           window.EZERO_PUBLIC_AI_ENABLED !== true) {
         answer.textContent = deterministicResult.text;
