@@ -11,14 +11,14 @@ assert.equal(record.status,"PUBLIC_APPROVED_SITE_STATE");
 assert.equal(record.visibility,"PUBLIC_ONLY");
 assert.equal(record.history_is_automatic,false);
 assert.ok(record.features.length>=6);
-assert.ok(html.includes('src="js/ezero_public_site_state_v0_1.js?v=20261103-site03"'));
-assert.ok(studio.includes('src="./js/ezero_public_site_state_v0_1.js?v=20261103-site03"'));
+assert.ok(html.includes('src="js/ezero_public_site_state_v0_1.js?v=20261103-site04"'));
+assert.ok(studio.includes('src="./js/ezero_public_site_state_v0_1.js?v=20261103-site04"'));
 assert.ok(guide.includes("siteState.isSiteQuestion(question)"));
 assert.ok(studio.includes("siteState.isSiteQuestion(q)"));
 assert.ok(html.includes('id="public-obd-runner"'));
 assert.ok(studio.includes("const IMAGE_ENDPOINT="));
 const simpleChat=fs.readFileSync("ezero_public_ai_chat_candidate_v0_1.html","utf8");
-assert.ok(simpleChat.includes("ezero_public_site_state_v0_1.js?v=20261103-site03"));
+assert.ok(simpleChat.includes("ezero_public_site_state_v0_1.js?v=20261103-site04"));
 assert.ok(simpleChat.includes("site.isSiteQuestion(question)"));
 
 let requests=[];
@@ -37,6 +37,10 @@ assert.equal(api.isSiteQuestion("Toyota Corolla 2018 Saudi Arabia price"),false)
 assert.equal(api.isSiteQuestion("2018 کرولا کی قیمت بتائیں"),false);
 assert.equal(api.isSiteQuestion("What is the current market price of a vehicle on E-ZERO?"),false);
 assert.equal(api.isSiteQuestion("How does an alternator work?"),false);
+assert.equal(api.isSiteQuestion("ای زیرو ڈیش بورڈ میں نتیجہ دکھانے والے کارڈ کتنے ہیں؟"),true);
+assert.equal(api.isSiteQuestion("How many result cards are in E-ZERO dashboard?"),true);
+assert.equal(api.classify("ای زیرو ڈیش بورڈ میں کتنے کارڈ ہیں؟").kind,"dashboard_cards");
+
 assert.equal(api.isSiteQuestion("آج اے آئی سیشن میں کیا تبدیلی کی گئی؟"),true);
 assert.equal(api.isSiteQuestion("آج اے ائی سیشن میں کیا تبدیلی کی گئی؟"),true);
 assert.equal(api.isSiteQuestion("آج Qwen AI session میں کیا تبدیلی ہوئی؟"),true);
@@ -58,6 +62,14 @@ assert.equal(api.classify("E-ZERO dashboard میں کیا اپڈیٹ ہوئی؟"
  assert.ok(updates.answer.includes("206/206"));
  assert.ok(updates.answer.includes("260/260"));
  assert.ok(!updates.answer.includes("466 منفرد"));
+ const cards=await api.answer("ڈیش بورڈ میں نتیجہ دکھانے والے کارڈز کی تعداد کتنی ہے؟",{language:"ur"});
+ assert.equal(cards.status,"OK");
+ assert.ok(cards.answer.includes("Structural Analysis Summary: 5"));
+ assert.ok(cards.answer.includes("RUL Summary: 4"));
+ assert.ok(cards.answer.includes("Historical Evidence Registry: 2"));
+ assert.ok(cards.answer.includes("PID Reference Catalog: 127"));
+ assert.ok(cards.answer.includes("مقررہ کل"));
+ assert.ok(cards.answer.includes("ہر موجود"));
  const aiUpdate=await api.answer("آج اے آئی سیشن میں کیا تبدیلی کی گئی؟",{language:"ur"});
  assert.equal(aiUpdate.status,"OK");
  assert.ok(aiUpdate.answer.includes("AI Studio"));
@@ -85,7 +97,7 @@ assert.equal(api.classify("E-ZERO dashboard میں کیا اپڈیٹ ہوئی؟"
  assert.equal(features.status,"OK");
  assert.ok(features.answer.includes("اے آئی"));
  assert.ok(features.answer.includes("PUBLIC_DEMO_ONLY"));
- assert.equal(requests.length,7);
+ assert.equal(requests.length,8);
  assert.ok(requests.every(r=>r.url==="./data/ezero_public_site_state_v0_1.json"));
  assert.ok(requests.every(r=>r.options.cache==="no-store"&&r.options.credentials==="same-origin"&&r.options.redirect==="error"));
  api.resetFocus();

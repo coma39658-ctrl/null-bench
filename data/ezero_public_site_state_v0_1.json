@@ -12,6 +12,14 @@
   "changes": [
     {
       "date": "2026-11-03",
+      "area": "dashboard-ui",
+      "title_ur": "Dashboard نتیجہ کارڈز کی ساخت AI میں شامل",
+      "title_en": "Dashboard result-card structure added to AI knowledge",
+      "detail_ur": "اصل public-facing Dashboard renderers کے جائزے سے Structural Summary 5، RUL Summary 4، Evidence Registry 2، PID Reference 127 اور متغیر OBD/Sensor cards کی علیحدہ وضاحت معلوماتی ریکارڈ میں شامل ہوئی۔ یہ مخصوص ماڈیول شمار ہیں، ایک مشترک کل نہیں۔",
+      "detail_en": "Reviewed the public-facing Dashboard renderer: structural summary 5, RUL summary 4, historical evidence registry 2, PID reference catalog 127, and variable actual sensor/OBD result cards. These are different sections, not a single total."
+    },
+    {
+      "date": "2026-11-03",
       "area": "ai-studio",
       "title_ur": "AI Studio کو E-ZERO کی شائع شدہ تبدیلیوں سے جوڑا گیا",
       "title_en": "AI Studio connected to public E-ZERO release record",
@@ -138,5 +146,22 @@
     "No private GitHub repository content, credentials, VIN, OBD records or ECU control",
     "No fabricated current prices, availability, physical validation or verified video contents",
     "External web search availability is separately governed"
-  ]
+  ],
+  "dashboard_ui": {
+    "captured_on": "2026-11-03",
+    "source": "E-ZERO-Dashboard repository main, public-facing templates/index.html and static/script.js; static/ezero_dashboard_evidence_registry_v0_1.json; static/ezero_standard_obd_sensor_library_v0_1.json",
+    "source_commit": "public-ui-review-20261103",
+    "dashboard_url": "https://e-zero-dashboard.onrender.com/dashboard",
+    "scope": "Counts from visible UI renderers and public reference inventory, not a single guaranteed on-screen card count.",
+    "structural_summary_fixed_cards": 5,
+    "rul_summary_fixed_cards": 4,
+    "historical_evidence_registry_modules": 2,
+    "pid_reference_catalog_entries": 127,
+    "sensor_screening_card_rule": "One result card per item in returned result.results array; varies with submitted rows and valid outputs.",
+    "physical_obd_snapshot_card_rule": "One card per item in verified snapshot.results array; zero when no verified snapshot exists, actual count varies.",
+    "live_total_cards": "NOT_FIXED",
+    "clarification": "PID catalog reference entries are NOT live vehicle result cards; historical evidence modules differ from current OBD sensor readings.",
+    "description_ur": "ڈیش بورڈ کے تمام نتیجہ کارڈز کی ایک مستقل کل تعداد نہیں: Structural Analysis Summary میں 5، RUL خلاصے میں 4، Historical Evidence Registry میں 2 ماڈیول کارڈز ہیں۔ 127 PID حوالہ جاتی کارڈز الگ لائبریری ہیں، حقیقی اسکین نتائج نہیں۔ Sensor Screening میں ہر موصول شدہ result.results آئٹم اور تصدیق شدہ Physical OBD Snapshot میں ہر snapshot.results آئٹم کے مطابق کارڈ بنتا ہے؛ نتیجے کے مطابق ان کی تعداد بدلتی ہے۔ کوئی نئی حقیقی گاڑی رپورٹ یا تشخیص اس شمار سے ثابت نہیں ہوتی۔",
+    "description_en": "There is no one fixed total across the Dashboard: Structural Analysis Summary renders 5 cards, the RUL summary 4, and the historical Evidence Registry 2 module cards. The separate PID catalog has 127 reference entries, not live diagnostic results. Sensor Screening renders one card per result.results item; the verified physical OBD snapshot renders one per snapshot.results item, so these counts vary by actual evidence."
+  }
 }
