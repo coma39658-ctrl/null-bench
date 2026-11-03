@@ -98,6 +98,7 @@
   </section>
  </main>
 </div>
+<script src="./js/ezero_public_site_state_v0_1.js?v=20261103-site01"></script>
 <script>
 (function(){
 "use strict";
@@ -452,6 +453,25 @@ async function sendQuestion(e){if(e)e.preventDefault();if(busy)return;const ques
    transcript.push({role:"user",text:q,has_image:isImage});
    els.prompt.value="";clearImage();resizeEntry();
    let loading=createMessage("assistant","جواب تیار کیا جا رہا ہے…",null,true);
+   // Direct read-only E-ZERO site inventory: not a Qwen search result.
+   // Keep image consent, price safeguards and all normal chat routes intact.
+   const siteState=window.EZERO_PUBLIC_SITE_STATE_V0_1;
+   if(!isImage&&siteState&&siteState.isSiteQuestion(q)){
+     let siteReply=null;
+     try{siteReply=await siteState.answer(q,{language:ezeroGatewayLanguage(q)})}
+     catch(_){/* Existing gateway route remains available. */}
+     if(epoch!==requestEpoch)return;
+     if(siteReply&&typeof siteReply.answer==="string"){
+       loading.box.remove();
+       createMessage("assistant",siteReply.answer,null,false);
+       transcript.push({role:"assistant",text:siteReply.answer,source:"PUBLIC_SITE_STATE"});
+       showNotice(siteReply.status==="OK"
+         ?"جواب صرف شائع شدہ E-ZERO ویب سائٹ کے مورخہ ریکارڈ سے ہے؛ حقیقی مارکیٹ سرچ یا گاڑی تشخیص نہیں۔"
+         :"تازہ عوامی سائٹ کا ریکارڈ نہیں ملا؛ کوئی بٹن یا حیثیت فرض نہیں کی گئی۔",
+         siteReply.status==="OK"?"success":"normal");
+       return;
+     }
+   }
    const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),isImage?50000:35000);
    try{
     const response=await fetch(isImage?IMAGE_ENDPOINT:ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},credentials:"omit",redirect:"error",cache:"no-store",body:JSON.stringify(payload),signal:controller.signal});
