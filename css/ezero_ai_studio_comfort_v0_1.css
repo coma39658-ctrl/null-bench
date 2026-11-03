@@ -308,3 +308,22 @@
   .quick,.send,.iconButton,.aiBackButton,.railButton,.tool{transition:none!important}
   .quick:hover,.send:hover,.iconButton:hover,.aiBackButton:hover,.railButton:hover,.tool:hover{transform:none!important}
 }
+
+/* Source-class disclosure is part of each answer, not another toolbar. */
+.answerProvenance{
+  margin-top:10px;
+  padding:8px 11px;
+  border:1px solid var(--line);
+  border-inline-start:3px solid var(--accent);
+  border-radius:9px;
+  background:var(--surface2);
+  color:var(--sub);
+  font-size:11px;
+  font-weight:650;
+  line-height:1.7;
+  overflow-wrap:anywhere;
+}
+@media(max-width:390px){
+  .answerProvenance{font-size:10.5px;padding:7px 9px}
+  .composerShell{padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+}
