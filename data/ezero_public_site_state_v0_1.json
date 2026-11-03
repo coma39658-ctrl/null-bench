@@ -12,6 +12,22 @@
   "changes": [
     {
       "date": "2026-11-03",
+      "area": "ai-studio",
+      "title_ur": "AI Studio کو E-ZERO کی شائع شدہ تبدیلیوں سے جوڑا گیا",
+      "title_en": "AI Studio connected to public E-ZERO release record",
+      "detail_ur": "موجودہ AI Studio میں E-ZERO کی عوامی معلوماتی فائل پڑھنے کا محفوظ رابطہ شامل ہوا۔ اب 'آج AI سیشن میں کیا تبدیلی ہوئی؟' جیسے سوال کا جواب متعلقہ AI Studio تبدیلیوں سے دیا جاتا ہے، غیر متعلقہ OBD تبدیلیوں سے نہیں۔ یہ تربیت یا نجی GitHub تک رسائی نہیں۔",
+      "detail_en": "The existing AI Studio reads a dated public site inventory and directs AI-session update questions to AI Studio changes rather than unrelated OBD changes. This is not model training or private GitHub access."
+    },
+    {
+      "date": "2026-11-03",
+      "area": "voice-guide",
+      "title_ur": "E-ZERO Voice Guide کی ویب سائٹ معلومات تازہ ہوئیں",
+      "title_en": "Voice Guide linked to dated site inventory",
+      "detail_ur": "موجودہ وائس گائیڈ اب عوامی سیکشن، بٹن اور تازہ تبدیلی کے سوال کے لیے اسی محفوظ مورخہ ریکارڈ سے جواب حاصل کرتا ہے؛ سوال پہچاننے میں 'آج AI سیشن' کی اردو صورتیں بھی شامل ہوئیں۔",
+      "detail_en": "The existing voice guide reads the same approved dated public inventory for site features and releases, including Urdu AI-session update phrasing."
+    },
+    {
+      "date": "2026-11-03",
       "area": "vehicle-obd",
       "title_ur": "وہیکل / OBD کی پیش رفت",
       "title_en": "Vehicle / OBD progress",
@@ -25,6 +41,14 @@
       "title_en": "Workshop Viewer milestone updated",
       "detail_ur": "موجودہ رپورٹ ویور کے اندر ماخذ، موبائل اردو رپورٹ، حفاظتی حدود اور نئی آف لائن آزمائش کی معلومات شامل ہوئیں۔ کوئی اضافی بٹن یا الگ صفحہ نہیں بنایا گیا۔",
       "detail_en": "Existing report viewer updated with provenance, mobile Urdu report, safety boundaries and offline test details. No additional button or page."
+    },
+    {
+      "date": "2026-11-03",
+      "area": "ai-search",
+      "title_ur": "AI کی حقیقی مارکیٹ سرچ ابھی فعال نہیں",
+      "title_en": "Live AI market research remains unavailable",
+      "detail_ur": "گاڑی، اسپیئر پارٹس، مارکیٹ قیمت اور بیرونی ویڈیو تلاش کے Mock ماڈیول موجود ہیں، مگر تصدیق شدہ Live سرچ فراہم کنندہ اور ماخذ پر مبنی جواب کی Public تصدیق باقی ہے۔ قیمت کا سوال مورخہ ویب سائٹ ریکارڈ سے جواب نہیں پاتا۔",
+      "detail_en": "Mock search modules exist for cars, parts, prices and video, but an approved working live provider and public source-backed verification remain pending. Price questions are never answered by the dated site registry."
     }
   ],
   "features": [
@@ -35,8 +59,8 @@
       "title_en": "E-ZERO AI Studio",
       "href": "ezero_ai_studio_v0_1.html",
       "status": "PUBLIC_UI_AVAILABLE",
-      "note_ur": "متن، تصویر اور مقامی ویڈیو پیش منظر کا انٹرفیس؛ بیرونی قیمتوں کی براہِ راست ویب تصدیق ابھی ثابت نہیں۔",
-      "note_en": "Text, image, local video preview interface. Live third-party price verification has not been demonstrated."
+      "note_ur": "AI Studio کا موجودہ عوامی انٹرفیس، جس میں E-ZERO کی مورخہ شائع شدہ تبدیلیوں کی معلومات شامل ہیں۔ Live بیرونی مارکیٹ سرچ اور پوری گفتگو کی مستقل یادداشت ابھی مصدقہ نہیں۔",
+      "note_en": "Existing public AI Studio now knows a dated site change register; verified live external market search and persistent whole-project memory are not available."
     },
     {
       "id": "voice-guide",
@@ -45,7 +69,7 @@
       "title_en": "E-ZERO Voice Guide",
       "href": "index.html",
       "status": "PUBLIC_UI_AVAILABLE",
-      "note_ur": "موجودہ عوامی گائیڈ؛ تازہ ویب سرچ صرف اس صورت میں دستیاب ہوگی جب محفوظ سرچ فراہم کنندہ عملی طور پر فعال اور آزمودہ ہو۔",
+      "note_ur": "موجودہ Voice Guide اب شائع شدہ E-ZERO سیکشنز اور تبدیلیوں کا مورخہ ریکارڈ پڑھتا ہے؛ یہ خودکار لائیو GitHub سینک نہیں۔",
       "note_en": "Existing public guide; live search needs an active verified search provider."
     },
     {
