@@ -15,8 +15,8 @@
       "area": "ai-studio",
       "title_ur": "AI Studio کو E-ZERO کی شائع شدہ تبدیلیوں سے جوڑا گیا",
       "title_en": "AI Studio connected to public E-ZERO release record",
-      "detail_ur": "موجودہ AI Studio میں E-ZERO کی عوامی معلوماتی فائل پڑھنے کا محفوظ رابطہ شامل ہوا۔ اب 'آج AI سیشن میں کیا تبدیلی ہوئی؟' جیسے سوال کا جواب متعلقہ AI Studio تبدیلیوں سے دیا جاتا ہے، غیر متعلقہ OBD تبدیلیوں سے نہیں۔ یہ تربیت یا نجی GitHub تک رسائی نہیں۔",
-      "detail_en": "The existing AI Studio reads a dated public site inventory and directs AI-session update questions to AI Studio changes rather than unrelated OBD changes. This is not model training or private GitHub access."
+      "detail_ur": "موجودہ AI Studio میں E-ZERO کی عوامی معلوماتی فائل پڑھنے کا محفوظ رابطہ شامل ہوا۔ اب 'آج AI سیشن میں کیا تبدیلی ہوئی؟' جیسے سوال کا جواب متعلقہ AI Studio تبدیلیوں سے دیا جاتا ہے، غیر متعلقہ OBD تبدیلیوں سے نہیں۔ یہ تربیت یا نجی GitHub تک رسائی نہیں۔ موجودہ انٹرفیس کے اندر ہی کام ہوا؛ نیا الگ بٹن نہیں بنایا گیا۔",
+      "detail_en": "The existing AI Studio reads a dated public site inventory and directs AI-session update questions to AI Studio changes rather than unrelated OBD changes. This is not model training or private GitHub access. The update is inside the existing interface; no new button was added."
     },
     {
       "date": "2026-11-03",
