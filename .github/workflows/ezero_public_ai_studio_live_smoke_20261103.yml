@@ -36,10 +36,13 @@ jobs:
           grep -q 'function publicSearchStatusLabel(status)' /tmp/ezero-live.html || { echo 'PUBLIC_PAGE_NOT_UPDATED: SOURCE_STATUS'; exit 1; }
           grep -q 'function needsPublicResearchSources(question)' /tmp/ezero-live.html || { echo 'PUBLIC_PAGE_NOT_UPDATED: RESEARCH_LINKS'; exit 1; }
           grep -q '20261103-mobilevideo02' /tmp/ezero-live.html || { echo 'PUBLIC_PAGE_NOT_UPDATED: VIDEO_ASSET'; exit 1; }
+          grep -Fq 'const ENDPOINT="https://ezero-qwen-public-sourceguard-v0-4.coma39658.workers.dev/api/ezero-agent/v0.1/ask"' /tmp/ezero-live.html || { echo 'PUBLIC_PAGE_WRONG_BACKEND: EXPECT_SOURCEGUARD_V04'; exit 1; }
+          grep -Fq 'const HEALTH="https://ezero-qwen-public-sourceguard-v0-4.coma39658.workers.dev/health"' /tmp/ezero-live.html || { echo 'PUBLIC_PAGE_WRONG_HEALTH: EXPECT_SOURCEGUARD_V04'; exit 1; }
           curl -fLSs --max-time 20 -H 'Cache-Control: no-cache' "$SCRIPT?release_check=$GITHUB_SHA" -o /tmp/ezero-live-video.js
           grep -q 'frame_ai_supported:true' /tmp/ezero-live-video.js
           grep -q 'application/octet-stream' /tmp/ezero-live-video.js
           echo 'PUBLIC_GITHUB_PAGES_LIVE: VERIFIED'
+          echo 'PUBLIC_STUDIO_BACKEND_V04: VERIFIED_IN_LIVE_HTML'
           echo 'AI_SEARCH_STATUS_UI: VERIFIED'
           echo 'LOCAL_VIDEO_FRAME_PREVIEW: VERIFIED_CODE_ONLY'
           echo 'CLOUDFLARE_LIVE_SEARCH: NOT_VERIFIED'
