@@ -16,6 +16,7 @@ const voiceSource = fs.readFileSync("js/ezero_voice_guide_ui_v0_1.js", "utf8");
 const website = fs.readFileSync("index.html", "utf8");
 const serviceWorker=fs.readFileSync("service-worker.js","utf8");
 const studio=fs.readFileSync("ezero_ai_studio_v0_1.html","utf8");
+assert.ok(studio.includes("showAnswerProvenance") && studio.includes("PUBLIC_RELEASE_BUNDLED_DATED"),"Site-state fallback must be visible as dated, not live");
 assert.ok(studio.includes("appendUnverifiedWebSources"),"AI Studio must show real external sources");
 assert.ok(studio.includes("source.sourceClass!==\"WEB_SEARCH_UNVERIFIED\""),
   "Ignore malformed or model-invented source records");
@@ -59,7 +60,7 @@ for(const [name,html] of [
   for(let i=0;i<scripts.length;i++)new vm.Script(scripts[i][1],{filename:name+"_"+i+".js"});
 }
 
-assert.match(serviceWorker,/ezero-null-bench-v6-public-sources-20261101/,"Updated mobile PWA cache version is required");
+assert.match(serviceWorker,/ezero-null-bench-v7-ai-studio-v03-20261103/,"Updated mobile PWA cache version is required");
 assert.match(serviceWorker,/url\.origin !== self\.location\.origin/,"Do not intercept or cache external websites or Cloudflare AI calls");
 assert.match(serviceWorker,/url\.pathname\.startsWith\(new URL\(self\.registration\.scope\)\.pathname\)/,"Only intercept this website project");
 assert.match(serviceWorker,/key\.startsWith\("ezero-null-bench-"\)/,"Do not delete other apps' caches");
