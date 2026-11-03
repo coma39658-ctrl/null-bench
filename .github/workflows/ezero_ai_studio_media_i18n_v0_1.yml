@@ -1,7 +1,7 @@
 name: E-ZERO AI Studio Local Video Frame and Consent Browser QA
 on:
   push:
-    branches: [ezero-ai-video-frame-consent-mobile-20261103, ezero-ai-video-mobile-picker-20261103, main]
+    branches: [ezero-ai-video-frame-consent-mobile-20261103, ezero-ai-video-mobile-picker-20261103, ezero-public-research-links-20261103, main]
     paths:
       - '.github/workflows/ezero_ai_studio_media_i18n_v0_1.yml'
       - 'ezero_ai_studio_v0_1.html'
@@ -10,6 +10,9 @@ on:
       - 'css/ezero_ai_studio_comfort_v0_1.css'
       - 'tests/test_ezero_ai_studio_media_i18n_v0_1.mjs'
       - 'tests/test_ezero_ai_video_frame_contract_v0_1.js'
+      - 'tests/test_ezero_web_sources_public_v0_1.js'
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 permissions: {contents: read}
 concurrency: {group: ezero-ai-studio-video-i18n-v0-1, cancel-in-progress: true}
@@ -31,6 +34,7 @@ jobs:
         run: |
           node --check js/ezero_ai_studio_media_i18n_v0_1.js
           node tests/test_ezero_ai_video_frame_contract_v0_1.js
+          node tests/test_ezero_web_sources_public_v0_1.js
           python -m http.server 8767 --bind 127.0.0.1 >/tmp/ezero-video-i18n.log 2>&1 &
           PID=$!
           trap 'kill "$PID" 2>/dev/null || true' EXIT

@@ -459,6 +459,12 @@ function appendUnverifiedWebSources(messageNode,rawSources){
  }
  parent.append(note,list);return valid.length;
 }
+// Match user requests that merit external, up-to-date evidence across topics.
+// Public search remains voluntary if no actual server sources came back.
+function needsPublicResearchSources(question){
+ if(typeof question!=="string"||!question.trim())return false;
+ return /\b(?:today|latest|current|recent|prices?|costs?|find|search|research|reviews?|compare|best|recommended|where|nearby|near me|video|youtube|news|source|references?|availability|official)\b|(?:آج|تازہ|قیمت|ریٹ|کتنے\s+(?:کی|کا|کے)\s+(?:ہوتی|ہوتا|ہوتے|ہے|ہیں)|کتنا\s+(?:خرچ|خرچہ|لگتا)|ویڈیو|یوٹیوب|سرچ|تلاش|کہاں|قریب|بہترین|ریسرچ|تحقیق|حوالہ|ذرائع|موازنہ|مارکیٹ|دستیاب|ابحث|أين|سعر|مصادر|वीडियो|कीमत|搜索|价格)/iu.test(question);
+}
 // User-initiated public search options, not verified E-ZERO sources.
 function appendOptionalMarketSearch(messageNode,question){
  if(!messageNode||typeof question!=="string"||!question.trim()||question.length>500)return;
@@ -522,13 +528,16 @@ async function sendQuestion(e){if(e)e.preventDefault();if(busy)return;const ques
     loading.box.remove();const finalMessage=createMessage("assistant",result.text,null,false);
     showAnswerProvenance(finalMessage,result.source,result.siteContextStatus,result.publishedAsOf);
     const linkedSources=!isImage?appendUnverifiedWebSources(finalMessage.box,result.sources):0;
-    if(!isImage&&linkedSources===0&&(result.marketPriceVerification==="NOT_VERIFIED"||/\b(?:videos?|youtube)\b|(?:ویڈیو|ویڈیوز|یوٹیوب|فيديو)/iu.test(q)))appendOptionalMarketSearch(finalMessage.box,q);
+    if(!isImage&&linkedSources===0&&(result.marketPriceVerification==="NOT_VERIFIED"||needsPublicResearchSources(q)))appendOptionalMarketSearch(finalMessage.box,q);
     transcript.push({role:"assistant",text:result.text,source:result.source});
     if(!isImage&&result.source!=="FAIL_CLOSED"){history.push({role:"user",content:q},{role:"assistant",content:result.text});history=history.slice(-MAX_HISTORY)}
+    const noFreshSource=!isImage&&linkedSources===0&&needsPublicResearchSources(q);
     showNotice(!isImage&&result.marketPriceVerification==="NOT_VERIFIED"
       ?"تحریری AI v0.3 · موجودہ مارکیٹ قیمت کی براہِ راست ویب تصدیق نہیں ہوئی۔ کسی فروخت کنندہ یا رقم کو مصدقہ نہ سمجھیں۔"
+      :noFreshSource
+      ?"اس جواب کے ساتھ اصل ویب سرچ ذرائع موصول نہیں ہوئے۔ نیچے اختیاری عوامی سرچ روابط موجود ہیں؛ قیمتیں اور تازہ دعوے تصدیق کے بغیر قبول نہ کریں۔"
       :"جواب موصول ہوگیا۔ راستہ: "+(isImage?"تصویری معاون":"تحریری AI v0.3")+"؛ حتمی گاڑی تشخیص نہیں۔",
-      result.marketPriceVerification==="NOT_VERIFIED"?"normal":"success");
+      noFreshSource||result.marketPriceVerification==="NOT_VERIFIED"?"normal":"success");
    }catch(error){if(epoch===requestEpoch){loading.box.remove();showNotice(describeError(error),"error");createMessage("assistant","درخواست مکمل نہیں ہوسکی۔ اوپر دی گئی خرابی دیکھیں؛ کوئی تشخیصی نتیجہ نہیں بنایا گیا۔",null,true)}}finally{clearTimeout(timer)}
  }catch(error){if(epoch===requestEpoch)showNotice(describeError(error),"error")}
  finally{if(epoch===requestEpoch){busy=false;updateSend();jump(true)}}
