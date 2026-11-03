@@ -39,6 +39,7 @@ button:disabled{opacity:.5}
 <section id="conversation" aria-live="polite"></section>
 <p>AI کو گاڑی یا ECU تک رسائی نہیں دی گئی۔ اس صفحے میں گفتگو مستقل محفوظ نہیں ہوتی۔</p>
 </main>
+<script src="./js/ezero_public_site_state_v0_1.js?v=20261103-site02"></script>
 <script>
 (function(){
 "use strict";
@@ -73,6 +74,23 @@ form.addEventListener("submit",async function(event){
  const language=get("language").value;
  busy=true;send.disabled=true;
  status.textContent="AI سے رابطہ ہو رہا ہے...";
+ // Same-origin, dated public site-state lookup; never used to invent prices.
+ const site=window.EZERO_PUBLIC_SITE_STATE_V0_1;
+ if(site&&site.isSiteQuestion(question)){
+   try{
+     const report=await site.answer(question,{language:language});
+     if(report&&typeof report.answer==="string"){
+       add("آپ: "+question,"question");
+       add("E-ZERO: "+report.answer,"answer");
+       status.textContent=report.status==="OK"
+         ?"ای زیرو کی شائع شدہ، مورخہ تبدیلیوں کا جواب؛ لائیو مارکیٹ سرچ نہیں۔"
+         :"تازہ ویب سائٹ معلومات دستیاب نہیں، اندازہ نہیں لگایا گیا۔";
+       get("question").value="";
+       busy=false;send.disabled=false;
+       return;
+     }
+   }catch(_){/* Fallback to current AI gateway without fabricating features. */}
+ }
  const controller=new AbortController();
  const timer=setTimeout(()=>controller.abort(),60000);
  try{
