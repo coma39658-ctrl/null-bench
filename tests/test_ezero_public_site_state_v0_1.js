@@ -11,20 +11,44 @@ assert.equal(record.status,"PUBLIC_APPROVED_SITE_STATE");
 assert.equal(record.visibility,"PUBLIC_ONLY");
 assert.equal(record.history_is_automatic,false);
 assert.ok(record.features.length>=6);
-assert.ok(html.includes('src="js/ezero_public_site_state_v0_1.js?v=20261103-site04"'));
-assert.ok(studio.includes('src="./js/ezero_public_site_state_v0_1.js?v=20261103-site04"'));
+assert.ok(html.includes('src="js/ezero_public_site_state_v0_1.js?v=20261103-site05"'));
+assert.ok(studio.includes('src="./js/ezero_public_site_state_v0_1.js?v=20261103-site05"'));
 assert.ok(guide.includes("siteState.isSiteQuestion(question)"));
 assert.ok(studio.includes("siteState.isSiteQuestion(q)"));
 assert.ok(html.includes('id="public-obd-runner"'));
 assert.ok(studio.includes("const IMAGE_ENDPOINT="));
 const simpleChat=fs.readFileSync("ezero_public_ai_chat_candidate_v0_1.html","utf8");
-assert.ok(simpleChat.includes("ezero_public_site_state_v0_1.js?v=20261103-site04"));
+assert.ok(simpleChat.includes("ezero_public_site_state_v0_1.js?v=20261103-site05"));
 assert.ok(simpleChat.includes("site.isSiteQuestion(question)"));
 
 let requests=[];
 let current=record;
-const context={window:{},URL,fetch:async(url,options)=>{
+const renderMap={
+ schema:"EZERO_PUBLIC_SITE_MAP_V0_1",
+ status:"PUBLIC_READ_ONLY",
+ diagnostic_claim:false,physical_execution_authorized:false,personal_data_included:false,
+ deployed_revision:"b25d236ded786403e6e1ad34bcb468f65bcf7291",
+ pages:[{
+   path:"/dashboard",section:"Dashboard / reports / OBD",
+   is_complete_dom_count:false,
+   controls:[
+     {type:"button",id:"connectVehicleButton",label:"Connect vehicle",disabled:false,href:null},
+     {type:"button",id:"completeVehiclePairingButton",label:"Complete session",disabled:true,href:null},
+     {type:"a",id:"",label:"PID catalog",disabled:false,href:"/pid-catalog"}
+   ]
+ },{
+   path:"/studio",section:"Studio / navigation",is_complete_dom_count:false,
+   controls:[{type:"a",id:"",label:"Vehicle screening",disabled:false,href:"/dashboard"}]
+ }]
+};
+let mapStatus="OK";
+const mapUrl="https://e-zero-dashboard.onrender.com/api/public-site-map/v0.1";
+const context={window:{},URL,AbortController,setTimeout,clearTimeout,fetch:async(url,options)=>{
  requests.push({url,options});
+ if(url===mapUrl){
+   if(mapStatus==="ERROR")throw Error("NETWORK");
+   return {ok:true,headers:{get:()=>null},text:async()=>JSON.stringify(renderMap)};
+ }
  return {ok:true,json:async()=>current};
 }};
 vm.runInNewContext(source,context,{filename:"ezero_public_site_state_v0_1.js"});
@@ -97,9 +121,30 @@ assert.equal(api.classify("E-ZERO dashboard میں کیا اپڈیٹ ہوئی؟"
  assert.equal(features.status,"OK");
  assert.ok(features.answer.includes("اے آئی"));
  assert.ok(features.answer.includes("PUBLIC_DEMO_ONLY"));
- assert.equal(requests.length,8);
- assert.ok(requests.every(r=>r.url==="./data/ezero_public_site_state_v0_1.json"));
- assert.ok(requests.every(r=>r.options.cache==="no-store"&&r.options.credentials==="same-origin"&&r.options.redirect==="error"));
+ assert.ok(features.answer.includes("Connect vehicle"));
+ assert.ok(features.answer.includes("Complete session [DISABLED]"));
+ assert.ok(features.answer.includes("https://e-zero-dashboard.onrender.com/pid-catalog"));
+ assert.equal(requests.filter(r=>r.url===mapUrl).length,1);
+ assert.ok(requests.every(r=>r.options.cache==="no-store"&&r.options.redirect==="error"));
+ assert.ok(requests.filter(r=>r.url===mapUrl).every(r=>r.options.method==="GET"&&r.options.credentials==="omit"));
+ assert.ok(requests.filter(r=>r.url!==mapUrl).every(r=>r.options.credentials==="same-origin"));
+ // Render unavailable must not be mistaken for a verified, current inventory.
+ mapStatus="ERROR";
+ const offline=await api.answer("E-ZERO کے کون سے بٹن اور سیکشن ہیں؟",{language:"ur"});
+ assert.equal(offline.status,"OK");
+ assert.ok(offline.answer.includes("Live فہرست نہیں ملی"));
+ assert.ok(!offline.answer.includes("Connect vehicle"));
+ // Untrusted map must not inject arbitrary outbound links or privacy flags.
+ mapStatus="OK";
+ renderMap.personal_data_included=true;
+ const rejected=await api.readDashboardMap();
+ assert.equal(rejected.status,"UNAVAILABLE");
+ renderMap.personal_data_included=false;
+ renderMap.pages[0].controls[0].href="https://evil.example/";
+ const badLink=await api.readDashboardMap();
+ assert.equal(badLink.status,"UNAVAILABLE");
+ renderMap.pages[0].controls[0].href=null;
+ assert.equal(api.readDashboardMap instanceof Function,true);
  api.resetFocus();
  assert.equal(api.getFocus(),null);
  assert.equal(api.isSiteQuestion("اور اس میں کیا نیا ہے؟"),false);
