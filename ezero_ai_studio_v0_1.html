@@ -465,6 +465,33 @@ function needsPublicResearchSources(question){
  if(typeof question!=="string"||!question.trim())return false;
  return /\b(?:today|latest|current|recent|prices?|costs?|find|search|research|reviews?|compare|best|recommended|where|nearby|near me|video|youtube|news|source|references?|availability|official)\b|(?:آج|تازہ|قیمت|ریٹ|کتنے\s+(?:کی|کا|کے)\s+(?:ہوتی|ہوتا|ہوتے|ہے|ہیں)|کتنا\s+(?:خرچ|خرچہ|لگتا)|ویڈیو|یوٹیوب|سرچ|تلاش|کہاں|قریب|بہترین|ریسرچ|تحقیق|حوالہ|ذرائع|موازنہ|مارکیٹ|دستیاب|ابحث|أين|سعر|مصادر|वीडियो|कीमत|搜索|价格)/iu.test(question);
 }
+// Human-readable search evidence status: public result metadata, not model prose.
+function publicSearchStatusLabel(status){
+ const s=typeof status==="string"?status:"UNKNOWN";
+ if(s==="DISABLED"||s==="FREE_SEARCH_NOT_CONFIGURED"||s==="AI_BINDING_NOT_READY"||
+    s==="QWEN_SEARCH_NOT_CONFIGURED")
+   return "Live ویب سرچ ابھی اس AI سرور پر فعال یا مربوط نہیں؛ یہ جواب تازہ ویب تصدیق نہیں ہے۔";
+ if(s==="PRIVATE_OR_IMAGE")return "نجی معلومات یا تصویر کا مواد بیرونی ویب سرچ کو نہیں بھیجا گیا۔";
+ if(s==="FREE_SEARCH_DAILY_QUOTA_REACHED"||s==="WEB_SEARCH_DAILY_QUOTA_REACHED"||
+    s==="QWEN_SEARCH_DAILY_QUOTA_REACHED"||s==="FREE_SEARCH_QUOTA_UNAVAILABLE"||
+    s==="QWEN_SEARCH_QUOTA_UNAVAILABLE")
+   return "ویب سرچ کی روزانہ حد یا حفاظتی کوٹہ دستیاب نہیں؛ کوئی مصدقہ تازہ ماخذ شامل نہیں۔";
+ if(s==="NO_USABLE_SOURCES"||s==="WEB_CONTEXT_AVAILABLE")
+   return "سرچ کی معلومات میں کوئی قابلِ استعمال اصل ویب ماخذ شامل نہیں ہوا؛ دعووں کی تصدیق باقی ہے۔";
+ if(s==="NO_FRESHNESS_NEED")return "اس درخواست کے لیے خودکار سرچ نہیں کی گئی؛ اصل ویب ماخذ موجود نہیں۔";
+ if(/(?:FAILED|UNAVAILABLE|TIMEOUT|BAD_|TOO_LARGE|PROVIDER_)/.test(s))
+   return "بیرونی سرچ فراہم کنندہ نے قابلِ استعمال جواب نہیں دیا؛ AI کی گفتگو جاری ہے مگر تازہ معلومات غیر مصدقہ ہیں۔";
+ return "اس جواب کے ساتھ اصل تازہ ویب سرچ کے روابط موصول نہیں ہوئے؛ قیمتوں اور نئے دعووں کی تصدیق باقی ہے۔";
+}
+function annotateSearchStatus(message,q,result,count){
+ if(count>0||!needsPublicResearchSources(q))return;
+ const body=message?.box?.querySelector(".messageBody");
+ if(!body)return;
+ const note=document.createElement("div");
+ note.className="answerProvenance";
+ note.textContent=publicSearchStatusLabel(result?.webResearchStatus);
+ body.appendChild(note);
+}
 // User-initiated public search options, not verified E-ZERO sources.
 function appendOptionalMarketSearch(messageNode,question){
  if(!messageNode||typeof question!=="string"||!question.trim()||question.length>500)return;
@@ -528,6 +555,7 @@ async function sendQuestion(e){if(e)e.preventDefault();if(busy)return;const ques
     loading.box.remove();const finalMessage=createMessage("assistant",result.text,null,false);
     showAnswerProvenance(finalMessage,result.source,result.siteContextStatus,result.publishedAsOf);
     const linkedSources=!isImage?appendUnverifiedWebSources(finalMessage.box,result.sources):0;
+    if(!isImage)annotateSearchStatus(finalMessage,q,result,linkedSources);
     if(!isImage&&linkedSources===0&&(result.marketPriceVerification==="NOT_VERIFIED"||needsPublicResearchSources(q)))appendOptionalMarketSearch(finalMessage.box,q);
     transcript.push({role:"assistant",text:result.text,source:result.source});
     if(!isImage&&result.source!=="FAIL_CLOSED"){history.push({role:"user",content:q},{role:"assistant",content:result.text});history=history.slice(-MAX_HISTORY)}

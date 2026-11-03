@@ -30,6 +30,17 @@ assert.ok(studio.includes("const noFreshSource=!isImage&&linkedSources===0&&need
   "No-source research warning must be visible even if the worker forgot a market verification label");
 assert.ok(studio.includes("appendOptionalMarketSearch(finalMessage.box,q)"),
   "Only user-clicked external search links, never hidden client-side uploads");
+assert.ok(studio.includes("annotateSearchStatus(finalMessage,q,result,linkedSources)"),
+  "Each research answer should include its own source status, not only a transient notice");
+const statusLabelSource=studio.match(/function publicSearchStatusLabel\(status\)\{[\s\S]*?\n\}/)?.[0];
+assert.ok(statusLabelSource,"Missing evidence-status formatter");
+const formatSourceStatus=vm.runInNewContext(statusLabelSource+"\npublicSearchStatusLabel");
+assert.match(formatSourceStatus("DISABLED"),/فعال یا مربوط نہیں/);
+assert.match(formatSourceStatus("FREE_SEARCH_DAILY_QUOTA_REACHED"),/حد یا حفاظتی کوٹہ/);
+assert.match(formatSourceStatus("FREE_SEARCH_FAILED"),/فراہم کنندہ/);
+assert.match(formatSourceStatus("PRIVATE_OR_IMAGE"),/نجی معلومات/);
+assert.match(formatSourceStatus("NO_USABLE_SOURCES"),/اصل ویب ماخذ/);
+assert.match(formatSourceStatus("UNKNOWN"),/تصدیق باقی ہے/);
 assert.ok(studio.includes('▶ '),"Identify actual returned video links");
 assert.ok(studio.includes('const linkedSources=!isImage?appendUnverifiedWebSources'),
   "Keep public search source rendering separate from user images");
