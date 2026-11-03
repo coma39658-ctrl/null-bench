@@ -116,7 +116,7 @@ try{
     });
     assert.equal(await page.locator("#aiVideoFrameBtn").isEnabled(),true);
     await page.locator("#aiVideoFrameBtn").click();
-    await page.locator("#aiVideoPanel.hidden").waitFor();
+    await page.locator("#aiVideoPanel").waitFor({state:"hidden"});
     assert.equal(await page.locator("#attachment").isVisible(),true);
     assert.equal(await page.locator("#consentRow").isVisible(),true);
     assert.equal(await page.locator("#consent").isChecked(),false);
