@@ -22,8 +22,14 @@ assert.ok(studio.includes("source.sourceClass!==\"WEB_SEARCH_UNVERIFIED\""),
   "Ignore malformed or model-invented source records");
 assert.ok(studio.includes('a.rel="noopener noreferrer nofollow"'),
   "Prevent referrer leaks from user-clicked source URLs");
-assert.ok(studio.includes('result.marketPriceVerification==="NOT_VERIFIED"||'),
-  "If no actual video links were returned, allow only user-clicked search");
+assert.ok(studio.includes('result.marketPriceVerification==="NOT_VERIFIED"||needsPublicResearchSources(q)'),
+  "If live sources are missing, offer user-clicked search for general public research too");
+assert.ok(studio.includes("function needsPublicResearchSources(question)"),
+  "General web research intent should not be auto-limited to cars");
+assert.ok(studio.includes("const noFreshSource=!isImage&&linkedSources===0&&needsPublicResearchSources(q)"),
+  "No-source research warning must be visible even if the worker forgot a market verification label");
+assert.ok(studio.includes("appendOptionalMarketSearch(finalMessage.box,q)"),
+  "Only user-clicked external search links, never hidden client-side uploads");
 assert.ok(studio.includes('▶ '),"Identify actual returned video links");
 assert.ok(studio.includes('const linkedSources=!isImage?appendUnverifiedWebSources'),
   "Keep public search source rendering separate from user images");
