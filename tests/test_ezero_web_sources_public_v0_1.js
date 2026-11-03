@@ -26,6 +26,15 @@ assert.ok(studio.includes('result.marketPriceVerification==="NOT_VERIFIED"||need
   "If live sources are missing, offer user-clicked search for general public research too");
 assert.ok(studio.includes("function needsPublicResearchSources(question)"),
   "General web research intent should not be auto-limited to cars");
+const offsetFnText=studio.match(/function clockOffsetNeeded\(question\)\{[\s\S]*?\n\}/)?.[0];
+assert.ok(offsetFnText,"Device UTC offset should be limited to clock questions");
+const clockOffsetNeeded=vm.runInNewContext(offsetFnText+"\nclockOffsetNeeded");
+assert.equal(clockOffsetNeeded("آج کیا دن ہے؟"),true);
+assert.equal(clockOffsetNeeded("What's the date today?"),true);
+assert.equal(clockOffsetNeeded("الریاض میں گاڑی کی دھلائی کتنے کی ہوتی ہے"),false);
+assert.equal(clockOffsetNeeded("آج AI Studio میں کیا تبدیلی ہوئی؟"),false);
+assert.ok(studio.includes("clockOffsetNeeded(q)?{client_utc_offset_minutes:-new Date().getTimezoneOffset()}"),
+  "No unconditional timezone metadata on ordinary questions");
 assert.ok(studio.includes("const noFreshSource=!isImage&&linkedSources===0&&needsPublicResearchSources(q)"),
   "No-source research warning must be visible even if the worker forgot a market verification label");
 assert.ok(studio.includes("appendOptionalMarketSearch(finalMessage.box,q)"),
