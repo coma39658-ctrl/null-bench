@@ -39,7 +39,7 @@ button:disabled{opacity:.5}
 <section id="conversation" aria-live="polite"></section>
 <p>AI کو گاڑی یا ECU تک رسائی نہیں دی گئی۔ اس صفحے میں گفتگو مستقل محفوظ نہیں ہوتی۔</p>
 </main>
-<script src="./js/ezero_public_site_state_v0_1.js?v=20261103-site02"></script>
+<script src="./js/ezero_public_site_state_v0_1.js?v=20261103-site03"></script>
 <script>
 (function(){
 "use strict";
@@ -76,6 +76,7 @@ form.addEventListener("submit",async function(event){
  status.textContent="AI سے رابطہ ہو رہا ہے...";
  // Same-origin, dated public site-state lookup; never used to invent prices.
  const site=window.EZERO_PUBLIC_SITE_STATE_V0_1;
+ if(site&&!site.isSiteQuestion(question))site.resetFocus?.();
  if(site&&site.isSiteQuestion(question)){
    try{
      const report=await site.answer(question,{language:language});
