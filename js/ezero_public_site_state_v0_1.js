@@ -13,6 +13,8 @@
  const OBD=/(?:\b(?:obd|vehicle|car\s+scanner|dashboard|workshop\s+viewer)\b|او\s*بی\s*ڈی|گاڑی|ڈیش\s*بورڈ|ورکشاپ\s*رپورٹ|ورکشاپ\s*ویور)/iu;
  const CHANGED=/(?:\b(?:update|updates|updated|changed|changes|change|new|newest|latest|today|release|progress|what\s+happened|what\s+did\s+you\s+do)\b|آج|اج|ابھی|تازہ|اپڈیٹ|اپ\s*ڈیٹ|تبدیل|تبدیلی|تبدیلیاں|کیا\s+بدلا|کیا\s+کام|نیا|نئی|نئے|کیا\s+ہوا|التحديثات|تحديث|الجديد|اليوم)/iu;
  const FEATURES=/(?:\b(?:button|buttons|feature|features|section|sections|where|open|menu|available|status|active)\b|بٹن|بٹنز|سیکشن|فیچر|کہاں|کھول|مینو|حالت|فعال|الأزرار|الأقسام)/iu;
+ const DASHBOARD=/(?:\b(?:dashboard|vehicle\s+dashboard|obd\s+dashboard)\b|ڈیش\s*بورڈ|ڈیشبورڈ|گاڑی\s+کا\s+ڈیش\s*بورڈ)/iu;
+ const CARD_COUNT=/(?:\b(?:cards?|how\s+many|count|number\s+of|total\s+cards?)\b|کارڈز?|کتنے|کتنی|تعداد|شمار|گنتی)/iu;
  const ACTION=/(?:\b(?:search|find|buy|compare)\b|تلاش\s+کرو|ڈھونڈو|خرید|موازنہ\s+کرو)/iu;
  // Two bounded, tab-local follow-ups. Never store private prompts or train a model.
  const FOLLOWUP=/^(?:اور|اچھا|پھر|اس میں|اس کے|اس کی|ان میں|مزید|اب|what about|and what about|and in that|tell me more|what else|more about|also)\b|^(?:اس\s+میں|اس\s+کے|اس\s+کی|ان\s+میں|اور\s+اس|مزید\s+کیا|اب\s+اس)/iu;
@@ -27,6 +29,10 @@
    const q=norm(question);
    // Live price/search requests must always reach the existing governed web-search route.
    if(PRICE.test(q)||FRESH_SEARCH.test(q))return null;
+   // Dashboard card counts are verified UI structures, not market search.
+   // Their total is not fixed because real sensor and OBD result arrays vary.
+   if(DASHBOARD.test(q)&&CARD_COUNT.test(q))
+     return Object.freeze({scope:"vehicle",kind:"dashboard_cards",date:"latest",followup:false});
    const explicit=SITE.test(q);
    const ai=AI_SESSION.test(q);
    const obd=OBD.test(q);
@@ -102,6 +108,39 @@
        "تعذر جلب حالة الموقع العام الآن، لذلك لن أفترض تحديثات أو أزرارًا غير موثقة.")});
    }
    const out=[lineUr(lng,"E-ZERO کا شائع شدہ ریکارڈ — تاریخ: ","E-ZERO published record — date: ","سجل E-ZERO المنشور — التاريخ: ")+snapshot.as_of];
+   if(intent.kind==="dashboard_cards"){
+     const ui=snapshot.dashboard_ui;
+     if(!ui||ui.live_total_cards!=="NOT_FIXED"||
+        !Number.isInteger(ui.structural_summary_fixed_cards)||
+        !Number.isInteger(ui.rul_summary_fixed_cards)||
+        !Number.isInteger(ui.historical_evidence_registry_modules)||
+        !Number.isInteger(ui.pid_reference_catalog_entries)){
+       return Object.freeze({status:"UNAVAILABLE",source_class:"PUBLIC_SITE_STATE",as_of:snapshot.as_of,
+         answer:lineUr(lng,
+           "Dashboard کے نتیجہ کارڈز کا ماخذی ریکارڈ ابھی دستیاب نہیں۔ ایک غیر تصدیق شدہ کل تعداد نہیں بتاؤں گا۔",
+           "Verified Dashboard card inventory is unavailable. I will not guess a fixed total.",
+           "سجل بطاقات لوحة التحكم الموثق غير متاح؛ لن أخمّن عددًا إجماليًا.")});
+     }
+     out.push(lineUr(lng,
+       "ڈیش بورڈ کے تمام نتیجہ کارڈز کا ایک مقررہ کل عدد نہیں ہے۔ متعلقہ سیکشن الگ الگ ہیں:",
+       "There is no single fixed total of Dashboard result cards. These are separate sections:",
+       "لا يوجد إجمالي ثابت لبطاقات النتائج، لأن هذه أقسام مختلفة:"));
+     out.push("• Structural Analysis Summary: "+ui.structural_summary_fixed_cards+
+       "\n• RUL Summary: "+ui.rul_summary_fixed_cards+
+       "\n• Historical Evidence Registry: "+ui.historical_evidence_registry_modules+
+       "\n• PID Reference Catalog: "+ui.pid_reference_catalog_entries);
+     out.push(lineUr(lng,
+       "127 PID اندراجات صرف حوالہ جاتی کارڈز ہیں، حقیقی گاڑی کی ریڈنگز نہیں۔ Sensor Screening میں ہر موصولہ سینسر نتیجے پر ایک کارڈ بنتا ہے؛ تصدیق شدہ Physical OBD Snapshot میں بھی ہر موجود نتیجے پر الگ کارڈ بنتا ہے۔ اس لیے ان کی تعداد رپورٹ کے مطابق بدلتی ہے۔",
+       "The 127 PID entries are reference cards, not live readings. Sensor Screening creates a card per returned sensor result, and verified physical OBD snapshots create a card per present result. Those counts vary with the report.",
+       "بطاقات PID الـ127 مرجعية وليست قراءات حقيقية. بطاقات الفحص وOBD تتغير حسب النتائج الفعلية."));
+     out.push(lineUr(lng,
+       "ماخذ: E-ZERO Dashboard کے نتیجہ بنانے والے public-facing UI کوڈ اور Evidence/PID رجسٹریوں کا 3 نومبر 2026 کا جائزہ۔ یہ نئی حقیقی گاڑی کی تشخیص نہیں۔",
+       "Source: Review of the E-ZERO Dashboard public-facing rendering code and evidence/PID registries on 3 November 2026. Not a fresh real-vehicle diagnosis.",
+       "المصدر: مراجعة كود واجهة لوحة E-ZERO وسجلات الأدلة وPID بتاريخ 3 نوفمبر 2026؛ ليس تشخيصًا مباشرًا."));
+     focus={scope:"vehicle",kind:"features"};focusHops=2;
+     return Object.freeze({status:"OK",source_class:"PUBLIC_SITE_STATE",answer:out.join("\n\n").slice(0,5500),as_of:snapshot.as_of});
+   }
+
    const changes=snapshot.changes.filter(c=>scopeChange(c,intent.scope)&&
      (intent.date!=="today"||c.date===snapshot.as_of)).slice(0,7);
    if(intent.kind==="changes"){
@@ -136,5 +175,5 @@
    focus={scope:intent.scope,kind:intent.kind};
    return Object.freeze({status:"OK",source_class:"PUBLIC_SITE_STATE",answer:out.join("\n\n").slice(0,5500),as_of:snapshot.as_of});
  }
- root.EZERO_PUBLIC_SITE_STATE_V0_1=Object.freeze({version:"0.3",isSiteQuestion,classify,answer,resetFocus,getFocus});
+ root.EZERO_PUBLIC_SITE_STATE_V0_1=Object.freeze({version:"0.4",isSiteQuestion,classify,answer,resetFocus,getFocus});
 })(window);
