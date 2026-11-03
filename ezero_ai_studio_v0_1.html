@@ -91,7 +91,7 @@
       <div class="aiVideoHead"><h2 id="aiVideoHeading" data-ai-ui="video">🎬 ویڈیو پیش منظر</h2><button type="button" id="aiVideoClose" class="aiVideoClose" data-ai-ui="close">بند کریں</button></div>
       <p id="aiVideoBoundary" class="aiVideoBoundary" data-ai-ui="videoBoundaryFull">یہ صرف آپ کے فون کے اندر ویڈیو چلانے کے لیے ہے۔ ویڈیو AI سرور کو نہیں بھیجی جائے گی اور AI ویڈیو تجزیہ ابھی فعال نہیں۔</p>
       <label for="aiVideoInput" data-ai-ui="chooseVideo">اپنی ویڈیو منتخب کریں</label>
-      <input id="aiVideoInput" type="file" accept="video/mp4,video/webm,video/quicktime,video/3gpp" aria-describedby="aiVideoStatus">
+      <input id="aiVideoInput" type="file" accept="video/*,.mp4,.m4v,.webm,.mov,.3gp" aria-describedby="aiVideoStatus">
       <video id="aiVideoPreview" playsinline controls preload="metadata" class="hidden"></video>
       <p id="aiVideoStatus" role="status" aria-live="polite" data-ai-ui="videoReady">MP4، WebM، MOV یا 3GP · زیادہ سے زیادہ 150 MB · مکمل ویڈیو اپلوڈ نہیں ہوگی۔</p>
       <div class="aiVideoFrameArea" id="aiVideoFrameArea">
@@ -551,6 +551,6 @@ window.addEventListener("pagehide",()=>{if(objectURL)URL.revokeObjectURL(objectU
 setupMic();ezeroSetupVoiceSettings();updateSend();checkHealth();
 })();
 </script>
-<script src="./js/ezero_ai_studio_media_i18n_v0_1.js?v=20261103-frame01" defer></script>
+<script src="./js/ezero_ai_studio_media_i18n_v0_1.js?v=20261103-mobilevideo02" defer></script>
 </body>
 </html>
