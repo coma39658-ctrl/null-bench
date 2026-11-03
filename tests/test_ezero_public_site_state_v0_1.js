@@ -42,7 +42,7 @@ assert.equal(api.isSiteQuestion("How does an alternator work?"),false);
  assert.ok(!updates.answer.includes("466 منفرد"));
  const features=await api.answer("E-ZERO کے کون سے بٹن اور سیکشن ہیں؟",{language:"ur"});
  assert.equal(features.status,"OK");
- assert.ok(features.answer.includes("AI"));
+ assert.ok(features.answer.includes("اے آئی"));
  assert.ok(features.answer.includes("PUBLIC_DEMO_ONLY"));
  assert.equal(requests.length,2);
  assert.ok(requests.every(r=>r.url==="./data/ezero_public_site_state_v0_1.json"));
