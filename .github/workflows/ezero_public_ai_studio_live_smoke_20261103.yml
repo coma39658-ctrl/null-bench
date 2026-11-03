@@ -27,8 +27,11 @@ jobs:
           set -euo pipefail
           URL='https://coma39658-ctrl.github.io/null-bench/ezero_ai_studio_v0_1.html'
           SCRIPT='https://coma39658-ctrl.github.io/null-bench/js/ezero_ai_studio_media_i18n_v0_1.js'
-          for i in $(seq 1 8); do
-            if curl -fLSs --retry 2 --retry-delay 2 --max-time 20 -H 'Cache-Control: no-cache' "$URL?release_check=$GITHUB_SHA" -o /tmp/ezero-live.html &&                grep -q 'function publicSearchStatusLabel(status)' /tmp/ezero-live.html &&                grep -q 'function needsPublicResearchSources(question)' /tmp/ezero-live.html &&                grep -q '20261103-mobilevideo02' /tmp/ezero-live.html; then
+          for i in $(seq 1 12); do
+            if curl -fLSs --retry 2 --retry-delay 2 --max-time 20 -H 'Cache-Control: no-cache' "$URL?release_check=$GITHUB_SHA" -o /tmp/ezero-live.html &&                grep -q 'function publicSearchStatusLabel(status)' /tmp/ezero-live.html &&                grep -q 'function needsPublicResearchSources(question)' /tmp/ezero-live.html &&                grep -q '20261103-mobilevideo02' /tmp/ezero-live.html && \
+               grep -Fq 'const ENDPOINT="https://ezero-qwen-public-clock-v0-5.coma39658.workers.dev/api/ezero-agent/v0.1/ask"' /tmp/ezero-live.html && \
+               grep -Fq 'const HEALTH="https://ezero-qwen-public-clock-v0-5.coma39658.workers.dev/health"' /tmp/ezero-live.html && \
+               grep -q 'function clockOffsetNeeded(question)' /tmp/ezero-live.html; then
               break
             fi
             sleep 8
@@ -36,13 +39,34 @@ jobs:
           grep -q 'function publicSearchStatusLabel(status)' /tmp/ezero-live.html || { echo 'PUBLIC_PAGE_NOT_UPDATED: SOURCE_STATUS'; exit 1; }
           grep -q 'function needsPublicResearchSources(question)' /tmp/ezero-live.html || { echo 'PUBLIC_PAGE_NOT_UPDATED: RESEARCH_LINKS'; exit 1; }
           grep -q '20261103-mobilevideo02' /tmp/ezero-live.html || { echo 'PUBLIC_PAGE_NOT_UPDATED: VIDEO_ASSET'; exit 1; }
-          grep -Fq 'const ENDPOINT="https://ezero-qwen-public-sourceguard-v0-4.coma39658.workers.dev/api/ezero-agent/v0.1/ask"' /tmp/ezero-live.html || { echo 'PUBLIC_PAGE_WRONG_BACKEND: EXPECT_SOURCEGUARD_V04'; exit 1; }
-          grep -Fq 'const HEALTH="https://ezero-qwen-public-sourceguard-v0-4.coma39658.workers.dev/health"' /tmp/ezero-live.html || { echo 'PUBLIC_PAGE_WRONG_HEALTH: EXPECT_SOURCEGUARD_V04'; exit 1; }
+          grep -Fq 'const ENDPOINT="https://ezero-qwen-public-clock-v0-5.coma39658.workers.dev/api/ezero-agent/v0.1/ask"' /tmp/ezero-live.html || { echo 'PUBLIC_PAGE_WRONG_BACKEND: EXPECT_CLOCK_V05'; exit 1; }
+          grep -Fq 'const HEALTH="https://ezero-qwen-public-clock-v0-5.coma39658.workers.dev/health"' /tmp/ezero-live.html || { echo 'PUBLIC_PAGE_WRONG_HEALTH: EXPECT_CLOCK_V05'; exit 1; }
           curl -fLSs --max-time 20 -H 'Cache-Control: no-cache' "$SCRIPT?release_check=$GITHUB_SHA" -o /tmp/ezero-live-video.js
           grep -q 'frame_ai_supported:true' /tmp/ezero-live-video.js
           grep -q 'application/octet-stream' /tmp/ezero-live-video.js
           echo 'PUBLIC_GITHUB_PAGES_LIVE: VERIFIED'
-          echo 'PUBLIC_STUDIO_BACKEND_V04: VERIFIED_IN_LIVE_HTML'
+          # One direct public request proves the frontend's new Worker clock
+          # actually responds with today's date (and does not need web search).
+          node --input-type=module - <<'CLOCK'
+          const base='https://ezero-qwen-public-clock-v0-5.coma39658.workers.dev';
+          const origin='https://coma39658-ctrl.github.io';
+          const r=await fetch(base+'/api/ezero-agent/v0.1/ask',{
+            method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},
+            body:JSON.stringify({question:'آج کیا دن ہے؟',response_language:'ur',
+               fallback_language:'ur',client_utc_offset_minutes:180}),
+            signal:AbortSignal.timeout(20000)
+          });
+          const d=await r.json();
+          const expected=new Date(Date.now()+180*60000).toISOString().slice(0,10);
+          if(r.status!==200||d.status!=='OK'||
+             d.answer_generation!=='DETERMINISTIC_SERVER_CLOCK'||
+             d.time_basis!=='BROWSER_UTC_OFFSET'||
+             d.server_local_date!==expected||
+             d.web_research_status!=='NOT_REQUESTED'||
+             !d.answer?.includes('UTC+03:00'))throw Error('PUBLIC_STUDIO_DATE_BACKEND_NOT_LIVE');
+          console.log('PUBLIC_STUDIO_TODAY_IN_RIYADH: PASS');
+          CLOCK
+          echo 'PUBLIC_STUDIO_BACKEND_V05: VERIFIED_IN_LIVE_HTML'
           echo 'AI_SEARCH_STATUS_UI: VERIFIED'
           echo 'LOCAL_VIDEO_FRAME_PREVIEW: VERIFIED_CODE_ONLY'
           echo 'CLOUDFLARE_LIVE_SEARCH: NOT_VERIFIED'

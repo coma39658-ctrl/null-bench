@@ -107,10 +107,10 @@
 <script>
 (function(){
 "use strict";
-const ENDPOINT="https://ezero-qwen-public-sourceguard-v0-4.coma39658.workers.dev/api/ezero-agent/v0.1/ask";
+const ENDPOINT="https://ezero-qwen-public-clock-v0-5.coma39658.workers.dev/api/ezero-agent/v0.1/ask";
 // Preserve the separately governed vision route until its own full live smoke test.
 const IMAGE_ENDPOINT="https://ezero-qwen-vision-gateway-public.coma39658.workers.dev/api/ezero-agent/v0.1/ask";
-const HEALTH="https://ezero-qwen-public-sourceguard-v0-4.coma39658.workers.dev/health";
+const HEALTH="https://ezero-qwen-public-clock-v0-5.coma39658.workers.dev/health";
 const ORIGIN="https://coma39658-ctrl.github.io";
 const MAX_BYTES=5*1024*1024,MAX_QUESTION=4000,MAX_HISTORY=12,MAX_ANSWER=12000;
 const $=id=>document.getElementById(id);
@@ -179,7 +179,7 @@ function createMessage(role,text,imageURL,previewOnly){
   return {box,content};
 }
 async function copyText(value){try{await navigator.clipboard.writeText(value);return true}catch(_){return false}}
-// E-ZERO v0.4: chosen language, script-aware replies and voice selection.
+// E-ZERO v0.5: chosen language, script-aware replies and voice selection.
 function ezeroDetectLocale(value){
   const t=String(value||"").trim();
   if(!t)return null;
@@ -569,17 +569,17 @@ async function sendQuestion(e){if(e)e.preventDefault();if(busy)return;const ques
     if(!isImage&&result.source!=="FAIL_CLOSED"){history.push({role:"user",content:q},{role:"assistant",content:result.text});history=history.slice(-MAX_HISTORY)}
     const noFreshSource=!isImage&&linkedSources===0&&needsPublicResearchSources(q);
     showNotice(!isImage&&result.marketPriceVerification==="NOT_VERIFIED"
-      ?"تحریری AI v0.4 · موجودہ مارکیٹ قیمت کی براہِ راست ویب تصدیق نہیں ہوئی۔ کسی فروخت کنندہ یا رقم کو مصدقہ نہ سمجھیں۔"
+      ?"تحریری AI v0.5 · موجودہ مارکیٹ قیمت کی براہِ راست ویب تصدیق نہیں ہوئی۔ کسی فروخت کنندہ یا رقم کو مصدقہ نہ سمجھیں۔"
       :noFreshSource
       ?"اس جواب کے ساتھ اصل ویب سرچ ذرائع موصول نہیں ہوئے۔ نیچے اختیاری عوامی سرچ روابط موجود ہیں؛ قیمتیں اور تازہ دعوے تصدیق کے بغیر قبول نہ کریں۔"
-      :"جواب موصول ہوگیا۔ راستہ: "+(isImage?"تصویری معاون":"تحریری AI v0.4")+"؛ حتمی گاڑی تشخیص نہیں۔",
+      :"جواب موصول ہوگیا۔ راستہ: "+(isImage?"تصویری معاون":"تحریری AI v0.5")+"؛ حتمی گاڑی تشخیص نہیں۔",
       noFreshSource||result.marketPriceVerification==="NOT_VERIFIED"?"normal":"success");
    }catch(error){if(epoch===requestEpoch){loading.box.remove();showNotice(describeError(error),"error");createMessage("assistant","درخواست مکمل نہیں ہوسکی۔ اوپر دی گئی خرابی دیکھیں؛ کوئی تشخیصی نتیجہ نہیں بنایا گیا۔",null,true)}}finally{clearTimeout(timer)}
  }catch(error){if(epoch===requestEpoch)showNotice(describeError(error),"error")}
  finally{if(epoch===requestEpoch){busy=false;updateSend();jump(true)}}
 }
 function newChat(){if(busy){showNotice("جاری درخواست مکمل ہونے کے بعد نئی گفتگو شروع کریں۔","normal");return}if(recognition&&listening){recognition.stop()}ezeroStopSpeech();clearImage();els.prompt.value="";resizeEntry();history=[];transcript=[];sessionId=newSessionId();window.EZERO_PUBLIC_SITE_STATE_V0_1?.resetFocus?.();els.thread.replaceChildren(els.welcome);els.welcome.classList.remove("hidden");showNotice("نئی گفتگو شروع ہوگئی؛ گزشتہ گفتگو اس صفحے میں محفوظ نہیں رہی۔","normal");els.prompt.focus()}
-async function checkHealth(){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),10000);try{const resp=await fetch(HEALTH,{cache:"no-store",signal:controller.signal});if(!resp.ok)throw Error("HEALTH_HTTP_"+resp.status);const d=await resp.json();if(d.status==="ONLINE"&&d.public_ai_enabled===true&&d.evidence_authority===false)setHealth("online","تحریری AI v0.4 دستیاب");else setHealth("offline","AI دستیابی محدود")}catch(_){setHealth("checking","رابطہ غیر مصدقہ")}finally{clearTimeout(timer)}}
+async function checkHealth(){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),10000);try{const resp=await fetch(HEALTH,{cache:"no-store",signal:controller.signal});if(!resp.ok)throw Error("HEALTH_HTTP_"+resp.status);const d=await resp.json();if(d.status==="ONLINE"&&d.public_ai_enabled===true&&d.evidence_authority===false)setHealth("online","تحریری AI v0.5 دستیاب");else setHealth("offline","AI دستیابی محدود")}catch(_){setHealth("checking","رابطہ غیر مصدقہ")}finally{clearTimeout(timer)}}
 function setupMic(){const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;if(!Speech){els.micBtn.disabled=true;els.micBtn.title="اس براؤزر میں صوتی شناخت دستیاب نہیں";els.micBtn.setAttribute("aria-label","مائیک کی سہولت اس براؤزر میں دستیاب نہیں");return}
  els.micBtn.addEventListener("click",()=>{if(busy)return;if(listening){recognition.stop();return}try{recognition=new Speech();recognition.lang=speechLocale();recognition.continuous=false;recognition.interimResults=false;recognition.maxAlternatives=1;recognition.onstart=()=>{listening=true;els.micBtn.classList.add("active");showNotice("سن رہے ہیں… بولنا مکمل کریں۔ آپ کی آواز کی شناخت براؤزر کے فراہم کنندہ سے ہوسکتی ہے۔","normal")};recognition.onresult=ev=>{const spoken=ev.results&&ev.results[0]&&ev.results[0][0]?ev.results[0][0].transcript:"";if(spoken){els.prompt.value=(els.prompt.value?els.prompt.value.trim()+" ":"")+spoken;resizeEntry();updateSend();showNotice("آپ کی بات تحریر ہوگئی؛ بھیجنے سے پہلے جائزہ لے سکتے ہیں۔","success")}};recognition.onerror=ev=>{showNotice("مائیک کی شناخت ممکن نہیں: "+(ev.error||"UNKNOWN")+"۔ کی بورڈ سے سوال لکھ سکتے ہیں۔","error")};recognition.onend=()=>{listening=false;els.micBtn.classList.remove("active")};recognition.start()}catch(_){showNotice("مائیک شروع نہیں ہوسکا۔ براؤزر کی اجازت جانچیں۔","error")}});
 }

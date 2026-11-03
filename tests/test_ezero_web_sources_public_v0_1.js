@@ -55,14 +55,14 @@ assert.ok(studio.includes('const linkedSources=!isImage?appendUnverifiedWebSourc
   "Keep public search source rendering separate from user images");
 const simpleChat=fs.readFileSync("ezero_public_ai_chat_candidate_v0_1.html","utf8");
 const visionPage=fs.readFileSync("ezero_public_vision_ai_candidate_v0_1.html","utf8");
-// Studio v0.4 passed independent Cloudflare smoke. Public Guide remains
+// Studio v0.5 passed independent Cloudflare clock smoke. Public Guide remains
 // on its separately verified v0.3 Worker until a specific Guide cutover.
-const latestTextHost="https://ezero-qwen-public-sourceguard-v0-4.coma39658.workers.dev";
+const latestTextHost="https://ezero-qwen-public-clock-v0-5.coma39658.workers.dev";
 const publicGuideHost="https://ezero-qwen-public-siteaware-v0-3.coma39658.workers.dev";
 const legacyExperimentalHost="https://ezero-qwen-public-priceguard-v0-2.coma39658.workers.dev";
 const oldImageHost="https://ezero-qwen-vision-gateway-public.coma39658.workers.dev";
 assert.ok(studio.includes('const ENDPOINT="'+latestTextHost+'/api/ezero-agent/v0.1/ask"'),
-  "AI Studio text requests must use live-verified sourceguard v0.4");
+  "AI Studio text requests must use live-verified clock v0.5");
 assert.ok(studio.includes('const HEALTH="'+latestTextHost+'/health"'),
   "Studio health should inspect the same public text endpoint");
 assert.ok(studio.includes('const IMAGE_ENDPOINT="'+oldImageHost+'/api/ezero-agent/v0.1/ask"'),
