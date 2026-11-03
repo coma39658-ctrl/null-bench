@@ -14,6 +14,12 @@
  const CHANGED=/(?:\b(?:update|updates|updated|changed|changes|change|new|newest|latest|today|release|progress|what\s+happened|what\s+did\s+you\s+do)\b|آج|اج|ابھی|تازہ|اپڈیٹ|اپ\s*ڈیٹ|تبدیل|تبدیلی|تبدیلیاں|کیا\s+بدلا|کیا\s+کام|نیا|نئی|نئے|کیا\s+ہوا|التحديثات|تحديث|الجديد|اليوم)/iu;
  const FEATURES=/(?:\b(?:button|buttons|feature|features|section|sections|where|open|menu|available|status|active)\b|بٹن|بٹنز|سیکشن|فیچر|کہاں|کھول|مینو|حالت|فعال|الأزرار|الأقسام)/iu;
  const ACTION=/(?:\b(?:search|find|buy|compare)\b|تلاش\s+کرو|ڈھونڈو|خرید|موازنہ\s+کرو)/iu;
+ // Two bounded, tab-local follow-ups. Never store private prompts or train a model.
+ const FOLLOWUP=/^(?:اور|اچھا|پھر|اس میں|اس کے|اس کی|ان میں|مزید|اب|what about|and what about|and in that|tell me more|what else|more about|also)\b|^(?:اس\s+میں|اس\s+کے|اس\s+کی|ان\s+میں|اور\s+اس|مزید\s+کیا|اب\s+اس)/iu;
+ let focus=null;
+ let focusHops=0;
+ function resetFocus(){focus=null;focusHops=0;}
+ function getFocus(){return focus?Object.freeze({scope:focus.scope,kind:focus.kind,remaining:focusHops}):null;}
  const today=(date)=>/^\d{4}-\d{2}-\d{2}$/.test(date);
  const norm=s=>String(s||"").normalize("NFKC").replace(/[\u064b-\u065f\u0670\u06d6-\u06ed]/gu,"").replace(/\s+/g," ").trim().toLowerCase();
  function classify(question){
@@ -26,14 +32,16 @@
    const obd=OBD.test(q);
    const changed=CHANGED.test(q);
    const features=FEATURES.test(q);
-   if(!changed&&!features)return null;
-   // The user is already within the E-ZERO AI chat. A reference to "AI session"
-   // or "Qwen" plus an update question is unambiguously about this public tool.
-   if(!explicit&&!ai)return null;
-   if(!explicit&&ai&&!changed&&!features)return null;
-   if(ACTION.test(q)&&!changed&&!features)return null;
-   const scope=ai?"ai":obd?"vehicle":"all";
-   return Object.freeze({scope,kind:changed?"changes":"features",date:/(?:آج|اج|\btoday\b|اليوم)/iu.test(q)?"today":"latest"});
+   const followup=!explicit&&!ai&&!obd&&focusHops>0&&q.length<=180&&
+       FOLLOWUP.test(q)&&!ACTION.test(q)&&
+       (changed||features||/\b(?:what|more|else|further)\b|کیا|مزید|اور/iu.test(q));
+   if(!changed&&!features&&!followup)return null;
+   // Never infer a product or website from an ungrounded short question.
+   if(!explicit&&!ai&&!obd&&!followup)return null;
+   if(ACTION.test(q)&&!changed&&!features&&!followup)return null;
+   const scope=ai?"ai":obd?"vehicle":explicit?"all":focus.scope;
+   const kind=changed?"changes":features?"features":focus.kind;
+   return Object.freeze({scope,kind,date:/(?:آج|اج|\btoday\b|اليوم)/iu.test(q)?"today":"latest",followup});
  }
  function isSiteQuestion(q){return classify(q)!==null;}
  function langOf(q,language){
@@ -121,7 +129,12 @@
      "حد: یہ شائع شدہ، مورخہ معلومات ہیں؛ نجی سورس کوڈ، نئی غیر درج شدہ اپڈیٹس، براہِ راست ویب سرچ یا حقیقی گاڑی کی تشخیص نہیں۔",
      "Boundary: Dated public information only, not private code, unrecorded releases, live web search or a real-car diagnosis.",
      "الحدود: معلومات عامة مؤرخة، وليست شفرة خاصة أو بحثًا مباشرًا أو تشخيصًا فعليًا للمركبة."));
+   // Learn only the topic of this conversation, for at most two short
+   // follow-ups. The answer is always re-fetched from approved public data.
+   if(intent.followup)focusHops=Math.max(0,focusHops-1);
+   else focusHops=2;
+   focus={scope:intent.scope,kind:intent.kind};
    return Object.freeze({status:"OK",source_class:"PUBLIC_SITE_STATE",answer:out.join("\n\n").slice(0,5500),as_of:snapshot.as_of});
  }
- root.EZERO_PUBLIC_SITE_STATE_V0_1=Object.freeze({version:"0.2",isSiteQuestion,classify,answer});
+ root.EZERO_PUBLIC_SITE_STATE_V0_1=Object.freeze({version:"0.3",isSiteQuestion,classify,answer,resetFocus,getFocus});
 })(window);
