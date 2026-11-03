@@ -144,7 +144,7 @@ assert.equal(api.classify("E-ZERO dashboard میں کیا اپڈیٹ ہوئی؟"
  const badLink=await api.readDashboardMap();
  assert.equal(badLink.status,"UNAVAILABLE");
  renderMap.pages[0].controls[0].href=null;
- assert.equal(api.readDashboardMap instanceof Function,true);
+ assert.equal(typeof api.readDashboardMap,"function");
  api.resetFocus();
  assert.equal(api.getFocus(),null);
  assert.equal(api.isSiteQuestion("اور اس میں کیا نیا ہے؟"),false);
