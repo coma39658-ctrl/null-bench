@@ -509,6 +509,13 @@ function appendOptionalMarketSearch(messageNode,question){
  }
  body.append(note,links);
 }
+// Share an offset only when the user actually asks today's date or current
+// time. It is not an address, GPS location or browser timezone identifier.
+function clockOffsetNeeded(question){
+ if(typeof question!=="string"||question.length>500)return false;
+ return /\b(?:today|now|current|right now)\b|(?:آج|اج|ابھی|اليوم|الآن|आज|अभी)/iu.test(question) &&
+   (/\b(?:date|day|weekday|time|clock)\b|(?:تاریخ|تاريخ|دن|وقت|گھڑی|الوقت|الساعة|दिनांक|तारीख|समय)/iu.test(question));
+}
 async function sendQuestion(e){if(e)e.preventDefault();if(busy)return;const question=els.prompt.value.trim();const file=selected;const isImage=!!file;
  if(!question&&!file){els.prompt.focus();return}if(question.length>MAX_QUESTION){showNotice("سوال زیادہ سے زیادہ 4000 حروف کا ہوسکتا ہے۔","error");return}if(isImage&&!els.consent.checked){showNotice("تصویر بھیجنے سے پہلے واضح اجازت دیں۔","error");return}
  busy=true;const epoch=++requestEpoch;updateSend();showNotice("","normal");let q=question||(isImage?"اس تصویر میں کیا نظر آتا ہے؟ آسان اردو میں سمجھائیں۔":"");
@@ -517,7 +524,8 @@ async function sendQuestion(e){if(e)e.preventDefault();if(busy)return;const ques
    if(epoch!==requestEpoch)return;
    const payload=isImage?
     {question:q,response_language:ezeroGatewayLanguage(q),image_share_consent:true,image:{mime_type:file.type,base64:encoded}}:
-    {question:q,response_language:"auto",fallback_language:ezeroGatewayLanguage(q),answer_length:els.answerLength.value,session_id:sessionId,history:history.slice(-MAX_HISTORY)};
+    {question:q,response_language:"auto",fallback_language:ezeroGatewayLanguage(q),answer_length:els.answerLength.value,session_id:sessionId,history:history.slice(-MAX_HISTORY),
+     ...(clockOffsetNeeded(q)?{client_utc_offset_minutes:-new Date().getTimezoneOffset()}:{})};
    const preview=isImage?"data:"+file.type+";base64,"+encoded:null;
    // User input goes to the gateway only after explicit submit; images require checkbox consent.
    createMessage("user",q,preview,false);
