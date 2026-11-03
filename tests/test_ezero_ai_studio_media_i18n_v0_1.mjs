@@ -100,6 +100,9 @@ try{
   assert.equal(await page.locator("#aiVideoClose").evaluate(el=>el===document.activeElement),true);
   await page.locator("#aiVideoInput").setInputFiles({name:"bad.txt",mimeType:"text/plain",buffer:Buffer.from("test")});
   assert.match(await page.locator("#aiVideoStatus").innerText(),/Unsupported video type/);
+  assert.match(await page.locator("#aiVideoInput").getAttribute("accept"),/video\/\*/);
+  await page.locator("#aiVideoInput").setInputFiles({name:"android-phone.mp4",mimeType:"application/octet-stream",buffer:Buffer.from("not-real-video-data")});
+  assert.match(await page.locator("#aiVideoPreview").getAttribute("src"),/^blob:/,"Android generic MIME must be supported");
   await page.locator("#aiVideoInput").setInputFiles({name:"clip.mp4",mimeType:"video/mp4",buffer:Buffer.from("not-real-video-data")});
   assert.match(await page.locator("#aiVideoPreview").getAttribute("src"),/^blob:/);
   assert.match(await page.locator("#aiVideoStatus").innerText(),/not uploaded/);
