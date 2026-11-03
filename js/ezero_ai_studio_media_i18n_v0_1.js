@@ -1,5 +1,5 @@
 /* E-ZERO public AI Studio: local video preview and interface localization.
- * No AI video endpoint, uploads, frame extraction, ECU commands or background polling.
+ * Local-only video and one consent-gated still frame. No full-video uploads, ECU commands or background polling.
  * AI response language selection remains governed separately by existing gateway.
  */
 (function(){
@@ -113,7 +113,10 @@ function selectVideo(){
  const v=file?.files?.[0];
  clear();
  if(!v){status.textContent=localize("videoEmpty");return}
- if(!["video/mp4","video/webm","video/quicktime","video/3gpp"].includes(v.type)){
+ const mime=String(v.type||"").toLowerCase();
+ const extensionOK=/\.(?:mp4|m4v|mov|webm|3gp)$/i.test(String(v.name||""));
+ // Android Files may report an empty or generic MIME type for a genuine video.
+ if(!mime.startsWith("video/") && !((!mime||mime==="application/octet-stream")&&extensionOK)){
   status.textContent=localize("videoFormat");return;
  }
  if(!Number.isFinite(v.size)||v.size<=0||v.size>150*1024*1024){
@@ -158,7 +161,14 @@ async function queueCurrentFrame(){
 }
 player?.addEventListener("loadeddata",updateFrameButton);
 player?.addEventListener("seeked",updateFrameButton);
-player?.addEventListener("error",updateFrameButton);
+function playbackError(){
+ updateFrameButton();
+ if(activeURL&&status){
+  status.textContent=localize("videoFormat")+" · MP4 (H.264) / WebM · "+frameText("boundary");
+ }
+}
+player?.addEventListener("error",playbackError);
+player?.addEventListener("canplay",updateFrameButton);
 frameBtn?.addEventListener("click",queueCurrentFrame);
 for(const id of ["quickVideo","aiVideoBtn"]){el(id)?.addEventListener("click",open)}
 el("aiVideoClose")?.addEventListener("click",close);
