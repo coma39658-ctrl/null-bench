@@ -13,6 +13,22 @@
     {
       "date": "2026-11-03",
       "area": "ai-studio",
+      "title_ur": "AI Studio کو موجودہ E-ZERO معلومات سے جوڑا گیا",
+      "title_en": "AI Studio connected to published E-ZERO site information",
+      "detail_ur": "موجودہ AI Studio گفتگو میں عوامی سائٹ کی مورخہ معلومات پڑھنے کا رابطہ شامل ہوا۔ بٹن، سیکشن اور شائع شدہ تبدیلیوں کے سوالات کو پرانے عمومی Qwen جواب سے الگ سنبھالا جاتا ہے۔ یہ حقیقی ویب سرچ نہیں؛ Live قیمت کی تصدیق ابھی غیر فعال ہے۔",
+      "detail_en": "Existing AI Studio chat now has a public-site state lookup for buttons, sections and published changes. This does not enable live market prices or third-party web search."
+    },
+    {
+      "date": "2026-11-03",
+      "area": "voice-guide",
+      "title_ur": "E-ZERO Voice Guide میں سائٹ کی معلومات شامل ہوئیں",
+      "title_en": "Voice Guide linked to published E-ZERO site information",
+      "detail_ur": "موجودہ Voice Guide کو ویب سائٹ کی شائع شدہ فیچر فہرست سے سوالوں کے جواب دینے کے لیے جوڑا گیا۔ نئی نجی رپورٹس، غیر شائع شدہ کوڈ یا آزادانہ AI یادداشت اس میں شامل نہیں۔",
+      "detail_en": "Existing Voice Guide answers published site-feature questions from dated public data, not private reports or automatic model memory."
+    },
+    {
+      "date": "2026-11-03",
+      "area": "ai-studio",
       "title_ur": "AI Studio کو E-ZERO کی شائع شدہ تبدیلیوں سے جوڑا گیا",
       "title_en": "AI Studio connected to public E-ZERO release record",
       "detail_ur": "موجودہ AI Studio میں E-ZERO کی عوامی معلوماتی فائل پڑھنے کا محفوظ رابطہ شامل ہوا۔ اب 'آج AI سیشن میں کیا تبدیلی ہوئی؟' جیسے سوال کا جواب متعلقہ AI Studio تبدیلیوں سے دیا جاتا ہے، غیر متعلقہ OBD تبدیلیوں سے نہیں۔ یہ تربیت یا نجی GitHub تک رسائی نہیں۔ موجودہ انٹرفیس کے اندر ہی کام ہوا؛ نیا الگ بٹن نہیں بنایا گیا۔",
@@ -138,5 +154,12 @@
     "No private GitHub repository content, credentials, VIN, OBD records or ECU control",
     "No fabricated current prices, availability, physical validation or verified video contents",
     "External web search availability is separately governed"
-  ]
+  ],
+  "ui_changes": {
+    "new_buttons": 0,
+    "new_standalone_pages": 0,
+    "public_website_sections_reused": true
+  },
+  "summary_ur": "3 نومبر 2026 کو E-ZERO کی عوامی AI Studio اور Voice Guide میں شائع شدہ سائٹ معلومات کا رابطہ شامل ہوا۔ OBD کے دو آف لائن ٹیسٹ گروپ کامیاب، حقیقی نیا مربوط گاڑی پائلٹ ابھی باقی۔ سرچ کے لئے منظور شدہ Live provider یا Qwen web-search API اجازت اور خرچ کی حد درکار ہے۔",
+  "summary_en": "Public AI Studio and Voice Guide received site-state awareness on 3 November 2026. Offline OBD tests passed; integrated real-vehicle pilot pending. Live third-party search still requires a working approved provider or Qwen search API, credentials and budget controls."
 }
