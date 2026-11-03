@@ -11,12 +11,16 @@ assert.equal(record.status,"PUBLIC_APPROVED_SITE_STATE");
 assert.equal(record.visibility,"PUBLIC_ONLY");
 assert.equal(record.history_is_automatic,false);
 assert.ok(record.features.length>=6);
-assert.ok(html.includes('src="js/ezero_public_site_state_v0_1.js?v=20261103-site01"'));
-assert.ok(studio.includes('src="./js/ezero_public_site_state_v0_1.js?v=20261103-site01"'));
+assert.ok(html.includes('src="js/ezero_public_site_state_v0_1.js?v=20261103-site02"'));
+assert.ok(studio.includes('src="./js/ezero_public_site_state_v0_1.js?v=20261103-site02"'));
 assert.ok(guide.includes("siteState.isSiteQuestion(question)"));
 assert.ok(studio.includes("siteState.isSiteQuestion(q)"));
 assert.ok(html.includes('id="public-obd-runner"'));
 assert.ok(studio.includes("const IMAGE_ENDPOINT="));
+const simpleChat=fs.readFileSync("ezero_public_ai_chat_candidate_v0_1.html","utf8");
+assert.ok(simpleChat.includes("ezero_public_site_state_v0_1.js?v=20261103-site02"));
+assert.ok(simpleChat.includes("site.isSiteQuestion(question)"));
+
 let requests=[];
 let current=record;
 const context={window:{},URL,fetch:async(url,options)=>{
@@ -33,6 +37,20 @@ assert.equal(api.isSiteQuestion("Toyota Corolla 2018 Saudi Arabia price"),false)
 assert.equal(api.isSiteQuestion("2018 کرولا کی قیمت بتائیں"),false);
 assert.equal(api.isSiteQuestion("What is the current market price of a vehicle on E-ZERO?"),false);
 assert.equal(api.isSiteQuestion("How does an alternator work?"),false);
+assert.equal(api.isSiteQuestion("آج اے آئی سیشن میں کیا تبدیلی کی گئی؟"),true);
+assert.equal(api.isSiteQuestion("آج اے ائی سیشن میں کیا تبدیلی کی گئی؟"),true);
+assert.equal(api.isSiteQuestion("آج Qwen AI session میں کیا تبدیلی ہوئی؟"),true);
+assert.equal(api.isSiteQuestion("آج اے آئی سیشن میں نیا بٹن کون سا ہے؟"),true);
+assert.equal(api.isSiteQuestion("What changed in the AI Studio today?"),true);
+assert.equal(api.isSiteQuestion("آج سعودی عرب میں کرولا کی قیمت بتائیں"),false);
+assert.equal(api.isSiteQuestion("آج موٹر سائیکل کے پرزے کے ریٹ ڈھونڈو"),false);
+assert.equal(api.isSiteQuestion("E-ZERO ویب سائٹ پر کار کی تازہ قیمت"),false);
+assert.equal(api.isSiteQuestion("Qwen سرچ انجن سے مارکیٹ قیمت تلاش کرو"),false);
+assert.equal(api.isSiteQuestion("موسم آج کیسا ہے؟"),false);
+assert.equal(api.isSiteQuestion("Explain AI models"),false);
+assert.equal(api.classify("آج اے آئی سیشن میں کیا تبدیلی کی گئی؟").scope,"ai");
+assert.equal(api.classify("E-ZERO dashboard میں کیا اپڈیٹ ہوئی؟").scope,"vehicle");
+
 (async()=>{
  const updates=await api.answer("E-ZERO ویب سائٹ میں آج کیا تبدیلی ہوئی؟",{language:"ur"});
  assert.equal(updates.status,"OK");
@@ -40,11 +58,22 @@ assert.equal(api.isSiteQuestion("How does an alternator work?"),false);
  assert.ok(updates.answer.includes("206/206"));
  assert.ok(updates.answer.includes("260/260"));
  assert.ok(!updates.answer.includes("466 منفرد"));
+ const aiUpdate=await api.answer("آج اے آئی سیشن میں کیا تبدیلی کی گئی؟",{language:"ur"});
+ assert.equal(aiUpdate.status,"OK");
+ assert.ok(aiUpdate.answer.includes("AI Studio"));
+ assert.ok(aiUpdate.answer.includes("Voice Guide"));
+ assert.ok(!aiUpdate.answer.includes("206/206"),"AI session must not answer with unrelated OBD tests");
+ const aiVariant=await api.answer("آج اے ائی سیشن میں کیا تبدیلی کی گئی؟",{language:"ur"});
+ assert.ok(aiVariant.answer.includes("AI Studio"));
+ const inEnglish=await api.answer("What changed in the AI Studio today?",{language:"en"});
+ assert.ok(inEnglish.answer.includes("AI Studio"));
+ assert.ok(!inEnglish.answer.includes("206/206"));
+
  const features=await api.answer("E-ZERO کے کون سے بٹن اور سیکشن ہیں؟",{language:"ur"});
  assert.equal(features.status,"OK");
  assert.ok(features.answer.includes("اے آئی"));
  assert.ok(features.answer.includes("PUBLIC_DEMO_ONLY"));
- assert.equal(requests.length,2);
+ assert.equal(requests.length,5);
  assert.ok(requests.every(r=>r.url==="./data/ezero_public_site_state_v0_1.json"));
  assert.ok(requests.every(r=>r.options.cache==="no-store"&&r.options.credentials==="same-origin"&&r.options.redirect==="error"));
  current={...record,visibility:"PRIVATE"};
