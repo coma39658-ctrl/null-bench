@@ -12,13 +12,13 @@ assert.equal(record.visibility,"PUBLIC_ONLY");
 assert.equal(record.history_is_automatic,false);
 assert.ok(record.features.length>=6);
 assert.ok(html.includes('src="js/ezero_public_site_state_v0_1.js?v=20261103-site03"'));
-assert.ok(studio.includes('src="./js/ezero_public_site_state_v0_1.js?v=20261103-site02"'));
+assert.ok(studio.includes('src="./js/ezero_public_site_state_v0_1.js?v=20261103-site03"'));
 assert.ok(guide.includes("siteState.isSiteQuestion(question)"));
 assert.ok(studio.includes("siteState.isSiteQuestion(q)"));
 assert.ok(html.includes('id="public-obd-runner"'));
 assert.ok(studio.includes("const IMAGE_ENDPOINT="));
 const simpleChat=fs.readFileSync("ezero_public_ai_chat_candidate_v0_1.html","utf8");
-assert.ok(simpleChat.includes("ezero_public_site_state_v0_1.js?v=20261103-site02"));
+assert.ok(simpleChat.includes("ezero_public_site_state_v0_1.js?v=20261103-site03"));
 assert.ok(simpleChat.includes("site.isSiteQuestion(question)"));
 
 let requests=[];
