@@ -78,6 +78,64 @@
    return true;
  }
  const clean=v=>String(v||"").replace(/[\u0000-\u001f\u007f]/g," ").trim().slice(0,460);
+
+ // This is a public metadata feed from the separately deployed Render app.
+ // It does not grant the AI permission to operate controls or see user data.
+ const DASHBOARD_MAP_URL="https://e-zero-dashboard.onrender.com/api/public-site-map/v0.1";
+ const DASHBOARD_MAP_BASE="https://e-zero-dashboard.onrender.com";
+ const ALLOWED_PATH=/^\/(?:studio|dashboard|symptom-guide|pid-catalog|workshop-pro|vehicle-communications\/stage-c\/voice-note-policy-v0\.1)$/;
+ const SAFE_ID=/^[A-Za-z0-9_-]{0,100}$/;
+ async function readDashboardMap(){
+   try{
+     const controller=new AbortController();
+     const timer=setTimeout(()=>controller.abort(),5000);
+     let response;
+     try{
+       response=await fetch(DASHBOARD_MAP_URL,{
+         method:"GET",credentials:"omit",redirect:"error",cache:"no-store",signal:controller.signal
+       });
+       if(!response.ok)throw Error("MAP_NOT_AVAILABLE");
+       const headerSize=Number(response.headers?.get?.("content-length")||0);
+       if(headerSize>180000)throw Error("MAP_TOO_LARGE");
+       const raw=await response.text();
+       if(raw.length>180000)throw Error("MAP_TOO_LARGE");
+       const map=JSON.parse(raw);
+       if(map?.schema!=="EZERO_PUBLIC_SITE_MAP_V0_1"||
+          map.status!=="PUBLIC_READ_ONLY"||
+          map.diagnostic_claim!==false||map.physical_execution_authorized!==false||
+          map.personal_data_included!==false||
+          !Array.isArray(map.pages)||map.pages.length>10)throw Error("MAP_UNVERIFIED");
+       const pages=[];
+       for(const page of map.pages){
+         if(!ALLOWED_PATH.test(String(page?.path||""))||
+            !Array.isArray(page.controls)||page.controls.length>180||
+            page.is_complete_dom_count!==false)throw Error("MAP_BAD_PAGE");
+         const controls=[];
+         for(const ctl of page.controls){
+           if(!ctl||!["section","details","button","a"].includes(ctl.type)||
+              typeof ctl.label!=="string"||ctl.label.length>160||
+              !SAFE_ID.test(String(ctl.id||""))||
+              (ctl.href!==null&&ctl.href!==undefined&&
+                 (typeof ctl.href!=="string"||!/^\/[a-z0-9_./#-]{0,160}$/i.test(ctl.href))))throw Error("MAP_BAD_CONTROL");
+           if(ctl.label.trim())controls.push({
+             type:ctl.type,label:clean(ctl.label),id:ctl.id||"",
+             disabled:ctl.disabled===true,href:ctl.href||null
+           });
+         }
+         pages.push({path:page.path,section:clean(page.section),controls});
+       }
+       return {status:"OK",pages,deployed_revision:/^[a-f0-9]{7,40}$/i.test(map.deployed_revision||"")?
+         map.deployed_revision:"UNKNOWN"};
+     }finally{clearTimeout(timer)}
+   }catch(_){return {status:"UNAVAILABLE",pages:[],deployed_revision:"UNKNOWN"}}
+ }
+ function mapForScope(map,scope){
+   if(scope==="ai")return map.pages.filter(p=>p.path==="/studio");
+   if(scope==="vehicle")return map.pages.filter(p=>
+     ["/dashboard","/symptom-guide","/pid-catalog","/workshop-pro"].includes(p.path));
+   return map.pages;
+ }
+
  function scopeChange(change,scope){
    if(scope==="all")return true;
    const a=change.area;
@@ -157,6 +215,34 @@
    // Feature listings are requested separately; do not swamp a narrow AI
    // update question with every historical E-ZERO module.
    if(intent.kind==="features"){
+     const liveMap=await readDashboardMap();
+     if(liveMap.status==="OK"){
+       const relevant=mapForScope(liveMap,intent.scope);
+       out.push(lineUr(lng,
+         "اصل Render Dashboard کے موجودہ شائع شدہ سیکشنز/بٹن (صرف معلومات؛ استعمال کی اجازت نہیں):",
+         "Currently deployed Render Dashboard sections and controls (informational only):",
+         "الأقسام والأزرار المنشورة حاليًا في لوحة Render (معلومات فقط):"));
+       for(const page of relevant.slice(0,6)){
+         out.push("• "+page.path+" — "+page.section);
+         const controls=page.controls.filter(c=>c.type==="button"||c.type==="details"||
+           (c.type==="a"&&c.href)).slice(0,12);
+         for(const c of controls){
+           out.push("  - "+c.label+(c.disabled?" [DISABLED]":"")+
+             (c.href?" ("+DASHBOARD_MAP_BASE+c.href+")":""));
+         }
+       }
+       out.push(lineUr(lng,
+         "یہ صرف شائع شدہ HTML کے محدود نام ہیں؛ اس سے کسی اسکرین پر نظر آنے والے تمام کارڈز کی درست تعداد یا تازہ Release کی تاریخ ثابت نہیں ہوتی۔",
+         "These are bounded public-template labels, not a live DOM count or proof of when a button was released.",
+         "هذه تسميات محدودة من القوالب العامة، وليست عددًا كاملاً أو تاريخ إصدار."));
+     }else{
+       out.push(lineUr(lng,
+         "Render Dashboard سے موجودہ سیکشنز کی Live فہرست نہیں ملی؛ نیچے صرف E-ZERO کی آخری شائع شدہ معلومات ہیں۔",
+         "The live Render Dashboard inventory was unavailable; only dated E-ZERO published knowledge follows.",
+         "قائمة لوحة Render الحالية غير متاحة؛ المعلومات التالية من السجل المنشور المؤرخ."));
+     }
+   }
+   if(intent.kind==="features"){
      out.push(lineUr(lng,"موجودہ متعلقہ سیکشنز:","Relevant published sections:","الأقسام المنشورة المتعلقة:"));
      for(const f of snapshot.features.filter(f=>scopeFeature(f,intent.scope)).slice(0,8)){
        const url=new URL(f.href,snapshot.public_site).href;
@@ -175,5 +261,5 @@
    focus={scope:intent.scope,kind:intent.kind};
    return Object.freeze({status:"OK",source_class:"PUBLIC_SITE_STATE",answer:out.join("\n\n").slice(0,5500),as_of:snapshot.as_of});
  }
- root.EZERO_PUBLIC_SITE_STATE_V0_1=Object.freeze({version:"0.4",isSiteQuestion,classify,answer,resetFocus,getFocus});
+ root.EZERO_PUBLIC_SITE_STATE_V0_1=Object.freeze({version:"0.5",isSiteQuestion,classify,answer,readDashboardMap,resetFocus,getFocus});
 })(window);
