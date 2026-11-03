@@ -8,8 +8,8 @@
  const PRICE=/(?:\b(?:price|prices|cost|costs|quote|quotes|msrp|valuation|buy|selling|dealers?|for sale|spare parts?|stock|inventory)\b|قیمت|قیمتیں|قیمتوں|ریٹ|اسپیئر\s*پارٹس|پرزے|خرید|فروخت|أسعار|السعر|قطع غيار)/iu;
  const FRESH_SEARCH=/(?:\b(?:search the web|search online|look up online|find online listings)\b|انٹرنیٹ\s+پر\s+تلاش|ویب\s+پر\s+تلاش|آن\s*لائن\s+تلاش)/iu;
  const SITE=/(?:\be[\s-]?zero\b|\bezero\b|\bwebsite\b|\bweb\s*site\b|ای\s*زیرو|ویب\s*سائٹ|ویبسائٹ|الموقع)/iu;
- const AI=/(?:\b(?:ai\s+(?:studio|session|guide|assistant|chat)|qwen|voice\s*guide|intelligence\s+studio)\b|اے\s*[آااَ]?\s*ئی|اے\s*آئی|اے\s*آئی|اے\s*ائی|ای\s*آئی|اے\s*آی|اے\s*آئ|اے\s*ای\s*آئی|اے\s*آئی\s*سیشن|کوین|قوین|کیوین|وائس\s*گائیڈ|اسٹوڈیو|چیٹ\s*سیشن|ذكاء\s*اصطناعي)/iu;
- const AI_SESSION=/(?:\b(?:ai\s+(?:studio|session|guide|chat)|qwen|voice\s*guide)\b|اے\s*آئی|اے\s*ائی|اے\s*آئی|اے\s*آئ|ای\s*آئی|اے\s*ای\s*آئی|کوین|قوین|کیوین|وائس\s*گائیڈ|اسٹوڈیو)/iu;
+ const AI=/(?:\b(?:ai\s+(?:studio|session|guide|assistant|chat)|qwen|voice\s*guide|intelligence\s+studio)\b|اے\s*[آااَ]?\s*ئی|اے\s*آئی|اے\s*آئی|اے\s*ائی|ای\s*آئی|اے\s*ائی|اے\s*ائی|اے\s*ائ[یي]|اے\s*آی|اے\s*آئ|اے\s*ای\s*آئی|اے\s*آئی\s*سیشن|کوین|قوین|کیوین|وائس\s*گائیڈ|اسٹوڈیو|چیٹ\s*سیشن|ذكاء\s*اصطناعي)/iu;
+ const AI_SESSION=/(?:\b(?:ai\s+(?:studio|session|guide|chat)|qwen|voice\s*guide)\b|اے\s*آئی|اے\s*ائی|اے\s*آئی|اے\s*آئ|ای\s*آئی|اے\s*ائ[یي]|اے\s*ای\s*آئی|کوین|قوین|کیوین|وائس\s*گائیڈ|اسٹوڈیو)/iu;
  const OBD=/(?:\b(?:obd|vehicle|car\s+scanner|dashboard|workshop\s+viewer)\b|او\s*بی\s*ڈی|گاڑی|ڈیش\s*بورڈ|ورکشاپ\s*رپورٹ|ورکشاپ\s*ویور)/iu;
  const CHANGED=/(?:\b(?:update|updates|updated|changed|changes|change|new|newest|latest|today|release|progress|what\s+happened|what\s+did\s+you\s+do)\b|آج|اج|ابھی|تازہ|اپڈیٹ|اپ\s*ڈیٹ|تبدیل|تبدیلی|تبدیلیاں|کیا\s+بدلا|کیا\s+کام|نیا|نئی|نئے|کیا\s+ہوا|التحديثات|تحديث|الجديد|اليوم)/iu;
  const FEATURES=/(?:\b(?:button|buttons|feature|features|section|sections|where|open|menu|available|status|active)\b|بٹن|بٹنز|سیکشن|فیچر|کہاں|کھول|مینو|حالت|فعال|الأزرار|الأقسام)/iu;
