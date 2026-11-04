@@ -13,10 +13,12 @@
   ],
   "durable_objects": {
     "bindings": [
-      {"name": "CALL_ROOMS", "class_name": "CallRoom"}
+      {"name": "CALL_ROOMS", "class_name": "CallRoom"},
+      {"name": "ROOM_ADMISSION", "class_name": "RoomAdmission"}
     ]
   },
   "migrations": [
-    {"tag": "room-lab-v1", "new_sqlite_classes": ["CallRoom"]}
+    {"tag": "room-lab-v1", "new_sqlite_classes": ["CallRoom"]},
+    {"tag": "room-lab-v2", "new_sqlite_classes": ["RoomAdmission"]}
   ]
 }
