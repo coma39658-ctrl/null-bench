@@ -41,6 +41,8 @@ try{
   "Privacy Copilot must not activate microphone during page load");
  const signedA=await a.locator("#myDigitalId").inputValue();
  const signedB=await b.locator("#myDigitalId").inputValue();
+ await a.locator("#chooseRemote").click();
+ await b.locator("#chooseRemote").click();
  await a.locator("#friendIdInput").fill(signedB);
  await a.locator("#verifyFriend").click();
  await b.locator("#friendIdInput").fill(signedA);
