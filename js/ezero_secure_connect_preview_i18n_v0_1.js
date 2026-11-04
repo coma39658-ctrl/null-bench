@@ -214,6 +214,8 @@
         });
       }
     }
+    const live=$("#ezeroRealTwoPhoneTest");
+    if(live) live.href="./ezero_secure_connect_live_p2p_v0_1.html?lang="+encodeURIComponent(lang);
     for(const id of statusIds)renderStatus(id);
   }
   $("#previewLanguage")?.addEventListener("change",e=>apply(e.target.value));
