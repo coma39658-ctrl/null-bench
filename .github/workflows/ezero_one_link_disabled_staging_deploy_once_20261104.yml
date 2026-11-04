@@ -1,0 +1,107 @@
+name: E-ZERO One-Link Call Disabled Isolated Cloudflare Staging Once
+on:
+  push:
+    branches: [ezero-secure-connect-one-link-call-lab-20261104]
+    paths:
+      - docs/EZERO_ONE_LINK_DISABLED_DEPLOY_TRIGGER_20261104.md
+permissions:
+  contents: read
+concurrency:
+  group: ezero-one-link-disabled-staging-20261104
+  cancel-in-progress: false
+jobs:
+  disabled-deploy:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Preflight disabled-only, two-phone consent and crypto gates
+        run: |
+          set -euo pipefail
+          node secure_connect/call_room_lab/test_room_worker.mjs
+          node --check js/ezero_secure_connect_one_link_lab_v0_1.js
+          node --check secure_connect/call_room_lab/room_worker.mjs
+          node - <<'GATE'
+          const fs=require("node:fs");
+          const cfg=fs.readFileSync("secure_connect/call_room_lab/wrangler.jsonc","utf8");
+          const src=fs.readFileSync("secure_connect/call_room_lab/room_worker.mjs","utf8");
+          if(!cfg.includes('"name": "ezero-secure-connect-call-lab-disabled"') ||
+            !cfg.includes('"ROOMS_ENABLED": "false"') ||
+            !cfg.includes('"new_sqlite_classes"') ||
+            !src.includes('env.ROOMS_ENABLED!=="true"') ||
+            !src.includes('ROOM_LIFETIME_MS=10*60*1000')){
+            console.error("DISABLED_STAGE_SOURCE_FAIL");process.exit(1);
+          }
+          console.log("ONE_LINK_DISABLED_GATE: PASS");
+          GATE
+      - name: Wrangler compile only
+        env: {WRANGLER_SEND_METRICS: 'false'}
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4 deploy --dry-run --config secure_connect/call_room_lab/wrangler.jsonc --outdir /tmp/ezero-disabled-one-link
+          test -d /tmp/ezero-disabled-one-link
+      - name: Fail closed unless new isolated Worker name is unused
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          node --input-type=module - <<'CHECK'
+          const account=process.env.CLOUDFLARE_ACCOUNT_ID,token=process.env.CLOUDFLARE_API_TOKEN;
+          if(!/^[a-f0-9]{32}$/i.test(account||"")||
+             !/^[A-Za-z0-9_-]{20,200}$/.test(token||"")){
+            console.error("CREDENTIALS_UNAVAILABLE");process.exit(1);
+          }
+          const r=await fetch("https://api.cloudflare.com/client/v4/accounts/"+account+"/workers/scripts",{
+            headers:{Authorization:"Bearer "+token,Accept:"application/json"},
+            method:"GET",redirect:"error",signal:AbortSignal.timeout(10000)});
+          if(!r.ok){console.error("WORKER_LIST_UNKNOWN_HTTP_"+r.status);process.exit(1);}
+          const j=await r.json();
+          if(!j.success||!Array.isArray(j.result))process.exit(1);
+          if(j.result.some(w=>w.id==="ezero-secure-connect-call-lab-disabled")){
+            console.error("STAGING_ALREADY_EXISTS_REFUSE_OVERWRITE");process.exit(1);
+          }
+          if(j.result.length>=100){
+            console.error("FREE_PLAN_WORKER_COUNT_LIMIT");process.exit(1);
+          }
+          console.log("ISOLATED_STAGING_NAME_UNUSED: PASS");
+          CHECK
+      - name: Create ONLY disabled staging Worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_SEND_METRICS: 'false'
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4 deploy --config secure_connect/call_room_lab/wrangler.jsonc
+          echo "ONE_LINK_DISABLED_DEPLOY_COMMAND: PASS"
+      - name: Read-only public health denies room access
+        run: |
+          set -euo pipefail
+          node --input-type=module - <<'SMOKE'
+          const origin="https://ezero-secure-connect-call-lab-disabled.coma39658.workers.dev";
+          let healthOk=false;
+          for(let i=0;i<6;i++){
+            try{
+              const r=await fetch(origin+"/health",{
+                method:"GET",redirect:"error",signal:AbortSignal.timeout(10000)});
+              if(r.ok){
+                const data=await r.json();
+                if(data.code==="STAGING_DISABLED"){
+                  console.log("ONE_LINK_DISABLED_HEALTH: PASS");healthOk=true;break;
+                }
+                console.error("HEALTH_NOT_DISABLED");process.exit(1);
+              }
+              console.log("HEALTH_CHECK_HTTP_"+r.status);
+            }catch(_){console.log("HEALTH_NOT_READY");}
+            if(i<5)await new Promise(r=>setTimeout(r,3000));
+          }
+          if(!healthOk)process.exit(1);
+          const blocked=await fetch(origin+"/v1/room/"+"a".repeat(32),{
+            method:"GET",redirect:"error",signal:AbortSignal.timeout(10000)});
+          if(blocked.status!==503){console.error("ROOM_ACCESS_NOT_DISABLED");process.exit(1);}
+          console.log("REMOTE_ROOM_DISABLED: PASS; NO_CALL_POSSIBLE");
+          SMOKE
