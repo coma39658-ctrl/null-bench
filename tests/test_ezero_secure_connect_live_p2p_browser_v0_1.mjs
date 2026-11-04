@@ -83,12 +83,23 @@ try{
   assert.match(await a.locator("[data-i18n=policy1]").innerText(),/do not run ads/);
   await a.locator("#closePolicy").click();
   assert.equal(await a.locator("#policyDialog").isHidden(),true);
+  await a.locator("#language").selectOption("ar");
+  assert.match(await a.locator("#easyTitle").innerText(),/بطريقتين/);
+  await a.locator("#language").selectOption("ur");
+  assert.match(await a.locator("#easyTitle").innerText(),/صرف دو طریقے/);
+  assert.match(await a.locator("#copyIdentity").innerText(),/میری ڈیجیٹل شناخت|میرا شناختی کوڈ/);
+  assert.equal(await a.evaluate(()=>window.__mediaCalls.length),0,
+    "Switching three languages never opens mic/camera");
   const idA=await a.locator("#myDigitalId").inputValue();
   const idB=await b.locator("#myDigitalId").inputValue();
   assert.match(idA,/^EZERO1\./);
   assert.match(idB,/^EZERO1\./);
   await a.locator("#chooseRemote").click();
   assert.equal(await a.locator("#remotePanel").isVisible(),true);
+  assert.equal(await a.locator("#copyIdentity").isVisible(),true);
+  assert.equal(await a.locator("#pasteFriend").isVisible(),true);
+  assert.equal(await a.evaluate(()=>window.__mediaCalls.length),0,
+    "Choosing remote copy/paste never starts recording or a camera");
   assert.equal(await a.locator("#nearbyPanel").isHidden(),true);
   await a.locator("#friendIdInput").fill(idB);
   await a.locator("#verifyFriend").click();
