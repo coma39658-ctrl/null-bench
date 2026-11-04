@@ -49,6 +49,7 @@ async function idbStore() {
       resolve({
         get:()=>operate("readonly",s=>s.get(PROFILE_KEY)),
         put:val=>operate("readwrite",s=>s.put(val,PROFILE_KEY)),
+        delete:()=>operate("readwrite",s=>s.delete(PROFILE_KEY)),
         close:()=>db.close()
       });
     };
@@ -72,13 +73,21 @@ export async function createOrLoadIdentity({consent=false,storage}={}){
     return created;
   }finally{if(own)db.close();}
 }
+export async function clearLocalIdentity({confirmed=false,storage}={}){
+  if(!confirmed)throw Error("EXPLICIT_ERASURE_CONFIRMATION_REQUIRED");
+  const own=!storage,db=storage||await idbStore();
+  try{
+    if(typeof db.delete!=="function")throw Error("PRIVATE_ID_STORAGE_UNAVAILABLE");
+    await db.delete();
+  }finally{if(own)db.close();}
+}
 export function signatureText(body){
   return [WIRE,body.type,body.account,body.to||"",body.decision||"",
     body.pub||"",String(body.ts),body.nonce].join("\n");
 }
 export async function signAction(identity,type,{to,decision}={}){
   if(!identity?.keys?.privateKey || !ID.test(identity.account))throw Error("NO_LOCAL_IDENTITY");
-  if(!["register","request","respond","inbox","friends","remove"].includes(type))throw Error("BAD_ACTION");
+  if(!["register","request","respond","inbox","friends","remove","delete_account"].includes(type))throw Error("BAD_ACTION");
   if(["request","respond","remove"].includes(type) && !ID.test(to||""))throw Error("BAD_FRIEND");
   if(type==="respond" && !["accept","decline"].includes(decision))throw Error("BAD_DECISION");
   const nonce=hex(crypto.getRandomValues(new Uint8Array(16)));
