@@ -57,6 +57,7 @@
       <button type="button" id="nearCopyIdentity" class="outline" data-i18n="nearCopy">📋 اسکین نہ ہو تو میرا کوڈ کاپی کریں</button>
     </div>
     <video id="scanVideo" class="scan-video" playsinline muted hidden aria-label="Private QR camera scanner"></video>
+    <p id="qrScanStatus" class="scan-result" role="status" aria-live="polite" data-i18n="qrInstruction">QR اسکین کریں؛ کامیابی یا خرابی یہاں واضح نظر آئے گی۔</p>
     </div>
     <div id="remotePanel" class="easy-panel" hidden>
       <p class="panel-lead" data-i18n="remoteHint">میرا شناختی کوڈ میسج میں بھیجیں۔ دوست کا آیا ہوا کوڈ نیچے پیسٹ کرکے تصدیق کریں۔</p>
@@ -83,7 +84,22 @@
     <output id="peerFingerprint" class="hash" aria-live="polite">—</output>
     <p class="small" data-i18n="identityNotAccount">QR کی تصدیق خفیہ چابی کا ثبوت ہے، انسان کی حقیقی شناخت کا نہیں۔ مستقل دوست شامل کرنے کے لیے محفوظ اکاؤنٹ سرور ضروری ہوگا۔</p>
   </section>
-  <details id="callSetup" class="call-setup">
+  <section class="card contacts-card" aria-labelledby="contactsTitle">
+    <div class="heading"><span class="number" aria-hidden="true">👥</span><h2 id="contactsTitle" data-i18n="contactsTitle">میرے دوست</h2></div>
+    <p class="small" data-i18n="contactsPrivacy">صرف نام اور SHA-256 فنگرپرنٹ اس براؤزر میں محفوظ ہوگا؛ کوئی تصویر، گفتگو یا رابطے کی فہرست سرور پر نہیں جائے گی۔ نئے سیشن میں شناخت دوبارہ ملائیں۔</p>
+    <div class="friend-save">
+      <label class="field" for="friendDisplayName"><span data-i18n="friendName">دوست کا نام</span>
+        <input id="friendDisplayName" type="text" maxlength="40" autocomplete="off" placeholder="نام / Name / الاسم">
+      </label>
+      <button type="button" class="primary" id="saveVerifiedFriend" disabled data-i18n="saveFriend">✓ تصدیق شدہ دوست محفوظ کریں</button>
+    </div>
+    <label class="field" for="friendSearch"><span data-i18n="findFriend">دوست تلاش کریں</span>
+      <input id="friendSearch" type="search" maxlength="60" autocomplete="off" placeholder="نام یا SHA-256">
+    </label>
+    <div id="friendsList" class="friends-list" aria-live="polite"></div>
+    <p id="friendsStatus" class="scan-result" role="status" aria-live="polite" data-i18n="friendsEmpty">ابھی کوئی دوست شامل نہیں۔ پہلے درست QR یا دستخط شدہ شناخت کی تصدیق کریں۔</p>
+  </section>
+    <details id="callSetup" class="call-setup">
     <summary data-i18n="callSetupSummary">📞 شناخت ملانے کے بعد: آڈیو / ویڈیو کال آزمائیں</summary>
     <p class="easy-note" data-i18n="callSetupTruth">تجرباتی کال کے لیے دو فونوں میں ایک دعوت اور ایک جواب کا تبادلہ ضروری ہے۔ یہ ابھی WhatsApp کی طرح خودکار کال نہیں۔</p>
     <button type="button" id="closeAll" class="outline danger" data-i18n="closeEverything">✕ کال بند اور عارضی مواد صاف کریں</button>
