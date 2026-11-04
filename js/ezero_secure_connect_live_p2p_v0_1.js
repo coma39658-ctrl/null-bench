@@ -466,8 +466,16 @@
     if(!value) return false;
     try{await navigator.clipboard.writeText(value);return true;}
     catch(_){
-      element.focus();element.select();
-      try{return document.execCommand?.("copy")===true;}catch(_){return false;}
+      // Permission-safe user-gesture fallback even when the raw-code details are closed.
+      const temp=document.createElement("textarea");
+      temp.value=value;temp.readOnly=true;
+      temp.style.cssText="position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none";
+      document.body.appendChild(temp);
+      temp.focus();temp.select();
+      let copied=false;
+      try{copied=document.execCommand?.("copy")===true;}catch(_){}
+      temp.remove();
+      return copied;
     }
   }
   $("copySignal").addEventListener("click",async()=>{
