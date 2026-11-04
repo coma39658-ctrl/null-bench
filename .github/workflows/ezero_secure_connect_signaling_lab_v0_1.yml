@@ -23,6 +23,8 @@ jobs:
           node --check secure_connect/cloudflare/signaling_worker_v0_1.mjs
           node --check secure_connect/client/signaling_client_v0_1.mjs
           node --check secure_connect/tests/test_signaling_worker_v0_1.mjs
+          node --check secure_connect/client/pilot_friends_v0_1.mjs
+          node --check secure_connect/tests/test_pilot_friends_browser_v0_1.mjs
           node -e "const f=require('fs').readFileSync('secure_connect/cloudflare/wrangler.jsonc','utf8');if(!f.includes('\"PILOT_ENABLED\": \"false\"')||!f.includes('new_sqlite_classes'))process.exit(1)"
       - name: Test real ECDSA signatures and two-sided acceptance without secrets
         run: |
