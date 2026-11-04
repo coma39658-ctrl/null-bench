@@ -102,8 +102,8 @@ function draw(){
  $("roomDecline").disabled=!(ready&&role==="callee"&&!approved);
  $("roomCreate").disabled=ready;
  $("roomJoin").disabled=ready||!roomId;
- $("roomCopy").disabled=!link;
- $("roomShare").disabled=!link;
+ $("roomCopy").disabled=!(link&&ready&&role==="caller");
+ $("roomShare").disabled=!(link&&ready&&role==="caller");
  $("roomEnd").disabled=!ready;
 }
 function hex(bytes){return [...bytes].map(v=>v.toString(16).padStart(2,"0")).join("");}
