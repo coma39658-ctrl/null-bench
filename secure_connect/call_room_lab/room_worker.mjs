@@ -9,7 +9,7 @@ export const ROOM_LIFETIME_MS=10*60*1000;
 const PAGE_ORIGIN="https://coma39658-ctrl.github.io";
 const ROOM_ID=/^[a-f0-9]{32}$/;
 const ROOM_KEY=/^ezero-key-([a-f0-9]{64})$/;
-const MAX_FRAME=125000;
+const MAX_FRAME=180000;
 const MAX_MESSAGES_PER_SOCKET=12;
 
 function json(code,status=200){
@@ -40,7 +40,7 @@ function invalid(code,ws){
   safeSend(ws,{v:1,type:"error",code});
 }
 function activeSockets(ctx){
-  return ctx.getWebSockets().filter(ws=>metadata(ws)?.expires>Date.now() && ws.readyState!==3);
+  return ctx.getWebSockets().filter(ws=>metadata(ws)?.expires>Date.now() && ws.readyState===1);
 }
 export default {
   async fetch(request,env){
@@ -79,11 +79,18 @@ export class CallRoom {
     if(existing.length>=2)return json("ROOM_FULL",409);
     const peer=existing[0];
     const prior=peer&&metadata(peer);
-    if(prior && prior.hash!==digest)return json("ROOM_TOKEN_INVALID",403);
     const now=Date.now();
-    const expires=prior?.expires||now+ROOM_LIFETIME_MS;
-    if(expires<=now)return json("ROOM_EXPIRED",410);
-    const slot=prior?.slot==="caller"?"callee":"caller";
+    // Only the room identifier, token digest and expiry are stored in SQLite.
+    // No offer/answer, addresses, keys or communication content are persisted.
+    const record=await this.ctx.storage.get("room:meta");
+    if(record?.closed||record?.expires<=now)return json("ROOM_EXPIRED",410);
+    if((record && record.hash!==digest)||(prior && prior.hash!==digest))
+      return json("ROOM_TOKEN_INVALID",403);
+    const expires=record?.expires||now+ROOM_LIFETIME_MS;
+    if(!record)await this.ctx.storage.put("room:meta",{hash:digest,expires,closed:false});
+    const slot=prior?.slot==="caller"?"callee":(record?.callerJoined?"callee":"caller");
+    if(slot==="callee"&&!peer)return json("CALLER_DISCONNECTED",410);
+    if(slot==="caller")await this.ctx.storage.put("room:meta",{hash:digest,expires,closed:false,callerJoined:true});
     const pair=new WebSocketPair();
     const [client,server]=Object.values(pair);
     this.ctx.acceptWebSocket(server);
@@ -113,6 +120,8 @@ export class CallRoom {
       meta.count++;ws.serializeAttachment(meta);
       if(remote)safeSend(remote,{v:1,type:frame.type});
       if(frame.type==="hangup"){
+        const record=await this.ctx.storage.get("room:meta");
+        if(record)await this.ctx.storage.put("room:meta",{...record,closed:true});
         try{ws.close(1000,"Hangup");}catch(_){}
         if(remote)try{remote.close(1000,"Hangup");}catch(_){}
       }
@@ -124,18 +133,14 @@ export class CallRoom {
       meta.approved=true;meta.count++;ws.serializeAttachment(meta);
       safeSend(remote,{v:1,type:"accepted"});return;
     }
-    // Strict relay of already-signed offer/answer. The browser still verifies
-    // the ECDSA signature, freshness and SHA-256 peer identity before WebRTC.
+    // The full signed SDP/ICE offer is AES-GCM encrypted in the browsers.
+    // Cloudflare only passes the opaque ciphertext and never reads the SDP/IPs.
+    // The receiver still verifies the independent ECDSA/peer fingerprint.
     if(frame.type!=="offer"&&frame.type!=="answer")return invalid("TYPE_NOT_ALLOWED",ws);
-    const payload=frame.payload;
-    if(!payload||payload.v!==1||payload.type!==frame.type||
-       typeof payload.sdp!=="string"||payload.sdp.length<100||payload.sdp.length>120000||
-       !payload.sdp.startsWith("v=0") ||
-       !/^[0-9a-f]{64}$/.test(payload.fp||"") ||
-       !/^[0-9a-f]{32}$/.test(payload.nonce||"") ||
-       typeof payload.sig!=="string"||payload.sig.length>200||
-       typeof payload.pub!=="string"||payload.pub.length>300 ||
-       !Number.isSafeInteger(payload.issued))return invalid("SIGNED_ENVELOPE_REQUIRED",ws);
+    const blob=frame.blob;
+    if(typeof blob!=="string" || blob.length<128 || blob.length>170000 ||
+       !/^[A-Za-z0-9_-]+$/.test(blob))
+       return invalid("ENCRYPTED_FRAME_REQUIRED",ws);
     const remoteMeta=metadata(remote);
     if(frame.type==="offer"){
       if(meta.slot!=="caller"||remoteMeta?.approved!==true||meta.offered)
@@ -147,7 +152,7 @@ export class CallRoom {
       meta.answered=true;
     }
     meta.count++;ws.serializeAttachment(meta);
-    safeSend(remote,{v:1,type:frame.type,payload});
+    safeSend(remote,{v:1,type:frame.type,blob});
   }
   async webSocketClose(ws){
     for(const other of activeSockets(this.ctx))if(other!==ws)
@@ -158,8 +163,9 @@ export class CallRoom {
       safeSend(other,{v:1,type:"peer_left"});
   }
   async alarm(){
-    // Ephemeral offer/answer stays only in WebSocket frames and browser memory.
-    // No SQL rows or browser data are persisted by the room service.
+    // Expired room IDs cannot be reused after this alarm.
+    const record=await this.ctx.storage.get("room:meta");
+    if(record)await this.ctx.storage.put("room:meta",{...record,closed:true});
     for(const ws of this.ctx.getWebSockets()){
       try{ws.close(1000,"Room expired");}catch(_){}
     }
