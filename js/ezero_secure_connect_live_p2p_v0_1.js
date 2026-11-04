@@ -113,7 +113,7 @@
     }
   }
   $("language").addEventListener("change", e => langChange(e.target.value));
-  langChange("ur");
+  langChange(new URLSearchParams(location.search).get("lang") || "ur");
 
   function randomBytes(n) { const b = new Uint8Array(n); crypto.getRandomValues(b); return b; }
   const hex = bytes => Array.from(bytes, x => x.toString(16).padStart(2,"0")).join("");
@@ -266,7 +266,7 @@
     if (peer) throw Error("HANGUP_FIRST");
     if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia || !window.RTCPeerConnection) throw Error("WEBRTC_UNAVAILABLE");
     await identityPromise;
-    const cfg = {iceServers:$("enableStun").checked?[{urls:"stun:stun.l.google.com:19302"}]:[]};
+    const cfg = {iceServers:$("enableStun").checked?[{urls:"stun:stun.cloudflare.com:3478"}]:[]};
     const p = new RTCPeerConnection(cfg);peer=p;
     remoteStream=new MediaStream(); $("remoteVideo").srcObject=remoteStream;
     p.ontrack = event => {
