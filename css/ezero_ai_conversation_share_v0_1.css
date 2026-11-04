@@ -1,0 +1,23 @@
+/* E-ZERO opt-in voice conversation & per-answer sharing, responsive. */
+.ezeroConversationBox{max-width:850px;margin:8px auto 0;padding:10px 12px;border-radius:15px;border:1px solid var(--line);background:var(--surface)}
+.ezeroConvRow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:3px 0 9px}
+.ezeroConvRow button,.ezeroWelcomeVoice,.ezeroVoiceShortcut{min-height:42px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:11px;padding:7px 12px;font-size:12px;font-weight:800;cursor:pointer}
+.ezeroConvRow #ezeroFaceTalkBtn[aria-pressed="true"]{background:var(--accent);color:white}
+.ezeroSaveToggle{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:750;line-height:1.5;cursor:pointer}
+.ezeroSaveToggle input{width:19px;height:19px;accent-color:var(--accent)}
+.ezeroConvSmall{margin:6px 0;color:var(--sub);font-size:11px;line-height:1.6}
+.ezeroConvSmall[data-error="true"]{color:var(--danger)}
+.ezeroWelcomeVoice{display:inline-flex;align-items:center;margin-top:12px;background:var(--tint);border-color:var(--accent);font-size:13px}
+.ezeroVoiceShortcut{font-size:19px;padding:4px 9px;min-width:43px}
+.messageTools .miniButton{min-height:36px}
+@media(max-width:830px){
+ .ezeroConversationBox{padding:8px;margin:6px 0}
+ .ezeroConvRow{gap:6px}
+ .ezeroConvRow button{padding:7px 9px;font-size:11px}
+ .ezeroVoiceShortcut{min-width:36px;min-height:39px;padding:2px 6px;font-size:17px}
+ .topActions{gap:3px}
+}
+@media(max-width:390px){
+ .ezeroConvRow button{font-size:10px}
+ .ezeroVoiceShortcut{min-width:32px;padding:3px}
+}

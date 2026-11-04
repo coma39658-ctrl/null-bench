@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#087d91">
+<meta name="description" content="E-ZERO AI Studio — موصولہ صوتی پیغام نجی طور پر سنیں، پھر اپنی اجازت سے AI Studio کھولیں یا انسٹال کریں۔">
+<link rel="manifest" href="./ai-studio.webmanifest">
+<link rel="icon" href="./icon-192.png">
+<title>E-ZERO AI — آپ کی مرضی سے آگے بڑھیں</title>
+<style>
+:root{font-family:system-ui,"Noto Naskh Arabic","Noto Sans Arabic",sans-serif;color-scheme:light dark}
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 95% 0%,#23678d40,transparent 55%),linear-gradient(145deg,#c9e0e6,#e3eef1);color:#153447}
+main{width:min(100%,540px);padding:clamp(22px,5vw,40px);background:#e9f2f4;border:1px solid #a1c4ce;border-radius:25px;box-shadow:0 20px 65px #0a344022;line-height:1.85}
+.logo{display:inline-grid;place-items:center;width:59px;height:59px;border-radius:18px;color:#fff;background:linear-gradient(130deg,#0d627a,#139f92);font-weight:900;font-size:21px}
+h1{font-size:clamp(24px,6vw,34px);margin:16px 0 10px}p{font-size:15px;margin:10px 0;color:#385967}
+.actions{display:grid;gap:11px;margin:24px 0 14px}button,a.action{display:block;text-align:center;width:100%;padding:13px 18px;border-radius:13px;border:1px solid #087589;font:inherit;font-weight:800;font-size:15px;cursor:pointer;text-decoration:none;background:#087589;color:#fff}
+button.secondary{background:#e0edf0;color:#15556a;border-color:#95b9c5}
+a.cancel{color:#285d70;text-decoration:underline;text-underline-offset:4px;font-weight:700}
+#installHint{background:#dbe9eb;border-radius:11px;padding:10px 13px;font-size:13px;display:none}
+#installHint.visible{display:block}
+.small{font-size:12px;color:#4b6977}
+[hidden]{display:none!important}
+.audioListen{margin:18px 0 10px;padding:16px;border:1px solid #a1c4ce;border-radius:16px;background:#dce9ee}
+.audioListen h2{font-size:17px;margin:0 0 7px;color:inherit}
+.audioListen p{font-size:12px;line-height:1.7}
+.audioListen label{display:block;background:#eef7f8;color:#10566a;border:1px solid #a0c4ce;border-radius:12px;padding:9px 12px;font-weight:800}
+.audioListen input[type="file"]{display:block;max-width:100%;font-size:12px;margin-top:6px}
+.audioListen audio{display:block;width:100%;min-width:0;margin:12px 0}
+.audioListen #clearAudio{font-size:12px;min-height:39px;padding:7px 12px}
+.audioListen #audioStatus{min-height:20px}
+@media(prefers-color-scheme:dark){.audioListen{background:#284755;border-color:#527889}.audioListen label{background:#254350;color:#ddf6f7;border-color:#527889}}
+@media(prefers-color-scheme:dark){body{background:linear-gradient(145deg,#0a1c2b,#163b4a);color:#e9f7fb}main{background:#1b3849;border-color:#466c7d}p,.small{color:#c4d8e1}button.secondary{background:#244959;color:#e5f5f9;border-color:#568091}a.cancel{color:#8fdded}#installHint{background:#274a59}}
+</style>
+</head>
+<body>
+<main>
+<span class="logo" aria-hidden="true">E₀</span>
+<h1>E-ZERO AI Studio میں خوش آمدید</h1>
+<p>آپ کو کسی نے E-ZERO AI کا جواب، آواز یا لنک شیئر کیا ہے۔ اگر آپ چاہیں تو ہماری عوامی AI Studio ویب سائٹ کھول سکتے ہیں، سوال بول سکتے ہیں یا لکھ سکتے ہیں۔</p>
+<p><strong>یہ آپ کی مرضی ہے:</strong> اس صفحے سے مائک، کیمرہ یا ریکارڈنگ خودبخود شروع نہیں ہوتے۔ کوئی دوسرے شخص کی نجی گفتگو آپ کے ساتھ منتقل نہیں ہوتی۔</p>
+<section class="audioListen" aria-labelledby="audioListenTitle">
+<h2 id="audioListenTitle">🎧 موصول شدہ AI آواز سنیں</h2>
+<p>WhatsApp میں موصول ہونے والی آڈیو وہیں سن سکتے ہیں۔ اگر یہاں سننا چاہیں تو فائل اپنے فون میں محفوظ کرکے نیچے منتخب کریں۔ فائل E-ZERO سرور پر اپلوڈ نہیں ہوگی، صرف آپ کے براؤزر میں چلے گی۔</p>
+<label for="receivedAudio">موصولہ آڈیو خود منتخب کریں
+<input id="receivedAudio" type="file" accept="audio/wav,audio/x-wav,audio/mpeg,audio/mp4,audio/ogg,audio/webm,.wav,.mp3,.m4a,.ogg,.webm" aria-describedby="audioStatus"></label>
+<audio id="audioPreview" controls preload="none" hidden aria-label="آپ کے فون پر موجود موصولہ آڈیو"></audio>
+<button id="clearAudio" class="secondary" type="button" hidden>آڈیو بند اور ہٹائیں</button>
+<p id="audioStatus" role="status" aria-live="polite">فائل خود منتخب کرنے کے بعد ہی آواز چلے گی؛ خودکار پلے نہیں۔</p>
+</section>
+<div class="actions">
+<a id="continueStudio" class="action" href="./ezero_ai_studio_v0_1.html">✓ میری رضامندی سے AI Studio کھولیں</a>
+<button id="installBtn" class="secondary" type="button">📲 میری رضامندی سے موبائل پر انسٹال کریں</button>
+<a class="cancel" href="./index.html">نہیں، مرکزی صفحے پر واپس جائیں</a>
+</div>
+<p id="installHint" role="status" aria-live="polite"></p>
+<p class="small">انسٹال کا بٹن صرف آپ کے کلک کے بعد براؤزر کا اصل Install ڈائیلاگ کھولتا ہے۔ بعض فونز میں Menu ⋮ → Add to Home screen منتخب کرنا ضروری ہے۔ Android، iPhone اور براؤزر کی سہولت مختلف ہو سکتی ہے۔</p>
+<p class="small">E-ZERO AI مدد فراہم کرتا ہے؛ یہ گاڑی کی حتمی تشخیص یا ECU کنٹرول نہیں کرتا۔</p>
+</main>
+<script>
+(function(){
+"use strict";
+let deferredPrompt=null;
+const button=document.getElementById("installBtn");
+const hint=document.getElementById("installHint");
+const show=text=>{hint.textContent=text;hint.classList.add("visible");};
+const received=document.getElementById("receivedAudio");
+const audio=document.getElementById("audioPreview");
+const clear=document.getElementById("clearAudio");
+const audioStatus=document.getElementById("audioStatus");
+let audioURL=null;
+const clearSelectedAudio=()=>{
+ if(audio){audio.pause();audio.removeAttribute("src");audio.load();audio.hidden=true;}
+ if(audioURL){URL.revokeObjectURL(audioURL);audioURL=null;}
+ if(received)received.value="";
+ if(clear)clear.hidden=true;
+};
+received?.addEventListener("change",()=>{
+ const file=received.files?.[0];
+ clearSelectedAudio();
+ if(!file)return;
+ const safeFile=/\.(?:wav|mp3|m4a|ogg|webm)$/i.test(file.name||"");
+ const safeType=/^audio\/(?:wav|x-wav|mpeg|mp4|ogg|webm)$/i.test(file.type||"");
+ if((!safeType&&!safeFile)||file.size<=0||file.size>20*1024*1024){
+  audioStatus.textContent="صرف آڈیو WAV، MP3، M4A، OGG یا WebM (20MB تک) منتخب کریں۔";
+  received.value="";return;
+ }
+ audioURL=URL.createObjectURL(file);
+ audio.src=audioURL;audio.hidden=false;clear.hidden=false;
+ audioStatus.textContent="آپ کی منتخب کردہ فائل صرف اسی فون میں سننے کے لیے تیار ہے؛ Play آپ خود دبائیں۔";
+});
+clear?.addEventListener("click",()=>{clearSelectedAudio();audioStatus.textContent="مقامی آڈیو ہٹا دی گئی۔";});
+window.addEventListener("pagehide",clearSelectedAudio);
+window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();deferredPrompt=event;});
+window.addEventListener("appinstalled",()=>{deferredPrompt=null;show("E-ZERO AI شارٹ کٹ/ایپ کی تنصیب مکمل ہونے کی اطلاع براؤزر سے موصول ہوئی۔");});
+button.addEventListener("click",async()=>{
+ if(deferredPrompt){
+  const prompt=deferredPrompt;deferredPrompt=null;
+  try{await prompt.prompt();const decision=await prompt.userChoice;
+   show(decision?.outcome==="accepted"?"آپ نے انسٹالیشن منتخب کی۔ فون پر مکمل ہونے کی تصدیق دیکھیں۔":"آپ نے انسٹالیشن منسوخ کی؛ کوئی شارٹ کٹ زبردستی شامل نہیں ہوگا۔");
+  }catch(_){show("براؤزر کا انسٹال ڈائیلاگ نہیں کھل سکا۔ Menu ⋮ سے Add to Home screen منتخب کریں۔");}
+  return;
+ }
+ const isIOS=/iPad|iPhone|iPod/i.test(navigator.userAgent);
+ show(isIOS?"Safari میں Share (↑) دبائیں، پھر Add to Home Screen منتخب کریں۔ اس کی تصدیق آپ خود کریں۔":
+ "Chrome یا اپنے براؤزر کا Menu ⋮ کھولیں، پھر Install app یا Add to Home screen منتخب کریں۔");
+});
+if("serviceWorker" in navigator){
+ window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
+}
+})();
+</script>
+</body>
+</html>

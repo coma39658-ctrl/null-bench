@@ -6,6 +6,8 @@
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#cfdee5">
+<link rel="manifest" href="./ai-studio.webmanifest">
+<link rel="stylesheet" href="./css/ezero_ai_conversation_share_v0_1.css?v=20261104-voice01">
 <title>E-ZERO Intelligence — AI Studio</title>
 <meta name="description" content="E-ZERO AI Studio — intelligent Urdu-first chat, public dashboard help, approved site updates, voice and consent-based images. Live market search requires a verified provider.">
 <style>
@@ -173,7 +175,7 @@ function createMessage(role,text,imageURL,previewOnly){
     copy.addEventListener("click",()=>{copyText(readableText(text)).then(ok=>{copy.textContent=ok?"✓ نقل ہوگیا":"متن منتخب کرکے نقل کریں"})});
     const speak=document.createElement("button");speak.className="miniButton";speak.type="button";speak.textContent="◉ سنیں";
     speak.addEventListener("click",()=>speakAnswer(text,speak));
-    tools.append(copy,speak);body.appendChild(tools);
+    tools.append(copy,speak);window.EZERO_AI_STUDIO_ATTACH_SHARE_V0_1?.(tools,text);body.appendChild(tools);
   }
   if(els.welcome&&els.welcome.parentNode)els.welcome.classList.add("hidden");
   box.append(avatar,body);els.thread.appendChild(box);jump(true);
@@ -555,6 +557,7 @@ async function sendQuestion(e){if(e)e.preventDefault();if(busy)return;const ques
    // User input goes to the gateway only after explicit submit; images require checkbox consent.
    createMessage("user",q,preview,false);
    transcript.push({role:"user",text:q,has_image:isImage});
+    window.dispatchEvent(new CustomEvent("ezero:studio-message",{detail:{role:"user",text:q,has_image:isImage}}));
    els.prompt.value="";clearImage();resizeEntry();
    let loading=createMessage("assistant","جواب تیار کیا جا رہا ہے…",null,true);
    // Direct read-only E-ZERO site inventory: not a Qwen search result.
@@ -572,6 +575,7 @@ async function sendQuestion(e){if(e)e.preventDefault();if(busy)return;const ques
        const localMessage=createMessage("assistant",siteReply.answer,null,false);
        showAnswerProvenance(localMessage,"PUBLIC_SITE_STATE",siteReply.status,siteReply.as_of);
        transcript.push({role:"assistant",text:siteReply.answer,source:"PUBLIC_SITE_STATE"});
+        window.dispatchEvent(new CustomEvent("ezero:studio-message",{detail:{role:"assistant",text:siteReply.answer,source:"PUBLIC_SITE_STATE"}}));
        showNotice(siteReply.status==="OK"
          ?"جواب صرف شائع شدہ E-ZERO ویب سائٹ کے مورخہ ریکارڈ سے ہے؛ حقیقی مارکیٹ سرچ یا گاڑی تشخیص نہیں۔"
          :"تازہ عوامی سائٹ کا ریکارڈ نہیں ملا؛ کوئی بٹن یا حیثیت فرض نہیں کی گئی۔",
@@ -591,6 +595,7 @@ async function sendQuestion(e){if(e)e.preventDefault();if(busy)return;const ques
     if(!isImage)annotateSearchStatus(finalMessage,q,result,linkedSources);
     if(!isImage&&linkedSources===0&&(result.marketPriceVerification==="NOT_VERIFIED"||needsPublicResearchSources(q)))appendOptionalMarketSearch(finalMessage.box,q);
     transcript.push({role:"assistant",text:result.text,source:result.source});
+     window.dispatchEvent(new CustomEvent("ezero:studio-message",{detail:{role:"assistant",text:result.text,source:result.source}}));
     if(!isImage&&result.source!=="FAIL_CLOSED"){history.push({role:"user",content:q},{role:"assistant",content:result.text});history=history.slice(-MAX_HISTORY)}
     const noFreshSource=!isImage&&linkedSources===0&&needsPublicResearchSources(q);
     showNotice(!isImage&&result.marketPriceVerification==="NOT_VERIFIED"
@@ -599,7 +604,7 @@ async function sendQuestion(e){if(e)e.preventDefault();if(busy)return;const ques
       ?"اس جواب کے ساتھ اصل ویب سرچ ذرائع موصول نہیں ہوئے۔ نیچے اختیاری عوامی سرچ روابط موجود ہیں؛ قیمتیں اور تازہ دعوے تصدیق کے بغیر قبول نہ کریں۔"
       :"جواب موصول ہوگیا۔ راستہ: "+(isImage?"تصویری معاون":"تحریری AI v0.5")+"؛ حتمی گاڑی تشخیص نہیں۔",
       noFreshSource||result.marketPriceVerification==="NOT_VERIFIED"?"normal":"success");
-   }catch(error){if(epoch===requestEpoch){loading.box.remove();showNotice(describeError(error),"error");createMessage("assistant","درخواست مکمل نہیں ہوسکی۔ اوپر دی گئی خرابی دیکھیں؛ کوئی تشخیصی نتیجہ نہیں بنایا گیا۔",null,true)}}finally{clearTimeout(timer)}
+   }catch(error){if(epoch===requestEpoch){loading.box.remove();showNotice(describeError(error),"error");createMessage("assistant","درخواست مکمل نہیں ہوسکی۔ اوپر دی گئی خرابی دیکھیں؛ کوئی تشخیصی نتیجہ نہیں بنایا گیا۔",null,true);window.dispatchEvent(new CustomEvent("ezero:studio-error",{detail:{kind:"REQUEST_ERROR"}}));}}finally{clearTimeout(timer)}
  }catch(error){if(epoch===requestEpoch)showNotice(describeError(error),"error")}
  finally{if(epoch===requestEpoch){busy=false;updateSend();jump(true)}}
 }
@@ -609,6 +614,23 @@ function setupMic(){const Speech=window.SpeechRecognition||window.webkitSpeechRe
  els.micBtn.addEventListener("click",()=>{if(busy)return;if(listening){recognition.stop();return}try{recognition=new Speech();recognition.lang=speechLocale();recognition.continuous=false;recognition.interimResults=false;recognition.maxAlternatives=1;recognition.onstart=()=>{listening=true;els.micBtn.classList.add("active");showNotice("سن رہے ہیں… بولنا مکمل کریں۔ آپ کی آواز کی شناخت براؤزر کے فراہم کنندہ سے ہوسکتی ہے۔","normal")};recognition.onresult=ev=>{const spoken=ev.results&&ev.results[0]&&ev.results[0][0]?ev.results[0][0].transcript:"";if(spoken){els.prompt.value=(els.prompt.value?els.prompt.value.trim()+" ":"")+spoken;resizeEntry();updateSend();showNotice("آپ کی بات تحریر ہوگئی؛ بھیجنے سے پہلے جائزہ لے سکتے ہیں۔","success")}};recognition.onerror=ev=>{showNotice("مائیک کی شناخت ممکن نہیں: "+(ev.error||"UNKNOWN")+"۔ کی بورڈ سے سوال لکھ سکتے ہیں۔","error")};recognition.onend=()=>{listening=false;els.micBtn.classList.remove("active")};recognition.start()}catch(_){showNotice("مائیک شروع نہیں ہوسکا۔ براؤزر کی اجازت جانچیں۔","error")}});
 }
 function exportConversation(){if(!transcript.length){showNotice("محفوظ کرنے کے لیے ابھی کوئی گفتگو موجود نہیں۔","normal");return}const lines=["E-ZERO AI Studio — user-initiated local transcript","Note: AI explanations are not definitive vehicle diagnoses.","",...transcript.map((m,i)=>(i+1)+". "+(m.role==="user"?"User":"E-ZERO AI")+(m.has_image?" [image uploaded with consent]":"")+"\n"+m.text+"\n")];const blob=new Blob([lines.join("\n")],{type:"text/plain;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="ezero-ai-conversation.txt";a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)}
+// Local text transcript bridge. Images/voice bytes and secrets are never restored or exported by this bridge.
+window.EZERO_AI_STUDIO_BRIDGE_V0_1=Object.freeze({
+ getTranscript:()=>transcript.filter(m=>["user","assistant"].includes(m.role)&&typeof m.text==="string").map(m=>({role:m.role,text:m.text,source:m.source||""})),
+ restoreMessages(items){
+  if(busy||transcript.length||!Array.isArray(items))return false;
+  for(const item of items.slice(-80)){
+   if(!item||!["user","assistant"].includes(item.role)||typeof item.text!=="string")continue;
+   const text=item.text.slice(0,MAX_ANSWER);if(!text.trim())continue;
+   createMessage(item.role,text,null,false);
+   transcript.push({role:item.role,text,source:item.source||"LOCAL_RESTORED_TEXT"});
+   if(item.role==="user")history.push({role:"user",content:text});
+   else history.push({role:"assistant",content:text});
+  }
+  history=history.slice(-MAX_HISTORY);
+  return true;
+ }
+});
 // UI bindings
 els.form.addEventListener("submit",sendQuestion);els.prompt.addEventListener("input",()=>{resizeEntry();updateSend()});els.prompt.addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){e.preventDefault();if(!els.send.disabled)sendQuestion()}});
 els.attachBtn.addEventListener("click",()=>els.file.click());els.file.addEventListener("change",()=>selectFile(els.file.files[0]));els.removeFile.addEventListener("click",clearImage);els.consent.addEventListener("change",updateSend);
@@ -622,5 +644,6 @@ setupMic();ezeroSetupVoiceSettings();updateSend();checkHealth();
 })();
 </script>
 <script src="./js/ezero_ai_studio_media_i18n_v0_1.js?v=20261103-mobilevideo02" defer></script>
+<script src="./js/ezero_ai_conversation_share_v0_1.js?v=20261104-voice01" defer></script>
 </body>
 </html>

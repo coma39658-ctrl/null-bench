@@ -1089,6 +1089,11 @@ header{
   }
 }
 
+/* One shared voice destination from header, hero and mobile shortcut. Microphone never auto-starts. */
+.ezero-voice-float{position:fixed;z-index:4500;left:14px;bottom:calc(92px + env(safe-area-inset-bottom,0px));display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:12px 14px;border-radius:999px;background:#0b697a;color:#fff!important;border:1px solid #6fd2d1;font-size:13px;font-weight:850;text-decoration:none;box-shadow:0 9px 27px #08334448;min-height:48px;max-width:190px}
+.ezero-voice-float:focus-visible{outline:3px solid #ffca65;outline-offset:3px}
+@media(max-width:800px){.ezero-voice-float{padding:11px 12px;left:9px;bottom:calc(88px + env(safe-area-inset-bottom,0px));font-size:12px}}
+@media(prefers-reduced-motion:reduce){.ezero-voice-float{transition:none}}
 </style>
 <link rel="stylesheet" href="css/ezero_null_bench_modern_home_v0_2.css">
   <link rel="manifest" href="manifest.json">
@@ -1192,10 +1197,13 @@ header{
 </div>
 
 </header>
+<a class="ezero-voice-float" href="./ezero_ai_studio_v0_1.html#voice" aria-label="E-ZERO AI Studio میں جا کر مائک سے گفتگو شروع کریں">🎙️ AI سے بات کریں</a>
 <nav class="ezero-public-quickbar" aria-label="E-ZERO public tools">
  <a href="https://e-zero-dashboard.onrender.com/studio" data-ezhome="main">⌂ E-ZERO Studio</a>
  <a href="https://e-zero-dashboard.onrender.com/dashboard" data-ezhome="dashboard">🚘 Dashboard</a>
  <a href="./ezero_ai_studio_v0_1.html" data-ezhome="ai">✦ AI Studio</a>
+ <a href="./ezero_ai_studio_v0_1.html#voice" aria-label="E-ZERO AI مائک سے بات چیت">🎙️ صوتی گفتگو</a>
+ <a href="./ai.html" aria-label="AI Studio انسٹال کرنے کے لیے رضامندی کا صفحہ">📲 AI انسٹال</a>
  <a href="#try" data-ezhome="bench">◈ Null Bench</a>
 </nav>
 
@@ -1237,6 +1245,7 @@ header{
  <div class="actions">
   <a class="btn" href="#try" data-i18n="run_null_bench">Run Null Bench</a>
   <a class="btn ghost" href="#platform-modules" data-i18n="explore_modules">Explore E-ZERO Modules</a>
+  <a class="btn" href="./ezero_ai_studio_v0_1.html#voice" aria-label="AI Studio میں جا کر مائک سے بات کریں">🎙️ AI سے آواز میں بات کریں</a>
  </div>
 
  <div id="ezeroQwenFrontCard" style="
@@ -2502,6 +2511,7 @@ b,c
    Null Bench — Free public degree-preserving null-model testing tool.
    Browser-side processing. No network data is intentionally uploaded.
   </p>
+  <p><a href="./ai.html" style="color:inherit;font-weight:800" aria-label="E-ZERO AI Studio کے رضامندی اور انسٹال صفحے پر جائیں">🎙️ E-ZERO AI Studio · شیئر، آواز، رضامندی اور انسٹال</a></p>
   <p data-i18n="null_evidence_boundary">
    This tool provides computational/statistical evidence only.
    It does not prove causality, mechanism, or physical law.
