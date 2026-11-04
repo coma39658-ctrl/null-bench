@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {webcrypto} from "node:crypto";
 import worker,{SecureConnectDirectory,__test as ws} from "../cloudflare/signaling_worker_v0_1.mjs";
-import {createOrLoadIdentity,signAction,signatureText,inviteLink,
+import {createOrLoadIdentity,clearLocalIdentity,signAction,signatureText,inviteLink,
   incomingInvite,apiRequest} from "../client/signaling_client_v0_1.mjs";
 
 if(!globalThis.crypto) globalThis.crypto=webcrypto;
@@ -176,5 +176,40 @@ test("unknown accounts, blocked self linking, request limits and invalid shapes"
   const tooBig=await transport(URL,{method:"POST",headers:{"content-type":"application/json"},
     body:"x".repeat(4200)});
   assert.equal(tooBig.status,413);
+});
+test("consented signed account deletion revokes friendships and pending invitations in both directions",async()=>{
+  const {storage,transport}=makeEnvironment();
+  const a=await person(),b=await person(),c=await person();
+  for(const id of [a,b,c])await send(transport,id,"register");
+  await send(transport,a,"request",{to:b.account});
+  await send(transport,b,"respond",{to:a.account,decision:"accept"});
+  await send(transport,c,"request",{to:a.account});
+  assert.deepEqual((await send(transport,a,"friends")).friends,[b.account]);
+  assert.deepEqual((await send(transport,a,"inbox")).pending.map(p=>p.from),[c.account]);
+  const altered=await signAction(a,"delete_account");
+  altered.type="friends";
+  const forged=await post(transport,altered);
+  assert.equal(forged.status,403,"Cannot reuse a delete signature for another action");
+  const result=await send(transport,a,"delete_account");
+  assert.equal(result.code,"ACCOUNT_DELETED");
+  assert.equal(result.friendsRevoked,true);
+  assert.equal(result.localIdentityDeleted,false,"Server cannot assert that browser private key was erased");
+  assert.equal(storage.data.has("account:"+a.account),false);
+  assert.equal(storage.data.get("meta:account_count"),2);
+  assert.deepEqual((await send(transport,b,"friends")).friends,[]);
+  await assert.rejects(send(transport,b,"request",{to:a.account}),/FRIEND_NOT_REGISTERED/);
+  await assert.rejects(send(transport,a,"friends"),/ACCOUNT_NOT_REGISTERED/);
+  const keys=[...storage.data.keys()];
+  assert.equal(keys.some(k=>k.startsWith("pair:")&&k.includes(a.account)),false);
+  assert.equal(keys.some(k=>k.startsWith("friend:")&&k.includes(a.account)),false);
+  assert.equal(keys.some(k=>k.startsWith("incoming:")&&k.includes(a.account)),false);
+  assert.equal((await send(transport,a,"register")).code,"REGISTERED");
+  assert.deepEqual((await send(transport,a,"friends")).friends,[],"Re-enrolling cannot restore deleted friend links");
+  let local=await person();
+  const device={get:async()=>local,put:async v=>{local=v;},
+    delete:async()=>{local=undefined;},close:()=>{}};
+  await assert.rejects(clearLocalIdentity({storage:device}),/EXPLICIT_ERASURE_CONFIRMATION_REQUIRED/);
+  await clearLocalIdentity({confirmed:true,storage:device});
+  assert.equal(local,undefined,"Private key must be deleted only after explicit confirmation");
 });
 console.log("SECURE_CONNECT_STAGING_WORKER_NO_DEPLOYMENT_OR_AUTO_FRIENDSHIP");
