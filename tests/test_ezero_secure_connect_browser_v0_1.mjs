@@ -27,6 +27,9 @@ try {
   await page.goto(base+"/index.html",{waitUntil:"domcontentloaded"});
   assert.equal(await page.locator("a.ezero-voice-float").count(),1,"AI Studio separate button preserved");
   await page.locator("#ezeroVoiceGuideButton").click();
+  await page.waitForTimeout(200);
+  const hubDebug=await page.evaluate(()=>({aria:document.getElementById("ezeroVoiceGuidePanel")?.getAttribute("aria-hidden"),display:document.getElementById("ezeroVoiceGuidePanel")?.style.display,handler:typeof window.EZERO_POSITION_AI_AGENT_PANEL,close:!!document.getElementById("ezeroVoiceGuideClose"),parent:document.getElementById("ezeroVoiceGuidePanel")?.parentElement?.tagName}));
+  console.log("HUB_OPEN_DEBUG",JSON.stringify(hubDebug));
   assert.equal(await page.locator("#ezeroVoiceGuidePanel").getAttribute("aria-hidden"),"false");
   assert.equal(await page.locator("#ezeroLegacyVoiceGuide").isHidden(),true);
   const cards=page.locator("#ezeroAssistFutureDock a.ezero-assist-tool");
