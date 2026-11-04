@@ -1,0 +1,28 @@
+# E-ZERO Privacy Copilot v0.1 — Evidence, limitations & controlled release
+Date: 2026-11-04 · Experiment only · No production deployment
+
+## Distinguish evidence from claims
+- **Implemented:** A symmetric 12-decimal-digit human-comparison code, SHA-256 domain-separated over both sorted 64-hex fingerprint strings; displays only when two distinct digital keys are present. It helps people compare fingerprints out-of-band; it does **not** prove a real person's identity or guarantee prevention of man-in-the-middle or device compromise.
+- **Implemented:** Visible digital-identity trust state based on the existing cryptographically signed QR verification event. Trust resets on failed verification and peer fingerprint changes; digital-key verification is not biometric or government ID verification.
+- **Implemented:** Browser event-driven WebRTC connected state from the existing peer connection; do not infer call success from QR, offer creation or a displayed invite.
+- **Implemented:** Deterministic text-warning rules on the text **the user voluntarily types** into the ephemeral direct DataChannel draft. Warn about passwords/OTP, bank details, links, and urgent money requests in English/Arabic/Urdu; block the first Send click until a distinct explicit user action. These are **heuristics**, not a machine-learning classifier and not an assurance that other text is safe. They do not analyze voice, call history, other apps, files or received private messages.
+- **Implemented:** Locally curated, reviewable quick phrases in Urdu, Arabic and English, inserted into the draft without sending.
+- **Implemented when browser supports:** Optional explicit one-shot on-device AI text translation using Chrome's built-in `Translator` API. Only requests `availability()`; calls `create()` **only if the model reports `available`**, so no automatic model download or remote AI fallback. English/Arabic are the candidate pairs; do **not** advertise Urdu AI translation until support is proved.
+- **Implemented when browser supports:** Optional *explicitly clicked* local SpeechRecognition with `processLocally=true`, `SpeechRecognition.available({langs:[...],processLocally:true})`, and **only** an already installed local language pack. Never invoke cloud-based or vendor-prefixed recognition or auto-download. Only the phone microphone is transcribed, not incoming peer audio. A one-shot transient caption is never sent to a friend or server.
+- **Implemented:** A visible one-tap erase of ephemeral draft/translation/local caption, and cleanup on pagehide/explicit call termination. **No Copilot localStorage, sessionStorage, IndexedDB, MediaRecorder, fetch, XMLHttpRequest or WebSocket API calls.** It does not promise preventing the other participant from recording.
+
+## Research and platform limits
+- Chrome built-in Translator/LanguageDetector APIs **do not work on mobile devices** according to Google's official docs: https://developer.chrome.com/docs/ai/translator-api ; https://developer.chrome.com/docs/ai/get-started
+- The Web Speech API may invoke **cloud speech processing by default** in Chrome, and send audio to a third-party service. Use `processLocally=true` only where supported, with `available(...processLocally:true)`; otherwise tell the user that captions are unavailable: https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition ; https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition/processLocally ; https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API/Using_the_Web_Speech_API
+- OWASP WebSocket controls, replay prevention and input validation in the separate signaling lab remain mandatory: https://cheatsheetseries.owasp.org/cheatsheets/WebSocket_Security_Cheat_Sheet.html
+- WebRTC transport is not human identity or a guarantee that the other user cannot record, screenshot or disclose a conversation.
+
+## Release controls
+1. This candidate stays on `ezero-secure-connect-local-intelligence-lab-20261104`, based on the existing one-link staging candidate. **Do not merge into main, change Cloudflare environment variables, turn on live rooms, change billing, or enable microphone by default.**
+2. Run local static-contract CI and two independent mobile-viewport browser Playwright tests: symmetry & key verification, invalid QR, outgoing OTP guard, changing draft cancels prior override, language switch, quick phrases, desktop mock local AI available/unavailable, true local-only speech mock, and ephemeral cleanup.
+3. Run legacy manual audio/video and encrypted one-link browser regressions to avoid breaking the real connection layer.
+4. Test real Android phones: verify that unsupported on-device translation/speech **does not capture audio, download a model or use cloud speech**. Confirm the QR safety number on both phones and out-of-band human check.
+5. Independent code/security review of local AI edge cases, accessibility, privacy statements, QR trust changes, and fraud warning false positives/false negatives before opt-in limited release.
+6. When evaluating further AI on Android, assess **consented** downloadable offline speech/translation models and device budgets. Never silently substitute a remote model. If a cloud model is ever introduced for call content, require explicit both-party consent, published data handling, retention policy, clear cost limits, and security review.
+
+This copilot is **AI-ready**, not a claim that AI interpretation, live subtitles or translation works on the user's existing Android phones. The rule-based risk hints and symmetric comparison code are real local functionality, not an ML model. No claim of `100% secure` or `unhackable` is justified.

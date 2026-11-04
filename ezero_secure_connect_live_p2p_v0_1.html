@@ -22,6 +22,7 @@
 <script defer src="./js/ezero_secure_connect_live_p2p_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_simple_near_far_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_one_link_lab_v0_1.js"></script>
+<script defer src="./js/ezero_secure_connect_privacy_copilot_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_contacts_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_install_share_v0_1.js"></script>
 </head>
@@ -175,6 +176,61 @@
     <p class="small" data-room-i18n="linkWarning">جس کے پاس مکمل نجی لنک ہو وہ دوسرے فون کی جگہ لینے کی کوشش کر سکتا ہے۔ اسے کسی عوامی گروپ یا اسکرین شاٹ میں نہ دیں، اور دوست کی شناخت الگ سے چیک کریں۔</p>
     <p class="small" data-room-i18n="remind">یہ بند Staging سہولت ہے؛ عوامی آغاز حقیقی دو فونوں کے کامیاب ٹیسٹ کے بعد ہوگا۔</p>
   </section>
+  <details class="card copilot-panel" id="copilotPanel">
+    <summary id="copilotTitle" data-copilot-i18n="title">✨ AI Privacy Copilot — ذہین اور محفوظ کال</summary>
+    <p class="muted" data-copilot-i18n="intro">ایپ نجی گفتگو خودکار نہیں پڑھتی۔ موبائل پر AI نہ بھی ہو تو مقامی حفاظتی سہولتیں کام کریں گی۔</p>
+    <section class="copilot-trust" aria-label="Digital trust check">
+      <strong data-copilot-i18n="trustTitle">🔐 دونوں فونوں کا حفاظتی کوڈ</strong>
+      <output id="copilotSafetyCode" dir="ltr" aria-label="12 digit comparison code">—</output>
+      <p id="copilotSafetyHelp" class="small" data-copilot-i18n="trustNone">ابھی دونوں ڈیجیٹل شناختیں نہیں ملیں۔</p>
+      <p id="copilotIdentity" class="small" role="status" data-copilot-i18n="identityNone">دوست کی دستخط شدہ شناخت اس سیشن میں چیک نہیں ہوئی۔</p>
+      <p id="copilotCall" class="small" role="status" data-state="offline" data-copilot-i18n="callNone">ابھی حقیقی WebRTC کال کنیکٹ نہیں۔</p>
+    </section>
+    <section class="copilot-tools">
+      <strong data-copilot-i18n="phraseTitle">⚡ تین زبانوں میں فوری حفاظتی جملے</strong>
+      <div class="copilot-grid">
+        <label class="field">جملہ / Phrase / العبارة
+          <select id="copilotPhrase">
+            <option value="heard">Can you hear me? · آواز آ رہی ہے؟</option>
+            <option value="later">Call back · بعد میں کال</option>
+            <option value="verify">Verify identity · شناخت چیک کریں</option>
+            <option value="otp">Never share OTP · OTP محفوظ رکھیں</option>
+          </select>
+        </label>
+        <label class="field">زبان / Language / اللغة
+          <select id="copilotPhraseLanguage">
+            <option value="ur">اردو</option><option value="en">English</option><option value="ar">العربية</option>
+          </select>
+        </label>
+      </div>
+      <button type="button" id="copilotPhraseUse" class="outline" data-copilot-i18n="phraseUse">جملہ لکھنے کے خانے میں رکھیں (خود نہیں بھیجے گا)</button>
+    </section>
+    <section class="copilot-tools">
+      <strong data-copilot-i18n="translationTitle">🧠 فون پر موجود AI سے ترجمہ — اختیاری</strong>
+      <div class="copilot-grid">
+        <label class="field">From / مصدر
+          <select id="copilotSourceLang"><option value="en">English</option><option value="ar">العربية</option></select>
+        </label>
+        <label class="field">To / إلى
+          <select id="copilotTargetLang"><option value="ar">العربية</option><option value="en">English</option></select>
+        </label>
+      </div>
+      <div class="buttonrow">
+        <button type="button" id="copilotTranslate" class="outline" data-copilot-i18n="translate">ترجمہ کریں (صرف مقامی AI)</button>
+        <button type="button" id="copilotTranslationUse" class="outline" data-copilot-i18n="translationUse">ترجمہ پیغام کے خانے میں رکھیں (ارسال نہیں)</button>
+      </div>
+      <p id="copilotTranslationStatus" class="small" role="status"></p>
+      <p id="copilotTranslationResult" class="copilot-translated" aria-live="polite" dir="auto"></p>
+    </section>
+    <section class="copilot-tools">
+      <strong data-copilot-i18n="captionTitle">🎙️ فون پر ہی آواز کے سب ٹائٹلز — اختیاری</strong>
+      <button type="button" id="copilotCaptionToggle" class="outline" data-copilot-i18n="captionStart">مقامی سب ٹائٹلز آزمائیں</button>
+      <p id="copilotCaptionStatus" role="status" class="small"></p>
+      <p id="copilotCaptionResult" class="copilot-translated" dir="auto" aria-live="polite"></p>
+    </section>
+    <p class="small" data-copilot-i18n="noAi">Android پر مقامی AI دستیاب نہ بھی ہو سکتا ہے؛ بیرونی AI خودکار طور پر استعمال نہیں ہوگا۔</p>
+    <button type="button" id="copilotClear" class="outline danger" data-copilot-i18n="clear">🧹 عارضی مواد صاف کریں</button>
+  </details>
   <section class="card guided-call" aria-labelledby="guidedCallTitle">
     <div class="heading"><span class="number">2</span><h2 id="guidedCallTitle" data-i18n="guidedTitle">دعوت میسج کریں یا آیا ہوا جواب پیسٹ کریں</h2></div>
     <p class="muted" data-i18n="guidedHelp">پہلے فون پر دعوت بنائیں اور شیئر کریں۔ دوسرے فون پر وہ پیسٹ کرکے آگے بڑھیں، پھر اس کا جواب پہلے فون کو بھیجیں۔ سسٹم خود پہچانے گا کہ دعوت ہے یا جواب۔</p>
@@ -234,6 +290,8 @@
     <div class="heading"><span class="number">4</span><h2 id="messageTitle" data-i18n="oneView">ایک بار کھلنے والا پیغام</h2></div>
     <p class="muted" data-i18n="messageHelp">صرف کال کے دوران براہِ راست DataChannel سے پیغام جائے گا۔ سرور پر میسج نہیں رکھا جاتا۔ کھولنے کے بعد زیادہ سے زیادہ 5 منٹ میں ختم ہوگا؛ پیغام محفوظ کرنے کا کوئی بٹن نہیں۔</p>
     <label class="field"><span data-i18n="compose">پیغام لکھیں</span><textarea id="sendText" rows="2" maxlength="2000" spellcheck="false"></textarea></label>
+    <p class="copilot-risk" id="copilotRisk" data-state="idle" role="status" aria-live="polite">آپ کے لکھے ہوئے پیغام کی مقامی حفاظتی جانچ ہوگی۔</p>
+    <button type="button" class="outline danger" id="copilotOverride" hidden data-copilot-i18n="override">⚠ خطرہ سمجھ کر یہی پیغام بھیجیں</button>
     <button id="sendMessage" class="primary" type="button" disabled data-i18n="send">محفوظ پیغام بھیجیں</button>
     <p id="messageStatus" class="status" role="status" data-i18n="notConnected">میسج کے لیے دو فونوں کا کنکشن ضروری ہے۔</p>
     <div class="incomingItem" id="incomingItem" hidden>

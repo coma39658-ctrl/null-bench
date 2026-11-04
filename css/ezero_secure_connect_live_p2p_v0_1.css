@@ -98,3 +98,33 @@ button.outline{color:#07546b;background:#ebf9fc;border-color:#b3d5de}button.dang
 .share-install .install-help strong{display:block}
 .share-install .install-help p{margin:8px 0;line-height:1.8}
 @media(max-width:350px){.share-install .buttonrow{grid-template-columns:1fr}.share-install .buttonrow .install-action{grid-column:auto}.share-install{padding:12px}}
+
+
+/* Optional privacy copilot: no full-screen takeover, no fake AI activation. */
+.copilot-panel{background:linear-gradient(145deg,#f1fafc,#fff);border:1px solid #a8d4dc;overflow:hidden}
+.copilot-panel>summary{cursor:pointer;list-style:none;font-size:16px;font-weight:900;line-height:1.7;color:#0a556d;padding:9px 3px}
+.copilot-panel>summary::-webkit-details-marker{display:none}
+.copilot-panel>summary::before{content:"▸";margin-inline-end:8px}
+.copilot-panel[open]>summary::before{content:"▾"}
+.copilot-panel>p.muted{line-height:1.9}
+.copilot-panel section{padding:13px;margin:12px 0;border:1px solid #d0e5e9;border-radius:14px;background:#fff}
+.copilot-panel section strong{display:block;font-size:14px;margin-bottom:9px;color:#154e5d}
+.copilot-trust output{font:800 clamp(18px,6vw,27px)/1.6 ui-monospace,monospace;letter-spacing:1px;display:block;
+ direction:ltr;text-align:center;border:1px dashed #74b4bd;padding:13px 8px;border-radius:12px;color:#075969;background:#e9f8f8}
+.copilot-trust p{padding:4px 2px;margin:5px 0;color:#356372;line-height:1.8}
+.copilot-trust #copilotCall[data-state="connected"]{color:#146344;font-weight:800}
+.copilot-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.copilot-grid>.field{margin:0 0 10px}
+.copilot-grid select{width:100%;min-height:45px;max-width:100%;padding:8px;border:1px solid #abcfd4;
+ border-radius:11px;color:#184654;background:#fff;font:inherit}
+.copilot-tools .buttonrow button{flex:1 1 150px}
+.copilot-tools>button{width:100%;min-height:45px}
+.copilot-tools p.small{line-height:1.8;color:#416477}
+.copilot-translated{min-height:25px;padding:10px 12px;border:1px solid #d3e5e9;border-radius:11px;
+ background:#f6fbfc;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8}
+.copilot-risk{border:1px solid #b6d7e0;border-radius:12px;background:#eff9fb;color:#235d6c;
+ padding:11px 12px;font-size:13px;line-height:1.8}
+.copilot-risk[data-state="warning"]{background:#fff0e9;border-color:#e5a78a;color:#8a3f18;font-weight:800}
+#copilotOverride:not([hidden]){display:block;width:100%;margin-bottom:10px;border:2px solid #ce8262;background:#fff8f5;color:#843b24}
+#copilotOverride[hidden]{display:none!important}
+@media(max-width:390px){.copilot-grid{grid-template-columns:1fr}.copilot-panel>summary{font-size:15px}.copilot-trust output{font-size:21px}}
