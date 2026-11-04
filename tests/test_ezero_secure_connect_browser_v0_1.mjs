@@ -42,6 +42,22 @@ try {
   await page.locator("#ezeroSecureConnectVideoEntry").click();
   await page.waitForURL(/ezero_secure_connect_preview_v0_1\.html#video$/);
   assert.equal(await page.locator("#startVideo").isVisible(),true);
+  await page.locator("#previewIncomingCall").click();
+  await page.locator("#incomingCallDemo").waitFor({state:"visible"});
+  assert.match(await page.locator("#incomingDemoLimit").innerText(),/کوئی شخص کال نہیں کر رہا/);
+  assert.equal(await page.evaluate(()=>window.__ezeroMediaCalls.length),0,
+    "Incoming-call demonstration cannot turn on camera or microphone");
+  await page.locator("#demoAcceptAudio").click();
+  assert.match(await page.locator("#incomingDemoStatus").innerText(),/کوئی کال، مائک/);
+  await page.locator("#demoAcceptVideo").click();
+  assert.match(await page.locator("#incomingDemoStatus").innerText(),/کیمرہ اور مائک دونوں بند/);
+  await page.locator("#demoDecline").click();
+  assert.match(await page.locator("#incomingDemoStatus").innerText(),/کوئی رابطہ قائم نہیں ہوا/);
+  assert.equal(await page.evaluate(()=>window.__ezeroMediaCalls.length),0,
+    "Accepting demonstration never creates a real media call");
+  await page.locator("#demoClose").click();
+  assert.equal(await page.locator("#incomingCallDemo").isHidden(),true);
+
   assert.equal(await page.evaluate(()=>window.__ezeroMediaCalls.length),0,"No auto mic or camera on page load");
   await page.locator("#startVideo").click();
   await page.waitForFunction(()=>document.querySelector("#cameraPreview")?.srcObject?.active===true);
@@ -101,6 +117,23 @@ try {
   console.log("LOCAL_AUDIO_METER_ONLY_AFTER_GESTURE: PASS");
   console.log("LOCAL_VOICE_DRAFT_AND_ERASURE: PASS");
   console.log("TEMPORARY_PUBLIC_KEY_SHA256_SIGNATURE: PASS");
+
+  await page.locator('button[data-mode="video"]').click();
+  await page.evaluate(()=>{
+    Object.defineProperty(navigator,"connection",{
+      configurable:true,
+      value:{saveData:true,effectiveType:"2g",downlink:0.2,addEventListener(){}}
+    });
+  });
+  await page.locator("#quality").selectOption("auto");
+  assert.match(await page.locator("#autoQualityStatus").innerText(),/360p/);
+  await page.locator("#startVideo").click();
+  await page.waitForFunction(()=>document.querySelector("#cameraPreview")?.srcObject?.active===true);
+  assert.equal(await page.evaluate(()=>window.__ezeroMediaCalls.at(-1).video.width.ideal),640,
+    "Data saver and weak-network hint chooses 360p without telemetry uploads");
+  await page.locator("#stopVideo").click();
+  console.log("CONSENT_FIRST_INCOMING_CALL_UI_DEMO: PASS");
+  console.log("AUTO_LOCAL_DATA_SAVER_CAMERA_PREFERENCE: PASS");
   console.log("NO_NETWORK_COMMUNICATION_OR_REAL_CALLS: PASS");
 } finally {
   await context.close();
