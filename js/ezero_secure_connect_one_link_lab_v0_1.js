@@ -15,7 +15,7 @@ const text={
    title:"نجی ایک لنک کال — تجرباتی محفوظ طریقہ",
    explain:"لمبے WhatsApp کوڈ نہیں؛ لنک صرف اپنے دوست کو بھیجیں۔ دوست کال قبول کرے، پھر آپ Start دبائیں۔ کال کی آواز اور ویڈیو Cloudflare سے نہیں گزرتیں۔",
    create:"🔗 نجی کال لنک بنائیں",join:"📞 اس لنک کی کال میں شامل ہوں",
-   ownerLabel:"پائلٹ مالک کا خفیہ کوڈ (دوست کو نہ بھیجیں)",ownerRequired:"پہلے پائلٹ مالک کا نجی کوڈ درج کریں؛ یہ دوستوں کے لنک میں شامل نہیں ہوگا۔",
+   ownerLabel:"مالک کا 64 حروف والا محفوظ 256-bit کوڈ (کسی کو نہ دیں)",ownerRequired:"Cloudflare میں محفوظ 64 حروف والا تصادفی مالک کوڈ درکار ہے؛ عام پاس ورڈ قابل قبول نہیں۔",
    share:"↗ نجی کال لنک شیئر کریں",copy:"📋 کال لنک کاپی کریں",
    accept:"✓ کال قبول کریں",decline:"✕ کال مسترد کریں",
    start:"🎙️ منظوری کے بعد کال شروع کریں",end:"📴 کال بند کریں",
@@ -44,7 +44,7 @@ const text={
  en:{
    title:"Private one-link call — experimental",explain:"No long WhatsApp codes. Send the private link to one friend. They explicitly accept, then you tap Start. Media does not pass through Cloudflare.",
    create:"🔗 Create private call link",join:"📞 Join this invitation",
-   ownerLabel:"Private pilot owner code (never share with the friend)",ownerRequired:"Enter the private pilot owner code first. The code is never placed in the friend link.",
+   ownerLabel:"Owner’s random 64-character 256-bit code (never share)",ownerRequired:"Enter the securely generated 64-character hex owner code; ordinary passwords are not accepted.",
    share:"↗ Share private link",copy:"📋 Copy call link",accept:"✓ Accept call",decline:"✕ Decline",
    start:"🎙️ Start after acceptance",end:"📴 End call",
    ready:"Create a link or open your friend's private invitation.",
@@ -70,7 +70,7 @@ const text={
  ar:{
    title:"مكالمة خاصة برابط واحد — تجربة",explain:"بلا رموز واتساب طويلة. أرسل الرابط لصديق موثوق؛ يوافق ثم تضغط بدء. الصوت والفيديو لا يمران عبر Cloudflare.",
    create:"🔗 أنشئ رابط مكالمة خاصاً",join:"📞 انضم إلى هذه الدعوة",
-   ownerLabel:"الرمز السري لمالك التجربة (لا تشاركه مع الصديق)",ownerRequired:"أدخل رمز المالك السري أولاً؛ لن يُضاف إلى رابط الصديق.",
+   ownerLabel:"رمز المالك العشوائي بطول 64 حرفاً (لا تشاركه)",ownerRequired:"يلزم رمز مالك عشوائي مكون من 64 حرفاً سداسياً؛ كلمات المرور العادية مرفوضة.",
    share:"↗ شارك الرابط الخاص",copy:"📋 انسخ رابط المكالمة",accept:"✓ اقبل المكالمة",decline:"✕ ارفض",
    start:"🎙️ ابدأ بعد الموافقة",end:"📴 أنه المكالمة",
    ready:"أنشئ رابطاً أو افتح دعوة صديقك.",linkReady:"الرابط جاهز؛ أرسله لصديق واحد موثوق فقط.",
@@ -215,7 +215,7 @@ $("roomCreate").addEventListener("click",async()=>{
  if(!window.isSecureContext||!crypto?.subtle){st("failed");return;}
  try{
   const owner=$("roomOwnerSecret").value.trim();
-  if(!/^[A-Za-z0-9_-]{24,128}$/.test(owner)){st("ownerRequired");return;}
+  if(!/^[a-f0-9]{64}$/.test(owner)){st("ownerRequired");return;}
   roomId=hex(crypto.getRandomValues(new Uint8Array(16)));
   issued=Date.now();
   await useSecret(hex(crypto.getRandomValues(new Uint8Array(32))));
