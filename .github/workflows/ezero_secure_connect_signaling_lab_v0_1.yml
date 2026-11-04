@@ -30,3 +30,11 @@ jobs:
         run: |
           set -euo pipefail
           node --test secure_connect/tests/test_signaling_worker_v0_1.mjs
+      - name: Cloudflare Worker compile-only dry-run, never publish
+        env:
+          WRANGLER_SEND_METRICS: 'false'
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4 deploy --dry-run --config secure_connect/cloudflare/wrangler.jsonc --outdir /tmp/ezero-sc-dryrun
+          test -d /tmp/ezero-sc-dryrun
+          echo 'EZERO_CLOUDFLARE_COMPILE_ONLY: PASS; NO_DEPLOYMENT'
