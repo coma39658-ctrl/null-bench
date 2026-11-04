@@ -184,7 +184,9 @@
   let micMuted = false, cameraMuted = false;
   const me = key => (langs[currentLang] || {})[key] || $("fallbackNever") || null;
   const t = key => typeof me(key) === "string" ? me(key) : ($all('[data-i18n="' + key + '"]')[0]?.textContent || key);
+  let lastCallStatus = null;
   const status = (key, detail) => {
+    lastCallStatus = {key,detail};
     $("connectionStatus").textContent = t(key) + (detail ? " · " + detail : "");
     // Status is an observation, not a claim that a human heard or a server delivered media.
     document.dispatchEvent(new CustomEvent("ezero:call-status",{detail:{stage:key}}));
@@ -209,6 +211,7 @@
     } else {
       $("friendIdInput").placeholder = "QR کوڈ یا SHA-256 فنگرپرنٹ";
     }
+    if(lastCallStatus) status(lastCallStatus.key,lastCallStatus.detail);
   }
   $("language").addEventListener("change", e => langChange(e.target.value));
   langChange(new URLSearchParams(location.search).get("lang") || "ur");
