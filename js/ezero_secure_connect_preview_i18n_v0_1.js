@@ -20,7 +20,6 @@
     demoNote:".incoming-demo-launch p",
     videoTitle:'[data-panel="video"] .sectionhead h2',
     videoInfo:'[data-panel="video"] p:not(.feedback)',
-    videoLabel:'label[for="quality"]',
     audioTitle:'[data-panel="audio"] .sectionhead h2',
     audioInfo:'[data-panel="audio"] p:not(.feedback)',
     micMeter:'label[for="micMeter"]',
