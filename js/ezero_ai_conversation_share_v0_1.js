@@ -4,7 +4,7 @@
  */
 (function () {
   "use strict";
-  const SHARE_URL="https://coma39658-ctrl.github.io/null-bench/ezero_ai_share_v0_1.html";
+  const SHARE_URL="https://coma39658-ctrl.github.io/null-bench/ai.html";
   const DB_NAME="ezero-ai-studio-private-transcript-v1";
   const OPT_IN="ezero_ai_studio_save_consent_v1";
   const $=id=>document.getElementById(id);
@@ -75,6 +75,7 @@
   }
   function localeFor(text){
     const choice=$("lang")?.value;
+    if(!safeText(text)&&(!choice||choice==="auto"))return document.documentElement.lang==="ar"?"ar-SA":"ur-PK";
     if(choice==="ur")return "ur-PK";
     if(choice==="ar")return "ar-SA";
     if(choice==="en")return "en-US";
@@ -195,8 +196,10 @@
     const share=document.createElement("button");share.type="button";share.className="miniButton";share.textContent="↗ متن و لنک شیئر";
     share.addEventListener("click",()=>shareText(text));
     const make=document.createElement("button");make.type="button";make.className="miniButton";make.textContent="🔊 آڈیو WAV بنائیں";
+    let cachedAudio=null;
     make.addEventListener("click",async()=>{
       if(make.disabled)return;
+      if(cachedAudio){downloadFile(cachedAudio);return;}
       const voiceId=piperId(t);
       if(!voiceId){status("اس زبان کی مقامی WAV AI آواز ابھی دستیاب نہیں۔ متن اور لنک شیئر کیے جا سکتے ہیں۔",true);return;}
       if(t.length>1500){status("آڈیو صرف 1500 حروف تک تیار ہوتی ہے؛ مکمل جواب شیئر کرنے کے لیے متن استعمال کریں۔",true);return;}
@@ -208,9 +211,9 @@
         const blob=await session.predict(t);
         if(!blob||!blob.size)throw Error("EMPTY_AUDIO");
         const file=new File([blob],"E-ZERO-AI-voice.wav",{type:"audio/wav"});
+        cachedAudio=file;
         make.textContent="⬇ آڈیو محفوظ کریں";
         make.disabled=false;
-        make.onclick=()=>downloadFile(file);
         const send=document.createElement("button");send.type="button";send.className="miniButton";send.textContent="↗ WhatsApp / آڈیو شیئر";
         send.addEventListener("click",async()=>{
           if(navigator.share&&navigator.canShare?.({files:[file]})){
