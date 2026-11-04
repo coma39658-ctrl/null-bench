@@ -1,0 +1,77 @@
+name: E-ZERO Secure Connect One-Link Encrypted Call Lab
+on:
+  push:
+    branches: [ezero-secure-connect-one-link-call-lab-20261104]
+permissions:
+  contents: read
+jobs:
+  security-and-worker:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Compile, synthetic room security and no public enablement
+        run: |
+          set -euo pipefail
+          node --check secure_connect/call_room_lab/room_worker.mjs
+          node --check secure_connect/call_room_lab/test_room_worker.mjs
+          node --check js/ezero_secure_connect_one_link_lab_v0_1.js
+          node --check tests/test_ezero_secure_connect_one_link_browser_v0_1.mjs
+          node secure_connect/call_room_lab/test_room_worker.mjs
+          node tests/test_ezero_secure_connect_live_p2p_contract_v0_1.js
+          node - <<'GATE'
+          const fs=require("node:fs");
+          const cfg=fs.readFileSync("secure_connect/call_room_lab/wrangler.jsonc","utf8");
+          const src=fs.readFileSync("secure_connect/call_room_lab/room_worker.mjs","utf8");
+          const html=fs.readFileSync("ezero_secure_connect_live_p2p_v0_1.html","utf8");
+          const app=fs.readFileSync("js/ezero_secure_connect_one_link_lab_v0_1.js","utf8");
+          if(!cfg.includes('"ROOMS_ENABLED": "false"') ||
+             !cfg.includes('"new_sqlite_classes"') ||
+             !src.includes('env.ROOMS_ENABLED!=="true"') ||
+             !src.includes('ROOM_LIFETIME_MS=10*60*1000') ||
+             !src.includes('frame.blob') || src.includes('frame.payload') ||
+             !app.includes('AES-GCM') || !app.includes('crypto.subtle.decrypt') ||
+             !html.includes('id="roomAccept"') ||
+             !html.includes('id="roomStart"') ||
+             !html.includes('id="roomDecline"')){
+            console.error("ONE_LINK_SAFETY_GATE_FAILED");process.exit(1);
+          }
+          console.log("ONE_LINK_DISABLED_AES_GCM_CONSENT_AND_RETENTION: PASS");
+          GATE
+      - name: Cloudflare Worker compile only -- NEVER deploy
+        env: {WRANGLER_SEND_METRICS: 'false'}
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4 deploy --dry-run --config secure_connect/call_room_lab/wrangler.jsonc --outdir /tmp/ezero-one-link-dryrun
+          test -d /tmp/ezero-one-link-dryrun
+          echo "ONE_LINK_WORKER_DRY_RUN_ONLY: PASS"
+  two-mobile-chromium:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 17
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Prepare isolated browser
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts playwright@1.57.0
+          npx playwright install --with-deps chromium
+      - name: Two-phone encrypted one-link call (mock signaling) plus legacy manual regression
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8769 --bind 127.0.0.1 >/tmp/ezero-one-link-http.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8769/ezero_secure_connect_live_p2p_v0_1.html >/dev/null; then break; fi
+            sleep 1
+          done
+          node tests/test_ezero_secure_connect_one_link_browser_v0_1.mjs
+          node tests/test_ezero_secure_connect_live_p2p_browser_v0_1.mjs
