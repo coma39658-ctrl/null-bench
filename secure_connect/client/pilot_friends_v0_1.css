@@ -1,0 +1,19 @@
+.pilot-inviter,.pilot-friend{display:grid;grid-template-columns:48px minmax(0,1fr);align-items:center;gap:12px}
+.pilot-inviter{background:#f0f8fb;padding:13px;border:1px solid #c9dfe5;border-radius:14px}
+.pilot-inviter strong{display:block;font-size:13px;line-height:1.5}.pilot-inviter .hash{margin:5px 0}
+.pilot-inviter .friend-letter{height:46px;width:46px}
+.pilot-setup{background:#f5fafb;border:1px solid #c9dfe5;border-radius:13px;padding:11px;margin:12px 0}
+.pilot-setup summary{cursor:pointer;font-weight:800;color:#20576a;padding:5px}
+.pilot-setup input{min-height:48px;width:100%;padding:9px;border:1px solid #bbd6dd;border-radius:11px;background:#fff;color:#183f51}
+#agree{width:19px;height:19px;margin-top:5px}
+#register,#sendRequest{display:block;width:100%;margin:10px 0}
+#ownIdentity{font-size:11px}
+.pilot-list{margin:10px 0;display:grid;gap:11px;min-height:22px}
+.pilot-friend{background:#fff;border:1px solid #bfdee4;border-radius:14px;padding:12px}
+.pilot-friend-text{min-width:0}.pilot-friend-text strong{display:block;font-size:13px;color:#1a5363}
+.pilot-friend-text .hash{font-size:10px}
+.pilot-actions{grid-column:2;display:flex;gap:9px;flex-wrap:wrap}
+.pilot-actions button{flex:1 1 110px;min-height:44px}
+#requestStatus[data-status="accepted"],#accountStatus[data-status="registered"]{background:#e7f9ee;color:#155e36;border-color:#8fd3a7}
+#requestStatus[data-status="serverError"],#accountStatus[data-status="serverError"]{background:#fff1ed;color:#90342c;border-color:#e8b4ac}
+@media(max-width:380px){.pilot-inviter,.pilot-friend{grid-template-columns:36px minmax(0,1fr)}.pilot-inviter .friend-letter{height:36px;width:36px}}
