@@ -137,9 +137,12 @@ try{
  // Installed standalone app indicator is deliberately distinct from browser
  // tab; reports no guarantee that its cached code is the freshest version.
  await b.evaluate(()=>{
-  const native=window.matchMedia;
-  window.matchMedia=query=>
-   query==="(display-mode: standalone)"?{matches:true}:native(query);
+  // Explicitly simulate the standalone PWA indicator without changing
+  // the desktop test runner's real browser window.
+  Object.defineProperty(navigator,"standalone",{
+   configurable:true,get:()=>true
+  });
+  if(navigator.standalone!==true)throw Error("STANDALONE_TEST_SHIM_FAILED");
  });
  await b.locator("#doctorRun").click();
  assert.match(await b.locator("#doctorChecks").innerText(),/انسٹال شدہ ایپ/);
