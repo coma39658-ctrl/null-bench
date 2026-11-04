@@ -1,4 +1,4 @@
-import {createOrLoadIdentity,inviteLink,incomingInvite,apiRequest}
+import {createOrLoadIdentity,clearLocalIdentity,inviteLink,incomingInvite,apiRequest}
   from "./signaling_client_v0_1.mjs";
 
 /* E-ZERO: intentionally separate from the production website.
@@ -53,6 +53,12 @@ const TEXT={
     friendsTitle:"تصدیق شدہ دوست",checkFriends:"↻ فرینڈ لسٹ دیکھیں",
     friendsEmpty:"ابھی کوئی باہمی منظور شدہ دوست نہیں۔",remove:"دوستی ہٹائیں",
     removed:"اس دوست کا رابطہ دونوں اکاؤنٹس سے ہٹا دیا گیا۔",
+    deleteTitle:"میرا اکاؤنٹ اور فون کی شناخت حذف کریں",
+    deleteExplain:"دوستی اور دعوتیں سرور سے حذف ہوں گی؛ کامیابی کے بعد فون سے نجی سائننگ چابی ختم ہوگی۔ یہ عمل واپس نہیں ہوگا۔",
+    deleteAccount:"🗑 میرا اکاؤنٹ حذف کریں",
+    deleteConfirm:"کیا آپ مستقل طور پر اکاؤنٹ، تمام دوستیاں اور فون کی ذاتی شناخت حذف کرنا چاہتے ہیں؟",
+    accountDeleted:"✓ سرور اور فون سے شناخت حذف ہوگئی؛ سابقہ دوستوں سے رابطہ ختم ہوگیا۔",
+    localEraseFailed:"سرور سے اکاؤنٹ حذف ہوا، مگر فون کی مقامی چابی حذف نہیں ہو سکی؛ براؤزر کی اسٹوریج صاف کرنا ضروری ہے۔",
     footer:"آزمائشی فرینڈ ریکویسٹ · کال/پس منظر نوٹیفکیشن سرور ابھی نہیں · کوئی اشتہار نہیں"
   },
   en:{
@@ -91,6 +97,12 @@ const TEXT={
     declined:"Request declined; no friendship was made.",
     friendsTitle:"Accepted friends",checkFriends:"↻ See friend list",friendsEmpty:"No mutually approved friends yet.",
     remove:"Remove friend",removed:"This friendship was removed from both accounts.",
+    deleteTitle:"Delete my account and device identity",
+    deleteExplain:"Server friendships and pending invitations are removed first, then this device's private signing key is erased. This cannot be undone.",
+    deleteAccount:"🗑 Delete my account",
+    deleteConfirm:"Permanently delete your account, all friendships and this device identity?",
+    accountDeleted:"✓ Server account and device key were deleted; friendships ended.",
+    localEraseFailed:"Server account deleted but the local private key could not be erased. Clear browser storage.",
     footer:"Experimental friend requests · no call/background notification server yet · no ads"
   },
   ar:{
@@ -129,6 +141,12 @@ const TEXT={
     declined:"رُفض الطلب ولم تنشأ الصداقة.",
     friendsTitle:"الأصدقاء المقبولون",checkFriends:"↻ عرض الأصدقاء",friendsEmpty:"لا توجد صداقات متبادلة بعد.",
     remove:"حذف صديق",removed:"حُذفت الصداقة من كلا الحسابين.",
+    deleteTitle:"حذف الحساب وهوية الجهاز",
+    deleteExplain:"تُحذف الصداقات والدعوات من الخادم ثم يُحذف مفتاح التوقيع الخاص من الهاتف. لا يمكن التراجع.",
+    deleteAccount:"🗑 حذف حسابي",
+    deleteConfirm:"هل تريد حذف الحساب وجميع الصداقات ومفتاح هوية هذا الهاتف نهائياً؟",
+    accountDeleted:"✓ حُذف الحساب والمفتاح من الهاتف، وانتهت الصداقات.",
+    localEraseFailed:"حُذف الحساب من الخادم لكن تعذّر حذف المفتاح المحلي. امسح بيانات المتصفح.",
     footer:"طلبات صداقة تجريبية · لا خادم مكالمات أو إشعارات خلفية بعد · بلا إعلانات"
   }
 };
@@ -145,7 +163,7 @@ function refreshUI(){
   document.documentElement.dir=lng()==="en"?"ltr":"rtl";
   for(const node of document.querySelectorAll("[data-l10n]"))
     node.textContent=t(node.dataset.l10n);
-  for(const id of ["accountStatus","requestStatus"]){
+  for(const id of ["accountStatus","requestStatus","deleteStatus"]){
     const key=$(id).dataset.status;
     if(key)$(id).textContent=t(key);
   }
@@ -157,6 +175,7 @@ function reveal(){
   for(const id of ["shareLink","copyLink","checkInbox","checkFriends"])
     $(id).disabled=!enabled;
   $("sendRequest").disabled=!(enabled&&invited&&invited!==identity.account);
+  $("deleteAccount").disabled=!enabled;
   $("ownIdentity").textContent=identity?.account||"—";
   $("incomingFingerprint").textContent=invited||"—";
 }
@@ -287,4 +306,32 @@ $("sendRequest").addEventListener("click",async()=>{
 });
 $("checkInbox").addEventListener("click",showInbox);
 $("checkFriends").addEventListener("click",showFriends);
+$("deleteAccount").addEventListener("click",async()=>{
+  if(!active||!identity||!apiEndpoint)return;
+  if(!window.confirm(t("deleteConfirm")))return;
+  $("deleteAccount").disabled=true;
+  setStatus("deleteStatus","working");
+  let serverDeleted=false;
+  try{
+    const res=await call("delete_account");
+    if(res.code!=="ACCOUNT_DELETED"||res.friendsRevoked!==true)
+      throw Error("SERVER_DELETE_UNCONFIRMED");
+    serverDeleted=true;
+    // Never claim the device key is erased before IndexedDB confirms it.
+    await clearLocalIdentity({confirmed:true});
+    setStatus("deleteStatus","accountDeleted");
+    setStatus("accountStatus","accountDeleted");
+  }catch(e){
+    setStatus("deleteStatus",serverDeleted?"localEraseFailed":errorLabel(e));
+  }finally{
+    if(serverDeleted){
+      identity=null;active=false;apiEndpoint="";
+      $("inbox").replaceChildren();
+      $("friends").replaceChildren();
+      $("agree").checked=false;
+      reveal();
+    }
+    $("deleteAccount").disabled=!active;
+  }
+});
 reveal();refreshUI();
