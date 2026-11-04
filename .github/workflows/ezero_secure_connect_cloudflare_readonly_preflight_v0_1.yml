@@ -1,0 +1,35 @@
+name: E-ZERO Cloudflare Read-Only Account Permission Preflight
+on:
+  push:
+    branches: [ezero-secure-connect-cloudflare-signaling-lab-20261104]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cloudflare-readonly:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify script has GET-only access and no secrets in output
+        run: |
+          set -euo pipefail
+          node --check secure_connect/tests/cloudflare_readonly_preflight_v0_1.mjs
+          node - <<'VERIFY'
+          const fs=require("node:fs");
+          const src=fs.readFileSync("secure_connect/tests/cloudflare_readonly_preflight_v0_1.mjs","utf8");
+          if(/method\s*:\s*["'](?:POST|PUT|PATCH|DELETE)["']/.test(src))process.exit(1);
+          if(!src.includes('method:"GET"')||src.includes("console.log(token)")||src.includes("console.log(account)"))process.exit(1);
+          VERIFY
+      - name: Read only Cloudflare token and namespace capability - no deployment
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          node secure_connect/tests/cloudflare_readonly_preflight_v0_1.mjs

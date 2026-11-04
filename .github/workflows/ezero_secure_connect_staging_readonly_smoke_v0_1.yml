@@ -1,0 +1,62 @@
+name: E-ZERO Secure Connect Disabled Staging Read-Only Smoke
+on:
+  push:
+    branches: [ezero-secure-connect-cloudflare-signaling-lab-20261104]
+    paths:
+      - docs/EZERO_SC_READONLY_SMOKE_ONCE_20261104.md
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Verify uploaded script and public disabled health; no writes
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          node --input-type=module - <<'CHECK'
+          const token=process.env.CLOUDFLARE_API_TOKEN,account=process.env.CLOUDFLARE_ACCOUNT_ID;
+          if(!/^[a-f0-9]{32}$/i.test(account||"")||!(/^[A-Za-z0-9_-]{20,200}$/.test(token||""))){
+            console.error("CREDENTIALS_UNKNOWN");process.exit(1);
+          }
+          const api="https://api.cloudflare.com/client/v4/accounts/"+account+"/workers/scripts/ezero-secure-connect-signaling-lab";
+          const headers={Authorization:"Bearer "+token,Accept:"application/json"};
+          const read=async(path)=>fetch(path,{method:"GET",headers,redirect:"error",signal:AbortSignal.timeout(10000)});
+          const script=await read(api);
+          console.log("WORKER_SCRIPT_READ_HTTP_"+script.status);
+          if(!script.ok)process.exit(1);
+          const route=await read(api+"/subdomain");
+          console.log("WORKER_SUBDOMAIN_API_HTTP_"+route.status);
+          if(route.ok){
+            const data=await route.json();
+            console.log("WORKER_SUBDOMAIN_ROUTE_ENABLED_"+String(data?.result?.enabled ?? "UNKNOWN"));
+          }
+          const subResp=await read("https://api.cloudflare.com/client/v4/accounts/"+account+"/workers/subdomain");
+          if(!subResp.ok){console.error("ACCOUNT_SUBDOMAIN_GET_HTTP_"+subResp.status);process.exit(1);}
+          const sub=(await subResp.json())?.result?.subdomain;
+          if(!/^[a-z0-9-]+$/.test(sub||"")){console.error("SUBDOMAIN_INVALID");process.exit(1);}
+          const url="https://ezero-secure-connect-signaling-lab."+sub+".workers.dev/health";
+          let checked=false;
+          for(let i=0;i<6;i++){
+            try{
+              const h=await fetch(url,{method:"GET",redirect:"error",signal:AbortSignal.timeout(10000)});
+              if(h.ok){
+                const j=await h.json();
+                if(j?.stage==="NOT_PRODUCTION"&&j?.enabled===false&&j?.calling==="NOT_AVAILABLE"&&j?.mediaRelay==="NOT_AVAILABLE"){
+                  console.log("STAGING_HEALTH: PASS; OFF; NO_REMOTE_CALL; NO_RELAY");checked=true;break;
+                }
+                console.error("STAGING_HEALTH_UNEXPECTED_RESPONSE");process.exit(1);
+              }
+              console.log("STAGING_HEALTH_ATTEMPT_"+(i+1)+"_HTTP_"+h.status);
+            }catch(_){console.log("STAGING_HEALTH_ATTEMPT_"+(i+1)+"_UNAVAILABLE");}
+            if(i<5)await new Promise(r=>setTimeout(r,3500));
+          }
+          if(!checked){console.error("STAGING_HEALTH_UNVERIFIED");process.exit(1);}
+          CHECK

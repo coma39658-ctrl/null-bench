@@ -1,0 +1,105 @@
+name: E-ZERO Secure Connect Disabled Cloudflare Staging Deploy Once
+on:
+  push:
+    branches: [ezero-secure-connect-cloudflare-signaling-lab-20261104]
+    paths:
+      - docs/EZERO_SECURE_CONNECT_DISABLED_STAGING_TRIGGER_20261104.md
+permissions:
+  contents: read
+concurrency:
+  group: ezero-secure-connect-disabled-staging-once
+  cancel-in-progress: false
+jobs:
+  disabled-staging:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Require an isolated disabled Worker with no pilot secret
+        run: |
+          set -euo pipefail
+          node --check secure_connect/cloudflare/signaling_worker_v0_1.mjs
+          node --test secure_connect/tests/test_signaling_worker_v0_1.mjs
+          node - <<'VERIFY'
+          const fs = require("node:fs");
+          const config=fs.readFileSync("secure_connect/cloudflare/wrangler.jsonc","utf8");
+          const source=fs.readFileSync("secure_connect/cloudflare/signaling_worker_v0_1.mjs","utf8");
+          if(!config.includes('"name": "ezero-secure-connect-signaling-lab"') ||
+             !config.includes('"PILOT_ENABLED": "false"') ||
+             !config.includes('"ALLOW_LOCAL_TEST_ORIGIN": "false"') ||
+             !config.includes('"new_sqlite_classes"') ||
+             !source.includes('env.PILOT_ENABLED!=="true" || !env.PILOT_JOIN_SECRET') ||
+             !source.includes('calling:"NOT_AVAILABLE"') ||
+             !source.includes('mediaRelay:"NOT_AVAILABLE"')) process.exit(1);
+          console.log("DISABLED_STAGING_SOURCE_GATE: PASS");
+          VERIFY
+      - name: Compile only; do not deploy during tests
+        env:
+          WRANGLER_SEND_METRICS: 'false'
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4 deploy --dry-run --config secure_connect/cloudflare/wrangler.jsonc --outdir /tmp/ezero-sc-disabled
+          test -d /tmp/ezero-sc-disabled
+      - name: Fail closed if credentials missing or Worker already exists
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          node --input-type=module - <<'GATE'
+          const token=(process.env.CLOUDFLARE_API_TOKEN||"").trim();
+          const account=(process.env.CLOUDFLARE_ACCOUNT_ID||"").trim();
+          if(!/^[a-f0-9]{32}$/i.test(account)||!(/^[A-Za-z0-9_-]{20,200}$/.test(token))){
+            console.error("CREDENTIALS_UNAVAILABLE");process.exit(1);
+          }
+          const r=await fetch("https://api.cloudflare.com/client/v4/accounts/"+account+"/workers/scripts",{
+            method:"GET",headers:{Authorization:"Bearer "+token,Accept:"application/json"},
+            redirect:"error",signal:AbortSignal.timeout(10000)});
+          if(!r.ok){console.error("WORKER_LIST_READ_FAILED: HTTP_"+r.status);process.exit(1);}
+          const j=await r.json();
+          if(j.success!==true||!Array.isArray(j.result)){console.error("WORKER_LIST_UNKNOWN");process.exit(1);}
+          if(j.result.some(x=>x.id==="ezero-secure-connect-signaling-lab")){
+            console.error("WORKER_EXISTS_REFUSE_OVERWRITE");process.exit(1);
+          }
+          if(j.result.length>=100){console.error("WORKERS_FREE_ACCOUNT_LIMIT");process.exit(1);}
+          console.log("ISOLATED_NEW_WORKER_GATE: PASS; WORKER_ABSENT");
+          GATE
+      - name: Deploy a newly named disabled staging Worker only
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_SEND_METRICS: 'false'
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4 deploy --config secure_connect/cloudflare/wrangler.jsonc
+          echo "DISABLED_STAGING_DEPLOY_COMMAND: FINISHED"
+      - name: Check only harmless disabled health status
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          node --input-type=module - <<'HEALTH'
+          const account=process.env.CLOUDFLARE_ACCOUNT_ID,token=process.env.CLOUDFLARE_API_TOKEN;
+          const result=await fetch("https://api.cloudflare.com/client/v4/accounts/"+account+"/workers/subdomain",{
+            headers:{Authorization:"Bearer "+token,Accept:"application/json"},
+            redirect:"error",signal:AbortSignal.timeout(10000)});
+          if(!result.ok){console.error("STAGING_HEALTH_SUBDOMAIN_UNKNOWN");process.exit(1);}
+          const j=await result.json();
+          const sub=j?.result?.subdomain;
+          if(!j.success||!(/^[a-z0-9-]+$/.test(sub||""))){console.error("STAGING_HEALTH_SUBDOMAIN_INVALID");process.exit(1);}
+          const url="https://ezero-secure-connect-signaling-lab."+sub+".workers.dev/health";
+          const health=await fetch(url,{redirect:"error",signal:AbortSignal.timeout(10000)});
+          if(!health.ok){console.error("STAGING_HEALTH_HTTP_"+health.status);process.exit(1);}
+          const body=await health.json();
+          if(body.enabled!==false||body.stage!=="NOT_PRODUCTION"||
+             body.calling!=="NOT_AVAILABLE"||body.mediaRelay!=="NOT_AVAILABLE"){
+            console.error("STAGING_HEALTH_NOT_DISABLED");process.exit(1);
+          }
+          console.log("STAGING_HEALTH: PASS; PILOT_DISABLED; NO_CALLS; NO_RELAY");
+          HEALTH
