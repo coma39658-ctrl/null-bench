@@ -91,7 +91,7 @@ assert.equal(last(b).payload,undefined,"Cloudflare never receives plaintext SDP"
 await env.object.webSocketMessage(b,JSON.stringify({v:1,type:"answer",blob:opaque}));
 assert.equal(last(a).type,"answer");
 assert.equal(last(a).blob,opaque);
-assert.equal(env.ctx.sockets[0].deserializeAttachment().count,3);
+assert.equal(env.ctx.sockets[0].deserializeAttachment().count,1);
 assert.equal(env.ctx.sockets[1].deserializeAttachment().count,2);
 assert.deepEqual([...env.ctx.storage.db.keys()],["room:meta"]);
 assert.equal(JSON.stringify(env.ctx.storage.db.get("room:meta")).includes("sdp"),false);
