@@ -1,0 +1,72 @@
+"use strict";
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const vm=require("node:vm");
+const home=fs.readFileSync("index.html","utf8");
+const page=fs.readFileSync("ezero_secure_connect_preview_v0_1.html","utf8");
+const source=fs.readFileSync("js/ezero_secure_connect_preview_v0_1.js","utf8");
+const css=fs.readFileSync("css/ezero_secure_connect_preview_v0_1.css","utf8");
+new vm.Script(source,{filename:"ezero_secure_connect_preview_v0_1.js"});
+for (const [i,m] of [...page.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].entries()) {
+  new vm.Script(m[1],{filename:"connect-inline-"+i});
+}
+assert.match(home,/id="ezeroVoiceGuideButton"/);
+assert.match(home,/Open E-ZERO Secure Connect preview/);
+assert.match(home,/id="ezeroAssistFutureDock"/);
+assert.match(home,/id="ezeroLegacyVoiceGuide" hidden/);
+assert.match(home,/id="ezeroVoiceGuideClose"/);
+for (const mode of ["video","audio","voice","qr"]) {
+  assert.match(home,new RegExp('href="\\./ezero_secure_connect_preview_v0_1\\.html#'+mode+'"'));
+  assert.match(page,new RegExp('data-mode="'+mode+'"'));
+  assert.match(page,new RegExp('data-panel="'+mode+'"'));
+}
+assert.match(page,/data-panel="messages"/);
+assert.match(page,/data-panel="groups"/);
+assert.match(home,/ezero_ai_studio_v0_1\.html#voice/,"Existing AI Studio button preserved");
+assert.match(home,/Open E-ZERO Secure Connect preview/);
+assert.match(page,/RESEARCH PREVIEW/);
+assert.match(page,/فی الحال دوسرے صارف سے کال/);
+assert.match(page,/یہ کسی کو کال نہیں کرتا/);
+assert.match(page,/content="default-src 'none'; script-src 'self'; style-src 'self'; media-src blob:/);
+assert.match(page,/connect-src 'none'/,"Preview has zero remote communication capability");
+assert.ok(!/https?:\/\//.test(page),"No external requests or off-site links on local preview");
+assert.ok(!/fetch\(|XMLHttpRequest|WebSocket|RTCPeerConnection/.test(source),
+  "No networking or misleading pretend call connection");
+assert.match(source,/addEventListener\("click", startVideoPreview\)/);
+assert.match(source,/addEventListener\("click", startAudioTest\)/);
+assert.match(source,/addEventListener\("click", startVoiceDraft\)/);
+assert.match(source,/addEventListener\("click", makeLocalFingerprint\)/);
+assert.match(source,/echoCancellation: true/);
+assert.match(source,/noiseSuppression: true/);
+assert.match(source,/autoGainControl: true/);
+assert.match(source,/width: 1920, height: 1080, fps: 30/);
+assert.match(source,/width: 1280, height: 720, fps: 30/);
+assert.match(source,/width: 640, height: 360, fps: 15/);
+assert.match(source,/getVideoTracks\(\)\[0\]\?\.getSettings/,"Report actual camera resolution");
+assert.match(source,/new MediaRecorder\(stream/);
+assert.match(source,/audio\/webm;codecs=opus/);
+assert.match(source,/audioBitsPerSecond: 64000/);
+assert.match(source,/recordLimit = setTimeout\(finishVoiceDraft, 60000\)/);
+assert.match(source,/URL\.revokeObjectURL\(voiceUrl\)/);
+assert.match(source,/getUserMedia\(\{/);
+assert.match(source,/window\.addEventListener\("pagehide", releaseAll\)/);
+assert.match(source,/document\.addEventListener\("visibilitychange"/);
+assert.match(source,/ECDSA/);
+assert.match(source,/namedCurve: "P-256"/);
+assert.match(source,/false, \["sign", "verify"\]/,"Identity private key is non-exportable");
+assert.match(source,/exportKey\("spki", pair\.publicKey\)/);
+assert.match(source,/digest\("SHA-256", publicBytes\)/);
+assert.match(source,/window\.crypto\.subtle\.verify\(/);
+assert.ok(!/exportKey\([^)]*privateKey/.test(source),"Do not export private key");
+assert.ok(!/localStorage|sessionStorage|indexedDB|CacheStorage|serviceWorker/.test(source),
+  "No persistent recording, fingerprint, contact or plaintext storage");
+assert.match(page,/Not a live encrypted messenger/);
+assert.match(page,/فون کی مستقل فائل/);
+assert.match(page,/12 منٹ/);
+assert.match(css,/@media\(max-width:380px\)/);
+console.log("SEPARATE_AI_BUTTON_PRESERVED: PASS");
+console.log("SECURE_CONNECT_HUB_LINKS_AND_BACK: PASS");
+console.log("CONSENT_GATED_LOCAL_HD_VIDEO_AND_AUDIO: CONTRACT_PASS");
+console.log("ON_DEMAND_NO_UPLOAD_VOICE_DRAFT: CONTRACT_PASS");
+console.log("TRANSIENT_NON_EXPORTABLE_IDENTITY_SHA256: CONTRACT_PASS");
+console.log("NO_REAL_CALL_OR_E2EE_DEPLOYMENT_CLAIM: PASS");
