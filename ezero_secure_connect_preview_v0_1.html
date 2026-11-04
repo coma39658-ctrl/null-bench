@@ -21,11 +21,12 @@
       <div class="hero-symbol" aria-hidden="true">◈</div>
       <div>
         <p class="eyebrow">PRIVATE COMMUNICATION · RESEARCH PREVIEW</p>
-        <h1>محفوظ رابطہ، صاف آواز، واضح تصویر</h1>
-        <p class="intro">ویڈیو کال، آڈیو کال، وائس میسج، QR شناخت اور عارضی پیغامات — ایک سادہ نظام میں۔</p>
+        <h1>خوش آمدید — E-ZERO Secure Connect</h1>
+        <p class="intro">ایک ہی مرکز میں صاف آڈیو، HD ویڈیو، وائس پیغامات، محفوظ شناخت اور آسان گروپس۔ مفت اور بغیر اشتہارات کا ہدف۔</p>
       </div>
     </div>
     <p class="notice" id="previewNotice" role="status"><strong>مقامی آزمائشی ورژن:</strong> فی الحال دوسرے صارف سے کال، میسج بھیجنا یا QR سے رابطہ جوڑنا فعال نہیں۔ اس صفحے پر مائک، کیمرہ اور صوتی ڈرافٹ صرف آپ کے فون پر آزمائے جاتے ہیں۔</p>
+    <p class="welcome-note" id="connectWelcome">صرف اپنی پسند کا فیچر دبائیں۔ یہ فی الحال آپ کے فون کی مقامی آزمائش ہے؛ اصلی کال یا پیغام دوسرے صارف تک نہیں جاتا۔</p>
     <nav class="action-grid" aria-label="کمیونیکیشن کی بنیادی سہولتیں">
       <button type="button" class="action active" data-mode="video" aria-pressed="true"><span class="emoji" aria-hidden="true">📹</span><strong>ویڈیو کال</strong><small>HD Video · Test</small></button>
       <button type="button" class="action" data-mode="audio" aria-pressed="false"><span class="emoji" aria-hidden="true">📞</span><strong>آڈیو کال</strong><small>Clear Audio · Test</small></button>
@@ -37,16 +38,20 @@
       <button type="button" data-mode="groups" aria-pressed="false">👥 محفوظ گروپس</button>
     </div>
 
+    <div class="incoming-demo-launch"><button type="button" id="previewIncomingCall" class="incoming-demo-button">📲 آنے والی کال کی اسکرین دیکھیں · محفوظ نمونہ</button><p>یہ اسکرین خود سے نہیں کھلے گی؛ صرف آپ کے بٹن دبانے پر دکھائی جائے گی۔</p></div>
+
     <section class="workbench" data-panel="video" aria-labelledby="videoTitle">
       <div class="sectionhead"><div><p class="eyebrow">HD VIDEO · USER CONTROLLED</p><h2 id="videoTitle">ہائی کوالٹی ویڈیو — فون ٹیسٹ</h2></div><span class="phase">Local Only</span></div>
       <p>تصویر 720p کو ترجیح دے گی؛ فون اجازت دے تو 1080p منتخب کریں۔ یہ <strong>صرف آپ کے فون کی کیمرہ/مائک آزمائش</strong> ہے، ویڈیو کال نہیں۔ حقیقی کال میں نیٹ ورک کے مطابق معیار بدلنا بعد کے محفوظ WebRTC مرحلے میں ہوگا۔</p>
       <label class="field" for="quality">ویڈیو معیار / Quality
         <select id="quality">
-          <option value="balanced" selected>Auto HD · 720p / 30fps preference</option>
+          <option value="auto" selected>خودکار · Auto Quality (نیٹ ورک اشارے کے مطابق)</option>
+          <option value="balanced">Balanced · 720p / 30fps preference</option>
           <option value="hd">High · 1080p / 30fps preference</option>
           <option value="saver">Data Saver · 360p / 15fps preference</option>
         </select>
       </label>
+      <p class="feedback" id="autoQualityStatus" role="status" aria-live="polite">خودکار موڈ، جہاں نیٹ ورک کا اشارہ دستیاب ہو، مناسب مقامی معیار منتخب کرے گا؛ یہ حقیقی کال کی رفتار نہیں ناپتا۔</p>
       <div class="previewframe"><video id="cameraPreview" autoplay muted playsinline aria-label="مقامی کیمرہ کی جانچ"></video><span class="previewlabel">PRIVATE DEVICE TEST · NOT A CALL</span></div>
       <div class="controls"><button type="button" class="primary" id="startVideo">کیمرہ اور مائک چیک کریں</button><button type="button" id="stopVideo" disabled>کیمرہ بند کریں</button></div>
       <p class="feedback" id="videoStatus" role="status" aria-live="polite">اجازت کے بغیر کیمرہ یا مائک شروع نہیں ہوگا۔</p>
@@ -89,11 +94,31 @@
     </section>
 
     <section class="policy" aria-label="رازداری کے بنیادی اصول">
-      <h2>ہماری پہلی ترجیح: آپ کا اختیار</h2>
-      <p>بغیر اشتہاری ٹریکنگ · اجازت کے بغیر مائک/کیمرہ نہیں · مستقل گفتگو کا آرکائیو نہیں · واضح سکیورٹی حدود</p>
+      <h2>ہماری صاف پالیسی — کوئی خفیہ بٹن نہیں</h2>
+      <p>① صارف کے لیے بنیادی کمیونیکیشن مفت رکھنے کا ہدف؛ اشتہاری ٹریکنگ اور ڈیٹا فروخت نہیں۔</p>
+      <p>② مائک یا کیمرہ صرف واضح اجازت اور عمل سے؛ بند کرنے پر ٹریک فوراً روکے جائیں۔</p>
+      <p>③ مستقبل کی حقیقی سروس میں مستقل گفتگو آرکائیو نہیں؛ نہ کھلے پیغامات محدود مدت تک انکرپٹڈ حالت میں رہیں گے۔</p>
+      <p>④ خفیہ تصویر/متن پہلی بار کھولنے پر زیادہ سے زیادہ 5 منٹ؛ وائس/ویڈیو اپنی مدت + زیادہ سے زیادہ 5 منٹ۔</p>
+      <p>⑤ ہمارا سسٹم Save/Forward محدود کرسکے گا، مگر Chrome میں OS اسکرین شاٹ یا بیرونی ریکارڈنگ مکمل طور پر نہیں روک سکتا۔</p>
       <p class="small">© E-ZERO · Secure Connect Research Preview. Not a live encrypted messenger, emergency calling service or deployed WebRTC call system.</p>
     </section>
   </main>
+</div>
+<div id="incomingCallDemo" class="incoming-demo" role="dialog" aria-modal="true" aria-labelledby="incomingDemoTitle" aria-describedby="incomingDemoLimit" hidden>
+  <div class="incoming-demo-card">
+    <p class="incoming-demo-label">نمونہ / DEMO — حقیقی آنے والی کال نہیں</p>
+    <span class="incoming-demo-avatar" aria-hidden="true">📞</span>
+    <h2 id="incomingDemoTitle">E-ZERO Secure Connect</h2>
+    <p class="incoming-demo-name">نمونہ رابطہ / Sample Caller</p>
+    <p id="incomingDemoLimit">یہ صرف اسکرین کی آزمائش ہے۔ کوئی شخص کال نہیں کر رہا، اور مائک یا کیمرہ نہیں چلے گا۔</p>
+    <div class="incoming-demo-actions">
+      <button type="button" id="demoAcceptAudio" class="incoming-accept">📞 آڈیو قبول کریں</button>
+      <button type="button" id="demoAcceptVideo" class="incoming-accept">📹 ویڈیو قبول کریں</button>
+      <button type="button" id="demoDecline" class="incoming-decline">✕ مسترد کریں</button>
+      <button type="button" id="demoClose">↩ واپس</button>
+    </div>
+    <p id="incomingDemoStatus" role="status" aria-live="polite">نمونہ دیکھنے کے لیے آڈیو، ویڈیو یا مسترد منتخب کریں۔</p>
+  </div>
 </div>
 </body>
 </html>
