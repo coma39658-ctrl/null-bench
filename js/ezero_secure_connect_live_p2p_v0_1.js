@@ -57,7 +57,24 @@
       iceChecking:"دعوت اور جواب مل گئے؛ دونوں فونوں کے نیٹ ورک کے راستے چیک ہو رہے ہیں۔",
       iceNoRoute:"NETWORK_NO_ROUTE — اس بار کوئی قابلِ استعمال نیٹ ورک راستہ نہیں ملا۔ پہلے دونوں فون ایک ہی Wi-Fi پر آزمائیں۔ مختلف موبائل نیٹ ورکس کے لیے TURN ریلے درکار ہوسکتا ہے؛ وہ ابھی فعال نہیں۔",
       missingOffer:"پہلے فون A پر دعوت بنائیں؛ جواب اسی فون پر لگایا جاسکتا ہے جس نے دعوت بنائی۔",
-      fingerprintMismatch:"دوست کا SHA-256 فنگرپرنٹ مختلف ہے؛ حفاظتی وجہ سے رابطہ نہیں ہوا۔"
+      fingerprintMismatch:"دوست کا SHA-256 فنگرپرنٹ مختلف ہے؛ حفاظتی وجہ سے رابطہ نہیں ہوا۔",
+      qrInstruction:"QR اسکین کریں؛ نتیجہ اور اگلا قدم یہاں نظر آئے گا۔",
+      qrScannedOk:"✓ QR کامیابی سے اسکین ہوگیا؛ دستخط شدہ SHA-256 شناخت درست ہے۔ دوست کا نام لکھ کر محفوظ کرسکتے ہیں۔",
+      qrVerified:"✓ دستخط شدہ شناخت درست ہے۔ دوست کا نام لکھ کر محفوظ کریں۔ یہ انسان کی ذاتی شناخت کی ضمانت نہیں۔",
+      fingerprintOnly:"SHA-256 فنگرپرنٹ درج ہوا، لیکن QR کا ڈیجیٹل دستخط تصدیق نہیں ہوا۔ اسے ابھی تصدیق شدہ دوست کے طور پر محفوظ نہیں کیا جاسکتا۔",
+      qrInvalid:"یہ کوڈ درست نہیں۔ E-ZERO کا مکمل دستخط شدہ QR یا شناختی میسج دوبارہ حاصل کریں۔",
+      qrExpired:"اس QR کی مدت ختم ہوگئی ہے؛ دوست سے نیا QR بنوائیں، پھر دوبارہ اسکین کریں۔",
+      qrSignatureBad:"QR کا ڈیجیٹل دستخط درست نہیں؛ حفاظت کے لیے شناخت مسترد کردی گئی۔",
+      qrMismatch:"QR میں SHA-256 فنگرپرنٹ اور عوامی چابی نہیں ملتے؛ شناخت مسترد ہوگئی۔",
+      qrSelf:"یہ آپ کے اپنے فون کی شناخت ہے؛ اسے دوست کے طور پر شامل نہیں کیا جاسکتا۔",
+      qrUnsupported:"یہ براؤزر QR کیمرہ اسکین کو سپورٹ نہیں کرتا؛ دوسرے فون سے شناختی کوڈ کاپی یا شیئر کروائیں۔",
+      qrNotFound:"20 سیکنڈ میں کوئی QR نظر نہیں آیا۔ کیمرہ قریب کریں، روشنی بڑھائیں یا کاپی/پیسٹ استعمال کریں۔",
+      qrWrongType:"کیمرے نے QR پڑھ لیا، مگر یہ E-ZERO کا شناختی کوڈ نہیں۔ درست QR دکھائیں۔",
+      qrDecodeFailed:"کیمرے سے بار بار QR پڑھنے میں خرابی آئی۔ کیمرہ بند ہوگیا؛ دوبارہ آزمائیں یا کوڈ پیسٹ کریں۔",
+      qrCameraDenied:"کیمرے کی اجازت نہیں ملی۔ براؤزر میں Camera اجازت دیں یا کاپی/پیسٹ استعمال کریں۔",
+      qrCameraMissing:"اس فون پر قابلِ استعمال کیمرہ نہیں ملا۔ کوڈ کاپی/پیسٹ کریں۔",
+      qrCameraBusy:"کیمرہ کسی دوسری ایپ میں مصروف ہے۔ وہ ایپ بند کرکے دوبارہ آزمائیں۔",
+      qrCameraFailure:"کیمرہ شروع نہ ہوسکا۔ وجہ یقینی نہیں؛ دوبارہ کوشش کریں یا کاپی/پیسٹ کریں۔"
     },
     en: {
       back:"↩ Back", language:"Language", welcome:"Welcome — test a real 1:1 call", intro:"A two-browser trial of real voice, video, and one-view messages.",
@@ -115,7 +132,24 @@
       iceChecking:"Invitation and answer received; checking for a viable network route.",
       iceNoRoute:"NETWORK_NO_ROUTE — no usable network path found. First test with both phones on the same Wi-Fi. Different mobile networks may require a TURN relay, which is not enabled.",
       missingOffer:"First create the invitation on Phone A. Apply the answer only on that same phone.",
-      fingerprintMismatch:"The friend's SHA-256 fingerprint does not match. Connection blocked for safety."
+      fingerprintMismatch:"The friend's SHA-256 fingerprint does not match. Connection blocked for safety.",
+      qrInstruction:"Scan the friend's QR; a clear result and next step will appear here.",
+      qrScannedOk:"✓ QR scanned successfully; its signed SHA-256 identity is valid. Add a name to save this contact.",
+      qrVerified:"✓ Valid cryptographically signed identity. Enter a name to save. This does not prove the person's real-world identity.",
+      fingerprintOnly:"A SHA-256 fingerprint was entered, but no digital signature was verified. You cannot save it as a verified friend yet.",
+      qrInvalid:"Invalid code. Ask the friend for a fresh complete E-ZERO signed QR or identity message.",
+      qrExpired:"This QR has expired. Ask your friend to generate a fresh QR and scan again.",
+      qrSignatureBad:"The QR's digital signature is invalid. The identity was rejected for safety.",
+      qrMismatch:"SHA-256 fingerprint does not match the QR public key. Identity rejected.",
+      qrSelf:"This is your own phone's identity and cannot be added as a friend.",
+      qrUnsupported:"This browser cannot scan QR with its camera. Use the signed copy/paste identity instead.",
+      qrNotFound:"No QR detected within 20 seconds. Move closer, improve lighting or use copy/paste.",
+      qrWrongType:"A QR was read, but it is not an E-ZERO identity code. Show the correct QR.",
+      qrDecodeFailed:"Camera QR decoding repeatedly failed. The camera stopped; retry or paste the code.",
+      qrCameraDenied:"Camera access was denied. Allow Camera in browser settings or use copy/paste.",
+      qrCameraMissing:"No usable camera was found on this phone. Use copy/paste.",
+      qrCameraBusy:"Camera is busy in another app. Close it and retry.",
+      qrCameraFailure:"Could not start the camera; exact cause unknown. Retry or use copy/paste."
     },
     ar: {
       back:"↩ رجوع",language:"اللغة",welcome:"مرحباً — جرّب اتصالاً حقيقياً بين هاتفين",intro:"اختبار مباشر للمكالمات الصوتية والمرئية والرسائل التي تُعرض مرة واحدة.",
@@ -174,7 +208,24 @@
       iceChecking:"وصلت الدعوة والرد؛ يجري التحقق من مسار الشبكة.",
       iceNoRoute:"NETWORK_NO_ROUTE — لم يُعثر على مسار شبكة صالح. جرّب أولاً الهاتفين على شبكة Wi-Fi واحدة. قد تتطلب شبكات الجوال المختلفة خادم TURN غير متاح الآن.",
       missingOffer:"أنشئ الدعوة أولاً على الهاتف أ. الصق الرد على الهاتف الذي أنشأ الدعوة فقط.",
-      fingerprintMismatch:"بصمة SHA-256 للصديق لا تطابق الهوية المتوقعة. مُنع الاتصال لحمايتك."
+      fingerprintMismatch:"بصمة SHA-256 للصديق لا تطابق الهوية المتوقعة. مُنع الاتصال لحمايتك.",
+      qrInstruction:"امسح QR للصديق؛ ستظهر النتيجة والخطوة التالية هنا.",
+      qrScannedOk:"✓ تم مسح QR بنجاح والتحقق من توقيع هوية SHA-256. أدخل اسماً لحفظ الصديق.",
+      qrVerified:"✓ توقيع الهوية الرقمية صحيح. أضف اسماً للحفظ. هذا لا يثبت هوية الشخص الحقيقية.",
+      fingerprintOnly:"تم إدخال بصمة SHA-256 لكن دون التحقق من التوقيع الرقمي. لا يمكن حفظها كصديق موثّق بعد.",
+      qrInvalid:"الرمز غير صحيح. اطلب من الصديق QR موقّعاً جديداً أو رسالة الهوية كاملة.",
+      qrExpired:"انتهت صلاحية QR. اطلب رمزاً جديداً وامسحه مرة أخرى.",
+      qrSignatureBad:"توقيع QR الرقمي غير صحيح. تم رفض الهوية للحماية.",
+      qrMismatch:"بصمة SHA-256 لا تطابق المفتاح العام في QR. تم رفض الهوية.",
+      qrSelf:"هذه هوية هاتفك أنت ولا يمكن إضافتها كصديق.",
+      qrUnsupported:"هذا المتصفح لا يدعم مسح QR بالكاميرا. استخدم النسخ واللصق للهوية الموقعة.",
+      qrNotFound:"لم يُكتشف QR خلال 20 ثانية. قرّب الكاميرا وحسّن الإضاءة أو انسخ الرمز.",
+      qrWrongType:"تمت قراءة QR لكنه ليس رمز هوية E-ZERO. اعرض الرمز الصحيح.",
+      qrDecodeFailed:"فشل فك QR بالكاميرا عدة مرات. توقف المسح؛ أعد المحاولة أو الصق الرمز.",
+      qrCameraDenied:"تم رفض إذن الكاميرا. اسمح بها من المتصفح أو استخدم النسخ واللصق.",
+      qrCameraMissing:"لم تتوفر كاميرا صالحة على هذا الهاتف. استخدم النسخ واللصق.",
+      qrCameraBusy:"الكاميرا مستخدمة في تطبيق آخر. أغلقه وحاول مجدداً.",
+      qrCameraFailure:"تعذّر تشغيل الكاميرا والسبب غير مؤكد. حاول مجدداً أو الصق الرمز."
     }
   };
   const $all = selector => Array.from(document.querySelectorAll(selector));
@@ -289,68 +340,125 @@
     if (!await crypto.subtle.verify({name:"ECDSA",hash:"SHA-256"},pub,fromB64(parts[5]),te.encode(msg))) throw Error("BAD_SIGNATURE");
     return {fingerprint:fp,verified:true};
   }
-  async function confirmFriend(value) {
+  // Distinguish an actual cryptographically valid QR from an arbitrary copied fingerprint.
+  function scanMessage(key,kind="info") {
+    const el=$("qrScanStatus");
+    if(el){el.textContent=t(key);el.dataset.kind=kind;}
+    return t(key);
+  }
+  function checkMessage(key,kind="info") {
+    const el=$("identityPeerStatus");
+    el.textContent=t(key);el.dataset.kind=kind;
+  }
+  const idErrors = {
+    BAD_SIZE:"qrInvalid",BAD_ID:"qrInvalid",BAD_ENCODING:"qrInvalid",BAD_KEY:"qrInvalid",
+    EXPIRED_ID:"qrExpired",BAD_SIGNATURE:"qrSignatureBad",FP_MISMATCH:"qrMismatch",
+    BAD_SIGNATURE_ENCODING:"qrSignatureBad",SELF_ID:"qrSelf",
+    FP_MISMATCH_CALL:"fingerprintMismatch"
+  };
+  async function confirmFriend(value,source="paste") {
+    const el=$("identityPeerStatus");
     try {
-      const r = await verifyInvite(value || $("friendIdInput").value);
-      expectedPeerFingerprint = r.fingerprint;
-      $("peerFingerprint").textContent = expectedPeerFingerprint;
-      $("identityPeerStatus").textContent = t("verifiedSelf") +
-        (r.verified ? "" : " · Fingerprint only (no signature verified)");
-      const other = peer?.__ezeroPeerFP;
-      if (other && other !== expectedPeerFingerprint) {
-        $("identityPeerStatus").textContent = t("identityMismatch");
-        hardHangup();
+      const r=await verifyInvite(value || $("friendIdInput").value);
+      if(r.fingerprint===identity?.fingerprint)throw Error("SELF_ID");
+      const other=peer?.__ezeroPeerFP;
+      if(other && other!==r.fingerprint)throw Error("FP_MISMATCH_CALL");
+      expectedPeerFingerprint=r.fingerprint;
+      $("peerFingerprint").textContent=r.fingerprint;
+      if(r.verified){
+        checkMessage("qrVerified","success");
+        if(source==="scan")scanMessage("qrScannedOk","success");
+      }else{
+        checkMessage("fingerprintOnly","warning");
+        if(source==="scan")scanMessage("fingerprintOnly","warning");
       }
+      document.dispatchEvent(new CustomEvent("ezero:friend-verification",{
+        detail:{ok:true,signed:r.verified,fingerprint:r.fingerprint,source}
+      }));
       return true;
-    } catch (error) {
-      $("identityPeerStatus").textContent = t("signalInvalid") + " (" + String(error.message).slice(0,55) + ")";
+    }catch(error){
+      const reason=String(error?.message||"INVALID");
+      const key=idErrors[reason] || "qrInvalid";
+      const msg=t(key);
+      el.textContent=msg;el.dataset.kind="error";
+      if(source==="scan")scanMessage(key,"error");
+      document.dispatchEvent(new CustomEvent("ezero:friend-verification",{detail:{ok:false,reason:key,source}}));
       return false;
     }
   }
-  $("verifyFriend").addEventListener("click", () => confirmFriend());
+  $("verifyFriend").addEventListener("click",()=>confirmFriend(undefined,"paste"));
   $("copyIdentity").addEventListener("click", async () => {
     const ok=await copyValue($("myDigitalId"));
     $("identityPeerStatus").textContent = ok ? t("copied") : t("shareUnavailable");
   });
+  let scanDeadlineTimer=null;
   function stopScanner() {
     scanGeneration++;
-    if (scanTimeout) { clearTimeout(scanTimeout); scanTimeout = null; }
-    if (scanStream) { scanStream.getTracks().forEach(track => track.stop()); scanStream = null; }
-    $("scanVideo").srcObject = null; $("scanVideo").hidden = true;
-    $("stopScan").disabled = true; $("scanQR").disabled = false;
+    if(scanTimeout){clearTimeout(scanTimeout);scanTimeout=null;}
+    if(scanDeadlineTimer){clearTimeout(scanDeadlineTimer);scanDeadlineTimer=null;}
+    if(scanStream){scanStream.getTracks().forEach(track=>track.stop());scanStream=null;}
+    $("scanVideo").srcObject=null;$("scanVideo").hidden=true;
+    $("stopScan").disabled=true;$("scanQR").disabled=false;
   }
-  $("stopScan").addEventListener("click", () => {stopScanner();$("identityPeerStatus").textContent=t("scanStopped");});
-  $("scanQR").addEventListener("click", async () => {
-    if (!window.BarcodeDetector || !navigator.mediaDevices?.getUserMedia) {
-      $("identityPeerStatus").textContent = t("scanUnavailable"); return;
+  $("stopScan").addEventListener("click",()=>{
+    stopScanner();scanMessage("scanStopped");checkMessage("scanStopped");
+  });
+  $("scanQR").addEventListener("click",async()=>{
+    if(!window.BarcodeDetector || !navigator.mediaDevices?.getUserMedia){
+      scanMessage("qrUnsupported","error");checkMessage("qrUnsupported","error");return;
     }
-    stopScanner(); const gen = scanGeneration;
-    try {
-      const detector = new BarcodeDetector({formats:["qr_code"]});
-      scanStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
-      if (gen !== scanGeneration || document.hidden) {stopScanner();return;}
-      $("scanVideo").srcObject = scanStream; $("scanVideo").hidden = false;
+    stopScanner();const gen=scanGeneration;
+    try{
+      const detector=new BarcodeDetector({formats:["qr_code"]});
+      scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
+      if(gen!==scanGeneration||document.hidden){stopScanner();return;}
+      $("scanVideo").srcObject=scanStream;$("scanVideo").hidden=false;
       await $("scanVideo").play();
-      $("stopScan").disabled = false; $("scanQR").disabled = true;
-      $("identityPeerStatus").textContent=t("scanActive");
-      const frame = async () => {
-        if (gen !== scanGeneration || !scanStream) return;
-        try {
-          const codes = await detector.detect($("scanVideo"));
-          if (codes.length) {
-            const code = String(codes[0].rawValue || "");
-            if (code.startsWith("EZERO1.")) {
-              stopScanner();
-              $("friendIdInput").value = code;
-              await confirmFriend(code);
+      $("stopScan").disabled=false;$("scanQR").disabled=true;
+      scanMessage("scanActive");
+      scanDeadlineTimer=setTimeout(()=>{
+        if(gen!==scanGeneration||!scanStream)return;
+        stopScanner();
+        scanMessage("qrNotFound","warning");checkMessage("qrNotFound","warning");
+      },20000);
+      let framesFailed=0;
+      const frame=async()=>{
+        if(gen!==scanGeneration||!scanStream)return;
+        try{
+          const codes=await detector.detect($("scanVideo"));
+          framesFailed=0;
+          if(codes.length){
+            const code=String(codes[0].rawValue||"");
+            stopScanner();
+            if(!code.startsWith("EZERO1.")){
+              scanMessage("qrWrongType","error");checkMessage("qrWrongType","error");
+              document.dispatchEvent(new CustomEvent("ezero:friend-verification",{
+                detail:{ok:false,reason:"qrWrongType",source:"scan"}
+              }));
               return;
             }
+            $("friendIdInput").value=code;
+            await confirmFriend(code,"scan");
+            return;
           }
-        } catch (_) { /* camera frame not ready */ }
-        if (gen === scanGeneration) scanTimeout=setTimeout(frame,270);
+        }catch(_){
+          framesFailed++;
+          if(framesFailed>=5){
+            stopScanner();scanMessage("qrDecodeFailed","error");
+            checkMessage("qrDecodeFailed","error");return;
+          }
+        }
+        if(gen===scanGeneration)scanTimeout=setTimeout(frame,280);
       };
       scanTimeout=setTimeout(frame,350);
-    } catch (e) { stopScanner(); $("identityPeerStatus").textContent=t("scanUnavailable")+" ("+String(e.name||"ERROR")+")"; }
+    }catch(error){
+      stopScanner();
+      const name=String(error?.name||"");
+      const key=name==="NotAllowedError"||name==="SecurityError"?"qrCameraDenied":
+        name==="NotFoundError"?"qrCameraMissing":
+        name==="NotReadableError"?"qrCameraBusy":"qrCameraFailure";
+      scanMessage(key,"error");checkMessage(key,"error");
+    }
   });
 
   function quality() {
