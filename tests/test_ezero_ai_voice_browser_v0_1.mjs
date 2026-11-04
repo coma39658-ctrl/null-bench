@@ -21,6 +21,13 @@ try{
  assert.equal(new URL(page.url()).pathname,"/ai.html","No automatic redirect");
  await page.locator("#installBtn").click();
  assert.match(await page.locator("#installHint").innerText(),/Chrome|Install|Home screen|Menu/);
+ // The recipient must choose their own audio; the landing does not autoplay or upload it.
+ assert.equal(await page.locator("#audioPreview").isHidden(),true);
+ await page.locator("#receivedAudio").setInputFiles({name:"E-ZERO-AI-Studio-Voice.wav",mimeType:"audio/wav",buffer:Buffer.from("RIFF0000WAVEfmt ")});
+ assert.equal(await page.locator("#audioPreview").isVisible(),true);
+ assert.match(await page.locator("#audioPreview").getAttribute("src"),/^blob:/);
+ await page.locator("#clearAudio").click();
+ assert.equal(await page.locator("#audioPreview").isHidden(),true);
  await page.locator("#continueStudio").click();
  await page.waitForURL(/ezero_ai_studio_v0_1\.html$/);
  await page.locator("#ezeroSaveOptIn").check();
@@ -29,7 +36,8 @@ try{
  await page.locator(".msg.assistant .messageTools").first().waitFor();
  const tools=page.locator(".msg.assistant .messageTools").first();
  assert.match(await tools.innerText(),/متن و لنک شیئر/);
- assert.match(await tools.innerText(),/آڈیو WAV بنائیں/);
+ assert.match(await tools.innerText(),/E-ZERO حوالہ کے ساتھ WAV آڈیو/);
+ assert.match(await tools.innerText(),/E-ZERO لنک کاپی/);
  await page.waitForFunction(()=>document.getElementById("ezeroStoredCount")?.textContent.includes("2"));
  assert.match(await page.locator("#ezeroStoredCount").innerText(),/2/);
  await page.reload({waitUntil:"domcontentloaded"});
