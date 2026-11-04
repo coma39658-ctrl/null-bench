@@ -164,14 +164,18 @@
   const me = key => (langs[currentLang] || {})[key] || $("fallbackNever") || null;
   const t = key => typeof me(key) === "string" ? me(key) : ($all('[data-i18n="' + key + '"]')[0]?.textContent || key);
   const status = (key, detail) => { $("connectionStatus").textContent = t(key) + (detail ? " · " + detail : ""); };
+  // Retain the original Urdu labels to restore every visible control on language return.
+  const urOriginals = new WeakMap();
+  $all("[data-i18n]").forEach(el => urOriginals.set(el,el.textContent));
   function langChange(lang) {
     currentLang = ["ur","en","ar"].includes(lang) ? lang : "ur";
     document.documentElement.lang = currentLang;
     document.documentElement.dir = currentLang === "en" ? "ltr" : "rtl";
     $("language").value = currentLang;
     $all("[data-i18n]").forEach(el => {
-      const value = langs[currentLang]?.[el.dataset.i18n];
-      if (value) el.textContent = value;
+      const value = langs[currentLang]?.[el.dataset.i18n] ??
+        (currentLang === "ur" ? urOriginals.get(el) : null);
+      if (typeof value === "string" && value.length) el.textContent = value;
     });
     if (currentLang !== "ur") {
       const ph = currentLang === "ar" ? "ألصق الدعوة / الرد" : "Paste offer / answer";
