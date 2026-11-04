@@ -24,7 +24,8 @@
       fallback:"QR اسکین نہ چلے تو میرا شناختی کوڈ کاپی کریں اور دوست کو میسج کریں۔",
       noCode:"پہلے دعوت یا جواب تیار کریں۔",
       copiedSignal:"کال کا رابطہ میسج کاپی ہوگیا؛ صرف اپنے دوست کو بھیجیں۔",
-      shareSignalFallback:"فون کی شیئرنگ دستیاب نہیں؛ رابطہ میسج کاپی کریں۔"
+      shareSignalFallback:"فون کی شیئرنگ دستیاب نہیں؛ رابطہ میسج کاپی کریں۔",
+      networkWeak:"ممکنہ کمزور نیٹ ورک کا اشارہ ملا ہے؛ پہلے آڈیو کال یا Data Saver استعمال کریں۔ یہ براؤزر کا اشارہ ہے، حقیقی کال کی رفتار کی پیمائش نہیں۔"
     },
     en: {
       friendCopied:"Signed identity copied. Send only to someone you trust.",
@@ -42,7 +43,8 @@
       fallback:"If QR scanning is unavailable, copy your signed identity and send it in a message.",
       noCode:"Create an invitation or answer first.",
       copiedSignal:"Call connection message copied. Send only to your friend.",
-      shareSignalFallback:"Native sharing unavailable. Copy and send the call message manually."
+      shareSignalFallback:"Native sharing unavailable. Copy and send the call message manually.",
+      networkWeak:"Browser hints at a weak or data-saving network. Try audio first or Data Saver. This is not a measured call-speed result."
     },
     ar: {
       friendCopied:"تم نسخ رمز الهوية الموقّع. أرسله إلى شخص موثوق فقط.",
@@ -60,7 +62,8 @@
       fallback:"إذا تعذر مسح QR، انسخ هويتك الموقّعة وأرسلها في رسالة.",
       noCode:"أنشئ دعوة أو رداً أولاً.",
       copiedSignal:"تم نسخ رسالة الاتصال؛ أرسلها إلى الصديق فقط.",
-      shareSignalFallback:"المشاركة غير متاحة؛ انسخ رسالة الاتصال وأرسلها يدوياً."
+      shareSignalFallback:"المشاركة غير متاحة؛ انسخ رسالة الاتصال وأرسلها يدوياً.",
+      networkWeak:"يشير المتصفح إلى شبكة ضعيفة أو توفير البيانات؛ جرّب الصوت أولاً أو وضع توفير البيانات. هذا ليس قياساً فعلياً لسرعة المكالمة."
     }
   };
   const say = key => (ui[document.documentElement.lang] || ui.ur)[key] || ui.ur[key] || key;
@@ -112,6 +115,24 @@
   });
 
   function guideStatus(message){ $("guidedStatus").textContent=message; }
+  // Browser Network Information API is a *hint*, not measured WebRTC quality.
+  // No telemetry is sent, no background network checks and no reason is invented.
+  function updateNetworkHint(){
+    const node=$("networkQualityHint");
+    if(!node)return;
+    const c=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+    const type=String(c?.effectiveType||"").toLowerCase();
+    const downlink=Number(c?.downlink);
+    const weak=c?.saveData===true || ["slow-2g","2g","3g"].includes(type) ||
+      (Number.isFinite(downlink)&&downlink>0&&downlink<1.5);
+    node.hidden=!weak;
+    if(weak)node.textContent=say("networkWeak");
+  }
+  const networkConnection=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+  networkConnection?.addEventListener?.("change",updateNetworkHint);
+  $("language").addEventListener("change",updateNetworkHint);
+  updateNetworkHint();
+
   // Reflect only the verified browser connection state, never assume QR pairing
   // implies a connected call. No new network traffic, records, or background polling.
   document.addEventListener("ezero:call-status",event=>{
