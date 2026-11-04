@@ -1,0 +1,21 @@
+{
+  // Staging ONLY. Deployment is intentionally manual and disabled by default.
+  // No payment method, TURN allocation, or media/SFU provisioning is requested.
+  "name": "ezero-secure-connect-signaling-lab",
+  "main": "./signaling_worker_v0_1.mjs",
+  "compatibility_date": "2026-11-04",
+  "workers_dev": true,
+  "vars": {
+    "PILOT_ENABLED": "false",
+    "ALLOW_LOCAL_TEST_ORIGIN": "false"
+  },
+  "durable_objects": {
+    "bindings": [
+      {"name": "DIRECTORY", "class_name": "SecureConnectDirectory"}
+    ]
+  },
+  "migrations": [
+    {"tag": "v1-sqlite", "new_sqlite_classes": ["SecureConnectDirectory"]}
+  ],
+  "observability": {"enabled": false}
+}
