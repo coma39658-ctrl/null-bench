@@ -79,7 +79,7 @@ assert.equal(third.status,409);
 assert.equal(env.ctx.sockets.length,2);
 console.log("ONE_ROOM_TWO_CLIENT_LIMIT_AND_BEARER_CHECK: PASS");
 
-await env.object.webSocketMessage(a,JSON.stringify({v:1,type:"offer",payload:signal("offer")}));
+await env.object.webSocketMessage(a,JSON.stringify({v:1,type:"offer",blob:"A".repeat(540)}));
 assert.equal(last(a).code,"OFFER_NOT_READY");
 await env.object.webSocketMessage(b,JSON.stringify({v:1,type:"accept"}));
 assert.equal(last(a).type,"accepted");
