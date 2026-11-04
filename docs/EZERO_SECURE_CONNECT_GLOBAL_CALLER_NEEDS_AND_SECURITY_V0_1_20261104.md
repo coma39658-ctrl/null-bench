@@ -25,7 +25,7 @@ Connects to (research only): EZERO_SECURE_CONNECT_ARCHITECTURE_BLUEPRINT_V0_1_20
 | International travelers / rural users | Unpredictable firewall/carrier restrictions | ICE/STUN/TURN/SFU legally permitted candidate testing, diagnostics, do not promise universal VPN-free calling |
 | Caller unable to talk openly | Quiet incoming call / optional call request | Silent mode, accept/reject without microphone auto-on, prevent auto answer, do not expose sensitive preview on lock screen |
 | Parents/young users | Stop harassment, unsolicited invites and abuse | Unknown caller requests, invite expiry, child-protection policy, report/block with minimum retained metadata |
-| Everyone | No forced ads or surprise charges | Permanent zero ad SDK/tracking product policy and transparent fair-use limits; optional paid capacities only after user disclosure |
+| Everyone | **Free communication and no ads or hidden fees** | No user charges for ordinary private messaging, audio/video calls, QR verification and basic group calls; no ads or data sale; disclosed fair-use capacity and carrier data charges |
 
 ## 3. Caller screens — default order
 **Home (four choices only):** Call | Message | Groups | Scan QR. Show a small incoming request badge, not a distracting feed. No publicly searchable people directory.
@@ -51,7 +51,7 @@ Connects to (research only): EZERO_SECURE_CONNECT_ARCHITECTURE_BLUEPRINT_V0_1_20
 - Adaptive codec/protocol: Opus, low bitrate audio first, low-video mode for weak signal, auto-paused offscreen video for group calls; explicit Data Saver; packet loss/jitter / battery validation on low-end phones.
 - ICE connection candidate checks then lawful TURN fallback where available, appropriate regional servers and latency monitoring. An operator/ISP/national restriction is not bypassed covertly. Return truthful failure if service is unavailable under local rules; obtain local carrier tests and regulatory approval.
 - Group calls routed via an evaluated SFU such as LiveKit, no compulsory media recording/egress service. Verify end-user media keys: transport encryption alone does not mean server-blind E2EE.
-- Transparent optional premium capacities: e.g. larger groups or extended calls if operating cost requires, never monetize sensitive message text, caller numbers or contact graph. Price must be displayed before consent and tested against realistic egress/TURN/SFU costs.
+- **Owner-mandated free service:** do not charge end-users for basic video/audio calls, encrypted private messages, one-listen notes, QR contacts or small group calling. No premium call quality paywall, in-app purchase, mandatory ads or subscription. Develop the first proof of concept using existing equipment, open-source tools and free quotas WITHOUT investor capital or mandatory owner payment. Do not enable an infrastructure resource that automatically bills above a quota. Measure egress/TURN/SFU costs and publish capacity restrictions honestly; zero-budget proof-of-concept is not unlimited global capacity.
 - Push notification: only generic encrypted alert, no message text/voice or sensitive sender ID on lock screen; PWA background delivery is best-effort, not guaranteed. Provide online/offline state without a permanent readable call log.
 
 ## 6. Responsible platform behavior and caller protection
@@ -127,3 +127,22 @@ References:
 - Opus audio codec RFC 6716: https://www.rfc-editor.org/rfc/rfc6716
 - WebRTC security RFC 8827: https://www.rfc-editor.org/rfc/rfc8827.html
 - LiveKit adaptive stream: https://docs.livekit.io/home/client/tracks/subscribe/
+
+## 10. Zero-capital, zero-investor, free-for-all policy (owner-confirmed 2026-11-04)
+- **Starting capital = 0 SAR** as an engineering constraint: build with existing Android/Termux and connected GitHub tools, open-source components, static local prototypes, and documented free tiers only. Do not assume new server purchases, paid subscriptions, rented machines, investors, venture finance or paid certificates. Developer time, existing phone, electricity and carrier data are real in-kind resources, not literally zero economic cost.
+- **End-user price = 0:** never require payment, card, subscription, ad viewing or upgrades for normal secure text/voice/video messages, 1:1 voice/video calls, verified invites or essential groups. E-ZERO does not pay users' carrier data charges; disclose that clearly.
+- **No ads or sale of personal data:** funding must never depend on selling message content, contact graphs, caller identity, tracking or forced advertisements. Future sponsorship/donations are not part of this zero-capital first prototype and require a separate owner choice; do not sneak them in.
+- **No overage risk:** production and development must reject usage safely when a free quota/cap is exhausted; billing-disabled resource preferred. Where a vendor requires a payment method or can charge after the free tier, treat it as *not zero-risk* until a hard cap and opt-in are verified. Monitoring alone is not a cap.
+- **Practical initial implementation:** offline static PWA and consent-first identity/QR prototype, then two-browser local WebRTC P2P with manually exchanged signaling and no paid signaling backend; add genuine hosted signaling only when a lawful compatible no-cost service and usage cap are verified; for tough NAT networks need TURN which may have limits. Real global calling requires reliable media relays, anti-abuse, uptime, E2EE review and funding; cannot claim that zero-capital prototype is a fully functioning global service.
+- **Technical trade-off:** start P2P audio-first and adapt video. When direct connection is unavailable, display CONNECTIVITY_UNAVAILABLE and optional lawful relay path when genuinely provisioned; never promise all networks work VPN-free or silently use a paid service. Group calls need an SFU or bounded P2P mesh and its security/performance limits must be disclosed.
+- **Hosted frontend:** GitHub Pages can showcase a static prototype, but GitHub's published limits prohibit using Pages as a free hosting platform for a commercial SaaS or online business. Do not run the production communication business on Pages based on the assumption that GitHub permits it. Choose a terms-compliant production host after a separate review.
+- **Cloudflare free quotas are research candidates, not deployed resources:** Workers Free presently has 100,000 requests/day; Cloudflare Realtime SFU/TURN presently shares 1,000 GB/month free egress, then usage charges may apply. Check account eligibility, billing activation, secret storage, per-product pricing and enforceable no-charge caps before any activation. Cloudflare's managed RealtimeKit pricing is separate; do not confuse it with serverless Realtime SFU.
+- **Global release gate:** do not announce service available worldwide until tested on representative networks, languages, browsers and local regulatory classifications; stagger pilot availability, publish support matrix and real metrics. Security and legal review are not optional just because the platform is free.
+
+Verified official references as of 2026-11-04:
+- Cloudflare Workers Free limits https://developers.cloudflare.com/workers/platform/limits/
+- Cloudflare Realtime SFU and TURN tier https://developers.cloudflare.com/realtime/sfu/platform/pricing/
+- Cloudflare TURN https://developers.cloudflare.com/realtime/turn/
+- Cloudflare RealtimeKit per-participant pricing (different product) https://www.cloudflare.com/plans/
+- WebRTC signaling is separate from media https://webrtc.org/getting-started/peer-connections
+- GitHub Pages commercial SaaS restriction https://docs.github.com/en/enterprise-cloud@latest/pages/getting-started-with-github-pages/github-pages-limits
