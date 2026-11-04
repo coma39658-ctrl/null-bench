@@ -41,11 +41,15 @@ async function connect(a,b,mode){
   await a.locator("#guidedOffer").click();
   const offer=await getSignal(a);
   assert.match(offer,/"type":"offer"/,"A produced a signed SDP offer");
+  assert.match(await a.locator("#callDiagnostic").innerText(),/دعوت تیار|Invitation ready|الدعوة جاهزة/,
+    "Offer readiness is shown as a measured stage, not a completed call");
   assert.equal(await a.locator("#guidedShare").isEnabled(),true,"Simple share button enables only on signed offer");
   await b.locator("#guidedIncoming").fill(offer);
   await b.locator("#guidedContinue").click();
   const answer=await getSignal(b);
   assert.match(answer,/"type":"answer"/,"B generated a signed answer from one paste button");
+  assert.match(await b.locator("#callDiagnostic").innerText(),/جواب تیار|Answer ready|الرد جاهز/,
+    "Answer readiness clearly means the reply still must be sent to phone A");
   assert.equal(await b.locator("#guidedShare").isEnabled(),true,"Simple answer share enabled");
   await a.locator("#guidedIncoming").fill(answer);
   await a.locator("#guidedContinue").click();
@@ -76,6 +80,7 @@ try{
     "Simplified mobile page fits viewport without horizontal scrolling");
   await a.locator("#language").selectOption("en");
   assert.match(await a.locator("h1").first().innerText(),/Welcome/);
+  assert.match(await a.locator("#callDiagnostic").innerText(),/does not start a call|still needs an invite/);
   await b.locator("#language").selectOption("ar");
   assert.match(await b.locator("h1").first().innerText(),/مرحباً/);
   await a.locator("#openPolicy").click();
@@ -144,6 +149,7 @@ try{
   assert.equal(await b.evaluate(()=>window.__mediaCalls.length),2);
   console.log("REAL_TWO_BROWSER_AUDIO_VIDEO_TRACKS_MUTE_CAMERA_HANGUP: PASS");
   console.log("ZERO_PAYMENTS_ZERO_SIGNALS_BACKEND_NO_RECORDING: PASS");
+  console.log("REAL_ICE_CONNECTED_AND_OFFER_ANSWER_STAGES: PASS");
 }finally{
   for(const c of contexts)await c.close().catch(()=>{});
   await browser.close();
