@@ -1,0 +1,57 @@
+name: E-ZERO Privacy Copilot Local AI and Anti-Fraud Lab
+on:
+  push:
+    branches: [ezero-secure-connect-local-intelligence-lab-20261104]
+permissions:
+  contents: read
+jobs:
+  privacy-static:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check browser-only and existing WebRTC safety contracts
+        run: |
+          set -euo pipefail
+          node --check js/ezero_secure_connect_privacy_copilot_v0_1.js
+          node --check tests/test_ezero_secure_connect_privacy_copilot_browser_v0_1.mjs
+          node tests/test_ezero_secure_connect_privacy_copilot_contract_v0_1.mjs
+          node tests/test_ezero_secure_connect_live_p2p_contract_v0_1.js
+          node secure_connect/call_room_lab/test_room_worker.mjs
+          echo "COPILOT_NO_NETWORK_OR_RECORDING_LOCAL_CAPABILITY_ONLY: PASS"
+  two-mobile-privacy:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install isolated Chromium test runtime
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts playwright@1.57.0
+          npx playwright install --with-deps chromium
+      - name: Test real two-browser fingerprints, local fraud guard and graceful AI unavailability
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8769 --bind 127.0.0.1 >/tmp/ezero-private-copilot.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8769/ezero_secure_connect_live_p2p_v0_1.html >/dev/null; then break; fi
+            sleep 1
+          done
+          node tests/test_ezero_secure_connect_privacy_copilot_browser_v0_1.mjs
+          node tests/test_ezero_secure_connect_one_link_browser_v0_1.mjs
+          node tests/test_ezero_secure_connect_live_p2p_browser_v0_1.mjs
