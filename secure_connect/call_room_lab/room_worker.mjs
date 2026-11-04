@@ -9,6 +9,7 @@ export const ROOM_LIFETIME_MS=10*60*1000;
 const PAGE_ORIGIN="https://coma39658-ctrl.github.io";
 const ROOM_ID=/^[a-f0-9]{32}$/;
 const ROOM_KEY=/^ezero-key-([a-f0-9]{64})$/;
+const ROOM_PROOF=/^ezero-proof-([a-f0-9]{64})$/;
 const MAX_FRAME=180000;
 const MAX_MESSAGES_PER_SOCKET=12;
 
@@ -24,6 +25,26 @@ function tokenFrom(request){
   const auth=parts.filter(x=>ROOM_KEY.test(x));
   if(auth.length!==1)return null;
   return auth[0].match(ROOM_KEY)[1];
+}
+async function ownerProofValid(request,env,id,token){
+  // Only an operator knowing Cloudflare's private PILOT_OWNER_SECRET can create
+  // a capability for a new room ID. Friends receive ONLY a proof specific to
+  // that one ID and token; nobody receives the operator's actual secret.
+  const secret=env.PILOT_OWNER_SECRET;
+  if(typeof secret!=="string" || !/^[A-Za-z0-9_-]{24,128}$/.test(secret))
+    return false;
+  const protocols=(request.headers.get("Sec-WebSocket-Protocol")||"")
+    .split(",").map(s=>s.trim());
+  const proofs=protocols.filter(p=>ROOM_PROOF.test(p));
+  if(proofs.length!==1)return false;
+  const actual=proofs[0].match(ROOM_PROOF)[1];
+  const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(secret),
+    {name:"HMAC",hash:"SHA-256"},false,["sign"]);
+  const bytes=await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(id+"."+token));
+  const expected=[...new Uint8Array(bytes)].map(x=>x.toString(16).padStart(2,"0")).join("");
+  // Constant-time comparison; do not log the proof or the secret.
+  let diff=0;for(let i=0;i<64;i++)diff|=expected.charCodeAt(i)^actual.charCodeAt(i);
+  return diff===0;
 }
 async function tokenDigest(token){
   const data=new TextEncoder().encode(token);
@@ -59,7 +80,12 @@ export default {
     const id=url.pathname.split("/").pop();
     if(!ROOM_ID.test(id))return json("ROOM_INVALID",400);
     if(!env.CALL_ROOMS?.getByName)return json("BINDING_UNAVAILABLE",503);
-    // Do not put the secret in URL/query, logs or object name.
+    if(typeof env.PILOT_OWNER_SECRET!=="string" || env.PILOT_OWNER_SECRET.length<24)
+      return json("OWNER_SECRET_NOT_CONFIGURED",503);
+    if(!await ownerProofValid(request,env,id,token))
+      return json("ROOM_OWNER_PROOF_REQUIRED",403);
+    // Verify before allocating a Durable Object to block unauthenticated
+    // cross-room resource exhaustion. No plain secret in URL or logs.
     const stub=env.CALL_ROOMS.getByName("room-"+id);
     return stub.fetch(request);
   }
