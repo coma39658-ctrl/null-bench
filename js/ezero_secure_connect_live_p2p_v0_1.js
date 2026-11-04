@@ -50,7 +50,14 @@
       guidedIncoming:"دوسرے فون سے آیا ہوا میسج یہاں پیسٹ کریں",
       guidedContinue:"✓ میسج پیسٹ کرکے جاری رکھیں",
       guidedWaiting:"دعوت تیار کریں یا دوسرے فون کا میسج پیسٹ کریں۔",
-      expertSummary:"تفصیلی تکنیکی کوڈ (ضرورت نہیں)",guidedPrivacy:"دعوت/جواب میں آپ کے IP یا نیٹ ورک کی معلومات ہوسکتی ہیں؛ صرف قابلِ اعتماد دوست کو شیئر کریں۔"
+      expertSummary:"تفصیلی تکنیکی کوڈ (ضرورت نہیں)",guidedPrivacy:"دعوت/جواب میں آپ کے IP یا نیٹ ورک کی معلومات ہوسکتی ہیں؛ صرف قابلِ اعتماد دوست کو شیئر کریں۔",
+      diagStart:"QR شناخت مکمل ہونے سے کال نہیں ملتی۔ فون A دعوت بھیجے اور فون B جواب واپس بھیجے۔",
+      offerReady:"دعوت تیار ہے؛ اسے دوسرے فون کو میسج کریں، پھر اس کا جواب یہاں پیسٹ کریں۔",
+      answerReady:"جواب تیار ہے؛ اسے پہلے فون کو واپس میسج کریں۔",
+      iceChecking:"دعوت اور جواب مل گئے؛ دونوں فونوں کے نیٹ ورک کے راستے چیک ہو رہے ہیں۔",
+      iceNoRoute:"NETWORK_NO_ROUTE — اس بار کوئی قابلِ استعمال نیٹ ورک راستہ نہیں ملا۔ پہلے دونوں فون ایک ہی Wi-Fi پر آزمائیں۔ مختلف موبائل نیٹ ورکس کے لیے TURN ریلے درکار ہوسکتا ہے؛ وہ ابھی فعال نہیں۔",
+      missingOffer:"پہلے فون A پر دعوت بنائیں؛ جواب اسی فون پر لگایا جاسکتا ہے جس نے دعوت بنائی۔",
+      fingerprintMismatch:"دوست کا SHA-256 فنگرپرنٹ مختلف ہے؛ حفاظتی وجہ سے رابطہ نہیں ہوا۔"
     },
     en: {
       back:"↩ Back", language:"Language", welcome:"Welcome — test a real 1:1 call", intro:"A two-browser trial of real voice, video, and one-view messages.",
@@ -101,7 +108,14 @@
       guidedIncoming:"Paste the message from the other phone",
       guidedContinue:"✓ Continue with pasted message",
       guidedWaiting:"Create an invitation or paste the message from the other phone.",
-      expertSummary:"Advanced technical code (optional)",guidedPrivacy:"Call invitations/answers may reveal IP or network details. Share only with a trusted friend, not a public group."
+      expertSummary:"Advanced technical code (optional)",guidedPrivacy:"Call invitations/answers may reveal IP or network details. Share only with a trusted friend, not a public group.",
+      diagStart:"A verified QR ID does not start a call. Phone A must share one invite and Phone B must return the answer.",
+      offerReady:"Invitation ready. Message it to the other phone, then paste its answer here.",
+      answerReady:"Answer ready. Message it back to Phone A.",
+      iceChecking:"Invitation and answer received; checking for a viable network route.",
+      iceNoRoute:"NETWORK_NO_ROUTE — no usable network path found. First test with both phones on the same Wi-Fi. Different mobile networks may require a TURN relay, which is not enabled.",
+      missingOffer:"First create the invitation on Phone A. Apply the answer only on that same phone.",
+      fingerprintMismatch:"The friend's SHA-256 fingerprint does not match. Connection blocked for safety."
     },
     ar: {
       back:"↩ رجوع",language:"اللغة",welcome:"مرحباً — جرّب اتصالاً حقيقياً بين هاتفين",intro:"اختبار مباشر للمكالمات الصوتية والمرئية والرسائل التي تُعرض مرة واحدة.",
@@ -153,7 +167,14 @@
       guidedIncoming:"ألصق رسالة الهاتف الآخر هنا",
       guidedContinue:"✓ متابعة باستخدام الرسالة",
       guidedWaiting:"أنشئ دعوة أو الصق رسالة الهاتف الآخر.",
-      expertSummary:"الأكواد التقنية المتقدمة (اختياري)",guidedPrivacy:"قد تحتوي دعوة الاتصال أو الرد على بيانات IP والشبكة؛ شاركها مع صديق موثوق فقط."
+      expertSummary:"الأكواد التقنية المتقدمة (اختياري)",guidedPrivacy:"قد تحتوي دعوة الاتصال أو الرد على بيانات IP والشبكة؛ شاركها مع صديق موثوق فقط.",
+      diagStart:"التحقق من QR لا يبدأ المكالمة. يرسل الهاتف أ الدعوة ويعيد الهاتف ب الرد.",
+      offerReady:"الدعوة جاهزة؛ أرسلها إلى الهاتف الآخر ثم الصق رده هنا.",
+      answerReady:"الرد جاهز؛ أرسله إلى الهاتف أ.",
+      iceChecking:"وصلت الدعوة والرد؛ يجري التحقق من مسار الشبكة.",
+      iceNoRoute:"NETWORK_NO_ROUTE — لم يُعثر على مسار شبكة صالح. جرّب أولاً الهاتفين على شبكة Wi-Fi واحدة. قد تتطلب شبكات الجوال المختلفة خادم TURN غير متاح الآن.",
+      missingOffer:"أنشئ الدعوة أولاً على الهاتف أ. الصق الرد على الهاتف الذي أنشأ الدعوة فقط.",
+      fingerprintMismatch:"بصمة SHA-256 للصديق لا تطابق الهوية المتوقعة. مُنع الاتصال لحمايتك."
     }
   };
   const $all = selector => Array.from(document.querySelectorAll(selector));
@@ -163,7 +184,13 @@
   let micMuted = false, cameraMuted = false;
   const me = key => (langs[currentLang] || {})[key] || $("fallbackNever") || null;
   const t = key => typeof me(key) === "string" ? me(key) : ($all('[data-i18n="' + key + '"]')[0]?.textContent || key);
-  const status = (key, detail) => { $("connectionStatus").textContent = t(key) + (detail ? " · " + detail : ""); };
+  let lastCallStatus = null;
+  const status = (key, detail) => {
+    lastCallStatus = {key,detail};
+    $("connectionStatus").textContent = t(key) + (detail ? " · " + detail : "");
+    // Status is an observation, not a claim that a human heard or a server delivered media.
+    document.dispatchEvent(new CustomEvent("ezero:call-status",{detail:{stage:key}}));
+  };
   // Retain the original Urdu labels to restore every visible control on language return.
   const urOriginals = new WeakMap();
   $all("[data-i18n]").forEach(el => urOriginals.set(el,el.textContent));
@@ -184,6 +211,7 @@
     } else {
       $("friendIdInput").placeholder = "QR کوڈ یا SHA-256 فنگرپرنٹ";
     }
+    if(lastCallStatus) status(lastCallStatus.key,lastCallStatus.detail);
   }
   $("language").addEventListener("change", e => langChange(e.target.value));
   langChange(new URLSearchParams(location.search).get("lang") || "ur");
@@ -356,8 +384,16 @@
     p.onconnectionstatechange=()=>{
       if(peer!==p)return;
       if(p.connectionState==="connected") status("connected",p.__ezeroPeerFP?.slice(0,16));
-      else if(["failed","closed","disconnected"].includes(p.connectionState)) status("offline",p.connectionState);
-      else status("connecting",p.connectionState);
+      else if(p.connectionState==="failed") status("iceNoRoute");
+      else if(p.connectionState==="disconnected") status("offline","disconnected");
+      else if(p.connectionState==="connecting") status("iceChecking");
+    };
+    p.oniceconnectionstatechange=()=>{
+      if(peer!==p)return;
+      // ICE 'failed' means there is no viable network route for this exact peer attempt.
+      // Without a provisioned TURN relay we must not promise universal connectivity.
+      if(p.iceConnectionState==="failed") status("iceNoRoute");
+      else if(p.iceConnectionState==="checking") status("iceChecking");
     };
     p.ondatachannel=e=>attachChannel(e.channel);
     localStream=await navigator.mediaDevices.getUserMedia(mediaConstraints());
@@ -435,7 +471,10 @@
     ["createOffer","acceptOffer","applyAnswer"].forEach(id=>$(id).disabled=true);
     try{await fn();}catch(error) {
       const msg=String(error?.name||error?.message||"ERROR").slice(0,85);
-      status(/NotAllowedError|NotFoundError|NotReadableError|OverconstrainedError/.test(msg)?"micDenied":"signalInvalid",msg);
+      const stage=/NotAllowedError|NotFoundError|NotReadableError|OverconstrainedError/.test(msg)
+        ? "micDenied" : msg.includes("OFFER_REQUIRED") ? "missingOffer" :
+          msg.includes("FRIEND_ID_MISMATCH") ? "fingerprintMismatch" : "signalInvalid";
+      status(stage,msg);
       if(peer && peer.connectionState!=="connected") hardHangup(false);
     }finally{busy=false;["createOffer","acceptOffer","applyAnswer"].forEach(id=>$(id).disabled=false);}
   }
@@ -446,7 +485,7 @@
     const complete=await iceComplete(p);
     $("localSignal").value=await makeSignal("offer");
     document.dispatchEvent(new CustomEvent("ezero:signal-ready",{detail:{type:"offer"}}));
-    status("waiting",complete?"":"ICE gathering partial");
+    status("offerReady",complete?"":"ICE gathering partial");
   }));
   $("acceptOffer").addEventListener("click",()=>withBusy(async()=>{
     const signed=await parseSignal("offer");
@@ -456,14 +495,14 @@
     const complete=await iceComplete(p);
     $("localSignal").value=await makeSignal("answer");
     document.dispatchEvent(new CustomEvent("ezero:signal-ready",{detail:{type:"answer"}}));
-    status("waiting",complete?"":"ICE gathering partial");
+    status("answerReady",complete?"":"ICE gathering partial");
   }));
   $("applyAnswer").addEventListener("click",()=>withBusy(async()=>{
     if(!peer || role!=="offerer" || peer.signalingState!=="have-local-offer")throw Error("OFFER_REQUIRED");
     const signed=await parseSignal("answer");
     peer.__ezeroPeerFP=signed.fp;
     await peer.setRemoteDescription({type:"answer",sdp:signed.sdp});
-    status("connecting");
+    status("iceChecking");
   }));
   async function copyValue(element) {
     const value=element.value;

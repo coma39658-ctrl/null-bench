@@ -56,3 +56,6 @@ button.outline{color:#07546b;background:#ebf9fc;border-color:#b3d5de}button.dang
 .guided-call #guidedIncoming{max-height:170px;min-height:86px;direction:ltr}
 .guided-call #connectionStatus{background:#e7f5ee}
 @media(max-width:440px){.easy-methods{gap:8px}.easy-method{font-size:14px;padding:9px 7px;min-height:85px}.identity-card .qr-layout{grid-template-columns:1fr}.identity-card .qr-code{margin:auto;width:190px;height:190px}.easy-start h2{font-size:18px}.call-setup>summary{font-size:15px}}
+
+/* One plain-language live diagnostic, driven by WebRTC's actual ICE and connection states. */
+.call-diagnostic{margin:10px 0;border-inline-start:4px solid #118598;border-radius:12px;background:#ecf9f8;border-block:1px solid #b3dce1;border-inline-end:1px solid #b3dce1;padding:12px 13px;color:#124b60;font-size:14px;line-height:1.7;overflow-wrap:anywhere}

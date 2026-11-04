@@ -112,6 +112,26 @@
   });
 
   function guideStatus(message){ $("guidedStatus").textContent=message; }
+  // Reflect only the verified browser connection state, never assume QR pairing
+  // implies a connected call. No new network traffic, records, or background polling.
+  document.addEventListener("ezero:call-status",event=>{
+    const stage=event.detail?.stage;
+    if(stage==="idle") {
+      $("callDiagnostic").textContent=document.querySelector("#callDiagnostic")?.dataset.resetText ||
+        (document.documentElement.lang==="en" ? "QR identifies a key; a real call still needs an invite and an answer." :
+         document.documentElement.lang==="ar" ? "QR يتحقق من المفتاح؛ وتتطلب المكالمة دعوة ورداً." :
+         "QR شناخت ہے، کال نہیں۔ کال کے لیے دعوت اور جواب بھی ضروری ہے۔");
+      return;
+    }
+    if(!["offerReady","answerReady","iceChecking","iceNoRoute","connected",
+          "offline","signalInvalid","micDenied","missingOffer","fingerprintMismatch"].includes(stage))return;
+    const actualStatus=$("connectionStatus")?.textContent || "";
+    if(actualStatus) $("callDiagnostic").textContent=actualStatus;
+    if(stage==="connected") guideStatus(actualStatus);
+    if(stage==="iceNoRoute" || stage==="signalInvalid" || stage==="micDenied" ||
+       stage==="missingOffer" || stage==="fingerprintMismatch") guideStatus(actualStatus);
+  });
+
   // Preserve existing signed-offer/answer verification in the core script.
   $("guidedOffer").addEventListener("click",()=>{
     $("createOffer").click();

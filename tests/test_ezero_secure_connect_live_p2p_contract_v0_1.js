@@ -22,6 +22,17 @@ for(const lang of ["ur","en","ar"]) assert.match(html,new RegExp('value="'+lang+
 for(const action of ["createOffer","acceptOffer","applyAnswer","copySignal","shareSignal","hangup","sendMessage","viewMessage","openPolicy","closePolicy","scanQR","stopScan","verifyFriend","copyIdentity"]){
   assert.match(html,new RegExp('id="'+action+'"'),action+" present");
 }
+assert.match(html,/id="callDiagnostic"/);
+assert.match(html,/data-i18n="diagStart"/);
+assert.match(js,/p\.oniceconnectionstatechange/);
+assert.match(js,/iceConnectionState==="failed"\) status\("iceNoRoute"\)/);
+assert.match(js,/p\.connectionState==="failed"\) status\("iceNoRoute"\)/);
+assert.match(js,/CustomEvent\("ezero:call-status"/);
+assert.match(js,/status\("offerReady"/);
+assert.match(js,/status\("answerReady"/);
+assert.match(simple,/addEventListener\("ezero:call-status"/);
+assert.match(js,/missingOffer/);
+assert.match(js,/fingerprintMismatch/);
 assert.match(html,/id="myQr"/);
 for(const id of ["chooseNearby","chooseRemote","nearbyPanel","remotePanel","shareIdentity",
    "nearCopyIdentity","pasteFriend","callSetup","guidedOffer","guidedShare",
@@ -80,3 +91,4 @@ console.log("NO_AUTOMATIC_MIC_CAMERA_OR_SESSION_RECORDING: CONTRACT_PASS");
 console.log("TRILINGUAL_ALL_PAGE_STATIC_LABELS: CONTRACT_PASS");
 console.log("USER_CONSENT_CLEAR_PRIVACY_AND_FIVE_MINUTE_MESSAGE: CONTRACT_PASS");
 console.log("SIMPLE_NEAR_QR_FAR_MESSAGE_UI_AND_SMART_OFFER_ANSWER: CONTRACT_PASS");
+console.log("CALL_CONNECTION_DIAGNOSIS_BY_REAL_ICE_STATE: CONTRACT_PASS");
