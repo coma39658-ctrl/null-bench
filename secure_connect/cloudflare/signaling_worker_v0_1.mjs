@@ -215,7 +215,12 @@ export class SecureConnectDirectory {
     if(await this.ctx.storage.get(friendKey(b.account,b.to)))
       return json({ok:true,code:"ALREADY_FRIENDS"});
     const incoming=await this.ctx.storage.list({prefix:"incoming:"+b.to+":",limit:MAX_INCOMING+1});
-    if(incoming.size>=MAX_INCOMING)return failed("INBOX_FULL",429);
+    let activeIncoming=0;
+    for(const [key,item] of incoming){
+      if(item?.expires>Date.now()) activeIncoming++;
+      else await this.ctx.storage.delete(key);
+    }
+    if(activeIncoming>=MAX_INCOMING)return failed("INBOX_FULL",429);
     const key=pairKey(b.account,b.to);
     const existing=await this.ctx.storage.get(key);
     if(existing?.status==="pending" && existing.expires>Date.now())
@@ -240,7 +245,20 @@ export class SecureConnectDirectory {
        pair.from!==b.to||pair.to!==b.account)
       return failed("NO_PENDING_INVITE",404);
     const yes=b.decision==="accept";
-    await this.ctx.storage.transaction(async tx=>{
+    if(yes){
+      const [listA,listB]=await Promise.all([
+        this.ctx.storage.list({prefix:"friend:"+b.account+":",limit:MAX_FRIENDS}),
+        this.ctx.storage.list({prefix:"friend:"+b.to+":",limit:MAX_FRIENDS})
+      ]);
+      if(listA.size>=MAX_FRIENDS||listB.size>=MAX_FRIENDS)
+        return failed("FRIEND_LIMIT_REACHED",429);
+    }
+    const applied=await this.ctx.storage.transaction(async tx=>{
+      // Re-read inside the transaction: acceptance is atomic even if an owner
+      // is opening the same invite in two tabs.
+      const latest=await tx.get(key);
+      if(!latest || latest.status!=="pending" || latest.expires<=Date.now() ||
+         latest.from!==b.to || latest.to!==b.account)return false;
       await tx.delete(incomingKey(b.account,b.to));
       if(yes){
         await tx.put(friendKey(b.account,b.to),{since:Date.now()});
@@ -249,7 +267,9 @@ export class SecureConnectDirectory {
       }else{
         await tx.put(key,{status:"declined",cooldownUntil:Date.now()+REJECT_COOLDOWN});
       }
+      return true;
     });
+    if(!applied)return failed("NO_PENDING_INVITE",409);
     return json({ok:true,code:yes?"FRIENDSHIP_ACCEPTED":"INVITE_DECLINED",
       bothLinked:yes});
   }
