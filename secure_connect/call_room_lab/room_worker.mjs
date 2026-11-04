@@ -106,8 +106,20 @@ export default {
       return json("OWNER_SECRET_NOT_CONFIGURED",503);
     if(!await ownerProofValid(request,env,id,token,issued))
       return json("ROOM_OWNER_PROOF_REQUIRED",403);
-    // Verify before allocating a Durable Object to block unauthenticated
-    // cross-room resource exhaustion. No plain secret in URL or logs.
+    // Strict globally serialized pilot admission: unlike per-PoP rate limits,
+    // one singleton Durable Object keeps at most 8 concurrent room reservations.
+    // Fail closed before allocating the room if the admission gate is absent.
+    if(!env.ROOM_ADMISSION?.getByName)return json("ROOM_ADMISSION_MISSING",503);
+    const admission=env.ROOM_ADMISSION.getByName("global-pilot-v1");
+    let reserved;
+    try {
+      reserved=await admission.fetch(new Request("https://ezero.internal/admit",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({id,expires:issued+ROOM_LIFETIME_MS})
+      }));
+    }catch(_){return json("ROOM_ADMISSION_UNAVAILABLE",503);}
+    if(reserved?.status===429)return json("PILOT_ROOM_CAP_REACHED",429);
+    if(!reserved?.ok)return json("ROOM_ADMISSION_REJECTED",503);
     const stub=env.CALL_ROOMS.getByName("room-"+id);
     return stub.fetch(request);
   }
@@ -239,5 +251,60 @@ export class CallRoom {
     // metadata instead of keeping even token digests indefinitely.
     await this.ctx.storage.deleteAll();
     await this.ctx.storage.deleteAlarm();
+  }
+}
+
+/**
+ * Single serialized pilot-wide room capacity gate.
+ * Stores only random room IDs and expiry timestamps; no IP, names, SDP,
+ * media, private keys, WebSocket tokens or friend identifiers.
+ */
+export const MAX_PILOT_ACTIVE_ROOMS=8;
+export class RoomAdmission {
+  constructor(ctx,env){this.ctx=ctx;this.env=env;}
+  async fetch(request){
+    if(this.env.ROOMS_ENABLED!=="true")return json("ROOMS_DISABLED",503);
+    if(request.method!=="POST"||new URL(request.url).pathname!=="/admit")
+      return json("METHOD_NOT_ALLOWED",405);
+    const raw=await request.text();
+    if(raw.length>200)return json("ADMISSION_INVALID",400);
+    let payload;
+    try{payload=JSON.parse(raw);}catch(_){return json("ADMISSION_INVALID",400);}
+    const now=Date.now();
+    const id=payload?.id,expires=payload?.expires;
+    if(!ROOM_ID.test(id||"")||!Number.isSafeInteger(expires)||
+       expires<=now||expires>now+ROOM_LIFETIME_MS+30000)
+      return json("ADMISSION_INVALID",400);
+    const outcome=await this.ctx.storage.transaction(async tx=>{
+      const entries=await tx.list({prefix:"r:"});
+      let count=0,exists=false;
+      for(const [key,ttl] of entries){
+        if(ttl<=now){await tx.delete(key);continue;}
+        count++;
+        if(key==="r:"+id)exists=true;
+      }
+      if(exists)return "EXISTING";
+      if(count>=MAX_PILOT_ACTIVE_ROOMS)return "CAP_REACHED";
+      await tx.put("r:"+id,expires);
+      return "RESERVED";
+    });
+    if(outcome==="CAP_REACHED")return json("PILOT_ROOM_CAP_REACHED",429);
+    const alarm=await this.ctx.storage.getAlarm();
+    if(!alarm||expires<alarm)await this.ctx.storage.setAlarm(expires);
+    return json("ADMITTED");
+  }
+  async alarm(){
+    const now=Date.now();
+    const entries=await this.ctx.storage.list({prefix:"r:"});
+    let next=null;
+    for(const [key,ttl] of entries){
+      if(ttl<=now)await this.ctx.storage.delete(key);
+      else if(next===null||ttl<next)next=ttl;
+    }
+    if(next!==null)await this.ctx.storage.setAlarm(next);
+    else{
+      await this.ctx.storage.deleteAlarm();
+      await this.ctx.storage.deleteAll();
+    }
   }
 }
