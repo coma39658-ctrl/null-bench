@@ -7,10 +7,12 @@ const js=fs.readFileSync("js/ezero_secure_connect_live_p2p_v0_1.js","utf8");
 const css=fs.readFileSync("css/ezero_secure_connect_live_p2p_v0_1.css","utf8");
 const vendor=fs.readFileSync("js/vendor/ezero-qrcode-generator-mit.js","utf8");
 const simple=fs.readFileSync("js/ezero_secure_connect_simple_near_far_v0_1.js","utf8");
+const contacts=fs.readFileSync("js/ezero_secure_connect_contacts_v0_1.js","utf8");
 const preview=fs.readFileSync("ezero_secure_connect_preview_v0_1.html","utf8");
 new vm.Script(js,{filename:"live_p2p.js"});
 new vm.Script(vendor,{filename:"ezero_qrcode_generator_mit.js"});
 new vm.Script(simple,{filename:"ezero_secure_connect_simple_near_far_v0_1.js"});
+new vm.Script(contacts,{filename:"ezero_secure_connect_contacts_v0_1.js"});
 assert.match(vendor,/Licensed under the MIT license/);
 assert.match(preview,/id="ezeroRealTwoPhoneTest"[^>]*href|href="\.\/ezero_secure_connect_live_p2p_v0_1\.html" id="ezeroRealTwoPhoneTest"/);
 assert.match(html,/content="default-src 'none'; script-src 'self'/);
@@ -33,6 +35,27 @@ assert.match(js,/status\("answerReady"/);
 assert.match(simple,/addEventListener\("ezero:call-status"/);
 assert.match(js,/missingOffer/);
 assert.match(js,/fingerprintMismatch/);
+for(const id of ["qrScanStatus","contactsTitle","friendDisplayName","saveVerifiedFriend","friendSearch","friendsList","friendsStatus"]){
+  assert.match(html,new RegExp('id="'+id+'"'),"Visible QR diagnostics and friend list control "+id);
+}
+assert.match(html,/ezero_secure_connect_contacts_v0_1\.js/);
+assert.match(js,/scanDeadlineTimer=setTimeout/);
+assert.match(js,/\},20000\)/,"Bounded 20-second QR scanner");
+assert.match(js,/function scanMessage\(/);
+assert.match(js,/qrScannedOk/);
+assert.match(js,/qrSignatureBad/);
+assert.match(js,/qrCameraDenied/);
+assert.match(js,/qrNotFound/);
+assert.match(js,/qrWrongType/);
+assert.match(js,/ezero:friend-verification/);
+assert.match(contacts,/ezero:friend-verification/);
+assert.match(contacts,/verifiedCandidate=e\.ok===true && e\.signed===true/);
+assert.match(contacts,/localStorage\.setItem/);
+assert.match(contacts,/name:x\.name,fp:x\.fp/);
+assert.match(contacts,/MAX_CONTACTS=50/);
+assert.match(contacts,/textContent=text/);
+assert.ok(!/\b(fetch|XMLHttpRequest|WebSocket|MediaRecorder|navigator\.contacts)\b/.test(contacts),
+  "Contacts feature never uploads identity or records a call");
 assert.match(html,/id="myQr"/);
 for(const id of ["chooseNearby","chooseRemote","nearbyPanel","remotePanel","shareIdentity",
    "nearCopyIdentity","pasteFriend","callSetup","guidedOffer","guidedShare",
@@ -92,3 +115,4 @@ console.log("TRILINGUAL_ALL_PAGE_STATIC_LABELS: CONTRACT_PASS");
 console.log("USER_CONSENT_CLEAR_PRIVACY_AND_FIVE_MINUTE_MESSAGE: CONTRACT_PASS");
 console.log("SIMPLE_NEAR_QR_FAR_MESSAGE_UI_AND_SMART_OFFER_ANSWER: CONTRACT_PASS");
 console.log("CALL_CONNECTION_DIAGNOSIS_BY_REAL_ICE_STATE: CONTRACT_PASS");
+console.log("QR_SIGNED_SUCCESS_FAILURE_CAMERA_TIMEOUT_AND_LOCAL_NAME_SHA256_LIST: CONTRACT_PASS");
