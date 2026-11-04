@@ -277,7 +277,8 @@
   }
   $("verifyFriend").addEventListener("click", () => confirmFriend());
   $("copyIdentity").addEventListener("click", async () => {
-    await copyValue($("myDigitalId")); $("identityPeerStatus").textContent = t("copied");
+    const ok=await copyValue($("myDigitalId"));
+    $("identityPeerStatus").textContent = ok ? t("copied") : t("shareUnavailable");
   });
   function stopScanner() {
     scanGeneration++;
@@ -462,11 +463,18 @@
   }));
   async function copyValue(element) {
     const value=element.value;
-    if(!value) return;
-    try{await navigator.clipboard.writeText(value);return;}
-    catch(_){element.focus();element.select();document.execCommand?.("copy");}
+    if(!value) return false;
+    try{await navigator.clipboard.writeText(value);return true;}
+    catch(_){
+      element.focus();element.select();
+      try{return document.execCommand?.("copy")===true;}catch(_){return false;}
+    }
   }
-  $("copySignal").addEventListener("click",async()=>{await copyValue($("localSignal"));status("copied");});
+  $("copySignal").addEventListener("click",async()=>{
+    const success=await copyValue($("localSignal"));
+    status(success?"copied":"shareUnavailable");
+    document.dispatchEvent(new CustomEvent("ezero:copy-result",{detail:{success}}));
+  });
   $("shareSignal").addEventListener("click",async()=>{
     const textValue=$("localSignal").value;
     if(!textValue)return status("needCode");
