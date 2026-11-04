@@ -211,13 +211,22 @@ export class CallRoom {
     ws.serializeAttachment(meta);
     safeSend(remote,{v:1,type:frame.type,blob});
   }
-  async webSocketClose(ws){
-    for(const other of activeSockets(this.ctx))if(other!==ws)
+  async permanentlyRevokeOnDisconnect(ws){
+    // Disconnect must never leave the other participant recording or permit
+    // a forwarded/stolen invitation to claim the vacated seat.
+    const record=await this.ctx.storage.get("room:meta");
+    if(record&&!record.closed)
+      await this.ctx.storage.put("room:meta",{...record,closed:true});
+    for(const other of activeSockets(this.ctx))if(other!==ws){
       safeSend(other,{v:1,type:"peer_left"});
+      try{other.close(1000,"Peer left");}catch(_){}
+    }
+  }
+  async webSocketClose(ws){
+    await this.permanentlyRevokeOnDisconnect(ws);
   }
   async webSocketError(ws){
-    for(const other of activeSockets(this.ctx))if(other!==ws)
-      safeSend(other,{v:1,type:"peer_left"});
+    await this.permanentlyRevokeOnDisconnect(ws);
   }
   async alarm(){
     // Expired room IDs cannot be reused after this alarm.
