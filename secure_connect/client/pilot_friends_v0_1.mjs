@@ -53,6 +53,8 @@ const TEXT={
     friendsTitle:"تصدیق شدہ دوست",checkFriends:"↻ فرینڈ لسٹ دیکھیں",
     friendsEmpty:"ابھی کوئی باہمی منظور شدہ دوست نہیں۔",remove:"دوستی ہٹائیں",
     removed:"اس دوست کا رابطہ دونوں اکاؤنٹس سے ہٹا دیا گیا۔",
+    manualCall:"📞 آڈیو/ویڈیو کال کی دستی آزمائش",
+    manualCallNote:"یہ صرف WebRTC تجربہ کھولتا ہے؛ عارضی کال کی شناخت الگ چیک کریں۔ خودکار کال شروع نہیں ہوتی۔",
     deleteTitle:"میرا اکاؤنٹ اور فون کی شناخت حذف کریں",
     deleteExplain:"دوستی اور دعوتیں سرور سے حذف ہوں گی؛ کامیابی کے بعد فون سے نجی سائننگ چابی ختم ہوگی۔ یہ عمل واپس نہیں ہوگا۔",
     deleteAccount:"🗑 میرا اکاؤنٹ حذف کریں",
@@ -97,6 +99,8 @@ const TEXT={
     declined:"Request declined; no friendship was made.",
     friendsTitle:"Accepted friends",checkFriends:"↻ See friend list",friendsEmpty:"No mutually approved friends yet.",
     remove:"Remove friend",removed:"This friendship was removed from both accounts.",
+    manualCall:"📞 Open manual audio/video call lab",
+    manualCallNote:"This opens a separate WebRTC lab; re-verify the temporary call identity. No automatic call is made.",
     deleteTitle:"Delete my account and device identity",
     deleteExplain:"Server friendships and pending invitations are removed first, then this device's private signing key is erased. This cannot be undone.",
     deleteAccount:"🗑 Delete my account",
@@ -141,6 +145,8 @@ const TEXT={
     declined:"رُفض الطلب ولم تنشأ الصداقة.",
     friendsTitle:"الأصدقاء المقبولون",checkFriends:"↻ عرض الأصدقاء",friendsEmpty:"لا توجد صداقات متبادلة بعد.",
     remove:"حذف صديق",removed:"حُذفت الصداقة من كلا الحسابين.",
+    manualCall:"📞 تجربة مكالمة صوت/فيديو يدوية",
+    manualCallNote:"يفتح مختبر WebRTC منفصلاً؛ تحقق من هوية الجلسة من جديد. لا تبدأ مكالمة تلقائياً.",
     deleteTitle:"حذف الحساب وهوية الجهاز",
     deleteExplain:"تُحذف الصداقات والدعوات من الخادم ثم يُحذف مفتاح التوقيع الخاص من الهاتف. لا يمكن التراجع.",
     deleteAccount:"🗑 حذف حسابي",
@@ -243,6 +249,12 @@ async function showFriends(){
     if(!data.friends?.length){list.textContent=t("friendsEmpty");return;}
     for(const fp of data.friends){
       list.appendChild(createItem(fp,t("inviterFP"),[
+        [t("manualCall"),()=>{
+          // Explicit navigation only; the manual WebRTC lab uses a distinct
+          // ephemeral signing identity and DOES NOT inherit friendship trust.
+          setStatus("requestStatus","manualCallNote");
+          window.location.assign(new URL("../../ezero_secure_connect_live_p2p_v0_1.html",location.href).href);
+        }],
         [t("remove"),async btn=>{
           // Removal requires another explicit confirmation; no silent deletion.
           if(!window.confirm(t("remove")+"?"))return;
