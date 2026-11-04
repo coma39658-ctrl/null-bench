@@ -8,6 +8,8 @@
  */
 (()=>{
 "use strict";
+// Read-only component build marker; no secrets, storage or tracking.
+document.documentElement.dataset.ezeroLinkBuild="20261104-LINK-PRIVATE-R1";
 const $=id=>document.getElementById(id);
 const endpoint="wss://ezero-secure-connect-call-lab-disabled.coma39658.workers.dev";
 const text={
