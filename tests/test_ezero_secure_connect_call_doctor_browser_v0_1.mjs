@@ -74,6 +74,7 @@ try{
   }});
  });
  await a.locator("#doctorRun").click();
+ await a.locator("#doctorReportDetails").evaluate(el=>el.open=true);
  await a.locator("#doctorCopy").click();
  const copied=await a.evaluate(()=>window.__safeCopied);
  assert.equal(copied,await a.locator("#doctorReport").inputValue());
