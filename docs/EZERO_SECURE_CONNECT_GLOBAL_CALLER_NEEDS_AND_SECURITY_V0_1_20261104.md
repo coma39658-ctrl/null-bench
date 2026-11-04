@@ -109,3 +109,21 @@ References:
 - MDN MediaRecorder (voice note recording): https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder
 - RFC 8854 WebRTC packet loss/FEC audio: https://www.rfc-editor.org/rfc/rfc8854.html
 - LiveKit adaptive video / simulcast / Dynacast: https://docs.livekit.io/transport/media/advanced/
+
+## 9. Mandatory premium-quality media targets (user clarification, 2026-11-04)
+These are **engineering targets, not tested performance or existing features**. Build the communication system inside the existing dormant AI Agent/Assist Hub area on the homepage, while leaving the already-functional separate AI Studio button untouched. The existing "Voice Guide" is website guidance, not a peer-to-peer calling feature; do not mislabel it as a live voice call.
+- **1:1 video:** dynamically adapt resolution 180p/360p/540p/720p HD and offer 1080p as an opt-in target only when CPU, bandwidth, battery and peer capability allow. Prioritize frame continuity, lip sync, latency and intelligible speech over maximum resolution. Codec negotiation: H.264/VP8 baseline interoperability, VP9/AV1 when device/browser support is verified. Never promise universal 1080p or 60fps.
+- **1:1 audio:** Opus with echo cancellation, automatic gain control and noise suppression where supported; clear speaker/earpiece, mute/unmute, Bluetooth/headset routing per platform; keep microphone disabled until accepted and permission granted. Measure packet loss, jitter, audio dropouts, and reconnect recovery. Prefer intelligible audio over video in constrained networks.
+- **Voice messages:** explicit hold-to-record or start/stop with visible mic indicator, playback preview before send, cancellation and delete-before-send. End-to-end encrypt media chunks before transport; pending voice remains encrypted until first authorized listen under disclosed unread TTL. After first listen starts, maximum access = original voice duration + 300 seconds; consumed chunks are purged as progress is acknowledged and all remaining access ends on completion/expiry. No in-app save/download/forward/replay and no transcript by default. Do not claim screenshots or external recording impossible.
+- **Group calls:** SFU with adaptive subscriptions, active speaker indication, moderator approvals, per-member E2EE keying, lower video quality for non-speakers and per-device bandwidth caps. Initial participant count is a measured pilot constraint, not a marketing promise.
+- **Connection policy:** ICE/STUN/TURN over legally permitted network transports, audio-only fallback, region-aware SFU placement, user-visible network quality indicator and clear failure codes. Never covertly evade ISP or country blocks; VPN-free is a target where permitted, not a universal guarantee.
+- **Security gate:** verify actual media E2EE in group calls; DTLS-SRTP to an SFU alone does not make the SFU unable to hear media. No default call recording, no ad SDKs, no media plaintext in persistent browser caches, server content logs or push.
+- **Test matrix:** 2 real Android phones (entry-level and mid-range), Chrome and a second supported browser, Saudi mobile carrier and Wi-Fi, low-bandwidth 3G/4G, speaker/headset/Bluetooth, background/foreground, 2/5/10% packet loss, relay-only, camera denial, microphone denial, 10/12-minute voice and video notes with deadline assertions. Record PASS/FAIL/PARTIAL/UNKNOWN and measured bitrate/resolution, latency, jitter, reconnect times, battery and data use.
+- **UX:** four main Connect actions (Call, Message, Groups, QR); one-tap accept audio, separately opt-in camera for video, call quality selector Auto/Data Saver/HD, accessibility and Urdu/Arabic/English labels. Preserve existing separate AI Studio and existing voice guidance until an explicit tested replacement exists.
+
+References:
+- WebRTC getUserMedia constraints: https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
+- WebRTC RTCRtpSender parameters: https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpSender/setParameters
+- Opus audio codec RFC 6716: https://www.rfc-editor.org/rfc/rfc6716
+- WebRTC security RFC 8827: https://www.rfc-editor.org/rfc/rfc8827.html
+- LiveKit adaptive stream: https://docs.livekit.io/home/client/tracks/subscribe/
