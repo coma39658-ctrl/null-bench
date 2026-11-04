@@ -40,6 +40,7 @@ const text={
    copyFail:"کال لنک خودکار کاپی نہیں ہوا؛ نیچے لنک کو منتخب کرکے کاپی کریں۔",
    shareFail:"شیئرنگ دستیاب نہیں؛ لنک کاپی کرکے نجی پیغام میں بھیجیں۔",
    remind:"یہ بند Staging سہولت ہے؛ عوامی آغاز حقیقی دو فونوں کے کامیاب ٹیسٹ کے بعد ہوگا۔",
+   linkWarning:"جس کے پاس مکمل لنک ہو وہ دس منٹ کے اندر مہمان کی جگہ لینے کی کوشش کر سکتا ہے۔ اسے عوامی گروپ، اسکرین شاٹ یا غیر معتبر ویب سائٹ پر نہ ڈالیں۔ دوست کی شناخت الگ سے چیک کریں۔",
  },
  en:{
    title:"Private one-link call — experimental",explain:"No long WhatsApp codes. Send the private link to one friend. They explicitly accept, then you tap Start. Media does not pass through Cloudflare.",
@@ -65,7 +66,8 @@ const text={
    ended:"Call room closed.",copied:"Private link copied. Send only to your friend.",
    copyFail:"Clipboard unavailable. Select and copy the link in the field.",
    shareFail:"Sharing unavailable; copy the link into a private message.",
-   remind:"Staging-only feature; public enrollment requires verified real-phone tests."
+   remind:"Staging-only feature; public enrollment requires verified real-phone tests.",
+   linkWarning:"Anyone with this entire link could try to take the guest seat within 10 minutes. Never post it publicly or in screenshots. Independently verify your friend's identity."
  },
  ar:{
    title:"مكالمة خاصة برابط واحد — تجربة",explain:"بلا رموز واتساب طويلة. أرسل الرابط لصديق موثوق؛ يوافق ثم تضغط بدء. الصوت والفيديو لا يمران عبر Cloudflare.",
@@ -89,11 +91,12 @@ const text={
    ended:"أُغلقت غرفة المكالمة.",copied:"تم نسخ الرابط الخاص؛ أرسله لصديق موثوق.",
    copyFail:"لم يُنسخ الرابط تلقائياً؛ حدده وانسخه.",
    shareFail:"المشاركة غير متاحة؛ انسخ الرابط إلى رسالة خاصة.",
-   remind:"الميزة في مرحلة التجربة فقط؛ لا تفتح للجمهور قبل اختبار هاتفين فعلياً."
+   remind:"الميزة في مرحلة التجربة فقط؛ لا تفتح للجمهور قبل اختبار هاتفين فعلياً.",
+   linkWarning:"من يملك الرابط كاملاً قد يحاول أخذ مقعد الضيف خلال عشر دقائق. لا تنشره علناً أو في صور الشاشة، وتحقق من هوية صديقك بشكل مستقل."
  }
 };
 let roomId=null,secret=null,auth=null,issued=null,proof=null,secretKey=null,ws=null,role=null,joined=false,approved=false;
-let ready=false, link="",closing=false;
+let ready=false, link="",closing=false,connecting=false,creating=false;
 const lang=()=>["ur","en","ar"].includes($("language")?.value)?$("language").value:"ur";
 const t=k=>(text[lang()]||text.ur)[k]||text.ur[k]||k;
 const st=k=>{const e=$("roomStatus");e.textContent=t(k);e.dataset.state=k;};
@@ -103,11 +106,12 @@ function draw(){
  $("roomStart").disabled=!(ready&&role==="caller"&&approved);
  $("roomAccept").disabled=!(ready&&role==="callee"&&!approved);
  $("roomDecline").disabled=!(ready&&role==="callee"&&!approved);
- $("roomCreate").disabled=ready;
- $("roomJoin").disabled=ready||!roomId||!auth;
+ $("roomCreate").disabled=ready||connecting||creating;
+ $("roomJoin").disabled=ready||connecting||!roomId||!auth;
+ $("roomLink").value=ready&&role==="caller"?link:"";
  $("roomCopy").disabled=!(link&&ready&&role==="caller");
  $("roomShare").disabled=!(link&&ready&&role==="caller");
- $("roomEnd").disabled=!ready;
+ $("roomEnd").disabled=!(ready||connecting||link);
 }
 function hex(bytes){return [...bytes].map(v=>v.toString(16).padStart(2,"0")).join("");}
 function bytesFromHex(v){return Uint8Array.from(v.match(/../g)||[],x=>parseInt(x,16));}
@@ -168,7 +172,7 @@ function closeRoom(sendHangup=false){
  if(sendHangup)send("hangup");
  closing=true;
  try{ws?.close(1000,"Done");}catch(_){}
- ws=null;ready=false;approved=false;joined=false;
+ ws=null;ready=false;approved=false;joined=false;connecting=false;creating=false;
  secret=null;secretKey=null;auth=null;proof=null;issued=null;link="";roomId=null;
  $("roomLink").value="";
  $("hangup")?.click();
@@ -179,10 +183,10 @@ async function receive(frame){
  if(frame.type==="ready"){role=frame.role;ready=true;st("joined");draw();return;}
  if(frame.type==="peer_joined"){joined=true;st("peer");draw();return;}
  if(frame.type==="accepted"){if(role!=="caller")return;approved=true;st("accepted");draw();return;}
- if(frame.type==="decline"){st("declined");closeRoom();return;}
+ if(frame.type==="decline"){closeRoom();st("declined");return;}
  if(frame.type==="hangup"){closeRoom();return;}
- if(frame.type==="peer_left"){st("ended");return;}
- if(frame.type==="error"){st("failed");return;}
+ if(frame.type==="peer_left"){closeRoom();return;}
+ if(frame.type==="error"){closeRoom();st("failed");return;}
  if(frame.type==="offer"||frame.type==="answer"){
    if(frame.type==="offer"&&(role!=="callee"||!approved))return;
    if(frame.type==="answer"&&role!=="caller")return;
@@ -203,16 +207,24 @@ function connect(){
     st("invalid");return;
  }
  if(ws&&ws.readyState<=1)return;
- st("connecting");closing=false;
+ connecting=true;st("connecting");closing=false;draw();
  try{
    ws=new WebSocket(endpoint+"/v1/room/"+roomId,["ezero-room-v1","ezero-key-"+auth,"ezero-time-"+issued,"ezero-proof-"+proof]);
    ws.onmessage=e=>{let obj;try{obj=JSON.parse(e.data);}catch(_){return;}void receive(obj);};
    ws.onerror=()=>st("serverOff");
-   ws.onclose=()=>{ready=false;ws=null;if(!closing)st("serverOff");draw();};
- }catch(_){st("failed");}
+   ws.onclose=()=>{
+     if(!closing){
+       const hadJoined=ready;
+       closeRoom(false); // Fail safely: release microphone/camera on disconnect.
+       st(hadJoined?"ended":"serverOff");
+     }else{ready=false;ws=null;connecting=false;draw();}
+   };
+ }catch(_){connecting=false;st("failed");draw();}
 }
 $("roomCreate").addEventListener("click",async()=>{
+ if(ready||connecting||creating)return;
  if(!window.isSecureContext||!crypto?.subtle){st("failed");return;}
+ creating=true;draw();
  try{
   const owner=$("roomOwnerSecret").value.trim();
   if(!/^[a-f0-9]{64}$/.test(owner)){st("ownerRequired");return;}
@@ -227,8 +239,8 @@ $("roomCreate").addEventListener("click",async()=>{
   $("roomOwnerSecret").value=""; // never store or forward the operator's passcode
   link=new URL(location.pathname+location.search+"#callroom="+roomId+"."+secret+"."+issued+"."+proof,location.origin).href;
   secret=null; // Raw link key remains only in approved share field and CryptoKey.
-  $("roomLink").value=link;st("linkReady");draw();connect();
- }catch(_){st("failed");}
+  st("linkReady");draw();connect();
+ }catch(_){st("failed");}finally{creating=false;draw();}
 });
 $("roomJoin").addEventListener("click",()=>connect());
 $("roomAccept").addEventListener("click",()=>{
