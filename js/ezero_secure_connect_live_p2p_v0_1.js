@@ -168,7 +168,11 @@
     return ["EZERO1",i.spki,i.fingerprint,i.code,String(i.expires),toB64(sig)].join(".");
   }
   async function verifyInvite(value) {
-    const raw = value.trim();
+    const supplied = value.trim();
+    // The app can receive an ID forwarded inside a message with a short heading.
+    // Only the exact signed-token grammar is extracted; verification is unchanged.
+    const found = supplied.match(/EZERO1\.[A-Za-z0-9_-]+\.[0-9a-f]{64}\.[0-9a-f]{24}\.\d{13}\.[A-Za-z0-9_-]+/);
+    const raw = found ? found[0] : supplied;
     if (/^[0-9a-fA-F]{64}$/.test(raw)) return {fingerprint:raw.toLowerCase(),verified:false};
     if (raw.length > 1300) throw Error("BAD_SIZE");
     const parts = raw.split(".");
@@ -367,6 +371,7 @@
     await p.setLocalDescription(await p.createOffer());
     const complete=await iceComplete(p);
     $("localSignal").value=await makeSignal("offer");
+    document.dispatchEvent(new CustomEvent("ezero:signal-ready",{detail:{type:"offer"}}));
     status("waiting",complete?"":"ICE gathering partial");
   }));
   $("acceptOffer").addEventListener("click",()=>withBusy(async()=>{
@@ -376,6 +381,7 @@
     await p.setLocalDescription(await p.createAnswer());
     const complete=await iceComplete(p);
     $("localSignal").value=await makeSignal("answer");
+    document.dispatchEvent(new CustomEvent("ezero:signal-ready",{detail:{type:"answer"}}));
     status("waiting",complete?"":"ICE gathering partial");
   }));
   $("applyAnswer").addEventListener("click",()=>withBusy(async()=>{
