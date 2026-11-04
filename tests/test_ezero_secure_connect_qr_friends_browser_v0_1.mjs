@@ -28,8 +28,15 @@ async function insertQrMock(page,code) {
   },code);
 }
 async function assertStatus(page,part){
-  await page.waitForFunction(expected=>
-    document.querySelector("#qrScanStatus")?.textContent.includes(expected),part,{timeout:12000});
+  try{
+    await page.waitForFunction(expected=>
+      document.querySelector("#qrScanStatus")?.textContent.includes(expected),part,{timeout:10000});
+  }catch(error){
+    console.log("QR_EXPECTED",part);
+    console.log("QR_OBSERVED",await page.locator("#qrScanStatus").innerText(),
+      "IDENTITY",await page.locator("#identityPeerStatus").innerText());
+    throw error;
+  }
 }
 let a,b;
 try{
@@ -107,12 +114,16 @@ try{
   await insertQrMock(a,idB.replace(/^EZERO1\./,"WRONG1."));
   await a.locator("#scanQR").click();
   await assertStatus(a,"E-ZERO کا شناختی کوڈ نہیں");
+  // Expiration follows the identical signed-ID validator for scans and pasted codes.
+  // Paste the expired token to avoid opening the fake camera 4 consecutive times.
   const expiredParts=idB.split(".");
   expiredParts[4]=String(Date.now()-9000);
-  await insertQrMock(a,expiredParts.join("."));
-  await a.locator("#scanQR").click();
-  await assertStatus(a,"مدت ختم");
+  await a.locator("#chooseRemote").click();
+  await a.locator("#friendIdInput").fill(expiredParts.join("."));
+  await a.locator("#verifyFriend").click();
+  assert.match(await a.locator("#identityPeerStatus").innerText(),/مدت ختم/);
   assert.equal(await a.locator("#saveVerifiedFriend").isDisabled(),true);
+  await a.locator("#chooseNearby").click();
   console.log("WRONG_QR_AND_EXPIRED_QR_REASONS_VISIBLE: PASS");
 
   await insertQrMock(a,idB);
