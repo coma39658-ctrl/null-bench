@@ -24,9 +24,12 @@ async function bridge(source,evt){
     const id=evt.id;
     const peers=[...sockets.values()].filter(s=>s.room===u.pathname && !s.closed);
     if(peers.length>=2)return {ok:false};
-    if(evt.protocols.length!==3 || !/^ezero-proof-[a-f0-9]{64}$/.test(evt.protocols[2]))return {ok:false};
-    if(peers.length&&(peers[0].key!==evt.protocols[1]||peers[0].proof!==evt.protocols[2]))return {ok:false};
-    const item={id,page:source.page,room:u.pathname,key:evt.protocols[1],proof:evt.protocols[2],closed:false,
+    if(evt.protocols.length!==4 || !/^ezero-time-[0-9]{13}$/.test(evt.protocols[2])||
+       !/^ezero-proof-[a-f0-9]{64}$/.test(evt.protocols[3]))return {ok:false};
+    if(peers.length&&(peers[0].key!==evt.protocols[1]||peers[0].proof!==evt.protocols[3]||
+       peers[0].issued!==evt.protocols[2]))return {ok:false};
+    const item={id,page:source.page,room:u.pathname,key:evt.protocols[1],
+      issued:evt.protocols[2],proof:evt.protocols[3],closed:false,
       role:peers.length?"callee":"caller",approved:false};
     sockets.set(id,item);
     await new Promise(resolve=>setTimeout(resolve,60));
@@ -115,10 +118,21 @@ try{
   await a.page.locator("#roomCreate").click();
   await a.page.waitForFunction(()=>document.querySelector("#roomStatus")?.dataset.state==="joined");
   const invite=await a.page.locator("#roomLink").inputValue();
-  assert.match(invite,/#callroom=[a-f0-9]{32}\.[a-f0-9]{64}\.[a-f0-9]{64}$/);
+  assert.match(invite,/#callroom=[a-f0-9]{32}\.[a-f0-9]{64}\.[0-9]{13}\.[a-f0-9]{64}$/);
   assert.equal(invite.includes("EZEROOwnerPilotSecret"),false,"Owner secret must not enter URL");
   assert.equal(await a.page.locator("#roomOwnerSecret").inputValue(),"",
     "Owner secret cleared after creating invitation");
+  const linkSegments=invite.split("#callroom=")[1].split(".");
+  const rawAesKey=linkSegments[1];
+  const handshakeToken=[...sockets.values()][0].key;
+  assert.notEqual(handshakeToken,"ezero-key-"+rawAesKey,
+    "Never send the decryptable AES-256 key via WebSocket protocols");
+  assert.match(handshakeToken,/^ezero-key-[a-f0-9]{64}$/);
+  const authBytes=new TextEncoder().encode("EZERO-ROOM-AUTH-1:"+rawAesKey);
+  const authHash=await crypto.subtle.digest("SHA-256",authBytes);
+  const authHex=[...new Uint8Array(authHash)].map(x=>x.toString(16).padStart(2,"0")).join("");
+  assert.equal(handshakeToken,"ezero-key-"+authHex,
+    "Domain-separated one-way key derivation for server auth");
   assert.equal(await a.page.evaluate(()=>window.__mediaCalls),0,
     "Creating call link never activates microphone or camera");
 
