@@ -23,3 +23,36 @@ button.outline{color:#07546b;background:#ebf9fc;border-color:#b3d5de}button.dang
 .scan-video[hidden]{display:none!important}
 .identity-card .buttonrow button{flex:1 1 160px}
 @media(max-width:420px){.qr-layout{grid-template-columns:1fr}.qr-code{margin:auto}.qr-meta{width:100%}}
+
+
+/* One clear choice: face-to-face scan or distant copy/paste; manual SDP stays optional. */
+.easy-start{padding:19px;background:linear-gradient(160deg,#fff,#eefafa);border:1px solid #aad5da}
+.easy-start h2{font-size:21px;line-height:1.5;margin:0 0 6px}
+.easy-start p{margin:7px 0 13px}
+.easy-methods{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.easy-method{min-height:95px;padding:13px 10px;border:2px solid #b5d9e1;background:#fff;border-radius:18px;color:#153f53;font-size:16px;font-weight:900;line-height:1.6;box-shadow:0 6px 13px #0b536410}
+.easy-method.selected,.easy-method[aria-pressed="true"]{background:#e0f7f7;border-color:#0a8297;box-shadow:0 0 0 2px #07889e18}
+.easy-note{font-size:12px;line-height:1.8;border-radius:11px;padding:10px 12px;background:#e7f5f8;color:#285368;border:1px solid #badde3}
+.panel-lead{font-weight:800;margin:0 0 12px;font-size:14px}
+.easy-panel[hidden]{display:none!important}
+.identity-card .qr-layout{grid-template-columns:200px 1fr;gap:16px;align-items:center}
+.identity-card .qr-code{width:200px;height:200px}
+.identity-card .qr-meta .small{font-size:13px}
+.identity-card .hash-title{display:block;margin-top:12px}
+.identity-card #shareIdentity{min-width:120px}
+.identity-card .raw-code{margin-top:11px}
+.raw-code summary,.expert summary{display:block;cursor:pointer;color:#275767;font-size:13px;padding:8px;font-weight:700}
+.raw-code textarea{width:100%;min-height:64px;direction:ltr}
+.call-setup{margin:17px 0}
+.call-setup>summary{cursor:pointer;list-style:none;background:linear-gradient(125deg,#0a6b84,#0d869b);border:1px solid #1a8594;box-shadow:0 9px 19px #0b566528;border-radius:17px;min-height:65px;padding:16px 15px;color:#fff;font-size:17px;line-height:1.65;font-weight:900;display:flex;align-items:center}
+.call-setup>summary::before{content:"▸";margin-inline-end:9px;font-size:21px}
+.call-setup[open]>summary::before{content:"▾"}
+.call-setup>summary::-webkit-details-marker{display:none}
+.call-setup>.easy-note{margin:12px 0}
+.expert{margin:12px 0;border:1px solid #bfdce0;border-radius:14px;padding:6px 9px;background:#f6fbfc}
+.expert .card{box-shadow:none;margin:9px 0 0;padding:11px}
+.guided-call #guidedOffer,.guided-call #guidedContinue{width:100%}
+.guided-call #guidedShare,.guided-call #guidedCopy{flex:1 1 138px}
+.guided-call #guidedIncoming{max-height:170px;min-height:86px;direction:ltr}
+.guided-call #connectionStatus{background:#e7f5ee}
+@media(max-width:440px){.easy-methods{gap:8px}.easy-method{font-size:14px;padding:9px 7px;min-height:85px}.identity-card .qr-layout{grid-template-columns:1fr}.identity-card .qr-code{margin:auto;width:190px;height:190px}.easy-start h2{font-size:18px}.call-setup>summary{font-size:15px}}
