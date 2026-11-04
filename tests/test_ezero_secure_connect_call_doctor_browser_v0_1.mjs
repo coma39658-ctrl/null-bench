@@ -51,9 +51,14 @@ try{
  assert.match(await a.locator("#doctorChecks").innerText(),/WebRTC/);
  assert.match(await a.locator("#doctorChecks").innerText(),/ابھی اس فون پر حقیقی WebRTC کال کنیکٹ نہیں/);
  const contentA=await a.locator("#doctorReport").inputValue();
- assert.match(contentA,/VERSION: EZERO-CALL-20261104-DOCTOR-V1/);
+ assert.match(contentA,/DOCTOR_BUILD: EZERO-CALL-20261104-DOCTOR-V1/);
+ for(const stamp of ["20261104-CORE-SIGNED-R1","20261104-LINK-PRIVATE-R1","20261104-COPILOT-LOCAL-R1"]){
+  assert.ok(contentA.includes(stamp),"Component build marker missing: "+stamp);
+ }
+ const contentB=await b.locator("#doctorReport").inputValue();
+ assert.equal(contentA,contentB,"Both phones should show identical component build IDs in this controlled test");
  assert.doesNotMatch(contentA,/192\.168\.|candidate:|fingerprint:|EZERO1\.|callroom=/);
- console.log("TWO_ANDROID_PHONE_VERSION_MATCH_ZERO_MIC_ZERO_NETWORK_NO_FALSE_CALL: PASS");
+ console.log("TWO_ANDROID_PHONE_COMPONENT_BUNDLE_MATCH_ZERO_MIC_ZERO_NETWORK_NO_FALSE_CALL: PASS");
 
  // Sensitive fields may already contain secrets, but diagnostic MUST omit all
  // network addresses/SDP/identity/friend names/messages and copied call links.
