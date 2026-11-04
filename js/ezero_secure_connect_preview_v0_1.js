@@ -82,56 +82,6 @@
     if (!MODES.has(mode)) mode = "video";
     if (activeMode !== mode) releaseAll();
     activeMode = mode;
-    // Opt-in incoming-call UI demonstration. This is never a real remote call,
-  // never runs on a timer or push, and cannot activate a microphone/camera.
-  function openIncomingDemo() {
-    releaseAll();
-    const dialog = $("incomingCallDemo");
-    if (!dialog) return;
-    report("incomingDemoStatus", "یہ صرف نمونہ ہے؛ کوئی حقیقی کال نہیں۔ آڈیو، ویڈیو یا مسترد دبائیں۔");
-    dialog.hidden = false;
-    document.body.classList.add("incoming-open");
-    $("demoAcceptAudio")?.focus();
-  }
-  function closeIncomingDemo() {
-    const dialog = $("incomingCallDemo");
-    if (!dialog || dialog.hidden) return;
-    dialog.hidden = true;
-    document.body.classList.remove("incoming-open");
-    $("previewIncomingCall")?.focus();
-  }
-  function demoChoice(choice) {
-    const texts = {
-      audio: "نمونہ: آڈیو قبول کرنے کا بٹن درست ہے۔ کوئی کال، مائک، سرور یا ریکارڈنگ شروع نہیں ہوئی۔",
-      video: "نمونہ: ویڈیو قبول کرنے کا بٹن درست ہے۔ کیمرہ اور مائک دونوں بند ہیں؛ حقیقی کال نہیں ہوئی۔",
-      decline: "نمونہ: کال مسترد کرنے کا بٹن درست ہے۔ کوئی رابطہ قائم نہیں ہوا۔"
-    };
-    report("incomingDemoStatus", texts[choice] || "صرف نمونہ۔");
-  }
-  $("previewIncomingCall")?.addEventListener("click", openIncomingDemo);
-  $("demoAcceptAudio")?.addEventListener("click", () => demoChoice("audio"));
-  $("demoAcceptVideo")?.addEventListener("click", () => demoChoice("video"));
-  $("demoDecline")?.addEventListener("click", () => demoChoice("decline"));
-  $("demoClose")?.addEventListener("click", closeIncomingDemo);
-  document.addEventListener("keydown", event => {
-    const dialog = $("incomingCallDemo");
-    if (!dialog || dialog.hidden) return;
-    if (event.key === "Escape") { event.preventDefault(); closeIncomingDemo(); }
-    if (event.key !== "Tab") return;
-    const buttons = Array.from(dialog.querySelectorAll("button:not([disabled])"));
-    if (!buttons.length) return;
-    const first = buttons[0], last = buttons[buttons.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault(); last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault(); first.focus();
-    }
-  });
-  $("quality")?.addEventListener("change", updateQualityHint);
-  const networkHint = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-  networkHint?.addEventListener?.("change", updateQualityHint);
-  updateQualityHint();
-
   for (const button of document.querySelectorAll("button[data-mode]")) {
       const selected = button.getAttribute("data-mode") === mode;
       button.setAttribute("aria-pressed", String(selected));
@@ -369,6 +319,56 @@
       report("qrStatus", "مقامی شناختی جانچ مکمل نہیں ہوئی؛ کوئی QR یا مستقل شناخت نہیں بنی۔");
     } finally { btn.disabled = false; }
   }
+
+    // Opt-in incoming-call UI demonstration. This is never a real remote call,
+  // never runs on a timer or push, and cannot activate a microphone/camera.
+  function openIncomingDemo() {
+    releaseAll();
+    const dialog = $("incomingCallDemo");
+    if (!dialog) return;
+    report("incomingDemoStatus", "یہ صرف نمونہ ہے؛ کوئی حقیقی کال نہیں۔ آڈیو، ویڈیو یا مسترد دبائیں۔");
+    dialog.hidden = false;
+    document.body.classList.add("incoming-open");
+    $("demoAcceptAudio")?.focus();
+  }
+  function closeIncomingDemo() {
+    const dialog = $("incomingCallDemo");
+    if (!dialog || dialog.hidden) return;
+    dialog.hidden = true;
+    document.body.classList.remove("incoming-open");
+    $("previewIncomingCall")?.focus();
+  }
+  function demoChoice(choice) {
+    const texts = {
+      audio: "نمونہ: آڈیو قبول کرنے کا بٹن درست ہے۔ کوئی کال، مائک، سرور یا ریکارڈنگ شروع نہیں ہوئی۔",
+      video: "نمونہ: ویڈیو قبول کرنے کا بٹن درست ہے۔ کیمرہ اور مائک دونوں بند ہیں؛ حقیقی کال نہیں ہوئی۔",
+      decline: "نمونہ: کال مسترد کرنے کا بٹن درست ہے۔ کوئی رابطہ قائم نہیں ہوا۔"
+    };
+    report("incomingDemoStatus", texts[choice] || "صرف نمونہ۔");
+  }
+  $("previewIncomingCall")?.addEventListener("click", openIncomingDemo);
+  $("demoAcceptAudio")?.addEventListener("click", () => demoChoice("audio"));
+  $("demoAcceptVideo")?.addEventListener("click", () => demoChoice("video"));
+  $("demoDecline")?.addEventListener("click", () => demoChoice("decline"));
+  $("demoClose")?.addEventListener("click", closeIncomingDemo);
+  document.addEventListener("keydown", event => {
+    const dialog = $("incomingCallDemo");
+    if (!dialog || dialog.hidden) return;
+    if (event.key === "Escape") { event.preventDefault(); closeIncomingDemo(); }
+    if (event.key !== "Tab") return;
+    const buttons = Array.from(dialog.querySelectorAll("button:not([disabled])"));
+    if (!buttons.length) return;
+    const first = buttons[0], last = buttons[buttons.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault(); last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault(); first.focus();
+    }
+  });
+  $("quality")?.addEventListener("change", updateQualityHint);
+  const networkHint = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  networkHint?.addEventListener?.("change", updateQualityHint);
+  updateQualityHint();
 
   for (const button of document.querySelectorAll("button[data-mode]")) {
     button.addEventListener("click", () => selectMode(button.getAttribute("data-mode"), true));
