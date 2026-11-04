@@ -12,6 +12,7 @@ on:
       - 'ezero_ai_studio_v0_1.html'
       - 'js/ezero_ai_studio_media_i18n_v0_1.js'
       - 'tests/test_ezero_web_sources_public_v0_1.js'
+      - 'ezero_ai_studio_v0_1.html'
       - 'tests/test_ezero_ai_video_frame_contract_v0_1.js'
 permissions:
   contents: read
