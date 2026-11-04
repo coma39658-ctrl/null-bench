@@ -164,6 +164,8 @@ async function updateIdentity(){
  const my=$("myFingerprint")?.textContent.trim()||"";
  const theirs=$("peerFingerprint")?.textContent.trim()||"";
  if(my===own&&theirs===peer)return;
+ // A new remote key invalidates prior signed-QR trust; compare afresh.
+ if(peer&&theirs&&peer!==theirs&&signed)signatureState(null);
  own=my;peer=theirs;
  const target=$("copilotSafetyCode");
  if(!/^[a-f0-9]{64}$/.test(own)||!/^[a-f0-9]{64}$/.test(peer)||own===peer){
@@ -270,7 +272,7 @@ $("copilotTranslate").addEventListener("click",async()=>{
    set("copilotTranslationResult",translatorResult);
    set("copilotTranslationStatus",tr("translationReady"));
   }finally{engine.destroy?.();}
- }catch(_){set("copilotTranslationStatus",tr("translationError"));}
+ }catch(_){if(ownEpoch===epoch)set("copilotTranslationStatus",tr("translationError"));}
  finally{translating=false;$("copilotTranslate").disabled=false;}
 });
 $("copilotTranslationUse").addEventListener("click",()=>{
