@@ -10,6 +10,7 @@ on:
       - 'css/ezero_ai_conversation_share_v0_1.css'
       - 'js/ezero_ai_conversation_share_v0_1.js'
       - 'tests/test_ezero_ai_voice_share_pwa_v0_1.js'
+      - 'tests/test_ezero_ai_voice_audio_card_v0_1.js'
       - 'tests/test_ezero_ai_voice_browser_v0_1.mjs'
       - '.github/workflows/ezero_ai_voice_share_pwa_20261104.yml'
   pull_request:
@@ -32,6 +33,7 @@ jobs:
           set -euo pipefail
           node --check js/ezero_ai_conversation_share_v0_1.js
           node tests/test_ezero_ai_voice_share_pwa_v0_1.js
+          node tests/test_ezero_ai_voice_audio_card_v0_1.js
       - name: Preserve prior public source and video contracts
         run: |
           set -euo pipefail

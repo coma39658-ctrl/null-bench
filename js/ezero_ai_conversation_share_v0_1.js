@@ -198,6 +198,31 @@
     const url=URL.createObjectURL(file);loadedAudioUrls.push(url);
     const a=document.createElement("a");a.href=url;a.download=file.name;a.click();
   }
+  function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+  async function makePrivateAudioCard(file,answer){
+    // A portable HTML attachment: audio + consent-first website link, no upload.
+    // This is not a hosted URL and must not be presented as one.
+    if(file.size>8*1024*1024)throw Error("AUDIO_TOO_LARGE_FOR_CARD");
+    const base64=await new Promise((resolve,reject)=>{
+      const reader=new FileReader();
+      reader.onload=()=>resolve(String(reader.result||"").split(",")[1]||"");
+      reader.onerror=()=>reject(Error("AUDIO_READ_FAILED"));
+      reader.readAsDataURL(file);
+    });
+    if(!base64)throw Error("AUDIO_READ_FAILED");
+    const safe=escapeHTML(answer.slice(0,1500));
+    const html='<!doctype html><html lang="ur" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+
+      '<meta name="referrer" content="no-referrer"><meta name="color-scheme" content="light dark"><title>E-ZERO AI Studio · Shared Voice</title>'+
+      '<style>*{box-sizing:border-box}body{margin:0;min-height:100dvh;padding:20px;display:grid;place-items:center;font-family:system-ui,sans-serif;background:#e1edf0;color:#173849}main{width:min(100%,540px);padding:24px;border-radius:22px;background:#f7fbfc;border:1px solid #a9cbd3;box-shadow:0 12px 36px #17384922}h1{font-size:24px}p{line-height:1.8}audio{width:100%;margin:16px 0}a{display:block;padding:13px;border-radius:12px;background:#087589;color:#fff;text-decoration:none;text-align:center;font-weight:800;margin:10px 0}.muted{font-size:13px;color:#4c6874;line-height:1.8}blockquote{white-space:pre-wrap;overflow-wrap:anywhere;border-right:3px solid #087589;padding:10px 14px;background:#e8f2f5;border-radius:8px}@media(prefers-color-scheme:dark){body{background:#102c39;color:#ecf7f9}main{background:#1b3948;border-color:#4b788a}.muted{color:#bed4dc}blockquote{background:#294b5c}}</style></head><body><main>'+
+      '<p>🎙️ E-ZERO AI Studio · Voice & Intelligence</p><h1>شیئر کیا گیا AI آڈیو جواب</h1>'+
+      '<audio controls preload="metadata" aria-label="شیئر کردہ E-ZERO AI آواز"><source type="audio/wav" src="data:audio/wav;base64,'+base64+'">آپ کا براؤزر آڈیو نہیں چلا سکتا۔</audio>'+
+      '<h2>جواب کا متن</h2><blockquote>'+safe+'</blockquote>'+
+      '<p class="muted">یہ صرف بھیجنے والے کا منتخب کردہ AI جواب ہے، پوری نجی گفتگو نہیں۔ کوئی ریکارڈ خودکار طور پر اپ لوڈ نہیں کیا گیا۔</p>'+
+      '<a href="'+SHARE_URL+'" target="_blank" rel="noopener noreferrer">🔗 میری رضامندی سے E-ZERO AI کھولیں</a>'+
+      '<p class="muted">ویب سائٹ کھولنے کے بعد اگر آپ چاہیں تو Install / Add to Home Screen منتخب کریں۔ انسٹال خودکار نہیں ہوتا۔</p>'+
+      '<p class="muted">© E-ZERO · AI Studio · معلوماتی جواب، تصدیق شدہ گاڑی کی تشخیص نہیں۔</p></main></body></html>';
+    return new File([html],"E-ZERO-AI-Voice-Listen.html",{type:"text/html"});
+  }
   function audioShareTools(tools,text){
     const t=safeText(text);
     const share=document.createElement("button");share.type="button";share.className="miniButton";share.textContent="↗ متن و لنک شیئر";
@@ -238,7 +263,25 @@
           status("AI جواب کی WAV آڈیو فون پر محفوظ ہو گئی۔ WhatsApp میں فائل اور 🔗 E-ZERO لنک الگ شامل کریں۔");
         });
         tools.appendChild(send);
-        status("E-ZERO کا مختصر صوتی حوالہ شامل ہے؛ WAV تیار ہے۔ بعض ایپس لنک کا متن ہٹا دیتی ہیں، اس لیے 🔗 لنک الگ بھی شیئر کریں۔");
+        const listen=document.createElement("button");listen.type="button";listen.className="miniButton";
+        listen.textContent="▶ آڈیو + متن + انسٹال لنک (HTML)";
+        listen.title="وصول کنندہ آڈیو سن سکتا ہے، منتخب جواب پڑھ سکتا ہے، اور اپنی رضامندی سے E-ZERO کھول کر انسٹال کر سکتا ہے۔";
+        listen.addEventListener("click",async()=>{
+          listen.disabled=true;
+          try{
+            const card=await makePrivateAudioCard(file,t);
+            if(navigator.share&&navigator.canShare?.({files:[card]})){
+              try{await navigator.share({title:"E-ZERO AI Studio · Voice",files:[card]});
+                status("آڈیو سننے والا HTML کارڈ شیئر آپشن میں بھیجا گیا۔ وصول کنندہ اسے فائل کے طور پر کھول سکتا ہے۔");return;}
+              catch(e){if(e?.name==="AbortError")return;}
+            }
+            downloadFile(card);
+            status("آڈیو، منتخب متن اور انسٹال لنک والا HTML کارڈ محفوظ ہو گیا۔ اسے WhatsApp میں Document کے طور پر شیئر کریں۔");
+          }catch(_){status("آڈیو کارڈ نہیں بن سکا؛ WAV فائل یا متن/لنک الگ شیئر کریں۔",true);}
+          finally{listen.disabled=false;}
+        });
+        tools.appendChild(listen);
+        status("E-ZERO کا مختصر صوتی حوالہ شامل ہے؛ WAV اور سننے والا HTML کارڈ دستیاب ہیں۔ لنک صارف کی رضامندی سے کھلتا ہے۔");
       }catch(_){make.disabled=false;make.textContent="🔊 دوبارہ WAV بنائیں";status("مقامی آواز کا ماڈل یا انٹرنیٹ دستیاب نہیں؛ اس جواب کی آڈیو فائل تیار نہیں ہوئی۔",true);}
     });
     tools.append(share,shareLink,make);
