@@ -8,6 +8,8 @@
  */
 (()=>{
 "use strict";
+// Read-only component build marker; no secrets, storage or tracking.
+document.documentElement.dataset.ezeroCopilotBuild="20261104-COPILOT-LOCAL-R1";
 const $=id=>document.getElementById(id);
 const words={
  ur:{

@@ -6,6 +6,8 @@
  */
 (() => {
   "use strict";
+// Read-only component build marker; no secrets, storage or tracking.
+document.documentElement.dataset.ezeroCoreBuild="20261104-CORE-SIGNED-R1";
   const $ = id => document.getElementById(id);
   const te = new TextEncoder();
   const langs = {

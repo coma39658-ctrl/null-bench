@@ -128,3 +128,31 @@ button.outline{color:#07546b;background:#ebf9fc;border-color:#b3d5de}button.dang
 #copilotOverride:not([hidden]){display:block;width:100%;margin-bottom:10px;border:2px solid #ce8262;background:#fff8f5;color:#843b24}
 #copilotOverride[hidden]{display:none!important}
 @media(max-width:390px){.copilot-grid{grid-template-columns:1fr}.copilot-panel>summary{font-size:15px}.copilot-trust output{font-size:21px}}
+
+
+/* E-ZERO Call Doctor: one-tap read-only, version-aware phone preflight. */
+.doctor-panel{background:linear-gradient(135deg,#f1f9fc,#fff);border:1px solid #a3d2db}
+.doctor-panel .heading{align-items:center;margin-bottom:5px}
+.doctor-panel .heading h2{font-size:18px;line-height:1.5}
+.doctor-panel .small{font-size:13px;line-height:1.8;color:#365e6e}
+.doctor-panel #doctorRun{width:100%;min-height:50px;font-size:15px}
+.doctor-version{margin:10px 0;padding:10px;border-radius:11px;background:#edf8f9;display:flex;
+ gap:9px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:12px;color:#205c6d}
+.doctor-version code{color:#063e55;font:700 12px/1.8 ui-monospace,monospace;overflow-wrap:anywhere}
+.doctor-checks{display:grid;gap:8px;margin:12px 0}
+.doctor-checks:empty{display:none}
+.doctor-check{display:grid;grid-template-columns:minmax(90px,.9fr) minmax(0,1.2fr);gap:9px;
+ align-items:start;background:#fff;border:1px solid #d0e2e8;border-inline-start:4px solid #7294a0;
+ padding:9px 10px;border-radius:11px;line-height:1.65;font-size:13px}
+.doctor-check strong{color:#124f60}
+.doctor-check span{overflow-wrap:anywhere;color:#385f6b}
+.doctor-check[data-type="pass"]{border-inline-start-color:#158257;background:#f4fbf8}
+.doctor-check[data-type="block"]{border-inline-start-color:#b94e42;background:#fff2ef}
+.doctor-check[data-type="warning"]{border-inline-start-color:#bc8b28;background:#fff8e9}
+.doctor-report-details{padding:11px;border-radius:12px;border:1px solid #c8e0e5;background:#fff;margin:12px 0}
+.doctor-report-details summary{cursor:pointer;font-weight:750;color:#235b6d;line-height:1.7}
+.doctor-report-details textarea{display:block;margin:10px 0;direction:ltr;text-align:start;
+ width:100%;box-sizing:border-box;padding:12px;border-radius:9px;border:1px solid #c9dce4;
+ font:12px/1.6 ui-monospace,monospace;resize:vertical;background:#f8fbfc;overflow-wrap:anywhere}
+.doctor-report-details button{width:100%;min-height:42px}
+@media(max-width:390px){.doctor-check{grid-template-columns:1fr}.doctor-version code{font-size:11px}}
