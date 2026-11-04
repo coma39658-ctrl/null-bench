@@ -112,6 +112,19 @@
   });
 
   function guideStatus(message){ $("guidedStatus").textContent=message; }
+  // Reflect only the verified browser connection state, never assume QR pairing
+  // implies a connected call. No new network traffic, records, or background polling.
+  document.addEventListener("ezero:call-status",event=>{
+    const stage=event.detail?.stage;
+    if(!["offerReady","answerReady","iceChecking","iceNoRoute","connected",
+          "offline","signalInvalid","micDenied","missingOffer","fingerprintMismatch"].includes(stage))return;
+    const actualStatus=$("connectionStatus")?.textContent || "";
+    if(actualStatus) $("callDiagnostic").textContent=actualStatus;
+    if(stage==="connected") guideStatus(actualStatus);
+    if(stage==="iceNoRoute" || stage==="signalInvalid" || stage==="micDenied" ||
+       stage==="missingOffer" || stage==="fingerprintMismatch") guideStatus(actualStatus);
+  });
+
   // Preserve existing signed-offer/answer verification in the core script.
   $("guidedOffer").addEventListener("click",()=>{
     $("createOffer").click();
