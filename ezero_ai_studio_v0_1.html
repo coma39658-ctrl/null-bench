@@ -81,6 +81,7 @@
   <label>بولنے کی آواز <select id="ezeroTtsVoice" aria-label="بولنے کی آواز"><option value="auto">خودکار — اردو کو ترجیح</option></select></label>
   <label>بولنے کی رفتار <select id="ezeroTtsRate" aria-label="بولنے کی رفتار"><option value="0.85">آہستہ</option><option value="0.95" selected>قدرتی</option><option value="1.05">قدرے تیز</option></select></label>
   <button id="ezeroTtsSample" type="button">نمونہ سنیں</button>
+  <button id="ezeroTtsRefresh" type="button" aria-label="فون میں دستیاب آوازیں دوبارہ تلاش کریں">آوازیں تازہ کریں</button>
   <button id="ezeroTtsStop" type="button">■ آواز بند کریں</button>
  </div>
  <small id="ezeroTtsHint" class="voiceHint">جواب کا متن جس زبان میں ہوگا، اسی زبان کی دستیاب آواز کو ترجیح دی جائے گی۔ لہجے کا معیار فون میں نصب آوازوں پر منحصر ہے۔ مائیک سے بولنے سے پہلے ضرورت ہو تو زبان منتخب کریں۔</small>
@@ -260,6 +261,16 @@ function ezeroSampleText(){
 let ezeroSpeechSerial=0;
 let ezeroActiveSpeech=null;
 let ezeroBrowserVoices=[];
+// Android voices can arrive after the first getVoices()/voiceschanged call.
+// Re-read on a direct play/refresh gesture, not only during initial page load.
+function ezeroReadBrowserVoices(){
+  if(!("speechSynthesis" in window)||typeof window.speechSynthesis.getVoices!=="function")return ezeroBrowserVoices;
+  try{
+    const available=window.speechSynthesis.getVoices();
+    if(Array.isArray(available)&&available.length)ezeroBrowserVoices=available.slice();
+  }catch(_){/* Browser voice discovery is optional; keep previous list. */}
+  return ezeroBrowserVoices;
+}
 function voiceSpeakText(value,locale){
   const current=(locale||speechLocale(value)).toLowerCase();
   const base=current.split("-")[0];
@@ -305,6 +316,7 @@ function ezeroStopSpeech(){
   ezeroActiveSpeech=null;
 }
 function ezeroPreferredVoice(locale){
+  ezeroReadBrowserVoices();
   const preferred=document.getElementById("ezeroTtsVoice");
   const lang=String(locale||speechLocale()).toLowerCase();
   const choice=preferred&&preferred.value;
@@ -360,12 +372,13 @@ function speakAnswer(text,button){
 function ezeroSetupVoiceSettings(){
   const select=document.getElementById("ezeroTtsVoice");
   const sample=document.getElementById("ezeroTtsSample");
+  const refresh=document.getElementById("ezeroTtsRefresh");
   const stop=document.getElementById("ezeroTtsStop");
   if(!select||!sample||!stop)return;
   function load(){
     if(!("speechSynthesis" in window))return;
     const previous=select.value;
-    ezeroBrowserVoices=window.speechSynthesis.getVoices()||[];
+    ezeroReadBrowserVoices();
     select.replaceChildren();
     const auto=document.createElement("option");auto.value="auto";auto.textContent="خودکار — جواب کی زبان";select.appendChild(auto);
     ezeroBrowserVoices.sort((a,b)=>{
@@ -381,6 +394,18 @@ function ezeroSetupVoiceSettings(){
   if("speechSynthesis" in window&&window.speechSynthesis.addEventListener)
     window.speechSynthesis.addEventListener("voiceschanged",load);
   sample.addEventListener("click",()=>speakAnswer(ezeroSampleText(),sample));
+  refresh?.addEventListener("click",()=>{
+    load();
+    const urduReady=ezeroBrowserVoices.some(v=>/^ur([_-]|$)/i.test(String(v.lang||"")));
+    showNotice(urduReady
+      ?"فون میں اردو آواز مل گئی ہے۔ نمونہ سنیں دبائیں۔"
+      :ezeroBrowserVoices.length
+        ?"دستیاب آوازوں میں اردو شامل نہیں۔ فون کی Text-to-Speech ترتیبات میں اردو آواز دستیاب ہو تو منتخب یا ڈاؤن لوڈ کریں۔"
+        :"براؤزر نے ابھی کوئی آواز فراہم نہیں کی۔ فون کی Text-to-Speech ترتیبات دیکھیں یا دوبارہ کوشش کریں۔","normal");
+  });
+  document.getElementById("ezeroVoiceSettings")?.addEventListener("toggle",event=>{
+    if(event.target.open)load();
+  });
   stop.addEventListener("click",ezeroStopSpeech);
 }
 function validFile(f){return f&&["image/png","image/jpeg","image/webp"].includes(f.type)&&f.size>0&&f.size<=MAX_BYTES}
