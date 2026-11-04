@@ -5,13 +5,24 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#073e53">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
 <title>E-ZERO Secure Connect — Real 1:1 WebRTC Test</title>
+<meta name="description" content="E-ZERO Secure Connect: secure QR identity and experimental direct calls. Ad-free public-service communication.">
+<meta property="og:title" content="E-ZERO Secure Connect — Friends & Calls">
+<meta property="og:description" content="Open E-ZERO Secure Connect and choose Install App or Add to Home Screen. No hidden fees, ads or tracking. Experimental two-phone calls.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://coma39658-ctrl.github.io/null-bench/ezero_secure_connect_live_p2p_v0_1.html">
+<meta property="og:image" content="https://coma39658-ctrl.github.io/null-bench/icon-512.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="E-ZERO Connect">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="manifest" href="./secure-connect.webmanifest">
 <link rel="stylesheet" href="./css/ezero_secure_connect_live_p2p_v0_1.css">
 <script defer src="./js/vendor/ezero-qrcode-generator-mit.js"></script>
 <script defer src="./js/ezero_secure_connect_live_p2p_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_simple_near_far_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_contacts_v0_1.js"></script>
+<script defer src="./js/ezero_secure_connect_install_share_v0_1.js"></script>
 </head>
 <body>
 <div class="shell">
@@ -29,6 +40,22 @@
     <p data-i18n="intro">دو براؤزرز کے درمیان براہِ راست آڈیو، ویڈیو اور ایک بار کھلنے والے پیغامات کی محدود آزمائش۔</p>
     <div class="pills"><span data-i18n="free">بلا فیس</span><span data-i18n="ads">بغیر اشتہارات</span><span data-i18n="consent">اجازت سے ہی مائک/کیمرہ</span></div>
   </div>
+  <section class="share-install card" aria-labelledby="shareInstallTitle">
+    <div class="heading"><span class="number" aria-hidden="true"><icon></icon>↗</span><h2 id="shareInstallTitle" data-share-i18n="title">E-ZERO دوستوں کو بھیجیں اور ایپ بنائیں</h2></div>
+    <p class="small" data-share-i18n="description">یہ لنک WhatsApp، IMO یا کسی بھی میسج میں بھیجیں۔ لنک کھولنے والے دوست کو اسی صفحے پر انسٹال کا بٹن نظر آئے گا۔</p>
+    <div class="buttonrow">
+      <button type="button" class="primary" id="shareConnectLink" data-share-i18n="share">↗ دوست کو لنک بھیجیں</button>
+      <button type="button" class="outline" id="copyConnectLink" data-share-i18n="copy">📋 ویب سائٹ لنک کاپی</button>
+      <button type="button" class="primary install-action" id="installSecureConnect" data-share-i18n="install">📲 ہوم اسکرین پر انسٹال کریں</button>
+    </div>
+    <a id="publicConnectLink" class="public-connect-url" href="https://coma39658-ctrl.github.io/null-bench/ezero_secure_connect_live_p2p_v0_1.html" rel="noopener noreferrer">E-ZERO Secure Connect · Shareable Link</a>
+    <p id="shareInstallStatus" class="scan-result" role="status" aria-live="polite" data-share-i18n="initial">انسٹالیشن آپ کی منظوری سے ہوگی؛ میسج کے اندر خودکار انسٹالیشن ممکن نہیں۔</p>
+    <div id="installHelp" class="install-help" hidden>
+      <strong data-share-i18n="helpTitle">اگر انسٹال ڈائیلاگ نہ کھلے</strong>
+      <p id="installHelpText"></p>
+      <p class="small" data-share-i18n="helpPrivacy">یہ شارٹ کٹ صرف ایپ کھولتا ہے۔ ابھی مستقل اکاؤنٹس یا پس منظر میں خودکار کال وصولی موجود نہیں۔</p>
+    </div>
+  </section>
   <div class="truth" role="note" data-i18n="labWarning">یہ ابھی دو فونوں کا تجرباتی رابطہ ہے: QR سے شناخت ملے گی؛ کال کے لیے ایک دعوت اور جواب میسج میں بھیجنا ضروری ہے۔ خودکار فرینڈ اکاؤنٹ یا کال اطلاع ابھی نہیں۔</div>
   <div class="toolbar">
     <button type="button" id="openPolicy" class="outline" data-i18n="policyButton">🔒 ہماری واضح پرائیویسی پالیسی</button>
