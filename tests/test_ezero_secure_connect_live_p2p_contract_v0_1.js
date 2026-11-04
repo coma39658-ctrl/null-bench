@@ -17,7 +17,12 @@ assert.match(vendor,/Licensed under the MIT license/);
 assert.match(preview,/id="ezeroRealTwoPhoneTest"[^>]*href|href="\.\/ezero_secure_connect_live_p2p_v0_1\.html" id="ezeroRealTwoPhoneTest"/);
 assert.match(html,/content="default-src 'none'; script-src 'self'/);
 assert.match(html,/connect-src 'self'/);
-assert.ok(!/https?:\/\//.test(html),"No remote origins injected in HTML");
+// A public same-origin SHARE link and social preview metadata are intentional.
+assert.ok(!/<script\b[^>]*src=["']https?:\/\//i.test(html),
+  "No external script loaded by Secure Connect");
+assert.ok(!/<link\b[^>]*rel=["']stylesheet["'][^>]*href=["']https?:\/\//i.test(html),
+  "No external CSS loaded by Secure Connect");
+assert.ok(!/<iframe\b/i.test(html),"No external tracking frames");
 assert.match(html,/ezero-qrcode-generator-mit\.js/);
 assert.match(html,/id="language"/);
 for(const lang of ["ur","en","ar"]) assert.match(html,new RegExp('value="'+lang+'"'));
