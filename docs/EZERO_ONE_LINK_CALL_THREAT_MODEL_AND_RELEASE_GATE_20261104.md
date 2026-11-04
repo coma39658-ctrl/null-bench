@@ -2,7 +2,7 @@
 Date: 2026-11-04 · Owner: E-ZERO · Status: **STAGING DISABLED / NO PUBLIC CALL SERVICE**
 
 ## Scope and evidence classification
-This work replaces a fragile, multi-kilobyte WhatsApp SDP copy/paste exercise with a short, explicitly shared invitation link and an opt-in one-to-one WebRTC call. It is an **experimental candidate**. The room Worker has been separately deployed to Cloudflare only with `ROOMS_ENABLED=false`; the latest candidate hardening is still under CI and is not the live version until a separate guarded deployment. Synthetic two-mobile Chromium connected-state tests prove a software path, **not** real-Android or independent security validation.
+This work replaces a fragile, multi-kilobyte WhatsApp SDP copy/paste exercise with a short, explicitly shared invitation link and an opt-in one-to-one WebRTC call. It is an **experimental candidate**. The room Worker and latest hardened backend have been deployed to an isolated Cloudflare staging name with `ROOMS_ENABLED=false`. Verified deployment and public disabled health: https://github.com/coma39658-ctrl/null-bench/actions/runs/41906144951. The one-link client is still only on an unmerged draft branch. No online call room or public pilot is active. Synthetic two-mobile Chromium connected-state tests prove a software path, **not** real-Android or independent security validation.
 
 ## Research and technology choices
 - WebRTC: native browser DTLS-SRTP/SCTP data-channel encryption; secure HTTPS context and deliberate getUserMedia consent. Ref: https://www.rfc-editor.org/rfc/rfc8827.html
