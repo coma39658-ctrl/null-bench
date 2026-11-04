@@ -8,6 +8,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
 <title>E-ZERO Secure Connect — Real 1:1 WebRTC Test</title>
 <link rel="stylesheet" href="./css/ezero_secure_connect_live_p2p_v0_1.css">
+<script defer src="./js/vendor/ezero-qrcode-generator-mit.js"></script>
 <script defer src="./js/ezero_secure_connect_live_p2p_v0_1.js"></script>
 </head>
 <body>
@@ -31,6 +32,31 @@
     <button type="button" id="openPolicy" class="outline" data-i18n="policyButton">🔒 ہماری واضح پرائیویسی پالیسی</button>
     <button type="button" id="closeAll" class="outline danger" data-i18n="closeEverything">✕ کال بند اور عارضی مواد صاف کریں</button>
   </div>
+  <section class="card identity-card" aria-labelledby="identityTitle">
+    <div class="heading"><span class="number" aria-hidden="true">▦</span><h2 id="identityTitle" data-i18n="identityTitle">آپ کی خودکار ڈیجیٹل شناخت (عارضی)</h2></div>
+    <p class="muted" data-i18n="identityHelp">ہر سیشن کی اپنی منفرد خفیہ چابی اور SHA-256 فنگرپرنٹ ہوگا۔ یہ رجسٹرڈ اکاؤنٹ نہیں، ری لوڈ پر نئی شناخت بنے گی۔ دوسرے فون کا QR اسکین یا کوڈ پیسٹ کرکے تصدیق کریں۔</p>
+    <div class="qr-layout">
+      <div class="qr-code" id="myQr" role="img" aria-label="Signed identity QR"></div>
+      <div class="qr-meta"><strong data-i18n="localFinger">میرا SHA-256 فنگرپرنٹ</strong>
+        <output id="myFingerprint" class="hash" aria-live="polite">…</output>
+        <textarea id="myDigitalId" rows="2" readonly aria-label="My signed temporary ID" spellcheck="false"></textarea>
+        <button type="button" id="copyIdentity" class="outline" data-i18n="identityCopy">📋 میری ڈیجیٹل شناخت کاپی کریں</button>
+      </div>
+    </div>
+    <p class="small" id="identityStatus" role="status" aria-live="polite" data-i18n="identityPending">نئی منفرد ڈیجیٹل شناخت بن رہی ہے…</p>
+    <label class="field" for="friendIdInput"><span data-i18n="identityInput">دوست کا دستخط شدہ ID کوڈ یا 64 حروف والا SHA-256 فنگرپرنٹ پیسٹ کریں</span>
+      <textarea id="friendIdInput" rows="3" spellcheck="false" autocomplete="off" placeholder="QR / SHA-256"></textarea></label>
+    <div class="buttonrow">
+      <button type="button" id="scanQR" class="outline" data-i18n="identityCamera">📷 دوست کا QR اسکین کریں</button>
+      <button type="button" id="stopScan" class="outline" disabled data-i18n="identityStop">■ اسکین بند کریں</button>
+      <button type="button" id="verifyFriend" class="primary" data-i18n="identityVerify">دوست کی شناخت کی تصدیق کریں</button>
+    </div>
+    <video id="scanVideo" class="scan-video" playsinline muted hidden aria-label="Private QR camera scanner"></video>
+    <p id="identityPeerStatus" class="status" role="status" aria-live="polite" data-i18n="identityPeer">دوست کے کوڈ کی تصدیق</p>
+    <strong data-i18n="peerFinger">دوسرے فون کا SHA-256 فنگرپرنٹ</strong>
+    <output id="peerFingerprint" class="hash" aria-live="polite">—</output>
+    <p class="small" data-i18n="identityNotAccount">QR کی تصدیق خفیہ چابی کا ثبوت ہے، انسان کی حقیقی شناخت کا نہیں۔ مستقل دوست شامل کرنے کے لیے محفوظ اکاؤنٹ سرور ضروری ہوگا۔</p>
+  </section>
   <section class="card" aria-labelledby="setTitle">
     <div class="heading"><span class="number">1</span><h2 id="setTitle" data-i18n="step1">کال کی قسم اور نیٹ ورک منتخب کریں</h2></div>
     <div class="mode-actions" role="group" aria-label="Call mode">
