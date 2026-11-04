@@ -49,3 +49,10 @@ body.incoming-open{overflow:hidden}
 .live-trial-button{display:flex;min-height:55px;justify-content:center;align-items:center;text-align:center;padding:12px 15px;border:1px solid #086f80;border-radius:13px;background:#0a7285;color:white;font-weight:900;font-size:16px;text-decoration:none}
 .live-trial-button:focus-visible{outline:3px solid #16b8ce;outline-offset:3px}
 .live-trial-entry p{font-size:12px;line-height:1.7;color:#355b68;margin:7px 0 0}
+
+
+/* Accessible top-level language choice available throughout local preview. */
+.topbar{flex-wrap:wrap}
+.preview-language{display:flex;align-items:center;gap:6px;margin-inline-start:auto;font-size:12px;font-weight:800;color:#224c5e}
+.preview-language select{min-height:44px;max-width:135px;font-size:14px;color:#0e4759;background:#fff;border:1px solid #a5cbd7;border-radius:11px;padding:7px;direction:ltr}
+@media(max-width:390px){.preview-language{width:100%;justify-content:flex-start}}
