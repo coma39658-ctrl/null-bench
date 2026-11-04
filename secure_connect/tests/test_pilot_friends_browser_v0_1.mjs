@@ -59,6 +59,13 @@ async function mockServer(req){
     return {ok:true,code:"INVITE_DECLINED",bothLinked:false};
   }
   if(b.type==="friends")return {ok:true,friends:[...(friends.get(b.account)||[])]};
+  if(b.type==="delete_account"){
+    accounts.delete(b.account);
+    friends.delete(b.account);
+    for(const links of friends.values())links.delete(b.account);
+    for(const k of pending.keys())if(k.includes(b.account))pending.delete(k);
+    return {ok:true,code:"ACCOUNT_DELETED",friendsRevoked:true,localIdentityDeleted:false};
+  }
   if(b.type==="remove"){
     friends.get(b.account)?.delete(b.to);
     friends.get(b.to)?.delete(b.account);
@@ -164,6 +171,19 @@ try{
   assert.equal(same,bid,"Nonextractable identity key remains stable after reload on same origin");
   assert.deepEqual(falseClaims,[],"No page errors or unauthenticated attempts");
   console.log("TRILINGUAL_FRIEND_REQUEST_SCREENS_STABLE_PHONE_ID_REQUIRES_CONSENT: PASS");
+  await b.evaluate(()=>{window.confirm=()=>true;});
+  await b.locator("#privacyErasure > summary").click();
+  assert.equal(await b.locator("#deleteAccount").isEnabled(),true);
+  await b.locator("#deleteAccount").click();
+  await b.waitForFunction(()=>document.querySelector("#deleteStatus")?.dataset.status==="accountDeleted");
+  assert.equal(accounts.has(bid),false,"Server account must be removed");
+  assert.equal(accepted(aid,bid),false,"Removing account revokes both friendships");
+  assert.equal(await b.locator("#shareLink").isDisabled(),true);
+  await b.reload();
+  const replaced=await register(b);
+  assert.notEqual(replaced,bid,"Old non-exportable browser identity must not survive explicit erasure");
+  assert.deepEqual(falseClaims,[]);
+  console.log("CONSENTED_ACCOUNT_ERASURE_AND_RECREATED_DEVICE_ID: PASS");
 }finally{
   for(const ctx of contexts)await ctx.close().catch(()=>{});
   await browser.close();
