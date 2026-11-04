@@ -17,6 +17,7 @@
       invitationNeeded:"دوست کا مکمل دعوت یا جواب میسج یہاں پیسٹ کریں۔",
       invitationInvalid:"میسج درست دعوت/جواب نہیں؛ پوری تحریر کاپی کرکے دوبارہ پیسٹ کریں۔",
       invited:"دعوت تیار ہے؛ شیئر کریں۔ دوسرے فون کا جواب بھی یہاں پیسٹ کرنا ہوگا۔",
+      preparing:"کال کی درخواست تیار ہو رہی ہے؛ تیار ہونے پر شیئر بٹن فعال ہوگا۔",
       answered:"جواب تیار ہے؛ اسے پہلے فون پر میسج کریں۔",
       applying:"جواب کی تصدیق جاری ہے؛ کنکشن کا انتظار کریں۔",
       ready:"دعوت بناکر بھیجیں یا دوسرے فون سے آیا میسج پیسٹ کریں۔",
@@ -34,6 +35,7 @@
       invitationNeeded:"Paste the full invitation or answer from the other phone.",
       invitationInvalid:"This is not an offer or answer. Copy the complete message and paste again.",
       invited:"Invitation ready. Share it, then paste the answer from the other phone here.",
+      preparing:"Preparing the call invitation; Share will enable when ready.",
       answered:"Answer ready. Share it back to the first phone.",
       applying:"Verifying the answer; connecting the phones…",
       ready:"Create and share an invitation or paste the message from the other phone.",
@@ -51,6 +53,7 @@
       invitationNeeded:"ألصق الدعوة أو الرد كاملاً من الهاتف الآخر.",
       invitationInvalid:"هذا ليس عرض اتصال أو رداً صحيحاً. انسخ الرسالة كاملة وحاول مجدداً.",
       invited:"الدعوة جاهزة. أرسلها ثم الصق رد الهاتف الآخر هنا.",
+      preparing:"جارٍ إعداد دعوة الاتصال؛ سيتفعّل زر المشاركة عندما تصبح جاهزة.",
       answered:"الرد جاهز. أرسله إلى الهاتف الأول.",
       applying:"يجري التحقق من الرد وتوصيل الهاتفين…",
       ready:"أنشئ دعوة وأرسلها، أو الصق رسالة الهاتف الآخر.",
@@ -112,7 +115,7 @@
   // Preserve existing signed-offer/answer verification in the core script.
   $("guidedOffer").addEventListener("click",()=>{
     $("createOffer").click();
-    guideStatus(say("invited"));
+    guideStatus(say("preparing"));
   });
   $("guidedContinue").addEventListener("click",()=>{
     const code=$("guidedIncoming").value.trim();
@@ -126,7 +129,7 @@
     $("remoteSignal").value=code;
     if(signal.type==="offer") {
       $("acceptOffer").click();
-      guideStatus(say("answered"));
+      guideStatus(say("preparing"));
     } else {
       $("applyAnswer").click();
       guideStatus(say("applying"));
@@ -145,7 +148,10 @@
   $("guidedCopy").addEventListener("click",()=>{
     if(!$("localSignal").value){guideStatus(say("noCode"));return;}
     $("copySignal").click();
-    guideStatus(say("copiedSignal"));
+  });
+  document.addEventListener("ezero:copy-result",event=>{
+    if(event.detail?.success) guideStatus(say("copiedSignal"));
+    else guideStatus(say("shareSignalFallback"));
   });
   $("language").addEventListener("change",()=>{ if(!$("localSignal").value)guideStatus(say("ready")); });
   window.addEventListener("pagehide",()=>{ // Core code independently closes media and drops session keys.
