@@ -26,6 +26,10 @@ const page=await context.newPage();
 try {
   await page.goto(base+"/index.html",{waitUntil:"domcontentloaded"});
   assert.equal(await page.locator("a.ezero-voice-float").count(),1,"AI Studio separate button preserved");
+  await page.locator("#ezeroQwenFrontOpen").click();
+  await page.waitForURL(/ezero_ai_studio_v0_1\.html$/);
+  assert.equal(await page.locator("#ezeroVoiceGuidePanel").count(),0,"Existing AI route never opens Secure Connect popup");
+  await page.goto(base+"/index.html",{waitUntil:"domcontentloaded"});
   await page.locator("#ezeroVoiceGuideButton").click();
   await page.waitForFunction(()=>document.getElementById("ezeroVoiceGuidePanel")?.getAttribute("aria-hidden")==="false");
   assert.equal(await page.locator("#ezeroVoiceGuidePanel").getAttribute("aria-hidden"),"false");
