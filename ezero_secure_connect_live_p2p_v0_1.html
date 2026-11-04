@@ -55,6 +55,7 @@
     <div class="buttonrow">
       <button type="button" id="scanQR" class="primary" data-i18n="identityCamera">📷 دوست کا QR اسکین کریں</button>
       <button type="button" id="stopScan" class="outline" disabled data-i18n="identityStop">■ اسکین بند کریں</button>
+      <button type="button" id="nearCopyIdentity" class="outline" data-i18n="nearCopy">📋 اسکین نہ ہو تو میرا کوڈ کاپی کریں</button>
     </div>
     <video id="scanVideo" class="scan-video" playsinline muted hidden aria-label="Private QR camera scanner"></video>
     </div>
@@ -67,7 +68,10 @@
       <label class="field" for="friendIdInput"><span data-i18n="identityInput">دوست کا دستخط شدہ شناختی کوڈ یا SHA-256 فنگرپرنٹ پیسٹ کریں</span>
         <textarea id="friendIdInput" rows="3" spellcheck="false" autocomplete="off" placeholder="QR / SHA-256"></textarea>
       </label>
-      <button type="button" id="verifyFriend" class="primary" data-i18n="identityVerify">دوست کی شناخت کی تصدیق کریں</button>
+      <div class="buttonrow">
+        <button type="button" id="pasteFriend" class="outline" data-i18n="pasteFriend">📋 موصولہ میسج پیسٹ کریں</button>
+              <button type="button" id="verifyFriend" class="primary" data-i18n="identityVerify">دوست کی شناخت کی تصدیق کریں</button>
+      </div>
       <details class="raw-code"><summary data-i18n="showMyCode">میرا شناختی کوڈ دیکھیں (اختیاری)</summary>
         <textarea id="myDigitalId" rows="3" readonly aria-label="My signed temporary ID" spellcheck="false"></textarea>
       </details>
