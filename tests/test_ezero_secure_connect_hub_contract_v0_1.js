@@ -22,6 +22,26 @@ for (const mode of ["video","audio","voice","qr"]) {
 }
 assert.match(page,/data-panel="messages"/);
 assert.match(page,/data-panel="groups"/);
+assert.match(page,/خوش آمدید — E-ZERO Secure Connect/);
+assert.match(page,/id="previewIncomingCall"/);
+assert.match(page,/id="incomingCallDemo" class="incoming-demo" role="dialog" aria-modal="true"/);
+assert.match(page,/id="demoAcceptAudio"/);
+assert.match(page,/id="demoAcceptVideo"/);
+assert.match(page,/id="demoDecline"/);
+assert.match(page,/id="demoClose"/);
+assert.match(page,/id="autoQualityStatus"/);
+assert.match(page,/value="auto" selected/);
+assert.match(page,/ہماری صاف پالیسی/);
+assert.match(page,/کوئی خفیہ بٹن نہیں/);
+assert.match(source,/function openIncomingDemo\(\) \{\s*releaseAll\(\);/);
+assert.match(source,/function closeIncomingDemo\(\)/);
+assert.match(source,/function demoChoice\(choice\)/);
+assert.match(source,/connection\.saveData === true/);
+assert.match(source,/function qualityRecommendation\(\)/);
+assert.match(source,/networkHint\?\.addEventListener\?\.\("change", updateQualityHint\)/);
+assert.match(css,/\.incoming-demo\[hidden\]\{display:none!important\}/);
+assert.match(css,/\.incoming-demo-actions button\{min-height:54px/);
+
 assert.match(home,/ezero_ai_studio_v0_1\.html#voice/,"Existing AI Studio button preserved");
 assert.match(home,/onclick="window\.location\.assign\('\.\/ezero_ai_studio_v0_1\.html'\)"/,"Front Qwen AI guide goes to AI Studio, not new communication hub");
 assert.ok(!/EZERO_AI_AGENT_ANCHOR=this/.test(home),"Old Qwen button no longer opens the repurposed Secure Connect modal");
@@ -72,3 +92,5 @@ console.log("CONSENT_GATED_LOCAL_HD_VIDEO_AND_AUDIO: CONTRACT_PASS");
 console.log("ON_DEMAND_NO_UPLOAD_VOICE_DRAFT: CONTRACT_PASS");
 console.log("TRANSIENT_NON_EXPORTABLE_IDENTITY_SHA256: CONTRACT_PASS");
 console.log("NO_REAL_CALL_OR_E2EE_DEPLOYMENT_CLAIM: PASS");
+console.log("CONSENT_FIRST_INCOMING_CALL_UI_DEMO: CONTRACT_PASS");
+console.log("AUTOMATIC_LOCAL_QUALITY_AND_CLEAR_POLICY: CONTRACT_PASS");
