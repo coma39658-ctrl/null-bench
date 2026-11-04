@@ -24,8 +24,9 @@ async function bridge(source,evt){
     const id=evt.id;
     const peers=[...sockets.values()].filter(s=>s.room===u.pathname && !s.closed);
     if(peers.length>=2)return {ok:false};
-    if(peers.length&&peers[0].key!==evt.protocols[1])return {ok:false};
-    const item={id,page:source.page,room:u.pathname,key:evt.protocols[1],closed:false,
+    if(evt.protocols.length!==3 || !/^ezero-proof-[a-f0-9]{64}$/.test(evt.protocols[2]))return {ok:false};
+    if(peers.length&&(peers[0].key!==evt.protocols[1]||peers[0].proof!==evt.protocols[2]))return {ok:false};
+    const item={id,page:source.page,room:u.pathname,key:evt.protocols[1],proof:evt.protocols[2],closed:false,
       role:peers.length?"callee":"caller",approved:false};
     sockets.set(id,item);
     await new Promise(resolve=>setTimeout(resolve,60));
@@ -108,9 +109,16 @@ try{
   await a.page.waitForFunction(()=>document.querySelector("#myFingerprint")?.textContent.length===64);
   await a.page.locator("#callSetup").evaluate(e=>e.open=true);
   await a.page.locator("#roomCreate").click();
+  assert.match(await a.page.locator("#roomStatus").innerText(),/مالک|owner|المالك/,
+    "Cannot create room without operator authorization");
+  await a.page.locator("#roomOwnerSecret").fill("EZEROOwnerPilotSecret_2026_TestOnly_64chars");
+  await a.page.locator("#roomCreate").click();
   await a.page.waitForFunction(()=>document.querySelector("#roomStatus")?.dataset.state==="joined");
   const invite=await a.page.locator("#roomLink").inputValue();
-  assert.match(invite,/#callroom=[a-f0-9]{32}\.[a-f0-9]{64}$/);
+  assert.match(invite,/#callroom=[a-f0-9]{32}\.[a-f0-9]{64}\.[a-f0-9]{64}$/);
+  assert.equal(invite.includes("EZEROOwnerPilotSecret"),false,"Owner secret must not enter URL");
+  assert.equal(await a.page.locator("#roomOwnerSecret").inputValue(),"",
+    "Owner secret cleared after creating invitation");
   assert.equal(await a.page.evaluate(()=>window.__mediaCalls),0,
     "Creating call link never activates microphone or camera");
 
