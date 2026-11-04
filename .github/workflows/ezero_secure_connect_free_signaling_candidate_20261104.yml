@@ -1,0 +1,46 @@
+name: E-ZERO Secure Connect Free Cloudflare Signaling Candidate (NO DEPLOY)
+on:
+  push:
+    branches: [ezero-secure-connect-cloudflare-free-signaling-candidate-20261104]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'secure_connect/signaling/**'
+      - '.github/workflows/ezero_secure_connect_free_signaling_candidate_20261104.yml'
+      - 'docs/EZERO_SECURE_CONNECT_FREE_SIGNALING_SERVER_DECISION_20261104.md'
+permissions:
+  contents: read
+jobs:
+  consent-crypto-protocol:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify signed SHA-256 identity and two-party invite permissions (zero cloud access)
+        run: |
+          set -euo pipefail
+          node --check secure_connect/signaling/src/protocol.mjs
+          node --check secure_connect/signaling/src/worker.mjs
+          node secure_connect/signaling/tests/test_invite_protocol.mjs
+  bundle-only-no-deploy:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build isolated free Cloudflare Worker with Wrangler dry-run only
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts wrangler@4.157.0
+          npx wrangler deploy --dry-run --config secure_connect/signaling/wrangler.jsonc --outdir /tmp/ezero-secure-signaling-candidate
+          test -s /tmp/ezero-secure-signaling-candidate/worker.js
+          echo "STAGING_BUNDLE_ONLY_NO_WORKER_DEPLOYED: PASS"
