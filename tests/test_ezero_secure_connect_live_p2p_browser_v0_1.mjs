@@ -34,17 +34,21 @@ async function getSignal(p) {
   return p.locator("#localSignal").inputValue();
 }
 async function connect(a,b,mode){
+  await a.locator("#callSetup").evaluate(el=>el.open=true);
+  await b.locator("#callSetup").evaluate(el=>el.open=true);
   await a.locator('input[value="'+mode+'"]').check();
   await b.locator('input[value="'+mode+'"]').check();
-  await a.locator("#createOffer").click();
+  await a.locator("#guidedOffer").click();
   const offer=await getSignal(a);
   assert.match(offer,/"type":"offer"/,"A produced a signed SDP offer");
-  await b.locator("#remoteSignal").fill(offer);
-  await b.locator("#acceptOffer").click();
+  assert.equal(await a.locator("#guidedShare").isEnabled(),true,"Simple share button enables only on signed offer");
+  await b.locator("#guidedIncoming").fill(offer);
+  await b.locator("#guidedContinue").click();
   const answer=await getSignal(b);
-  assert.match(answer,/"type":"answer"/,"B produced a signed SDP answer");
-  await a.locator("#remoteSignal").fill(answer);
-  await a.locator("#applyAnswer").click();
+  assert.match(answer,/"type":"answer"/,"B generated a signed answer from one paste button");
+  assert.equal(await b.locator("#guidedShare").isEnabled(),true,"Simple answer share enabled");
+  await a.locator("#guidedIncoming").fill(answer);
+  await a.locator("#guidedContinue").click();
   await Promise.all([a,b].map(p=>p.waitForFunction(()=>
     document.querySelector("#sendMessage")?.disabled===false,{timeout:30000})));
   const tracks=await Promise.all([a,b].map(p=>p.evaluate(()=>{
@@ -64,6 +68,12 @@ try{
   assert.equal(await a.locator("#myQr svg").count(),1,"QR generated offline");
   assert.equal(await a.evaluate(()=>window.__mediaCalls.length),0,"No camera or mic without a click");
   assert.equal(await b.evaluate(()=>window.__mediaCalls.length),0);
+  assert.equal(await a.locator("#nearbyPanel").isVisible(),true,"Nearby QR is default");
+  assert.equal(await a.locator("#remotePanel").isHidden(),true,"Remote copy mode hidden until selected");
+  assert.equal(await a.locator("#callSetup").getAttribute("open"),null,
+    "Advanced calling steps folded on first visit");
+  assert.equal(await a.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,
+    "Simplified mobile page fits viewport without horizontal scrolling");
   await a.locator("#language").selectOption("en");
   assert.match(await a.locator("h1").first().innerText(),/Welcome/);
   await b.locator("#language").selectOption("ar");
@@ -73,19 +83,36 @@ try{
   assert.match(await a.locator("[data-i18n=policy1]").innerText(),/do not run ads/);
   await a.locator("#closePolicy").click();
   assert.equal(await a.locator("#policyDialog").isHidden(),true);
+  await a.locator("#language").selectOption("ar");
+  assert.match(await a.locator("#easyTitle").innerText(),/بطريقتين/);
+  await a.locator("#language").selectOption("ur");
+  assert.match(await a.locator("#easyTitle").innerText(),/صرف دو طریقے/);
+  assert.match(await a.locator("#copyIdentity").innerText(),/میری ڈیجیٹل شناخت|میرا شناختی کوڈ/);
+  assert.equal(await a.evaluate(()=>window.__mediaCalls.length),0,
+    "Switching three languages never opens mic/camera");
   const idA=await a.locator("#myDigitalId").inputValue();
   const idB=await b.locator("#myDigitalId").inputValue();
   assert.match(idA,/^EZERO1\./);
   assert.match(idB,/^EZERO1\./);
+  await a.locator("#chooseRemote").click();
+  assert.equal(await a.locator("#remotePanel").isVisible(),true);
+  assert.equal(await a.locator("#copyIdentity").isVisible(),true);
+  assert.equal(await a.locator("#pasteFriend").isVisible(),true);
+  assert.equal(await a.evaluate(()=>window.__mediaCalls.length),0,
+    "Choosing remote copy/paste never starts recording or a camera");
+  assert.equal(await a.locator("#nearbyPanel").isHidden(),true);
   await a.locator("#friendIdInput").fill(idB);
   await a.locator("#verifyFriend").click();
   await a.waitForFunction(()=>document.querySelector("#peerFingerprint").textContent.trim().length===64);
   assert.equal(await a.locator("#peerFingerprint").innerText(),fpB);
+  await b.locator("#chooseRemote").click();
+  assert.equal(await b.locator("#remotePanel").isVisible(),true);
   await b.locator("#friendIdInput").fill(idA);
   await b.locator("#verifyFriend").click();
   await b.waitForFunction(()=>document.querySelector("#peerFingerprint").textContent.trim().length===64);
   assert.equal(await b.locator("#peerFingerprint").innerText(),fpA);
   console.log("UNIQUE_SESSION_SHA256_FINGERPRINTS_AND_SIGNED_QR: PASS");
+  console.log("NEARBY_QR_AND_REMOTE_MESSAGE_MODE_ONE_TOUCH_SWITCH: PASS");
   console.log("FULL_ENGLISH_ARABIC_POLICY_AND_LANGUAGE_CONTROL: PASS");
 
   const audioTracks=await connect(a,b,"audio");

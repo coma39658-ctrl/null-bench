@@ -27,11 +27,34 @@
       opened:"اس فون پر پیغام کھولا گیا؛ یہ انسان کے پڑھنے کا ثبوت نہیں۔",
       expired:"عارضی پیغام ختم کردیا گیا۔",
       sent:"پیغام encrypted DataChannel میں بھیجا گیا؛ انسان کے پڑھنے کا ثبوت نہیں۔",
-      notConnected:"میسج کے لیے دونوں فونوں کا کنکشن ضروری ہے۔"
+      notConnected:"میسج کے لیے دونوں فونوں کا کنکشن ضروری ہے۔",
+      easyTitle:"دوست سے رابطہ — صرف دو طریقے",
+      easyExplain:"نزدیک ہوں تو QR اسکین کریں۔ دور ہوں تو شناختی کوڈ میسج میں بھیج کر پیسٹ کریں۔",
+      nearby:"📷 نزدیک · QR اسکین",
+      remote:"📩 دور · کاپی / پیسٹ",
+      easyTrust:"SHA-256 ڈیجیٹل شناخت کی تصدیق کرتا ہے، انسان کی شناخت یا خودکار کال نہیں۔ حقیقی کال کے لیے ایک دعوت اور جواب بھی درکار ہے۔",
+      nearbyHint:"میرا QR دوست کو دکھائیں، پھر اس کا QR اسکین کریں۔",
+      remoteHint:"میرا کوڈ کاپی یا میسج کریں؛ دوست کا موصولہ کوڈ پیسٹ کرکے تصدیق کریں۔",
+      qrOnly:"QR میں نجی چابی نہیں ہے؛ یہ عارضی شناخت کا دستخط شدہ کوڈ ہے۔",
+      shareIdentity:"↗ شناختی کوڈ میسج کریں",
+      showMyCode:"میرا کوڈ دیکھیں (اختیاری)",
+      nearCopy:"📋 اسکین نہ ہو تو کوڈ کاپی کریں",
+      pasteFriend:"📋 آیا ہوا میسج پیسٹ کریں",
+      callSetupSummary:"📞 شناخت ملنے کے بعد کال آزمائیں",
+      callSetupTruth:"ابھی سرور نہیں؛ دو فونوں کو جوڑنے کے لیے دعوت اور جواب شیئر کرنا ضروری ہے۔",
+      guidedTitle:"دعوت میسج کریں یا آیا ہوا جواب پیسٹ کریں",
+      guidedHelp:"فون A دعوت بھیجے؛ فون B اسے پیسٹ کرے، جواب واپس بھیجے؛ فون A جواب پیسٹ کرے۔ بٹن خود دعوت یا جواب پہچانے گا۔",
+      guidedOffer:"📩 کال کی دعوت تیار کریں",
+      guidedShare:"↗ دعوت/جواب میسج کریں",
+      guidedCopy:"📋 دعوت/جواب کاپی کریں",
+      guidedIncoming:"دوسرے فون سے آیا ہوا میسج یہاں پیسٹ کریں",
+      guidedContinue:"✓ میسج پیسٹ کرکے جاری رکھیں",
+      guidedWaiting:"دعوت تیار کریں یا دوسرے فون کا میسج پیسٹ کریں۔",
+      expertSummary:"تفصیلی تکنیکی کوڈ (ضرورت نہیں)",guidedPrivacy:"دعوت/جواب میں آپ کے IP یا نیٹ ورک کی معلومات ہوسکتی ہیں؛ صرف قابلِ اعتماد دوست کو شیئر کریں۔"
     },
     en: {
       back:"↩ Back", language:"Language", welcome:"Welcome — test a real 1:1 call", intro:"A two-browser trial of real voice, video, and one-view messages.",
-      free:"No charge",ads:"No advertising",consent:"Mic/camera only with permission",labWarning:"REAL experimental P2P: no persistent accounts, automatic friend finding, background call notifications or signaling server. Manually share the offer/answer between the two phones. Some networks cannot connect without a TURN relay.",
+      free:"No charge",ads:"No advertising",consent:"Mic/camera only with permission",labWarning:"Experimental two-phone connection: QR verifies a digital key, but calls still require sharing one invite and one answer by message. No permanent friend directory or automatic incoming calls yet.",
       policyButton:"🔒 Clear privacy policy",closeEverything:"✕ Hang up and clear temporary content",step1:"Choose call type and network",
       audioCall:"📞 Voice call",videoCall:"📹 Video call",stunConsent:"Optional public STUN server — it may see IP/network metadata. Without a TURN relay, some calls will not connect.",
       quality:"Video quality",autoQuality:"Auto · Network hint",saverQuality:"Data Saver · 360p",hdQuality:"HD · 720p",fullQuality:"Full HD · prefer 1080p",
@@ -55,11 +78,34 @@
       identityPending:"Generating a unique digital ID…",identityCopy:"📋 Copy my digital ID",identityCamera:"📷 Scan friend's QR",identityStop:"■ Stop scanning",identityInput:"Paste the friend's signed ID or 64-character SHA-256 fingerprint",identityVerify:"Verify friend ID",identityNotAccount:"QR verification checks a cryptographic self-signature, not who the human is. It cannot automatically add a permanent friend without an account server.",
       identityPeer:"Friend's ID check",verifiedSelf:"Self-signature valid; compare with the person independently.",identityMismatch:"The peer's call identity does not match the checked QR/code.",peerFinger:"Other side's SHA-256 ID",localFinger:"My SHA-256 ID",
       scanUnavailable:"QR camera scanning is unavailable in this browser. Paste the ID instead.",scanActive:"Scanner active. Point at a single E-ZERO QR code.",scanStopped:"Scanner stopped.",copied:"Copied.",shareUnavailable:"Sharing not supported here; copy the code.",
-      needCode:"Paste the complete signal code.",needConnected:"Connect the two browsers first.",signalInvalid:"Invalid, stale or unsigned signal. No connection was made.",waiting:"Waiting for the other phone; send your code.",connecting:"Connecting to the other phone…",connected:"WebRTC connected. Confirm your friend's ID independently.",offline:"Peer connection closed or failed; use Hang up to reset.",micDenied:"Microphone/camera permission denied or unavailable.",sent:"Encrypted DataChannel send completed. Not proof of a human reading.",arrived:"A private message arrived; tap Open once.",opened:"Message opened on this browser; this does not prove a human read it.",expired:"The temporary message has expired.",confirmPeer:"The remote key is self-signed, not verified as a person. Compare its SHA-256 ID."
+      needCode:"Paste the complete signal code.",needConnected:"Connect the two browsers first.",signalInvalid:"Invalid, stale or unsigned signal. No connection was made.",waiting:"Waiting for the other phone; send your code.",connecting:"Connecting to the other phone…",connected:"WebRTC connected. Confirm your friend's ID independently.",offline:"Peer connection closed or failed; use Hang up to reset.",micDenied:"Microphone/camera permission denied or unavailable.",sent:"Encrypted DataChannel send completed. Not proof of a human reading.",arrived:"A private message arrived; tap Open once.",opened:"Message opened on this browser; this does not prove a human read it.",expired:"The temporary message has expired.",confirmPeer:"The remote key is self-signed, not verified as a person. Compare its SHA-256 ID.",
+      easyTitle:"Connect with a friend — only two ways",
+      easyExplain:"Together? Scan QR. Far apart? Copy your signed ID into a message, then paste theirs.",
+      nearby:"📷 Nearby · Scan QR",
+      remote:"📩 Far away · Copy / paste",
+      easyTrust:"SHA-256 verifies a digital key, not a person's identity or an automatic call. A live call still needs one invitation and one answer.",
+      nearbyHint:"Show your QR to your friend, then scan theirs.",
+      remoteHint:"Copy or share your signed ID. Paste your friend's ID here and verify.",
+      qrOnly:"The QR contains no private key; it is a signed temporary identity.",
+      shareIdentity:"↗ Message my ID",
+      showMyCode:"Show my ID code (optional)",
+      nearCopy:"📋 Can't scan? Copy my ID",
+      pasteFriend:"📋 Paste friend's message",
+      callSetupSummary:"📞 After checking ID: test audio / video call",
+      callSetupTruth:"No signaling server yet. For a real call, the two phones must share an invitation and an answer.",
+      guidedTitle:"Message an invite or paste the reply",
+      guidedHelp:"Phone A shares an invite. Phone B pastes it and sends back the answer. Phone A pastes the answer. The system identifies either type.",
+      guidedOffer:"📩 Create call invite",
+      guidedShare:"↗ Message invite/answer",
+      guidedCopy:"📋 Copy invite/answer",
+      guidedIncoming:"Paste the message from the other phone",
+      guidedContinue:"✓ Continue with pasted message",
+      guidedWaiting:"Create an invitation or paste the message from the other phone.",
+      expertSummary:"Advanced technical code (optional)",guidedPrivacy:"Call invitations/answers may reveal IP or network details. Share only with a trusted friend, not a public group."
     },
     ar: {
       back:"↩ رجوع",language:"اللغة",welcome:"مرحباً — جرّب اتصالاً حقيقياً بين هاتفين",intro:"اختبار مباشر للمكالمات الصوتية والمرئية والرسائل التي تُعرض مرة واحدة.",
-      free:"دون رسوم",ads:"دون إعلانات",consent:"الكاميرا والميكروفون بإذن منك",labWarning:"تجربة اتصال مباشر P2P وليست خدمة مكتملة: لا حساب دائم ولا إضافة أصدقاء آلية ولا إشعارات في الخلفية ولا خادم إشارات. انقل رمز العرض والرد يدوياً بين الهاتفين. قد تفشل بعض الشبكات دون خادم TURN.",
+      free:"دون رسوم",ads:"دون إعلانات",consent:"الكاميرا والميكروفون بإذن منك",labWarning:"اتصال تجريبي بين هاتفين: يتحقق QR من المفتاح الرقمي، لكن المكالمة ما زالت تتطلب إرسال دعوة ورد عبر الرسائل. لا توجد حسابات أصدقاء دائمة أو مكالمات واردة تلقائية بعد.",
       policyButton:"🔒 سياسة الخصوصية الواضحة",closeEverything:"✕ إنهاء الاتصال ومسح البيانات المؤقتة",step1:"اختر نوع الاتصال والشبكة",
       audioCall:"📞 مكالمة صوتية",videoCall:"📹 مكالمة فيديو",stunConsent:"خادم STUN عام اختياري — قد يرى بيانات IP والشبكة. قد تفشل المكالمة دون خادم TURN.",
       quality:"جودة الفيديو",autoQuality:"تلقائي · إشارة الشبكة",saverQuality:"توفير البيانات · 360p",hdQuality:"عالية الدقة · 720p",fullQuality:"1080p إن توفرت",
@@ -84,7 +130,30 @@
       identityNotAccount:"يؤكد QR صحة التوقيع الذاتي وليس هوية الشخص الواقعية. إضافة صديق دائم تتطلب خادم حسابات.",
       identityPeer:"التحقق من هوية الصديق",verifiedSelf:"التوقيع الذاتي صحيح. تحقق من الشخص بطريقة مستقلة.",identityMismatch:"هوية الاتصال لا تطابق رمز QR / البصمة المدخلة.",peerFinger:"بصمة الطرف الآخر",localFinger:"بصمتي SHA-256",
       scanUnavailable:"مسح QR بالكاميرا غير مدعوم في هذا المتصفح. ألصق الرمز بدلاً من ذلك.",scanActive:"الماسح يعمل. وجّه الكاميرا نحو QR واحد من E-ZERO.",scanStopped:"توقف المسح.",copied:"تم النسخ.",shareUnavailable:"المشاركة غير متاحة؛ انسخ الرمز.",
-      needCode:"ألصق رمز الإشارة الكامل.",needConnected:"صل المتصفحين أولاً.",signalInvalid:"رمز غير صالح أو منتهي الصلاحية أو غير موقع. لم يتصل الهاتفان.",waiting:"بانتظار الهاتف الآخر؛ أرسل الرمز.",connecting:"جارٍ الاتصال بالطرف الآخر…",connected:"اتصل WebRTC. تحقق من هوية الصديق بشكل مستقل.",offline:"أُغلق الاتصال أو فشل؛ اضغط إنهاء لإعادة الضبط.",micDenied:"الميكروفون/الكاميرا غير متاح أو لم يُسمح به.",sent:"أُرسلت البيانات عبر قناة مشفرة؛ لا يثبت ذلك قراءة الإنسان.",arrived:"وصلت رسالة خاصة؛ اضغط فتح مرة واحدة.",opened:"فُتحت الرسالة على هذا الجهاز؛ ليس دليلاً على قراءة الإنسان.",expired:"انتهت صلاحية الرسالة المؤقتة.",confirmPeer:"المفتاح موقّع ذاتياً ولا يثبت هوية الشخص. قارن بصمة SHA-256."
+      needCode:"ألصق رمز الإشارة الكامل.",needConnected:"صل المتصفحين أولاً.",signalInvalid:"رمز غير صالح أو منتهي الصلاحية أو غير موقع. لم يتصل الهاتفان.",waiting:"بانتظار الهاتف الآخر؛ أرسل الرمز.",connecting:"جارٍ الاتصال بالطرف الآخر…",connected:"اتصل WebRTC. تحقق من هوية الصديق بشكل مستقل.",offline:"أُغلق الاتصال أو فشل؛ اضغط إنهاء لإعادة الضبط.",micDenied:"الميكروفون/الكاميرا غير متاح أو لم يُسمح به.",sent:"أُرسلت البيانات عبر قناة مشفرة؛ لا يثبت ذلك قراءة الإنسان.",arrived:"وصلت رسالة خاصة؛ اضغط فتح مرة واحدة.",opened:"فُتحت الرسالة على هذا الجهاز؛ ليس دليلاً على قراءة الإنسان.",expired:"انتهت صلاحية الرسالة المؤقتة.",confirmPeer:"المفتاح موقّع ذاتياً ولا يثبت هوية الشخص. قارن بصمة SHA-256.",
+      easyTitle:"تواصل مع صديق — بطريقتين فقط",
+      easyExplain:"إذا كنتما قريبين فامسح QR. وإذا كنتما بعيدين فانسخ الهوية الموقعة في رسالة ثم الصق هوية الصديق.",
+      nearby:"📷 قريب · مسح QR",
+      remote:"📩 بعيد · نسخ / لصق",
+      easyTrust:"تؤكد بصمة SHA-256 المفتاح الرقمي، ولا تثبت هوية الإنسان أو تُنشئ مكالمة تلقائياً. تتطلب المكالمة دعوة ورداً.",
+      nearbyHint:"اعرض رمز QR لصديقك ثم امسح رمزه.",
+      remoteHint:"انسخ هويتك الموقعة أو شاركها ثم الصق هوية صديقك للتحقق.",
+      qrOnly:"لا يحتوي QR على المفتاح السري؛ هو رمز هوية مؤقت موقّع.",
+      shareIdentity:"↗ إرسال رمز الهوية",
+      showMyCode:"عرض رمز هويتي (اختياري)",
+      nearCopy:"📋 لا يمكن المسح؟ انسخ هويتي",
+      pasteFriend:"📋 لصق رسالة الصديق",
+      callSetupSummary:"📞 بعد التحقق: تجربة مكالمة صوت وفيديو",
+      callSetupTruth:"لا يوجد خادم إشارات بعد. تتطلب المكالمة الحقيقية تبادل دعوة ورد بين الهاتفين.",
+      guidedTitle:"أرسل الدعوة أو الصق الرد",
+      guidedHelp:"يرسل الهاتف أ الدعوة. يلصقها الهاتف ب ويرسل الرد. يلصق الهاتف أ الرد. يحدد النظام النوع تلقائياً.",
+      guidedOffer:"📩 إنشاء دعوة اتصال",
+      guidedShare:"↗ إرسال الدعوة/الرد",
+      guidedCopy:"📋 نسخ الدعوة/الرد",
+      guidedIncoming:"ألصق رسالة الهاتف الآخر هنا",
+      guidedContinue:"✓ متابعة باستخدام الرسالة",
+      guidedWaiting:"أنشئ دعوة أو الصق رسالة الهاتف الآخر.",
+      expertSummary:"الأكواد التقنية المتقدمة (اختياري)",guidedPrivacy:"قد تحتوي دعوة الاتصال أو الرد على بيانات IP والشبكة؛ شاركها مع صديق موثوق فقط."
     }
   };
   const $all = selector => Array.from(document.querySelectorAll(selector));
@@ -95,14 +164,18 @@
   const me = key => (langs[currentLang] || {})[key] || $("fallbackNever") || null;
   const t = key => typeof me(key) === "string" ? me(key) : ($all('[data-i18n="' + key + '"]')[0]?.textContent || key);
   const status = (key, detail) => { $("connectionStatus").textContent = t(key) + (detail ? " · " + detail : ""); };
+  // Retain the original Urdu labels to restore every visible control on language return.
+  const urOriginals = new WeakMap();
+  $all("[data-i18n]").forEach(el => urOriginals.set(el,el.textContent));
   function langChange(lang) {
     currentLang = ["ur","en","ar"].includes(lang) ? lang : "ur";
     document.documentElement.lang = currentLang;
     document.documentElement.dir = currentLang === "en" ? "ltr" : "rtl";
     $("language").value = currentLang;
     $all("[data-i18n]").forEach(el => {
-      const value = langs[currentLang]?.[el.dataset.i18n];
-      if (value) el.textContent = value;
+      const value = langs[currentLang]?.[el.dataset.i18n] ??
+        (currentLang === "ur" ? urOriginals.get(el) : null);
+      if (typeof value === "string" && value.length) el.textContent = value;
     });
     if (currentLang !== "ur") {
       const ph = currentLang === "ar" ? "ألصق الدعوة / الرد" : "Paste offer / answer";
@@ -168,7 +241,11 @@
     return ["EZERO1",i.spki,i.fingerprint,i.code,String(i.expires),toB64(sig)].join(".");
   }
   async function verifyInvite(value) {
-    const raw = value.trim();
+    const supplied = value.trim();
+    // The app can receive an ID forwarded inside a message with a short heading.
+    // Only the exact signed-token grammar is extracted; verification is unchanged.
+    const found = supplied.match(/EZERO1\.[A-Za-z0-9_-]+\.[0-9a-f]{64}\.[0-9a-f]{24}\.\d{13}\.[A-Za-z0-9_-]+/);
+    const raw = found ? found[0] : supplied;
     if (/^[0-9a-fA-F]{64}$/.test(raw)) return {fingerprint:raw.toLowerCase(),verified:false};
     if (raw.length > 1300) throw Error("BAD_SIZE");
     const parts = raw.split(".");
@@ -204,7 +281,8 @@
   }
   $("verifyFriend").addEventListener("click", () => confirmFriend());
   $("copyIdentity").addEventListener("click", async () => {
-    await copyValue($("myDigitalId")); $("identityPeerStatus").textContent = t("copied");
+    const ok=await copyValue($("myDigitalId"));
+    $("identityPeerStatus").textContent = ok ? t("copied") : t("shareUnavailable");
   });
   function stopScanner() {
     scanGeneration++;
@@ -367,6 +445,7 @@
     await p.setLocalDescription(await p.createOffer());
     const complete=await iceComplete(p);
     $("localSignal").value=await makeSignal("offer");
+    document.dispatchEvent(new CustomEvent("ezero:signal-ready",{detail:{type:"offer"}}));
     status("waiting",complete?"":"ICE gathering partial");
   }));
   $("acceptOffer").addEventListener("click",()=>withBusy(async()=>{
@@ -376,6 +455,7 @@
     await p.setLocalDescription(await p.createAnswer());
     const complete=await iceComplete(p);
     $("localSignal").value=await makeSignal("answer");
+    document.dispatchEvent(new CustomEvent("ezero:signal-ready",{detail:{type:"answer"}}));
     status("waiting",complete?"":"ICE gathering partial");
   }));
   $("applyAnswer").addEventListener("click",()=>withBusy(async()=>{
@@ -387,11 +467,26 @@
   }));
   async function copyValue(element) {
     const value=element.value;
-    if(!value) return;
-    try{await navigator.clipboard.writeText(value);return;}
-    catch(_){element.focus();element.select();document.execCommand?.("copy");}
+    if(!value) return false;
+    try{await navigator.clipboard.writeText(value);return true;}
+    catch(_){
+      // Permission-safe user-gesture fallback even when the raw-code details are closed.
+      const temp=document.createElement("textarea");
+      temp.value=value;temp.readOnly=true;
+      temp.style.cssText="position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none";
+      document.body.appendChild(temp);
+      temp.focus();temp.select();
+      let copied=false;
+      try{copied=document.execCommand?.("copy")===true;}catch(_){}
+      temp.remove();
+      return copied;
+    }
   }
-  $("copySignal").addEventListener("click",async()=>{await copyValue($("localSignal"));status("copied");});
+  $("copySignal").addEventListener("click",async()=>{
+    const success=await copyValue($("localSignal"));
+    status(success?"copied":"shareUnavailable");
+    document.dispatchEvent(new CustomEvent("ezero:copy-result",{detail:{success}}));
+  });
   $("shareSignal").addEventListener("click",async()=>{
     const textValue=$("localSignal").value;
     if(!textValue)return status("needCode");

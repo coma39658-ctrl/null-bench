@@ -6,9 +6,11 @@ const html=fs.readFileSync("ezero_secure_connect_live_p2p_v0_1.html","utf8");
 const js=fs.readFileSync("js/ezero_secure_connect_live_p2p_v0_1.js","utf8");
 const css=fs.readFileSync("css/ezero_secure_connect_live_p2p_v0_1.css","utf8");
 const vendor=fs.readFileSync("js/vendor/ezero-qrcode-generator-mit.js","utf8");
+const simple=fs.readFileSync("js/ezero_secure_connect_simple_near_far_v0_1.js","utf8");
 const preview=fs.readFileSync("ezero_secure_connect_preview_v0_1.html","utf8");
 new vm.Script(js,{filename:"live_p2p.js"});
 new vm.Script(vendor,{filename:"ezero_qrcode_generator_mit.js"});
+new vm.Script(simple,{filename:"ezero_secure_connect_simple_near_far_v0_1.js"});
 assert.match(vendor,/Licensed under the MIT license/);
 assert.match(preview,/id="ezeroRealTwoPhoneTest"[^>]*href|href="\.\/ezero_secure_connect_live_p2p_v0_1\.html" id="ezeroRealTwoPhoneTest"/);
 assert.match(html,/content="default-src 'none'; script-src 'self'/);
@@ -21,6 +23,19 @@ for(const action of ["createOffer","acceptOffer","applyAnswer","copySignal","sha
   assert.match(html,new RegExp('id="'+action+'"'),action+" present");
 }
 assert.match(html,/id="myQr"/);
+for(const id of ["chooseNearby","chooseRemote","nearbyPanel","remotePanel","shareIdentity",
+   "nearCopyIdentity","pasteFriend","callSetup","guidedOffer","guidedShare",
+   "guidedCopy","guidedIncoming","guidedContinue","guidedStatus","expertSetup"]) {
+  assert.match(html,new RegExp('id="'+id+'"'),id+" required for simplified public flow");
+}
+assert.match(html,/<details id="callSetup"/);
+assert.match(html,/<details id="expertSetup"/);
+assert.match(simple,/navigator\.share/,"Native messaging share requires user gesture");
+assert.match(simple,/navigator\.clipboard\.readText/,"Paste requires explicit tap");
+assert.match(simple,/signal\.type==="offer"/,"Invite and reply identified without technical user choice");
+assert.match(simple,/\$\("applyAnswer"\)\.click\(\)/,"The guided fallback applies verified answer to existing core logic");
+assert.ok(!/fetch\(|XMLHttpRequest|WebSocket|MediaRecorder|localStorage|sessionStorage|indexedDB/.test(simple),
+  "Simplifying pairing does not add a tracking, storage or signaling backend");
 assert.match(html,/id="myDigitalId"/);
 assert.match(html,/id="myFingerprint"/);
 assert.match(html,/id="peerFingerprint"/);
@@ -64,3 +79,4 @@ console.log("REAL_MANUAL_WEBRTC_VIDEO_AUDIO_AND_DATA_CHANNEL: CONTRACT_PASS");
 console.log("NO_AUTOMATIC_MIC_CAMERA_OR_SESSION_RECORDING: CONTRACT_PASS");
 console.log("TRILINGUAL_ALL_PAGE_STATIC_LABELS: CONTRACT_PASS");
 console.log("USER_CONSENT_CLEAR_PRIVACY_AND_FIVE_MINUTE_MESSAGE: CONTRACT_PASS");
+console.log("SIMPLE_NEAR_QR_FAR_MESSAGE_UI_AND_SMART_OFFER_ANSWER: CONTRACT_PASS");
