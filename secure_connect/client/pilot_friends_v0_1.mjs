@@ -200,14 +200,15 @@ function createItem(fp,label,buttons){
   const card=document.createElement("div");card.className="pilot-friend";
   const monogram=document.createElement("span");monogram.className="friend-letter";monogram.textContent="E";
   const details=document.createElement("div");details.className="pilot-friend-text";
-  const name=document.createElement("strong");name.textContent=label;
+  const name=document.createElement("strong");name.textContent=label;name.dataset.l10n="inviterFP";
   const hash=document.createElement("code");hash.textContent=fp;hash.className="hash";
   details.append(name,hash);
   const actions=document.createElement("div");actions.className="pilot-actions";
-  for(const [text,fn] of buttons){
+  for(const [text,fn,labelKey] of buttons){
     const button=document.createElement("button");
     button.type="button";button.className="outline";
     button.textContent=text;
+    if(labelKey)button.dataset.l10n=labelKey;
     button.addEventListener("click",()=>fn(button));
     actions.append(button);
   }
@@ -229,7 +230,7 @@ async function showInbox(){
             if(res.bothLinked===true){setStatus("requestStatus","accepted");await showInbox();}
           }catch(e){setStatus("requestStatus",errorLabel(e));}
           finally{btn.disabled=false;}
-        }],
+        },"accept"],
         [t("decline"),async btn=>{
           btn.disabled=true;
           try{
@@ -237,7 +238,7 @@ async function showInbox(){
             setStatus("requestStatus","declined");await showInbox();
           }catch(e){setStatus("requestStatus",errorLabel(e));}
           finally{btn.disabled=false;}
-        }]
+        },"decline"]
       ]));
     }
   }catch(e){setStatus("requestStatus",errorLabel(e));}
@@ -254,7 +255,7 @@ async function showFriends(){
           // ephemeral signing identity and DOES NOT inherit friendship trust.
           setStatus("requestStatus","manualCallNote");
           window.location.assign(new URL("../../ezero_secure_connect_live_p2p_v0_1.html",location.href).href);
-        }],
+        },"manualCall"],
         [t("remove"),async btn=>{
           // Removal requires another explicit confirmation; no silent deletion.
           if(!window.confirm(t("remove")+"?"))return;
@@ -262,7 +263,7 @@ async function showFriends(){
           try{await call("remove",{to:fp});setStatus("requestStatus","removed");await showFriends();}
           catch(e){setStatus("requestStatus",errorLabel(e));}
           finally{btn.disabled=false;}
-        }]
+        },"remove"]
       ]));
     }
   }catch(e){setStatus("requestStatus",errorLabel(e));}
