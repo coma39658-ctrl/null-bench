@@ -1,0 +1,110 @@
+import assert from "node:assert/strict";
+import {CallRoom,ROOM_LIFETIME_MS} from "./room_worker.mjs";
+import worker from "./room_worker.mjs";
+
+// In-memory model of the WebSocket Hibernation attachment contract.
+// No calls to Cloudflare: this is a disabled, synthetic lab test.
+const NativeResponse=globalThis.Response;
+globalThis.Response=function(body,opts={}){
+  if(opts.status===101)return {status:101,webSocket:opts.webSocket,headers:opts.headers};
+  return new NativeResponse(body,opts);
+};
+class FakeSocket{
+  constructor(){this.readyState=1;this.messages=[];this.state=null;}
+  send(frame){if(this.readyState!==1)throw Error("CLOSED");this.messages.push(JSON.parse(frame));}
+  close(){this.readyState=3;}
+  serializeAttachment(value){this.state=structuredClone(value);}
+  deserializeAttachment(){return this.state;}
+}
+globalThis.WebSocketPair=class{
+  constructor(){this[0]=new FakeSocket();this[1]=new FakeSocket();}
+};
+function environment(){
+  const ctx={sockets:[],storage:{alarm:null,
+    setAlarm:async t=>{ctx.storage.alarm=t;}},
+    acceptWebSocket(ws){ctx.sockets.push(ws);},
+    getWebSockets(){return ctx.sockets.filter(s=>s.readyState!==3);}};
+  const env={ROOMS_ENABLED:"true"};
+  const object=new CallRoom(ctx,env);
+  env.CALL_ROOMS={getByName:()=>({fetch:r=>object.fetch(r)})};
+  return {ctx,env,object};
+}
+const base="https://example.invalid/v1/room/";
+const roomId="a".repeat(32),token="c".repeat(64);
+const goodHeaders={Origin:"https://coma39658-ctrl.github.io",
+  Upgrade:"websocket","Sec-WebSocket-Protocol":"ezero-room-v1,ezero-key-"+token};
+function req(id=roomId,headers=goodHeaders){return new Request(base+id,{headers});}
+function last(s){return s.messages.at(-1);}
+function signal(type){
+ return {v:1,type,issued:Date.now(),nonce:"f".repeat(32),fp:"a".repeat(64),
+   sig:"M".repeat(86),pub:"M".repeat(120),
+   sdp:"v=0\r\na=fingerprint:sha-256 "+("11:".repeat(31))+"11\r\n"+("a=sendrecv\r\n".repeat(6))};
+}
+const site={ROOMS_ENABLED:"false"};
+const disabled=await worker.fetch(req(),site);
+assert.equal(disabled.status,503);
+assert.equal((await disabled.json()).code,"ROOMS_DISABLED");
+const health=await worker.fetch(new Request("https://example.invalid/health"),site);
+assert.equal((await health.json()).code,"STAGING_DISABLED");
+console.log("DISABLED_BY_DEFAULT_NO_PUBLIC_ROOM: PASS");
+
+const env=environment();
+const invalidOrigin=await worker.fetch(req(roomId,{...goodHeaders,Origin:"https://stranger.test"}),env.env);
+assert.equal(invalidOrigin.status,403);
+const missingToken=await worker.fetch(req(roomId,{...goodHeaders,"Sec-WebSocket-Protocol":"ezero-room-v1"}),env.env);
+assert.equal(missingToken.status,401);
+const noWs=await worker.fetch(new Request(base+roomId,{headers:{Origin:goodHeaders.Origin}}),env.env);
+assert.equal(noWs.status,426);
+assert.equal(env.ctx.sockets.length,0);
+console.log("ORIGIN_TOKEN_UPGRADE_REQUIRED: PASS");
+
+const connA=await worker.fetch(req(),env.env);
+assert.equal(connA.status,101);
+const a=env.ctx.sockets[0];
+assert.equal(last(a).type,"ready");
+assert.equal(last(a).role,"caller");
+assert.equal(env.ctx.storage.alarm> Date.now(),true);
+assert.equal(env.ctx.storage.alarm<=Date.now()+ROOM_LIFETIME_MS+1000,true);
+const badSecond=await worker.fetch(req(roomId,{...goodHeaders,
+ "Sec-WebSocket-Protocol":"ezero-room-v1,ezero-key-"+"d".repeat(64)}),env.env);
+assert.equal(badSecond.status,403);
+const connB=await worker.fetch(req(),env.env);
+assert.equal(connB.status,101);
+const b=env.ctx.sockets[1];
+assert.equal(last(b).type,"peer_joined");
+const third=await worker.fetch(req(),env.env);
+assert.equal(third.status,409);
+assert.equal(env.ctx.sockets.length,2);
+console.log("ONE_ROOM_TWO_CLIENT_LIMIT_AND_BEARER_CHECK: PASS");
+
+await env.object.webSocketMessage(a,JSON.stringify({v:1,type:"offer",payload:signal("offer")}));
+assert.equal(last(a).code,"OFFER_NOT_READY");
+await env.object.webSocketMessage(b,JSON.stringify({v:1,type:"accept"}));
+assert.equal(last(a).type,"accepted");
+const pending=signal("offer");
+await env.object.webSocketMessage(a,JSON.stringify({v:1,type:"offer",payload:pending}));
+assert.equal(last(b).type,"offer");
+assert.equal(last(b).payload.sdp,pending.sdp);
+await env.object.webSocketMessage(b,JSON.stringify({v:1,type:"answer",payload:signal("answer")}));
+assert.equal(last(a).type,"answer");
+assert.equal(env.ctx.sockets[0].deserializeAttachment().count,3);
+assert.equal(env.ctx.sockets[1].deserializeAttachment().count,2);
+assert.equal(Object.keys(env.ctx.storage).includes("sdp"),false);
+console.log("EXPLICIT_ACCEPT_SIGNED_SHAPE_RELAY_NO_SDP_STORAGE: PASS");
+
+await env.object.webSocketMessage(a,JSON.stringify({v:1,type:"offer",payload:signal("offer")}));
+assert.equal(last(a).code,"OFFER_NOT_READY","Cannot send a second offer");
+await env.object.webSocketMessage(b,JSON.stringify({v:1,type:"hangup"}));
+assert.equal(a.readyState,3);
+assert.equal(b.readyState,3);
+console.log("REPLAY_BLOCKED_HANGUP_CLOSES_BOTH: PASS");
+
+const exp=environment();
+await worker.fetch(req(),exp.env);await worker.fetch(req(),exp.env);
+const expA=exp.ctx.sockets[0],expB=exp.ctx.sockets[1];
+expA.serializeAttachment({...expA.deserializeAttachment(),expires:Date.now()-1});
+await exp.object.webSocketMessage(expA,JSON.stringify({v:1,type:"offer",payload:signal("offer")}));
+assert.equal(expA.readyState,3);
+await exp.object.alarm();
+assert.equal(expB.readyState,3);
+console.log("EXPIRED_ROOM_ALARM_CLOSES_PEERS: PASS");
