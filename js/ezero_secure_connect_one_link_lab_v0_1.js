@@ -92,7 +92,7 @@ const text={
    remind:"الميزة في مرحلة التجربة فقط؛ لا تفتح للجمهور قبل اختبار هاتفين فعلياً."
  }
 };
-let roomId=null,secret=null,proof=null,secretKey=null,ws=null,role=null,joined=false,approved=false;
+let roomId=null,secret=null,auth=null,proof=null,secretKey=null,ws=null,role=null,joined=false,approved=false;
 let ready=false, link="",closing=false;
 const lang=()=>["ur","en","ar"].includes($("language")?.value)?$("language").value:"ur";
 const t=k=>(text[lang()]||text.ur)[k]||text.ur[k]||k;
@@ -104,7 +104,7 @@ function draw(){
  $("roomAccept").disabled=!(ready&&role==="callee"&&!approved);
  $("roomDecline").disabled=!(ready&&role==="callee"&&!approved);
  $("roomCreate").disabled=ready;
- $("roomJoin").disabled=ready||!roomId;
+ $("roomJoin").disabled=ready||!roomId||!auth;
  $("roomCopy").disabled=!(link&&ready&&role==="caller");
  $("roomShare").disabled=!(link&&ready&&role==="caller");
  $("roomEnd").disabled=!ready;
@@ -116,7 +116,12 @@ function unb64(s){const raw=atob(s.replace(/-/g,"+").replace(/_/g,"/")+"=".repea
 async function useSecret(value){
  if(!/^[a-f0-9]{64}$/.test(value))throw Error("SECRET_FORMAT");
  secret=value;
- secretKey=await crypto.subtle.importKey("raw",bytesFromHex(value),{name:"AES-GCM"},false,["encrypt","decrypt"]);
+ // Domain-separated hash is a one-way room authorization token. NEVER send
+ // the raw 256-bit AES-GCM key in WebSocket headers or to Cloudflare.
+ auth=hex(new Uint8Array(await crypto.subtle.digest("SHA-256",
+   new TextEncoder().encode("EZERO-ROOM-AUTH-1:"+value))));
+ secretKey=await crypto.subtle.importKey("raw",bytesFromHex(value),
+   {name:"AES-GCM"},false,["encrypt","decrypt"]);
 }
 async function encrypt(raw){
  if(!secretKey)throw Error("ENCRYPTION_UNAVAILABLE");
@@ -144,10 +149,16 @@ function readLink(){
  // Parsing only; a fragment is never sent to the origin server.
  const m=raw.match(/^callroom=([a-f0-9]{32})\.([a-f0-9]{64})\.([a-f0-9]{64})$/);
  if(!m)return false;
- roomId=m[1];proof=m[3];useSecret(m[2]).catch(()=>st("invalid"));
- link=location.href; $("roomLink").value=link;
+ roomId=m[1];proof=m[3];
+ // Strip the fragment before any asynchronous operation; incoming participants
+ // must not expose their bearer link in the UI or browser history.
  history.replaceState(null,"",location.pathname+location.search);
- st("incoming");draw();return true;
+ $("roomLink").value="";link="";
+ st("incoming");draw();
+ void useSecret(m[2]).then(()=>{secret=null;draw();}).catch(()=>{
+   roomId=null;auth=null;proof=null;secretKey=null;secret=null;st("invalid");draw();
+ });
+ return true;
 }
 function send(type,body={}){
  if(ws?.readyState!==WebSocket.OPEN)return false;
@@ -158,6 +169,8 @@ function closeRoom(sendHangup=false){
  closing=true;
  try{ws?.close(1000,"Done");}catch(_){}
  ws=null;ready=false;approved=false;joined=false;
+ secret=null;secretKey=null;auth=null;proof=null;link="";roomId=null;
+ $("roomLink").value="";
  $("hangup")?.click();
  st("ended");draw();
 }
@@ -185,11 +198,11 @@ async function receive(frame){
  }
 }
 function connect(){
- if(!roomId||!secret||!secretKey||!/^[a-f0-9]{64}$/.test(proof||"")){st("invalid");return;}
+ if(!roomId||!auth||!secretKey||!/^[a-f0-9]{64}$/.test(proof||"")){st("invalid");return;}
  if(ws&&ws.readyState<=1)return;
  st("connecting");closing=false;
  try{
-   ws=new WebSocket(endpoint+"/v1/room/"+roomId,["ezero-room-v1","ezero-key-"+secret,"ezero-proof-"+proof]);
+   ws=new WebSocket(endpoint+"/v1/room/"+roomId,["ezero-room-v1","ezero-key-"+auth,"ezero-proof-"+proof]);
    ws.onmessage=e=>{let obj;try{obj=JSON.parse(e.data);}catch(_){return;}void receive(obj);};
    ws.onerror=()=>st("serverOff");
    ws.onclose=()=>{ready=false;ws=null;if(!closing)st("serverOff");draw();};
@@ -205,10 +218,11 @@ $("roomCreate").addEventListener("click",async()=>{
   const hmacKey=await crypto.subtle.importKey("raw",new TextEncoder().encode(owner),
     {name:"HMAC",hash:"SHA-256"},false,["sign"]);
   const signed=new Uint8Array(await crypto.subtle.sign("HMAC",hmacKey,
-    new TextEncoder().encode(roomId+"."+secret)));
+    new TextEncoder().encode(roomId+"."+auth)));
   proof=hex(signed);
   $("roomOwnerSecret").value=""; // never store or forward the operator's passcode
   link=new URL(location.pathname+location.search+"#callroom="+roomId+"."+secret+"."+proof,location.origin).href;
+  secret=null; // Raw link key remains only in approved share field and CryptoKey.
   $("roomLink").value=link;st("linkReady");draw();connect();
  }catch(_){st("failed");}
 });
