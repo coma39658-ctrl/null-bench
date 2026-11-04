@@ -174,7 +174,14 @@
     const b=$("ezeroFaceTalkBtn");if(b){b.textContent="■ گفتگو بند کریں";b.setAttribute("aria-pressed","true");}
     startListening();
   }
-  const shareTextFor=text=>"E-ZERO AI Studio\n\n"+safeText(text).slice(0,1900)+"\n\n🎙️ E-ZERO AI سے بات کریں (لنک کھولنا آپ کی مرضی ہے):\n"+SHARE_URL;
+  const SHARE_CAPTION="🎙️ E-ZERO AI Studio — صوتی معاون\nلنک کھولنا اور انسٹال کرنا آپ کی مرضی ہے:\n"+SHARE_URL;
+  const shareTextFor=text=>"E-ZERO AI Studio | AI جواب\n\n"+safeText(text).slice(0,1900)+"\n\n"+SHARE_CAPTION;
+  function brandedAudioText(answer,voiceId){
+    // Audible brand credit is disclosed to the sender; no hidden advertising.
+    const intro=voiceId.startsWith("ur_")?"ای زیرو اے آئی اسٹوڈیو۔ ":
+      voiceId.startsWith("ar_")?"إي زيرو إيه آي ستوديو. ":"E-ZERO AI Studio. ";
+    return intro+answer;
+  }
   async function shareText(text){
     const value=shareTextFor(text);
     if(navigator.share){try{await navigator.share({title:"E-ZERO AI Studio",text:value});return;}catch(e){if(e?.name==="AbortError")return;}}
@@ -195,7 +202,14 @@
     const t=safeText(text);
     const share=document.createElement("button");share.type="button";share.className="miniButton";share.textContent="↗ متن و لنک شیئر";
     share.addEventListener("click",()=>shareText(text));
-    const make=document.createElement("button");make.type="button";make.className="miniButton";make.textContent="🔊 آڈیو WAV بنائیں";
+    const shareLink=document.createElement("button");shareLink.type="button";shareLink.className="miniButton";shareLink.textContent="🔗 E-ZERO لنک کاپی";
+    shareLink.setAttribute("aria-label","آڈیو کے ساتھ شیئر کرنے کے لیے E-ZERO AI Studio کا رضامندی والا لنک کاپی کریں");
+    shareLink.addEventListener("click",async()=>{
+      try{await navigator.clipboard.writeText(SHARE_CAPTION);status("E-ZERO کا مختصر تعارف اور لنک کاپی ہوگیا؛ WhatsApp میں آڈیو کے ساتھ بھیجیں۔");}
+      catch(_){status("لنک کاپی نہیں ہوا۔ "+SHARE_URL,true);}
+    });
+    const make=document.createElement("button");make.type="button";make.className="miniButton";make.textContent="🔊 E-ZERO حوالہ کے ساتھ WAV آڈیو";
+    make.title="AI جواب کی مقامی WAV فائل بنائیں؛ آغاز میں E-ZERO AI Studio کا مختصر صوتی حوالہ شامل ہوگا۔ پہلی بار آواز کا ماڈل ڈاؤن لوڈ ہو سکتا ہے۔";
     let cachedAudio=null;
     make.addEventListener("click",async()=>{
       if(make.disabled)return;
@@ -208,26 +222,26 @@
         // Downloads a voice model on first request; browser TTS cannot be captured.
         const mod=await import("./vendor/ezero-piper-urdu/piper-tts-web-urdu.mjs");
         const session=await mod.TtsSession.create({voiceId});
-        const blob=await session.predict(t);
+        const blob=await session.predict(brandedAudioText(t,voiceId));
         if(!blob||!blob.size)throw Error("EMPTY_AUDIO");
-        const file=new File([blob],"E-ZERO-AI-voice.wav",{type:"audio/wav"});
+        const file=new File([blob],"E-ZERO-AI-Studio-Voice.wav",{type:"audio/wav"});
         cachedAudio=file;
         make.textContent="⬇ آڈیو محفوظ کریں";
         make.disabled=false;
         const send=document.createElement("button");send.type="button";send.className="miniButton";send.textContent="↗ WhatsApp / آڈیو شیئر";
         send.addEventListener("click",async()=>{
           if(navigator.share&&navigator.canShare?.({files:[file]})){
-            try{await navigator.share({title:"E-ZERO AI Studio",text:"E-ZERO AI سے بات کریں: "+SHARE_URL,files:[file]});return;}
+            try{await navigator.share({title:"E-ZERO AI Studio | Voice",text:SHARE_CAPTION,files:[file]});status("آڈیو شیئر آپشن کھلا۔ کچھ ایپس فائل کے ساتھ لنک نہیں بھیجتیں؛ ضرورت ہو تو 🔗 لنک الگ شیئر کریں۔");return;}
             catch(e){if(e?.name==="AbortError")return;}
           }
           downloadFile(file);
-          status("آڈیو WAV فون پر محفوظ ہو گئی۔ WhatsApp میں فائل اور E-ZERO لنک شامل کر کے بھیجیں۔");
+          status("AI جواب کی WAV آڈیو فون پر محفوظ ہو گئی۔ WhatsApp میں فائل اور 🔗 E-ZERO لنک الگ شامل کریں۔");
         });
         tools.appendChild(send);
-        status("AI آواز کی WAV فائل تیار ہے۔ WhatsApp میں شیئر کریں؛ بعض فون لنک الگ بھیجتے ہیں۔");
-      }catch(_){make.disabled=false;make.textContent="🔊 دوبارہ آڈیو بنائیں";status("مقامی آواز کا ماڈل یا انٹرنیٹ دستیاب نہیں؛ اس جواب کی آڈیو فائل تیار نہیں ہوئی۔",true);}
+        status("E-ZERO کا مختصر صوتی حوالہ شامل ہے؛ WAV تیار ہے۔ بعض ایپس لنک کا متن ہٹا دیتی ہیں، اس لیے 🔗 لنک الگ بھی شیئر کریں۔");
+      }catch(_){make.disabled=false;make.textContent="🔊 دوبارہ WAV بنائیں";status("مقامی آواز کا ماڈل یا انٹرنیٹ دستیاب نہیں؛ اس جواب کی آڈیو فائل تیار نہیں ہوئی۔",true);}
     });
-    tools.append(share,make);
+    tools.append(share,shareLink,make);
   }
   // Existing message renderer attaches both actions only on a real AI reply.
   window.EZERO_AI_STUDIO_ATTACH_SHARE_V0_1=audioShareTools;
