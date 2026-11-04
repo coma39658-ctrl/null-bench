@@ -18,7 +18,7 @@ const MAX_ACCOUNTS = 100;
 const MAX_INCOMING = 20;
 const MAX_FRIENDS = 50;
 const REQUESTS_PER_MINUTE = 24;
-const VALID_TYPES = new Set(["register","request","respond","inbox","friends","remove"]);
+const VALID_TYPES = new Set(["register","request","respond","inbox","friends","remove","delete_account"]);
 const HEX_ID = /^[a-f0-9]{64}$/;
 const NONCE = /^[a-f0-9]{32}$/;
 const B64URL = /^[A-Za-z0-9_-]+$/;
@@ -149,7 +149,7 @@ export class SecureConnectDirectory {
     // Bounded best-effort expiration sweeps. DO SQLite-backed storage is managed
     // by Cloudflare; accepted friend IDs are retained until explicitly removed.
     let pending=false;
-    for(const prefix of ["nonce:","incoming:","pair:"]){
+    for(const prefix of ["nonce:","rate:","incoming:","pair:"]){
       const items=await this.ctx.storage.list({prefix,limit:250});
       for(const [key,item] of items){
         const until=item?.until??item?.expires??item?.cooldownUntil;
@@ -302,6 +302,36 @@ export class SecureConnectDirectory {
     });
     return json({ok:true,code:existed?"FRIEND_REMOVED":"NO_FRIENDSHIP"});
   }
+  async deleteAccount(b){
+    // Consent-based account erasure is signed and rate/replay guarded.
+    // The pilot has at most 100 accounts; derive bilateral keys rather than
+    // scanning unbounded storage, including pending/accepted relationships.
+    const own="account:"+b.account;
+    if(!await this.ctx.storage.get(own))return failed("ACCOUNT_NOT_REGISTERED",404);
+    const accounts=await this.ctx.storage.list({prefix:"account:",limit:MAX_ACCOUNTS+1});
+    if(accounts.size>MAX_ACCOUNTS)return failed("ACCOUNT_INDEX_OVERFLOW",503);
+    const applied=await this.ctx.storage.transaction(async tx=>{
+      if(!await tx.get(own))return false;
+      for(const [key] of accounts){
+        const peer=key.slice("account:".length);
+        if(peer===b.account || !HEX_ID.test(peer))continue;
+        await tx.delete(friendKey(b.account,peer));
+        await tx.delete(friendKey(peer,b.account));
+        await tx.delete(pairKey(b.account,peer));
+        await tx.delete(incomingKey(b.account,peer));
+        await tx.delete(incomingKey(peer,b.account));
+      }
+      await tx.delete(own);
+      const count=await tx.get("meta:account_count")||0;
+      await tx.put("meta:account_count",Math.max(0,count-1));
+      return true;
+    });
+    if(!applied)return failed("ACCOUNT_NOT_REGISTERED",404);
+    // Replay/rate guards expire via the one-minute alarm sweep.
+    // Private browser key deletion MUST be performed by the client separately.
+    return json({ok:true,code:"ACCOUNT_DELETED",friendsRevoked:true,
+      localIdentityDeleted:false});
+  }
   async fetch(request){
     if(request.method!=="POST")return failed("METHOD_NOT_ALLOWED",405);
     let b;try{b=await request.json();}catch(_){return failed("BAD_JSON");}
@@ -313,6 +343,7 @@ export class SecureConnectDirectory {
     if(b.type==="inbox")return this.inbox(b);
     if(b.type==="friends")return this.friends(b);
     if(b.type==="remove")return this.remove(b);
+    if(b.type==="delete_account")return this.deleteAccount(b);
     return failed("NOT_SUPPORTED",404);
   }
 }
