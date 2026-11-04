@@ -40,7 +40,7 @@ async function ownerProofValid(request,env,id,token,issued){
   // a capability for a new room ID. Friends receive ONLY a proof specific to
   // that one ID and token; nobody receives the operator's actual secret.
   const secret=env.PILOT_OWNER_SECRET;
-  if(typeof secret!=="string" || !/^[A-Za-z0-9_-]{24,128}$/.test(secret))
+  if(typeof secret!=="string" || !/^[a-f0-9]{64}$/.test(secret))
     return false;
   const protocols=(request.headers.get("Sec-WebSocket-Protocol")||"")
     .split(",").map(s=>s.trim());
@@ -102,7 +102,7 @@ export default {
       });
       if(quota?.success!==true)return json("RATE_LIMITED",429);
     }catch(_){return json("RATE_LIMIT_UNAVAILABLE",503);}
-    if(typeof env.PILOT_OWNER_SECRET!=="string" || env.PILOT_OWNER_SECRET.length<24)
+    if(!/^[a-f0-9]{64}$/.test(env.PILOT_OWNER_SECRET||""))
       return json("OWNER_SECRET_NOT_CONFIGURED",503);
     if(!await ownerProofValid(request,env,id,token,issued))
       return json("ROOM_OWNER_PROOF_REQUIRED",403);
