@@ -1181,16 +1181,16 @@ header{
  <button
   id="ezeroVoiceGuideButton"
   type="button"
-  aria-label="Open E-ZERO Voice Guide and Assist Hub"
-  title="E-ZERO Voice & Assist Hub"
+  aria-label="Open E-ZERO Secure Connect preview"
+  title="E-ZERO Secure Connect · Private Calling Preview"
   class="ezero-assist-launcher"
  >
   <span class="ezero-assist-mic-shell" aria-hidden="true">
-   <span class="ezero-assist-mic-glyph">🎙️</span>
+   <span class="ezero-assist-mic-glyph">🔐</span>
   </span>
   <span class="ezero-assist-copy">
-   <strong>Voice &amp; Assist</strong>
-   <small>Voice Guide · Hub Preview</small>
+   <strong>Secure Connect</strong>
+   <small>HD Calls · Voice Messages</small>
   </span>
   <span class="ezero-assist-preview-badge">PREVIEW</span>
  </button>
@@ -3576,24 +3576,24 @@ function drawHistogram(vals,observed){
       style="width:58px;height:58px;flex:0 0 58px;object-fit:contain;filter:drop-shadow(0 4px 9px rgba(8,117,150,.24));"
      >
      <div style="font-size:23px;font-weight:900;line-height:1.08;letter-spacing:-.3px;color:#0b2740;">
-      E-ZERO <span style="font-size:25px;color:#087596;">AI</span> Agent
+      E-ZERO <span style="font-size:25px;color:#087596;">Secure</span> Connect
      </div>
     </div>
    <div style="font-size:12px;color:#52606d;margin-top:2px;">
-    Evidence-grounded website guidance
+    Private calls · Voice messages · Research preview
    </div>
   </div>
 
   <div style="display:flex;align-items:center;gap:6px;">
    <button
     id="ezeroVoiceGuideSettingsButton"
-    type="button"
+    type="button" hidden aria-hidden="true" tabindex="-1"
     aria-label="Open E-ZERO Voice Guide settings"
     title="Voice Guide Settings"
     style="
      width:38px;
      height:38px;
-     display:grid;
+     display:none;
      place-items:center;
      padding:0;
      border:1px solid #c7dfe8;
@@ -3608,7 +3608,7 @@ function drawHistogram(vals,observed){
    <button
     id="ezeroVoiceGuideClose"
     type="button"
-    aria-label="Back / Close E-ZERO Voice Guide"
+    aria-label="Close E-ZERO Secure Connect preview"
     title="Back"
     style="
      min-width:74px;
@@ -3626,51 +3626,33 @@ function drawHistogram(vals,observed){
    >← Back</button>
   </div>
  </div>
-   <div id="ezeroAssistFutureDock" aria-label="E-ZERO Assist Hub capabilities">
-    <div class="ezero-assist-tool is-current">
-     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="9" y="3" width="6" height="11" rx="3"></rect>
-      <path d="M6.5 10.5v.8a5.5 5.5 0 0 0 11 0v-.8M12 16.8V21M8.8 21h6.4"></path>
-     </svg>
-     <span class="ezero-assist-tool-copy">
-      <strong>Voice Guide</strong>
-      <small>Available Preview</small>
-     </span>
-    </div>
-
-    <button type="button" class="ezero-assist-tool" disabled aria-disabled="true">
-     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="3" y="6" width="13" height="12" rx="2"></rect>
-      <path d="M16 10l5-3v10l-5-3z"></path>
-     </svg>
-     <span class="ezero-assist-tool-copy">
-      <strong>Video Call / Chat</strong>
-      <small>Coming Soon</small>
-     </span>
-    </button>
-
-    <button type="button" class="ezero-assist-tool" disabled aria-disabled="true">
-     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M4 5h16v11H8l-4 4z"></path>
-      <path d="M8 9h8M8 12h5"></path>
-     </svg>
-     <span class="ezero-assist-tool-copy">
-      <strong>Messages</strong>
-      <small>Coming Soon</small>
-     </span>
-    </button>
-
-    <a href="ezero_public_media_preview_v0_1.html" class="ezero-assist-tool" style="text-decoration:none" aria-label="Open local image and video previews">
-     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 16V4M8 8l4-4 4 4"></path>
-      <path d="M5 14v5h14v-5"></path>
-     </svg>
-     <span class="ezero-assist-tool-copy">
-      <strong>Image / Video Preview</strong>
-      <small>Local Preview Only</small>
-     </span>
+   <div id="ezeroAssistFutureDock" aria-label="E-ZERO Secure Connect features">
+    <a id="ezeroSecureConnectVideoEntry" href="./ezero_secure_connect_preview_v0_1.html#video" class="ezero-assist-tool" aria-label="HD video calling local device test">
+     <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="2"></rect><path d="M16 10l5-3v10l-5-3z"></path></svg>
+     <span class="ezero-assist-tool-copy"><strong>HD Video Call</strong><small>Camera Test · Local</small></span>
+    </a>
+    <a id="ezeroSecureConnectAudioEntry" href="./ezero_secure_connect_preview_v0_1.html#audio" class="ezero-assist-tool" aria-label="Clear audio call microphone test">
+     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H5a2 2 0 0 0-2 2c0 8 7 15 15 15a2 2 0 0 0 2-2v-3l-5-2-2 3a15 15 0 0 1-6-6l3-2-2-5z"></path></svg>
+     <span class="ezero-assist-tool-copy"><strong>Audio Call</strong><small>Clean Mic · Local</small></span>
+    </a>
+    <a id="ezeroSecureConnectVoiceEntry" href="./ezero_secure_connect_preview_v0_1.html#voice" class="ezero-assist-tool" aria-label="Private voice message local draft">
+     <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M6.5 10.5v.8a5.5 5.5 0 0 0 11 0v-.8M12 16.8V21M8.8 21h6.4"></path></svg>
+     <span class="ezero-assist-tool-copy"><strong>Voice Messages</strong><small>Private Draft · Local</small></span>
+    </a>
+    <a id="ezeroSecureConnectQrEntry" href="./ezero_secure_connect_preview_v0_1.html#qr" class="ezero-assist-tool" aria-label="Secure QR identity research preview">
+     <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><path d="M14 14h2v2h-2zM19 14v7M14 19h3"></path></svg>
+     <span class="ezero-assist-tool-copy"><strong>QR / Contacts</strong><small>SHA-256 · Research</small></span>
     </a>
    </div>
+   <p role="status" style="margin:12px 0 0;padding:10px;border:1px solid #c4dce2;border-radius:12px;background:#ecf7f8;color:#225466;font-size:12px;font-weight:700;">
+    محفوظ کال سرور ابھی فعال نہیں۔ اوپر کے بٹن صرف مقامی فون ٹیسٹ اور منصوبہ بند سہولتیں کھولتے ہیں؛ کسی شخص سے کال یا میسج نہیں جاتے۔
+   </p>
+   <div style="display:flex;gap:10px;flex-wrap:wrap;margin:11px 0 0;font-weight:800;font-size:12px;">
+     <a href="./ezero_secure_connect_preview_v0_1.html#messages" style="color:#116b80;">🔒 Temporary Messages</a>
+     <a href="./ezero_secure_connect_preview_v0_1.html#groups" style="color:#116b80;">👥 Private Groups</a>
+   </div>
+   <div id="ezeroLegacyVoiceGuide" hidden style="display:none">
+
 
 
  <div
@@ -3868,6 +3850,7 @@ function drawHistogram(vals,observed){
   This guide does not provide definitive diagnosis, safety certification,
   or autonomous machine control. Unsupported claims must fail closed.
  </div>
+</div>
 </div>
 
 <script>
