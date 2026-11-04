@@ -77,8 +77,8 @@ const clearSelectedAudio=()=>{
  if(clear)clear.hidden=true;
 };
 received?.addEventListener("change",()=>{
- clearSelectedAudio();
  const file=received.files?.[0];
+ clearSelectedAudio();
  if(!file)return;
  const safeFile=/\.(?:wav|mp3|m4a|ogg|webm)$/i.test(file.name||"");
  const safeType=/^audio\/(?:wav|x-wav|mpeg|mp4|ogg|webm)$/i.test(file.type||"");
