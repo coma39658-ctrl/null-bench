@@ -149,6 +149,9 @@
   <section class="card" id="oneLinkLab" aria-labelledby="roomLabTitle">
     <div class="heading"><span class="number"><icon>🔗</icon></span><h2 id="roomLabTitle" data-room-i18n="title">نجی ایک لنک کال — تجرباتی محفوظ طریقہ</h2></div>
     <p class="muted" data-room-i18n="explain">لمبے WhatsApp کوڈ نہیں؛ لنک صرف اپنے دوست کو بھیجیں، وہ کال قبول کرے، پھر آپ شروع کریں۔</p>
+    <label class="field" for="roomOwnerSecret"><span data-room-i18n="ownerLabel">پائلٹ مالک کا خفیہ کوڈ (دوست کو نہ بھیجیں)</span>
+      <input id="roomOwnerSecret" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="128" placeholder="Pilot owner code" aria-label="Pilot owner private code">
+    </label>
     <div class="buttonrow">
       <button id="roomCreate" type="button" class="primary" data-room-i18n="create">🔗 نجی کال لنک بنائیں</button>
       <button id="roomJoin" type="button" class="outline" disabled data-room-i18n="join">📞 اس لنک کی کال میں شامل ہوں</button>
