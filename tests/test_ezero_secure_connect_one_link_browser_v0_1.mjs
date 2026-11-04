@@ -114,12 +114,12 @@ try{
   await a.page.locator("#roomCreate").click();
   assert.match(await a.page.locator("#roomStatus").innerText(),/مالک|owner|المالك/,
     "Cannot create room without operator authorization");
-  await a.page.locator("#roomOwnerSecret").fill("EZEROOwnerPilotSecret_2026_TestOnly_64chars");
+  await a.page.locator("#roomOwnerSecret").fill("f".repeat(64));
   await a.page.locator("#roomCreate").click();
   await a.page.waitForFunction(()=>document.querySelector("#roomStatus")?.dataset.state==="joined");
   const invite=await a.page.locator("#roomLink").inputValue();
   assert.match(invite,/#callroom=[a-f0-9]{32}\.[a-f0-9]{64}\.[0-9]{13}\.[a-f0-9]{64}$/);
-  assert.equal(invite.includes("EZEROOwnerPilotSecret"),false,"Owner secret must not enter URL");
+  assert.equal(invite.includes("f".repeat(64)),false,"Owner secret must not enter URL");
   assert.equal(await a.page.locator("#roomOwnerSecret").inputValue(),"",
     "Owner secret cleared after creating invitation");
   const linkSegments=invite.split("#callroom=")[1].split(".");
