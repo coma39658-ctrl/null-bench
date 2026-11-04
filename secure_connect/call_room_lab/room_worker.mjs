@@ -10,6 +10,7 @@ const PAGE_ORIGIN="https://coma39658-ctrl.github.io";
 const ROOM_ID=/^[a-f0-9]{32}$/;
 const ROOM_KEY=/^ezero-key-([a-f0-9]{64})$/;
 const ROOM_PROOF=/^ezero-proof-([a-f0-9]{64})$/;
+const ROOM_TIME=/^ezero-time-([0-9]{13})$/;
 const MAX_FRAME=180000;
 const MAX_MESSAGES_PER_SOCKET=12;
 
@@ -26,7 +27,15 @@ function tokenFrom(request){
   if(auth.length!==1)return null;
   return auth[0].match(ROOM_KEY)[1];
 }
-async function ownerProofValid(request,env,id,token){
+function issuedFrom(request){
+  const parts=(request.headers.get("Sec-WebSocket-Protocol")||"")
+    .split(",").map(s=>s.trim());
+  const values=parts.filter(v=>ROOM_TIME.test(v));
+  if(values.length!==1)return null;
+  const issued=Number(values[0].match(ROOM_TIME)[1]);
+  return Number.isSafeInteger(issued)?issued:null;
+}
+async function ownerProofValid(request,env,id,token,issued){
   // Only an operator knowing Cloudflare's private PILOT_OWNER_SECRET can create
   // a capability for a new room ID. Friends receive ONLY a proof specific to
   // that one ID and token; nobody receives the operator's actual secret.
@@ -40,7 +49,7 @@ async function ownerProofValid(request,env,id,token){
   const actual=proofs[0].match(ROOM_PROOF)[1];
   const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(secret),
     {name:"HMAC",hash:"SHA-256"},false,["sign"]);
-  const bytes=await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(id+"."+token));
+  const bytes=await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(id+"."+token+"."+issued));
   const expected=[...new Uint8Array(bytes)].map(x=>x.toString(16).padStart(2,"0")).join("");
   // Constant-time comparison; do not log the proof or the secret.
   let diff=0;for(let i=0;i<64;i++)diff|=expected.charCodeAt(i)^actual.charCodeAt(i);
@@ -77,12 +86,15 @@ export default {
     if(request.headers.get("Origin")!==PAGE_ORIGIN)return json("ORIGIN_NOT_ALLOWED",403);
     const token=tokenFrom(request);
     if(!token)return json("ROOM_TOKEN_REQUIRED",401);
+    const issued=issuedFrom(request);
+    if(issued===null || issued>Date.now()+30000 ||
+       issued+ROOM_LIFETIME_MS<Date.now())return json("ROOM_LINK_EXPIRED",410);
     const id=url.pathname.split("/").pop();
     if(!ROOM_ID.test(id))return json("ROOM_INVALID",400);
     if(!env.CALL_ROOMS?.getByName)return json("BINDING_UNAVAILABLE",503);
     if(typeof env.PILOT_OWNER_SECRET!=="string" || env.PILOT_OWNER_SECRET.length<24)
       return json("OWNER_SECRET_NOT_CONFIGURED",503);
-    if(!await ownerProofValid(request,env,id,token))
+    if(!await ownerProofValid(request,env,id,token,issued))
       return json("ROOM_OWNER_PROOF_REQUIRED",403);
     // Verify before allocating a Durable Object to block unauthenticated
     // cross-room resource exhaustion. No plain secret in URL or logs.
@@ -100,6 +112,9 @@ export class CallRoom {
     if(request.headers.get("Origin")!==PAGE_ORIGIN)return json("ORIGIN_NOT_ALLOWED",403);
     const token=tokenFrom(request);
     if(!token)return json("ROOM_TOKEN_REQUIRED",401);
+    const issued=issuedFrom(request);
+    if(issued===null || issued>Date.now()+30000 ||
+       issued+ROOM_LIFETIME_MS<Date.now())return json("ROOM_LINK_EXPIRED",410);
     const digest=await tokenDigest(token);
     const existing=activeSockets(this.ctx);
     if(existing.length>=2)return json("ROOM_FULL",409);
@@ -112,11 +127,15 @@ export class CallRoom {
     if(record?.closed||record?.expires<=now)return json("ROOM_EXPIRED",410);
     if((record && record.hash!==digest)||(prior && prior.hash!==digest))
       return json("ROOM_TOKEN_INVALID",403);
-    const expires=record?.expires||now+ROOM_LIFETIME_MS;
+    const expires=record?.expires||issued+ROOM_LIFETIME_MS;
     if(!record)await this.ctx.storage.put("room:meta",{hash:digest,expires,closed:false});
     const slot=prior?.slot==="caller"?"callee":(record?.callerJoined?"callee":"caller");
     if(slot==="callee"&&!peer)return json("CALLER_DISCONNECTED",410);
-    if(slot==="caller")await this.ctx.storage.put("room:meta",{hash:digest,expires,closed:false,callerJoined:true});
+    if(slot==="callee"&&record?.calleeJoined)return json("ROOM_ALREADY_CLAIMED",409);
+    if(slot==="caller")await this.ctx.storage.put("room:meta",
+      {hash:digest,expires,closed:false,callerJoined:true,calleeJoined:false});
+    else await this.ctx.storage.put("room:meta",
+      {...record,calleeJoined:true});
     const pair=new WebSocketPair();
     const [client,server]=Object.values(pair);
     this.ctx.acceptWebSocket(server);
@@ -195,5 +214,9 @@ export class CallRoom {
     for(const ws of this.ctx.getWebSockets()){
       try{ws.close(1000,"Room expired");}catch(_){}
     }
+    // A signed invite is already cryptographically expired, so erase all room
+    // metadata instead of keeping even token digests indefinitely.
+    await this.ctx.storage.deleteAll();
+    await this.ctx.storage.deleteAlarm();
   }
 }
