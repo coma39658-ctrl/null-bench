@@ -1,0 +1,44 @@
+name: E-ZERO AI Studio Voice Share and Install QA
+on:
+  push:
+    branches: [ezero-ai-voice-share-pwa-20261104]
+    paths:
+      - 'ai.html'
+      - 'ai-studio.webmanifest'
+      - 'ezero_ai_studio_v0_1.html'
+      - 'index.html'
+      - 'css/ezero_ai_conversation_share_v0_1.css'
+      - 'js/ezero_ai_conversation_share_v0_1.js'
+      - 'tests/test_ezero_ai_voice_share_pwa_v0_1.js'
+      - '.github/workflows/ezero_ai_voice_share_pwa_20261104.yml'
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  safety-and-regression:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify frontend script compiles
+        run: |
+          set -euo pipefail
+          node --check js/ezero_ai_conversation_share_v0_1.js
+          node tests/test_ezero_ai_voice_share_pwa_v0_1.js
+      - name: Preserve prior public source and video contracts
+        run: |
+          set -euo pipefail
+          node tests/test_ezero_web_sources_public_v0_1.js
+          node tests/test_ezero_ai_video_frame_contract_v0_1.js
+      - name: Review feature boundaries
+        run: |
+          echo "Text saved locally only with user consent."
+          echo "Audio synthesized by user click, not captured invisibly."
+          echo "Link opening and PWA install require user action."
+          echo "No Cloudflare deployment, no live web-search claim, no paid API requests."
