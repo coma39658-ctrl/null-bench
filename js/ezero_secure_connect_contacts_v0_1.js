@@ -139,7 +139,7 @@
   }
   function translate(){
     for(const key of ["contactsTitle","contactsPrivacy","friendName","saveFriend","findFriend"]){
-      const target=document.querySelector('[data-i18n="'+key+'"]');
+      const target=document.querySelector('[data-contacts-i18n="'+key+'"]');
       if(target)target.textContent=t(key);
     }
     if(!contacts.length)announce("friendsEmpty");
