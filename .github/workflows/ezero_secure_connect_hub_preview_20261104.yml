@@ -1,0 +1,63 @@
+name: E-ZERO Secure Connect Local Device Preview QA
+on:
+  push:
+    branches: [ezero-secure-connect-hub-ui-20261104]
+    paths:
+      - 'index.html'
+      - 'ezero_secure_connect_preview_v0_1.html'
+      - 'css/ezero_secure_connect_preview_v0_1.css'
+      - 'js/ezero_secure_connect_preview_v0_1.js'
+      - 'tests/test_ezero_secure_connect_hub_contract_v0_1.js'
+      - 'tests/test_ezero_secure_connect_browser_v0_1.mjs'
+      - '.github/workflows/ezero_secure_connect_hub_preview_20261104.yml'
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate no-network Secure Connect and preserve AI Studio
+        run: |
+          set -euo pipefail
+          node --check js/ezero_secure_connect_preview_v0_1.js
+          node tests/test_ezero_secure_connect_hub_contract_v0_1.js
+          node tests/test_ezero_ai_voice_share_pwa_v0_1.js
+          node tests/test_ezero_web_sources_public_v0_1.js
+          node tests/test_ezero_ai_video_frame_contract_v0_1.js
+  mobile-browser:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install isolated mobile Chromium QA dependencies
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.57.0
+          npx playwright install --with-deps chromium
+      - name: Test camera, mic, 60s-bounded voice draft, local identity and AI separation
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8769 --bind 127.0.0.1 >/tmp/ezero-secure-connect-preview-qa.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8769/ezero_secure_connect_preview_v0_1.html >/dev/null; then break; fi
+            sleep 1
+          done
+          node tests/test_ezero_secure_connect_browser_v0_1.mjs

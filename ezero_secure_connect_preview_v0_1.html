@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; media-src blob:; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+<meta name="theme-color" content="#083d50">
+<title>E-ZERO Secure Connect · Private Calling Preview</title>
+<link rel="stylesheet" href="./css/ezero_secure_connect_preview_v0_1.css">
+<script defer src="./js/ezero_secure_connect_preview_v0_1.js"></script>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <a class="back" href="./index.html" aria-label="واپس مرکزی E-ZERO صفحے پر">↩ واپس / Back</a>
+    <span class="mark">E-ZERO <strong>Secure Connect</strong></span>
+  </header>
+  <main>
+    <div class="hero">
+      <div class="hero-symbol" aria-hidden="true">◈</div>
+      <div>
+        <p class="eyebrow">PRIVATE COMMUNICATION · RESEARCH PREVIEW</p>
+        <h1>محفوظ رابطہ، صاف آواز، واضح تصویر</h1>
+        <p class="intro">ویڈیو کال، آڈیو کال، وائس میسج، QR شناخت اور عارضی پیغامات — ایک سادہ نظام میں۔</p>
+      </div>
+    </div>
+    <p class="notice" id="previewNotice" role="status"><strong>مقامی آزمائشی ورژن:</strong> فی الحال دوسرے صارف سے کال، میسج بھیجنا یا QR سے رابطہ جوڑنا فعال نہیں۔ اس صفحے پر مائک، کیمرہ اور صوتی ڈرافٹ صرف آپ کے فون پر آزمائے جاتے ہیں۔</p>
+    <nav class="action-grid" aria-label="کمیونیکیشن کی بنیادی سہولتیں">
+      <button type="button" class="action active" data-mode="video" aria-pressed="true"><span class="emoji" aria-hidden="true">📹</span><strong>ویڈیو کال</strong><small>HD Video · Test</small></button>
+      <button type="button" class="action" data-mode="audio" aria-pressed="false"><span class="emoji" aria-hidden="true">📞</span><strong>آڈیو کال</strong><small>Clear Audio · Test</small></button>
+      <button type="button" class="action" data-mode="voice" aria-pressed="false"><span class="emoji" aria-hidden="true">🎙️</span><strong>وائس میسج</strong><small>Voice Note · Local</small></button>
+      <button type="button" class="action" data-mode="qr" aria-pressed="false"><span class="emoji" aria-hidden="true">▦</span><strong>QR شناخت</strong><small>Identity · Preview</small></button>
+    </nav>
+    <div class="secondary-nav" aria-label="مزید منصوبہ بند سہولتیں">
+      <button type="button" data-mode="messages" aria-pressed="false">🔒 عارضی پیغامات</button>
+      <button type="button" data-mode="groups" aria-pressed="false">👥 محفوظ گروپس</button>
+    </div>
+
+    <section class="workbench" data-panel="video" aria-labelledby="videoTitle">
+      <div class="sectionhead"><div><p class="eyebrow">HD VIDEO · USER CONTROLLED</p><h2 id="videoTitle">ہائی کوالٹی ویڈیو — فون ٹیسٹ</h2></div><span class="phase">Local Only</span></div>
+      <p>تصویر 720p کو ترجیح دے گی؛ فون اجازت دے تو 1080p منتخب کریں۔ یہ <strong>صرف آپ کے فون کی کیمرہ/مائک آزمائش</strong> ہے، ویڈیو کال نہیں۔ حقیقی کال میں نیٹ ورک کے مطابق معیار بدلنا بعد کے محفوظ WebRTC مرحلے میں ہوگا۔</p>
+      <label class="field" for="quality">ویڈیو معیار / Quality
+        <select id="quality">
+          <option value="balanced" selected>Auto HD · 720p / 30fps preference</option>
+          <option value="hd">High · 1080p / 30fps preference</option>
+          <option value="saver">Data Saver · 360p / 15fps preference</option>
+        </select>
+      </label>
+      <div class="previewframe"><video id="cameraPreview" autoplay muted playsinline aria-label="مقامی کیمرہ کی جانچ"></video><span class="previewlabel">PRIVATE DEVICE TEST · NOT A CALL</span></div>
+      <div class="controls"><button type="button" class="primary" id="startVideo">کیمرہ اور مائک چیک کریں</button><button type="button" id="stopVideo" disabled>کیمرہ بند کریں</button></div>
+      <p class="feedback" id="videoStatus" role="status" aria-live="polite">اجازت کے بغیر کیمرہ یا مائک شروع نہیں ہوگا۔</p>
+    </section>
+
+    <section class="workbench" data-panel="audio" aria-labelledby="audioTitle" hidden>
+      <div class="sectionhead"><div><p class="eyebrow">AUDIO · ECHO REDUCTION</p><h2 id="audioTitle">صاف آڈیو — مائک ٹیسٹ</h2></div><span class="phase">Local Only</span></div>
+      <p>Echo Cancellation، Noise Suppression اور Automatic Gain Control کی درخواست کی جائے گی۔ ان سہولتوں کا حقیقی نتیجہ فون اور براؤزر کے مطابق مختلف ہوگا۔ کوئی آڈیو سرور کو نہیں بھیجی جاتی۔</p>
+      <label for="micMeter" class="field">مائک کی آواز کی سطح / Mic level</label>
+      <progress id="micMeter" max="100" value="0" aria-label="مقامی مائک آواز کی سطح"></progress>
+      <div class="controls"><button type="button" class="primary" id="startAudio">آڈیو ٹیسٹ شروع کریں</button><button type="button" id="stopAudio" disabled>مائک بند کریں</button></div>
+      <p class="feedback" id="audioStatus" role="status" aria-live="polite">مائک صرف آپ کے بٹن دبانے سے چلے گا۔ یہ کسی کو کال نہیں کرتا۔</p>
+    </section>
+
+    <section class="workbench" data-panel="voice" aria-labelledby="voiceTitle" hidden>
+      <div class="sectionhead"><div><p class="eyebrow">VOICE MESSAGE · EPHEMERAL DRAFT</p><h2 id="voiceTitle">وائس میسج — مقامی ڈرافٹ</h2></div><span class="phase">No Upload</span></div>
+      <p>آپ کی اجازت سے 60 سیکنڈ تک مقامی وائس ڈرافٹ بنایا جا سکتا ہے۔ فی الحال اسے کسی کو بھیجا نہیں جائے گا؛ یہ فون کی مستقل فائل نہیں بنے گا۔ بعد کے مرحلے میں وصول کنندہ کے لیے ایک بار سننے اور خودکار ختم ہونے کا محفوظ نظام بنایا جائے گا۔</p>
+      <div class="controls"><button type="button" class="primary" id="recordVoice">🎙️ ریکارڈ شروع کریں</button><button type="button" id="finishVoice" disabled>■ ریکارڈ روکیں</button><button type="button" id="clearVoice" disabled>ڈرافٹ مٹائیں</button></div>
+      <audio id="voicePlayback" controls controlslist="nodownload" preload="none" hidden aria-label="آپ کی مقامی وائس ڈرافٹ"></audio>
+      <p class="feedback" id="voiceStatus" role="status" aria-live="polite">نہ ریکارڈنگ جاری ہے، نہ کوئی فائل اپ لوڈ ہوئی ہے۔</p>
+    </section>
+
+    <section class="workbench" data-panel="qr" aria-labelledby="qrTitle" hidden>
+      <div class="sectionhead"><div><p class="eyebrow">SHA-256 · SIGNED IDENTITY PLAN</p><h2 id="qrTitle">QR شناخت اور دوست شامل کرنا</h2></div><span class="phase">Research</span></div>
+      <p>مستقبل میں QR اسکین، SHA-256 عوامی چابی کا فنگرپرنٹ، محدود وقت والا ایک بار استعمال کا کوڈ اور دونوں صارفین کی منظوری ہوگی۔ یہاں آپ عارضی <strong>مقامی شناختی جانچ</strong> کرسکتے ہیں؛ یہ اصلی اکاؤنٹ یا قابلِ استعمال QR دعوت نامہ نہیں ہے۔</p>
+      <div class="controls"><button type="button" class="primary" id="makeFingerprint">مقامی SHA-256 شناخت آزمائیں</button></div>
+      <output class="fingerprint" id="fingerprint" aria-live="polite">کوئی مستقل شناخت نہیں بنائی گئی۔</output>
+      <p class="feedback" id="qrStatus" role="status">خفیہ چابی فون کی موجودہ میموری تک محدود رہے گی اور سرور پر نہیں جائے گی۔</p>
+    </section>
+
+    <section class="workbench" data-panel="messages" aria-labelledby="messagesTitle" hidden>
+      <div class="sectionhead"><div><p class="eyebrow">ONE VIEW · NO ARCHIVE</p><h2 id="messagesTitle">خفیہ اور عارضی پیغامات</h2></div><span class="phase">Planned</span></div>
+      <p>وصول کنندہ کی اجازت سے پہلی بار دیکھنے یا سننے کا وقت شروع ہوگا۔ خفیہ متن اور تصویر زیادہ سے زیادہ 5 منٹ، جبکہ وائس/ویڈیو اپنی اصل مدت کے ساتھ مزید زیادہ سے زیادہ 5 منٹ تک دستیاب رہیں گے۔ مثلاً 10 منٹ کی ویڈیو کے لیے 15 منٹ اور 12 منٹ کی ویڈیو کے لیے 17 منٹ کی بالائی حد ہوگی۔ اس وقت کوئی میسج سرور موجود نہیں۔</p>
+      <p class="info">ہم اپنے سسٹم میں Save/Forward کو محدود اور سرور سے مواد ختم کریں گے؛ مگر عام Chrome میں OS اسکرین شاٹ یا دوسرے فون کی ریکارڈنگ کو مکمل طور پر روکنا ممکن نہیں۔</p>
+    </section>
+
+    <section class="workbench" data-panel="groups" aria-labelledby="groupsTitle" hidden>
+      <div class="sectionhead"><div><p class="eyebrow">PRIVATE GROUPS · MODERATOR CONSENT</p><h2 id="groupsTitle">گروپ آڈیو اور ویڈیو کال</h2></div><span class="phase">Planned</span></div>
+      <p>گروپ بنانے، QR دعوت دینے، منتظم کی منظوری، مائک بند کرنے، ممبر ہٹانے اور انکرپٹڈ گروپ کال کی سہولت منصوبے میں شامل ہے۔ مستقبل کے سرور اور سکیورٹی ٹیسٹ مکمل ہونے تک کسی گروپ کو فعال ظاہر نہیں کیا جائے گا۔</p>
+    </section>
+
+    <section class="policy" aria-label="رازداری کے بنیادی اصول">
+      <h2>ہماری پہلی ترجیح: آپ کا اختیار</h2>
+      <p>بغیر اشتہاری ٹریکنگ · اجازت کے بغیر مائک/کیمرہ نہیں · مستقل گفتگو کا آرکائیو نہیں · واضح سکیورٹی حدود</p>
+      <p class="small">© E-ZERO · Secure Connect Research Preview. Not a live encrypted messenger, emergency calling service or deployed WebRTC call system.</p>
+    </section>
+  </main>
+</div>
+</body>
+</html>
