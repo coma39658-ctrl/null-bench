@@ -1,0 +1,30 @@
+name: E-ZERO Secure Connect Cloudflare Consent Signaling Laboratory
+on:
+  push:
+    branches: [ezero-secure-connect-cloudflare-signaling-lab-20261104]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  security-and-friendship:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify free-tier staging manifest and no deployment
+        run: |
+          set -euo pipefail
+          node --check secure_connect/cloudflare/signaling_worker_v0_1.mjs
+          node --check secure_connect/client/signaling_client_v0_1.mjs
+          node --check secure_connect/tests/test_signaling_worker_v0_1.mjs
+          node -e "const f=require('fs').readFileSync('secure_connect/cloudflare/wrangler.jsonc','utf8');if(!f.includes('\"PILOT_ENABLED\": \"false\"')||!f.includes('new_sqlite_classes'))process.exit(1)"
+      - name: Test real ECDSA signatures and two-sided acceptance without secrets
+        run: |
+          set -euo pipefail
+          node --test secure_connect/tests/test_signaling_worker_v0_1.mjs
