@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#073e53">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self' wss://ezero-secure-connect-call-lab-disabled.coma39658.workers.dev; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
 <title>E-ZERO Secure Connect — Real 1:1 WebRTC Test</title>
 <meta name="description" content="E-ZERO Secure Connect: secure QR identity and experimental direct calls. Ad-free public-service communication.">
 <meta property="og:title" content="E-ZERO Secure Connect — Friends & Calls">
@@ -21,6 +21,7 @@
 <script defer src="./js/vendor/ezero-qrcode-generator-mit.js"></script>
 <script defer src="./js/ezero_secure_connect_live_p2p_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_simple_near_far_v0_1.js"></script>
+<script defer src="./js/ezero_secure_connect_one_link_lab_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_contacts_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_install_share_v0_1.js"></script>
 </head>
@@ -144,6 +145,31 @@
       <option value="hd" data-i18n="hdQuality">HD · 720p</option>
       <option value="full" data-i18n="fullQuality">Full HD · 1080p ترجیح</option>
     </select></label>
+  </section>
+  <section class="card" id="oneLinkLab" aria-labelledby="roomLabTitle">
+    <div class="heading"><span class="number"><icon>🔗</icon></span><h2 id="roomLabTitle" data-room-i18n="title">نجی ایک لنک کال — تجرباتی محفوظ طریقہ</h2></div>
+    <p class="muted" data-room-i18n="explain">لمبے WhatsApp کوڈ نہیں؛ لنک صرف اپنے دوست کو بھیجیں، وہ کال قبول کرے، پھر آپ شروع کریں۔</p>
+    <div class="buttonrow">
+      <button id="roomCreate" type="button" class="primary" data-room-i18n="create">🔗 نجی کال لنک بنائیں</button>
+      <button id="roomJoin" type="button" class="outline" disabled data-room-i18n="join">📞 اس لنک کی کال میں شامل ہوں</button>
+    </div>
+    <label class="field" for="roomLink"><span data-room-i18n="copy">📋 کال لنک کاپی کریں</span>
+      <textarea id="roomLink" rows="3" spellcheck="false" readonly autocomplete="off" aria-label="Private call link"></textarea>
+    </label>
+    <div class="buttonrow">
+      <button id="roomShare" type="button" class="outline" disabled data-room-i18n="share">↗ نجی کال لنک شیئر کریں</button>
+      <button id="roomCopy" type="button" class="outline" disabled data-room-i18n="copy">📋 کال لنک کاپی کریں</button>
+    </div>
+    <div class="buttonrow">
+      <button id="roomAccept" type="button" class="primary" disabled data-room-i18n="accept">✓ کال قبول کریں</button>
+      <button id="roomDecline" type="button" class="outline danger" disabled data-room-i18n="decline">✕ کال مسترد کریں</button>
+    </div>
+    <div class="buttonrow">
+      <button id="roomStart" type="button" class="primary" disabled data-room-i18n="start">🎙️ منظوری کے بعد کال شروع کریں</button>
+      <button id="roomEnd" type="button" class="outline danger" disabled data-room-i18n="end">📴 کال بند کریں</button>
+    </div>
+    <p class="status" id="roomStatus" role="status" aria-live="polite" data-state="ready">یہ صرف بند Staging تجربہ ہے۔ دو فونوں کے کامیاب ٹیسٹ کے بعد فعال ہوگا۔</p>
+    <p class="small" data-room-i18n="remind">یہ بند Staging سہولت ہے؛ عوامی آغاز حقیقی دو فونوں کے کامیاب ٹیسٹ کے بعد ہوگا۔</p>
   </section>
   <section class="card guided-call" aria-labelledby="guidedCallTitle">
     <div class="heading"><span class="number">2</span><h2 id="guidedCallTitle" data-i18n="guidedTitle">دعوت میسج کریں یا آیا ہوا جواب پیسٹ کریں</h2></div>
