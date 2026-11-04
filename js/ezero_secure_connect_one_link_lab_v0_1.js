@@ -15,6 +15,7 @@ const text={
    title:"نجی ایک لنک کال — تجرباتی محفوظ طریقہ",
    explain:"لمبے WhatsApp کوڈ نہیں؛ لنک صرف اپنے دوست کو بھیجیں۔ دوست کال قبول کرے، پھر آپ Start دبائیں۔ کال کی آواز اور ویڈیو Cloudflare سے نہیں گزرتیں۔",
    create:"🔗 نجی کال لنک بنائیں",join:"📞 اس لنک کی کال میں شامل ہوں",
+   ownerLabel:"پائلٹ مالک کا خفیہ کوڈ (دوست کو نہ بھیجیں)",ownerRequired:"پہلے پائلٹ مالک کا نجی کوڈ درج کریں؛ یہ دوستوں کے لنک میں شامل نہیں ہوگا۔",
    share:"↗ نجی کال لنک شیئر کریں",copy:"📋 کال لنک کاپی کریں",
    accept:"✓ کال قبول کریں",decline:"✕ کال مسترد کریں",
    start:"🎙️ منظوری کے بعد کال شروع کریں",end:"📴 کال بند کریں",
@@ -43,6 +44,7 @@ const text={
  en:{
    title:"Private one-link call — experimental",explain:"No long WhatsApp codes. Send the private link to one friend. They explicitly accept, then you tap Start. Media does not pass through Cloudflare.",
    create:"🔗 Create private call link",join:"📞 Join this invitation",
+   ownerLabel:"Private pilot owner code (never share with the friend)",ownerRequired:"Enter the private pilot owner code first. The code is never placed in the friend link.",
    share:"↗ Share private link",copy:"📋 Copy call link",accept:"✓ Accept call",decline:"✕ Decline",
    start:"🎙️ Start after acceptance",end:"📴 End call",
    ready:"Create a link or open your friend's private invitation.",
@@ -68,6 +70,7 @@ const text={
  ar:{
    title:"مكالمة خاصة برابط واحد — تجربة",explain:"بلا رموز واتساب طويلة. أرسل الرابط لصديق موثوق؛ يوافق ثم تضغط بدء. الصوت والفيديو لا يمران عبر Cloudflare.",
    create:"🔗 أنشئ رابط مكالمة خاصاً",join:"📞 انضم إلى هذه الدعوة",
+   ownerLabel:"الرمز السري لمالك التجربة (لا تشاركه مع الصديق)",ownerRequired:"أدخل رمز المالك السري أولاً؛ لن يُضاف إلى رابط الصديق.",
    share:"↗ شارك الرابط الخاص",copy:"📋 انسخ رابط المكالمة",accept:"✓ اقبل المكالمة",decline:"✕ ارفض",
    start:"🎙️ ابدأ بعد الموافقة",end:"📴 أنه المكالمة",
    ready:"أنشئ رابطاً أو افتح دعوة صديقك.",linkReady:"الرابط جاهز؛ أرسله لصديق واحد موثوق فقط.",
@@ -89,7 +92,7 @@ const text={
    remind:"الميزة في مرحلة التجربة فقط؛ لا تفتح للجمهور قبل اختبار هاتفين فعلياً."
  }
 };
-let roomId=null,secret=null,secretKey=null,ws=null,role=null,joined=false,approved=false;
+let roomId=null,secret=null,proof=null,secretKey=null,ws=null,role=null,joined=false,approved=false;
 let ready=false, link="",closing=false;
 const lang=()=>["ur","en","ar"].includes($("language")?.value)?$("language").value:"ur";
 const t=k=>(text[lang()]||text.ur)[k]||text.ur[k]||k;
@@ -139,9 +142,9 @@ async function decrypt(blob){
 function readLink(){
  const raw=location.hash.slice(1);
  // Parsing only; a fragment is never sent to the origin server.
- const m=raw.match(/^callroom=([a-f0-9]{32})\.([a-f0-9]{64})$/);
+ const m=raw.match(/^callroom=([a-f0-9]{32})\.([a-f0-9]{64})\.([a-f0-9]{64})$/);
  if(!m)return false;
- roomId=m[1];useSecret(m[2]).catch(()=>st("invalid"));
+ roomId=m[1];proof=m[3];useSecret(m[2]).catch(()=>st("invalid"));
  link=location.href; $("roomLink").value=link;
  history.replaceState(null,"",location.pathname+location.search);
  st("incoming");draw();return true;
@@ -182,11 +185,11 @@ async function receive(frame){
  }
 }
 function connect(){
- if(!roomId||!secret||!secretKey){st("invalid");return;}
+ if(!roomId||!secret||!secretKey||!/^[a-f0-9]{64}$/.test(proof||"")){st("invalid");return;}
  if(ws&&ws.readyState<=1)return;
  st("connecting");closing=false;
  try{
-   ws=new WebSocket(endpoint+"/v1/room/"+roomId,["ezero-room-v1","ezero-key-"+secret]);
+   ws=new WebSocket(endpoint+"/v1/room/"+roomId,["ezero-room-v1","ezero-key-"+secret,"ezero-proof-"+proof]);
    ws.onmessage=e=>{let obj;try{obj=JSON.parse(e.data);}catch(_){return;}void receive(obj);};
    ws.onerror=()=>st("serverOff");
    ws.onclose=()=>{ready=false;ws=null;if(!closing)st("serverOff");draw();};
@@ -195,9 +198,17 @@ function connect(){
 $("roomCreate").addEventListener("click",async()=>{
  if(!window.isSecureContext||!crypto?.subtle){st("failed");return;}
  try{
+  const owner=$("roomOwnerSecret").value.trim();
+  if(!/^[A-Za-z0-9_-]{24,128}$/.test(owner)){st("ownerRequired");return;}
   roomId=hex(crypto.getRandomValues(new Uint8Array(16)));
   await useSecret(hex(crypto.getRandomValues(new Uint8Array(32))));
-  link=new URL(location.pathname+location.search+"#callroom="+roomId+"."+secret,location.origin).href;
+  const hmacKey=await crypto.subtle.importKey("raw",new TextEncoder().encode(owner),
+    {name:"HMAC",hash:"SHA-256"},false,["sign"]);
+  const signed=new Uint8Array(await crypto.subtle.sign("HMAC",hmacKey,
+    new TextEncoder().encode(roomId+"."+secret)));
+  proof=hex(signed);
+  $("roomOwnerSecret").value=""; // never store or forward the operator's passcode
+  link=new URL(location.pathname+location.search+"#callroom="+roomId+"."+secret+"."+proof,location.origin).href;
   $("roomLink").value=link;st("linkReady");draw();connect();
  }catch(_){st("failed");}
 });
