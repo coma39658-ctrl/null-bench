@@ -1,0 +1,24 @@
+{
+  "name": "ezero-secure-connect-call-lab-disabled",
+  "main": "./room_worker.mjs",
+  "compatibility_date": "2026-10-12",
+  "workers_dev": true,
+  "observability": {"enabled": false},
+  "vars": {
+    "ROOMS_ENABLED": "false"
+  },
+  "ratelimits": [
+    {"name": "ROOM_RATE_LIMIT", "namespace_id": "341627",
+      "simple": {"limit": 20, "period": 60}}
+  ],
+  "durable_objects": {
+    "bindings": [
+      {"name": "CALL_ROOMS", "class_name": "CallRoom"},
+      {"name": "ROOM_ADMISSION", "class_name": "RoomAdmission"}
+    ]
+  },
+  "migrations": [
+    {"tag": "room-lab-v1", "new_sqlite_classes": ["CallRoom"]},
+    {"tag": "room-lab-v2", "new_sqlite_classes": ["RoomAdmission"]}
+  ]
+}
