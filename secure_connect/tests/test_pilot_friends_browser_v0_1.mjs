@@ -158,12 +158,15 @@ try{
   await b.locator("#checkFriends").click();
   await b.locator("#friends .pilot-friend").waitFor();
   assert.equal(await b.locator("#friends .pilot-friend .hash").innerText(),aid);
+  assert.match(await b.locator("#friends .pilot-actions button").first().innerText(),/دستی آزمائش/);
   console.log("PERSONAL_LINK_REQUIRES_EXPLICIT_REQUEST_AND_RECIPIENT_APPROVAL: PASS");
 
   await b.locator("#language").selectOption("en");
   assert.match(await b.locator("h1").innerText(),/Friend invitations/);
+  assert.match(await b.locator("#friends .pilot-actions button").first().innerText(),/manual audio/);
   await b.locator("#language").selectOption("ar");
   assert.match(await b.locator("h1").innerText(),/الصداقة/);
+  assert.match(await b.locator("#friends .pilot-actions button").first().innerText(),/تجربة مكالمة/);
   await b.locator("#language").selectOption("ur");
   await b.reload();
   assert.equal(await b.locator("#sendRequest").isDisabled(),true,"No automatic signup or sending on reload");
