@@ -26,15 +26,21 @@ function environment(){
     setAlarm:async t=>{ctx.storage.alarm=t;}},
     acceptWebSocket(ws){ctx.sockets.push(ws);},
     getWebSockets(){return ctx.sockets.filter(s=>s.readyState!==3);}};
-  const env={ROOMS_ENABLED:"true"};
+  const env={ROOMS_ENABLED:"true",PILOT_OWNER_SECRET:ownerSecret};
   const object=new CallRoom(ctx,env);
   env.CALL_ROOMS={getByName:()=>({fetch:r=>object.fetch(r)})};
   return {ctx,env,object};
 }
 const base="https://example.invalid/v1/room/";
 const roomId="a".repeat(32),token="c".repeat(64);
+const ownerSecret="EZEROOwnerPilotSecret_2026_TestOnly_64chars";
+const proofKey=await crypto.subtle.importKey("raw",new TextEncoder().encode(ownerSecret),
+  {name:"HMAC",hash:"SHA-256"},false,["sign"]);
+const proofBytes=await crypto.subtle.sign("HMAC",proofKey,
+  new TextEncoder().encode(roomId+"."+token));
+const proof=[...new Uint8Array(proofBytes)].map(x=>x.toString(16).padStart(2,"0")).join("");
 const goodHeaders={Origin:"https://coma39658-ctrl.github.io",
-  Upgrade:"websocket","Sec-WebSocket-Protocol":"ezero-room-v1,ezero-key-"+token};
+  Upgrade:"websocket","Sec-WebSocket-Protocol":"ezero-room-v1,ezero-key-"+token+",ezero-proof-"+proof};
 function req(id=roomId,headers=goodHeaders){return new Request(base+id,{headers});}
 function last(s){return s.messages.at(-1);}
 function signal(type){
@@ -55,10 +61,15 @@ const invalidOrigin=await worker.fetch(req(roomId,{...goodHeaders,Origin:"https:
 assert.equal(invalidOrigin.status,403);
 const missingToken=await worker.fetch(req(roomId,{...goodHeaders,"Sec-WebSocket-Protocol":"ezero-room-v1"}),env.env);
 assert.equal(missingToken.status,401);
+const fakeProof=await worker.fetch(req(roomId,{...goodHeaders,
+  "Sec-WebSocket-Protocol":"ezero-room-v1,ezero-key-"+token+",ezero-proof-"+"0".repeat(64)}),env.env);
+assert.equal(fakeProof.status,403);
+assert.equal(env.ctx.sockets.length,0,
+  "Invalid owner proof must be rejected before Durable Object allocation");
 const noWs=await worker.fetch(new Request(base+roomId,{headers:{Origin:goodHeaders.Origin}}),env.env);
 assert.equal(noWs.status,426);
 assert.equal(env.ctx.sockets.length,0);
-console.log("ORIGIN_TOKEN_UPGRADE_REQUIRED: PASS");
+console.log("ORIGIN_TOKEN_OWNER_HMAC_PROOF_UPGRADE_REQUIRED: PASS");
 
 const connA=await worker.fetch(req(),env.env);
 assert.equal(connA.status,101);
