@@ -54,7 +54,7 @@
     },
     en: {
       back:"↩ Back", language:"Language", welcome:"Welcome — test a real 1:1 call", intro:"A two-browser trial of real voice, video, and one-view messages.",
-      free:"No charge",ads:"No advertising",consent:"Mic/camera only with permission",labWarning:"REAL experimental P2P: no persistent accounts, automatic friend finding, background call notifications or signaling server. Manually share the offer/answer between the two phones. Some networks cannot connect without a TURN relay.",
+      free:"No charge",ads:"No advertising",consent:"Mic/camera only with permission",labWarning:"Experimental two-phone connection: QR verifies a digital key, but calls still require sharing one invite and one answer by message. No permanent friend directory or automatic incoming calls yet.",
       policyButton:"🔒 Clear privacy policy",closeEverything:"✕ Hang up and clear temporary content",step1:"Choose call type and network",
       audioCall:"📞 Voice call",videoCall:"📹 Video call",stunConsent:"Optional public STUN server — it may see IP/network metadata. Without a TURN relay, some calls will not connect.",
       quality:"Video quality",autoQuality:"Auto · Network hint",saverQuality:"Data Saver · 360p",hdQuality:"HD · 720p",fullQuality:"Full HD · prefer 1080p",
@@ -105,7 +105,7 @@
     },
     ar: {
       back:"↩ رجوع",language:"اللغة",welcome:"مرحباً — جرّب اتصالاً حقيقياً بين هاتفين",intro:"اختبار مباشر للمكالمات الصوتية والمرئية والرسائل التي تُعرض مرة واحدة.",
-      free:"دون رسوم",ads:"دون إعلانات",consent:"الكاميرا والميكروفون بإذن منك",labWarning:"تجربة اتصال مباشر P2P وليست خدمة مكتملة: لا حساب دائم ولا إضافة أصدقاء آلية ولا إشعارات في الخلفية ولا خادم إشارات. انقل رمز العرض والرد يدوياً بين الهاتفين. قد تفشل بعض الشبكات دون خادم TURN.",
+      free:"دون رسوم",ads:"دون إعلانات",consent:"الكاميرا والميكروفون بإذن منك",labWarning:"اتصال تجريبي بين هاتفين: يتحقق QR من المفتاح الرقمي، لكن المكالمة ما زالت تتطلب إرسال دعوة ورد عبر الرسائل. لا توجد حسابات أصدقاء دائمة أو مكالمات واردة تلقائية بعد.",
       policyButton:"🔒 سياسة الخصوصية الواضحة",closeEverything:"✕ إنهاء الاتصال ومسح البيانات المؤقتة",step1:"اختر نوع الاتصال والشبكة",
       audioCall:"📞 مكالمة صوتية",videoCall:"📹 مكالمة فيديو",stunConsent:"خادم STUN عام اختياري — قد يرى بيانات IP والشبكة. قد تفشل المكالمة دون خادم TURN.",
       quality:"جودة الفيديو",autoQuality:"تلقائي · إشارة الشبكة",saverQuality:"توفير البيانات · 360p",hdQuality:"عالية الدقة · 720p",fullQuality:"1080p إن توفرت",
