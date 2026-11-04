@@ -33,7 +33,7 @@ assert.match(html,/<details id="expertSetup"/);
 assert.match(simple,/navigator\.share/,"Native messaging share requires user gesture");
 assert.match(simple,/navigator\.clipboard\.readText/,"Paste requires explicit tap");
 assert.match(simple,/signal\.type==="offer"/,"Invite and reply identified without technical user choice");
-assert.match(simple,/signal\.type==="answer"/,"The core verified answer is accepted by the same interface");
+assert.match(simple,/\$\("applyAnswer"\)\.click\(\)/,"The guided fallback applies verified answer to existing core logic");
 assert.ok(!/fetch\(|XMLHttpRequest|WebSocket|MediaRecorder|localStorage|sessionStorage|indexedDB/.test(simple),
   "Simplifying pairing does not add a tracking, storage or signaling backend");
 assert.match(html,/id="myDigitalId"/);
