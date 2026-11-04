@@ -7,6 +7,10 @@
   "vars": {
     "ROOMS_ENABLED": "false"
   },
+  "ratelimits": [
+    {"name": "ROOM_RATE_LIMIT", "namespace_id": "341627",
+      "simple": {"limit": 20, "period": 60}}
+  ],
   "durable_objects": {
     "bindings": [
       {"name": "CALL_ROOMS", "class_name": "CallRoom"}
