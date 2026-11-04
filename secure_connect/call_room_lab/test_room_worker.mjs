@@ -176,3 +176,33 @@ const noBudget=await worker.fetch(req(),blocked.env);
 assert.equal(noBudget.status,429);
 assert.equal(blocked.ctx.sockets.length,0);
 console.log("HANDSHAKE_RATE_LIMIT_BEFORE_ROOM_ALLOCATION: PASS");
+
+
+const limitMeta=environment();
+const injectedQuery=await worker.fetch(new Request(base+roomId+"?token="+token,{
+  headers:goodHeaders}),limitMeta.env);
+assert.equal(injectedQuery.status,400,"Never accept secrets in URL query");
+const giantProtocol=await worker.fetch(req(roomId,{...goodHeaders,
+  "Sec-WebSocket-Protocol":"X".repeat(350)}),limitMeta.env);
+assert.equal(giantProtocol.status,431);
+const noLimiter=environment();
+delete noLimiter.env.ROOM_RATE_LIMIT;
+assert.equal((await worker.fetch(req(),noLimiter.env)).status,503,
+  "Security rate-limiter binding must fail closed");
+const weakOwner=environment();
+weakOwner.env.PILOT_OWNER_SECRET="commonhumanpassword1234567890";
+assert.equal((await worker.fetch(req(),weakOwner.env)).status,503,
+  "Low-entropy owner passcode is never accepted");
+assert.equal(limitMeta.ctx.sockets.length,0);
+console.log("NO_QUERY_SECRET_HEADER_OVERFLOW_OR_MISSING_LIMITER: PASS");
+
+const dropped=environment();
+await worker.fetch(req(),dropped.env);
+await worker.fetch(req(),dropped.env);
+await dropped.object.webSocketClose(dropped.ctx.sockets[1]);
+assert.equal(dropped.ctx.storage.db.get("room:meta").closed,true);
+assert.equal(dropped.ctx.sockets[0].readyState,3,
+  "Unexpected guest disconnect must stop the caller as well");
+assert.equal((await worker.fetch(req(),dropped.env)).status,410,
+  "Lost socket must never reopen the same invitation");
+console.log("DISCONNECT_IMMEDIATE_REVOKE_AND_CLOSE_PEER: PASS");
