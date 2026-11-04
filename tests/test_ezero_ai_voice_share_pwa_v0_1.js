@@ -38,7 +38,7 @@ assert.match(source,/brandedAudioText\(t,voiceId\)/,"AI audio contains disclosed
 assert.match(source,/ای زیرو اے آئی اسٹوڈیو/,"Spoken E-ZERO attribution in Urdu");
 assert.match(source,/shareLink\.textContent="🔗 E-ZERO لنک کاپی"/,"Link remains explicitly copyable when a platform strips audio captions");
 assert.match(source,/text:SHARE_CAPTION,files:\[file\]/,"Native share includes visible short-link text");
-assert.match(source,/session\.predict\(t\)/);
+assert.match(source,/session\.predict\(brandedAudioText\(t,voiceId\)\)/);
 assert.match(source,/navigator\.canShare\?\.\(\{files:\[file\]\}\)/);
 assert.match(source,/navigator\.share\(\{title:"E-ZERO AI Studio"/);
 assert.match(source,/const SHARE_URL="https:\/\/coma39658-ctrl\.github\.io\/null-bench\/ai\.html"/);
