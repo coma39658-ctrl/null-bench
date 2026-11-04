@@ -23,6 +23,8 @@ for (const mode of ["video","audio","voice","qr"]) {
 assert.match(page,/data-panel="messages"/);
 assert.match(page,/data-panel="groups"/);
 assert.match(home,/ezero_ai_studio_v0_1\.html#voice/,"Existing AI Studio button preserved");
+assert.match(home,/onclick="window\.location\.assign\('\.\/ezero_ai_studio_v0_1\.html'\)"/,"Front Qwen AI guide goes to AI Studio, not new communication hub");
+assert.ok(!/EZERO_AI_AGENT_ANCHOR=this/.test(home),"Old Qwen button no longer opens the repurposed Secure Connect modal");
 assert.match(home,/Open E-ZERO Secure Connect preview/);
 assert.match(page,/RESEARCH PREVIEW/);
 assert.match(page,/فی الحال دوسرے صارف سے کال/);
