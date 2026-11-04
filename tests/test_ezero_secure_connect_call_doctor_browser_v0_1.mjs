@@ -145,6 +145,7 @@ try{
   if(navigator.standalone!==true)throw Error("STANDALONE_TEST_SHIM_FAILED");
  });
  await b.locator("#doctorRun").click();
+ await b.waitForFunction(()=>document.querySelector("#doctorChecks")?.textContent.includes("انسٹال شدہ ایپ"),{timeout:5000});
  assert.match(await b.locator("#doctorChecks").innerText(),/انسٹال شدہ ایپ/);
  assert.match(await b.locator("#doctorChecks").innerText(),/محفوظ شدہ/);
  console.log("PWA_STANDALONE_STALE_CACHE_RISK_EXPLAINED: PASS");
