@@ -163,7 +163,11 @@
   let micMuted = false, cameraMuted = false;
   const me = key => (langs[currentLang] || {})[key] || $("fallbackNever") || null;
   const t = key => typeof me(key) === "string" ? me(key) : ($all('[data-i18n="' + key + '"]')[0]?.textContent || key);
-  const status = (key, detail) => { $("connectionStatus").textContent = t(key) + (detail ? " · " + detail : ""); };
+  const status = (key, detail) => {
+    $("connectionStatus").textContent = t(key) + (detail ? " · " + detail : "");
+    // Status is an observation, not a claim that a human heard or a server delivered media.
+    document.dispatchEvent(new CustomEvent("ezero:call-status",{detail:{stage:key}}));
+  };
   // Retain the original Urdu labels to restore every visible control on language return.
   const urOriginals = new WeakMap();
   $all("[data-i18n]").forEach(el => urOriginals.set(el,el.textContent));
@@ -356,8 +360,16 @@
     p.onconnectionstatechange=()=>{
       if(peer!==p)return;
       if(p.connectionState==="connected") status("connected",p.__ezeroPeerFP?.slice(0,16));
-      else if(["failed","closed","disconnected"].includes(p.connectionState)) status("offline",p.connectionState);
-      else status("connecting",p.connectionState);
+      else if(p.connectionState==="failed") status("iceNoRoute");
+      else if(p.connectionState==="disconnected") status("offline","disconnected");
+      else if(p.connectionState==="connecting") status("iceChecking");
+    };
+    p.oniceconnectionstatechange=()=>{
+      if(peer!==p)return;
+      // ICE 'failed' means there is no viable network route for this exact peer attempt.
+      // Without a provisioned TURN relay we must not promise universal connectivity.
+      if(p.iceConnectionState==="failed") status("iceNoRoute");
+      else if(p.iceConnectionState==="checking") status("iceChecking");
     };
     p.ondatachannel=e=>attachChannel(e.channel);
     localStream=await navigator.mediaDevices.getUserMedia(mediaConstraints());
@@ -435,7 +447,10 @@
     ["createOffer","acceptOffer","applyAnswer"].forEach(id=>$(id).disabled=true);
     try{await fn();}catch(error) {
       const msg=String(error?.name||error?.message||"ERROR").slice(0,85);
-      status(/NotAllowedError|NotFoundError|NotReadableError|OverconstrainedError/.test(msg)?"micDenied":"signalInvalid",msg);
+      const stage=/NotAllowedError|NotFoundError|NotReadableError|OverconstrainedError/.test(msg)
+        ? "micDenied" : msg.includes("OFFER_REQUIRED") ? "missingOffer" :
+          msg.includes("FRIEND_ID_MISMATCH") ? "fingerprintMismatch" : "signalInvalid";
+      status(stage,msg);
       if(peer && peer.connectionState!=="connected") hardHangup(false);
     }finally{busy=false;["createOffer","acceptOffer","applyAnswer"].forEach(id=>$(id).disabled=false);}
   }
@@ -446,7 +461,7 @@
     const complete=await iceComplete(p);
     $("localSignal").value=await makeSignal("offer");
     document.dispatchEvent(new CustomEvent("ezero:signal-ready",{detail:{type:"offer"}}));
-    status("waiting",complete?"":"ICE gathering partial");
+    status("offerReady",complete?"":"ICE gathering partial");
   }));
   $("acceptOffer").addEventListener("click",()=>withBusy(async()=>{
     const signed=await parseSignal("offer");
@@ -456,14 +471,14 @@
     const complete=await iceComplete(p);
     $("localSignal").value=await makeSignal("answer");
     document.dispatchEvent(new CustomEvent("ezero:signal-ready",{detail:{type:"answer"}}));
-    status("waiting",complete?"":"ICE gathering partial");
+    status("answerReady",complete?"":"ICE gathering partial");
   }));
   $("applyAnswer").addEventListener("click",()=>withBusy(async()=>{
     if(!peer || role!=="offerer" || peer.signalingState!=="have-local-offer")throw Error("OFFER_REQUIRED");
     const signed=await parseSignal("answer");
     peer.__ezeroPeerFP=signed.fp;
     await peer.setRemoteDescription({type:"answer",sdp:signed.sdp});
-    status("connecting");
+    status("iceChecking");
   }));
   async function copyValue(element) {
     const value=element.value;
