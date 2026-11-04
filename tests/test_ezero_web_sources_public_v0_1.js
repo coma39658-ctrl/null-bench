@@ -16,6 +16,28 @@ const voiceSource = fs.readFileSync("js/ezero_voice_guide_ui_v0_1.js", "utf8");
 const website = fs.readFileSync("index.html", "utf8");
 const serviceWorker=fs.readFileSync("service-worker.js","utf8");
 const studio=fs.readFileSync("ezero_ai_studio_v0_1.html","utf8");
+// A mobile browser may return no TTS voices initially and load Urdu only
+// after a user gesture. Use mock browser voices; no audio or network needed.
+const readVoices=studio.match(/function ezeroReadBrowserVoices\(\)\{[\s\S]*?\n\}/)?.[0];
+const preferredVoice=studio.match(/function ezeroPreferredVoice\(locale\)\{[\s\S]*?\n\}/)?.[0];
+assert.ok(readVoices&&preferredVoice,"Voice discovery and play-time refresh must exist");
+let discoveredVoices=[],voiceReadCount=0;
+const voiceCtx={
+ window:{speechSynthesis:{getVoices:()=>{voiceReadCount++;return discoveredVoices}}},
+ document:{getElementById:()=>({value:"auto"})},
+ speechLocale:()=> "ur-PK",
+};
+const chooseVoice=vm.runInNewContext(
+ "let ezeroBrowserVoices=[];\n"+readVoices+"\n"+preferredVoice+"\nezeroPreferredVoice;",
+ voiceCtx
+);
+assert.equal(chooseVoice("ur-PK"),null,"Missing Urdu voice must not be invented");
+discoveredVoices=[{lang:"ur-PK",voiceURI:"installed-urdu",name:"Urdu voice"}];
+assert.equal(chooseVoice("ur-PK")?.voiceURI,"installed-urdu","Discover late-arriving Urdu voice");
+assert.ok(voiceReadCount>=2,"Playback must retry getVoices()");
+assert.ok(studio.includes('id="ezeroTtsRefresh"'),"Manual voice refresh is available");
+assert.ok(studio.includes('refresh?.addEventListener("click"'),"Voice refresh must be interactive");
+
 assert.ok(studio.includes("showAnswerProvenance") && studio.includes("PUBLIC_RELEASE_BUNDLED_DATED"),"Site-state fallback must be visible as dated, not live");
 assert.ok(studio.includes("appendUnverifiedWebSources"),"AI Studio must show real external sources");
 assert.ok(studio.includes("source.sourceClass!==\"WEB_SEARCH_UNVERIFIED\""),
