@@ -35,7 +35,7 @@ function environment(){
 }
 const base="https://example.invalid/v1/room/";
 const roomId="a".repeat(32),token="c".repeat(64),issued=Date.now();
-const ownerSecret="EZEROOwnerPilotSecret_2026_TestOnly_64chars";
+const ownerSecret="f".repeat(64);
 const proofKey=await crypto.subtle.importKey("raw",new TextEncoder().encode(ownerSecret),
   {name:"HMAC",hash:"SHA-256"},false,["sign"]);
 const proofBytes=await crypto.subtle.sign("HMAC",proofKey,
