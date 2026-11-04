@@ -22,6 +22,7 @@ jobs:
           set -euo pipefail
           node --check js/vendor/ezero-qrcode-generator-mit.js
           node --check js/ezero_secure_connect_live_p2p_v0_1.js
+          node --check js/ezero_secure_connect_simple_near_far_v0_1.js
           node --check js/ezero_secure_connect_preview_i18n_v0_1.js
           node --check tests/test_ezero_secure_connect_live_p2p_browser_v0_1.mjs
           node tests/test_ezero_secure_connect_live_p2p_contract_v0_1.js
