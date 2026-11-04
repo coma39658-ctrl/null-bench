@@ -92,3 +92,20 @@ Record **PASS/FAIL/PARTIAL/UNKNOWN** separately for automated simulation, browse
 - OWASP ASVS 5.0: https://asvs.owasp.org/
 - CST VVSP (PSTN calls only, not proof of rules for all app-to-app services): https://www.cst.gov.sa/en/business/services/Permit-to-provide-virtual-voice-services-VVSP
 - SDAIA data deletion and retention policies: https://dgp.sdaia.gov.sa/wps/portal/pdp/knowledgecenter/details/ElaborationandDevelopingPrivacyPolicyGuideline/
+
+## 9. Explicit high-quality video and superb audio user requirement (2026-11-04)
+The owner prioritizes **clear high-quality video calls, strong intelligible audio calls and excellent voice notes**. The product target is not "always 1080p": it is **the best stable, authenticated quality the actual devices and permitted network can sustain**.
+- Video target: default responsive **720p at up to 30 fps** (only a device-capture preference, not a claim about transmitted frames); explicit **1080p at up to 30 fps** when both endpoints, codec, battery, bandwidth, thermal headroom and service tier support it; automatic **360p at 15 fps** data-saver / congested fallback. Where network quality degrades, preserve audio before video fidelity and allow camera-off audio-only seamlessly.
+- Screen/frame/audio metrics: measure **sender camera actual getSettings**, WebRTC outbound encoded dimensions/fps/bitrate, receiver decoded frames/fps, RTT/jitter, packet loss, available send/receive bitrate, audio concealment and reconnection time **separately**. High camera resolution alone does not prove high delivered call quality.
+- Group video: use SFU adaptive subscriptions / simulcast, pause unused video layers and minimize handset uplink; validate server bandwidth costs. Prefer 1:1 premium frame consistency over high-res claims; video E2EE must remain enabled and peer-approved.
+- Audio call: Opus codec where supported, request browser `echoCancellation`, `noiseSuppression` and `autoGainControl` where supported, audio-first packet priority, bound latency/reconnect; test speaker, wired/Bluetooth headset and low-cost phones. On packet loss evaluate Opus in-band FEC per RFC 8854 with actual controlled measurements; excessive noise processing can harm audio quality on some devices, so provide fallback.
+- Voice messages: simple press-to-record, clear start/stop indication, pre-send review, quality modes (default Opus ~48–64kbps design candidate; exact chosen bitrate depends on devices and network), chunked authenticated E2EE delivery, no required forwarding or file downloading for recipients; one-listen expiry hard deadline = first listening start + original voice length + at most 5 minutes. Receiver's media is not retained as an accessible permanent file; sender can explicitly cancel a draft before transmission.
+- Caller UX: explicit camera/microphone prompts, all permissions reversible, actual slow-network warning and quality mode; never show "HD connected" until live WebRTC receiver telemetry confirms it. Do not promise guaranteed audio clarity in congested environments.
+- Pilot progression: local-only Chrome camera/mic/voice draft test first (NO network or remote calls), secure signaling/authentication next, E2EE 1:1 audio then video with real Saudi Wi-Fi/4G/5G and lawful TURN, small groups after. No public calling claims until phase-specific QA.
+- Compliance and safety: a normal browser cannot prevent external recipient recording/screenshots or guarantee a VPN-free path across every country/operator. The web preview should not automatically record, upload, save or advertise media.
+
+References:
+- MDN constraints & actual camera settings: https://developer.mozilla.org/en-US/docs/Web/API/Media_Capture_and_Streams_API/Constraints
+- MDN MediaRecorder (voice note recording): https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder
+- RFC 8854 WebRTC packet loss/FEC audio: https://www.rfc-editor.org/rfc/rfc8854.html
+- LiveKit adaptive video / simulcast / Dynacast: https://docs.livekit.io/transport/media/advanced/
