@@ -20,7 +20,9 @@ globalThis.WebSocketPair=class{
   constructor(){this[0]=new FakeSocket();this[1]=new FakeSocket();}
 };
 function environment(){
-  const ctx={sockets:[],storage:{alarm:null,
+  const db=new Map();
+  const ctx={sockets:[],storage:{alarm:null,db,
+    get:async k=>db.get(k),put:async(k,v)=>{db.set(k,structuredClone(v));},
     setAlarm:async t=>{ctx.storage.alarm=t;}},
     acceptWebSocket(ws){ctx.sockets.push(ws);},
     getWebSockets(){return ctx.sockets.filter(s=>s.readyState!==3);}};
@@ -81,30 +83,36 @@ await env.object.webSocketMessage(a,JSON.stringify({v:1,type:"offer",payload:sig
 assert.equal(last(a).code,"OFFER_NOT_READY");
 await env.object.webSocketMessage(b,JSON.stringify({v:1,type:"accept"}));
 assert.equal(last(a).type,"accepted");
-const pending=signal("offer");
-await env.object.webSocketMessage(a,JSON.stringify({v:1,type:"offer",payload:pending}));
+const opaque="A".repeat(540);
+await env.object.webSocketMessage(a,JSON.stringify({v:1,type:"offer",blob:opaque}));
 assert.equal(last(b).type,"offer");
-assert.equal(last(b).payload.sdp,pending.sdp);
-await env.object.webSocketMessage(b,JSON.stringify({v:1,type:"answer",payload:signal("answer")}));
+assert.equal(last(b).blob,opaque);
+assert.equal(last(b).payload,undefined,"Cloudflare never receives plaintext SDP");
+await env.object.webSocketMessage(b,JSON.stringify({v:1,type:"answer",blob:opaque}));
 assert.equal(last(a).type,"answer");
+assert.equal(last(a).blob,opaque);
 assert.equal(env.ctx.sockets[0].deserializeAttachment().count,3);
 assert.equal(env.ctx.sockets[1].deserializeAttachment().count,2);
-assert.equal(Object.keys(env.ctx.storage).includes("sdp"),false);
+assert.deepEqual([...env.ctx.storage.db.keys()],["room:meta"]);
+assert.equal(JSON.stringify(env.ctx.storage.db.get("room:meta")).includes("sdp"),false);
 console.log("EXPLICIT_ACCEPT_SIGNED_SHAPE_RELAY_NO_SDP_STORAGE: PASS");
 
-await env.object.webSocketMessage(a,JSON.stringify({v:1,type:"offer",payload:signal("offer")}));
+await env.object.webSocketMessage(a,JSON.stringify({v:1,type:"offer",blob:opaque}));
 assert.equal(last(a).code,"OFFER_NOT_READY","Cannot send a second offer");
 await env.object.webSocketMessage(b,JSON.stringify({v:1,type:"hangup"}));
 assert.equal(a.readyState,3);
 assert.equal(b.readyState,3);
+assert.equal(env.ctx.storage.db.get("room:meta").closed,true);
+assert.equal((await worker.fetch(req(),env.env)).status,410,"Hangup tombstones the room even after both disconnect");
 console.log("REPLAY_BLOCKED_HANGUP_CLOSES_BOTH: PASS");
 
 const exp=environment();
 await worker.fetch(req(),exp.env);await worker.fetch(req(),exp.env);
 const expA=exp.ctx.sockets[0],expB=exp.ctx.sockets[1];
 expA.serializeAttachment({...expA.deserializeAttachment(),expires:Date.now()-1});
-await exp.object.webSocketMessage(expA,JSON.stringify({v:1,type:"offer",payload:signal("offer")}));
+await exp.object.webSocketMessage(expA,JSON.stringify({v:1,type:"offer",blob:opaque}));
 assert.equal(expA.readyState,3);
 await exp.object.alarm();
 assert.equal(expB.readyState,3);
+assert.equal((await worker.fetch(req(),exp.env)).status,410);
 console.log("EXPIRED_ROOM_ALARM_CLOSES_PEERS: PASS");
