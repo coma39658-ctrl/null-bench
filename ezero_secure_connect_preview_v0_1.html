@@ -9,12 +9,14 @@
 <title>E-ZERO Secure Connect · Private Calling Preview</title>
 <link rel="stylesheet" href="./css/ezero_secure_connect_preview_v0_1.css">
 <script defer src="./js/ezero_secure_connect_preview_v0_1.js"></script>
+<script defer src="./js/ezero_secure_connect_preview_i18n_v0_1.js"></script>
 </head>
 <body>
 <div class="shell">
   <header class="topbar">
     <a class="back" href="./index.html" aria-label="واپس مرکزی E-ZERO صفحے پر">↩ واپس / Back</a>
     <span class="mark">E-ZERO <strong>Secure Connect</strong></span>
+    <label class="preview-language"><span id="previewLanguageCaption">🌐 زبان</span><select id="previewLanguage" aria-label="Language / زبان / اللغة"><option value="ur">اردو</option><option value="en">English</option><option value="ar">العربية</option></select></label>
   </header>
   <main>
     <div class="hero">
@@ -27,6 +29,10 @@
     </div>
     <p class="notice" id="previewNotice" role="status"><strong>مقامی آزمائشی ورژن:</strong> فی الحال دوسرے صارف سے کال، میسج بھیجنا یا QR سے رابطہ جوڑنا فعال نہیں۔ اس صفحے پر مائک، کیمرہ اور صوتی ڈرافٹ صرف آپ کے فون پر آزمائے جاتے ہیں۔</p>
     <p class="welcome-note" id="connectWelcome">صرف اپنی پسند کا فیچر دبائیں۔ یہ فی الحال آپ کے فون کی مقامی آزمائش ہے؛ اصلی کال یا پیغام دوسرے صارف تک نہیں جاتا۔</p>
+    <div class="live-trial-entry">
+      <a href="./ezero_secure_connect_live_p2p_v0_1.html" id="ezeroRealTwoPhoneTest" class="live-trial-button">📞 حقیقی دو فون کال آزمائیں · Real 2-phone test</a>
+      <p>حقیقی WebRTC آڈیو/ویڈیو اور عارضی پیغام کی تجرباتی آزمائش — دو فونوں پر دعوت/جواب شیئر کریں۔ مستقل فرینڈ اکاؤنٹ یا خودکار کال اطلاع ابھی موجود نہیں۔</p>
+    </div>
     <nav class="action-grid" aria-label="کمیونیکیشن کی بنیادی سہولتیں">
       <button type="button" class="action active" data-mode="video" aria-pressed="true"><span class="emoji" aria-hidden="true">📹</span><strong>ویڈیو کال</strong><small>HD Video · Test</small></button>
       <button type="button" class="action" data-mode="audio" aria-pressed="false"><span class="emoji" aria-hidden="true">📞</span><strong>آڈیو کال</strong><small>Clear Audio · Test</small></button>

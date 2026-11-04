@@ -42,6 +42,20 @@ try {
   await page.locator("#ezeroSecureConnectVideoEntry").click();
   await page.waitForURL(/ezero_secure_connect_preview_v0_1\.html#video$/);
   assert.equal(await page.locator("#startVideo").isVisible(),true);
+  await page.locator("#previewLanguage").selectOption("en");
+  assert.match(await page.locator(".hero h1").innerText(),/Welcome/);
+  assert.match(await page.locator(".policy h2").innerText(),/clear policy/);
+  assert.match(await page.locator("#ezeroRealTwoPhoneTest").getAttribute("href"),/lang=en/);
+  await page.locator("#previewLanguage").selectOption("ar");
+  assert.match(await page.locator(".hero h1").innerText(),/مرحباً/);
+  assert.match(await page.locator(".policy h2").innerText(),/سياستنا/);
+  assert.match(await page.locator("#ezeroRealTwoPhoneTest").getAttribute("href"),/lang=ar/);
+  await page.locator("#previewLanguage").selectOption("ur");
+  assert.match(await page.locator(".hero h1").innerText(),/خوش آمدید/);
+  assert.match(await page.locator("#ezeroRealTwoPhoneTest").getAttribute("href"),/lang=ur/);
+  assert.equal(await page.evaluate(()=>window.__ezeroMediaCalls.length),0,
+    "Changing language never triggers camera or microphone");
+
   await page.locator("#previewIncomingCall").click();
   await page.locator("#incomingCallDemo").waitFor({state:"visible"});
   assert.match(await page.locator("#incomingDemoLimit").innerText(),/کوئی شخص کال نہیں کر رہا/);
@@ -134,6 +148,7 @@ try {
   await page.locator("#stopVideo").click();
   console.log("CONSENT_FIRST_INCOMING_CALL_UI_DEMO: PASS");
   console.log("AUTO_LOCAL_DATA_SAVER_CAMERA_PREFERENCE: PASS");
+  console.log("TRILINGUAL_WELCOME_AND_CONSENT_POLICY_WITH_LINK_LANGUAGE: PASS");
   console.log("NO_NETWORK_COMMUNICATION_OR_REAL_CALLS: PASS");
 } finally {
   await context.close();
