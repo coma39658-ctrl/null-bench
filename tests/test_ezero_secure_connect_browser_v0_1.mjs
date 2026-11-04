@@ -27,9 +27,7 @@ try {
   await page.goto(base+"/index.html",{waitUntil:"domcontentloaded"});
   assert.equal(await page.locator("a.ezero-voice-float").count(),1,"AI Studio separate button preserved");
   await page.locator("#ezeroVoiceGuideButton").click();
-  await page.waitForTimeout(200);
-  const hubDebug=await page.evaluate(()=>({aria:document.getElementById("ezeroVoiceGuidePanel")?.getAttribute("aria-hidden"),display:document.getElementById("ezeroVoiceGuidePanel")?.style.display,handler:typeof window.EZERO_POSITION_AI_AGENT_PANEL,close:!!document.getElementById("ezeroVoiceGuideClose"),parent:document.getElementById("ezeroVoiceGuidePanel")?.parentElement?.tagName}));
-  console.log("HUB_OPEN_DEBUG",JSON.stringify(hubDebug));
+  await page.waitForFunction(()=>document.getElementById("ezeroVoiceGuidePanel")?.getAttribute("aria-hidden")==="false");
   assert.equal(await page.locator("#ezeroVoiceGuidePanel").getAttribute("aria-hidden"),"false");
   assert.equal(await page.locator("#ezeroLegacyVoiceGuide").isHidden(),true);
   const cards=page.locator("#ezeroAssistFutureDock a.ezero-assist-tool");
@@ -51,11 +49,29 @@ try {
   assert.equal(requested.audio.noiseSuppression,true);
   await page.locator("#stopVideo").click();
   assert.equal(await page.evaluate(()=>document.querySelector("#cameraPreview").srcObject),null);
+  // These are local capture preferences, not claimed receiver-side network quality.
+  await page.locator("#quality").selectOption("hd");
+  await page.locator("#startVideo").click();
+  await page.waitForFunction(()=>document.querySelector("#cameraPreview")?.srcObject?.active===true);
+  const hd=await page.evaluate(()=>window.__ezeroMediaCalls.at(-1).video);
+  assert.equal(hd.width.ideal,1920);
+  assert.equal(hd.height.ideal,1080);
+  assert.equal(hd.frameRate.ideal,30);
+  await page.locator("#stopVideo").click();
+  await page.locator("#quality").selectOption("saver");
+  await page.locator("#startVideo").click();
+  await page.waitForFunction(()=>document.querySelector("#cameraPreview")?.srcObject?.active===true);
+  const saver=await page.evaluate(()=>window.__ezeroMediaCalls.at(-1).video);
+  assert.equal(saver.width.ideal,640);
+  assert.equal(saver.height.ideal,360);
+  assert.equal(saver.frameRate.ideal,15);
+  await page.locator("#stopVideo").click();
+  assert.equal(await page.evaluate(()=>window.__ezeroMediaCalls.length),3);
 
   await page.locator('button[data-mode="audio"]').click();
   await page.locator("#startAudio").click();
   await page.waitForFunction(()=>document.querySelector("#stopAudio").disabled===false);
-  assert.equal(await page.evaluate(()=>window.__ezeroMediaCalls.length),2);
+  assert.equal(await page.evaluate(()=>window.__ezeroMediaCalls.length),4);
   await page.locator("#stopAudio").click();
   await page.locator('button[data-mode="voice"]').click();
   await page.locator("#recordVoice").click();
@@ -66,7 +82,7 @@ try {
   assert.match(await page.locator("#voicePlayback").getAttribute("src"),/^blob:/);
   await page.locator("#clearVoice").click();
   assert.equal(await page.locator("#voicePlayback").isHidden(),true);
-  assert.equal(await page.evaluate(()=>window.__ezeroMediaCalls.length),3);
+  assert.equal(await page.evaluate(()=>window.__ezeroMediaCalls.length),5);
 
   await page.locator('button[data-mode="qr"]').click();
   await page.locator("#makeFingerprint").click();
@@ -74,8 +90,9 @@ try {
   assert.match(await page.locator("#qrStatus").innerText(),/عارضی SHA-256/);
   await page.locator('button[data-mode="messages"]').click();
   assert.match(await page.locator('[data-panel="messages"]').innerText(),/12 منٹ/);
-  assert.equal(await page.evaluate(()=>window.__ezeroMediaCalls.length),3,"Navigation does not restart camera or microphone");
+  assert.equal(await page.evaluate(()=>window.__ezeroMediaCalls.length),5,"Navigation does not restart camera or microphone");
   console.log("SECURE_CONNECT_MOBILE_POPUP_AND_SEPARATE_AI: PASS");
+  console.log("LOCAL_360P_720P_1080P_CAPTURE_PROFILES: PASS");
   console.log("LOCAL_HD_CAMERA_ONLY_AFTER_GESTURE: PASS");
   console.log("LOCAL_AUDIO_METER_ONLY_AFTER_GESTURE: PASS");
   console.log("LOCAL_VOICE_DRAFT_AND_ERASURE: PASS");
