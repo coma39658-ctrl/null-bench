@@ -1,0 +1,110 @@
+name: E-ZERO Secure Connect Disabled Staging Privacy Update
+on:
+  push:
+    branches: [ezero-secure-connect-cloudflare-signaling-lab-20261104]
+    paths:
+      - docs/EZERO_SC_STAGING_PRIVACY_UPDATE_ONCE_20261104.md
+permissions:
+  contents: read
+concurrency:
+  group: ezero-secure-connect-disabled-staging-once
+  cancel-in-progress: false
+jobs:
+  privacy-update:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Verify erasure tests and guarded disabled runtime
+        run: |
+          set -euo pipefail
+          node --check secure_connect/cloudflare/signaling_worker_v0_1.mjs
+          node --check secure_connect/client/signaling_client_v0_1.mjs
+          node --check secure_connect/client/pilot_friends_v0_1.mjs
+          node --test secure_connect/tests/test_signaling_worker_v0_1.mjs
+          node - <<'GATE'
+          const fs=require("node:fs");
+          const config=fs.readFileSync("secure_connect/cloudflare/wrangler.jsonc","utf8");
+          const worker=fs.readFileSync("secure_connect/cloudflare/signaling_worker_v0_1.mjs","utf8");
+          if(!config.includes('"name": "ezero-secure-connect-signaling-lab"') ||
+             !config.includes('"PILOT_ENABLED": "false"') ||
+             !config.includes('"ALLOW_LOCAL_TEST_ORIGIN": "false"') ||
+             !worker.includes('env.PILOT_ENABLED!=="true" || !env.PILOT_JOIN_SECRET') ||
+             !worker.includes('async deleteAccount(b)') ||
+             !worker.includes('b.type==="delete_account"')){
+             console.error("PRIVACY_UPDATE_DISABLED_GATE_FAILED");process.exit(1);
+          }
+          console.log("PRIVACY_UPDATE_DISABLED_GATE: PASS");
+          GATE
+      - name: Dry run before any Cloudflare write
+        env: {WRANGLER_SEND_METRICS: 'false'}
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4 deploy --dry-run --config secure_connect/cloudflare/wrangler.jsonc --outdir /tmp/ezero-sc-privacy-dryrun
+          test -d /tmp/ezero-sc-privacy-dryrun
+      - name: Confirm exactly our previous disabled staging Worker; abort if enabled
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          node --input-type=module - <<'VERIFY'
+          const token=process.env.CLOUDFLARE_API_TOKEN,account=process.env.CLOUDFLARE_ACCOUNT_ID;
+          if(!/^[a-f0-9]{32}$/i.test(account||"")||!(/^[A-Za-z0-9_-]{20,200}$/.test(token||""))){
+            console.error("STAGING_CREDENTIALS_UNKNOWN");process.exit(1);
+          }
+          const r=await fetch("https://api.cloudflare.com/client/v4/accounts/"+account+"/workers/scripts",{
+            headers:{Authorization:"Bearer "+token,Accept:"application/json"},
+            redirect:"error",signal:AbortSignal.timeout(10000)});
+          if(!r.ok){console.error("STAGING_LIST_HTTP_"+r.status);process.exit(1);}
+          const j=await r.json();
+          if(j.success!==true||!Array.isArray(j.result))process.exit(1);
+          if(j.result.filter(x=>x.id==="ezero-secure-connect-signaling-lab").length!==1){
+            console.error("EXPECTED_STAGING_WORKER_ABSENT");process.exit(1);
+          }
+          const domain=await fetch("https://api.cloudflare.com/client/v4/accounts/"+account+"/workers/subdomain",{
+            headers:{Authorization:"Bearer "+token,Accept:"application/json"},
+            redirect:"error",signal:AbortSignal.timeout(10000)});
+          if(!domain.ok)process.exit(1);
+          const sub=(await domain.json())?.result?.subdomain;
+          if(!/^[a-z0-9-]+$/.test(sub||""))process.exit(1);
+          const health=await fetch("https://ezero-secure-connect-signaling-lab."+sub+".workers.dev/health",{
+            redirect:"error",signal:AbortSignal.timeout(10000)});
+          if(!health.ok)process.exit(1);
+          const body=await health.json();
+          if(body.enabled!==false||body.stage!=="NOT_PRODUCTION"||body.calling!=="NOT_AVAILABLE"||
+             body.mediaRelay!=="NOT_AVAILABLE"){
+            console.error("STAGING_NOT_DISABLED_REFUSE_UPDATE");process.exit(1);
+          }
+          console.log("EXISTING_STAGING_DISABLED: PASS");
+          VERIFY
+      - name: Update only our disabled staging Worker with privacy erasure
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_SEND_METRICS: 'false'
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4 deploy --config secure_connect/cloudflare/wrangler.jsonc
+          echo "STAGING_PRIVACY_CODE_UPDATE: COMMAND_SUCCEEDED"
+      - name: Public read-only health must remain disabled
+        run: |
+          set -euo pipefail
+          node --input-type=module - <<'CHECK'
+          const url="https://ezero-secure-connect-signaling-lab.coma39658.workers.dev/health";
+          for(let i=0;i<6;i++){
+            const r=await fetch(url,{redirect:"error",signal:AbortSignal.timeout(10000)});
+            if(r.ok){
+              const b=await r.json();
+              if(b.enabled===false&&b.stage==="NOT_PRODUCTION"&&b.calling==="NOT_AVAILABLE"){
+                console.log("STAGING_PRIVACY_UPDATE_HEALTH: PASS; PILOT_OFF");process.exit(0);
+              }
+              console.error("STAGING_HEALTH_UNSAFE");process.exit(1);
+            }
+            if(i<5)await new Promise(r=>setTimeout(r,3000));
+          }
+          console.error("STAGING_HEALTH_UNVERIFIED");process.exit(1);
+          CHECK
