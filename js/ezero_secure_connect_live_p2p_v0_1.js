@@ -9,6 +9,26 @@
   const $ = id => document.getElementById(id);
   const te = new TextEncoder();
   const langs = {
+    ur: {
+      idle:"ابھی کوئی کال شروع نہیں ہوئی۔", connected:"WebRTC کنکشن قائم ہوا؛ دوست کی شناخت خود تصدیق کریں۔",
+      waiting:"دوسرے فون کے جواب کا انتظار؛ اپنا کوڈ بھیجیں۔", connecting:"دوسرے فون سے رابطہ قائم ہو رہا ہے…",
+      offline:"رابطہ ٹوٹ گیا یا ناکام ہوا؛ کال بند کرکے دوبارہ آزمائیں۔",
+      micDenied:"کیمرہ یا مائک کی اجازت نہیں ملی، یا یہ دستیاب نہیں۔",
+      signalInvalid:"کوڈ غلط، پرانا یا بغیر تصدیق شدہ ہے؛ کنکشن قائم نہیں ہوا۔",
+      needCode:"مکمل دعوت یا جواب کوڈ پیسٹ کریں۔", needConnected:"پہلے دو فون آپس میں جوڑیں۔",
+      copied:"کوڈ کاپی ہوگیا۔",shareUnavailable:"شیئرنگ دستیاب نہیں؛ براہِ کرم کوڈ کاپی کریں۔",
+      scanUnavailable:"اس براؤزر میں QR کیمرہ اسکین نہیں چل سکتا؛ کوڈ پیسٹ کریں۔",
+      scanActive:"اسکینر فعال ہے؛ E-ZERO کا ایک QR کیمرے کے سامنے رکھیں۔",
+      scanStopped:"کیمرہ اسکینر بند کردیا گیا۔", identityNotAccount:"یہ عارضی دستخط شدہ شناخت ہے؛ مستقل اکاؤنٹ یا اصل انسان کی شناخت کی تصدیق نہیں۔",
+      verifiedSelf:"ڈیجیٹل دستخط درست ہے؛ انسان کی شناخت الگ سے تصدیق کریں۔",
+      identityMismatch:"کال کی شناخت اسکین کردہ QR/کوڈ سے مختلف ہے؛ کنکشن بند کردیا گیا۔",
+      confirmPeer:"دوسرے فون کا خود دستخط شدہ کوڈ ملا ہے؛ SHA-256 فنگرپرنٹ الگ سے ملائیں۔",
+      arrived:"عارضی پیغام ملا ہے؛ ایک بار کھولنے کے لیے بٹن دبائیں۔",
+      opened:"اس فون پر پیغام کھولا گیا؛ یہ انسان کے پڑھنے کا ثبوت نہیں۔",
+      expired:"عارضی پیغام ختم کردیا گیا۔",
+      sent:"پیغام encrypted DataChannel میں بھیجا گیا؛ انسان کے پڑھنے کا ثبوت نہیں۔",
+      notConnected:"میسج کے لیے دونوں فونوں کا کنکشن ضروری ہے۔"
+    },
     en: {
       back:"↩ Back", language:"Language", welcome:"Welcome — test a real 1:1 call", intro:"A two-browser trial of real voice, video, and one-view messages.",
       free:"No charge",ads:"No advertising",consent:"Mic/camera only with permission",labWarning:"REAL experimental P2P: no persistent accounts, automatic friend finding, background call notifications or signaling server. Manually share the offer/answer between the two phones. Some networks cannot connect without a TURN relay.",
