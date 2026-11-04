@@ -20,7 +20,9 @@ const dict={
   done:"اس فون کی جانچ مکمل؛ نتیجے کا ورژن دوسرے فون سے ضرور ملائیں۔",
   copyOk:"صرف غیر نجی تشخیصی رپورٹ کاپی ہوگئی۔",
   copyFail:"خودکار کاپی دستیاب نہیں؛ نیچے رپورٹ منتخب کرکے کاپی کریں۔",
-  version:"ایپ ورژن",
+  version:"ایپ کے اجزا کے ورژن",
+  coreBuild:"اصل WebRTC کال انجن",linkBuild:"نجی ایک لنک نظام",copilotBuild:"AI Privacy Copilot",
+  buildMissing:"پرانا یا نامکمل کوڈ؛ Chrome میں تازہ صفحہ کھولیں",
   mode:"کھولنے کا طریقہ",
   secure:"محفوظ HTTPS",
   crypto:"ڈیجیٹل دستخط و خفیہ کاری",
@@ -49,7 +51,7 @@ const dict={
   callConnected:"حقیقی WebRTC کنکشن قائم ہونے کی اطلاع ملی",
   callAbsent:"ابھی اس فون پر حقیقی WebRTC کال کنیکٹ نہیں",
   pilotDisabled:"آن لائن ایک لنک کال ابھی بند تجرباتی Staging میں ہے",
-  compare:"دونوں فونوں پر یہی ایپ ورژن ملائیں؛ مختلف ورژن ہوں تو دونوں کو انٹرنیٹ کے ساتھ Chrome میں تازہ کھولیں۔",
+  compare:"دونوں فونوں پر Doctor اور کال انجن سمیت تمام اجزا کے ورژن ملائیں۔ کسی جزو کا نمبر مختلف یا غائب ہو تو Chrome میں تازہ صفحہ کھولیں۔",
   micHint:"یہ جانچ خود سے اجازت نہیں مانگتی۔ کال شروع کرنے پر ہی مائیک/کیمرہ کی اجازت دی جا سکتی ہے۔",
   noInternetGuarantee:"یہ صلاحیت کی جانچ ہے؛ دوسرے فون تک کال پہنچنے یا نیٹ ورک راستہ ملنے کی ضمانت نہیں۔",
   result:"غیر نجی تشخیصی رپورٹ",
@@ -67,7 +69,9 @@ const dict={
   done:"Readiness checked. Compare the version with the other phone.",
   copyOk:"The privacy-safe diagnostic was copied.",
   copyFail:"Clipboard blocked. Select and copy the report below.",
-  version:"App version",mode:"Opening mode",secure:"Secure HTTPS context",
+  version:"App component versions",
+  coreBuild:"Signed WebRTC call engine",linkBuild:"Private one-link module",copilotBuild:"Privacy Copilot module",
+  buildMissing:"Missing or older code; reopen the latest page online in Chrome",mode:"Opening mode",secure:"Secure HTTPS context",
   crypto:"Digital signatures and encryption",webrtc:"Direct WebRTC",
   media:"Microphone API",camera:"Camera API",socket:"Automatic call-room WebSocket",
   permission:"Current microphone permission",connection:"Internet indicator",
@@ -86,7 +90,7 @@ const dict={
   callConnected:"Browser reported a real connected WebRTC peer",
   callAbsent:"No connected WebRTC call on this phone yet",
   pilotDisabled:"Online one-link rooms remain in disabled staging",
-  compare:"Compare this exact version on both phones. If different, open the current page online in Chrome on both.",
+  compare:"Compare the Doctor and every component version on both phones. If any differ or are missing, open the page online in Chrome.",
   micHint:"Preflight never requests permission. The browser may ask for microphone/camera access only when a call is started.",
   noInternetGuarantee:"Capability check only; not evidence of reachability to the other phone.",
   result:"Privacy-safe diagnostic report",yes:"Ready",warning:"Review",blocked:"Blocked",info:"Info"
@@ -98,7 +102,9 @@ const dict={
   before:"لم يُفحص بعد؛ هذه ليست مكالمة متصلة.",
   done:"اكتمل الفحص؛ قارن الإصدار بين الهاتفين.",
   copyOk:"نُسخ التقرير غير الشخصي.",copyFail:"النسخ التلقائي غير متاح؛ حدّد التقرير وانسخه.",
-  version:"إصدار التطبيق",mode:"طريقة الفتح",secure:"سياق HTTPS الآمن",
+  version:"إصدارات مكونات التطبيق",
+  coreBuild:"محرك WebRTC الموقّع",linkBuild:"وحدة رابط المكالمة",copilotBuild:"مساعد الخصوصية AI",
+  buildMissing:"كود قديم أو ناقص؛ افتح الصفحة الحديثة عبر Chrome مع الإنترنت",mode:"طريقة الفتح",secure:"سياق HTTPS الآمن",
   crypto:"التوقيع والتشفير",webrtc:"WebRTC المباشر",media:"واجهة الميكروفون",
   camera:"واجهة الكاميرا",socket:"WebSocket لغرفة المكالمة",
   permission:"حالة إذن الميكروفون",connection:"مؤشر الإنترنت",cache:"نسخة التطبيق المحفوظة",
@@ -117,7 +123,7 @@ const dict={
   callConnected:"أبلغ المتصفح عن اتصال WebRTC حقيقي",
   callAbsent:"لا يوجد اتصال WebRTC فعلي بعد",
   pilotDisabled:"غرف الروابط المباشرة ما زالت مغلقة تجريبياً",
-  compare:"قارن الإصدار نفسه على الهاتفين؛ إن اختلف افتح الصفحة عبر Chrome مع الإنترنت.",
+  compare:"قارن إصدارات Doctor وكل مكونات الاتصال على الهاتفين؛ عند الاختلاف افتح الصفحة عبر Chrome مع الإنترنت.",
   micHint:"الفحص لا يطلب الإذن؛ قد يُطلب عند بدء المكالمة فقط.",
   noInternetGuarantee:"هذا فحص قدرات، وليس ضماناً للاتصال بالهاتف الآخر.",
   result:"تقرير غير شخصي",yes:"جاهز",warning:"مراجعة",blocked:"محظور",info:"معلومات"
@@ -141,7 +147,7 @@ function summary(){
  // WebRTC SDP, connection candidates, fingerprints, room IDs and call links.
  return [
    "E-ZERO CALL DOCTOR / READ-ONLY SELF-CHECK",
-   "VERSION: "+VERSION,
+   "DOCTOR_BUILD: "+VERSION,
    ...last.map(x=>x.name+": "+x.detail),
    "NOTE: "+t("noInternetGuarantee")
  ].join("\n");
@@ -193,8 +199,14 @@ async function run(){
    else if(state==="denied")permission="permissionDenied";
   }catch(_){}
  }
+ const build=[
+  {label:"coreBuild",value:document.documentElement.dataset.ezeroCoreBuild},
+  {label:"linkBuild",value:document.documentElement.dataset.ezeroLinkBuild},
+  {label:"copilotBuild",value:document.documentElement.dataset.ezeroCopilotBuild}
+ ];
  const rows=[
   check("info","version","version"),
+  ...build.map(x=>check(x.value?"pass":"warning",x.label,x.value?"supported":"buildMissing")),
   check("info","mode",mode()),
   check(secure?"pass":"block","secure",secure?"supported":"unavailable"),
   check(subtle?"pass":"block","crypto",subtle?"supported":"unavailable"),
@@ -210,6 +222,7 @@ async function run(){
  ];
  // Replace generic duplicate version label with a stable non-identifying build.
  rows[0].detail=VERSION;
+ for(let i=0;i<build.length;i++)if(build[i].value)rows[i+1].detail=build[i].value;
  last=rows;
  display();
  $("doctorRun").disabled=false;
