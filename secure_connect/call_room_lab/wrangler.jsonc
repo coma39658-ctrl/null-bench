@@ -1,0 +1,18 @@
+{
+  "name": "ezero-secure-connect-call-lab-disabled",
+  "main": "./room_worker.mjs",
+  "compatibility_date": "2026-10-12",
+  "workers_dev": true,
+  "observability": {"enabled": false},
+  "vars": {
+    "ROOMS_ENABLED": "false"
+  },
+  "durable_objects": {
+    "bindings": [
+      {"name": "CALL_ROOMS", "class_name": "CallRoom"}
+    ]
+  },
+  "migrations": [
+    {"tag": "room-lab-v1", "new_sqlite_classes": ["CallRoom"]}
+  ]
+}
