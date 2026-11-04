@@ -92,7 +92,7 @@ const text={
    remind:"الميزة في مرحلة التجربة فقط؛ لا تفتح للجمهور قبل اختبار هاتفين فعلياً."
  }
 };
-let roomId=null,secret=null,auth=null,proof=null,secretKey=null,ws=null,role=null,joined=false,approved=false;
+let roomId=null,secret=null,auth=null,issued=null,proof=null,secretKey=null,ws=null,role=null,joined=false,approved=false;
 let ready=false, link="",closing=false;
 const lang=()=>["ur","en","ar"].includes($("language")?.value)?$("language").value:"ur";
 const t=k=>(text[lang()]||text.ur)[k]||text.ur[k]||k;
@@ -147,16 +147,16 @@ async function decrypt(blob){
 function readLink(){
  const raw=location.hash.slice(1);
  // Parsing only; a fragment is never sent to the origin server.
- const m=raw.match(/^callroom=([a-f0-9]{32})\.([a-f0-9]{64})\.([a-f0-9]{64})$/);
+ const m=raw.match(/^callroom=([a-f0-9]{32})\.([a-f0-9]{64})\.([0-9]{13})\.([a-f0-9]{64})$/);
  if(!m)return false;
- roomId=m[1];proof=m[3];
+ roomId=m[1];issued=Number(m[3]);proof=m[4];
  // Strip the fragment before any asynchronous operation; incoming participants
  // must not expose their bearer link in the UI or browser history.
  history.replaceState(null,"",location.pathname+location.search);
  $("roomLink").value="";link="";
  st("incoming");draw();
  void useSecret(m[2]).then(()=>{secret=null;draw();}).catch(()=>{
-   roomId=null;auth=null;proof=null;secretKey=null;secret=null;st("invalid");draw();
+   roomId=null;auth=null;proof=null;issued=null;secretKey=null;secret=null;st("invalid");draw();
  });
  return true;
 }
@@ -169,7 +169,7 @@ function closeRoom(sendHangup=false){
  closing=true;
  try{ws?.close(1000,"Done");}catch(_){}
  ws=null;ready=false;approved=false;joined=false;
- secret=null;secretKey=null;auth=null;proof=null;link="";roomId=null;
+ secret=null;secretKey=null;auth=null;proof=null;issued=null;link="";roomId=null;
  $("roomLink").value="";
  $("hangup")?.click();
  st("ended");draw();
@@ -198,11 +198,14 @@ async function receive(frame){
  }
 }
 function connect(){
- if(!roomId||!auth||!secretKey||!/^[a-f0-9]{64}$/.test(proof||"")){st("invalid");return;}
+ if(!roomId||!auth||!secretKey||!/^[a-f0-9]{64}$/.test(proof||"")||
+   !Number.isSafeInteger(issued)||issued+600000<Date.now()||issued>Date.now()+30000){
+    st("invalid");return;
+ }
  if(ws&&ws.readyState<=1)return;
  st("connecting");closing=false;
  try{
-   ws=new WebSocket(endpoint+"/v1/room/"+roomId,["ezero-room-v1","ezero-key-"+auth,"ezero-proof-"+proof]);
+   ws=new WebSocket(endpoint+"/v1/room/"+roomId,["ezero-room-v1","ezero-key-"+auth,"ezero-time-"+issued,"ezero-proof-"+proof]);
    ws.onmessage=e=>{let obj;try{obj=JSON.parse(e.data);}catch(_){return;}void receive(obj);};
    ws.onerror=()=>st("serverOff");
    ws.onclose=()=>{ready=false;ws=null;if(!closing)st("serverOff");draw();};
@@ -214,14 +217,15 @@ $("roomCreate").addEventListener("click",async()=>{
   const owner=$("roomOwnerSecret").value.trim();
   if(!/^[A-Za-z0-9_-]{24,128}$/.test(owner)){st("ownerRequired");return;}
   roomId=hex(crypto.getRandomValues(new Uint8Array(16)));
+  issued=Date.now();
   await useSecret(hex(crypto.getRandomValues(new Uint8Array(32))));
   const hmacKey=await crypto.subtle.importKey("raw",new TextEncoder().encode(owner),
     {name:"HMAC",hash:"SHA-256"},false,["sign"]);
   const signed=new Uint8Array(await crypto.subtle.sign("HMAC",hmacKey,
-    new TextEncoder().encode(roomId+"."+auth)));
+    new TextEncoder().encode(roomId+"."+auth+"."+issued)));
   proof=hex(signed);
   $("roomOwnerSecret").value=""; // never store or forward the operator's passcode
-  link=new URL(location.pathname+location.search+"#callroom="+roomId+"."+secret+"."+proof,location.origin).href;
+  link=new URL(location.pathname+location.search+"#callroom="+roomId+"."+secret+"."+issued+"."+proof,location.origin).href;
   secret=null; // Raw link key remains only in approved share field and CryptoKey.
   $("roomLink").value=link;st("linkReady");draw();connect();
  }catch(_){st("failed");}
