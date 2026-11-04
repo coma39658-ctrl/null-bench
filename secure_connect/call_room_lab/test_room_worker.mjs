@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import {CallRoom,ROOM_LIFETIME_MS} from "./room_worker.mjs";
+import {CallRoom,RoomAdmission,ROOM_LIFETIME_MS,MAX_PILOT_ACTIVE_ROOMS} from "./room_worker.mjs";
 import worker from "./room_worker.mjs";
 
 // In-memory model of the WebSocket Hibernation attachment contract.
@@ -31,6 +31,7 @@ function environment(){
     ROOM_RATE_LIMIT:{limit:async()=>({success:true})}};
   const object=new CallRoom(ctx,env);
   env.CALL_ROOMS={getByName:()=>({fetch:r=>object.fetch(r)})};
+  env.ROOM_ADMISSION={getByName:()=>({fetch:async()=>new NativeResponse("ok",{status:200})})};
   return {ctx,env,object};
 }
 const base="https://example.invalid/v1/room/";
@@ -206,3 +207,54 @@ assert.equal(dropped.ctx.sockets[0].readyState,3,
 assert.equal((await worker.fetch(req(),dropped.env)).status,410,
   "Lost socket must never reopen the same invitation");
 console.log("DISCONNECT_IMMEDIATE_REVOKE_AND_CLOSE_PEER: PASS");
+
+
+const emptyAdmission=environment();
+delete emptyAdmission.env.ROOM_ADMISSION;
+assert.equal((await worker.fetch(req(),emptyAdmission.env)).status,503,
+  "No global room cap binding must fail closed, never launch an uncapped service");
+
+function admissionEnvironment(){
+ const data=new Map(),store={
+   alarm:null,
+   getAlarm:async()=>store.alarm,
+   setAlarm:async x=>{store.alarm=x;},
+   deleteAlarm:async()=>{store.alarm=null;},
+   deleteAll:async()=>data.clear(),
+   list:async({prefix}={})=>new Map([...data].filter(([key])=>!prefix||key.startsWith(prefix))),
+   get:async k=>data.get(k),
+   delete:async k=>data.delete(k),
+   put:async(k,v)=>data.set(k,v),
+   transaction:async fn=>fn({
+     list:async({prefix}={})=>new Map([...data].filter(([key])=>!prefix||key.startsWith(prefix))),
+     delete:async k=>data.delete(k),
+     put:async(k,v)=>data.set(k,v)
+   })
+ };
+ const object=new RoomAdmission({storage:store},{ROOMS_ENABLED:"true"});
+ return {object,store,data};
+}
+async function reserve(object,id,expires){
+ return object.fetch(new Request("https://ezero.internal/admit",{
+   method:"POST",body:JSON.stringify({id,expires})
+ }));
+}
+const globalCapacity=admissionEnvironment(),time=Date.now();
+for(let i=0;i<MAX_PILOT_ACTIVE_ROOMS;i++){
+ const id=i.toString(16).padStart(32,"0");
+ assert.equal((await reserve(globalCapacity.object,id,time+120000)).status,200);
+}
+assert.equal(globalCapacity.data.size,MAX_PILOT_ACTIVE_ROOMS);
+assert.equal((await reserve(globalCapacity.object,"0".repeat(32),time+120000)).status,200,
+  "The second phone joining one room must not consume another global slot");
+assert.equal((await reserve(globalCapacity.object,"f".repeat(32),time+120000)).status,429,
+  "Ninth concurrent room must be rejected globally");
+const originalNow=Date.now;
+Date.now=()=>time+120001;
+try{await globalCapacity.object.alarm();}
+finally{Date.now=originalNow;}
+assert.equal(globalCapacity.data.size,0,"Global reservation metadata removed after expiry");
+assert.equal(globalCapacity.store.alarm,null);
+assert.equal((await reserve(globalCapacity.object,"f".repeat(32),Date.now()+120000)).status,200,
+  "Expired room budget is released for the next authorized call");
+console.log("STRICT_GLOBAL_EIGHT_ROOMS_NO_QUOTA_FLOOD_AND_AUTO_ERASURE: PASS");
