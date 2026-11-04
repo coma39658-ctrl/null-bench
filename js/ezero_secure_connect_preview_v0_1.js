@@ -82,7 +82,57 @@
     if (!MODES.has(mode)) mode = "video";
     if (activeMode !== mode) releaseAll();
     activeMode = mode;
-    for (const button of document.querySelectorAll("button[data-mode]")) {
+    // Opt-in incoming-call UI demonstration. This is never a real remote call,
+  // never runs on a timer or push, and cannot activate a microphone/camera.
+  function openIncomingDemo() {
+    releaseAll();
+    const dialog = $("incomingCallDemo");
+    if (!dialog) return;
+    report("incomingDemoStatus", "یہ صرف نمونہ ہے؛ کوئی حقیقی کال نہیں۔ آڈیو، ویڈیو یا مسترد دبائیں۔");
+    dialog.hidden = false;
+    document.body.classList.add("incoming-open");
+    $("demoAcceptAudio")?.focus();
+  }
+  function closeIncomingDemo() {
+    const dialog = $("incomingCallDemo");
+    if (!dialog || dialog.hidden) return;
+    dialog.hidden = true;
+    document.body.classList.remove("incoming-open");
+    $("previewIncomingCall")?.focus();
+  }
+  function demoChoice(choice) {
+    const texts = {
+      audio: "نمونہ: آڈیو قبول کرنے کا بٹن درست ہے۔ کوئی کال، مائک، سرور یا ریکارڈنگ شروع نہیں ہوئی۔",
+      video: "نمونہ: ویڈیو قبول کرنے کا بٹن درست ہے۔ کیمرہ اور مائک دونوں بند ہیں؛ حقیقی کال نہیں ہوئی۔",
+      decline: "نمونہ: کال مسترد کرنے کا بٹن درست ہے۔ کوئی رابطہ قائم نہیں ہوا۔"
+    };
+    report("incomingDemoStatus", texts[choice] || "صرف نمونہ۔");
+  }
+  $("previewIncomingCall")?.addEventListener("click", openIncomingDemo);
+  $("demoAcceptAudio")?.addEventListener("click", () => demoChoice("audio"));
+  $("demoAcceptVideo")?.addEventListener("click", () => demoChoice("video"));
+  $("demoDecline")?.addEventListener("click", () => demoChoice("decline"));
+  $("demoClose")?.addEventListener("click", closeIncomingDemo);
+  document.addEventListener("keydown", event => {
+    const dialog = $("incomingCallDemo");
+    if (!dialog || dialog.hidden) return;
+    if (event.key === "Escape") { event.preventDefault(); closeIncomingDemo(); }
+    if (event.key !== "Tab") return;
+    const buttons = Array.from(dialog.querySelectorAll("button:not([disabled])"));
+    if (!buttons.length) return;
+    const first = buttons[0], last = buttons[buttons.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault(); last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault(); first.focus();
+    }
+  });
+  $("quality")?.addEventListener("change", updateQualityHint);
+  const networkHint = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  networkHint?.addEventListener?.("change", updateQualityHint);
+  updateQualityHint();
+
+  for (const button of document.querySelectorAll("button[data-mode]")) {
       const selected = button.getAttribute("data-mode") === mode;
       button.setAttribute("aria-pressed", String(selected));
       button.classList.toggle("active", selected);
@@ -94,8 +144,28 @@
       window.history.replaceState(null, "", "#" + mode);
     }
   }
+  function qualityRecommendation() {
+    // Passive browser hint only; never uploaded, tracked or used to open camera.
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if (!connection) return { mode: "balanced", reason: "نیٹ ورک کی معلومات نہیں ملیں؛ 720p کی ترجیح۔" };
+    const type = String(connection.effectiveType || "").toLowerCase();
+    const downlink = Number(connection.downlink);
+    const constrained = connection.saveData === true ||
+      ["slow-2g", "2g", "3g"].includes(type) ||
+      (Number.isFinite(downlink) && downlink > 0 && downlink < 1.5);
+    return constrained
+      ? { mode: "saver", reason: "کم ڈیٹا کا اشارہ ملا؛ 360p کی ترجیح۔" }
+      : { mode: "balanced", reason: "نیٹ ورک کا اشارہ مناسب؛ 720p کی ترجیح۔" };
+  }
+  function updateQualityHint() {
+    const selected = $("quality")?.value || "auto";
+    const recommended = qualityRecommendation();
+    report("autoQualityStatus", selected === "auto"
+      ? "خودکار معیار: " + recommended.reason + " یہ صرف کیمرے کی مقامی ترجیح ہے، حقیقی کال نہیں۔"
+      : "دستی معیار منتخب: " + selected + "۔ یہ کیمرے کی درخواست ہے؛ حقیقی نتیجہ فون کے مطابق ہوگا۔");
+  }
   function cameraConstraints() {
-    const q = $("quality").value;
+    const q = $("quality").value === "auto" ? qualityRecommendation().mode : $("quality").value;
     const profiles = {
       saver: { width: 640, height: 360, fps: 15 },
       balanced: { width: 1280, height: 720, fps: 30 },
@@ -313,6 +383,7 @@
   $("makeFingerprint").addEventListener("click", makeLocalFingerprint);
   window.addEventListener("hashchange", () => selectMode(location.hash.slice(1), false));
   window.addEventListener("pagehide", releaseAll);
+  window.addEventListener("pagehide", closeIncomingDemo);
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       requestGeneration++;
