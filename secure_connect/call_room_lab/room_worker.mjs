@@ -79,6 +79,9 @@ export default {
       return json(env.ROOMS_ENABLED==="true"?"STAGING_ENABLED":"STAGING_DISABLED");
     if(!/^\/v1\/room\/[a-f0-9]{32}$/.test(url.pathname))return json("NOT_FOUND",404);
     if(env.ROOMS_ENABLED!=="true")return json("ROOMS_DISABLED",503);
+    if(url.search)return json("QUERY_NOT_ALLOWED",400);
+    if((request.headers.get("Sec-WebSocket-Protocol")||"").length>260)
+      return json("PROTOCOL_HEADER_TOO_LARGE",431);
     if(request.method!=="GET"||request.headers.get("Upgrade")?.toLowerCase()!=="websocket")
       return json("WEBSOCKET_REQUIRED",426);
     // Origin check is defense-in-depth; bearer link + signed offer/answer provide
@@ -92,6 +95,13 @@ export default {
     const id=url.pathname.split("/").pop();
     if(!ROOM_ID.test(id))return json("ROOM_INVALID",400);
     if(!env.CALL_ROOMS?.getByName)return json("BINDING_UNAVAILABLE",503);
+    if(!env.ROOM_RATE_LIMIT?.limit)return json("RATE_LIMIT_NOT_CONFIGURED",503);
+    try {
+      const quota=await env.ROOM_RATE_LIMIT.limit({
+        key:"call-room:"+String(request.headers.get("CF-Connecting-IP")||"unknown")
+      });
+      if(quota?.success!==true)return json("RATE_LIMITED",429);
+    }catch(_){return json("RATE_LIMIT_UNAVAILABLE",503);}
     if(typeof env.PILOT_OWNER_SECRET!=="string" || env.PILOT_OWNER_SECRET.length<24)
       return json("OWNER_SECRET_NOT_CONFIGURED",503);
     if(!await ownerProofValid(request,env,id,token,issued))
@@ -156,26 +166,28 @@ export class CallRoom {
     if(Date.now()>=meta.expires){ws.close(1000,"Room expired");return;}
     if(typeof message!=="string"||message.length>MAX_FRAME){ws.close(1009,"Size limit");return;}
     if(meta.count>=MAX_MESSAGES_PER_SOCKET){ws.close(1008,"Message limit");return;}
+    // Charge EVERY frame, including malformed/unauthorized messages; otherwise
+    // an authenticated but hostile guest can flood the hibernating room forever.
+    meta.count++;
+    ws.serializeAttachment(meta);
     let frame;
     try{frame=JSON.parse(message);}catch(_){return invalid("FRAME_INVALID",ws);}
     if(frame?.v!==1 || typeof frame.type!=="string")return invalid("FRAME_INVALID",ws);
     const others=activeSockets(this.ctx).filter(x=>x!==ws && metadata(x)?.hash===meta.hash);
     const remote=others[0];
     if(frame.type==="decline"||frame.type==="hangup"){
-      meta.count++;ws.serializeAttachment(meta);
+      if(frame.type==="decline"&&meta.slot!=="callee")return invalid("ROLE_NOT_ALLOWED",ws);
+      const record=await this.ctx.storage.get("room:meta");
+      if(record)await this.ctx.storage.put("room:meta",{...record,closed:true});
       if(remote)safeSend(remote,{v:1,type:frame.type});
-      if(frame.type==="hangup"){
-        const record=await this.ctx.storage.get("room:meta");
-        if(record)await this.ctx.storage.put("room:meta",{...record,closed:true});
-        try{ws.close(1000,"Hangup");}catch(_){}
-        if(remote)try{remote.close(1000,"Hangup");}catch(_){}
-      }
+      try{ws.close(1000,"Room closed");}catch(_){}
+      if(remote)try{remote.close(1000,"Room closed");}catch(_){}
       return;
     }
     if(!remote)return invalid("PEER_NOT_JOINED",ws);
     if(frame.type==="accept"){
       if(meta.slot!=="callee")return invalid("ROLE_NOT_ALLOWED",ws);
-      meta.approved=true;meta.count++;ws.serializeAttachment(meta);
+      meta.approved=true;ws.serializeAttachment(meta);
       safeSend(remote,{v:1,type:"accepted"});return;
     }
     // The full signed SDP/ICE offer is AES-GCM encrypted in the browsers.
@@ -196,7 +208,7 @@ export class CallRoom {
         return invalid("ANSWER_NOT_READY",ws);
       meta.answered=true;
     }
-    meta.count++;ws.serializeAttachment(meta);
+    ws.serializeAttachment(meta);
     safeSend(remote,{v:1,type:frame.type,blob});
   }
   async webSocketClose(ws){
