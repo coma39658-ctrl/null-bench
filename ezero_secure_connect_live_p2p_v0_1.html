@@ -23,6 +23,7 @@
 <script defer src="./js/ezero_secure_connect_simple_near_far_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_one_link_lab_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_privacy_copilot_v0_1.js"></script>
+<script defer src="./js/ezero_secure_connect_call_doctor_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_contacts_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_install_share_v0_1.js"></script>
 </head>
@@ -57,6 +58,26 @@
       <p id="installHelpText"></p>
       <p class="small" data-share-i18n="helpPrivacy">یہ شارٹ کٹ صرف ایپ کھولتا ہے۔ ابھی مستقل اکاؤنٹس یا پس منظر میں خودکار کال وصولی موجود نہیں۔</p>
     </div>
+  </section>
+  <section class="card doctor-panel" id="callDoctor" aria-labelledby="doctorTitle">
+    <div class="heading"><span class="number">🩺</span>
+      <h2 id="doctorTitle" data-doctor-i18n="title">E-ZERO Call Doctor — فون کی کال جانچ</h2>
+    </div>
+    <p class="small" data-doctor-i18n="intro">ایک بار دبائیں: فون، براؤزر اور ایپ ورژن کی جانچ ہوگی۔ مائیک یا کیمرہ نہیں کھلے گا، کسی سرور کو رپورٹ نہیں جائے گی۔</p>
+    <p class="doctor-version"><strong data-doctor-i18n="version">ایپ ورژن</strong>
+      <code id="doctorVersion" dir="ltr">EZERO-CALL-20261104-DOCTOR-V1</code>
+    </p>
+    <button id="doctorRun" type="button" class="primary" data-doctor-i18n="run">✓ اس فون کی محفوظ جانچ کریں</button>
+    <p id="doctorStatus" class="scan-result" role="status" aria-live="polite">جانچ شروع نہیں ہوئی۔ یہ مقامی جانچ ہے، اصل کال نہیں۔</p>
+    <div id="doctorChecks" class="doctor-checks" role="list" aria-label="Device readiness results"></div>
+    <details id="doctorReportDetails" class="doctor-report-details">
+      <summary data-doctor-i18n="result">غیر نجی تشخیصی رپورٹ</summary>
+      <textarea id="doctorReport" readonly rows="9" spellcheck="false" aria-label="Privacy-safe diagnostic report"></textarea>
+      <button id="doctorCopy" type="button" class="outline" disabled data-doctor-i18n="copy">📋 غیر نجی رپورٹ کاپی کریں</button>
+      <p id="doctorCopyStatus" class="small" role="status"></p>
+    </details>
+    <p class="small" data-doctor-i18n="compare">دونوں فونوں پر یہی ایپ ورژن ملائیں؛ مختلف ورژن ہوں تو دونوں کو انٹرنیٹ کے ساتھ Chrome میں تازہ کھولیں۔</p>
+    <p class="small" data-doctor-i18n="micHint">یہ جانچ خود سے اجازت نہیں مانگتی۔ کال شروع کرنے پر ہی مائیک/کیمرہ کی اجازت دی جا سکتی ہے۔</p>
   </section>
   <div class="truth" role="note" data-i18n="labWarning">یہ ابھی دو فونوں کا تجرباتی رابطہ ہے: QR سے شناخت ملے گی؛ کال کے لیے ایک دعوت اور جواب میسج میں بھیجنا ضروری ہے۔ خودکار فرینڈ اکاؤنٹ یا کال اطلاع ابھی نہیں۔</div>
   <div class="toolbar">
