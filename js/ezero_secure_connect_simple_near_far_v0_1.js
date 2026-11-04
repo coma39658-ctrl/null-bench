@@ -15,7 +15,8 @@
       pasted:"موصولہ شناختی کوڈ پیسٹ ہوگیا؛ تصدیق دبائیں۔",
       pastedEmpty:"کلپ بورڈ خالی ہے؛ دوست کا میسج کاپی کریں۔",
       invitationNeeded:"دوست کا مکمل دعوت یا جواب میسج یہاں پیسٹ کریں۔",
-      invitationInvalid:"میسج درست دعوت/جواب نہیں؛ پوری تحریر کاپی کرکے دوبارہ پیسٹ کریں۔",
+      invitationInvalid:"یہ کال کی درست دعوت یا جواب نہیں؛ شناختی کوڈ کے بجائے مکمل کال پیغام بھیجیں۔",
+      invitationIncomplete:"کال کا پیغام نامکمل ہے یا اس کا آخری حصہ غائب ہے؛ WhatsApp سے پورا میسج کاپی کریں، صرف منتخب متن نہیں۔",
       invited:"دعوت تیار ہے؛ شیئر کریں۔ دوسرے فون کا جواب بھی یہاں پیسٹ کرنا ہوگا۔",
       preparing:"کال کی درخواست تیار ہو رہی ہے؛ تیار ہونے پر شیئر بٹن فعال ہوگا۔",
       answered:"جواب تیار ہے؛ اسے پہلے فون پر میسج کریں۔",
@@ -34,7 +35,8 @@
       pasted:"Friend identity pasted. Tap Verify.",
       pastedEmpty:"Clipboard is empty. Copy your friend's identity message first.",
       invitationNeeded:"Paste the full invitation or answer from the other phone.",
-      invitationInvalid:"This is not an offer or answer. Copy the complete message and paste again.",
+      invitationInvalid:"This is not a valid call offer or answer. Send the whole call message, not the friend ID.",
+      invitationIncomplete:"The call message is cut off or missing its end. Copy the entire WhatsApp message, not selected text.",
       invited:"Invitation ready. Share it, then paste the answer from the other phone here.",
       preparing:"Preparing the call invitation; Share will enable when ready.",
       answered:"Answer ready. Share it back to the first phone.",
@@ -53,7 +55,8 @@
       pasted:"تم لصق هوية الصديق. اضغط للتحقق.",
       pastedEmpty:"الحافظة فارغة. انسخ رسالة هوية صديقك أولاً.",
       invitationNeeded:"ألصق الدعوة أو الرد كاملاً من الهاتف الآخر.",
-      invitationInvalid:"هذا ليس عرض اتصال أو رداً صحيحاً. انسخ الرسالة كاملة وحاول مجدداً.",
+      invitationInvalid:"ليست هذه دعوة مكالمة أو رداً صالحاً؛ أرسل رسالة المكالمة كاملة وليس هوية الصديق.",
+      invitationIncomplete:"رسالة المكالمة مبتورة أو نهايتها مفقودة؛ انسخ رسالة واتساب كاملة.",
       invited:"الدعوة جاهزة. أرسلها ثم الصق رد الهاتف الآخر هنا.",
       preparing:"جارٍ إعداد دعوة الاتصال؛ سيتفعّل زر المشاركة عندما تصبح جاهزة.",
       answered:"الرد جاهز. أرسله إلى الهاتف الأول.",
@@ -161,8 +164,13 @@
   $("guidedContinue").addEventListener("click",()=>{
     const code=$("guidedIncoming").value.trim();
     if(!code){guideStatus(say("invitationNeeded"));return;}
+    // A copied offer can be long. Distinguish a truncated message from
+    // a complete but invalid signed offer without exposing its contents.
+    if(!code.startsWith("{") || !code.endsWith("}")){
+      guideStatus(say("invitationIncomplete"));return;
+    }
     let signal;
-    try{signal=JSON.parse(code);}catch(_){guideStatus(say("invitationInvalid"));return;}
+    try{signal=JSON.parse(code);}catch(_){guideStatus(say("invitationIncomplete"));return;}
     if(signal?.v!==1 || !["offer","answer"].includes(signal.type) ||
        typeof signal.sdp!=="string" || code.length>145000) {
       guideStatus(say("invitationInvalid")); return;
