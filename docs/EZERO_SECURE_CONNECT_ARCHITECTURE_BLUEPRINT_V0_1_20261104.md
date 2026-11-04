@@ -1,0 +1,115 @@
+# E-ZERO Secure Connect — Research & Architecture Blueprint V0.1
+Date: 2026-11-04 | Status: RESEARCH_CANDIDATE — NOT DEPLOYED | Owner: E-ZERO
+
+## 1. Purpose / مقصد
+Browser-first, permission-first, low-bandwidth, lawful communication for 1:1 calls, group audio/video, images/video, voice notes, text and single-view temporary content. E-ZERO AI Studio and existing public website stay unchanged during research. The communications service is a separate security boundary; it must NOT reuse OBD evidence data, Qwen tokens or existing AI session credentials.
+
+**No claims of zero hacking risk, perfect anonymity, deletion of third-party copies, guaranteed VPN-free connectivity in every jurisdiction, or native-grade background calling reliability.** No advertising trackers by default; no automatic call or chat recording.
+
+## 2. Non-negotiable product rules / بنیادی فیصلے
+1. Mobile Chrome + installable PWA first, responsive Urdu/English/Arabic; Safari/Firefox tested as additional clients. Install, microphone, camera, notifications, microphone recording and contact access never start without consent.
+2. HTTPS/WSS only. Enforce browser-origin, session and request authorization and CSRF protections. Reject blocked identities, unknown group members, reused invites, replayed ciphertext and expired tickets.
+3. No telephone-number-based discovery, address book upload, third-party analytics pixels, ad tracking, default transcript storage, automatic downloads, persistent media caches or call recording.
+4. No chat contents, attachments, E2EE session keys, passwords or raw invite secrets in application/HTTP logs or backups. Allow only purpose-bound minimal operational metadata where essential or lawfully required, with access controls, disclosed retention and deletion.
+5. Server is a transient encrypted message queue and delivery/control plane, NOT a searchable chat archive. Unopened voice messages remain E2EE-encrypted until heard subject to disclosed maximum retention and legal/storage limits. Once read, no recoverable copies should remain in controlled stores.
+6. Automatic expiry is best effort + server-enforced TTL. No client can prevent a recipient using screenshots, another camera, recording device or a modified browser.
+7. Pre-public release approval: independent threat modeling, external security assessment, regulatory review and device/network test. No claims of legal certification, audited security or live availability before evidence.
+
+## 3. User experience / صارف کی اسکرین
+Main home screen has only four large actions: **Call**, **Message**, **Groups**, **Scan QR**. Secondary actions: Requests, Privacy, Settings and Help. Each conversation shows only presently available/queued items; after a single permitted view it disappears (with unambiguous EXPIRED or VIEWED result). No old conversation list by default. A voluntary encrypted address book (display name + verified public identity) can remain; do not store the conversation.
+- Call: mute, speaker, camera on/off, flip camera, quality Auto/Low, group invite by permission, leave/hang up. No recorder.
+- Voice: press and hold or explicit start/stop; send once; listening is one-time.
+- Images/video: choose file -> preview -> send; receiver taps to view; clear timer and warning about external capture.
+- Groups: creator/moderator permission, signed membership changes, one-time group join codes. New member sees no prior unread content unless explicitly re-encrypted by sender; default no history.
+- Install: user clicks Install or browser Add to Home Screen. No automatic install or redirects.
+
+## 4. Architecture
+PWA (static assets on CDN) <-> **HTTPS API + WebSocket signaling** (separate service)
+                                     |-> passkey authentication + signed device public-key directory
+                                     |-> invite redemption / membership authorization
+                                     |-> transient E2EE ciphertext queue and TTL worker
+                                     |-> minimal secure delivery acknowledgements
+WebRTC clients <-> authorized STUN/TURN servers and **SFU** for group calls
+E2EE keying: vetted Double Ratchet/PQXDH-compatible design for 1:1 messaging; IETF MLS (RFC 9420, RFC 9750) for asynchronous group key agreement, if compatible audited browser library is validated. For media, use an audited E2EE implementation built on encoded transforms/SFrame-like frame encryption; test support for each target device. DTLS-SRTP transit encryption alone is **not sufficient** to claim the SFU cannot access audio/video. The media E2EE key distribution must not be silently controlled by an unverified server.
+
+Proposed evaluation stack: tiny vanilla JS/TypeScript PWA, open-source **LiveKit SFU** (self-host/managed evaluation) with E2EE, Coturn-compatible lawful relay option and WebSocket signaling service. Use an existing audited protocol library rather than inventing cryptography. Current GitHub Pages is suitable for STATIC PWA only; live calls require backend deployment and a budget.
+
+## 5. Identity, SHA-256, scan and invite
+- Generate one unique high-entropy device public/private key pair using audited browser crypto or crypto module. Private key never placed in QR or sent to the server. Bind identity to a passkey/WebAuthn sign-in and signed device registrations (account/device recovery carefully threat-modeled).
+- SHA-256(public identity key) = verifiable fingerprint / tamper-evidence display, **NOT a password, not account access and not proof of message origin on its own**. Device signature proves key possession; QR scan + human confirmation protects against impersonation and wrong-identity addition.
+- QR contains: official HTTPS origin, version, opaque public account ID, device identity fingerprint, cryptographically random nonce, one-time invitation reference, expiry and an authenticated binding/signature. Never include a private key or persistent session token.
+- One-time code: high-entropy random secret, **not a truncated bare SHA-256**. For manually entered code use a server-managed short-lived code with strict attempt limits, expiry, replay defense and two-sided consent. Prefer full 128-bit random QR token with 5-minute lifetime; manual codes need strong anti-guessing controls.
+- Opening a link only opens the public consent/preview screen; recipient must accept, verified peer must accept, and the server authorizes joining. Link alone must NEVER add a friend, join a call or start camera/microphone.
+- Users may revoke a code, remove devices/friends, block contacts and rotate compromised keys; changing a safety fingerprint alerts peers.
+
+## 6. VPN-free and speed policy
+- Use standard WebRTC ICE / STUN / TURN and established SFU; no VPN requirement is built into the app. If local ISP/firewall/regulatory policy blocks traffic, show a clear CONNECTIVITY_RESTRICTED / RELAY_UNAVAILABLE error rather than stealth tunneling or bypassing any restriction.
+- IP privacy vs cost/latency is a real trade-off. Privacy-first relay/SFU path keeps participants from directly learning one another's IPs, but the relays, hosting provider and ISP can still see some network metadata. Relay increases bandwidth cost and sometimes latency.
+- Audio-first default, Opus adaptive bitrate, optional 360p video, manual 720p when network permits, simulcast/adaptive subscriptions for group video, turn off offscreen video, bounded retries, connectivity diagnostics with NO sensitive dumps.
+- Lightweight targets (aspirational; NOT verified): under 250 KB gzipped initial JS/CSS excluding lazy media and crypto SDKs; usable initial screen within 2.5s on reference 4G Android; avoid background camera/mic and constant polling. WebSocket reconnect with exponential backoff. Do not sacrifice E2EE for speed.
+- Incoming calls while the browser is closed depend on push permission, OS delivery and browser service-worker limitations; **PWA cannot promise identical always-on ringing to native WhatsApp/IMO**.
+
+## 7. Encryption and server privacy
+- Message encryption on sender device; distinct authenticated per-message encryption keys/nonces, receiver-side decrypt, server only stores opaque ciphertext+delivery metadata.
+- Ratcheted keys rotated per protocol and membership change; keep group roster authenticated. Crypto key provisioning, revoked-device handling, browser storage protection and backup exclusions are required.
+- Strict role-based membership checks and group moderation; block/report flows can be user-initiated and consensual without passive message ingestion.
+- Use CSP, Trusted Types where supported, input sanitization, dependency pinning, signed/reviewed releases, least-privilege secrets, abuse rate limiting, origin checks and WSS authentication. Treat compromised web origin and malicious browser extensions as serious risks.
+- Explicit privacy disclosure: backend needs some transient routing/contact metadata, hosting/network operators may retain legally required logs, and authorized users can copy content externally. Do not promise zero traceability.
+
+## 8. Ephemeral content requirements (separate protocol file)
+- Text: display once then remove after acknowledged reveal; sender may revoke before delivery.
+- Voice: E2EE pending queue until the authorized recipient actively starts playback; stream/decrypt small chunks, discard consumed plaintext/keys/chunks where feasible; final ack only after all permitted playback completes; no replay from own app.
+- Images: single reveal; expire on first open + at most 5 minutes (earlier on close, revoke or manual delete).
+- Video clip: window from first playback START is clip duration + at most 5 minutes (earlier on finish+chosen policy, revoke or close); pause does NOT prolong the upper bound; no repeated playback. Enforce a server TTL and signed receipts.
+- Group view-once: per-recipient delivery/consumption state; no unbounded retention for a peer who never opens. A disclosed unopened message expiry is still needed for storage, law, spam and forgotten devices.
+- Every controlled system copy, queued ciphertext and related keys must be subject to deletion/erasure (including backup policies). **Browser or OS media buffers cannot be perfectly zeroized or externally controlled.**
+- View-once limitations, timers and actual deletion status must be visible; never call a failed deletion SUCCESS.
+
+## 9. Operating cost / affordability
+- No intrusive ads, SDK trackers or autoplay promotions.
+- Estimate monthly cost by simultaneous audio/video minutes, bandwidth egress, TURN fraction, SFU instances, storage of unread encrypted items and push infrastructure, not by static website views alone.
+- Prefer a small number of regions for initial pilot, scaling only with measured users. Evaluate self-hosted SFU vs managed provider and hosting/data-residency requirements. Meter and cap beta concurrency rather than permitting uncontrolled bills.
+- Free core 1:1 messaging/calls is a product goal only after cost testing; sustainable plans must be transparent without selling message contents.
+
+## 10. Saudi Arabia + global legal gate
+- CST Communications and IT Act may govern publicly offered services, and classifications, licenses or registrations depend on exact operating model. **Do not assume an app-to-app calling service is automatically exempt.** Obtain scoped written professional/regulator guidance before Saudi public launch.
+- CST's Virtual Voice Services (VVSP) permit specifically concerns calls to/from PUBLIC telephone networks with international numbering; it does not by itself establish what a browser-only app-to-app messenger requires. PSTN interconnect is OUT OF SCOPE for v0.1.
+- Saudi PDPL/Implementing Regulations govern purpose, consent/legal basis, erasure, transfers, user rights and breach response. Actual deletion must consider backups and any mandated retention. Cross-border hosting needs review. There may be lawful retention requirements inconsistent with a literal zero-log promise.
+- No VPN evasion, hidden traffic disguising, surveillance, stalking, scraping contacts or bypassing court/authority orders. Provide truthful privacy notices and user safety/reporting without default message archiving.
+- Publication gate requires a local Saudi regulatory opinion, privacy impact assessment and a per-country deployment checklist for international operation.
+
+## 11. Threat-model and QA checklist
+- Attackers: spammer/guesser, malicious invite receiver, compromised device/browser extension, insider with server access, hostile SFU, network interception, phishing QR/link, XSS/CSWSH, replay, leaked push token, malicious group administrator, DDoS/abuse.
+- Controls: passkey, signed device identity, QR fingerprint verification, strong invite entropy/replay/expiry, E2EE including media, encrypted at rest queues, strict message authorization, abuse limits, key rotation, no content logs, rollback, dependency scanning, regular independent security reviews.
+- Test cases: Android Chrome/desktop Chrome/iOS Safari where possible; permission denied, microphone/phone interruptions, 2G/3G/4G/5G/Wi-Fi, NAT and TURN only, blocked networks, group 3/8/12 users, low-end device, packet loss 2/5/10%, call join/leave, identity change, invite replay, XSS, bogus media MIME/size, lost delivery ACK, expiring while paused, dead clients, duplicate offline push, server crash and cleanup/recovery.
+- Evidence statuses for each test: PASS / FAIL / PARTIAL / UNKNOWN; separate local simulation from genuine carrier/mobile testing. No 'zero hacking risk' claim.
+
+## 12. Sequential release roadmap
+Phase 0 — **current research**: architecture, threat model, regulatory classification, operator feasibility; NO PUBLIC CODE DEPLOYMENT.
+Phase 1 — **identity & QR pilot**: verified device identity, one-time add code, user authorization, no media, local browser tests.
+Phase 2 — **1:1 encrypted ephemeral messages**: read/view-once protocol, TTL workers, at-rest queues, expiry and failure tests.
+Phase 3 — **1:1 voice**: WebRTC, secure signaling, E2EE, STUN/TURN, real Saudi carrier/Wi-Fi testing.
+Phase 4 — **1:1 video**: video quality adaptation, camera consent, encrypted media, real-world QoS.
+Phase 5 — **small groups**: MLS-compatible identity/keying, encrypted group calls with SFU, moderation, room caps.
+Phase 6 — **public release candidate**: independent pentest, legal clearance, cost caps, DPIA, resilience, localization, accessibility, privacy policy. THEN explicitly authorize production cutover.
+Stop/go decisions made per phase; do not roll experimental comms into the existing live AI website.
+
+## Sources consulted (verified 2026-11-04)
+1. WebRTC Security Architecture (RFC 8827): https://www.rfc-editor.org/rfc/rfc8827.html
+2. WebRTC IP Address Requirements (RFC 8828): https://www.rfc-editor.org/rfc/rfc8828.html
+3. MDN WebRTC signaling/STUN/TURN: https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling
+4. MDN WebRTC Encoded Transforms: https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Using_Encoded_Transforms
+5. IETF Messaging Layer Security MLS (RFC 9420): https://www.rfc-editor.org/rfc/rfc9420.html
+6. MLS Architecture (RFC 9750): https://www.rfc-editor.org/info/rfc9750/
+7. Signal Double Ratchet specification: https://signal.org/docs/specifications/doubleratchet/
+8. MDN WebAuthn / passkeys: https://developer.mozilla.org/en-US/docs/Web/Security/Authentication/Passkeys
+9. MDN Web Crypto SHA-256: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest
+10. MDN PWA background limitations: https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Offline_and_background_operation
+11. LiveKit SFU & self-hosting: https://docs.livekit.io/reference/internals/livekit-sfu/ and https://docs.livekit.io/transport/self-hosting/
+12. LiveKit E2EE: https://docs.livekit.io/transport/encryption/
+13. OWASP WebSocket Security: https://cheatsheetseries.owasp.org/cheatsheets/WebSocket_Security_Cheat_Sheet.html
+14. OWASP Cryptographic Storage: https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html
+15. Saudi CST Communications/IT Act: https://www.cst.gov.sa/regulations-and-licenses/acts-and-bylaws/acts/telecommunication-and-information-technology-act
+16. Saudi CST VVSP permit scope: https://www.cst.gov.sa/business/services/Permit-to-provide-virtual-voice-services-VVSP
+17. Saudi SDAIA PDPL implementing regulations: https://dgp.sdaia.gov.sa/wps/portal/pdp/knowledgecenter/details/PDPL2/
+18. Saudi SDAIA destruction guidance: https://dgp.sdaia.gov.sa/wps/portal/pdp/knowledgecenter/details/PersonalDataDestruction/
