@@ -80,7 +80,7 @@ try{
     "Simplified mobile page fits viewport without horizontal scrolling");
   await a.locator("#language").selectOption("en");
   assert.match(await a.locator("h1").first().innerText(),/Welcome/);
-  assert.match(await a.locator("#callDiagnostic").innerText(),/does not start a call|still needs an invite/);
+  assert.match(await a.locator("#callDiagnostic").textContent(),/does not start a call|still needs an invite/);
   await b.locator("#language").selectOption("ar");
   assert.match(await b.locator("h1").first().innerText(),/مرحباً/);
   await a.locator("#openPolicy").click();
