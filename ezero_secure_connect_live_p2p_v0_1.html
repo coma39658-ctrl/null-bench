@@ -49,9 +49,7 @@
       <p class="panel-lead" data-i18n="nearbyHint">اپنے فون کا QR دوست کو دکھائیں، پھر اس کے QR کو کیمرے سے اسکین کریں۔</p>
     <div class="qr-layout">
       <div class="qr-code" id="myQr" role="img" aria-label="Signed identity QR"></div>
-      <div class="qr-meta"><strong data-i18n="localFinger">میرا SHA-256 فنگرپرنٹ</strong>
-        <output id="myFingerprint" class="hash" aria-live="polite">…</output>
-        <p class="small" data-i18n="qrOnly">یہ QR صرف شناخت کی تصدیق کرتا ہے؛ نجی چابی اس میں نہیں ہے۔</p>
+      <div class="qr-meta"><p class="small" data-i18n="qrOnly">یہ QR صرف شناخت کی تصدیق کرتا ہے؛ نجی چابی اس میں نہیں ہے۔</p>
       </div>
     </div>
     <div class="buttonrow">
@@ -74,6 +72,8 @@
         <textarea id="myDigitalId" rows="3" readonly aria-label="My signed temporary ID" spellcheck="false"></textarea>
       </details>
     </div>
+    <strong class="hash-title" data-i18n="localFinger">میرا SHA-256 فنگرپرنٹ</strong>
+    <output id="myFingerprint" class="hash" aria-live="polite">…</output>
     <p class="small" id="identityStatus" role="status" aria-live="polite" data-i18n="identityPending">نئی منفرد ڈیجیٹل شناخت بن رہی ہے…</p>
     <p id="identityPeerStatus" class="status" role="status" aria-live="polite" data-i18n="identityPeer">دوست کے کوڈ کی تصدیق</p>
     <strong data-i18n="peerFinger">دوسرے فون کا SHA-256 فنگرپرنٹ</strong>
