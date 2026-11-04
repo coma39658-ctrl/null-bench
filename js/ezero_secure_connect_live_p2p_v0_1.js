@@ -50,7 +50,7 @@
       guidedIncoming:"دوسرے فون سے آیا ہوا میسج یہاں پیسٹ کریں",
       guidedContinue:"✓ میسج پیسٹ کرکے جاری رکھیں",
       guidedWaiting:"دعوت تیار کریں یا دوسرے فون کا میسج پیسٹ کریں۔",
-      expertSummary:"تفصیلی تکنیکی کوڈ (ضرورت نہیں)"
+      expertSummary:"تفصیلی تکنیکی کوڈ (ضرورت نہیں)",guidedPrivacy:"دعوت/جواب میں آپ کے IP یا نیٹ ورک کی معلومات ہوسکتی ہیں؛ صرف قابلِ اعتماد دوست کو شیئر کریں۔"
     },
     en: {
       back:"↩ Back", language:"Language", welcome:"Welcome — test a real 1:1 call", intro:"A two-browser trial of real voice, video, and one-view messages.",
@@ -101,7 +101,7 @@
       guidedIncoming:"Paste the message from the other phone",
       guidedContinue:"✓ Continue with pasted message",
       guidedWaiting:"Create an invitation or paste the message from the other phone.",
-      expertSummary:"Advanced technical code (optional)"
+      expertSummary:"Advanced technical code (optional)",guidedPrivacy:"Call invitations/answers may reveal IP or network details. Share only with a trusted friend, not a public group."
     },
     ar: {
       back:"↩ رجوع",language:"اللغة",welcome:"مرحباً — جرّب اتصالاً حقيقياً بين هاتفين",intro:"اختبار مباشر للمكالمات الصوتية والمرئية والرسائل التي تُعرض مرة واحدة.",
@@ -153,7 +153,7 @@
       guidedIncoming:"ألصق رسالة الهاتف الآخر هنا",
       guidedContinue:"✓ متابعة باستخدام الرسالة",
       guidedWaiting:"أنشئ دعوة أو الصق رسالة الهاتف الآخر.",
-      expertSummary:"الأكواد التقنية المتقدمة (اختياري)"
+      expertSummary:"الأكواد التقنية المتقدمة (اختياري)",guidedPrivacy:"قد تحتوي دعوة الاتصال أو الرد على بيانات IP والشبكة؛ شاركها مع صديق موثوق فقط."
     }
   };
   const $all = selector => Array.from(document.querySelectorAll(selector));
