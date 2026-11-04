@@ -154,14 +154,15 @@ function readLink(){
  const m=raw.match(/^callroom=([a-f0-9]{32})\.([a-f0-9]{64})\.([0-9]{13})\.([a-f0-9]{64})$/);
  if(!m)return false;
  roomId=m[1];issued=Number(m[3]);proof=m[4];
+ creating=true; // Disable conflicting room creation during async key derivation.
  // Strip the fragment before any asynchronous operation; incoming participants
  // must not expose their bearer link in the UI or browser history.
  history.replaceState(null,"",location.pathname+location.search);
  $("roomLink").value="";link="";
  st("incoming");draw();
- void useSecret(m[2]).then(()=>{secret=null;draw();}).catch(()=>{
-   roomId=null;auth=null;proof=null;issued=null;secretKey=null;secret=null;st("invalid");draw();
- });
+ void useSecret(m[2]).then(()=>{secret=null;}).catch(()=>{
+   roomId=null;auth=null;proof=null;issued=null;secretKey=null;secret=null;st("invalid");
+ }).finally(()=>{creating=false;draw();});
  return true;
 }
 function send(type,body={}){
