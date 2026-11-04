@@ -23,9 +23,14 @@ jobs:
           node --check js/vendor/ezero-qrcode-generator-mit.js
           node --check js/ezero_secure_connect_live_p2p_v0_1.js
           node --check js/ezero_secure_connect_simple_near_far_v0_1.js
+          node --check js/ezero_secure_connect_contacts_v0_1.js
+          node --check js/ezero_secure_connect_install_share_v0_1.js
+          node --check tests/test_ezero_secure_connect_install_share_browser_v0_1.mjs
+          node --check tests/test_ezero_secure_connect_qr_friends_browser_v0_1.mjs
           node --check js/ezero_secure_connect_preview_i18n_v0_1.js
           node --check tests/test_ezero_secure_connect_live_p2p_browser_v0_1.mjs
           node tests/test_ezero_secure_connect_live_p2p_contract_v0_1.js
+          node tests/test_ezero_secure_connect_install_share_contract_v0_1.js
           node tests/test_ezero_secure_connect_hub_contract_v0_1.js
   two-mobile-chromium:
     runs-on: ubuntu-22.04
@@ -55,4 +60,6 @@ jobs:
             sleep 1
           done
           node tests/test_ezero_secure_connect_live_p2p_browser_v0_1.mjs
+          node tests/test_ezero_secure_connect_qr_friends_browser_v0_1.mjs
+          node tests/test_ezero_secure_connect_install_share_browser_v0_1.mjs
           node tests/test_ezero_secure_connect_browser_v0_1.mjs

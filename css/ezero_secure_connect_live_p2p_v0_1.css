@@ -59,3 +59,42 @@ button.outline{color:#07546b;background:#ebf9fc;border-color:#b3d5de}button.dang
 
 /* One plain-language live diagnostic, driven by WebRTC's actual ICE and connection states. */
 .call-diagnostic{margin:10px 0;border-inline-start:4px solid #118598;border-radius:12px;background:#ecf9f8;border-block:1px solid #b3dce1;border-inline-end:1px solid #b3dce1;padding:12px 13px;color:#124b60;font-size:14px;line-height:1.7;overflow-wrap:anywhere}
+
+
+/* Verified QR feedback: success or reason for failure, never a fake connected-call state. */
+.scan-result{padding:10px 12px;background:#f0f8fc;color:#2c5265;border:1px solid #c5e0e6;border-radius:12px;font-weight:750;font-size:13px;line-height:1.7;overflow-wrap:anywhere}
+.scan-result[data-kind="success"],#identityPeerStatus[data-kind="success"]{background:#e9f8ed;border-color:#98d7b0;color:#155e34}
+.scan-result[data-kind="warning"],#identityPeerStatus[data-kind="warning"]{background:#fff8e9;border-color:#e8cb84;color:#74530b}
+.scan-result[data-kind="error"],#identityPeerStatus[data-kind="error"]{background:#fff0ef;border-color:#eeb2b2;color:#962a28}
+.contacts-card{background:linear-gradient(165deg,#fff,#f7fcfd)}
+.contacts-card .heading h2{margin:0}
+.friend-save{display:grid;grid-template-columns:minmax(0,1fr) minmax(160px,.65fr);gap:11px;align-items:end}
+.friend-save .field{margin:0}
+.contacts-card input[type="search"],.contacts-card input[type="text"]{box-sizing:border-box;width:100%;min-height:48px;border-radius:12px;border:1px solid #bad4dd;background:#fff;padding:10px 11px;color:#113c4d;font:inherit}
+.contacts-card input:focus-visible{outline:3px solid #4eaabe;outline-offset:2px}
+.friend-save button{min-height:48px}
+.friends-list{display:grid;gap:10px;margin-top:9px}
+.friends-placeholder{background:#f2f9fb;border:1px solid #d8e9ee;border-radius:11px;padding:13px;color:#597481;margin:0}
+.friend-entry{min-width:0;display:grid;grid-template-columns:44px minmax(0,1fr);gap:10px;align-items:start;padding:12px;border:1px solid #bfdce4;border-radius:15px;background:#fff}
+.friend-letter{width:44px;height:44px;border:1px solid #76c2d2;border-radius:50%;background:linear-gradient(145deg,#056582,#0ba19b);color:#fff;font-size:20px;font-weight:900;display:grid;place-items:center;direction:ltr}
+.friend-details{min-width:0}.friend-name{display:block;font-size:16px;color:#173e50}.friend-fingerprint{display:block;direction:ltr;text-align:start;font:11px/1.7 ui-monospace,monospace;color:#315c6d;overflow-wrap:anywhere;word-break:break-all;padding:5px 0}.friend-note{display:block;color:#637b83;font-size:11px}
+.friend-actions{grid-column:2;display:flex;gap:8px;flex-wrap:wrap}
+.friend-actions button{min-height:41px;flex:1 1 110px;border-radius:10px;border:1px solid #b0d5db;font-weight:750;padding:6px 8px;color:#0c5367;background:#eef9fb}
+.friend-actions .friend-remove{background:#fff3f1;color:#8c3430;border-color:#e8beba}
+@media(max-width:460px){.friend-save{grid-template-columns:1fr}.friend-entry{grid-template-columns:38px minmax(0,1fr)}.friend-letter{width:38px;height:38px;font-size:17px}}
+
+/* Shared-link landing: one prominent install action, permission-first and truthful. */
+.share-install{background:linear-gradient(145deg,#effbfd,#fff);border:1px solid #b0dbe0;padding:16px}
+.share-install .heading{margin-bottom:4px}
+.share-install h2{font-size:19px;margin:0}
+.share-install .buttonrow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.share-install .buttonrow button{flex:none;min-height:50px;width:100%;font-size:13px;padding:9px 8px}
+.share-install .buttonrow .install-action{grid-column:1/-1;font-size:16px;min-height:58px;background:linear-gradient(110deg,#006b84,#0a9298);box-shadow:0 7px 16px #156a7b2a}
+.share-install .public-connect-url{display:block;background:#fff;border:1px solid #bfdee3;border-radius:10px;color:#14556a;font:12px/1.6 ui-monospace,monospace;overflow-wrap:anywhere;padding:10px;text-align:start;direction:ltr;margin:10px 0;text-decoration:underline}
+.share-install .scan-result{margin:10px 0}
+.share-install .scan-result[data-state="installed"],.share-install .scan-result[data-state="copyOk"]{background:#ebf9ec;border-color:#9dd8ae;color:#14623b}
+.share-install .install-help{padding:13px;margin:9px 0 0;border:1px solid #bddee8;border-radius:13px;background:#fff;color:#164b5f}
+.share-install .install-help[hidden]{display:none!important}
+.share-install .install-help strong{display:block}
+.share-install .install-help p{margin:8px 0;line-height:1.8}
+@media(max-width:350px){.share-install .buttonrow{grid-template-columns:1fr}.share-install .buttonrow .install-action{grid-column:auto}.share-install{padding:12px}}
