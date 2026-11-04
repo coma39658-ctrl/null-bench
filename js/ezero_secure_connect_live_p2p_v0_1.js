@@ -50,7 +50,14 @@
       guidedIncoming:"دوسرے فون سے آیا ہوا میسج یہاں پیسٹ کریں",
       guidedContinue:"✓ میسج پیسٹ کرکے جاری رکھیں",
       guidedWaiting:"دعوت تیار کریں یا دوسرے فون کا میسج پیسٹ کریں۔",
-      expertSummary:"تفصیلی تکنیکی کوڈ (ضرورت نہیں)",guidedPrivacy:"دعوت/جواب میں آپ کے IP یا نیٹ ورک کی معلومات ہوسکتی ہیں؛ صرف قابلِ اعتماد دوست کو شیئر کریں۔"
+      expertSummary:"تفصیلی تکنیکی کوڈ (ضرورت نہیں)",guidedPrivacy:"دعوت/جواب میں آپ کے IP یا نیٹ ورک کی معلومات ہوسکتی ہیں؛ صرف قابلِ اعتماد دوست کو شیئر کریں۔",
+      diagStart:"QR شناخت مکمل ہونے سے کال نہیں ملتی۔ فون A دعوت بھیجے اور فون B جواب واپس بھیجے۔",
+      offerReady:"دعوت تیار ہے؛ اسے دوسرے فون کو میسج کریں، پھر اس کا جواب یہاں پیسٹ کریں۔",
+      answerReady:"جواب تیار ہے؛ اسے پہلے فون کو واپس میسج کریں۔",
+      iceChecking:"دعوت اور جواب مل گئے؛ دونوں فونوں کے نیٹ ورک کے راستے چیک ہو رہے ہیں۔",
+      iceNoRoute:"NETWORK_NO_ROUTE — اس بار کوئی قابلِ استعمال نیٹ ورک راستہ نہیں ملا۔ پہلے دونوں فون ایک ہی Wi-Fi پر آزمائیں۔ مختلف موبائل نیٹ ورکس کے لیے TURN ریلے درکار ہوسکتا ہے؛ وہ ابھی فعال نہیں۔",
+      missingOffer:"پہلے فون A پر دعوت بنائیں؛ جواب اسی فون پر لگایا جاسکتا ہے جس نے دعوت بنائی۔",
+      fingerprintMismatch:"دوست کا SHA-256 فنگرپرنٹ مختلف ہے؛ حفاظتی وجہ سے رابطہ نہیں ہوا۔"
     },
     en: {
       back:"↩ Back", language:"Language", welcome:"Welcome — test a real 1:1 call", intro:"A two-browser trial of real voice, video, and one-view messages.",
@@ -101,7 +108,14 @@
       guidedIncoming:"Paste the message from the other phone",
       guidedContinue:"✓ Continue with pasted message",
       guidedWaiting:"Create an invitation or paste the message from the other phone.",
-      expertSummary:"Advanced technical code (optional)",guidedPrivacy:"Call invitations/answers may reveal IP or network details. Share only with a trusted friend, not a public group."
+      expertSummary:"Advanced technical code (optional)",guidedPrivacy:"Call invitations/answers may reveal IP or network details. Share only with a trusted friend, not a public group.",
+      diagStart:"A verified QR ID does not start a call. Phone A must share one invite and Phone B must return the answer.",
+      offerReady:"Invitation ready. Message it to the other phone, then paste its answer here.",
+      answerReady:"Answer ready. Message it back to Phone A.",
+      iceChecking:"Invitation and answer received; checking for a viable network route.",
+      iceNoRoute:"NETWORK_NO_ROUTE — no usable network path found. First test with both phones on the same Wi-Fi. Different mobile networks may require a TURN relay, which is not enabled.",
+      missingOffer:"First create the invitation on Phone A. Apply the answer only on that same phone.",
+      fingerprintMismatch:"The friend's SHA-256 fingerprint does not match. Connection blocked for safety."
     },
     ar: {
       back:"↩ رجوع",language:"اللغة",welcome:"مرحباً — جرّب اتصالاً حقيقياً بين هاتفين",intro:"اختبار مباشر للمكالمات الصوتية والمرئية والرسائل التي تُعرض مرة واحدة.",
@@ -153,7 +167,14 @@
       guidedIncoming:"ألصق رسالة الهاتف الآخر هنا",
       guidedContinue:"✓ متابعة باستخدام الرسالة",
       guidedWaiting:"أنشئ دعوة أو الصق رسالة الهاتف الآخر.",
-      expertSummary:"الأكواد التقنية المتقدمة (اختياري)",guidedPrivacy:"قد تحتوي دعوة الاتصال أو الرد على بيانات IP والشبكة؛ شاركها مع صديق موثوق فقط."
+      expertSummary:"الأكواد التقنية المتقدمة (اختياري)",guidedPrivacy:"قد تحتوي دعوة الاتصال أو الرد على بيانات IP والشبكة؛ شاركها مع صديق موثوق فقط.",
+      diagStart:"التحقق من QR لا يبدأ المكالمة. يرسل الهاتف أ الدعوة ويعيد الهاتف ب الرد.",
+      offerReady:"الدعوة جاهزة؛ أرسلها إلى الهاتف الآخر ثم الصق رده هنا.",
+      answerReady:"الرد جاهز؛ أرسله إلى الهاتف أ.",
+      iceChecking:"وصلت الدعوة والرد؛ يجري التحقق من مسار الشبكة.",
+      iceNoRoute:"NETWORK_NO_ROUTE — لم يُعثر على مسار شبكة صالح. جرّب أولاً الهاتفين على شبكة Wi-Fi واحدة. قد تتطلب شبكات الجوال المختلفة خادم TURN غير متاح الآن.",
+      missingOffer:"أنشئ الدعوة أولاً على الهاتف أ. الصق الرد على الهاتف الذي أنشأ الدعوة فقط.",
+      fingerprintMismatch:"بصمة SHA-256 للصديق لا تطابق الهوية المتوقعة. مُنع الاتصال لحمايتك."
     }
   };
   const $all = selector => Array.from(document.querySelectorAll(selector));
