@@ -26,7 +26,7 @@ const statuses=new Set(["LAB_PASS","OPEN","BLOCKED","UNKNOWN"]);
 const ids=new Set(),categories=new Set();
 let highPriority=0,lab=0,unverified=0;
 for(const q of record.questions){
- assert.match(q.id,/^[A-Z]+-[0-9]{3}$/);
+ assert.match(q.id,/^[A-Z][A-Z0-9]*-[0-9]{3}$/);
  assert.ok(!ids.has(q.id),"DUPLICATE_QUESTION_ID: "+q.id);
  ids.add(q.id);
  assert.ok(typeof q.category==="string"&&q.category.length>2);
