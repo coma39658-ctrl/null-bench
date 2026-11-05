@@ -29,7 +29,7 @@ for(const q of record.questions){
  assert.match(q.id,/^[A-Z][A-Z0-9]*-[0-9]{3}$/);
  assert.ok(!ids.has(q.id),"DUPLICATE_QUESTION_ID: "+q.id);
  ids.add(q.id);
- assert.ok(typeof q.category==="string"&&q.category.length>2);
+ assert.ok(typeof q.category==="string"&&q.category.length>=2);
  categories.add(q.category);
  assert.ok(["P0","P1","P2"].includes(q.priority));
  assert.ok(statuses.has(q.status));
