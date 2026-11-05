@@ -235,6 +235,7 @@
     $("ezeroAutoStart").hidden=true;
     $("ezeroAutoIncoming").hidden=false;
     set("received");
+    document.dispatchEvent(new CustomEvent("ezero:auto-incoming-open"));
   }
   async function accept(){
     if(session||!incoming)return;
@@ -253,6 +254,7 @@
       $("ezeroAutoShare").disabled=false;
       session.stage="inviteReady";
       set("inviteReady","ready");
+      document.dispatchEvent(new CustomEvent("ezero:auto-invite-ready",{detail:{link:shareLink()}}));
       if(session.peerJoined&&!session.offerForwarded){
         session.offerForwarded=forward(raw);
       }
