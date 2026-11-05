@@ -32,7 +32,7 @@ const out=(ok,code,extra={})=>Object.freeze({
 });
 const hex=bytes=>[...bytes].map(v=>v.toString(16).padStart(2,"0")).join("");
 function b64(bytes){let s="";for(const b of bytes)s+=String.fromCharCode(b);
- return btoa(s).replace(/\\+/g,"-").replace(/\\//g,"_").replace(/=+$/,"");
+ return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
 }
 function trustedServerOrigin(raw){
  try{
