@@ -43,7 +43,7 @@ try{
   a=await phone();b=await phone();
   const myId=await a.locator("#myDigitalId").inputValue();
   const idB=await b.locator("#myDigitalId").inputValue();
-  const fpB=await b.locator("#myFingerprint").innerText();
+  const fpB=await b.locator("#myFingerprint").textContent();
   assert.equal(await a.locator("#friendsList .friend-entry").count(),0);
   assert.equal(await a.locator("#saveVerifiedFriend").isDisabled(),true);
   assert.equal(await a.locator("#oneTapStartButton").isVisible(),true);
