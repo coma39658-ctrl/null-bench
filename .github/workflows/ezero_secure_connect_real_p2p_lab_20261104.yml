@@ -27,6 +27,8 @@ jobs:
           node --check js/ezero_secure_connect_public_qr_v0_2.js
           node --check js/ezero_secure_connect_remote_invite_v0_2.js
           node --check js/ezero_secure_connect_short_link_v0_2.js
+          node --check js/ezero_secure_connect_modern_communications_v0_3.js
+          node --check tests/test_ezero_secure_connect_modern_communications_v0_3_browser.mjs
           node --check js/ezero_secure_connect_policy_i18n_v0_3.js
           node --check tests/test_ezero_secure_connect_privacy_i18n_v0_3_browser.mjs
           node --check js/ezero_secure_connect_contacts_v0_1.js
@@ -40,6 +42,7 @@ jobs:
           node tests/test_ezero_secure_connect_hub_contract_v0_1.js
           node tests/test_ezero_secure_connect_one_tap_contract_v0_1.js
           node tests/test_ezero_secure_connect_public_qr_v0_2_contract.js
+          node tests/test_ezero_secure_connect_modern_communications_v0_3_contract.js
           node tests/test_ezero_secure_connect_privacy_i18n_v0_3_contract.js
   two-mobile-chromium:
     runs-on: ubuntu-22.04
@@ -72,6 +75,7 @@ jobs:
           node tests/test_ezero_secure_connect_qr_friends_browser_v0_1.mjs
           node tests/test_ezero_secure_connect_one_tap_browser_v0_1.mjs
           node tests/test_ezero_secure_connect_public_qr_v0_2_browser.mjs
+          node tests/test_ezero_secure_connect_modern_communications_v0_3_browser.mjs
           node tests/test_ezero_secure_connect_privacy_i18n_v0_3_browser.mjs
           node tests/test_ezero_secure_connect_install_share_browser_v0_1.mjs
           node tests/test_ezero_secure_connect_browser_v0_1.mjs
