@@ -12,6 +12,7 @@ const SECURE=Object.freeze({
  "Cache-Control":"no-store, private, max-age=0",
  "X-Content-Type-Options":"nosniff",
  "Referrer-Policy":"no-referrer",
+ "X-Robots-Tag":"noindex, nofollow, noarchive",
  "X-Frame-Options":"DENY",
  "Cross-Origin-Resource-Policy":"same-origin",
  "Permissions-Policy":"camera=(), microphone=(), geolocation=()",
@@ -32,6 +33,8 @@ export default {
   if(!(request instanceof Request))return response(400,"REQUEST_INVALID");
   let url;
   try{url=new URL(request.url);}catch(_){return response(400,"REQUEST_INVALID");}
+  if(url.search||url.hash||url.pathname.includes("%"))
+   return response(400,"REQUEST_INVALID");
   if(url.pathname==="/health"&&request.method==="GET")
    return response(200,"PREVIEW_ONLY_NO_AUTH");
   // These reserved routes must always run through the Worker first. Even
@@ -41,9 +44,10 @@ export default {
    return response(503,"AUTH_AND_CALLS_NOT_AVAILABLE");
   if(!["GET","HEAD"].includes(request.method))
    return response(405,"METHOD_NOT_ALLOWED");
-  if(url.search||url.hash||url.pathname.includes("%"))
-   return response(400,"REQUEST_INVALID");
-  // Only the harmless unprivileged preview index is served.
+  if(url.pathname!=="/"&&url.pathname!=="/index.html")
+   return response(404,"PREVIEW_ROUTE_NOT_FOUND");
+  // The ONLY served asset is the credential-free preview index.
+  // Never expose build, tests, .well-known paths or future static files.
   if(!env?.ASSETS||typeof env.ASSETS.fetch!=="function")
    return response(503,"PREVIEW_ASSETS_UNAVAILABLE");
   const asset=await env.ASSETS.fetch(request);
