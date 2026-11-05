@@ -19,3 +19,21 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:15px 0 6px}
 .policy-shell{width:min(100%,840px);padding:12px 16px 40px;margin:0 auto}.policy-shell .intro{margin:10px 0 18px}.policy-card{background:#fff;border:1px solid #c0dbe2;border-radius:20px;padding:20px;margin:13px 0}.policy-card h2{font-size:19px;margin:0 0 8px;color:#095b72}.policy-card p{margin:8px 0;color:#324f60}.policy-card ul{padding-inline-start:26px;margin:8px 0}.policy-card li{padding:3px 0}.policy-card .small{color:#526d7c;font-size:13px}.policy-table{width:100%;border-collapse:collapse;font-size:14px}.policy-table th,.policy-table td{padding:9px;text-align:start;border-bottom:1px solid #e0ebef;vertical-align:top}.policy-summary{border-inline-start:4px solid #08798e;background:#f2fbfb}
 @media(max-width:430px){.shell{padding:0 9px 20px}.intro{padding:22px 16px}.card{padding:18px 12px}#oneTapStartButton{min-height:65px;font-size:18px}.brand{font-size:13px}.policy-shell{padding:7px 10px 28px}.policy-card{padding:14px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+
+/* Remote consent, platform-neutral sharing and installed-PWA controls */
+[hidden]{display:none!important}
+.distance-card,.incoming-card,.action-card{margin-top:12px}
+.distance-card p,.incoming-card p,.action-card p{font-size:14px;color:#3b5d68;margin:7px auto 13px;max-width:590px}
+.choice-row{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.primary-action,.secondary-action{font:inherit;min-height:50px;font-weight:850;padding:9px 14px;border-radius:13px;cursor:pointer}
+.primary-action{color:#fff;background:linear-gradient(110deg,#02697f,#068999);border:1px solid #047389;min-width:220px}
+.secondary-action{color:#0f566b;background:#fff;border:1px solid #a4d4dd;min-width:140px}
+.primary-action:disabled{opacity:.55;cursor:wait}
+.tiny-status{font-size:13px!important;line-height:1.75;color:#245268!important;white-space:pre-wrap;overflow-wrap:anywhere}
+.short-link{font-size:12px!important;margin-top:12px!important}
+.short-link a{direction:ltr;display:inline-block;overflow-wrap:anywhere;color:#145f72;text-decoration:underline}
+#fallbackShare{background:#f4fafb;padding:12px;border:1px solid #b7dce1;border-radius:12px;margin:12px 0;overflow-wrap:anywhere}
+#fallbackShare a{display:block;font-size:12px;color:#0b667b;direction:ltr;margin:5px 0}
+#fallbackShare button{display:block;margin:7px auto}
+@media(max-width:430px){.choice-row{flex-direction:column}.primary-action,.secondary-action{width:100%;min-width:0}}
