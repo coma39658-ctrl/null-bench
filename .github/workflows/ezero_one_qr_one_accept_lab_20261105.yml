@@ -66,6 +66,7 @@ jobs:
             sleep 1
           done
           node tests/test_ezero_secure_connect_one_link_browser_v0_1.mjs
+          node tests/test_ezero_secure_connect_android_preflight_browser_v0_1.mjs
           node tests/test_ezero_secure_connect_live_p2p_browser_v0_1.mjs
           node tests/test_ezero_secure_connect_privacy_copilot_browser_v0_1.mjs
 
