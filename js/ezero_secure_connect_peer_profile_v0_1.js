@@ -52,7 +52,7 @@
   const cleanName=v=>typeof v==="string"?v.trim().replace(/\s+/g," ").slice(0,40):"";
   const validAvatar=v=>typeof v==="string"&&v.length<=12000&&(v===""||PHOTO.test(v));
   let profile={name:"",avatar:"",share:false};
-  let draftAvatar="",connected=false,lastRemote=null,lastFingerprint="";
+  let draftAvatar="",connected=false,lastRemote=null,lastFingerprint="",pendingRemote=null,sentThisSession=false;
   function read(){
     try{
       const p=JSON.parse(localStorage.getItem(KEY)||"null");
@@ -80,7 +80,7 @@
     showAvatar("ezeroMyAvatar","ezeroMyInitial",profile.name,profile.avatar);
   }
   function resetRemote(){
-    connected=false;lastRemote=null;lastFingerprint="";
+    connected=false;lastRemote=null;lastFingerprint="";pendingRemote=null;sentThisSession=false;
     $("ezeroPeerProfileCard").hidden=true;
     $("ezeroPeerDisplayName").textContent=t("noProfile");
     $("ezeroPeerSessionId").textContent="";
@@ -96,15 +96,18 @@
     $("ezeroPeerSessionId").textContent=t("idPrefix")+": "+
       fp.slice(0,12)+"…"+fp.slice(-8);
     $("ezeroVerifiedConnection").textContent=t("verifiedConnection");
-    if(!lastRemote)$("ezeroPeerDisplayName").textContent=t("noProfile");
+    if(pendingRemote?.fingerprint===fp){
+      lastRemote={name:pendingRemote.name,avatar:pendingRemote.avatar};
+    }
+    $("ezeroPeerDisplayName").textContent=lastRemote?.name||t("noProfile");
+    showAvatar("ezeroPeerAvatar","ezeroPeerInitial",lastRemote?.name||"?",lastRemote?.avatar||"");
     $("ezeroPeerTrustNote").textContent=t("selfDeclared");
-    if(profile.share&&profile.name)sendProfile();
   }
-  function sendProfile(){
+  function sendProfile(force=false){
     const transport=window.EZERO_PEER_PROFILE_TRANSPORT;
-    if(!profile.share||!profile.name||!transport?.connected())return false;
+    if((sentThisSession&&!force)||!profile.share||!profile.name||!transport?.connected())return false;
     const good=transport.send(profile.name,profile.avatar);
-    if(good)labelStatus("sharing");
+    if(good){sentThisSession=true;labelStatus("sharing");}
     return good;
   }
   profile=read();updateLocal();
@@ -153,7 +156,7 @@
     catch(_){labelStatus("storeError");return;}
     profile=next;updateLocal();
     labelStatus(profile.share?"saved":"notSharing");
-    sendProfile();
+    sendProfile(true);
   });
   function localize(){
     for(const el of document.querySelectorAll("[data-profile-i18n]")){
@@ -169,22 +172,24 @@
   }
   $("language").addEventListener("change",localize);
   document.addEventListener("ezero:channel-state",e=>{
-    if(e.detail?.connected)showPeerConnection();
+    if(e.detail?.connected){showPeerConnection();sendProfile();}
     else resetRemote();
   });
   document.addEventListener("ezero:call-status",e=>{
-    if(e.detail?.stage==="connected")showPeerConnection();
+    if(e.detail?.stage==="connected"){showPeerConnection();sendProfile();}
     else if(["offline","iceNoRoute","idle"].includes(e.detail?.stage))resetRemote();
   });
   document.addEventListener("ezero:profile-received",e=>{
     const p=e.detail||{};
-    if(!window.EZERO_PEER_PROFILE_TRANSPORT?.connected()||
-       p.peerFingerprint!==window.EZERO_PEER_PROFILE_TRANSPORT.peerFingerprint() ||
-       !p.connected||!cleanName(p.name)||!validAvatar(p.avatar))return;
-    lastRemote={name:cleanName(p.name),avatar:p.avatar};
+    // The remote fingerprint is derived by the verified call engine,
+    // not supplied in the profile payload. A DataChannel may open just
+    // before RTCPeerConnection fires its final connected event: retain
+    // the validated profile briefly, but do not DISPLAY it until connected.
+    if(p.connected!==true || !/^[a-f0-9]{64}$/.test(p.peerFingerprint||"") ||
+       !cleanName(p.name)||!validAvatar(p.avatar))return;
+    pendingRemote={name:cleanName(p.name),avatar:p.avatar,
+      fingerprint:p.peerFingerprint};
     showPeerConnection();
-    $("ezeroPeerDisplayName").textContent=lastRemote.name;
-    showAvatar("ezeroPeerAvatar","ezeroPeerInitial",lastRemote.name,lastRemote.avatar);
   });
   window.addEventListener("pagehide",resetRemote);
   localize();
