@@ -38,7 +38,7 @@ jobs:
           grep -Fq 'enabled:false' js/ezero_auto_signaling_config_v0_1.js
           grep -Fq 'websocketOrigin:""' js/ezero_auto_signaling_config_v0_1.js
           grep -Fq 'enabled:true' js/ezero_auto_signaling_lab_config_20261106.js
-          grep -Fq 'noindex,nofollow,noarchive' ezero_secure_connect_one_request_lab_20261106.html
+          grep -Fq 'name="robots" content="index,follow"' ezero_secure_connect_one_request_lab_20261106.html
           ! grep -R -n -E 'CF_API_TOKEN=|TURN_KEY_API_TOKEN=|Authorization: Bearer ' js/ezero_auto_signaling_lab_config_20261106.js
       - name: Install isolated Chromium
         run: |
