@@ -11,8 +11,12 @@
   const ID=/^[A-Za-z0-9_-]{22}$/;
   const KEY=/^[A-Za-z0-9_-]{43}$/;
   const MAX_SIGNAL=120000;
-  const t64=bytes=>btoa(String.fromCharCode(...bytes))
-    .replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+  function t64(bytes){
+    let binary="";
+    for(let i=0;i<bytes.length;i+=8192)
+      binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
+    return btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+  }
   function from64(value,max=190000){
     if(typeof value!=="string"||!B64.test(value)||value.length>max)throw Error("INVALID_BASE64");
     const raw=atob(value.replace(/-/g,"+").replace(/_/g,"/")+"=".repeat((4-value.length%4)%4));
