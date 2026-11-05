@@ -4,6 +4,16 @@
  */
 (() => {
   "use strict";
+  // Recovery for messenger/PWA navigation that lands on the identity hub
+  // while retaining an existing signed audio/video call fragment. Merely
+  // opening it must NOT auto-accept an invite or turn on camera/microphone.
+  if(/^#(?:e2|e)=[A-Za-z0-9_-]+$/.test(location.hash)){
+    const callPage=new URL("./ezero_secure_connect_communications_v0_3.html",location.href);
+    callPage.search=location.search;
+    callPage.hash=location.hash;
+    location.replace(callPage.href);
+    return;
+  }
   const $=id=>document.getElementById(id);
   const core=window.EZERO_PUBLIC_QR_CORE;
   if(!core)return;
