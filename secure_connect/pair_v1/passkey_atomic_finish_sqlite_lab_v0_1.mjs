@@ -17,7 +17,8 @@
 import {makeAuthenticationOptionsLabV1,verifyAuthenticationResponseLabV1}
  from "./webauthn_authentication_library_lab_v0_1.mjs";
 import {PAIR_V1_RP_ID} from "./pair_policy_v1.mjs";
-import {SESSION_LAB_COOKIE,SESSION_LAB_MAX_MS,sessionSecretDigestForLab}
+import {SESSION_LAB_COOKIE,SESSION_LAB_MAX_MS,
+ sessionSecretDigestForLab,sessionCsrfDigestForLab}
  from "./account_session_guard_sqlite_lab_v0_1.mjs";
 
 const ACCOUNT=/^[A-Za-z0-9_-]{12,64}$/;
@@ -120,6 +121,11 @@ export class PairV1SqliteAtomicPasskeyFinishLab{
    scope TEXT NOT NULL CHECK(scope='ACCOUNT_OBSERVE_ONLY'),
    revoked_at INTEGER
   )`);
+  this.#sql.exec(`CREATE TABLE IF NOT EXISTS ezero_v1_session_csrf_lab (
+   sid TEXT PRIMARY KEY,
+   csrf_digest TEXT NOT NULL UNIQUE,
+   created_at INTEGER NOT NULL
+  )`);
  }
  #record(accountId,credentialId){
   const rows=this.#sql.exec(
@@ -174,10 +180,13 @@ export class PairV1SqliteAtomicPasskeyFinishLab{
  async finishForObservationSessionLab({accountId,sessionId,response}={},now=Date.now()){
   if(!this.#origin)return out(false,"HTTPS_SAME_ORIGIN_SERVER_REQUIRED");
   const secret=b64(crypto.getRandomValues(new Uint8Array(32)));
+  const csrf=b64(crypto.getRandomValues(new Uint8Array(32)));
   const cookieSid=hex(crypto.getRandomValues(new Uint8Array(16)));
-  const digest=await sessionSecretDigestForLab(secret);
+  const [digest,csrfDigest]=await Promise.all([
+   sessionSecretDigestForLab(secret),sessionCsrfDigestForLab(csrf)
+  ]);
   return this.#finish({accountId,sessionId,response},now,{
-   secret,cookieSid,digest,origin:this.#origin
+   secret,csrf,cookieSid,digest,csrfDigest,origin:this.#origin
   });
  }
  async #finish({accountId,sessionId,response},now,issuance){
@@ -263,12 +272,19 @@ export class PairV1SqliteAtomicPasskeyFinishLab{
        VALUES(?,?,?,?,?,?,?,?,'ACCOUNT_OBSERVE_ONLY',NULL)`,
        issuance.cookieSid,issuance.digest,accountId,record.credentialId,
        now,now+SESSION_LAB_MAX_MS,now,issuance.origin);
+     this.#sql.exec(`INSERT INTO ezero_v1_session_csrf_lab
+       (sid,csrf_digest,created_at) VALUES(?,?,?)`,
+       issuance.cookieSid,issuance.csrfDigest,now);
      return out(true,"PASSKEY_AND_OBSERVE_ONLY_SESSION_ATOMIC_LAB",{
       challengeConsumed:true,counterPersisted:true,nextSignCount:next,
       // This header belongs ONLY in a trusted same-origin HTTPS Set-Cookie
       // response, NEVER JSON, localStorage, a QR, log or a redirect URL.
       serverOnlySetCookie:SESSION_LAB_COOKIE+"="+issuance.cookieSid+"."+
        issuance.secret+"; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=900",
+      // This CSRF synchronizer token may be delivered only to the verified
+      // same-origin page via authenticated, no-store HTML/JSON, never URL,
+      // logs, analytics, cross-origin CORS or an ordinary cookie.
+      serverOnlyCsrfToken:issuance.csrf,
       authenticatedSessionIssued:false,
       observationOnlySessionStored:true
      });
