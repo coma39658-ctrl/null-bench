@@ -402,143 +402,163 @@ body.communication-page{background:linear-gradient(155deg,#e6f7f6,#eff9fc 55%,#e
 }
 
 
-/* Premium E-ZERO forest-green identity: visual assurance is never proof.
-   Verified green is restricted to actually connected WebRTC state;
-   failures are red, while unverified and pending states remain neutral. */
+/* E-ZERO professional emerald/alert-red system. Color is a status, not a claim
+   of certification. Glitter only for verified connected success. */
 .communication-page{
- --ez-military:#0b3426;--ez-evergreen:#125535;--ez-green:#16814a;
- --ez-vivid:#25d27a;--ez-alert:#a82e39;--ez-silver:#eff8f0;
- background:linear-gradient(145deg,#e6f1e8 0%,#f7fbf6 48%,#e5f1e9 100%);
+ --ez-ink:#0d2a20;--ez-forest:#0d5134;--ez-green:#13794a;
+ --ez-bright:#25bb72;--ez-danger:#ad3333;--ez-mist:#f0f8f3;
 }
 .communication-page .modern-hero{
- background:linear-gradient(125deg,#081f1b 0%,#0b3426 36%,#14663e 73%,#127b49 100%);
- border:1px solid #37785a;
- box-shadow:0 12px 26px #09291f24,inset 0 1px 0 #ffffff24;
+ background:linear-gradient(132deg,#0a211c 0%,#10442d 54%,#197949 100%);
+ border:1px solid #379a62;
+ box-shadow:0 14px 32px #103a2640, inset 0 1px 0 #a7f6c028;
 }
-.communication-page .modern-kicker{color:#bcf5d4}
-.communication-page .modern-trust span{border-color:#c5f7d277;background:#e6ffe010}
+.communication-page .modern-hero .modern-kicker{color:#a3f5c0}
+.communication-page .modern-workspace{
+ border-color:#a7cdb5;box-shadow:0 5px 16px #193f2a0e;
+}
 .communication-page .modern-feature-button{
- position:relative;isolation:isolate;border:1px solid #bdd7c5;
- color:#16412f;background:linear-gradient(150deg,#fff,#f6fbf6);
- box-shadow:0 4px 14px #12392410;
+ border-color:#b9d5c3;color:#153d2a;
 }
 .communication-page .modern-feature-button[aria-pressed="true"]{
- background:linear-gradient(145deg,#f0fdf3,#e2f7e8);
- color:#104f2b;border-color:#19834e;
- box-shadow:inset 0 0 0 2px #19834e,0 5px 19px #197c3b26;
+ background:#e8f8ec;border-color:#19834e;
+ box-shadow:inset 0 0 0 2px #19834e,0 7px 16px #1056371a;
 }
-.communication-page .modern-feature-button::before{
- content:attr(data-step);position:absolute;top:9px;inset-inline-start:9px;
- display:grid;place-items:center;width:28px;height:28px;border-radius:9px;
- background:linear-gradient(150deg,#123d2a,#1b7550);color:#f7fff9;
- border:1px solid #6ab58b;box-shadow:0 2px 7px #092d1b29;
- font:800 12px/1 ui-monospace,monospace;letter-spacing:.02em;
+.communication-page .modern-feature-button:focus-visible{
+ outline:3px solid #1a9457;outline-offset:3px;
 }
-.communication-page .modern-feature-button[aria-pressed="true"]::before{
- background:linear-gradient(135deg,#075630,#15965a);
- color:white;border-color:#4fea99;
- box-shadow:0 0 0 2px #e4fcef,0 2px 10px #0b8b4255;
+.communication-page .modern-connection-actions #modernConnect,
+.communication-page .ezero-wizard-primary{
+ background:linear-gradient(135deg,#14683f,#1a9459);color:white;
+ border-color:#176840;
 }
-.communication-page .modern-feature-button[aria-pressed="true"] .modern-feature-name{color:#105632}
-.communication-page .modern-feature-note{color:#4a7562}
-.communication-page .modern-workspace{
- border-color:#bbd6c3;box-shadow:0 6px 22px #153c2c0d;
+.communication-page .modern-connection-actions #modernHangup{
+ border-color:#dba49e;color:#a02b2b;background:#fff0ed;
 }
-.communication-page .modern-panel-title{color:#134d35}
-.communication-page .modern-panel-help{color:#486b5a}
-.communication-page .modern-status{
- background:#f1f8f2;color:#305e48;border-color:#c2dfcb;
+.communication-page .modern-workspace .heading .number{
+ min-width:34px;min-height:34px;border-radius:11px;
+ background:linear-gradient(145deg,#0d5b39,#208d57);color:#fff;
+ box-shadow:0 3px 12px #106b4240;
+ font-size:15px;font-weight:950;display:grid;place-items:center;
 }
-.communication-page #modernConnectionStatus{
- padding-inline-start:17px;position:relative;
-}
-.communication-page #modernConnectionStatus[data-state="connected"]{
- background:linear-gradient(115deg,#dff9e7,#f1fff3);color:#105b34;
- border:1.5px solid #20a864;box-shadow:0 0 0 1px #ffffff,0 0 14px #22b65b27;
+.communication-page #modernConnectionStatus[data-indicator="connected"]{
+ border:1px solid #83d0a5;color:#0e6339;
+ background:linear-gradient(115deg,#dcfbe5,#f2fff4);
  font-weight:850;
 }
-.communication-page #modernConnectionStatus[data-state="connected"]::before,
-.communication-page #ezeroVerifiedConnection::before{
- content:"✓";display:inline-grid;place-items:center;
- width:25px;height:25px;margin-inline-end:9px;
- vertical-align:middle;color:white;border-radius:50%;
- background:linear-gradient(135deg,#178245,#1ac66b);
- border:1px solid #79e9a6;
- box-shadow:0 0 11px #1bdc7855,inset 0 1px 0 #ffffff60;
- font-size:17px;font-weight:900;
+.communication-page #modernConnectionStatus[data-indicator="connected"]::before{
+ content:"✓";display:inline-grid;place-items:center;width:24px;height:24px;
+ border-radius:50%;color:#fff;background:#16834c;margin-inline-end:8px;
+ box-shadow:0 0 0 3px #b5eac5,0 0 14px #2bcb7f55;
+ animation:ezero-verified-soft-glow 2.6s ease-in-out infinite;
 }
-.communication-page #ezeroVerifiedConnection::before{width:23px;height:23px}
-.communication-page #modernConnectionStatus[data-state="error"],
-.communication-page #ezeroInviteStatus[data-state="error"]{
- background:linear-gradient(115deg,#fff4f0,#fff1f3);
- border:1px solid #e1a0a4;color:#872d39;
+.communication-page #modernConnectionStatus[data-indicator="error"]{
+ color:#9a2929;background:#fff0f0;border:1px solid #e6aaaa;
+ font-weight:850;
 }
-.communication-page #modernConnectionStatus[data-state="error"]::before{
- content:"!";font-weight:900;display:inline-grid;place-items:center;
- width:23px;height:23px;border-radius:50%;margin-inline-end:8px;
- color:#fff;background:#b83441;
+.communication-page #modernConnectionStatus[data-indicator="error"]::before{
+ content:"!";display:inline-grid;place-items:center;width:24px;height:24px;
+ border-radius:50%;color:#fff;background:#b63737;margin-inline-end:8px;
 }
-.communication-page #ezeroInviteStatus[data-state="ready"]{
- border-color:#9dcfae;background:#edf9f1;color:#1c673d;
+@keyframes ezero-verified-soft-glow{
+ 0%,100%{box-shadow:0 0 0 3px #b5eac5,0 0 8px #2bcb7f2b}
+ 50%{box-shadow:0 0 0 4px #a0f2bc,0 0 16px #2bcb7f66}
 }
-.communication-page #ezeroCallSetupSlot #callSetup .heading .number,
-.communication-page .heading .number{
- background:linear-gradient(135deg,#0b3b29,#208b53);
- color:#fff;border:1px solid #54af7a;
- box-shadow:0 3px 9px #084a2d33,inset 0 1px 0 #ffffff35;
- font-weight:900;
+.communication-page .ezero-messages-quick{margin:12px 0}
+.communication-page .ezero-messages-open{
+ width:100%;min-height:56px;border-radius:17px;border:1px solid #188e55;
+ background:linear-gradient(130deg,#0d5d3a,#178b53);color:#fff;
+ font:inherit;font-size:17px;font-weight:900;cursor:pointer;
+ box-shadow:0 8px 18px #135e3842;text-align:center;
 }
-.communication-page .modern-connection-actions .primary,
-.communication-page .modern-connection-actions #modernConnect,
-.communication-page .ezero-wizard-primary,
-.communication-page #modernChatPanel #sendMessage,
-.communication-page .modern-voice-actions button:not(.secondary){
- background:linear-gradient(135deg,#115936,#14824e);
- color:#fff!important;border-color:#1c8852;
- box-shadow:0 4px 13px #115c3624;
+.communication-page .ezero-chat-shell{
+ border-radius:21px;overflow:visible;
+ background:#eff8f1;border:1px solid #badbc4;
+ box-shadow:0 8px 22px #103d2712;
 }
-.communication-page .modern-connection-actions .danger,
-.communication-page .modern-connection-actions #modernHangup{
- color:#9b2c38!important;background:#fff3f3;border-color:#db9e9e;
+.communication-page .ezero-chat-timeline{
+ min-height:280px;max-height:440px;overflow-y:auto;
+ display:flex;flex-direction:column;justify-content:flex-end;
+ padding:13px 12px;border-radius:20px 20px 0 0;
 }
-.communication-page .ezero-wizard-secondary{
- background:#f6fcf7;color:#145a37!important;border-color:#add3bb;
+.communication-page #modernChatPanel .ezero-chat-empty{
+ font-size:12px;color:#4a7361;text-align:center;
+ background:#ffffffbc;border:1px solid #d3ead9;border-radius:12px;
+ padding:10px;line-height:1.75;max-width:360px;margin:8px auto;
 }
-.communication-page #modernChatPanel{
- background:#f7fcf8;border-color:#bad9c5;
+.communication-page .ezero-chat-timeline #ezeroChatSlot{
+ margin-top:auto;min-width:0;
 }
+.communication-page .ezero-chat-composer{
+ position:sticky;bottom:max(8px,env(safe-area-inset-bottom));
+ z-index:3;padding:10px;background:#fff;
+ border:1px solid #c9e3d2;border-radius:16px;
+ box-shadow:0 6px 25px #10472d24;
+}
+.communication-page .ezero-chat-compose-row{
+ display:flex;gap:8px;align-items:flex-end;min-width:0;
+}
+.communication-page #ezeroChatPlus{
+ width:52px;min-width:52px;height:52px;border-radius:16px;
+ border:1px solid #187d4a;background:#166d42;color:white;
+ font-size:31px;line-height:1;font-weight:700;cursor:pointer;
+ transition:transform .15s,background .15s;
+}
+.communication-page #ezeroChatPlus.is-open{
+ transform:rotate(45deg);background:#a73535;border-color:#a73535;
+}
+.communication-page .ezero-chat-compose-input{flex:1;min-width:0}
+.communication-page .ezero-chat-input-label{
+ margin:0!important;display:block;min-width:0;
+}
+.communication-page .ezero-chat-input-label span{display:none}
 .communication-page #modernChatPanel #sendText{
- border-color:#bad9c5;color:#153d2b;
+ display:block;width:100%;min-width:0;min-height:72px;max-height:190px;
+ box-sizing:border-box;padding:12px;border:1px solid #98c8ac;
+ border-radius:16px;background:#f8fff9;color:#0d3020;
+ font:inherit;font-size:15px;line-height:1.55;resize:vertical;
 }
-.communication-page #modernChatPanel #sendText:focus-visible{
- outline-color:#16814a;
+.communication-page .ezero-chat-send-slot{flex-shrink:0;min-width:78px}
+.communication-page #modernChatPanel #sendMessage{
+ min-height:52px;min-width:78px;border-radius:15px;
+ font-size:13px;padding:8px 10px;white-space:normal;
+ background:linear-gradient(135deg,#166f44,#1e9157);
+ border:1px solid #197d4a;color:#fff;
 }
-.communication-page #modernChatPanel #incomingItem,
-.communication-page #modernChatPanel #seenMessage{border-color:#b5d6bf}
-.communication-page .modern-secondary-links a,
-.communication-page .modern-nav-back{color:#155e3c;border-color:#abd0b9}
-.communication-page .ezero-peer-profile{
- background:#effbf2;border-color:#a9dab9;
+.communication-page #modernChatPanel #sendMessage:disabled{
+ background:#d7e5dc;border-color:#cad8d0;color:#617b69;
+ cursor:not-allowed;box-shadow:none;
 }
-.communication-page #ezeroPeerSessionId{color:#326549}
-.communication-page #ezeroVerifiedConnection{color:#116e3b}
-.communication-page button:focus-visible,
-.communication-page a:focus-visible,
-.communication-page summary:focus-visible{
- outline:3px solid #16814a;outline-offset:3px;
+.communication-page .ezero-chat-tools{
+ display:flex;gap:6px;flex-wrap:wrap;
+ margin:10px 0 2px;padding:8px;border-radius:12px;
+ background:#eff8f1;border:1px solid #d2e9d9;
 }
-@keyframes ezeroRealConnectionCheck{
-  0%{box-shadow:0 0 0 0 #22c55e55}
-  70%{box-shadow:0 0 0 7px #22c55e00}
-  100%{box-shadow:0 0 0 0 #22c55e00}
+.communication-page .ezero-chat-tools[hidden]{display:none!important}
+.communication-page .ezero-chat-tools button{
+ min-height:46px;flex:1 1 130px;padding:8px 10px;
+ border-radius:11px;border:1px solid #a3cfb2;
+ background:#fff;color:#135638;font:inherit;font-weight:850;
+ font-size:13px;cursor:pointer;
 }
-@media(prefers-reduced-motion:no-preference){
- .communication-page #modernConnectionStatus[data-state="connected"]::before{
-  animation:ezeroRealConnectionCheck 900ms ease-out 2;
- }
+.communication-page .ezero-chat-privacy{font-size:11px;color:#4c6d5b;
+ margin:8px 2px 0;line-height:1.6;}
+.communication-page #ezeroChatPlus:focus-visible,
+.communication-page .ezero-chat-tools button:focus-visible,
+.communication-page .ezero-messages-open:focus-visible,
+.communication-page #sendText:focus-visible{
+ outline:3px solid #1f9d5b;outline-offset:3px;
+}
+@media(max-width:420px){
+ .communication-page .ezero-chat-compose-row{gap:5px}
+ .communication-page #ezeroChatPlus{width:45px;min-width:45px}
+ .communication-page .ezero-chat-send-slot{min-width:70px}
+ .communication-page #modernChatPanel #sendMessage{min-width:70px;font-size:12px}
+ .communication-page .ezero-chat-timeline{min-height:220px}
 }
 @media(prefers-reduced-motion:reduce){
- .communication-page #modernConnectionStatus[data-state="connected"]::before{
-  animation:none!important;
+ .communication-page #modernConnectionStatus[data-indicator="connected"]::before{
+  animation:none;
  }
+ .communication-page #ezeroChatPlus{transition:none}
 }

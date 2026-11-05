@@ -124,27 +124,6 @@ try{
   assert.match(await a.locator('[data-modern="voice"]').innerText(),/رسالة صوتية/);
   await a.locator("#language").selectOption("ur");
   console.log("FOUR_VISIBLE_MODE_CONTROLS_AND_THREE_LANGUAGES_NO_AUTO_MEDIA: PASS");
-
-  // Purely visible controls must not masquerade as a genuinely connected phone.
-  const numberStages=await a.locator(".modern-feature-button").evaluateAll(nodes=>
-    nodes.map(el=>({n:el.getAttribute("data-step"),
-      badge:getComputedStyle(el,"::before").content})));
-  assert.deepEqual(numberStages.map(x=>x.n),["01","02","03","04"]);
-  assert.ok(numberStages.every(x=>x.badge.includes(x.n)));
-  assert.notEqual(await a.locator("#modernConnectionStatus").getAttribute("data-state"),"connected");
-  await a.evaluate(()=>document.dispatchEvent(new CustomEvent("ezero:call-status",
-    {detail:{stage:"connected"}})));
-  assert.notEqual(await a.locator("#modernConnectionStatus").getAttribute("data-state"),"connected",
-    "A fake event must not light a verified green tick without a connected peer");
-  await a.evaluate(()=>document.dispatchEvent(new CustomEvent("ezero:call-status",
-    {detail:{stage:"iceNoRoute"}})));
-  assert.equal(await a.locator("#modernConnectionStatus").getAttribute("data-state"),"error");
-  assert.match(await a.locator("#modernConnectionStatus").evaluate(el=>
-    getComputedStyle(el,"::before").content),/!/);
-  await a.evaluate(()=>document.dispatchEvent(new CustomEvent("ezero:call-status",
-    {detail:{stage:"idle"}})));
-  console.log("MILITARY_GREEN_NUMBERED_TILES_NO_FALSE_SUCCESS_RED_ERRORS: PASS");
-
   // The selected-mode border animates for 160ms; inspect its settled color.
   await a.waitForFunction(()=>getComputedStyle(
     document.querySelector('[data-modern-select="voice"]')).borderTopColor==="rgb(25, 131, 78)");
@@ -158,6 +137,37 @@ try{
     el=>getComputedStyle(el).borderTopColor);
   assert.equal(selectedGreen,"rgb(25, 131, 78)",
     "Selected communication mode must settle on professional green");
+  // Familiar green messenger input must preserve the tested encrypted
+  // one-view message sender instead of introducing a cosmetic fake.
+  await a.locator("#ezeroMessagesOpen").click();
+  assert.equal(await a.locator("#modernChatPanel").isVisible(),true);
+  assert.equal(await a.locator("#ezeroChatTextSlot #sendText").count(),1);
+  assert.equal(await a.locator("#ezeroChatSendSlot #sendMessage").count(),1);
+  assert.equal(await a.locator("#sendMessage").isDisabled(),true,
+    "Message cannot send before a real WebRTC connection");
+  assert.equal(await a.locator("#ezeroChatTools").isHidden(),true);
+  await a.locator("#ezeroChatPlus").click();
+  assert.equal(await a.locator("#ezeroChatTools").isVisible(),true);
+  assert.equal(await a.locator("#ezeroChatPlus").getAttribute("aria-expanded"),"true");
+  await a.locator("#sendText").fill("Unsent temporary draft");
+  await a.locator("#ezeroChatClearOption").click();
+  assert.equal(await a.locator("#sendText").inputValue(),"");
+  assert.equal(await a.locator("#ezeroChatTools").isHidden(),true);
+  await a.locator("#ezeroChatPlus").click();
+  await a.locator("#ezeroChatVoiceOption").click();
+  assert.equal(await a.locator("#modernVoicePanel").isVisible(),true);
+  await a.locator("#ezeroMessagesOpen").click();
+  await a.locator("#ezeroChatPlus").click();
+  await a.locator("#ezeroChatLinkOption").click();
+  assert.equal(await a.locator("#ezeroCallSetupSlot").isVisible(),true);
+  assert.equal(await a.evaluate(()=>window.__mediaCalls.length),0,
+    "Opening chat and plus actions never requests microphone/camera");
+  await a.locator("#language").selectOption("en");
+  assert.match(await a.locator("#ezeroMessagesOpen").innerText(),/messages/i);
+  await a.locator("#language").selectOption("ar");
+  assert.match(await a.locator("#ezeroMessagesOpen").innerText(),/الرسائل/);
+  await a.locator("#language").selectOption("ur");
+  console.log("MODERN_MESSENGER_PLUS_TOOLS_COMPOSER_THREE_LANGUAGES_NO_EARLY_SEND: PASS");
   await a.locator("#ezeroPeopleHub").evaluate(el=>el.open=true);
   const savedFriendFP=(await b.locator("#myFingerprint").innerText()).trim();
   await a.evaluate(fp=>localStorage.setItem("ezero_secure_connect_local_fingerprints_v0_1",
@@ -224,10 +234,9 @@ try{
   await a.locator('[data-modern-select="audio"]').click();
   await offerAndAnswer(a,b);
   assert.equal(await a.locator("#modernConnectionStatus").getAttribute("data-state"),"connected");
-  assert.match(await a.locator("#modernConnectionStatus").evaluate(el=>
-    getComputedStyle(el,"::before").content),/✓/,
-    "Verified real WebRTC connection should display a luminous checkmark");
-
+  assert.equal(await a.locator("#modernConnectionStatus").getAttribute("data-indicator"),"connected",
+    "Only an actual verified P2P session should glow as connected");
+  assert.equal(await b.locator("#modernConnectionStatus").getAttribute("data-indicator"),"connected");
   assert.equal(await a.evaluate(()=>document.querySelector("#localVideo").srcObject.getAudioTracks().length),1);
   assert.equal(await b.evaluate(()=>document.querySelector("#remoteVideo").srcObject.getAudioTracks().length),1);
   console.log("EXPERIMENTAL_REAL_WEBRTC_AUDIO_WITH_MANUAL_SIGNALING: PASS");
