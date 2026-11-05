@@ -77,3 +77,10 @@ Current `null-bench` one-link call lab uses ECDSA-signed browser identities, AES
 5. Add device registration/revocation and fresh-challenge reconnect.
 6. Test actual Android Chrome and iPhone Safari, including remote networks and permissions.
 7. Conduct security review and obtain explicit production-release approval.
+
+## 12. Trusted reconnect signing scaffold — implementation evidence (2026-11-05)
+- `secure_connect/pair_v1/trusted_reconnect_proof_v0_1.mjs` introduces a versioned, domain-separated reconnect transcript binding **both** device key hashes, both nonces, one server nonce, server session ID, account ID, issue/expiry, purpose and device roles.
+- Independent ECDSA P-256 device signatures are checked against **server-supplied** public-key registry records; unknown/revoked/rotated keys, wrong account, wrong purpose, expired transcripts or altered peer/nonces fail. No public or network code imports this lab module.
+- Signature validity deliberately returns `authorized:false`. The included replay gate is **in-memory for tests only** and always returns `authorized:false`; a real system needs an atomic Durable Object challenge-consumption transaction, verified WebAuthn account session, account/device registry, independent user consent, revoke propagation and security review.
+- `tests/test_ezero_secure_pair_v1_trusted_reconnect_v0_1.mjs` runs positive and adversarial crypto/nonce/revoke/expiry tests in CI. GitHub Actions [42028911897](https://github.com/coma39658-ctrl/null-bench/actions/runs/42028911897) completed with both job groups **PASS**, including the preexisting 2-browser QR WebRTC and local workerd regressions.
+- This is a **LAB PROOF STEP ONLY**, not a deployed Trusted Devices feature, not a biometric/passkey implementation and not a grant of E-ZERO OBD access.
