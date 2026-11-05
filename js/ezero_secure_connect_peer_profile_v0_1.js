@@ -11,7 +11,7 @@
   const KEY="ezero_secure_connect_local_profile_v0_1";
   const PHOTO=/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
   const copy={
-    ur:{editProfile:"yourPhoto":"پروفائل تصویر (اختیاری)","cameraPhoto":"📷 کیمرے سے تصویر لیں","galleryPhoto":"🖼️ گیلری سے تصویر منتخب کریں","photoHint":"تصویر صرف آپ کے منتخب کرنے پر لی جائے گی۔ کیمرہ خودکار نہیں کھلے گا۔","photoReady":"✓ تصویر تیار ہے۔ پروفائل محفوظ کریں۔","photoRejected":"تصویر نہیں پڑھی جا سکی۔ JPEG، PNG یا WebP منتخب کریں؛ کیمرہ استعمال ہو تو فون کی اجازت چیک کریں۔","👤 میری E-ZERO پروفائل — نام اور تصویر",
+    ur:{"cameraPhoto":"📷 کیمرے سے تصویر لیں","galleryPhoto":"🖼️ گیلری سے منتخب کریں","photoHint":"کیمرہ صرف بٹن دبانے پر کھلے گا؛ تصویر کبھی خودکار اپ لوڈ نہیں ہوگی۔","photoReady":"✓ تصویر تیار ہے۔ پروفائل محفوظ کریں۔","yourPhoto":"پروفائل تصویر (اختیاری)",editProfile:"👤 میری E-ZERO پروفائل — نام اور تصویر",
       profilePrivacy:"نام اور تصویر صرف اس فون پر محفوظ رہیں گے؛ دونوں فون کے محفوظ رابطے اور آپ کی اجازت کے بعد ہی دوست کو بھیجے جائیں گے۔",
       yourName:"آپ کا نام",shareConsent:"میرا نام اور منتخب تصویر حقیقی کال کنکشن بننے پر دوست کو شیئر کرنے کی اجازت ہے؛ میں اسے بعد میں بند کرسکتا ہوں۔",
       saveProfile:"✓ پروفائل محفوظ کریں",profileLocal:"پروفائل ابھی صرف اس فون پر ہے۔",
@@ -20,10 +20,10 @@
       saved:"✓ پروفائل اس فون پر محفوظ ہے۔",sharing:"✓ محفوظ رابطے پر آپ کی منظور شدہ پروفائل شیئر ہوئی ہے۔",
       notSharing:"پروفائل محفوظ ہے، لیکن دوسرے فون کو شیئر نہیں ہوئی۔",
       invalid:"1 سے 40 حروف تک اپنا نام درج کریں۔",
-      
+      photoRejected:"یہ تصویر بہت بڑی، غیر معاون یا خراب ہے۔ JPEG، PNG یا WebP منتخب کریں۔",
       storeError:"اس براؤزر میں مقامی پروفائل محفوظ نہ ہو سکی۔",profileReceived:"دوست کی فراہم کردہ پروفائل",
       idPrefix:"تصدیق شدہ عارضی ڈیجیٹل آئی ڈی"},
-    en:{editProfile:"yourPhoto":"Profile photo (optional)","cameraPhoto":"📷 Take a photo","galleryPhoto":"🖼️ Choose from gallery","photoHint":"Only you can start camera capture or choose an image. The camera never opens automatically.","photoReady":"✓ Photo is ready. Save your profile.","photoRejected":"Could not read this picture. Choose JPEG, PNG or WebP; check camera permissions if capturing.","👤 My E-ZERO profile — name & photo",
+    en:{"cameraPhoto":"📷 Take a photo","galleryPhoto":"🖼️ Choose from gallery","photoHint":"The camera opens only when you choose it. Photos are never automatically uploaded.","photoReady":"✓ Photo is ready. Save your profile.","yourPhoto":"Profile photo (optional)",editProfile:"👤 My E-ZERO profile — name & photo",
       profilePrivacy:"Your name and photo stay on this phone until you opt in and a verified call connection is established.",
       yourName:"Your name",shareConsent:"Share my name and chosen photo with my friend after a real secure call connection. I can turn this off later.",
       saveProfile:"✓ Save profile",profileLocal:"Your profile is currently local to this phone.",
@@ -32,10 +32,10 @@
       saved:"✓ Profile saved only on this phone.",sharing:"✓ Approved profile shared over the secure connection.",
       notSharing:"Profile saved locally; not shared with your peer.",
       invalid:"Enter a name of 1–40 characters.",
-      
+      photoRejected:"The picture is too large, unsupported, or invalid. Choose JPEG, PNG or WebP.",
       storeError:"Browser storage prevented saving your local profile.",profileReceived:"Friend's self-declared profile",
       idPrefix:"Verified temporary digital ID"},
-    ar:{editProfile:"yourPhoto":"الصورة الشخصية (اختياري)","cameraPhoto":"📷 التقاط صورة بالكاميرا","galleryPhoto":"🖼️ اختيار صورة من المعرض","photoHint":"لن تُلتقط صورة إلا باختيارك. لا تفتح الكاميرا تلقائيًا.","photoReady":"✓ الصورة جاهزة. احفظ الملف الشخصي.","photoRejected":"تعذر قراءة هذه الصورة. اختر JPEG أو PNG أو WebP وتحقق من أذونات الكاميرا عند التصوير.","👤 ملفي في E-ZERO — الاسم والصورة",
+    ar:{"cameraPhoto":"📷 التقاط صورة بالكاميرا","galleryPhoto":"🖼️ اختر من المعرض","photoHint":"لا تفتح الكاميرا إلا بعد اختيارك؛ ولا تُرفع الصورة تلقائيًا.","photoReady":"✓ الصورة جاهزة. احفظ الملف الشخصي.","yourPhoto":"الصورة الشخصية (اختياري)",editProfile:"👤 ملفي في E-ZERO — الاسم والصورة",
       profilePrivacy:"يبقى الاسم والصورة على هذا الهاتف ولا تُرسلان إلا بموافقتك بعد اتصال مكالمة آمن.",
       yourName:"اسمك",shareConsent:"أسمح بمشاركة اسمي وصورتي المختارة مع صديقي بعد اتصال آمن حقيقي؛ ويمكنني إلغاء الموافقة لاحقًا.",
       saveProfile:"✓ حفظ الملف",profileLocal:"الملف محفوظ محليًا على هذا الهاتف فقط.",
@@ -44,7 +44,7 @@
       saved:"✓ حُفظ الملف على هذا الهاتف فقط.",sharing:"✓ تمت مشاركة الملف الموافق عليه عبر اتصال آمن.",
       notSharing:"الملف محفوظ محليًا ولم يُشارك مع الصديق.",
       invalid:"أدخل اسمًا من حرف واحد إلى 40 حرفًا.",
-      
+      photoRejected:"الصورة كبيرة جدًا أو غير مدعومة أو غير صالحة. اختر JPEG أو PNG أو WebP.",
       storeError:"منع المتصفح حفظ الملف المحلي.",profileReceived:"ملف الصديق الذي اختاره",
       idPrefix:"معرّف رقمي مؤقت تم التحقق منه"}
   };
