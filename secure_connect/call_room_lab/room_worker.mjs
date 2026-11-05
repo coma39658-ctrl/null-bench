@@ -233,7 +233,9 @@ export class CallRoom {
     const others=activeSockets(this.ctx).filter(x=>x!==ws && metadata(x)?.hash===meta.hash);
     const remote=others[0];
     if(frame.type==="decline"||frame.type==="hangup"){
-      if(frame.type==="decline"&&meta.slot!=="callee")return invalid("ROLE_NOT_ALLOWED",ws);
+      if(frame.type==="decline"&&meta.slot!=="callee"&&
+         !(meta.slot==="caller"&&meta.qrPending===true))
+        return invalid("ROLE_NOT_ALLOWED",ws);
       const record=await this.ctx.storage.get("room:meta");
       if(record)await this.ctx.storage.put("room:meta",{...record,closed:true});
       if(remote)safeSend(remote,{v:1,type:frame.type});
@@ -242,22 +244,43 @@ export class CallRoom {
       return;
     }
     if(!remote)return invalid("PEER_NOT_JOINED",ws);
+    if(frame.type==="host_accept"){
+      if(meta.slot!=="caller"||meta.qrPending!==true||meta.hostApproved===true)
+        return invalid("ROLE_NOT_ALLOWED",ws);
+      meta.hostApproved=true;ws.serializeAttachment(meta);
+      safeSend(remote,{v:1,type:"host_accepted"});return;
+    }
     if(frame.type==="accept"){
       if(meta.slot!=="callee")return invalid("ROLE_NOT_ALLOWED",ws);
+      if(meta.qrGuest===true&&metadata(remote)?.hostApproved!==true)
+        return invalid("HOST_APPROVAL_REQUIRED",ws);
+      if(meta.approved===true)return invalid("ALREADY_APPROVED",ws);
       meta.approved=true;ws.serializeAttachment(meta);
       safeSend(remote,{v:1,type:"accepted"});return;
     }
     // The full signed SDP/ICE offer is AES-GCM encrypted in the browsers.
     // Cloudflare only passes the opaque ciphertext and never reads the SDP/IPs.
     // The receiver still verifies the independent ECDSA/peer fingerprint.
-    if(frame.type!=="offer"&&frame.type!=="answer")return invalid("TYPE_NOT_ALLOWED",ws);
+    if(!["offer","answer","guest_hello"].includes(frame.type))
+      return invalid("TYPE_NOT_ALLOWED",ws);
     const blob=frame.blob;
     if(typeof blob!=="string" || blob.length<128 || blob.length>170000 ||
        !/^[A-Za-z0-9_-]+$/.test(blob))
        return invalid("ENCRYPTED_FRAME_REQUIRED",ws);
     const remoteMeta=metadata(remote);
+    if(frame.type==="guest_hello"){
+      // A QR scanner shares its signed ephemeral identity only inside the
+      // encrypted envelope. Cloudflare relays ciphertext, never raw identity.
+      if(meta.slot!=="callee"||meta.qrGuest===true||remoteMeta?.offered)
+        return invalid("HELLO_NOT_ALLOWED",ws);
+      meta.qrGuest=true;ws.serializeAttachment(meta);
+      remoteMeta.qrPending=true;remote.serializeAttachment(remoteMeta);
+      safeSend(remote,{v:1,type:"guest_hello",blob});
+      return;
+    }
     if(frame.type==="offer"){
-      if(meta.slot!=="caller"||remoteMeta?.approved!==true||meta.offered)
+      if(meta.slot!=="caller"||remoteMeta?.approved!==true||meta.offered||
+         (meta.qrPending===true&&meta.hostApproved!==true))
         return invalid("OFFER_NOT_READY",ws);
       meta.offered=true;
     }else{
