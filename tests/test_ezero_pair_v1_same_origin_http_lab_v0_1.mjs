@@ -80,6 +80,22 @@ try{
  assert.equal(success.headers.get("set-cookie"),null);
  assert.equal(success.headers.get("cross-origin-resource-policy"),"same-origin");
  assert.match(success.headers.get("vary"),/Sec-Fetch-Site/);
+ // Browser GET fetch may legitimately omit Origin but includes protected
+ // Sec-Fetch-Site: same-origin. POST is still strict about Origin.
+ const browserStatus=await handler.handle(new Request(base+"status",{
+  headers:{"sec-fetch-site":"same-origin","cookie":cookie}
+ }),now);
+ assert.equal(browserStatus.status,200);
+ const unknownSource=await handler.handle(new Request(base+"status",{
+  headers:{"cookie":cookie}
+ }),now);
+ assert.equal(unknownSource.status,403);
+ const noOriginLogout=await handler.handle(new Request(base+"logout",{
+  method:"POST",headers:{"sec-fetch-site":"same-origin","cookie":cookie,
+   "x-ezero-csrf":csrf}
+ }),now);
+ assert.equal(noOriginLogout.status,403,
+  "POST mutations always require exact Origin, never Fetch Metadata alone");
  const statusData=await success.json();
  assert.deepEqual(statusData,{
   ok:true,code:"OBSERVATION_ONLY_NO_ACCESS",
