@@ -38,3 +38,43 @@
 .communication-page.ezero-one-lab #ezeroAutoStatus[data-state=error],
 .communication-page.ezero-one-lab #modernConnectionStatus[data-state=error]{
  color:#a22c2c;background:#fff4f2;border-color:#f0b4b0}
+
+/* In this one-request experiment the old identity-only QR flow is not
+   the call entry point. It remains accessible from the clearly labeled
+   separate identity page, but cannot look like a successful call scan. */
+.communication-page.ezero-one-lab #oneTapPanel{display:none!important}
+.communication-page.ezero-one-lab #ezeroOneJoinPanel{
+  border:2px solid #1b9868;background:linear-gradient(160deg,#f8fff9,#e8fbf3);
+  box-shadow:0 10px 30px #073e2918;margin:16px 0 22px}
+.communication-page.ezero-one-lab #ezeroOneJoinHeading{
+  font-size:clamp(20px,5vw,26px);line-height:1.6;color:#07583b}
+.communication-page.ezero-one-lab .ezero-one-join-help{
+  line-height:1.8;color:#24563d;font-size:14px}
+.communication-page.ezero-one-lab #ezeroOneScanInvite{
+  width:100%;min-height:64px;border-radius:16px;
+  background:linear-gradient(110deg,#075c3e,#13995e);
+  color:white;border:1px solid #13734b;font-size:17px;font-weight:850;
+  box-shadow:0 5px 14px #0b69372e}
+.communication-page.ezero-one-lab #ezeroOneScanInvite:disabled{opacity:.55}
+.communication-page.ezero-one-lab #ezeroOneIncomingShell{
+  padding:17px;border-radius:18px;border:2px solid #0c9859;
+  background:#eefdf1;box-shadow:0 0 0 3px #1fb87828;margin:14px 0}
+.communication-page.ezero-one-lab #ezeroOneIncomingHeading{
+  margin:0 0 14px;color:#03552b;font-weight:900;font-size:22px;line-height:1.6}
+.communication-page.ezero-one-lab #ezeroAutoIncoming p{
+  line-height:1.8;color:#244638;font-size:14px}
+.communication-page.ezero-one-lab #ezeroAutoAccept{
+  background:#087848;color:white;font-weight:900;font-size:19px;
+  min-height:64px;border-radius:15px}
+.communication-page.ezero-one-lab #ezeroAutoDecline{
+  min-height:48px;border-radius:14px}
+.communication-page.ezero-one-lab #ezeroOneCallProgress{
+  font-size:15px;line-height:1.8;padding:14px;margin:13px 0 0;
+  border-radius:15px;background:#f2f7f6;border:1px solid #b6dacf;
+  color:#204c3e}
+.communication-page.ezero-one-lab #ezeroOneCallProgress[data-state=connected]{
+  background:#e6f9ed;border-color:#35ab6c;color:#075c36;font-weight:900}
+.communication-page.ezero-one-lab #ezeroOneCallProgress[data-state=failed]{
+  background:#fff1f0;border-color:#e3a4a1;color:#9e2926}
+.communication-page.ezero-one-lab #ezeroOneCallProgress[data-state=rejected]{
+  background:#f7f7f7;color:#4c5b56}
