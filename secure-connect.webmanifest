@@ -1,13 +1,13 @@
 {
   "name": "E-ZERO Secure Connect",
   "short_name": "E-ZERO Connect",
-  "description": "Consent-first signed QR and shareable public-key invitation links; no automatic calls, ads, or call recording",
+  "description": "One E-ZERO green page: explicit one-request, one-accept experimental QR audio/video; no background call notifications yet",
   "id": "./ezero_secure_connect_live_p2p_v0_1.html",
-  "start_url": "./ezero_secure_connect_live_p2p_v0_1.html",
+  "start_url": "./ezero_secure_connect_one_request_lab_20261106.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#ecf9fb",
-  "theme_color": "#073e53",
+  "background_color": "#ecf9f1",
+  "theme_color": "#0b4b35",
   "lang": "ur",
   "dir": "rtl",
   "icons": [
@@ -29,10 +29,10 @@
   },
   "shortcuts": [
     {
-      "name": "E-ZERO Secure QR",
-      "short_name": "QR Connect",
-      "url": "./ezero_secure_connect_live_p2p_v0_1.html",
-      "description": "Open E-ZERO Secure QR identity verification"
+      "name": "E-ZERO Secure Connect",
+      "short_name": "Connect",
+      "url": "./ezero_secure_connect_one_request_lab_20261106.html",
+      "description": "One green public page for QR call invitations and accept/decline"
     }
   ]
 }

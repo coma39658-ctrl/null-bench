@@ -78,3 +78,149 @@
   background:#fff1f0;border-color:#e3a4a1;color:#9e2926}
 .communication-page.ezero-one-lab #ezeroOneCallProgress[data-state=rejected]{
   background:#f7f7f7;color:#4c5b56}
+
+/* UNIFIED PUBLIC E-ZERO CONNECT: only one visible green call card.
+ * Underlying legacy DOM stays mounted for signed WebRTC/media compatibility;
+ * obsolete identity/SDP wizard is no longer a second competing public layer.
+ */
+.communication-page.ezero-one-lab{background:#081e18!important;color:#073c2b!important}
+.communication-page.ezero-one-lab .shell{max-width:640px;margin:0 auto;min-height:100vh;background:#ecf9f1!important;padding:0 12px 28px;box-sizing:border-box}
+.communication-page.ezero-one-lab header.top{background:linear-gradient(125deg,#072d21,#096d45)!important;border-radius:0 0 17px 17px;padding:12px 11px;color:#f0fff5}
+.communication-page.ezero-one-lab header.top .logo{color:#effff5!important}
+.communication-page.ezero-one-lab header.top .back{color:#eefff5!important;font-size:12px}
+.communication-page.ezero-one-lab header.top label{color:#e8ffee;font-size:12px}
+.communication-page.ezero-one-lab main{display:block;padding:0}
+.communication-page.ezero-one-lab .ezero-pilot-banner,
+.communication-page.ezero-one-lab .modern-hero,
+.communication-page.ezero-one-lab .hero.legacy-hero,
+.communication-page.ezero-one-lab #oneTapPanel,
+.communication-page.ezero-one-lab #secureAdvanced,
+.communication-page.ezero-one-lab #ezeroCallSetupSlot,
+.communication-page.ezero-one-lab #modernOfflinePanel,
+.communication-page.ezero-one-lab .modern-secondary-links,
+.communication-page.ezero-one-lab footer.footer{display:none!important}
+.communication-page.ezero-one-lab .ezero-unified-card{
+ background:#f7fff9;border:2px solid #237c51;border-radius:22px;
+ box-shadow:0 10px 26px #042b1b24,0 0 0 1px #b9e7c8 inset;
+ padding:15px 12px 18px;margin:13px auto 0;max-width:610px;color:#0b4430;
+ display:flex;flex-direction:column;gap:13px;overflow-wrap:anywhere;
+}
+.communication-page.ezero-one-lab .ezero-unified-heading{
+ background:linear-gradient(135deg,#083e29,#118455);border-radius:16px;
+ padding:15px 13px;color:#ecfff2;text-align:center;
+}
+.communication-page.ezero-one-lab .ezero-unified-label{
+ letter-spacing:.085em;font-size:11px;font-weight:800;color:#e0ffeb
+}
+.communication-page.ezero-one-lab .ezero-unified-heading h1{
+ font-size:clamp(20px,5vw,27px);line-height:1.45;margin:4px 0;color:white
+}
+.communication-page.ezero-one-lab .ezero-unified-heading p{font-size:13px;line-height:1.8;margin:4px 0;color:#f0ffef}
+.communication-page.ezero-one-lab .ezero-unified-card .modern-feature-grid{
+ background:transparent!important;padding:0;margin:0;
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px
+}
+.communication-page.ezero-one-lab .ezero-unified-card .modern-feature-button{
+ background:#f4fff7!important;border:1px solid #77bb94!important;
+ border-radius:14px!important;min-height:96px;color:#124b32!important;
+ padding:10px 5px!important;box-shadow:0 2px 8px #00683f15
+}
+.communication-page.ezero-one-lab .ezero-unified-card .modern-feature-button[aria-pressed=true]{
+ border:2px solid #02834b!important;background:#e3fcec!important;
+ box-shadow:0 0 0 2px #2de09155!important
+}
+.communication-page.ezero-one-lab .ezero-unified-card .modern-feature-note{font-size:11px;line-height:1.4}
+.communication-page.ezero-one-lab .ezero-unified-card .modern-feature-icon{font-size:26px}
+.communication-page.ezero-one-lab .ezero-unified-card .modern-workspace,
+.communication-page.ezero-one-lab .ezero-unified-card .ezero-one-join-panel,
+.communication-page.ezero-one-lab .ezero-unified-card .ezero-auto-pilot{
+ margin:0!important;background:transparent!important;border:0!important;
+ box-shadow:none!important;border-radius:0!important;padding:0!important
+}
+.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneJoinHeading{
+ font-size:16px;color:#08553a;margin:4px 0
+}
+.communication-page.ezero-one-lab .ezero-unified-card .ezero-one-join-help{font-size:12px;color:#315f45;margin:4px 0 8px;line-height:1.7}
+.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneScanInvite{
+ min-height:57px;width:100%;border:0;border-radius:14px;
+ background:linear-gradient(125deg,#075238,#14a46a);font-weight:900;font-size:17px;color:#fff;
+ box-shadow:0 5px 14px #126c3b24
+}
+.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneQrBox{
+ max-width:100%;margin:7px 0;padding:10px;border:1px solid #76be90;border-radius:14px
+}
+.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneQr{width:min(100%,250px);margin:7px auto}
+.communication-page.ezero-one-lab .ezero-unified-card .ezero-unified-options{
+ border:1px solid #b1d9ba;background:#effaf2;border-radius:12px;padding:10px;max-width:100%
+}
+.communication-page.ezero-one-lab .ezero-unified-card .ezero-unified-options>summary{
+ color:#185839;font-size:14px;font-weight:800;cursor:pointer;padding:4px
+}
+.communication-page.ezero-one-lab .ezero-unified-card .ezero-quick-actions{
+ border:0!important;background:transparent!important;box-shadow:none!important;
+ padding:0!important;margin:0!important;gap:6px!important
+}
+.communication-page.ezero-one-lab .ezero-unified-card .ezero-quick-actions>*{
+ font-size:12px!important;min-height:42px!important;border-radius:11px!important
+}
+.communication-page.ezero-one-lab .ezero-unified-card #ezeroQuickPaste,
+.communication-page.ezero-one-lab .ezero-unified-card #ezeroQuickIdentity{display:none!important}
+.communication-page.ezero-one-lab .ezero-unified-card #ezeroAutoPilot>.modern-panel-title,
+.communication-page.ezero-one-lab .ezero-unified-card #ezeroAutoPilot>.modern-panel-help,
+.communication-page.ezero-one-lab .ezero-unified-card #modernFeatureTitle,
+.communication-page.ezero-one-lab .ezero-unified-card #modernFeatureHelp,
+.communication-page.ezero-one-lab .ezero-unified-card #modernCallPanel>.modern-panel-title,
+.communication-page.ezero-one-lab .ezero-unified-card #modernCallPanel>.modern-panel-help,
+.communication-page.ezero-one-lab .ezero-unified-card .modern-connection-actions #modernConnect{display:none!important}
+.communication-page.ezero-one-lab .ezero-unified-card #ezeroAutoPilot{
+ border-top:1px solid #b8dcc1!important;padding-top:8px!important
+}
+.communication-page.ezero-one-lab .ezero-unified-card #ezeroAutoStatus,
+.communication-page.ezero-one-lab .ezero-unified-card #modernConnectionStatus{
+ border:1px solid #b1ddbd;background:#eaf9ee;color:#11583c;
+ border-radius:12px;padding:9px 10px;margin:5px 0;font-size:12px;line-height:1.6
+}
+.communication-page.ezero-one-lab .ezero-unified-card #modernCallPanel{
+ border-top:1px solid #b8dcc1!important;padding-top:7px!important
+}
+.communication-page.ezero-one-lab .ezero-unified-card #modernHangup{
+ background:#a3292a;color:white;border-radius:11px;min-height:45px;font-weight:800
+}
+.communication-page.ezero-one-lab .ezero-unified-card .ezero-unified-disclaimer{
+ margin:0;border-top:1px solid #c3e1ce;padding-top:10px;
+ font-size:11px;line-height:1.7;color:#3b644e
+}
+.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneIncomingShell{
+ display:block;border:2px solid #17a367;background:#eaffee;border-radius:15px;padding:13px
+}
+.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneIncomingShell[hidden]{
+ display:none!important
+}
+.communication-page.ezero-one-lab [hidden]{display:none!important}
+@media(max-width:370px){
+ .communication-page.ezero-one-lab .ezero-unified-card{padding:11px 9px}
+ .communication-page.ezero-one-lab .ezero-unified-card .modern-feature-button{min-height:90px}
+}
+
+/* Unified public page: one green primary card; old two-layer experiment is
+   retained only as a hidden compatibility DOM for the existing JS modules. */
+body.ezero-one-lab .ezero-unified-card{margin:12px 0 20px;padding:16px;border-radius:22px;background:linear-gradient(155deg,#073b2d,#086546 48%,#073b2d);border:2px solid #26b67d;box-shadow:0 10px 32px #022c2160;color:#effff7}
+body.ezero-one-lab .ezero-unified-heading{text-align:center;padding:12px 5px 17px}
+body.ezero-one-lab .ezero-unified-label{font-size:12px;letter-spacing:.15em;color:#b6ffda;font-weight:800}
+body.ezero-one-lab .ezero-unified-heading h1{color:#fff;font-size:clamp(23px,6vw,34px);line-height:1.45;margin:8px 0}
+body.ezero-one-lab .ezero-unified-heading p{color:#d6ffe8;font-size:14px;line-height:1.75;margin:4px 0}
+body.ezero-one-lab .ezero-unified-card .modern-workspace{margin:10px 0;background:#f3fff8;color:#153e2e;border-radius:16px;border:1px solid #7bd5a9}
+body.ezero-one-lab .ezero-unified-card .modern-feature-grid{margin:12px 0;gap:9px}
+body.ezero-one-lab .ezero-unified-card .modern-feature-button{border:1px solid #57bd88;background:linear-gradient(145deg,#f3fff9,#d5f9e4);color:#075238;min-height:84px}
+body.ezero-one-lab .ezero-unified-card .modern-feature-button[aria-pressed="true"]{border-color:#14a46c;box-shadow:0 0 0 2px #23b97666}
+body.ezero-one-lab .ezero-unified-card #ezeroOneJoinPanel{margin:10px 0;background:#e6f9ed}
+body.ezero-one-lab .ezero-unified-card #ezeroAutoPilot{background:#e6f9ed}
+body.ezero-one-lab .ezero-unified-card #ezeroOneScanInvite{background:linear-gradient(110deg,#046341,#15a46a);color:#fff}
+body.ezero-one-lab .ezero-unified-card #ezeroAutoAccept{background:#057b4d;color:#fff}
+body.ezero-one-lab .ezero-unified-card .ezero-unified-options{margin:12px 0;padding:10px;border:1px solid #68c39a;border-radius:15px;background:#e8fff0;color:#11432d}
+body.ezero-one-lab .ezero-unified-card .ezero-unified-options>summary{font-weight:850;cursor:pointer;padding:7px}
+body.ezero-one-lab .ezero-unified-disclaimer{font-size:12px;color:#d6ffe9;line-height:1.7;margin:14px 4px 0}
+body.ezero-one-lab main>.ezero-pilot-banner,body.ezero-one-lab main>.modern-hero,body.ezero-one-lab main>#modernOfflinePanel,body.ezero-one-lab main>.modern-secondary-links,body.ezero-one-lab main>.legacy-hero,body.ezero-one-lab main>details.legacy-advanced,body.ezero-one-lab main>#oneTapPanel{display:none!important}
+body.ezero-one-lab .ezero-unified-card #ezeroOneJoinHeading{font-size:20px}
+body.ezero-one-lab .ezero-unified-card #modernCallPanel[hidden],body.ezero-one-lab .ezero-unified-card #modernChatPanel[hidden],body.ezero-one-lab .ezero-unified-card #modernVoicePanel[hidden]{display:none!important}
+@media(max-width:460px){body.ezero-one-lab .ezero-unified-card{padding:10px;border-radius:17px}body.ezero-one-lab .ezero-unified-card .modern-feature-button{min-height:77px}}

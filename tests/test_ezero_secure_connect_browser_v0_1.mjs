@@ -40,7 +40,15 @@ try {
   assert.ok(box&&box.x>=0&&box.y>=0&&box.x+box.width<=393+1&&box.y+box.height<=852+1,
     "Secure Connect popup fits mobile viewport");
   await page.locator("#ezeroSecureConnectVideoEntry").click();
-  await page.waitForURL(/ezero_secure_connect_preview_v0_1\.html#video$/);
+  await page.waitForURL(/ezero_secure_connect_one_request_lab_20261106\.html$/);
+  assert.equal(await page.locator("#ezeroUnifiedCard").isVisible(),true,
+    "The public entry must open the single unified green call card");
+  assert.equal(await page.locator("#ezeroOneScanInvite").isVisible(),true);
+  assert.equal(await page.evaluate(()=>window.__ezeroMediaCalls.length),0,
+    "Opening the public call page must not start microphone or camera");
+  // Legacy device-preview tests remain valuable, but this is no longer
+  // the public calling entry: navigate explicitly to the isolated preview.
+  await page.goto(base+"/ezero_secure_connect_preview_v0_1.html#video",{waitUntil:"domcontentloaded"});
   assert.equal(await page.locator("#startVideo").isVisible(),true);
   await page.locator("#previewLanguage").selectOption("en");
   assert.match(await page.locator(".hero h1").innerText(),/Welcome/);
