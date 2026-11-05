@@ -536,7 +536,7 @@
            typeof m.avatar==="string" && m.avatar.length<=12000 &&
            (m.avatar==="" || /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(m.avatar)) &&
            /^[a-f0-9]{64}$/.test(peer?.__ezeroPeerFP||"") &&
-           peer?.connectionState==="connected"){
+           c.readyState==="open"){
           document.dispatchEvent(new CustomEvent("ezero:profile-received",{
             detail:{name:m.name.trim(),avatar:m.avatar,
               peerFingerprint:peer.__ezeroPeerFP,connected:true}
