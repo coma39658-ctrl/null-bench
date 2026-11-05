@@ -67,3 +67,12 @@
   .communication-page .ezero-group-call-buttons{grid-template-columns:1fr}
   .communication-page .ezero-group-form{padding:12px 9px}
 }
+
+.communication-page .ezero-group-admin-settings{border:1px solid #a5cdb7;background:#eefbf3;
+ border-radius:13px;margin:15px 0;padding:12px 10px}
+.communication-page .ezero-group-admin-settings legend{font-weight:900;color:#185036;padding:0 5px}
+.communication-page .ezero-group-permission{display:flex;align-items:flex-start;gap:9px;padding:8px 0;
+ color:#23563c;font-size:13px;cursor:pointer}
+.communication-page .ezero-group-permission input{width:20px;height:20px;accent-color:#087b49;flex-shrink:0}
+.communication-page .ezero-group-admin-badge{display:inline-flex;background:#e5f5e7;color:#075d39;
+ font-weight:900;border:1px solid #a7d7b1;padding:6px 11px;border-radius:999px;font-size:12px}
