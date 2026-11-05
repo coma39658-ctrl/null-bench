@@ -57,6 +57,15 @@ jobs:
           node --check secure_connect/pair_v1/account_session_guard_sqlite_lab_v0_1.mjs
           node --check tests/test_ezero_pair_v1_session_guard_sqlite_v0_1.mjs
           node tests/test_ezero_pair_v1_session_guard_sqlite_v0_1.mjs
+          node --check scripts/ezero_secure_pair_public_release_gate_v0_1.mjs
+          node scripts/ezero_secure_pair_public_release_gate_v0_1.mjs --status
+          if node scripts/ezero_secure_pair_public_release_gate_v0_1.mjs --verify-release; then
+            echo "UNEXPECTED_PUBLIC_LAUNCH_ALLOWED_WITH_UNVERIFIED_PHYSICAL_GATES"
+            exit 1
+          else
+            test "$?" -eq 2
+          fi
+          echo "UNVERIFIED_PUBLIC_LAUNCH_BLOCKED_BUT_LOCAL_TESTS_ALLOWED: PASS"
           node tests/test_ezero_secure_pair_v1_webauthn_reg_to_login_v0_1.mjs
           echo "PUBLIC_ROOMS_STAY_DISABLED_SOURCE_AND_STATIC_CONTRACT: PASS"
       - name: Install headless Chromium test environment
