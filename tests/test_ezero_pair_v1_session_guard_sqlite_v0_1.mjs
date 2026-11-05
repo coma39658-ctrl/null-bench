@@ -4,7 +4,8 @@ import {mkdtempSync,rmSync} from "node:fs";
 import {join} from "node:path";
 import {tmpdir} from "node:os";
 import {PairV1SessionGuardSqliteLab,sessionSecretDigestForLab,
- SESSION_LAB_COOKIE,SESSION_LAB_MAX_MS,SESSION_LAB_IDLE_MS}
+ sessionCsrfDigestForLab,SESSION_LAB_COOKIE,SESSION_LAB_MAX_MS,
+ SESSION_LAB_IDLE_MS}
  from "../secure_connect/pair_v1/account_session_guard_sqlite_lab_v0_1.mjs";
 const directory=mkdtempSync(join(tmpdir(),"ezero_v1_session_guard_"));
 const filepath=join(directory,"sessions.sqlite3");
@@ -72,6 +73,60 @@ try{
  assert.deepEqual(checked,{ok:true,code:"SESSION_OBSERVED_ONLY_NO_AUTHORITY",
   authorized:false,trusted:false});
  console.log("SESSION_LAB_HOST_ONLY_OPAQUE_SHA256_TOKEN_OBSERVATION_NO_GRANT: PASS");
+ // Self-logout requires BOTH an HttpOnly session and a distinct
+ // same-origin CSRF synchronizer token; neither value alone can mutate state.
+ const ownSid="c".repeat(32);
+ const ownSecret=b64(crypto.getRandomValues(new Uint8Array(32)));
+ const ownCsrf=b64(crypto.getRandomValues(new Uint8Array(32)));
+ const ownCookie=SESSION_LAB_COOKIE+"="+ownSid+"."+ownSecret;
+ assert.notEqual(await sessionCsrfDigestForLab(ownSecret),
+  await sessionSecretDigestForLab(ownSecret),
+  "Session and CSRF digests are domain separated");
+ db.prepare(`INSERT INTO ezero_v1_sessions_guard_lab
+ (sid,secret_digest,account_id,credential_id,issued,expires,seen_at,
+ origin,scope,revoked_at) VALUES(?,?,?,?,?,?,?,?,'ACCOUNT_OBSERVE_ONLY',NULL)`)
+ .run(ownSid,await sessionSecretDigestForLab(ownSecret),accountId,cred,
+  issued,expires,issued,origin);
+ db.prepare(`INSERT INTO ezero_v1_session_csrf_lab
+  (sid,csrf_digest,created_at) VALUES(?,?,?)`)
+ .run(ownSid,await sessionCsrfDigestForLab(ownCsrf),now);
+ const own={cookieHeader:ownCookie,csrfToken:ownCsrf,origin,
+  method:"POST",now:now+1};
+ assert.equal((await lab.logoutOwnSessionWithCsrfLab({
+  ...own,csrfToken:b64(crypto.getRandomValues(new Uint8Array(32)))
+ })).ok,false,"CSRF token mismatch");
+ assert.equal((await lab.logoutOwnSessionWithCsrfLab({
+  ...own,csrfToken:ownSecret
+ })).ok,false,"Session cookie cannot substitute for synchronizer token");
+ assert.equal((await lab.logoutOwnSessionWithCsrfLab({
+  ...own,cookieHeader:cookie
+ })).ok,false,"Another valid session cannot reuse the owner's CSRF");
+ assert.equal((await lab.logoutOwnSessionWithCsrfLab({
+  ...own,origin:"https://attacker.invalid"
+ })).ok,false,"Cross-origin request rejected");
+ assert.equal((await lab.logoutOwnSessionWithCsrfLab({
+  ...own,method:"GET"
+ })).ok,false,"Logout must require a POST");
+ assert.equal((await lab.logoutOwnSessionWithCsrfLab({
+  ...own,cookieHeader:ownCookie+"; "+ownCookie
+ })).ok,false,"Duplicate session cookie rejected");
+ assert.equal((await lab.inspect({
+  cookieHeader:ownCookie,origin,now:now+1
+ })).ok,true,"Failed CSRF and origin checks cannot revoke valid session");
+ const loggedOut=await lab.logoutOwnSessionWithCsrfLab(own);
+ assert.equal(loggedOut.ok,true);
+ assert.equal(loggedOut.authorized,false);
+ assert.equal(loggedOut.trusted,false);
+ assert.equal(loggedOut.code,"OWN_SESSION_REVOKED_WITH_CSRF_LAB");
+ assert.match(loggedOut.serverOnlyClearCookie,
+  /; Path=\/; Secure; HttpOnly; SameSite=Strict; Max-Age=0$/);
+ assert.equal((await lab.logoutOwnSessionWithCsrfLab(own)).ok,false,
+  "Replayed logout is rejected");
+ assert.equal((await lab.inspect({
+  cookieHeader:ownCookie,origin,now:now+2
+ })).ok,false,"Own session is revoked server-side immediately");
+ console.log("SESSION_LAB_CSRF_POST_ONLY_OWN_SESSION_LOGOUT_REPLAY_DENIED: PASS");
+
  for(const bad of [
   SESSION_LAB_COOKIE+"="+sid,
   SESSION_LAB_COOKIE+"="+sid+"."+b64(crypto.getRandomValues(new Uint8Array(32))),
@@ -96,6 +151,9 @@ try{
  // Reopened DB should retain exact server-side invalidation.
  db.close();db=new DatabaseSync(filepath);
  lab=new PairV1SessionGuardSqliteLab(storage(db),{serverOrigin:origin});
+ assert.equal((await lab.inspect({
+  cookieHeader:ownCookie,origin,now:now+3
+ })).ok,false,"CSRF logout persists across database restart");
  assert.equal((await verify()).ok,true);
  assert.equal(lab.revokeTrustedServerSide(sid,now+1).ok,true);
  assert.equal(lab.revokeTrustedServerSide(sid,now+2).ok,false);
