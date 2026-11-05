@@ -25,7 +25,8 @@ async function verify(page,lang,heading,footerWord){
   const active=page.locator('[data-policy-lang="'+lang+'"]');
   assert.match(await active.locator("h1").innerText(),heading);
   assert.equal(await active.locator(".policy-card").count(),8);
-  assert.equal(await active.locator("table tbody tr").count(),5);
+  assert.equal(await active.locator("table tr").count(),6,
+    "One header row plus five data-handling rows in every language");
   assert.equal(await active.locator("li").count(),9);
   assert.match(await page.locator("#policyFooter").innerText(),footerWord);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),true,
