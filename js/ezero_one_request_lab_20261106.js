@@ -145,6 +145,15 @@
   }
   document.addEventListener("ezero:auto-incoming-open",jumpIncoming);
   jumpIncoming();
+  // Keep both Android phones on the unified green page after a language
+  // switch; only the Back control returns to E-ZERO's parent website.
+  function unifyNavigation(){
+    const back=$("modernBack"),qr=$("modernQrLink");
+    if(back){back.href="./index.html";back.textContent="↩ E-ZERO مرکزی ویب سائٹ";}
+    if(qr)qr.href="./ezero_secure_connect_one_request_lab_20261106.html";
+  }
+  unifyNavigation();
+  $("language")?.addEventListener("change",unifyNavigation);
   // Accept/reject is a single user action. The answer travels on WebSocket,
   // never through an extra copied invite or a second acceptance tap.
   $("ezeroAutoAccept")?.addEventListener("click",()=>{
