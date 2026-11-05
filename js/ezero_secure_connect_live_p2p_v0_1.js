@@ -442,7 +442,7 @@
           if(codes.length){
             const code=String(codes[0].rawValue||"");
             stopScanner();
-            if(code.startsWith("https://")&&code.includes("#callroom=")){
+            if(/^https?:\/\//.test(code)&&code.includes("#callroom=")){
               // The one-QR controller validates origin, exact page path,
               // HMAC invitation shape, expiry, and signed peer identity.
               document.dispatchEvent(new CustomEvent("ezero:oneqr-scanned",{
