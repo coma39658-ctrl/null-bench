@@ -20,6 +20,7 @@
 <link rel="stylesheet" href="./css/ezero_secure_connect_live_p2p_v0_1.css">
 <link rel="stylesheet" href="./css/ezero_secure_connect_one_tap_qr_v0_1.css">
 <link rel="stylesheet" href="./css/ezero_secure_connect_modern_communications_v0_3.css?v=20261105forest1">
+<link rel="stylesheet" href="./css/ezero_secure_connect_quick_nav_v0_1.css">
 <script defer src="./js/vendor/ezero-qrcode-generator-mit.js"></script>
 <script defer src="./js/ezero_secure_connect_live_p2p_v0_1.js?v=20261105profile1"></script>
 <script defer src="./js/ezero_secure_connect_simple_near_far_v0_1.js"></script>
@@ -31,6 +32,7 @@
 <script defer src="./js/ezero_secure_connect_people_v0_1.js?v=20261105ttl1"></script>
 <script defer src="./js/ezero_auto_signaling_config_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_auto_signaling_pilot_v0_1.js"></script>
+<script defer src="./js/ezero_secure_connect_quick_nav_v0_1.js"></script>
 </head>
 <body class="communication-page">
 <div class="shell">
@@ -48,6 +50,11 @@
   <p data-modern="subheading">آڈیو کال، ویڈیو کال، وائس نوٹ اور نجی چیٹ — ایک آسان جگہ۔ کال کے لیے حقیقی دو فون WebRTC رابطہ ضروری ہے۔</p>
   <div class="modern-trust"><span data-modern="free">بلا اشتہار</span><span data-modern="consent">اجازت کے بعد کیمرہ/مائک</span><span data-modern="noArchive">سرور پر کال آرکائیو نہیں</span></div>
 </section>
+<nav class="ezero-quick-actions" aria-label="E-ZERO profile, digital identity and received invitation">
+  <button type="button" id="ezeroQuickProfile">👤 میری پروفائل / تصویر</button>
+  <button type="button" id="ezeroQuickPaste">📋 دوست کا لنک پیسٹ کریں</button>
+  <a id="ezeroQuickIdentity" href="./ezero_secure_connect_live_p2p_v0_1.html">🔐 میری عارضی آئی ڈی / QR</a>
+</nav>
 <details class="modern-workspace ezero-profile-editor" id="ezeroProfileEditor">
   <summary id="ezeroProfileSummary" data-profile-i18n="editProfile">👤 میری E-ZERO پروفائل — نام اور تصویر</summary>
   <p class="modern-panel-help" data-profile-i18n="profilePrivacy">پروفائل صرف اس براؤزر میں رہے گی۔ دوسرے فون کو تصویر/نام صرف آپ کی اجازت سے، حقیقی محفوظ کال کنکشن کے بعد بھیجے جائیں گے۔</p>

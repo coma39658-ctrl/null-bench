@@ -1,0 +1,14 @@
+/* Mobile-first E-ZERO navigation: profile and paste-link must be discoverable. */
+.communication-page .ezero-quick-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:10px;margin:0 0 16px}
+.communication-page .ezero-quick-actions button,
+.communication-page .ezero-quick-actions a{box-sizing:border-box;display:flex;align-items:center;
+ justify-content:center;text-align:center;min-height:56px;padding:12px 10px;border-radius:16px;
+ background:linear-gradient(115deg,#065638,#108356);color:#fff!important;
+ border:1px solid #087d4f;font:inherit;font-weight:850;font-size:14px;line-height:1.45;
+ text-decoration:none;box-shadow:0 5px 18px #0e5b3830;cursor:pointer}
+.communication-page .ezero-quick-actions a{grid-column:1/-1;background:#ecf9f0;
+ color:#075835!important;box-shadow:none;border-color:#acd5b7}
+.communication-page .ezero-quick-actions :is(button,a):focus-visible{outline:3px solid #43c88e;outline-offset:3px}
+@media(max-width:410px){.communication-page .ezero-quick-actions{grid-template-columns:1fr}
+ .communication-page .ezero-quick-actions a{grid-column:auto}}
