@@ -1,7 +1,7 @@
 name: E-ZERO Privacy Copilot Local AI and Anti-Fraud Lab
 on:
   push:
-    branches: [ezero-secure-connect-local-intelligence-lab-20261104]
+    branches: [ezero-secure-connect-local-intelligence-lab-20261104, ezero-secure-connect-copilot-trust-binding-20261105]
 permissions:
   contents: read
 jobs:
