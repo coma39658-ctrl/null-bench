@@ -159,3 +159,67 @@ try{
 }finally{for(const session of [c,d])if(session?.ws.readyState!==WebSocket.CLOSED){
  try{session.ws.terminate();}catch(_){}
 }}
+
+
+const createdId=randomBytes(16).toString("hex");
+const createdAes=randomBytes(32).toString("hex");
+const createdAuth=hash("EZERO-ROOM-AUTH-1:"+createdAes);
+const createdTime=Date.now();
+const made=await fetch(host+"/v1/invite",{
+ method:"POST",headers:{"Origin":ORIGIN,"Content-Type":"text/plain"},
+ body:JSON.stringify({id:createdId,auth:createdAuth,issued:createdTime}),
+ redirect:"error",signal:AbortSignal.timeout(7000)
+});
+assert.equal(made.status,200);
+assert.equal(made.headers.get("access-control-allow-origin"),ORIGIN);
+const ticket=await made.json();
+assert.equal(ticket.code,"INVITE_CREATED");
+assert.equal(ticket.ok,true);
+assert.equal(ticket.proof,mac(createdId+"."+createdAuth+"."+createdTime));
+assert.equal(ticket.expires,createdTime+expiry);
+assert.equal(JSON.stringify(ticket).includes(TEST_OWNER),false,"OWNER_SECRET_NEVER_IN_API");
+const badOrigin=await fetch(host+"/v1/invite",{
+ method:"POST",headers:{"Origin":"https://evil.invalid","Content-Type":"text/plain"},
+ body:JSON.stringify({id:randomBytes(16).toString("hex"),auth:createdAuth,issued:Date.now()})
+});
+assert.equal(badOrigin.status,403,"FOREIGN_SITE_CANNOT_MINT_INVITE");
+console.log("SERVER_MINTS_ONE_QR_PROOF_WITHOUT_BROWSER_OWNER_SECRET: PASS");
+
+const minted={
+ id:createdId,aes:createdAes,auth:createdAuth,proof:ticket.proof,
+ issued:createdTime,url:wsUrl+"/v1/room/"+createdId,
+ protocols:["ezero-room-v1","ezero-key-"+createdAuth,
+  "ezero-time-"+createdTime,"ezero-proof-"+ticket.proof]
+};
+let hostSide,guestSide;
+try{
+ hostSide=await connect(minted);
+ assert.equal((await wait(hostSide,f=>f.type==="ready","QR_HOST")).role,"caller");
+ guestSide=await connect(minted);
+ assert.equal((await wait(guestSide,f=>f.type==="ready","QR_SCANNER")).role,"callee");
+ await wait(hostSide,f=>f.type==="peer_joined","QR_PEER_JOINED");
+ const guestHello="S".repeat(480);
+ send(guestSide,{type:"guest_hello",blob:guestHello});
+ assert.equal((await wait(hostSide,f=>f.type==="guest_hello","QR_ENCRYPTED_ID")).blob,guestHello);
+ // The scanner cannot authorize its own call before the receiver accepts.
+ send(guestSide,{type:"accept"});
+ assert.equal((await wait(guestSide,f=>f.type==="error"&&
+   f.code==="HOST_APPROVAL_REQUIRED","QR_HOST_NOT_CONSENTED")).code,"HOST_APPROVAL_REQUIRED");
+ // Only the receiver can trigger the host_accept action.
+ send(hostSide,{type:"host_accept"});
+ await wait(guestSide,f=>f.type==="host_accepted","QR_HOST_ACCEPTED");
+ send(guestSide,{type:"accept"});
+ await wait(hostSide,f=>f.type==="accepted","QR_GUEST_ACCEPTED");
+ send(hostSide,{type:"offer",blob:"O".repeat(540)});
+ await wait(guestSide,f=>f.type==="offer","QR_AUTO_OFFER");
+ send(guestSide,{type:"answer",blob:"R".repeat(540)});
+ await wait(hostSide,f=>f.type==="answer","QR_AUTO_ANSWER");
+ console.log("REAL_WORKER_ONE_QR_ENCRYPTED_ID_RECEIVER_ACCEPTS_AUTOMATED_SIGNAL: PASS");
+ send(hostSide,{type:"hangup"});
+ await Promise.all([closed(hostSide),closed(guestSide)]);
+ await denied(minted,410);
+ console.log("REAL_WORKER_ONE_QR_REVOKES_ROOM_AFTER_HANGUP: PASS");
+}finally{
+ for(const session of [hostSide,guestSide])if(session?.ws.readyState!==WebSocket.CLOSED)
+  try{session.ws.terminate();}catch(_){}
+}
