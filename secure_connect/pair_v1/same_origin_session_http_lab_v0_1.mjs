@@ -45,9 +45,16 @@ function trustedRequest(request,origin){
   if(url.protocol!=="https:"||url.origin!==origin||url.username||
      url.password||url.search||url.hash||url.pathname.includes("%")||
      !url.pathname.startsWith(BASE))return null;
-  if(request.headers.get("origin")!==origin)return null;
+  const sourceOrigin=request.headers.get("origin");
   const site=request.headers.get("sec-fetch-site");
   if(site!==null&&site!=="same-origin")return null;
+  // Normal same-origin GET fetch() often has no Origin header. The
+  // browser-controlled Fetch Metadata is sufficient ONLY for this
+  // read-only observe endpoint. Mutating POST must still carry exact Origin.
+  if(request.method==="GET"){
+   if(sourceOrigin!==origin&&!(sourceOrigin===null&&site==="same-origin"))
+    return null;
+  }else if(sourceOrigin!==origin)return null;
   if(request.headers.has("x-forwarded-host")||
      request.headers.has("x-forwarded-proto")||
      request.headers.has("forwarded"))return null;
