@@ -29,6 +29,8 @@
 <script defer src="./js/ezero_secure_connect_modern_communications_v0_3.js?v=20261105forest1"></script>
 <script defer src="./js/ezero_secure_connect_peer_profile_v0_1.js?v=20261105forest1"></script>
 <script defer src="./js/ezero_secure_connect_people_v0_1.js?v=20261105ttl1"></script>
+<script defer src="./js/ezero_auto_signaling_config_v0_1.js"></script>
+<script defer src="./js/ezero_secure_connect_auto_signaling_pilot_v0_1.js"></script>
 </head>
 <body class="communication-page">
 <div class="shell">
@@ -121,6 +123,25 @@
       <button id="modernConnect" class="primary" type="button" data-modern="connect">📱 فون جوڑنے کے مراحل</button>
       <button id="modernHangup" class="danger" type="button" data-modern="endCall">📴 کال ختم / رابطہ بند کریں</button>
     </div>
+</section>
+<section id="ezeroAutoPilot" class="modern-workspace ezero-auto-pilot" hidden aria-label="Experimental automatic call signaling">
+  <h2 class="modern-panel-title" data-auto="title">محفوظ خودکار رابطہ — تجرباتی</h2>
+  <p class="modern-panel-help">Cloudflare پر آزمودہ سرور فعال ہونے پر دو فون صرف ایک دعوتی لنک سے رابطے کی کوشش کر سکیں گے۔ دوست کی منظوری اور دستخط شدہ WebRTC تصدیق ضروری رہے گی۔</p>
+  <label class="ezero-auto-consent"><input id="ezeroAutoStun" type="checkbox">
+    <span data-auto="stun">مختلف نیٹ ورکس کے لیے اختیاری STUN — اس سے IP/نیٹ ورک معلومات ظاہر ہوسکتی ہیں</span>
+  </label>
+  <div class="ezero-auto-actions">
+    <button type="button" id="ezeroAutoStart" class="primary" data-auto="start">📞 محفوظ دعوت بنائیں</button>
+    <button type="button" id="ezeroAutoShare" class="primary" data-auto="share" disabled>↗ دعوت شیئر کریں</button>
+  </div>
+  <div id="ezeroAutoIncoming" hidden>
+    <p data-auto="incoming">دوست کی درخواست آئی ہے۔ صرف واضح منظوری کے بعد مائیک/کیمرہ چل سکتا ہے۔</p>
+    <div class="ezero-auto-actions">
+      <button type="button" id="ezeroAutoAccept" class="primary" data-auto="join">✓ درخواست قبول کریں</button>
+      <button type="button" id="ezeroAutoDecline" class="danger" data-auto="decline">✕ درخواست مسترد کریں</button>
+    </div>
+  </div>
+  <p id="ezeroAutoStatus" role="status" aria-live="polite" data-state="idle" class="modern-status">فی الحال کوئی حقیقی فون کنکشن قائم نہیں۔</p>
 </section>
 <section id="modernCallPanel" class="modern-workspace">
   <h2 class="modern-panel-title" data-modern="callPanel">آڈیو / ویڈیو کال</h2>
