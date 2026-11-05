@@ -125,12 +125,63 @@ try{
   await a.locator("#language").selectOption("ur");
   console.log("FOUR_VISIBLE_MODE_CONTROLS_AND_THREE_LANGUAGES_NO_AUTO_MEDIA: PASS");
 
+  // Self-declared profile is local until the user explicitly opts in.
+  await a.locator("#ezeroProfileEditor").evaluate(el=>el.open=true);
+  await a.locator("#ezeroMyName").fill("Test Caller A");
+  await a.locator("#ezeroSaveProfile").click();
+  assert.equal(await a.locator("#ezeroShareProfile").isChecked(),false);
+  assert.equal(await a.locator("#ezeroPeerProfileCard").isHidden(),true);
+  await b.locator("#ezeroProfileEditor").evaluate(el=>el.open=true);
+  await b.locator("#ezeroMyName").fill("Test Caller B");
+  await b.locator("#ezeroMyPhoto").evaluate(async input=>{
+    const canvas=document.createElement("canvas");
+    canvas.width=64;canvas.height=64;
+    canvas.getContext("2d").fillRect(0,0,64,64);
+    const png=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
+    const transfer=new DataTransfer();
+    transfer.items.add(new File([png],"friend-avatar.png",{type:"image/png"}));
+    input.files=transfer.files;
+    input.dispatchEvent(new Event("change",{bubbles:true}));
+  });
+  await b.waitForFunction(()=>document.querySelector("#ezeroMyAvatar")?.hidden===false);
+  await b.locator("#ezeroShareProfile").check();
+  await b.locator("#ezeroSaveProfile").click();
+  assert.equal(await b.locator("#ezeroMyAvatar").isVisible(),true);
+  assert.equal(await a.locator("#ezeroPeerProfileCard").isHidden(),true,
+    "No identity/photo should be received before secure peer connection");
+  const savedProfile=await b.evaluate(()=>
+    JSON.parse(localStorage.getItem("ezero_secure_connect_local_profile_v0_1")));
+  assert.equal(savedProfile.name,"Test Caller B");
+  assert.equal(savedProfile.share,true);
+  assert.ok(savedProfile.avatar.startsWith("data:image/jpeg;base64,"));
+  assert.ok(savedProfile.avatar.length<=12000);
+  console.log("LOCAL_NAME_PHOTO_OPT_IN_NO_PRECONNECTION_UPLOAD: PASS");
+
   await a.locator('[data-modern-select="audio"]').click();
   await offerAndAnswer(a,b);
   assert.equal(await a.locator("#modernConnectionStatus").getAttribute("data-state"),"connected");
   assert.equal(await a.evaluate(()=>document.querySelector("#localVideo").srcObject.getAudioTracks().length),1);
   assert.equal(await b.evaluate(()=>document.querySelector("#remoteVideo").srcObject.getAudioTracks().length),1);
   console.log("EXPERIMENTAL_REAL_WEBRTC_AUDIO_WITH_MANUAL_SIGNALING: PASS");
+  await a.locator("#ezeroPeerProfileCard").waitFor({state:"visible",timeout:12000});
+  await a.waitForFunction(()=>
+    document.querySelector("#ezeroPeerDisplayName")?.textContent==="Test Caller B",{timeout:12000});
+  assert.equal(await a.locator("#ezeroPeerAvatar").isVisible(),true,
+    "Opted-in peer photo must arrive after verified WebRTC connection only");
+  assert.match(await a.locator("#ezeroVerifiedConnection").innerText(),/دونوں فون/);
+  const peerFP=await b.locator("#myFingerprint").textContent();
+  assert.ok((await a.locator("#ezeroPeerSessionId").textContent()).includes(peerFP.slice(0,12)),
+    "Displayed session ID must match the signed peer fingerprint, not a supplied photo/name");
+  assert.equal(await b.locator("#ezeroPeerDisplayName").innerText(),"دوست نے ابھی پروفائل شیئر نہیں کی",
+    "Without opting in, the local name/photo must not automatically reach the peer");
+  await a.locator("#ezeroProfileEditor").evaluate(el=>el.open=true);
+  await a.locator("#ezeroShareProfile").check();
+  await a.locator("#ezeroSaveProfile").click();
+  await b.waitForFunction(()=>
+    document.querySelector("#ezeroPeerDisplayName")?.textContent==="Test Caller A",{timeout:12000});
+  assert.equal(await b.locator("#ezeroPeerAvatar").isHidden(),true,
+    "A name-only profile should render an initial, never invent an image");
+  console.log("VERIFIED_CONNECTED_PHONE_NAME_PHOTO_AND_SIGNED_SESSION_ID: PASS");
 
   await a.locator('[data-modern-select="chat"]').click();
   await b.locator('[data-modern-select="chat"]').click();
@@ -165,6 +216,9 @@ try{
   assert.equal(await b.locator("#modernHangup").isVisible(),true);
   await b.locator("#modernHangup").click();
   assert.equal(await a.evaluate(()=>window.EZERO_VOICE_TRANSPORT.connected()),false);
+  assert.equal(await a.locator("#ezeroPeerProfileCard").isHidden(),true);
+  assert.equal(await b.locator("#ezeroPeerProfileCard").isHidden(),true);
+  console.log("PEER_PHOTO_AND_SESSION_ID_REMOVED_ON_HANGUP: PASS");
   console.log("HANGUP_CLOSES_PEER_CHANNEL_AND_STOPS_STREAM: PASS");
 }finally{
   for(const ctx of contexts)await ctx.close().catch(()=>{});

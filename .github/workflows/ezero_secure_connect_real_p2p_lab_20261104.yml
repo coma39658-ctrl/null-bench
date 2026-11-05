@@ -28,6 +28,7 @@ jobs:
           node --check js/ezero_secure_connect_remote_invite_v0_2.js
           node --check js/ezero_secure_connect_short_link_v0_2.js
           node --check js/ezero_secure_connect_modern_communications_v0_3.js
+          node --check js/ezero_secure_connect_peer_profile_v0_1.js
           node --check tests/test_ezero_secure_connect_modern_communications_v0_3_browser.mjs
           node --check js/ezero_secure_connect_policy_i18n_v0_3.js
           node --check tests/test_ezero_secure_connect_privacy_i18n_v0_3_browser.mjs
