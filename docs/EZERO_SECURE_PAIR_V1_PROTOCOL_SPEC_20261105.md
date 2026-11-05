@@ -37,7 +37,7 @@ Any state may transition to `EXPIRED`, `REJECTED`, `REVOKED` or `FAILED`, with n
 ```json
 {"v":1,"type":"EZERO_SECURE_PAIR_V1","sid":"<128-bit-random-ID>",
  "nonce":"<128+-bit-random-one-use-token>",
- "expires":0,"origin":"https://coma39658-ctrl.github.io",
+ "issued":0,"expires":0,"origin":"https://coma39658-ctrl.github.io",
  "purpose":"PAIR","aKeyHash":"<SHA256-of-public-device-key>"}
 ```
 This JSON is illustrative fields, not an implemented credential. Use canonical bounded encoding and strict parser with explicit length (<=1024 bytes), server matching, single use and expiry **90s** measured from server time. Never include owner HMAC key, WebAuthn assertion, device private key, cookie, biometric sample, SDP, direct phone number or persistent account secret. A QR can be photographed/forwarded; both identities, signatures, session and two explicit approvals are required even after scanning. Do not let the caller invent arbitrary expiry.
