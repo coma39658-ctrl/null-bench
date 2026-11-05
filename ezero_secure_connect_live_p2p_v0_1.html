@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#073e53">
+<meta name="ezero-connect-build" content="ezero-connect-20261105-trust-copilot-preflight-v1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self' wss://ezero-secure-connect-call-lab-disabled.coma39658.workers.dev; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
 <title>E-ZERO Secure Connect — Real 1:1 WebRTC Test</title>
 <meta name="description" content="E-ZERO Secure Connect: secure QR identity and experimental direct calls. Ad-free public-service communication.">
@@ -23,6 +24,7 @@
 <script defer src="./js/ezero_secure_connect_simple_near_far_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_one_link_lab_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_privacy_copilot_v0_1.js"></script>
+<script defer src="./js/ezero_secure_connect_android_preflight_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_contacts_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_install_share_v0_1.js"></script>
 </head>
@@ -42,6 +44,13 @@
     <p data-i18n="intro">دو براؤزرز کے درمیان براہِ راست آڈیو، ویڈیو اور ایک بار کھلنے والے پیغامات کی محدود آزمائش۔</p>
     <div class="pills"><span data-i18n="free">بلا فیس</span><span data-i18n="ads">بغیر اشتہارات</span><span data-i18n="consent">اجازت سے ہی مائک/کیمرہ</span></div>
   </div>
+  <details class="card android-preflight" id="androidReadiness" aria-labelledby="androidReadinessTitle">
+    <summary id="androidReadinessTitle">📱 Android · ایپ کی حالت اور کال کی تیاری</summary>
+    <p class="small" data-readiness-i18n="initial">صرف بٹن دبانے پر آلے اور تازہ ورژن کی جانچ ہوگی۔ مائک یا کیمرہ نہیں کھلے گا۔</p>
+    <button type="button" class="outline" id="androidReadinessRun" data-readiness-i18n="button">🔍 فون اور ایپ کی حالت چیک کریں</button>
+    <p id="androidReadinessStatus" class="scan-result" role="status" aria-live="polite" data-state="initial">جانچ شروع نہیں ہوئی۔</p>
+    <pre id="androidReadinessDetail" class="android-readiness-detail" aria-live="polite"></pre>
+  </details>
   <section class="share-install card" aria-labelledby="shareInstallTitle">
     <div class="heading"><span class="number" aria-hidden="true">↗</span><h2 id="shareInstallTitle" data-share-i18n="title">E-ZERO دوستوں کو بھیجیں اور ایپ بنائیں</h2></div>
     <p class="small" data-share-i18n="description">یہ لنک WhatsApp، IMO یا کسی بھی میسج میں بھیجیں۔ لنک کھولنے والے دوست کو اسی صفحے پر انسٹال کا بٹن نظر آئے گا۔</p>
