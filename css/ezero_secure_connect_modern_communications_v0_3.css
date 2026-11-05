@@ -1,0 +1,81 @@
+/* E-ZERO Secure Connect communication workspace — deliberate, mobile-first interface */
+html{scroll-behavior:smooth}
+body.communication-page{background:linear-gradient(155deg,#e6f7f6,#eff9fc 55%,#e4f2f7)}
+.communication-page .shell{max-width:860px}
+.communication-page .legacy-hero,.communication-page #oneTapPanel,
+.communication-page #secureAdvanced{display:none!important}
+.communication-page .modern-hero{margin:14px 0 17px;border-radius:28px;color:#fff;
+  background:linear-gradient(128deg,#083950,#08647d 58%,#0a8b93);padding:27px 20px;
+  box-shadow:0 12px 26px #073c5220}
+.communication-page .modern-kicker{color:#b5f3e8;letter-spacing:.11em;
+  font-size:12px;font-weight:850;direction:ltr;display:inline-block}
+.communication-page .modern-hero h1{font-size:clamp(25px,6vw,38px);
+  line-height:1.45;margin:10px 0;color:white}
+.communication-page .modern-hero p{font-size:15px;line-height:1.85;margin:7px 0 10px}
+.communication-page .modern-trust{display:flex;flex-wrap:wrap;gap:7px}
+.communication-page .modern-trust span{border:1px solid #b6e5ec80;
+  border-radius:999px;background:#ffffff17;padding:4px 12px;font-size:12px}
+.communication-page .modern-feature-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;margin:0 0 14px}
+.communication-page .modern-feature-button{background:#fff;color:#12485c;
+  border:1px solid #badde3;border-radius:19px;min-height:129px;padding:15px 10px;
+  box-shadow:0 8px 18px #175f6b0c;display:flex;flex-direction:column;
+  gap:3px;justify-content:center;align-items:center;text-align:center;cursor:pointer;
+  font:inherit;transition:background .16s,border-color .16s,transform .16s}
+.communication-page .modern-feature-button[aria-pressed="true"]{background:#dbf3f5;
+  border-color:#047f94;box-shadow:inset 0 0 0 2px #0d8ca3}
+.communication-page .modern-feature-button:active{transform:scale(.985)}
+.communication-page .modern-feature-icon{font-size:31px;line-height:1.35}
+.communication-page .modern-feature-name{font-size:18px;font-weight:900}
+.communication-page .modern-feature-note{font-size:12px;color:#5a7581;line-height:1.5}
+.communication-page .modern-workspace{background:#fff;border:1px solid #bcdbe0;border-radius:24px;
+  padding:19px 15px;margin:13px 0;box-shadow:0 7px 18px #083e550b}
+.communication-page .modern-panel-title{font-size:21px;font-weight:900;color:#0a4e64;margin:0 0 6px}
+.communication-page .modern-panel-help{font-size:14px;line-height:1.85;color:#456b7b;margin:5px 0 12px}
+.communication-page .modern-status{border:1px solid #c1e0df;background:#edf9f7;color:#15596a;
+  padding:10px 12px;border-radius:13px;font-size:13px;line-height:1.8;
+  margin:11px 0;overflow-wrap:anywhere}
+.communication-page .modern-status[data-state="connected"]{color:#166039;background:#e9f7ef;border-color:#a2d6b5}
+.communication-page .modern-status[data-state="error"]{color:#8b3434;background:#fff1ef;border-color:#e7b4aa}
+.communication-page .modern-workspace[hidden],.communication-page .modern-workspace [hidden]{display:none!important}
+.communication-page #ezeroCallMediaSlot>.card,.communication-page #ezeroChatSlot>.card{
+  box-shadow:none;border:0;padding:7px 0;background:transparent;margin:0}
+.communication-page #ezeroCallSetupSlot details#callSetup{border:1px solid #a7d4dc;
+  background:#f5fbfc;border-radius:15px;padding:11px;margin:12px 0}
+.communication-page #ezeroCallSetupSlot #callSetup>summary{
+  font-weight:850;color:#0b6578;cursor:pointer;min-height:42px}
+.communication-page #ezeroCallSetupSlot #callSetup>summary::marker{color:#087b90}
+.communication-page #ezeroCallSetupSlot #callSetup>.card{
+  box-shadow:none;border:1px solid #d2e8eb;background:#fff}
+.communication-page #ezeroCallSetupSlot #callSetup .heading .number{background:#096d82}
+.communication-page #ezeroCallSetupSlot #callSetup #expertSetup:not([open])>section{display:none}
+.communication-page #ezeroCallSetupSlot #callSetup #nextTitle{display:none}
+.communication-page #ezeroCallSetupSlot #callSetup section:has(> #nextTitle){display:none}
+.communication-page .modern-secondary-links{display:flex;gap:8px;justify-content:center;
+  flex-wrap:wrap;margin:15px 0 24px}
+.communication-page .modern-secondary-links a{font-weight:800;text-decoration:none;
+  color:#075e70;background:#fff;border:1px solid #acd6da;border-radius:12px;
+  padding:9px 13px;min-height:44px;display:inline-flex;align-items:center}
+.communication-page .modern-voice-actions{display:flex;gap:8px;flex-wrap:wrap}
+.communication-page .modern-voice-actions button{font:inherit;min-height:49px;
+  border-radius:13px;padding:10px 15px;font-size:14px;cursor:pointer;
+  background:#0a7789;border:1px solid #067b91;color:white;font-weight:850}
+.communication-page .modern-voice-actions button.secondary{color:#0a6174;
+  background:#f5fbfc;border:1px solid #9ccfd7}
+.communication-page .modern-voice-actions button:disabled{opacity:.5;cursor:not-allowed}
+.communication-page #ezeroVoiceDraft,.communication-page #ezeroVoiceReceived{
+  border:1px solid #c3e3e6;border-radius:13px;padding:11px;margin:11px 0;background:#f6fdfc}
+.communication-page .modern-voice-audio{max-width:100%;width:100%;margin:8px 0}
+.communication-page .modern-call-note{font-size:12px;color:#52717f;line-height:1.85}
+.communication-page .modern-nav-back{font-weight:800;text-decoration:none;color:#0a5970;
+  background:#fff;border:1px solid #c0dce2;border-radius:13px;padding:8px 13px;min-height:44px}
+.communication-page [data-modern-feature][hidden]{display:none!important}
+@media(max-width:420px){
+ .communication-page .modern-hero{padding:24px 16px}
+ .communication-page .modern-feature-button{min-height:113px;padding:12px 6px}
+ .communication-page .modern-feature-name{font-size:17px}
+ .communication-page .modern-workspace{padding:16px 11px}
+ .communication-page .modern-voice-actions{flex-direction:column}
+ .communication-page .modern-voice-actions button{width:100%}
+}
+@media(prefers-reduced-motion:reduce){.communication-page .modern-feature-button{transition:none}}
