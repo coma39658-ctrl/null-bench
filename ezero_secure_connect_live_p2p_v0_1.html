@@ -83,6 +83,14 @@
       <div id="oneQrCode" class="oneqr-code" role="img" aria-label="One-time private call QR"></div>
       <p data-oneqr-i18n="warning" class="small">یہ نجی دعوت ہے، تصویر یا اسکرین شاٹ کسی اور کو نہ بھیجیں؛ دس منٹ میں ختم ہو جائے گی۔</p>
     </div>
+    <div id="oneQrRequest" class="oneqr-request" hidden>
+      <p id="oneQrCaller" class="oneqr-caller" role="status">دوسرے فون سے درخواست موصول ہوئی؛ ڈیجیٹل شناخت چیک کر رہے ہیں۔</p>
+      <div class="oneqr-actions">
+        <button id="oneQrAccept" type="button" class="primary" data-oneqr-i18n="accept">✅ کال قبول کریں</button>
+        <button id="oneQrDecline" type="button" class="outline danger" data-oneqr-i18n="decline">✕ کال مسترد کریں</button>
+      </div>
+    </div>
+    <button type="button" id="oneQrEnd" class="outline danger" data-oneqr-i18n="end" hidden>📴 کال ختم کریں</button>
     <p id="oneQrStatus" role="status" aria-live="polite" class="scan-result" data-state="ready">کال QR تجرباتی مرحلے میں ہے؛ عوامی کال روم ابھی بند ہے۔</p>
   </section>
   <section class="card easy-start" aria-labelledby="easyTitle">
