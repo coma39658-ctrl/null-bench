@@ -283,7 +283,10 @@ function readLink(){
  history.replaceState(null,"",location.pathname+location.search);
  try{
   const inv=parseOneQr(full);
-  void applyInvite(inv,false);
+  // Opening the intended private link is an explicit navigation gesture.
+  // Automatically request a room (not microphone/camera). The receiving
+  // phone still has to approve before any audio permission can be asked.
+  void applyInvite(inv,true);
  }catch(_){qStatus("invalid");st("invalid");}
  return true;
 }
