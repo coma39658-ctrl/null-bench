@@ -46,6 +46,23 @@ assert.ok(people.includes("noMissed"),"No false missed-call status");
 assert.ok(modern.includes("ezero:call-intent"),"Track actual user-initiated call direction");
 assert.ok(css.includes("accent-color:#16814a"),"Use professional green selection color");
 
+for(const [mode,num] of [["audio","01"],["video","02"],["voice","03"],["chat","04"]]){
+ assert.ok(page.includes('data-step="'+num+'" data-modern-select="'+mode+'"'),
+   "Green mode tiles must include modern sequential badges");
+}
+assert.ok(css.includes('content:attr(data-step)'));
+assert.ok(css.includes("background:linear-gradient(125deg,#081f1b"));
+assert.ok(css.includes('.communication-page #modernConnectionStatus[data-state="connected"]'));
+assert.ok(css.includes('.communication-page #modernConnectionStatus[data-state="error"]'));
+assert.ok(css.includes("ezeroRealConnectionCheck"));
+assert.ok(css.includes("@media(prefers-reduced-motion:reduce)"));
+assert.ok(modern.includes('window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true'),
+  "A successful status icon requires verified real peer transport");
+assert.ok(modern.includes('el.dataset.state=connected?"connected":failed?"error":"idle"'));
+assert.ok(modern.includes('el.dataset.state=errors.has(key)?"error"'),
+  "Signed invite errors must render as errors rather than fake successes");
+
+
 assert.ok(css.includes(".ezero-person-card"),"High-quality contacts and calls must have structured cards");
 
 for(const id of ["ezeroProfileEditor","ezeroMyName","ezeroMyPhoto",
