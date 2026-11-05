@@ -27,6 +27,8 @@
 - Core QR UI: `Show my QR`, `Scan QR`, `Accept`, `Reject`, `End`, readable status, and privacy action only.
 - `css/ezero_secure_connect_live_p2p_v0_1.css`: touch-friendly scan area; advanced tools remain reachable, but hidden by default.
 - `tests/test_ezero_secure_connect_one_link_browser_v0_1.mjs`: checks no manual JSON visible by default and verifies one-tap camera/cancel + actual two-browser encrypted WebRTC. Separate old regression tests explicitly expand advanced tools to guard backward compatibility.
+- Broken-camera or remote fallback `#oneQrShareLink`: after the host creates an ephemeral room, **one user click** invokes the platform's native share sheet or copies the private URL. It never displays raw SDP/ICE or the Cloudflare operator secret. The guest opens the link; the same signed identity and host approval still apply. The bearer link may be forwarded; it is not verified identity nor credential enrollment.
+- A browser-based camera cannot be relied on while the page is backgrounded. The foreground call request must show only when open; real mobile background use is a separate push/consent feature, not yet supported.
 
 ## Distinguish current call QR and future permanent device pairing
 - The current *experimental temporary 1:1 calling* link has up to 10-minute lifetime, signed ephemeral P-256 identity and session AES-GCM encrypted SDP. The sole holder of a forwarded link could still try to request guest seat; receiver's consent is essential. This is NOT automatically a verified person, a real account, an enrolled device, or a 90-second single-use Secure Pair V1 registration.
