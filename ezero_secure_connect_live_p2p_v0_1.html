@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#073e53">
-<meta name="ezero-connect-build" content="ezero-connect-20261105-trust-copilot-preflight-v1">
+<meta name="ezero-connect-build" content="ezero-connect-oneqr-easy-first-20261105-lab-v1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self' https://ezero-secure-connect-call-lab-disabled.coma39658.workers.dev wss://ezero-secure-connect-call-lab-disabled.coma39658.workers.dev; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
 <title>E-ZERO Secure Connect — Real 1:1 WebRTC Test</title>
 <meta name="description" content="E-ZERO Secure Connect: secure QR identity and experimental direct calls. Ad-free public-service communication.">
@@ -44,6 +44,36 @@
     <p data-i18n="intro">دو براؤزرز کے درمیان براہِ راست آڈیو، ویڈیو اور ایک بار کھلنے والے پیغامات کی محدود آزمائش۔</p>
     <div class="pills"><span data-i18n="free">بلا فیس</span><span data-i18n="ads">بغیر اشتہارات</span><span data-i18n="consent">اجازت سے ہی مائک/کیمرہ</span></div>
   </div>
+  <section class="card oneqr-card" id="oneQrCard" aria-labelledby="oneQrTitle">
+    <div class="heading"><span class="number" aria-hidden="true">1</span>
+      <h2 id="oneQrTitle" data-oneqr-i18n="title">📞 آسان کال — صرف ایک QR</h2></div>
+    <p class="oneqr-lead" data-oneqr-i18n="explain">دوسرے فون پر QR دکھائیں۔ اس فون سے ایک بار اسکین کریں۔ کال کی درخواست آئے تو قبول کریں؛ لمبے کوڈ نہیں۔</p>
+    <div class="oneqr-actions">
+      <button id="oneQrShow" type="button" class="primary" data-oneqr-i18n="show">📱 میرا کال QR دکھائیں</button>
+      <button id="oneQrScan" type="button" class="outline" data-oneqr-i18n="scan">📷 دوسرے فون کا QR اسکین کریں</button>
+    </div>
+    <div id="oneQrCameraSlot" class="oneqr-camera" hidden>
+      <p class="small" id="oneQrCameraHelp" data-oneqr-i18n="cameraHelp">کیمرے کو دوسرے فون کے QR پر رکھیں۔ یہ صرف اسکین کے وقت کھلے گا۔</p>
+      <div id="oneQrCameraLive" class="oneqr-camera-live"></div>
+      <button type="button" id="oneQrCancelScan" class="outline" data-oneqr-i18n="cancelScan">✕ اسکین بند کریں</button>
+    </div>
+    <div id="oneQrVisual" class="oneqr-visual" hidden>
+      <div id="oneQrCode" class="oneqr-code" role="img" aria-label="One-time private call QR"></div>
+      <p data-oneqr-i18n="warning" class="small">یہ نجی دعوت ہے، تصویر یا اسکرین شاٹ کسی اور کو نہ بھیجیں؛ دس منٹ میں ختم ہو جائے گی۔</p>
+    </div>
+    <div id="oneQrRequest" class="oneqr-request" hidden>
+      <p id="oneQrCaller" class="oneqr-caller" role="status">دوسرے فون سے درخواست موصول ہوئی؛ ڈیجیٹل شناخت چیک کر رہے ہیں۔</p>
+      <div class="oneqr-actions">
+        <button id="oneQrAccept" type="button" class="primary" data-oneqr-i18n="accept">✅ کال قبول کریں</button>
+        <button id="oneQrDecline" type="button" class="outline danger" data-oneqr-i18n="decline">✕ کال مسترد کریں</button>
+      </div>
+    </div>
+    <button type="button" id="oneQrEnd" class="outline danger" data-oneqr-i18n="end" hidden>📴 کال ختم کریں</button>
+    <button type="button" id="oneQrPrivacy" class="outline oneqr-privacy" data-oneqr-i18n="privacy">🔒 رازداری اور اجازت</button>
+    <p id="oneQrStatus" role="status" aria-live="polite" class="scan-result" data-state="ready">کال QR تجرباتی مرحلے میں ہے؛ عوامی کال روم ابھی بند ہے۔</p>
+  </section>
+  <details id="oneQrAdvanced" class="oneqr-advanced card">
+    <summary data-oneqr-i18n="advanced">⚙ مزید اختیارات اور تکنیکی آزمائشیں (اختیاری)</summary>
   <details class="card android-preflight" id="androidReadiness" aria-labelledby="androidReadinessTitle">
     <summary id="androidReadinessTitle">📱 Android · ایپ کی حالت اور کال کی تیاری</summary>
     <p class="small" data-readiness-i18n="initial">صرف بٹن دبانے پر آلے اور تازہ ورژن کی جانچ ہوگی۔ مائک یا کیمرہ نہیں کھلے گا۔</p>
@@ -71,28 +101,6 @@
   <div class="toolbar">
     <button type="button" id="openPolicy" class="outline" data-i18n="policyButton">🔒 ہماری واضح پرائیویسی پالیسی</button>
   </div>
-  <section class="card oneqr-card" id="oneQrCard" aria-labelledby="oneQrTitle">
-    <div class="heading"><span class="number" aria-hidden="true">1</span>
-      <h2 id="oneQrTitle" data-oneqr-i18n="title">📞 آسان کال — صرف ایک QR</h2></div>
-    <p class="oneqr-lead" data-oneqr-i18n="explain">دوسرے فون پر QR دکھائیں۔ اس فون سے ایک بار اسکین کریں۔ کال کی درخواست آئے تو قبول کریں؛ لمبے کوڈ نہیں۔</p>
-    <div class="oneqr-actions">
-      <button id="oneQrShow" type="button" class="primary" data-oneqr-i18n="show">📱 میرا کال QR دکھائیں</button>
-      <button id="oneQrScan" type="button" class="outline" data-oneqr-i18n="scan">📷 دوسرے فون کا QR اسکین کریں</button>
-    </div>
-    <div id="oneQrVisual" class="oneqr-visual" hidden>
-      <div id="oneQrCode" class="oneqr-code" role="img" aria-label="One-time private call QR"></div>
-      <p data-oneqr-i18n="warning" class="small">یہ نجی دعوت ہے، تصویر یا اسکرین شاٹ کسی اور کو نہ بھیجیں؛ دس منٹ میں ختم ہو جائے گی۔</p>
-    </div>
-    <div id="oneQrRequest" class="oneqr-request" hidden>
-      <p id="oneQrCaller" class="oneqr-caller" role="status">دوسرے فون سے درخواست موصول ہوئی؛ ڈیجیٹل شناخت چیک کر رہے ہیں۔</p>
-      <div class="oneqr-actions">
-        <button id="oneQrAccept" type="button" class="primary" data-oneqr-i18n="accept">✅ کال قبول کریں</button>
-        <button id="oneQrDecline" type="button" class="outline danger" data-oneqr-i18n="decline">✕ کال مسترد کریں</button>
-      </div>
-    </div>
-    <button type="button" id="oneQrEnd" class="outline danger" data-oneqr-i18n="end" hidden>📴 کال ختم کریں</button>
-    <p id="oneQrStatus" role="status" aria-live="polite" class="scan-result" data-state="ready">کال QR تجرباتی مرحلے میں ہے؛ عوامی کال روم ابھی بند ہے۔</p>
-  </section>
   <section class="card easy-start" aria-labelledby="easyTitle">
     <h2 id="easyTitle" data-i18n="easyTitle">دوست سے رابطہ — صرف دو طریقے</h2>
     <p data-i18n="easyExplain">نزدیک ہیں تو سامنے QR اسکین کریں۔ دور ہیں تو شناختی کوڈ میسج کریں اور دوسرے فون کا کوڈ پیسٹ کریں۔</p>
@@ -337,6 +345,7 @@
     <p data-i18n="nextHelp">SHA-256 شناخت، دو طرفہ منظوری، خودکار رابطہ، وائس نوٹس، گروپس اور کمزور نیٹ ورک پر TURN سرور بعد کے مرحلے ہیں۔ انہیں یہاں فعال یا محفوظ ثابت نہیں کہا جا رہا۔</p>
     <a class="back" href="./ezero_secure_connect_preview_v0_1.html#qr" data-i18n="identityLink">عارضی SHA-256 شناخت کی آزمائش</a>
   </section>
+  </details>
   </details>
   <footer class="footer"><span data-i18n="footer">E-ZERO · عوامی خدمت، کوئی اشتہار نہیں، کوئی خفیہ ریکارڈنگ نہیں۔</span></footer>
 </main>
