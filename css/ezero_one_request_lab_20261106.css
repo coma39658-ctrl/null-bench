@@ -1,0 +1,40 @@
+/* E-ZERO single-request staging pilot: visible, accurate status & QR. */
+.communication-page.ezero-one-lab .ezero-pilot-banner{
+ margin:12px 0 14px;border:1px solid #64b58d;border-radius:20px;
+ background:linear-gradient(130deg,#0d4937,#0d7250);color:#f6fff9;
+ padding:17px 15px;box-shadow:0 6px 20px #053d2830}
+.communication-page.ezero-one-lab .ezero-pilot-banner strong{
+ font-size:17px;font-weight:900;color:#eefff0}
+.communication-page.ezero-one-lab .ezero-pilot-banner p{
+ font-size:13px;line-height:1.7;color:#e0fbea;margin:7px 0 4px}
+.communication-page.ezero-one-lab #ezeroOneQrBox{
+ margin:14px auto;padding:14px;max-width:380px;text-align:center;
+ border:1px solid #87bd9c;border-radius:18px;background:#f8fff9;
+ color:#09482c}
+.communication-page.ezero-one-lab #ezeroOneQr{
+ display:flex;align-items:center;justify-content:center;margin:10px auto;
+ padding:12px;background:#fff;border:1px solid #c4e2ce;border-radius:14px;
+ width:min(100%,280px);box-sizing:border-box}
+.communication-page.ezero-one-lab #ezeroOneQr svg{
+ max-width:100%;height:auto;display:block}
+.communication-page.ezero-one-lab #ezeroOneQrBox p{
+ font-size:13px;color:#275d3e;line-height:1.7;margin:9px 0 1px}
+.communication-page.ezero-one-lab .ezero-one-qr-receive{
+ border-top:1px solid #c0e3cd;padding-top:12px;margin-top:13px}
+.communication-page.ezero-one-lab .ezero-one-qr-receive video{
+ max-width:100%;max-height:240px;border-radius:15px;background:#081d15;
+ display:block;margin:10px auto}
+.communication-page.ezero-one-lab .ezero-one-qr-receive video[hidden]{display:none}
+.communication-page.ezero-one-lab #ezeroOneScanStatus{
+ font-size:13px;color:#255c3b;line-height:1.6}
+.communication-page.ezero-one-lab #ezeroOneScanStatus[data-kind=error]{color:#9d322e}
+.communication-page.ezero-one-lab #ezeroAutoPilot .ezero-auto-actions button{
+ min-height:46px;white-space:normal}
+.communication-page.ezero-one-lab #ezeroAutoStart{
+ /* Audio/video card initiates the same WebRTC action; avoid duplicate CTA. */
+ display:none}
+.communication-page.ezero-one-lab .modern-feature-button[aria-pressed=true]{
+ border-color:#27b975;box-shadow:0 0 0 2px #2ed78e,0 6px 17px #06784b2f}
+.communication-page.ezero-one-lab #ezeroAutoStatus[data-state=error],
+.communication-page.ezero-one-lab #modernConnectionStatus[data-state=error]{
+ color:#a22c2c;background:#fff4f2;border-color:#f0b4b0}
