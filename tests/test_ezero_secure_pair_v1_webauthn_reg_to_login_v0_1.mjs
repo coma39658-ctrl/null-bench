@@ -20,6 +20,8 @@ import {PairV1PendingDeviceRegistryLab}
  from "../secure_connect/pair_v1/trusted_device_sqlite_lab_v0_1.mjs";
 import {PairV1MutualApprovalSqliteLab}
  from "../secure_connect/pair_v1/mutual_approval_sqlite_lab_v0_1.mjs";
+import {PairV1SqliteChallengeLedgerLab}
+ from "../secure_connect/pair_v1/pair_challenge_sqlite_lab_v0_1.mjs";
 import {pairApprovalText}
  from "../secure_connect/pair_v1/pair_policy_v1.mjs";
 import {makeRegistrationOptionsLab,verifyRegistrationResponseLab}
@@ -545,6 +547,7 @@ try{
  const deviceDB=new PairV1PendingDeviceRegistryLab(store(registrationDB));
  const approvalDB=new PairV1MutualApprovalSqliteLab(store(registrationDB));
  const candidateDB=new PairV1TrustCandidateSqliteLab(store(registrationDB));
+ const enrollmentQrDB=new PairV1SqliteChallengeLedgerLab(store(registrationDB));
  const aDev=await crypto.subtle.generateKey(
   {name:"ECDSA",namedCurve:"P-256"},false,["sign","verify"]);
  const bDev=await crypto.subtle.generateKey(
@@ -569,12 +572,21 @@ try{
   aKeyHash:aHash,bKeyHash:bHash,issued:now,expires:pairExpires,
   purpose:"PAIR"
  },now+11).ok,true);
+ assert.equal(enrollmentQrDB.issue({
+  sessionId:pairSid,nonceDigest:pairNonceDigest,accountId,
+  credentialId:id,issued:now,expires:pairExpires,purpose:"PAIR_OR_RECONNECT"
+ },now+11).ok,true,"90-second QR minted by server ledger, not client boolean");
  const pairCtx={
   accountId,pairSid,authSessionId:newLogin.sessionId,aDeviceId,bDeviceId
  };
  assert.equal(candidateDB.recordEvidenceCandidate(pairCtx,now+12).code,
   "DUAL_SIGNED_UNEXPIRED_APPROVALS_REQUIRED",
   "Single passkey must NEVER authorize pair before both signatures");
+ assert.equal(candidateDB.recordEvidenceAndConsumeEnrollmentQrLab(
+  pairCtx,now+12).code,"DUAL_SIGNED_UNEXPIRED_APPROVALS_REQUIRED");
+ assert.equal(registrationDB.prepare(`SELECT consumed_at FROM
+  ezero_pair_v1_challenges WHERE session_id=?`).get(pairSid).consumed_at,null,
+  "Unapproved QR is not burned by an invalid request");
  const aApproval={
   sid:pairSid,nonce:pairNonce,accountId,selfKeyHash:aHash,
   peerKeyHash:bHash,expires:pairExpires,decision:"APPROVE"
@@ -604,6 +616,62 @@ try{
   accountFromRegistry:accountId
  },now+13);
  assert.equal(bSigned.stage,"BOTH_SIGNED_UNAUTHORIZED");
+ // Pairing QR must be from the server-ledger and match BOTH signed device
+ // approvals, the same verified account, and the exact consumed Passkey.
+ const qrPre=registrationDB.prepare(`SELECT consumed_at
+  FROM ezero_pair_v1_challenges WHERE session_id=?`).get(pairSid);
+ assert.equal(qrPre.consumed_at,null);
+ for(const bad of [
+  {...pairCtx,accountId:"another_account_001"},
+  {...pairCtx,aDeviceId:bDeviceId,bDeviceId:aDeviceId},
+  {...pairCtx,authSessionId:"e".repeat(32)}
+ ]){
+  assert.equal(candidateDB.recordEvidenceAndConsumeEnrollmentQrLab(
+   bad,now+14).ok,false);
+ }
+ assert.equal(registrationDB.prepare(`SELECT consumed_at FROM
+  ezero_pair_v1_challenges WHERE session_id=?`).get(pairSid).consumed_at,null);
+ // Tamper a QR credential binding in the test database; it must fail and
+ // never consume. This cannot be set by a browser through any endpoint.
+ registrationDB.prepare(`UPDATE ezero_pair_v1_challenges
+  SET credential_id=? WHERE session_id=?`)
+  .run("wrong_credential_001",pairSid);
+ assert.equal(candidateDB.recordEvidenceAndConsumeEnrollmentQrLab(
+  pairCtx,now+14).code,"SERVER_ENROLLMENT_QR_INVALID_OR_REPLAYED");
+ registrationDB.prepare(`UPDATE ezero_pair_v1_challenges
+  SET credential_id=? WHERE session_id=?`).run(id,pairSid);
+ // If durable evidence INSERT fails AFTER the QR is consumed, the
+ // transaction must roll back the consumed_at CAS as well.
+ registrationDB.exec(`CREATE TRIGGER ezero_lab_fail_pair_qr_evidence
+ BEFORE INSERT ON ezero_pair_v1_qr_consumed_evidence_lab
+ BEGIN SELECT RAISE(ABORT,'FORCED_QR_EVIDENCE_FAILURE'); END`);
+ const abortedQR=candidateDB.recordEvidenceAndConsumeEnrollmentQrLab(
+  pairCtx,now+14);
+ assert.equal(abortedQR.code,"ENROLLMENT_ATOMIC_COMMIT_REJECTED");
+ assert.equal(registrationDB.prepare(`SELECT consumed_at
+  FROM ezero_pair_v1_challenges WHERE session_id=?`).get(pairSid).consumed_at,
+  null,"QR consumed_at must roll back when evidence insert fails");
+ registrationDB.exec("DROP TRIGGER ezero_lab_fail_pair_qr_evidence");
+ const qrResults=await Promise.all(Array.from({length:20},
+  ()=>candidateDB.recordEvidenceAndConsumeEnrollmentQrLab(pairCtx,now+14)));
+ assert.equal(qrResults.filter(r=>r.ok).length,1,
+  "One-use QR must yield one winner across 20 competing requests");
+ assert.equal(qrResults.filter(r=>!r.ok).length,19);
+ const qrSuccess=qrResults.find(r=>r.ok);
+ assert.equal(qrSuccess.pairQrConsumed,true);
+ assert.equal(qrSuccess.stage,"QR_BURNED_NO_TRUST");
+ assert.ok(qrResults.every(r=>r.authorized===false&&
+  r.trusted===false&&r.accountSessionIssued===false));
+ assert.equal(candidateDB.inspectConsumedEnrollmentQrLab({
+  accountId,pairSid
+ },now+15).code,"ENROLLMENT_EVIDENCE_PRESENT_NO_AUTHORITY");
+ const replay=candidateDB.recordEvidenceAndConsumeEnrollmentQrLab(
+  pairCtx,now+16);
+ assert.equal(replay.ok,false);
+ assert.equal(replay.code,"SERVER_ENROLLMENT_QR_INVALID_OR_REPLAYED");
+ console.log("PAIR_V1_QR_90S_SINGLE_USE_CONSUME_ATOMIC_WITH_BOTH_SIGNED_DEVICES: PASS");
+ console.log("PAIR_V1_QR_TWENTY_RACE_ONE_WINNER_ROLLBACK_TAMPER_NO_TRUST: PASS");
+
  assert.equal(candidateDB.recordEvidenceCandidate({
   ...pairCtx,bDeviceId:aDeviceId
  },now+14).ok,false,"Cannot pair a device with itself");
@@ -637,15 +705,27 @@ try{
  assert.equal(reloadedCandidate.inspectCandidate({
   accountId,pairSid
  },now+16).ok,true);
+ assert.equal(reloadedCandidate.recordEvidenceAndConsumeEnrollmentQrLab(
+  pairCtx,now+16).ok,false,"Consumed enrollment QR cannot replay on restart");
+ assert.equal(reloadedCandidate.inspectConsumedEnrollmentQrLab({
+  accountId,pairSid
+ },now+16).ok,true,"QR evidence survives restart, but confers NO trust");
  assert.equal(reloadedCandidate.inspectCandidate({
   accountId,pairSid
  },now+80_000).ok,false,"Expired QR never remains eligible");
+ assert.equal(reloadedCandidate.inspectConsumedEnrollmentQrLab({
+  accountId,pairSid
+ },now+80_000).ok,false,"Expired QR audit cannot grant live trust");
  const reloadedDevices=new PairV1PendingDeviceRegistryLab(store(registrationDB));
  assert.equal(reloadedDevices.revokeServerSide(
   accountId,bDeviceId,now+17).ok,true);
  assert.equal(reloadedCandidate.inspectCandidate({
   accountId,pairSid
  },now+18).code,"DEVICE_KEYS_REVOKED_OR_UNBOUND");
+ assert.equal(reloadedCandidate.inspectConsumedEnrollmentQrLab({
+  accountId,pairSid
+ },now+18).code,"DEVICE_KEYS_REVOKED_OR_UNBOUND",
+  "Revoked device must invalidate even a consumed QR evidence record");
  console.log("PASSKEY_SQLITE_BOTH_REAL_DEVICE_SIGNATURES_EVIDENCE_CORRELATED_ONLY: PASS");
  console.log("PASSKEY_SQLITE_REPLAY_REVOKE_EXPIRY_NEVER_ACTIVATES_TRUST: PASS");
 
