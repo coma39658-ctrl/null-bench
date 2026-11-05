@@ -8,20 +8,21 @@
   const back=document.getElementById("policyBack");
   const footer=document.getElementById("policyFooter");
   const label=document.getElementById("policyLanguageLabel");
+  const subtitle=document.getElementById("policyBrandSubtitle");
   if(!select||!back||!footer||!label)return;
   const messages={
     ur:{
-      back:"↩ رابطے پر واپس",language:"زبان",
+      back:"↩ رابطے پر واپس",language:"زبان",brand:"پرائیویسی اور سیکیورٹی",
       title:"E-ZERO Secure Connect — پرائیویسی اور سیکیورٹی پالیسی",
       footer:"E-ZERO · رازداری کو ترجیح · اشتہار نہیں · نجی ڈیٹا فروخت نہیں"
     },
     ar:{
-      back:"↩ العودة إلى الاتصال",language:"اللغة",
+      back:"↩ العودة إلى الاتصال",language:"اللغة",brand:"الخصوصية والأمان",
       title:"E-ZERO Secure Connect — سياسة الخصوصية والأمان",
       footer:"E-ZERO · الخصوصية أولاً · بلا إعلانات · لا بيع للبيانات الخاصة"
     },
     en:{
-      back:"↩ Back to Connect",language:"Language",
+      back:"↩ Back to Connect",language:"Language",brand:"Privacy & Security",
       title:"E-ZERO Secure Connect — Privacy & Security Policy",
       footer:"E-ZERO · Privacy first · No ads · No sale of private data"
     }
@@ -38,6 +39,7 @@
     }
     const m=messages[lang];
     back.textContent=m.back;label.textContent=m.language;
+    if(subtitle)subtitle.textContent=m.brand;
     footer.textContent=m.footer;document.title=m.title;
     const goBack=new URL("./ezero_secure_connect_live_p2p_v0_1.html",location.href);
     if(lang!=="ur")goBack.searchParams.set("lang",lang);
