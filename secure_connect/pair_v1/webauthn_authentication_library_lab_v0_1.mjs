@@ -118,7 +118,7 @@ export async function verifyAuthenticationResponseLabV1({
   });
   if(checked.verified!==true||!checked.authenticationInfo||
      !Number.isSafeInteger(checked.authenticationInfo.newCounter))
-   return deny("AUTH_VERIFICATION_FAILED");
+   return deny("AUTH_SIGNATURE_OR_POLICY_INVALID");
   return Object.freeze({
    ok:true,authorized:false,code:"PASSKEY_ASSERTION_VERIFIED_LAB",
    credentialId:credentialRecord.credentialId,
