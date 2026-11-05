@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import {chromium} from "playwright";
 const browser=await chromium.launch({headless:true,args:["--no-sandbox"]});
-const root="http://127.0.0.1:8769/ezero_secure_connect_live_p2p_v0_1.html";
+const root="http://127.0.0.1:8769/_ezero_secure_connect_lab_fixture_v0_1.html";
 const contexts=[];
 try {
   const c=await browser.newContext({

@@ -5,7 +5,7 @@ const browser=await chromium.launch({
   headless:true,args:["--no-sandbox","--use-fake-device-for-media-stream","--use-fake-ui-for-media-stream"]
 });
 const contexts=[];
-const base="http://127.0.0.1:8769/ezero_secure_connect_live_p2p_v0_1.html";
+const base="http://127.0.0.1:8769/_ezero_secure_connect_lab_fixture_v0_1.html";
 async function phone(label){
   const context=await browser.newContext({viewport:{width:393,height:852},
     isMobile:true,hasTouch:true,permissions:["camera","microphone"]});

@@ -2,7 +2,7 @@
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const vm=require("node:vm");
-const page=fs.readFileSync("ezero_secure_connect_live_p2p_v0_1.html","utf8");
+const page=fs.readFileSync("_ezero_secure_connect_lab_fixture_v0_1.html","utf8");
 const install=fs.readFileSync("js/ezero_secure_connect_install_share_v0_1.js","utf8");
 const manifest=JSON.parse(fs.readFileSync("secure-connect.webmanifest","utf8"));
 const oldStudio=JSON.parse(fs.readFileSync("ai-studio.webmanifest","utf8"));

@@ -2,7 +2,7 @@
 const assert = require("node:assert/strict");
 const fs=require("node:fs");
 const vm=require("node:vm");
-const html=fs.readFileSync("ezero_secure_connect_live_p2p_v0_1.html","utf8");
+const html=fs.readFileSync("_ezero_secure_connect_lab_fixture_v0_1.html","utf8");
 const js=fs.readFileSync("js/ezero_secure_connect_live_p2p_v0_1.js","utf8");
 const css=fs.readFileSync("css/ezero_secure_connect_live_p2p_v0_1.css","utf8");
 const vendor=fs.readFileSync("js/vendor/ezero-qrcode-generator-mit.js","utf8");

@@ -25,7 +25,7 @@ async function phone(label) {
   });
   const page=await c.newPage();pages.push(page);
   page.on("pageerror",err=>{console.log(label+"_PAGEERROR",String(err).slice(0,250));});
-  await page.goto(base+"/ezero_secure_connect_live_p2p_v0_1.html",{waitUntil:"domcontentloaded"});
+  await page.goto(base+"/_ezero_secure_connect_lab_fixture_v0_1.html",{waitUntil:"domcontentloaded"});
   await page.waitForFunction(()=>document.getElementById("myFingerprint").textContent.trim().length===64,{timeout:30000});
   return page;
 }
