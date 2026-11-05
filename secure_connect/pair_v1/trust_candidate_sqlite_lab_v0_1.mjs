@@ -61,6 +61,14 @@ export class PairV1TrustCandidateSqliteLab{
     consumed_at INTEGER NOT NULL,
     state TEXT NOT NULL CHECK(state='QR_BURNED_NO_TRUST')
   )`);
+  // Strict provenance link: one observation session cannot be re-used to
+  // join multiple QR enrollments. No public device/call authority exists.
+  this.#s.exec(`CREATE TABLE IF NOT EXISTS ezero_pair_v1_session_qr_link_lab (
+    pair_sid TEXT PRIMARY KEY,
+    server_session_sid TEXT NOT NULL UNIQUE,
+    auth_session_id TEXT NOT NULL UNIQUE,
+    account_id TEXT NOT NULL
+  )`);
  }
  #check({accountId,pairSid,authSessionId,aDeviceId,bDeviceId},now){
   const account=this.#s.exec(`SELECT account_id,status FROM
@@ -251,6 +259,11 @@ export class PairV1TrustCandidateSqliteLab{
       RETURNING pair_sid`,pairSid,accountId,authSessionId,
       aDeviceId,bDeviceId,now).toArray();
     if(saved.length!==1)throw Error("EVIDENCE_WRITE_FAILED");
+    if(serverSessionSid!==null){
+     this.#s.exec(`INSERT INTO ezero_pair_v1_session_qr_link_lab
+       (pair_sid,server_session_sid,auth_session_id,account_id)
+       VALUES(?,?,?,?)`,pairSid,serverSessionSid,authSessionId,accountId);
+    }
     return answer(true,"ENROLLMENT_QR_CONSUMED_EVIDENCE_ONLY",{
       stage:"QR_BURNED_NO_TRUST",pairQrConsumed:true});
    });
