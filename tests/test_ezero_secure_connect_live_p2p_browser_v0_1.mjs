@@ -27,6 +27,9 @@ async function phone(label) {
   page.on("pageerror",err=>{console.log(label+"_PAGEERROR",String(err).slice(0,250));});
   await page.goto(base+"/ezero_secure_connect_live_p2p_v0_1.html",{waitUntil:"domcontentloaded"});
   await page.waitForFunction(()=>document.getElementById("myFingerprint").textContent.trim().length===64,{timeout:30000});
+  // The existing manual regression suite explicitly opens the optional
+  // legacy area; real visitors see ONLY the main one-QR call first.
+  await page.locator("#oneQrAdvanced").evaluate(el=>el.open=true);
   return page;
 }
 async function getSignal(p) {
