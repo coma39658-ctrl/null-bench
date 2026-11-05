@@ -99,6 +99,7 @@ try{
   await a.locator("#friendSearch").fill("");
   await a.reload();
   await a.waitForFunction(()=>document.querySelector("#myFingerprint")?.textContent.length===64);
+  await a.locator("#secureAdvanced").evaluate(el=>el.open=true);
   assert.equal(await a.locator(".friend-name").innerText(),"Ali Test","Opt-in local-only name persists on this device");
   assert.equal(await a.locator(".friend-fingerprint").innerText(),fpB);
   assert.equal(await a.locator("#saveVerifiedFriend").isDisabled(),true,"New session cannot treat stored fingerprint as a signed verified QR");
