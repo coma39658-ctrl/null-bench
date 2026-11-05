@@ -596,24 +596,22 @@ try{
   {name:"ECDSA",hash:"SHA-256"},key.privateKey,
   te.encode(pairApprovalText(data))));
  const badPairSignature=await signPair(bDev,aApproval);
- const wrongSig=await approvalDB.recordSignedDecision({
-  role:"A",approval:aApproval,signature:badPairSignature,
-  registeredSpki:aPub,registeredDeviceKeyHash:aHash,
-  accountFromRegistry:accountId
+ const wrongSig=await approvalDB.recordServerRegisteredDecisionLab({
+  accountId,deviceId:aDeviceId,role:"A",
+  approval:aApproval,signature:badPairSignature,
+  registeredSpki:bPub,verified:true
  },now+12);
  assert.equal(wrongSig.ok,false,"Wrong device cannot approve role A");
- const aSigned=await approvalDB.recordSignedDecision({
-  role:"A",approval:aApproval,signature:await signPair(aDev,aApproval),
-  registeredSpki:aPub,registeredDeviceKeyHash:aHash,
-  accountFromRegistry:accountId
+ const aSigned=await approvalDB.recordServerRegisteredDecisionLab({
+  accountId,deviceId:aDeviceId,role:"A",
+  approval:aApproval,signature:await signPair(aDev,aApproval)
  },now+12);
  assert.equal(aSigned.stage,"A_SIGNED");
  assert.equal(candidateDB.recordEvidenceCandidate(pairCtx,now+12).ok,false,
   "No trust from one signed approval");
- const bSigned=await approvalDB.recordSignedDecision({
-  role:"B",approval:bApproval,signature:await signPair(bDev,bApproval),
-  registeredSpki:bPub,registeredDeviceKeyHash:bHash,
-  accountFromRegistry:accountId
+ const bSigned=await approvalDB.recordServerRegisteredDecisionLab({
+  accountId,deviceId:bDeviceId,role:"B",
+  approval:bApproval,signature:await signPair(bDev,bApproval)
  },now+13);
  assert.equal(bSigned.stage,"BOTH_SIGNED_UNAUTHORIZED");
  // Pairing QR must be from the server-ledger and match BOTH signed device
