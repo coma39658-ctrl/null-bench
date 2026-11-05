@@ -1,0 +1,45 @@
+name: E-ZERO encrypted short invitation pilot QA (not public calling)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'signaling/shortlinks/**'
+      - 'js/ezero_private_short_invite_v0_1.js'
+      - 'js/ezero_secure_connect_modern_communications_v0_3.js'
+      - 'ezero_secure_connect_communications_v0_3.html'
+      - 'tests/test_ezero_private_short_invite_v0_1.js'
+      - '.github/workflows/ezero_encrypted_shortlink_pilot_20261106.yml'
+  push:
+    branches: [ezero-short-friend-link-pilot-20261106]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  privacy-and-expiry:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax-check new isolated Cloudflare and browser modules
+        run: |
+          set -euo pipefail
+          node --input-type=module --check < signaling/shortlinks/src/worker.js
+          node --check js/ezero_private_short_invite_v0_1.js
+          node --check js/ezero_secure_connect_modern_communications_v0_3.js
+          node --check tests/test_ezero_private_short_invite_v0_1.js
+      - name: Simulate encrypted link generation, consent, expiry and preview
+        run: |
+          set -euo pipefail
+          node tests/test_ezero_private_short_invite_v0_1.js
+          node tests/test_ezero_secure_connect_modern_communications_v0_3_contract.js
+      - name: Ensure original public auto signaling remains disabled
+        run: |
+          set -euo pipefail
+          grep -q 'enabled:false' js/ezero_auto_signaling_config_v0_1.js
+          grep -q 'websocketOrigin:""' js/ezero_auto_signaling_config_v0_1.js
+          ! grep -R -n -E 'CF_API_TOKEN=|TURN_KEY_API_TOKEN=|Authorization: Bearer ' signaling/shortlinks
