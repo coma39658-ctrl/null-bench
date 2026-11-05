@@ -31,7 +31,9 @@
       confirm:"کیا صرف اس فون سے گروپ مسودہ حذف کرنا ہے؟",
       unavailable:"دوستوں کی محفوظ فہرست اس فون پر دستیاب نہیں۔",
       addFriend:"+ QR سے دوست شامل کریں",back:"← گروپس کی فہرست",memberCount:"منتخب رابطے",
-      groupPhoto:"گروپ کا منتخب نشان",source:"یہ مقامی فہرست ہے؛ حقیقی گروپ، کال، یا چیٹ کنکشن کا ثبوت نہیں۔"},
+      groupPhoto:"گروپ کا منتخب نشان",source:"یہ مقامی فہرست ہے؛ حقیقی گروپ، کال، یا چیٹ کنکشن کا ثبوت نہیں۔",
+      admin:"🛡️ Group Admin — یہ فون (صرف مقامی)",policy:"ایڈمن گروپ کی معلومات اور منتخب رابطے بدل سکتا ہے؛ دوسرے فون پر اختیار نافذ نہیں۔",
+      approval:"نئے ممبرز کے لیے ایڈمن کی منظوری (آئندہ فیچر)",editOnly:"گروپ کی معلومات صرف ایڈمن بدلے (آئندہ فیچر)",promote:"🛡️ دوسرے ایڈمن کا اختیار — ابھی بند"},
     en:{shortcut:"👥 Groups",heading:"👥 Groups",description:"Create a group with familiar steps. This is a draft on your device only; selected friends have NOT joined.",
       new:"＋ New group",groups:"My groups",empty:"No groups yet. Create a group.",
       name:"Group name",about:"Description (optional)",icon:"Group icon",people:"Select friends (saved from verified signed QR)",
@@ -45,7 +47,9 @@
       invalid:"Choose a group name and at least one verified saved friend.",full:"Group/member limit reached.",
       confirm:"Delete this group draft from this device only?",unavailable:"Saved friends are unavailable on this device.",
       addFriend:"+ Add friend with QR",back:"← All groups",memberCount:"Selected contacts",
-      groupPhoto:"Selected group icon",source:"This local list is not proof of a live group, calls or chat."},
+      groupPhoto:"Selected group icon",source:"This local list is not proof of a live group, calls or chat.",
+      admin:"🛡️ Group Admin — this phone (local only)",policy:"The creator can edit group details and proposed members here; no permissions are enforced on other phones.",
+      approval:"Admin approval for new members (future policy)",editOnly:"Only admin can edit group details (future policy)",promote:"🛡️ Assign co-admin — unavailable"},
     ar:{shortcut:"👥 المجموعات",heading:"👥 المجموعات",description:"أنشئ مجموعة بخطوات مألوفة. هذه مسودة محلية فقط؛ الأصدقاء المحددون لم ينضموا.",
       new:"＋ مجموعة جديدة",groups:"مجموعاتي",empty:"لا توجد مجموعات بعد. أنشئ مجموعة.",
       name:"اسم المجموعة",about:"وصف المجموعة (اختياري)",icon:"رمز المجموعة",people:"اختر أصدقاء تم حفظهم بعد QR موقّع",
@@ -59,7 +63,9 @@
       invalid:"اختر اسماً وصديقاً واحداً موثقاً على الأقل.",full:"تم بلوغ الحد المسموح.",
       confirm:"حذف مسودة المجموعة من هذا الجهاز فقط؟",unavailable:"قائمة الأصدقاء غير متاحة على هذا الجهاز.",
       addFriend:"+ إضافة صديق عبر QR",back:"← جميع المجموعات",memberCount:"جهات الاتصال المحددة",
-      groupPhoto:"رمز المجموعة",source:"هذه قائمة محلية وليست دليلاً على اتصال مجموعة أو مكالمات أو محادثة."}
+      groupPhoto:"رمز المجموعة",source:"هذه قائمة محلية وليست دليلاً على اتصال مجموعة أو مكالمات أو محادثة.",
+      admin:"🛡️ مشرف المجموعة — هذا الهاتف فقط",policy:"يمكن للمنشئ تعديل التفاصيل والأعضاء المقترحين محلياً. لا توجد صلاحيات فعلية على أجهزة الآخرين.",
+      approval:"موافقة المشرف على أعضاء جدد (سياسة مستقبلية)",editOnly:"تعديل تفاصيل المجموعة للمشرف فقط (سياسة مستقبلية)",promote:"🛡️ تعيين مشرف آخر — غير متاح"}
   };
   const t=k=>(strings[$lang()]||strings.ur)[k]||k;
   const clean=(s,limit)=>typeof s==="string"?s.replace(/[\u0000-\u001f\u007f]/g," ").trim().replace(/\s+/g," ").slice(0,limit):"";
@@ -91,7 +97,8 @@
       if(!members.length)continue;
       unique.add(v.id);
       out.push({id:v.id,name:clean(v.name,MAX_TEXT),about:clean(v.about,160),
-        icon:icons.includes(v.icon)?v.icon:icons[0],members,createdAt:v.createdAt});
+        icon:icons.includes(v.icon)?v.icon:icons[0],members,createdAt:v.createdAt,
+        policy:{approveJoins:v.policy?.approveJoins!==false,adminsEditOnly:v.policy?.adminsEditOnly!==false}});
     }
     return out;
   }
@@ -122,6 +129,8 @@
     $("ezeroGroupName").value=existing?.name||"";
     $("ezeroGroupAbout").value=existing?.about||"";
     $("ezeroGroupIcon").value=existing?.icon||icons[0];
+    $("ezeroGroupApproveJoins").checked=existing?.policy?.approveJoins!==false;
+    $("ezeroGroupAdminsEditOnly").checked=existing?.policy?.adminsEditOnly!==false;
     renderContacts(existing?.members||[]);
     $("ezeroGroupName").focus();
   }
@@ -143,6 +152,8 @@
     g.members.forEach(fp=>membersBox.append(node("li","ezero-group-member",
       (current.get(fp)||fp.slice(0,8))+" · "+fp.slice(0,8)+"…")));
     $("ezeroGroupViewTruth").textContent=t("status");
+    $("ezeroGroupAdminBadge").textContent=t("admin");
+    $("ezeroGroupAdminPolicy").textContent=t("policy");
   }
   function render(){
     $list.replaceChildren();
@@ -172,6 +183,11 @@
     $("ezeroGroupDelete").textContent=t("delete");
     $("ezeroGroupBack").textContent=t("back");
     $("ezeroGroupAddFriend").textContent=t("addFriend");
+    $("ezeroGroupAdminSettingsLabel").textContent=t("admin");
+    $("ezeroGroupAdminFormTruth").textContent=t("policy");
+    $("ezeroGroupApproveJoinsLabel").textContent=t("approval");
+    $("ezeroGroupAdminsEditOnlyLabel").textContent=t("editOnly");
+    $("ezeroGroupPromote").textContent=t("promote");
     for(const key of ["chat","audio","video","voice"])
       $("ezeroGroup"+key[0].toUpperCase()+key.slice(1)).textContent=t(key);
     if(selectedId)openGroup(selectedId);
@@ -206,7 +222,9 @@
     const id=old?.id||Array.from(crypto.getRandomValues(new Uint8Array(16)),
       b=>b.toString(16).padStart(2,"0")).join("");
     const g={id,name,about,icon:icons.includes(icon)?icon:icons[0],
-      members,createdAt:old?.createdAt||Date.now()};
+      members,createdAt:old?.createdAt||Date.now(),
+      policy:{approveJoins:$("ezeroGroupApproveJoins").checked,
+        adminsEditOnly:$("ezeroGroupAdminsEditOnly").checked}};
     const next=old?groups.map(x=>x.id===old.id?g:x):[g,...groups];
     if(!save(next)){$("ezeroGroupStatus").textContent=notice;return;}
     notice=t(old?"updated":"saved");
