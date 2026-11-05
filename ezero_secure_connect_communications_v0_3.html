@@ -19,14 +19,14 @@
 <link rel="manifest" href="./secure-connect.webmanifest">
 <link rel="stylesheet" href="./css/ezero_secure_connect_live_p2p_v0_1.css">
 <link rel="stylesheet" href="./css/ezero_secure_connect_one_tap_qr_v0_1.css">
-<link rel="stylesheet" href="./css/ezero_secure_connect_modern_communications_v0_3.css?v=20261105d">
+<link rel="stylesheet" href="./css/ezero_secure_connect_modern_communications_v0_3.css?v=20261105e">
 <script defer src="./js/vendor/ezero-qrcode-generator-mit.js"></script>
 <script defer src="./js/ezero_secure_connect_live_p2p_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_simple_near_far_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_contacts_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_install_share_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_one_tap_qr_v0_1.js"></script>
-<script defer src="./js/ezero_secure_connect_modern_communications_v0_3.js?v=20261105d"></script>
+<script defer src="./js/ezero_secure_connect_modern_communications_v0_3.js?v=20261105e"></script>
 </head>
 <body class="communication-page">
 <div class="shell">
@@ -101,9 +101,10 @@
     <details id="ezeroLinkFallback" class="ezero-link-fallback">
       <summary data-modern="linkFallbackTitle">دوست کا لنک اسی ٹیب میں نہ کھلے تو</summary>
       <p data-modern="linkFallbackHelp">موجودہ کال والا ٹیب بند نہ کریں۔ دوست سے آیا مکمل E-ZERO دعوت/جواب لنک یہاں درج کریں؛ تکنیکی کوڈ درکار نہیں۔</p>
+      <p class="modern-call-note" id="ezeroCompleteLinkTip" data-modern="inviteIncomingTip">اگر IMO میں E-ZERO کھل گیا لیکن درخواست نظر نہیں آئی، تو اصل IMO پیغام کا پورا دعوتی لنک یہاں پیسٹ کریں۔ کوئی نمونہ لنک استعمال نہ کریں۔</p>
       <label for="ezeroPasteLink" data-modern="pasteLinkLabel">دعوت یا جواب کا لنک</label>
-      <textarea id="ezeroPasteLink" rows="2" maxlength="210000" autocomplete="off" spellcheck="false" placeholder="https://…/ezero_secure_connect_communications_v0_3.html#e=…"></textarea>
-      <button id="ezeroLoadLink" type="button" class="ezero-wizard-secondary" data-modern="loadLink">✓ موصولہ لنک کھولیں</button>
+      <textarea id="ezeroPasteLink" rows="2" maxlength="210000" autocomplete="off" spellcheck="false" placeholder="E-ZERO — مکمل اصل دعوتی لنک"></textarea>
+      <button id="ezeroLoadLink" type="button" class="ezero-wizard-secondary" disabled data-modern="loadLink">✓ موصولہ لنک کھولیں</button>
     </details>
     <div id="ezeroGeneratedFallback" hidden>
       <label for="ezeroGeneratedLink" data-modern="generatedLabel">صرف اپنے دوست کو بھیجنے والا عارضی لنک</label>

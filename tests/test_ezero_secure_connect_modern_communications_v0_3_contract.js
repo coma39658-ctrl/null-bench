@@ -16,6 +16,20 @@ for(const mode of ["audio","video","voice","chat"]){
   assert.match(page,new RegExp('data-modern-select="'+mode+'"'));
 }
 assert.match(page,/ezero_secure_connect_live_p2p_v0_1\.js/);
+assert.ok(modern.includes('function inviteFailure(error)'));
+assert.ok(modern.includes('async function encodeSignal(raw)'));
+assert.ok(modern.includes('async function parseInviteLink(value)'));
+assert.ok(modern.includes('new CompressionStream("gzip")'));
+assert.ok(modern.includes('new DecompressionStream("gzip")'));
+assert.ok(modern.includes('if(size>145000)throw Error("TOO_LARGE")'),
+ "Decompression must bound expansion before allocating the output");
+assert.ok(modern.includes('m[1]==="e2"'),"Compressed and legacy invite parsers must coexist");
+assert.ok(modern.includes('if(!uri.hash)throw Error("MISSING_INVITE")'));
+assert.ok(modern.includes('window.addEventListener("hashchange",receiveHash)'));
+assert.ok(page.includes('id="ezeroCompleteLinkTip"'));
+assert.ok(page.includes('id="ezeroLoadLink"') && page.includes('class="ezero-wizard-secondary" disabled'));
+assert.ok(!page.includes('placeholder="https://…'),"Never show a fake real invitation");
+
 assert.match(page,/ezero_secure_connect_simple_near_far_v0_1\.js/);
 assert.match(page,/ezero_secure_connect_modern_communications_v0_3\.js/);
 for(const id of ["modernCallPanel","modernChatPanel","modernVoicePanel","modernConnect",
