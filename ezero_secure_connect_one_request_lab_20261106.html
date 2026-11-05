@@ -135,6 +135,25 @@
   <a id="ezeroQuickIdentity" href="./ezero_secure_connect_one_request_lab_20261106.html">🔐 E-ZERO رابطہ</a>
 </nav>
 
+<section id="modernChatPanel" class="modern-workspace" hidden>
+  <h2 class="modern-panel-title" data-modern="chatPanel">نجی چیٹ میسج</h2>
+  <p class="modern-panel-help" data-modern="chatHelp">دو فون WebRTC سے جڑنے کے بعد ایک بار کھلنے والا پیغام بھیجیں۔ مستقل چیٹ ہسٹری نہیں۔</p>
+  <div id="ezeroChatSlot"></div>
+</section>
+<section id="modernVoicePanel" class="modern-workspace" hidden>
+  <h2 class="modern-panel-title" data-modern="voicePanel">وائس میسج</h2>
+  <p class="modern-panel-help" data-modern="voiceHelp">6 سیکنڈ تک اپنی آواز ریکارڈ کریں۔ Send دبانے سے پہلے دوسرے فون کو نہیں جائے گی؛ کال ریکارڈ نہیں ہوگی۔</p>
+  <div class="modern-voice-actions">
+    <button type="button" id="ezeroVoiceRecord" data-modern="record">🎙️ ریکارڈ کریں</button>
+    <button type="button" id="ezeroVoiceStop" class="secondary" hidden data-modern="stop">■ ریکارڈنگ بند</button>
+    <button type="button" id="ezeroVoiceSend" disabled data-modern="sendVoice">↗ وائس میسج بھیجیں</button>
+    <button type="button" id="ezeroVoiceClear" class="secondary" disabled data-modern="discard">✕ حذف کریں</button>
+  </div>
+  <div id="ezeroVoiceDraft" hidden><p data-modern="preview">یہ آواز ابھی صرف اس فون پر ہے؛ خودکار شیئر نہیں ہوئی۔</p><audio id="ezeroVoicePreview" class="modern-voice-audio" controls preload="none" aria-label="Local voice note preview"></audio></div>
+  <div id="ezeroVoiceReceived" hidden><p data-modern="incomingVoice">دوست کا عارضی وائس میسج موصول ہوا۔</p><button type="button" id="ezeroVoiceOpenIncoming" class="primary" data-modern="playVoice">🎧 ایک بار سنیں</button><audio id="ezeroVoiceIncomingAudio" class="modern-voice-audio" controls preload="none" hidden aria-label="Received voice note"></audio></div>
+  <p id="ezeroVoiceStatus" class="modern-status" role="status" aria-live="polite">وائس میسج بھیجنے کے لیے دو فون جوڑیں۔</p>
+  <button id="ezeroVoiceConnect" class="modern-voice-connect" type="button" data-modern="voiceConnect">📱 وائس میسج بھیجنے کے لیے فون جوڑیں</button>
+</section>
 <details class="ezero-unified-options"><summary>👤 پروفائل اور دوست (اختیاری)</summary>
 <details class="modern-workspace ezero-profile-editor" id="ezeroProfileEditor">
   <summary id="ezeroProfileSummary" data-profile-i18n="editProfile">👤 میری E-ZERO پروفائل — نام اور تصویر</summary>
@@ -200,25 +219,6 @@
   <h1 data-modern="heading">بات کریں، دیکھیں، پیغام بھیجیں</h1>
   <p data-modern="subheading">آڈیو کال، ویڈیو کال، وائس نوٹ اور نجی چیٹ — ایک آسان جگہ۔ کال کے لیے حقیقی دو فون WebRTC رابطہ ضروری ہے۔</p>
   <div class="modern-trust"><span data-modern="free">بلا اشتہار</span><span data-modern="consent">اجازت کے بعد کیمرہ/مائک</span><span data-modern="noArchive">سرور پر کال آرکائیو نہیں</span></div>
-</section>
-<section id="modernChatPanel" class="modern-workspace" hidden>
-  <h2 class="modern-panel-title" data-modern="chatPanel">نجی چیٹ میسج</h2>
-  <p class="modern-panel-help" data-modern="chatHelp">دو فون WebRTC سے جڑنے کے بعد ایک بار کھلنے والا پیغام بھیجیں۔ مستقل چیٹ ہسٹری نہیں۔</p>
-  <div id="ezeroChatSlot"></div>
-</section>
-<section id="modernVoicePanel" class="modern-workspace" hidden>
-  <h2 class="modern-panel-title" data-modern="voicePanel">وائس میسج</h2>
-  <p class="modern-panel-help" data-modern="voiceHelp">6 سیکنڈ تک اپنی آواز ریکارڈ کریں۔ Send دبانے سے پہلے دوسرے فون کو نہیں جائے گی؛ کال ریکارڈ نہیں ہوگی۔</p>
-  <div class="modern-voice-actions">
-    <button type="button" id="ezeroVoiceRecord" data-modern="record">🎙️ ریکارڈ کریں</button>
-    <button type="button" id="ezeroVoiceStop" class="secondary" hidden data-modern="stop">■ ریکارڈنگ بند</button>
-    <button type="button" id="ezeroVoiceSend" disabled data-modern="sendVoice">↗ وائس میسج بھیجیں</button>
-    <button type="button" id="ezeroVoiceClear" class="secondary" disabled data-modern="discard">✕ حذف کریں</button>
-  </div>
-  <div id="ezeroVoiceDraft" hidden><p data-modern="preview">یہ آواز ابھی صرف اس فون پر ہے؛ خودکار شیئر نہیں ہوئی۔</p><audio id="ezeroVoicePreview" class="modern-voice-audio" controls preload="none" aria-label="Local voice note preview"></audio></div>
-  <div id="ezeroVoiceReceived" hidden><p data-modern="incomingVoice">دوست کا عارضی وائس میسج موصول ہوا۔</p><button type="button" id="ezeroVoiceOpenIncoming" class="primary" data-modern="playVoice">🎧 ایک بار سنیں</button><audio id="ezeroVoiceIncomingAudio" class="modern-voice-audio" controls preload="none" hidden aria-label="Received voice note"></audio></div>
-  <p id="ezeroVoiceStatus" class="modern-status" role="status" aria-live="polite">وائس میسج بھیجنے کے لیے دو فون جوڑیں۔</p>
-  <button id="ezeroVoiceConnect" class="modern-voice-connect" type="button" data-modern="voiceConnect">📱 وائس میسج بھیجنے کے لیے فون جوڑیں</button>
 </section>
 <section id="ezeroCallSetupSlot" class="modern-workspace" hidden aria-labelledby="modernSetupHeading">
   <h2 id="modernSetupHeading" class="modern-panel-title" data-modern="setupTitle">محفوظ رابطہ جوڑیں</h2>
