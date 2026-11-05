@@ -534,7 +534,7 @@
            typeof m.name==="string" && m.name.trim().length>=1 &&
            m.name.trim().length<=40 &&
            typeof m.avatar==="string" && m.avatar.length<=12000 &&
-           (m.avatar==="" || /^data:image\\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(m.avatar)) &&
+           (m.avatar==="" || /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(m.avatar)) &&
            /^[a-f0-9]{64}$/.test(peer?.__ezeroPeerFP||"") &&
            peer?.connectionState==="connected"){
           document.dispatchEvent(new CustomEvent("ezero:profile-received",{
@@ -749,7 +749,7 @@
       if(!window.EZERO_PEER_PROFILE_TRANSPORT.connected())return false;
       if(typeof name!=="string"||name.trim().length<1||name.trim().length>40 ||
          typeof avatar!=="string" || avatar.length>12000 ||
-         (avatar!=="" && !/^data:image\\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(avatar)))
+         (avatar!=="" && !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(avatar)))
         return false;
       const encoded=JSON.stringify({v:3,kind:"public-profile",
         name:name.trim(),avatar});
