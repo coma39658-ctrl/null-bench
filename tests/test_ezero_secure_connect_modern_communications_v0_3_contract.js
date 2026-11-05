@@ -28,7 +28,7 @@ assert.ok(profile.includes("ezero:profile-received"));
 assert.ok(profile.includes("window.EZERO_PEER_PROFILE_TRANSPORT"));
 assert.ok(profile.includes('share:p.share===true'));
 assert.ok(profile.includes('localStorage.setItem(KEY'));
-assert.ok(!/fetch\\(|XMLHttpRequest|new WebSocket/.test(profile),
+assert.ok(!profile.includes("fetch(") && !profile.includes("XMLHttpRequest") && !profile.includes("new WebSocket"),
   "No profile file uploads, remote logging or account API");
 assert.ok(transport.includes('m.kind==="public-profile"'));
 assert.ok(transport.includes('peer.__ezeroPeerFP'),"Never trust a profile self-asserted fingerprint");
