@@ -37,6 +37,14 @@ self.addEventListener("fetch", event => {
       !url.pathname.startsWith(new URL(self.registration.scope).pathname))
     return;
 
+  // An explicit one-tap freshness check must never be answered from an
+  // old offline cache. Leave this ONE same-origin document request to the
+  // browser network stack (which owns TLS and the no-store request).
+  // This bypass never runs on ordinary app loads, calls, or other sites.
+  if (url.pathname.endsWith("/ezero_secure_connect_live_p2p_v0_1.html") &&
+      event.request.headers.get("X-EZERO-Readiness-Probe") === "v1")
+    return;
+
   event.respondWith(
     fetch(event.request, { cache: "no-store" })
       .then(response => {
