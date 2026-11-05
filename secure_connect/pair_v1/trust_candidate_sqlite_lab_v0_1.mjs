@@ -155,6 +155,46 @@ export class PairV1TrustCandidateSqliteLab{
   * transaction. Any collision or database failure rolls back both. This
   * explicitly DOES NOT activate a Trusted Device or authorize a call.
   */
+ #checkSessionBinding(accountId,authSessionId,serverSessionSid,now){
+  if(serverSessionSid===null)return null;
+  if(!SID.test(serverSessionSid||"")||!this.#serverOrigin)
+   return "SERVER_OBSERVATION_SESSION_REQUIRED";
+    // Both the observation session and its proven passkey issuance must
+    // be server-side, current, and associated with THIS consumed challenge.
+    const session=this.#s.exec(`SELECT account_id,credential_id,
+      issued,expires,seen_at,origin,scope,revoked_at
+      FROM ezero_v1_sessions_guard_lab WHERE sid=?`,
+      serverSessionSid).toArray()[0];
+    const link=this.#s.exec(`SELECT auth_session_id,account_id,
+      credential_id,linked_at FROM ezero_v1_session_auth_link_lab
+      WHERE sid=?`,serverSessionSid).toArray()[0];
+    const auth=this.#s.exec(`SELECT credential_id,consumed_at FROM
+      ezero_v1_auth_pending_lab WHERE session_id=? AND account_id=?
+      AND purpose='WEBAUTHN_AUTHENTICATE'`,
+      authSessionId,accountId).toArray()[0];
+    if(!session||!link||!auth||
+       session.account_id!==accountId||
+       link.account_id!==accountId||
+       session.credential_id!==auth.credential_id||
+       link.credential_id!==auth.credential_id||
+       link.auth_session_id!==authSessionId||
+       link.linked_at!==auth.consumed_at||
+       session.issued!==link.linked_at||
+       session.origin!==this.#serverOrigin||
+       session.scope!=="ACCOUNT_OBSERVE_ONLY"||
+       session.revoked_at!==null||
+       !Number.isSafeInteger(session.issued)||
+       !Number.isSafeInteger(session.expires)||
+       !Number.isSafeInteger(session.seen_at)||
+       session.issued>now||session.expires<=now||
+       session.expires<=session.issued||
+       session.expires-session.issued>15*60_000||
+       session.seen_at<session.issued||session.seen_at>now||
+       now-session.seen_at>=5*60_000)
+     return "OBSERVATION_SESSION_REVOKED_EXPIRED_OR_UNBOUND";
+
+  return null;
+ }
  recordEvidenceAndConsumeEnrollmentQrLab({
   accountId,pairSid,authSessionId,aDeviceId,bDeviceId
  }={},now=Date.now()){
@@ -186,41 +226,9 @@ export class PairV1TrustCandidateSqliteLab{
     const ctx={accountId,pairSid,authSessionId,aDeviceId,bDeviceId};
     const reason=this.#check(ctx,now);
     if(reason)return answer(false,reason);
-    if(serverSessionSid!==null){
-     // Both the observation session and its proven passkey issuance must
-     // be server-side, current, and associated with THIS consumed challenge.
-     const session=this.#s.exec(`SELECT account_id,credential_id,
-       issued,expires,seen_at,origin,scope,revoked_at
-       FROM ezero_v1_sessions_guard_lab WHERE sid=?`,
-       serverSessionSid).toArray()[0];
-     const link=this.#s.exec(`SELECT auth_session_id,account_id,
-       credential_id,linked_at FROM ezero_v1_session_auth_link_lab
-       WHERE sid=?`,serverSessionSid).toArray()[0];
-     const auth=this.#s.exec(`SELECT credential_id,consumed_at FROM
-       ezero_v1_auth_pending_lab WHERE session_id=? AND account_id=?
-       AND purpose='WEBAUTHN_AUTHENTICATE'`,
-       authSessionId,accountId).toArray()[0];
-     if(!session||!link||!auth||
-        session.account_id!==accountId||
-        link.account_id!==accountId||
-        session.credential_id!==auth.credential_id||
-        link.credential_id!==auth.credential_id||
-        link.auth_session_id!==authSessionId||
-        link.linked_at!==auth.consumed_at||
-        session.issued!==link.linked_at||
-        session.origin!==this.#serverOrigin||
-        session.scope!=="ACCOUNT_OBSERVE_ONLY"||
-        session.revoked_at!==null||
-        !Number.isSafeInteger(session.issued)||
-        !Number.isSafeInteger(session.expires)||
-        !Number.isSafeInteger(session.seen_at)||
-        session.issued>now||session.expires<=now||
-        session.expires<=session.issued||
-        session.expires-session.issued>15*60_000||
-        session.seen_at<session.issued||session.seen_at>now||
-        now-session.seen_at>=5*60_000)
-      return answer(false,"OBSERVATION_SESSION_REVOKED_EXPIRED_OR_UNBOUND");
-    }
+    const sessionProblem=this.#checkSessionBinding(
+     accountId,authSessionId,serverSessionSid,now);
+    if(sessionProblem)return answer(false,sessionProblem);
     // Bind the QR to precisely the same signed session transcript AND the
     // same registered credential that verified the WebAuthn assertion.
     const proof=this.#s.exec(`SELECT nonce_digest,issued,expires
