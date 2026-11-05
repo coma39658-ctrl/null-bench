@@ -59,7 +59,7 @@ jobs:
           const src=fs.readFileSync('secure_connect/call_room_lab/room_worker.mjs','utf8');
           const constants=fs.readFileSync('secure_connect/call_room_lab/room_constants.mjs','utf8');
           if(!src.includes('from "./room_constants.mjs"')||
-            /export\\s+(?:const|let|var)\\s+/u.test(src)||
+            /export\s+(?:const|let|var)\s+/u.test(src)||
             !constants.includes('export const ROOM_LIFETIME_MS=10*60*1000')||
             !constants.includes('export const MAX_PILOT_ACTIVE_ROOMS=8')){
             console.error('WRANGLER_HANDLER_EXPORT_ONLY_GATE_FAILED');process.exit(1);
