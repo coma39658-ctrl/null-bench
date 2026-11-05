@@ -1,0 +1,83 @@
+name: E-ZERO ONE QR One Accept - Safe Two Phone Lab
+on:
+  push:
+    branches: [ezero-one-qr-incoming-call-consent-lab-20261105]
+permissions:
+  contents: read
+jobs:
+  browser-two-phones:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Safety gate - no real Cloudflare public calls
+        run: |
+          set -euo pipefail
+          grep -q '"ROOMS_ENABLED": "false"' secure_connect/call_room_lab/wrangler.jsonc
+          grep -q '"name": "ezero-secure-connect-call-lab-disabled"' secure_connect/call_room_lab/wrangler.jsonc
+          node --check js/ezero_secure_connect_one_link_lab_v0_1.js
+          node --check js/ezero_secure_connect_live_p2p_v0_1.js
+          node --check secure_connect/call_room_lab/room_worker.mjs
+          node --check tests/test_ezero_secure_connect_one_link_browser_v0_1.mjs
+          node tests/test_ezero_secure_connect_live_p2p_contract_v0_1.js
+          node secure_connect/call_room_lab/test_room_worker.mjs
+          echo "PUBLIC_ROOMS_STAY_DISABLED_SOURCE_AND_STATIC_CONTRACT: PASS"
+      - name: Install headless Chromium test environment
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts playwright@1.57.0
+          npx playwright install --with-deps chromium
+      - name: Foreground QR, signed reciprocal IDs, receiver acceptance and WebRTC audio
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8769 --bind 127.0.0.1 >/tmp/ezero-oneqr-http.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8769/ezero_secure_connect_live_p2p_v0_1.html >/dev/null; then break; fi
+            sleep 1
+          done
+          node tests/test_ezero_secure_connect_one_link_browser_v0_1.mjs
+          node tests/test_ezero_secure_connect_live_p2p_browser_v0_1.mjs
+          node tests/test_ezero_secure_connect_privacy_copilot_browser_v0_1.mjs
+
+  actual-worker-local:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: No remote deployment; local two WebSocket runtime only
+        run: |
+          set -euo pipefail
+          grep -q '"ROOMS_ENABLED": "false"' secure_connect/call_room_lab/wrangler.jsonc
+          node --check tests/test_ezero_secure_connect_workerd_real_websocket_v0_1.mjs
+          node secure_connect/call_room_lab/test_room_worker.mjs
+          npm install --no-save --ignore-scripts --no-audit --no-fund ws@8.18.3
+      - name: Real Cloudflare workerd restricted localhost mock-only pilot
+        env: {WRANGLER_SEND_METRICS: 'false'}
+        run: |
+          set -euo pipefail
+          TEST_OWNER="$(printf 'e%.0s' {1..64})"
+          npx --yes wrangler@4 dev --local --config secure_connect/call_room_lab/wrangler.jsonc --ip 127.0.0.1 --port 8790 --var "ROOMS_ENABLED:true" --var "PILOT_OWNER_SECRET:${TEST_OWNER}" >/tmp/ezero-oneqr-workerd.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          ready=0
+          for i in $(seq 1 45); do
+            if curl -fsS --max-time 2 http://127.0.0.1:8790/health 2>/dev/null | grep -q STAGING_ENABLED; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            echo LOCAL_WORKER_STARTUP_FAILED
+            tail -n 25 /tmp/ezero-oneqr-workerd.log | sed -E 's/[a-f0-9]{64}/[REDACTED]/g'
+            exit 1
+          fi
+          EZERO_LOCAL_WORKER_ORIGIN=http://127.0.0.1:8790 node tests/test_ezero_secure_connect_workerd_real_websocket_v0_1.mjs
+          echo "REAL_WORKER_ONE_QR_SERVER_MINTED_INVITE_AND_ROLE_CONSENT: PASS"
