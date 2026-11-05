@@ -15,6 +15,9 @@ try {
   page.on("pageerror",error=>console.log("PWA_PAGEERROR",String(error).slice(0,240)));
   await page.goto(root,{waitUntil:"domcontentloaded"});
   await page.waitForFunction(()=>document.querySelector("#myFingerprint").textContent.length===64);
+  assert.equal(await page.locator("#oneTapStartButton").isVisible(),true);
+  assert.equal(await page.locator("#shareConnectLink").isVisible(),false,"Install/share are optional, not front-page obstacles");
+  await page.locator("#secureAdvanced").evaluate(el=>el.open=true);
   assert.equal(await page.locator("#shareConnectLink").isVisible(),true);
   assert.equal(await page.locator("#copyConnectLink").isVisible(),true);
   assert.equal(await page.locator("#installSecureConnect").isVisible(),true);
@@ -87,6 +90,7 @@ try {
   contexts.push(iosContext);
   const iosPage=await iosContext.newPage();
   await iosPage.goto(root,{waitUntil:"domcontentloaded"});
+  await iosPage.locator("#secureAdvanced").evaluate(el=>el.open=true);
   await iosPage.locator("#installSecureConnect").click();
   assert.match(await iosPage.locator("#installHelpText").innerText(),/Safari|Share/);
   assert.equal(await iosPage.locator("#installSecureConnect").isEnabled(),true);
