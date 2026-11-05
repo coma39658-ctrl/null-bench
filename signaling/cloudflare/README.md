@@ -13,6 +13,8 @@ Cloudflare recommends hibernatable WebSockets and SQLite-backed Durable Objects.
 ## Deployment release gate — do not skip
 
 1. Confirm the right Cloudflare account, least-privilege Workers/Durable Objects deployment permissions and a trusted deployment token. Do not reuse the existing AI/vision worker as the signaling backend.
+First deployment needs permission to CREATE a new Worker (Cloudflare currently documents Workers product Admin for initial creation). Afterwards, restrict the deployment token to Editor on the single created Worker where supported. Durable Objects use the implementing Worker's roles. Use two repository Actions secrets, EZERO_SIGNALING_CF_API_TOKEN and EZERO_SIGNALING_CF_ACCOUNT_ID. Never paste either secret into chat; the GitHub Actions manual staging workflow reads them directly.
+
 2. Deploy the isolated staging Worker using Wrangler and its configuration file at signaling/cloudflare/wrangler.jsonc. Confirm the actual Worker URL and functioning WebSocket handshake. GitHub test success alone is NOT a live deployment.
 3. Pin the exact worker WebSocket origin in js/ezero_auto_signaling_config_v0_1.js. Keep enabled:false until the next gates pass.
 4. Update the Communications HTML Content-Security-Policy connect-src for that EXACT verified WSS origin. Do not allow wildcard hosts. The default CSP currently blocks any external signaling WebSocket.
