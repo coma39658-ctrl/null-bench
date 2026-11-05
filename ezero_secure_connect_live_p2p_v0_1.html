@@ -20,6 +20,7 @@
 <link rel="stylesheet" href="./css/ezero_secure_connect_public_qr_v0_2.css">
 <script defer src="./js/vendor/ezero-qrcode-generator-mit.js"></script>
 <script defer src="./js/ezero_secure_connect_public_qr_v0_2.js"></script>
+<script defer src="./js/ezero_secure_connect_remote_invite_v0_2.js"></script>
 </head>
 <body>
 <div class="shell">
@@ -57,6 +58,7 @@
       <p data-ui="distanceHelp">ایک دعوتی لنک کسی بھی میسنجر سے بھیجیں۔ دوسرے شخص کی منظوری کے بعد شناختی جواب مل سکتا ہے؛ کوئی کال خودکار نہیں ہوگی۔</p>
       <button type="button" id="remoteInviteButton" class="primary-action" data-ui="invite">↗ دعوتی لنک بھیجیں</button>
       <p id="inviteStatus" role="status" aria-live="polite" class="tiny-status"></p>
+      <div id="fallbackShare" hidden><p data-ui="fallback">اگر شیئر دستیاب نہ ہو تو لنک کاپی کریں۔</p><a id="fallbackShareLink" href="./c.html" rel="noreferrer">E-ZERO Connect</a><button type="button" id="copyPreparedLink" class="secondary-action" data-ui="copy">📋 دعوتی لنک کاپی کریں</button></div>
     </section>
     <section id="incomingPanel" class="card incoming-card" hidden aria-labelledby="incomingTitle">
       <h2 id="incomingTitle" data-ui="incomingTitle">دوست کی دعوت</h2>
