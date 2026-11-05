@@ -17,19 +17,19 @@
     ur:{ready:"✓ مختصر دعوت تیار ہے۔ دوست QR اسکین کرے یا لنک کھولے؛ جواب خود واپس آئے گا۔",
       copied:"✓ صرف عارضی دعوتی لنک کاپی ہوا۔ اسے قابلِ اعتماد دوست کو بھیجیں۔",
       copyFail:"لنک کاپی نہیں ہوا؛ «دعوت شیئر کریں» دبائیں۔",
-      invalid:"یہ E-ZERO کال دعوت کا صحیح QR نہیں۔",unsupported:"اس براؤزر میں QR اسکیننگ دستیاب نہیں۔ دوست کو لنک بھیجیں۔",
+      invalid:"یہ E-ZERO کال دعوت کا صحیح QR نہیں۔",identityOnly:"یہ شناختی QR ہے، کال کی دعوت نہیں۔ پہلے فون پر 📞 یا 📹 دبائیں اور اس کا «دوست یہ QR اسکین کرے» والا QR دکھائیں۔",unsupported:"اس براؤزر میں QR اسکیننگ دستیاب نہیں۔ دوست کو لنک بھیجیں۔",
       scanning:"📷 کیمرہ فعال ہے؛ دوست کی E-ZERO کال QR سامنے رکھیں۔",stopped:"کیمرہ بند ہے۔",
       failure:"QR اسکین ناکام؛ لنک کھولنے کا طریقہ استعمال کریں۔",timeout:"20 سیکنڈ میں QR نہیں ملا؛ کیمرہ بند ہے۔",
       starting:"کال شروع کرنے کی درخواست۔ مائیک/کیمرے کی اجازت آپ سے مانگی جائے گی۔"},
     en:{ready:"✓ One short invite ready. Your friend scans QR or opens link; the answer returns automatically.",
       copied:"✓ Invitation link copied. Share only with someone you trust.",
-      copyFail:"Cannot copy link; tap Share Invitation.",invalid:"This is not a valid E-ZERO call invitation QR.",
+      copyFail:"Cannot copy link; tap Share Invitation.",invalid:"This is not a valid E-ZERO call invitation QR.",identityOnly:"This QR verifies identity only. On the first phone tap Audio or Video, then scan the call invitation QR.",
       unsupported:"QR scan unavailable in this browser. Share the link instead.",scanning:"📷 Camera ready; scan friend's call QR.",
       stopped:"Camera off.",failure:"QR failed. Open the invitation link instead.",timeout:"No QR in 20 seconds; camera stopped.",
       starting:"Calling: camera/microphone permission will be requested."},
     ar:{ready:"✓ الدعوة المختصرة جاهزة؛ يفتحها الصديق ويعود الرد تلقائياً.",
       copied:"✓ نُسخ الرابط المؤقت. شاركه مع شخص موثوق فقط.",copyFail:"تعذر النسخ؛ اضغط مشاركة الدعوة.",
-      invalid:"هذا ليس رمز QR صالحاً لدعوة مكالمة E-ZERO.",unsupported:"مسح QR غير متاح؛ شارك الرابط بدلاً منه.",
+      invalid:"هذا ليس رمز QR صالحاً لدعوة مكالمة E-ZERO.",identityOnly:"هذا رمز هوية فقط. اضغط مكالمة صوتية أو فيديو في الهاتف الأول وامسح رمز دعوة الاتصال.",unsupported:"مسح QR غير متاح؛ شارك الرابط بدلاً منه.",
       scanning:"📷 الكاميرا تعمل. امسح رمز دعوة صديقك.",stopped:"تم إيقاف الكاميرا.",
       failure:"فشل المسح؛ افتح الرابط مباشرة.",timeout:"لم يُعثر على QR خلال 20 ثانية.",
       starting:"بدء المكالمة؛ سيطلب المتصفح إذن الميكروفون أو الكاميرا."}
@@ -113,11 +113,60 @@
     const incoming=$("ezeroAutoIncoming");
     return incoming&&!incoming.hidden;
   }
+  const incomingShell=$("ezeroOneIncomingShell"),progress=$("ezeroOneCallProgress");
+  const messages={
+    ur:{connecting:"درخواست قبول کر لی گئی؛ دونوں فونوں کا محفوظ رابطہ قائم کیا جا رہا ہے…",
+        connected:"✓ دونوں فونوں کا حقیقی WebRTC کنکشن قائم ہوگیا۔",
+        failed:"رابطہ مکمل نہیں ہوا۔ دونوں فونوں کی انٹرنیٹ اور STUN/TURN حالت چیک کریں۔",
+        rejected:"درخواست مسترد ہو گئی۔ کال شروع نہیں ہوئی۔"},
+    en:{connecting:"Request accepted; establishing the secure connection on both phones…",
+        connected:"✓ Both phones are connected over WebRTC.",
+        failed:"Connection not established. Check the two phones and STUN/TURN.",
+        rejected:"Request declined. No call started."},
+    ar:{connecting:"تم قبول الطلب؛ جارٍ توصيل الهاتفين بأمان…",
+        connected:"✓ تم اتصال WebRTC الحقيقي بين الهاتفين.",
+        failed:"تعذر الاتصال. تحقق من الإنترنت وخوادم STUN/TURN.",
+        rejected:"رُفض الطلب؛ لم تبدأ مكالمة."}
+  };
+  const msg=k=>(messages[document.documentElement.lang]||messages.ur)[k];
+  function showProgress(key){
+    if(!progress)return;
+    progress.hidden=false;
+    progress.textContent=msg(key);
+    progress.dataset.state=key;
+  }
   function jumpIncoming(){
-    if(hasIncoming())$("ezeroAutoPilot")?.scrollIntoView({block:"start",behavior:"auto"});
+    if(!hasIncoming())return;
+    incomingShell.hidden=false;
+    const type=new URLSearchParams(location.search).get("mode")==="video"?"video":"audio";
+    $("ezeroOneIncomingHeading").textContent=type==="video"?
+      "📹 آنے والی ویڈیو کال — قبول کریں؟":"📞 آنے والی آڈیو کال — قبول کریں؟";
+    $("ezeroOneJoinPanel")?.scrollIntoView({block:"start",behavior:"auto"});
   }
   document.addEventListener("ezero:auto-incoming-open",jumpIncoming);
   jumpIncoming();
+  // Accept/reject is a single user action. The answer travels on WebSocket,
+  // never through an extra copied invite or a second acceptance tap.
+  $("ezeroAutoAccept")?.addEventListener("click",()=>{
+    incomingShell.hidden=true;
+    showProgress("connecting");
+    $("ezeroOneJoinPanel")?.scrollIntoView({block:"start",behavior:"auto"});
+  });
+  $("ezeroAutoDecline")?.addEventListener("click",()=>{
+    incomingShell.hidden=true;
+    showProgress("rejected");
+  });
+  function showPeerResult(){
+    if(window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true)
+      showProgress("connected");
+  }
+  document.addEventListener("ezero:channel-state",showPeerResult);
+  document.addEventListener("ezero:call-status",e=>{
+    const stage=e.detail?.stage;
+    if(stage==="connected")showPeerResult();
+    else if(["iceNoRoute","signalInvalid","micDenied","fingerprintMismatch","failed"].includes(stage))
+      showProgress("failed");
+  });
   async function scan(){
     const start=$("ezeroOneScanInvite");
     if(!window.BarcodeDetector||!navigator.mediaDevices?.getUserMedia){
@@ -148,7 +197,7 @@
             if(safeInvite(raw)){
               stopScan();
               location.assign(raw); // Shows accept/reject, never auto-accepts.
-            }else{stopScan();info("invalid",true);}
+            }else{stopScan();info(raw.startsWith("EZERO1.")?"identityOnly":"invalid",true);}
             return;
           }
           loops=0;
