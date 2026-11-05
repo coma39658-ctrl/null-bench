@@ -189,6 +189,9 @@ async function showIncoming(link){
 $("ezeroAcceptInvite").addEventListener("click",()=>{
   if(!pendingSigned)return;
   const data=pendingSigned;
+  document.dispatchEvent(new CustomEvent("ezero:call-intent",{detail:{
+    direction:data.type==="offer"?"inbound":"outbound"
+  }}));
   pendingSigned=null;$("ezeroIncomingInvite").hidden=true;
   // No network or microphone access is requested until this explicit click.
   if(data.type==="offer"){
