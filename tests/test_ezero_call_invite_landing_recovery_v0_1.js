@@ -12,6 +12,7 @@ new vm.Script(main);
 
 // The static short link must route genuine signed SDP invites to the
 // communications page; general identity invitations stay in the identity hub.
+// A bare invitation/home link now uses the one-page green public calling UI.
 // The URL fragment is kept on the client and never sent to an analytics site.
 const base="https://coma39658-ctrl.github.io/null-bench/c.html";
 for(const [suffix,path] of [
@@ -19,7 +20,7 @@ for(const [suffix,path] of [
   ["#e=Abc_xyz-123","ezero_secure_connect_communications_v0_3.html"],
   ["#i=identity","ezero_secure_connect_live_p2p_v0_1.html"],
   ["#r=reply","ezero_secure_connect_live_p2p_v0_1.html"],
-  ["","ezero_secure_connect_live_p2p_v0_1.html"]
+  ["","ezero_secure_connect_one_request_lab_20261106.html"]
 ]){
   const location={href:base+suffix,hash:suffix,search:"",replace(x){this.out=x;}};
   vm.runInNewContext(short,{location,URL},{timeout:1000});
