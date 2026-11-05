@@ -126,6 +126,16 @@ export class PairV1SqliteAtomicPasskeyFinishLab{
    csrf_digest TEXT NOT NULL UNIQUE,
    created_at INTEGER NOT NULL
   )`);
+  // Durable provenance between a server-owned observation session and the
+  // EXACT WebAuthn challenge consumed in the same SQLite transaction.
+  // Evidence provenance is NOT account/call/Trusted Device authorization.
+  this.#sql.exec(`CREATE TABLE IF NOT EXISTS ezero_v1_session_auth_link_lab (
+   sid TEXT PRIMARY KEY,
+   auth_session_id TEXT NOT NULL UNIQUE,
+   account_id TEXT NOT NULL,
+   credential_id TEXT NOT NULL,
+   linked_at INTEGER NOT NULL
+  )`);
  }
  #record(accountId,credentialId){
   const rows=this.#sql.exec(
@@ -275,6 +285,10 @@ export class PairV1SqliteAtomicPasskeyFinishLab{
      this.#sql.exec(`INSERT INTO ezero_v1_session_csrf_lab
        (sid,csrf_digest,created_at) VALUES(?,?,?)`,
        issuance.cookieSid,issuance.csrfDigest,now);
+     this.#sql.exec(`INSERT INTO ezero_v1_session_auth_link_lab
+       (sid,auth_session_id,account_id,credential_id,linked_at)
+       VALUES(?,?,?,?,?)`,
+       issuance.cookieSid,sessionId,accountId,record.credentialId,now);
      return out(true,"PASSKEY_AND_OBSERVE_ONLY_SESSION_ATOMIC_LAB",{
       challengeConsumed:true,counterPersisted:true,nextSignCount:next,
       // This header belongs ONLY in a trusted same-origin HTTPS Set-Cookie
