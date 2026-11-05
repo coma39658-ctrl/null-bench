@@ -8,7 +8,7 @@
 (()=>{
 "use strict";
 const $=id=>document.getElementById(id);
-const BUILD="ezero-connect-20261105-trust-copilot-preflight-v1";
+const BUILD="ezero-connect-oneqr-easy-first-20261105-lab-v1";
 const labels={
  ur:{
   button:"🔍 فون اور ایپ کی حالت چیک کریں",
