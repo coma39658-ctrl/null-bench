@@ -1,0 +1,57 @@
+name: E-ZERO isolated signaling staging activation check (non-public)
+on:
+  push:
+    branches:
+      - ezero-cloudflare-signaling-staging-activation-20261105
+    paths:
+      - '.github/workflows/ezero_signaling_staging_activation_once_20261105.yml'
+      - 'signaling/cloudflare/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ezero-signaling-staging-activation-only
+  cancel-in-progress: false
+jobs:
+  deploy-staging-if-authorized:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    environment: signaling-staging
+    steps:
+      - name: Checkout isolated pilot source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify local signaling security; keep public feature OFF
+        run: |
+          set -euo pipefail
+          node --input-type=module --check < signaling/cloudflare/src/worker.js
+          node --check js/ezero_secure_connect_auto_signaling_pilot_v0_1.js
+          node tests/test_ezero_cloudflare_auto_signaling_v0_1.js
+          grep -Fq 'enabled:false' js/ezero_auto_signaling_config_v0_1.js
+          grep -Fq 'websocketOrigin:""' js/ezero_auto_signaling_config_v0_1.js
+          grep -Fq '"name": "ezero-browser-signaling-pilot"' signaling/cloudflare/wrangler.jsonc
+          grep -Fq '"new_sqlite_classes": ["SignalRoom"]' signaling/cloudflare/wrangler.jsonc
+      - name: Check signaling-only deployment credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.EZERO_SIGNALING_CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.EZERO_SIGNALING_CF_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "BLOCKED: EZERO_SIGNALING_CF_API_TOKEN unavailable; no deploy"; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "BLOCKED: EZERO_SIGNALING_CF_ACCOUNT_ID unavailable; no deploy"; exit 1; }
+      - name: Deploy only dedicated signaling Worker (not AI/Vision)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.EZERO_SIGNALING_CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.EZERO_SIGNALING_CF_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts wrangler@4
+          npx wrangler deploy --config signaling/cloudflare/wrangler.jsonc
+      - name: Confirmation without enabling public calling
+        run: |
+          echo "STAGING DEPLOY EXECUTED. Verify actual WSS URL/health; keep E-ZERO public auto-call disabled."
