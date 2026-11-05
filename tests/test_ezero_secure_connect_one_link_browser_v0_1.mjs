@@ -200,6 +200,28 @@ try{
  await receiver.locator("#oneQrEnd").click();
  await receiver.waitForFunction(()=>document.querySelector("#roomStatus").dataset.state==="ended");
  console.log("ONE_QR_EXPLICIT_END_CLOSES_ROOM: PASS");
+ // Distant friend: opening the single private link initiates signaling
+ // automatically, without copying SDP or opening a microphone until Accept.
+ const priorMic=await receiver.evaluate(()=>window.__mediaCalls.length);
+ await receiver.locator("#oneQrShow").click();
+ await receiver.waitForFunction(()=>!document.querySelector("#oneQrVisual").hidden,
+  {timeout:18000});
+ const remoteLink=await receiver.locator("#roomLink").inputValue();
+ await scanner.goto(remoteLink);
+ await scanner.waitForFunction(()=>document.querySelector("#myDigitalId")?.value.startsWith("EZERO1."));
+ await receiver.waitForFunction(()=>!document.querySelector("#oneQrRequest").hidden,
+  {timeout:15000});
+ assert.equal((await scanner.evaluate(()=>location.hash)),"","Private link erased from browser history");
+ assert.equal(await receiver.evaluate(()=>window.__mediaCalls.length),priorMic,
+  "Incoming distant request never silently opens host mic");
+ assert.equal(await scanner.evaluate(()=>window.__mediaCalls.length),0,
+  "Opening one private URL never silently opens guest mic");
+ await receiver.locator("#oneQrAccept").click();
+ await Promise.all([receiver,scanner].map(page=>page.waitForFunction(
+  ()=>document.querySelector("#sendMessage")?.disabled===false,{timeout:40000})));
+ assert.equal(await scanner.evaluate(()=>window.__connectedEvents>0),true);
+ console.log("REMOTE_PRIVATE_LINK_AUTO_REQUEST_ONE_ACCEPT_NO_COPY_NO_AUTO_MIC: PASS");
+ await receiver.locator("#oneQrEnd").click();
 }finally{
  await Promise.allSettled([...ctxs.map(c=>c.close()),browser.close()]);
 }
