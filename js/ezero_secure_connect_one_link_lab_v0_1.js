@@ -504,5 +504,12 @@ $("oneQrDecline").addEventListener("click",()=>{if(!$("roomDecline").disabled)$(
 $("oneQrEnd").addEventListener("click",()=>{if(!$("roomEnd").disabled)$("roomEnd").click();});
 window.addEventListener("pagehide",()=>{try{ws?.close(1000,"Page closed");}catch(_){}clearQr();});
 $("language").addEventListener("change",draw);
+// An invitation can arrive while the app is ALREADY OPEN on the same page.
+// Browsers use a same-document hash navigation in this case: the scripts
+// do not reload. Handle that navigation and immediately strip bearer data
+// from the visible address/history before verifying or joining the room.
+window.addEventListener("hashchange",()=>{
+ if(location.hash.startsWith("#callroom="))readLink();
+});
 readLink();draw();
 })();
