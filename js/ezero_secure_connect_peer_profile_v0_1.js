@@ -11,40 +11,40 @@
   const KEY="ezero_secure_connect_local_profile_v0_1";
   const PHOTO=/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
   const copy={
-    ur:{editProfile:"👤 میری E-ZERO پروفائل — نام اور تصویر",
+    ur:{editProfile:"yourPhoto":"پروفائل تصویر (اختیاری)","cameraPhoto":"📷 کیمرے سے تصویر لیں","galleryPhoto":"🖼️ گیلری سے تصویر منتخب کریں","photoHint":"تصویر صرف آپ کے منتخب کرنے پر لی جائے گی۔ کیمرہ خودکار نہیں کھلے گا۔","photoReady":"✓ تصویر تیار ہے۔ پروفائل محفوظ کریں۔","photoRejected":"تصویر نہیں پڑھی جا سکی۔ JPEG، PNG یا WebP منتخب کریں؛ کیمرہ استعمال ہو تو فون کی اجازت چیک کریں۔","👤 میری E-ZERO پروفائل — نام اور تصویر",
       profilePrivacy:"نام اور تصویر صرف اس فون پر محفوظ رہیں گے؛ دونوں فون کے محفوظ رابطے اور آپ کی اجازت کے بعد ہی دوست کو بھیجے جائیں گے۔",
-      yourName:"آپ کا نام",yourPhoto:"تصویر منتخب کریں (اختیاری)",shareConsent:"میرا نام اور منتخب تصویر حقیقی کال کنکشن بننے پر دوست کو شیئر کرنے کی اجازت ہے؛ میں اسے بعد میں بند کرسکتا ہوں۔",
+      yourName:"آپ کا نام",shareConsent:"میرا نام اور منتخب تصویر حقیقی کال کنکشن بننے پر دوست کو شیئر کرنے کی اجازت ہے؛ میں اسے بعد میں بند کرسکتا ہوں۔",
       saveProfile:"✓ پروفائل محفوظ کریں",profileLocal:"پروفائل ابھی صرف اس فون پر ہے۔",
       noProfile:"دوست نے ابھی پروفائل شیئر نہیں کی",verifiedConnection:"✓ دونوں فون WebRTC پر کنیکٹ ہیں",
       selfDeclared:"نام/تصویر دوست نے خود فراہم کی ہیں؛ انسانی شناخت کی ضمانت نہیں۔",
       saved:"✓ پروفائل اس فون پر محفوظ ہے۔",sharing:"✓ محفوظ رابطے پر آپ کی منظور شدہ پروفائل شیئر ہوئی ہے۔",
       notSharing:"پروفائل محفوظ ہے، لیکن دوسرے فون کو شیئر نہیں ہوئی۔",
       invalid:"1 سے 40 حروف تک اپنا نام درج کریں۔",
-      photoRejected:"یہ تصویر بہت بڑی، غیر معاون یا خراب ہے۔ JPEG، PNG یا WebP منتخب کریں۔",
+      
       storeError:"اس براؤزر میں مقامی پروفائل محفوظ نہ ہو سکی۔",profileReceived:"دوست کی فراہم کردہ پروفائل",
       idPrefix:"تصدیق شدہ عارضی ڈیجیٹل آئی ڈی"},
-    en:{editProfile:"👤 My E-ZERO profile — name & photo",
+    en:{editProfile:"yourPhoto":"Profile photo (optional)","cameraPhoto":"📷 Take a photo","galleryPhoto":"🖼️ Choose from gallery","photoHint":"Only you can start camera capture or choose an image. The camera never opens automatically.","photoReady":"✓ Photo is ready. Save your profile.","photoRejected":"Could not read this picture. Choose JPEG, PNG or WebP; check camera permissions if capturing.","👤 My E-ZERO profile — name & photo",
       profilePrivacy:"Your name and photo stay on this phone until you opt in and a verified call connection is established.",
-      yourName:"Your name",yourPhoto:"Choose photo (optional)",shareConsent:"Share my name and chosen photo with my friend after a real secure call connection. I can turn this off later.",
+      yourName:"Your name",shareConsent:"Share my name and chosen photo with my friend after a real secure call connection. I can turn this off later.",
       saveProfile:"✓ Save profile",profileLocal:"Your profile is currently local to this phone.",
       noProfile:"Friend has not shared a profile yet",verifiedConnection:"✓ Both phones are connected via WebRTC",
       selfDeclared:"Photo/name were provided by the peer; not proof of their real-world identity.",
       saved:"✓ Profile saved only on this phone.",sharing:"✓ Approved profile shared over the secure connection.",
       notSharing:"Profile saved locally; not shared with your peer.",
       invalid:"Enter a name of 1–40 characters.",
-      photoRejected:"The picture is too large, unsupported, or invalid. Choose JPEG, PNG or WebP.",
+      
       storeError:"Browser storage prevented saving your local profile.",profileReceived:"Friend's self-declared profile",
       idPrefix:"Verified temporary digital ID"},
-    ar:{editProfile:"👤 ملفي في E-ZERO — الاسم والصورة",
+    ar:{editProfile:"yourPhoto":"الصورة الشخصية (اختياري)","cameraPhoto":"📷 التقاط صورة بالكاميرا","galleryPhoto":"🖼️ اختيار صورة من المعرض","photoHint":"لن تُلتقط صورة إلا باختيارك. لا تفتح الكاميرا تلقائيًا.","photoReady":"✓ الصورة جاهزة. احفظ الملف الشخصي.","photoRejected":"تعذر قراءة هذه الصورة. اختر JPEG أو PNG أو WebP وتحقق من أذونات الكاميرا عند التصوير.","👤 ملفي في E-ZERO — الاسم والصورة",
       profilePrivacy:"يبقى الاسم والصورة على هذا الهاتف ولا تُرسلان إلا بموافقتك بعد اتصال مكالمة آمن.",
-      yourName:"اسمك",yourPhoto:"اختر صورة (اختياري)",shareConsent:"أسمح بمشاركة اسمي وصورتي المختارة مع صديقي بعد اتصال آمن حقيقي؛ ويمكنني إلغاء الموافقة لاحقًا.",
+      yourName:"اسمك",shareConsent:"أسمح بمشاركة اسمي وصورتي المختارة مع صديقي بعد اتصال آمن حقيقي؛ ويمكنني إلغاء الموافقة لاحقًا.",
       saveProfile:"✓ حفظ الملف",profileLocal:"الملف محفوظ محليًا على هذا الهاتف فقط.",
       noProfile:"لم يشارك الصديق ملفه بعد",verifiedConnection:"✓ الهاتفان متصلان عبر WebRTC",
       selfDeclared:"الاسم والصورة قدّمهما الطرف الآخر؛ لا يثبتان هويته الواقعية.",
       saved:"✓ حُفظ الملف على هذا الهاتف فقط.",sharing:"✓ تمت مشاركة الملف الموافق عليه عبر اتصال آمن.",
       notSharing:"الملف محفوظ محليًا ولم يُشارك مع الصديق.",
       invalid:"أدخل اسمًا من حرف واحد إلى 40 حرفًا.",
-      photoRejected:"الصورة كبيرة جدًا أو غير مدعومة أو غير صالحة. اختر JPEG أو PNG أو WebP.",
+      
       storeError:"منع المتصفح حفظ الملف المحلي.",profileReceived:"ملف الصديق الذي اختاره",
       idPrefix:"معرّف رقمي مؤقت تم التحقق منه"}
   };
@@ -114,15 +114,23 @@
   $("ezeroMyName").addEventListener("input",()=>{
     if(!draftAvatar)showAvatar("ezeroMyAvatar","ezeroMyInitial",$("ezeroMyName").value,"");
   });
-  $("ezeroMyPhoto").addEventListener("change",async()=>{
-    const file=$("ezeroMyPhoto").files?.[0];
-    if(!file)return;
+  // A capture input and a gallery input are intentionally separate.
+  // Browser/OS chooses whether camera access is available; neither starts on load.
+  $("ezeroCameraButton").addEventListener("click",()=> $("ezeroCameraPhoto").click());
+  $("ezeroGalleryButton").addEventListener("click",()=> $("ezeroMyPhoto").click());
+  let photoBusy=false;
+  async function onPhotoChosen(inputId){
+    const input=$(inputId),file=input.files?.[0];
+    if(!file||photoBusy)return;
     if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size>2*1024*1024){
-      labelStatus("photoRejected");$("ezeroMyPhoto").value="";return;
+      labelStatus("photoRejected");input.value="";return;
     }
+    photoBusy=true;
+    $("ezeroCameraButton").disabled=true;
+    $("ezeroGalleryButton").disabled=true;
     try{
-      // The page CSP deliberately permits data: photos, but not blob: images.
-      // Read only the explicitly selected file, never upload or request a URL.
+      // Read only a user-picked file locally; never send it to a photo server.
+      // CSP permits data: pictures but forbids blob: image sources.
       const localData=await new Promise((resolve,reject)=>{
         const reader=new FileReader();
         reader.onload=()=>resolve(reader.result);
@@ -135,19 +143,28 @@
         photo.onload=resolve;photo.onerror=reject;photo.src=localData;
       });
       if(!photo.naturalWidth||!photo.naturalHeight)throw Error("BAD_IMAGE");
-      const canvas=document.createElement("canvas");canvas.width=72;canvas.height=72;
+      const canvas=document.createElement("canvas");
+      canvas.width=72;canvas.height=72;
       const ctx=canvas.getContext("2d");
       if(!ctx)throw Error("NO_CANVAS");
       const edge=Math.min(photo.naturalWidth,photo.naturalHeight);
-      ctx.drawImage(photo,(photo.naturalWidth-edge)/2,(photo.naturalHeight-edge)/2,edge,edge,0,0,72,72);
+      ctx.drawImage(photo,(photo.naturalWidth-edge)/2,(photo.naturalHeight-edge)/2,
+        edge,edge,0,0,72,72);
       const encoded=canvas.toDataURL("image/jpeg",.6);
       if(!PHOTO.test(encoded)||encoded.length>12000)throw Error("IMAGE_TOO_LARGE");
       draftAvatar=encoded;
       showAvatar("ezeroMyAvatar","ezeroMyInitial",$("ezeroMyName").value,draftAvatar);
-      labelStatus("profileLocal");
+      labelStatus("photoReady");
     }catch(_){labelStatus("photoRejected");}
-    finally{$("ezeroMyPhoto").value="";}
-  });
+    finally{
+      input.value="";
+      photoBusy=false;
+      $("ezeroCameraButton").disabled=false;
+      $("ezeroGalleryButton").disabled=false;
+    }
+  }
+  $("ezeroCameraPhoto").addEventListener("change",()=>onPhotoChosen("ezeroCameraPhoto"));
+  $("ezeroMyPhoto").addEventListener("change",()=>onPhotoChosen("ezeroMyPhoto"));
   $("ezeroSaveProfile").addEventListener("click",()=>{
     const name=cleanName($("ezeroMyName").value);
     if(name.length<1||name.length>40){labelStatus("invalid");return;}
