@@ -26,6 +26,7 @@ async function phone(){
  page.on("pageerror",error=>{console.log("COPILOT_PAGE_ERROR",String(error).slice(0,180));});
  await page.goto(origin+"/ezero_secure_connect_live_p2p_v0_1.html");
  await page.waitForFunction(()=>document.querySelector("#myFingerprint")?.textContent.trim().length===64);
+ await page.locator("#oneQrAdvanced").evaluate(el=>el.open=true);
  return page;
 }
 let a,b;
