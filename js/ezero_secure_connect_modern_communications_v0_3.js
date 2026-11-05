@@ -253,7 +253,10 @@ receiveHash();
 window.addEventListener("hashchange",receiveHash);
 function setConnection(stage){
  const el=$("modernConnectionStatus");
- const connected=stage==="connected";
+ // Green success requires a genuine signed-peer-associated WebRTC connection.
+ // A synthetic status event, invitation acceptance or open page cannot claim it.
+ const connected=stage==="connected"&&
+   window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true;
  el.textContent=t(connected?"connected":stage==="iceNoRoute"||stage==="signalInvalid"||stage==="micDenied"?"failed":stage==="idle"?"idle":"connecting");
  const failed=["iceNoRoute","signalInvalid","micDenied","invalid","failed"].includes(stage);
  el.dataset.state=connected?"connected":failed?"error":"idle";
