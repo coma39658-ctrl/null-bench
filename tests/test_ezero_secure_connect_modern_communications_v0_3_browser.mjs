@@ -124,6 +124,27 @@ try{
   assert.match(await a.locator('[data-modern="voice"]').innerText(),/رسالة صوتية/);
   await a.locator("#language").selectOption("ur");
   console.log("FOUR_VISIBLE_MODE_CONTROLS_AND_THREE_LANGUAGES_NO_AUTO_MEDIA: PASS");
+  const selectedGreen=await a.locator('[data-modern-select="audio"]').evaluate(
+    el=>getComputedStyle(el).borderTopColor);
+  assert.equal(selectedGreen,"rgb(25, 131, 78)",
+    "Selected communication mode should use confident accessible green");
+  await a.locator("#ezeroPeopleHub").evaluate(el=>el.open=true);
+  const savedFriendFP=(await b.locator("#myFingerprint").innerText()).trim();
+  await a.evaluate(fp=>localStorage.setItem("ezero_secure_connect_local_fingerprints_v0_1",
+    JSON.stringify([{fp,name:"Saved QR Friend"}])),savedFriendFP);
+  await a.locator("#ezeroTabFriends").click();
+  assert.match(await a.locator("#ezeroPeopleList").innerText(),/Saved QR Friend/);
+  assert.match(await a.locator("#ezeroPeopleList").innerText(),/دوبارہ تصدیق/);
+  await a.locator("#ezeroTabMissed").click();
+  assert.match(await a.locator("#ezeroPeopleList").innerText(),/مس کال/);
+  assert.equal(await a.locator("#ezeroHistoryConsent").isChecked(),false);
+  assert.equal(await a.evaluate(()=>
+    localStorage.getItem("ezero_local_completed_call_history_v0_1")),null,
+    "No call history should be created without explicit opt-in");
+  await b.locator("#ezeroPeopleHub").evaluate(el=>el.open=true);
+  await b.locator("#ezeroHistoryConsent").check();
+  assert.equal(await b.locator("#ezeroHistoryConsent").isChecked(),true);
+  console.log("GREEN_SELECTION_SAVED_QR_CONTACTS_NO_FAKE_MISSED_OR_AUTOMATIC_LOGS: PASS");
 
   // Self-declared profile is local until the user explicitly opts in.
   await a.locator("#ezeroProfileEditor").evaluate(el=>el.open=true);
@@ -133,15 +154,28 @@ try{
   assert.equal(await a.locator("#ezeroPeerProfileCard").isHidden(),true);
   await b.locator("#ezeroProfileEditor").evaluate(el=>el.open=true);
   await b.locator("#ezeroMyName").fill("Test Caller B");
-  await b.locator("#ezeroMyPhoto").evaluate(async input=>{
+  // Distinct, real user-triggered Android file-picker and camera actions.
+  assert.equal(await b.locator("#ezeroCameraPhoto").getAttribute("capture"),"user");
+  assert.equal(await b.locator("#ezeroMyPhoto").getAttribute("capture"),null);
+  assert.equal(await a.locator("#ezeroMyAvatar").isHidden(),true);
+  const cameraChooserPromise=a.waitForEvent("filechooser");
+  await a.locator("#ezeroCameraButton").click();
+  const cameraChooser=await cameraChooserPromise;
+  assert.equal(await cameraChooser.element().getAttribute("id"),"ezeroCameraPhoto");
+  await cameraChooser.setFiles([]); // Cancel: no picture may be taken without the user.
+  const pngBase64=await b.evaluate(()=>{
     const canvas=document.createElement("canvas");
     canvas.width=64;canvas.height=64;
     canvas.getContext("2d").fillRect(0,0,64,64);
-    const png=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
-    const transfer=new DataTransfer();
-    transfer.items.add(new File([png],"friend-avatar.png",{type:"image/png"}));
-    input.files=transfer.files;
-    input.dispatchEvent(new Event("change",{bubbles:true}));
+    return canvas.toDataURL("image/png").split(",")[1];
+  });
+  const galleryChooserPromise=b.waitForEvent("filechooser");
+  await b.locator("#ezeroGalleryButton").click();
+  const galleryChooser=await galleryChooserPromise;
+  assert.equal(await galleryChooser.element().getAttribute("id"),"ezeroMyPhoto");
+  await galleryChooser.setFiles({
+    name:"friend-avatar.png",mimeType:"image/png",
+    buffer:Buffer.from(pngBase64,"base64")
   });
   await b.waitForFunction(()=>document.querySelector("#ezeroMyAvatar")?.hidden===false);
   await b.locator("#ezeroShareProfile").check();
@@ -163,6 +197,22 @@ try{
   assert.equal(await a.evaluate(()=>document.querySelector("#localVideo").srcObject.getAudioTracks().length),1);
   assert.equal(await b.evaluate(()=>document.querySelector("#remoteVideo").srcObject.getAudioTracks().length),1);
   console.log("EXPERIMENTAL_REAL_WEBRTC_AUDIO_WITH_MANUAL_SIGNALING: PASS");
+  const bHistory=await b.evaluate(()=>
+    JSON.parse(localStorage.getItem("ezero_local_completed_call_history_v0_1")||"[]"));
+  assert.equal(bHistory.length,1,
+    "Only a real connected call may appear in opted-in local history");
+  assert.equal(bHistory[0].direction,"inbound",
+    "Accepting a signed incoming offer is an actual received call, not missed");
+  assert.match(bHistory[0].fp,/^[a-f0-9]{64}$/);
+  assert.equal(await a.evaluate(()=>
+    localStorage.getItem("ezero_local_completed_call_history_v0_1")),null,
+    "Non-consenting caller keeps no local call log");
+  await b.locator("#ezeroPeopleHub").evaluate(el=>el.open=true);
+  await b.locator("#ezeroTabCalls").click();
+  assert.match(await b.locator("#ezeroPeopleList").innerText(),/موصولہ کال/);
+  await b.locator("#ezeroTabMissed").click();
+  assert.match(await b.locator("#ezeroPeopleList").innerText(),/مس کال/);
+  console.log("REAL_CONNECTED_INCOMING_CALL_OPT_IN_HISTORY_NO_INVENTED_MISSED: PASS");
   await a.locator("#ezeroPeerProfileCard").waitFor({state:"visible",timeout:12000});
   await a.waitForFunction(()=>
     document.querySelector("#ezeroPeerDisplayName")?.textContent==="Test Caller B",{timeout:12000});
