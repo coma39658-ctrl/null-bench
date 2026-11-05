@@ -199,17 +199,14 @@ try{
   console.log("EXPERIMENTAL_REAL_WEBRTC_AUDIO_WITH_MANUAL_SIGNALING: PASS");
   const bHistory=await b.evaluate(()=>
     JSON.parse(localStorage.getItem("ezero_local_completed_call_history_v0_1")||"[]"));
-  assert.equal(bHistory.length,1,
-    "Only a real connected call may appear in opted-in local history");
-  assert.equal(bHistory[0].direction,"inbound",
-    "Accepting a signed incoming offer is an actual received call, not missed");
-  assert.match(bHistory[0].fp,/^[a-f0-9]{64}$/);
+  assert.equal(bHistory.length,0,
+    "Ongoing call must not be saved as a completed call until actual hangup");
   assert.equal(await a.evaluate(()=>
     localStorage.getItem("ezero_local_completed_call_history_v0_1")),null,
     "Non-consenting caller keeps no local call log");
   await b.locator("#ezeroPeopleHub").evaluate(el=>el.open=true);
   await b.locator("#ezeroTabCalls").click();
-  assert.match(await b.locator("#ezeroPeopleList").innerText(),/موصولہ کال/);
+  assert.match(await b.locator("#ezeroPeopleList").innerText(),/ابھی کوئی مکمل/);
   await b.locator("#ezeroTabMissed").click();
   assert.match(await b.locator("#ezeroPeopleList").innerText(),/مس کال/);
   console.log("REAL_CONNECTED_INCOMING_CALL_OPT_IN_HISTORY_NO_INVENTED_MISSED: PASS");
@@ -275,21 +272,40 @@ try{
   const finished=await b.evaluate(()=>
     JSON.parse(localStorage.getItem("ezero_local_completed_call_history_v0_1")||"[]"));
   assert.equal(finished.length,1);
-  assert.equal(finished[0].direction,"inbound");
-  assert.ok(finished[0].seconds>=0);
+  assert.equal(finished[0].direction,"incoming");
+  assert.equal(finished[0].kind,"audio");
+  assert.equal(finished[0].name,"Test Caller A");
+  assert.ok(Date.now()-finished[0].ended<600000);
+  assert.equal(Object.hasOwn(finished[0],"fp"),false);
+  assert.equal(Object.hasOwn(finished[0],"media"),false);
+  assert.equal(await a.evaluate(()=>
+    localStorage.getItem("ezero_local_completed_call_history_v0_1")),null,
+    "Nonconsenting phone must not record a completed call");
   await b.reload({waitUntil:"domcontentloaded"});
   await b.locator("#ezeroPeopleHub").evaluate(el=>el.open=true);
   await b.locator("#ezeroTabCalls").click();
   assert.equal(await b.locator(".ezero-person-card").count(),1,
     "Opted-in history survives a reload on this device only");
-  b.once("dialog",async dialog=>dialog.accept());
-  await b.locator("#ezeroHistoryClear").click();
+  // Move the actual completed record beyond its 10-minute TTL. Loading the
+  // page again must purge it without asking the user or retaining metadata.
+  await b.evaluate(()=>{
+    const key="ezero_local_completed_call_history_v0_1";
+    const list=JSON.parse(localStorage.getItem(key));
+    list[0].ended=Date.now()-600001;
+    localStorage.setItem(key,JSON.stringify(list));
+  });
+  await b.reload({waitUntil:"domcontentloaded"});
+  await b.locator("#ezeroPeopleHub").evaluate(el=>el.open=true);
+  await b.locator("#ezeroTabCalls").click();
   assert.equal(await b.locator(".ezero-person-card").count(),0);
+  assert.deepEqual(await b.evaluate(()=>
+    JSON.parse(localStorage.getItem("ezero_local_completed_call_history_v0_1")||"[]")),[]);
+  await b.locator("#ezeroHistoryConsent").uncheck();
   assert.equal(await b.evaluate(()=>
     localStorage.getItem("ezero_local_completed_call_history_v0_1")),null);
   await b.locator("#ezeroTabMissed").click();
   assert.equal(await b.locator(".ezero-person-card").count(),0);
-  console.log("OPT_IN_LOCAL_HISTORY_PERSISTS_AND_CAN_BE_ERASED_NO_FALSE_MISSED: PASS");
+  console.log("REAL_CALL_HISTORY_AUTO_EXPIRES_AFTER_TEN_MINUTES_AND_OPT_OUT_ERASES: PASS");
   console.log("HANGUP_CLOSES_PEER_CHANNEL_AND_STOPS_STREAM: PASS");
 }finally{
   for(const ctx of contexts)await ctx.close().catch(()=>{});
