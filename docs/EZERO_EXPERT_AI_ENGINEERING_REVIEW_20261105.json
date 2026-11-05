@@ -1,0 +1,291 @@
+{
+  "schema": "EZERO_EXPERT_AI_ENGINEERING_REVIEW_V0_1",
+  "date": "2026-11-05",
+  "release": "NO_GO",
+  "workflow": "Propose → Threat-model → Small code change → Negative tests → CI → Evidence → Human release approval",
+  "rules": {
+    "no_claim_without_evidence": true,
+    "no_ai_write_to_public_or_credential_sources": true,
+    "no_automatic_spend": true,
+    "keep_obd_read_only": true,
+    "no_user_secrets_in_chat": true,
+    "explain_failures_in_urdu": true
+  },
+  "questions": [
+    {
+      "id": "UX-001",
+      "category": "UX",
+      "priority": "P0",
+      "status": "LAB_PASS",
+      "question_ur": "کیا پہلا رابطہ ایک QR، ایک اسکین اور واضح منظوری سے ممکن ہے؟",
+      "decision_ur": "موجودہ آسان QR تجربہ موجود ہے؛ حقیقی موبائل پیمائش باقی۔",
+      "next_action_ur": "دو حقیقی فونوں پر وقت، غلطیوں اور completion rate کا تجربہ",
+      "evidence": "https://github.com/coma39658-ctrl/null-bench/actions/runs/42052901411",
+      "source": "https://www.w3.org/WAI/standards-guidelines/wcag/"
+    },
+    {
+      "id": "UX-002",
+      "category": "UX",
+      "priority": "P1",
+      "status": "OPEN",
+      "question_ur": "کیا کیمرہ نہ چلے تو ایک نجی لنک بغیر لمبے کوڈ کے کام کرتا ہے؟",
+      "decision_ur": "نجی share fallback براؤزر lab میں ہے، حقیقی iPhone/Android نامعلوم۔",
+      "next_action_ur": "کیمرہ ناکامی اور Android/iPhone share sheet عملی جانچ",
+      "evidence": null,
+      "source": "https://www.w3.org/WAI/standards-guidelines/wcag/"
+    },
+    {
+      "id": "ACC-001",
+      "category": "Identity",
+      "priority": "P0",
+      "status": "BLOCKED",
+      "question_ur": "پہلی بار اکاؤنٹ کا حقیقی مالک کیسے ثابت ہوگا؟",
+      "decision_ur": "PREVERIFIED_LAB_ONLY ایک test fixture ہے، مالک کا اصل ثبوت نہیں۔",
+      "next_action_ur": "قابلِ نظرثانی account bootstrap اور recovery flow، abuse test",
+      "evidence": null,
+      "source": "https://csrc.nist.gov/pubs/sp/800/63/B/4/final"
+    },
+    {
+      "id": "ACC-002",
+      "category": "Identity",
+      "priority": "P0",
+      "status": "BLOCKED",
+      "question_ur": "گمشدہ فون اور کھوئی Passkey کے بعد محفوظ recovery کیسے ہوگی؟",
+      "decision_ur": "Recovery mechanism اور اپیل/lockout نہیں۔",
+      "next_action_ur": "recovery threat-model اور آزمودہ انفرادی account control",
+      "evidence": null,
+      "source": "https://csrc.nist.gov/pubs/sp/800/63/B/4/final"
+    },
+    {
+      "id": "PASS-001",
+      "category": "WebAuthn",
+      "priority": "P0",
+      "status": "BLOCKED",
+      "question_ur": "کیا آخری HTTPS Host اور RP ID سے اصل Passkey بندھی ہے؟",
+      "decision_ur": "Lab کا WebAuthn origin GitHub Pages ہے، Worker الگ ہے۔",
+      "next_action_ur": "مستقل canonical hostname، origin/RP ID فیصلہ، حقیقی passkey tests",
+      "evidence": null,
+      "source": "https://www.w3.org/TR/webauthn-3/"
+    },
+    {
+      "id": "PASS-002",
+      "category": "WebAuthn",
+      "priority": "P0",
+      "status": "LAB_PASS",
+      "question_ur": "کیا Server-issued Challenge، UV اور اصل ES256 دستخط دوبارہ استعمال سے محفوظ ہیں؟",
+      "decision_ur": "مصنوعی WebAuthn اور SQLite counter/replay tests کامیاب ہیں۔",
+      "next_action_ur": "مستقل host پر Android اور iPhone اصل authenticator integration",
+      "evidence": "https://github.com/coma39658-ctrl/null-bench/actions/runs/42041629240",
+      "source": "https://www.w3.org/TR/webauthn-3/"
+    },
+    {
+      "id": "PAIR-001",
+      "category": "Device trust",
+      "priority": "P0",
+      "status": "BLOCKED",
+      "question_ur": "کیا ایک QR دوبارہ استعمال کیے بغیر دونوں فونوں کی منظوری سے ہی Trust بنتا ہے؟",
+      "decision_ur": "فی الحال صرف دو signed approvals اور evidence-only candidate، ACTIVE نہیں۔",
+      "next_action_ur": "90s enrollment nonce کا atomic consume اور reviewed activation",
+      "evidence": null,
+      "source": "https://asvs.owasp.org/"
+    },
+    {
+      "id": "PAIR-002",
+      "category": "Device trust",
+      "priority": "P0",
+      "status": "BLOCKED",
+      "question_ur": "Sync ہونے والی Passkey کو فون کی مستقل شناخت سے الگ رکھا گیا ہے؟",
+      "decision_ur": "Lab کا model الگ رکھتا ہے؛ حقیقی device binding/rotation نامکمل ہے۔",
+      "next_action_ur": "device-bound P-256 key, rotation, lost device validation",
+      "evidence": null,
+      "source": "https://fidoalliance.org/passkeys/"
+    },
+    {
+      "id": "SESSION-001",
+      "category": "Session",
+      "priority": "P0",
+      "status": "LAB_PASS",
+      "question_ur": "کیا session cookie, CSRF, Origin اور logout کے خلاف حملے روکے جاتے ہیں؟",
+      "decision_ur": "observe-only SQLite/HTTP lab مثبت اور منفی ٹیسٹ پاس؛ public session نہیں۔",
+      "next_action_ur": "reviewed same-origin production router اور CSRF delivery",
+      "evidence": "https://github.com/coma39658-ctrl/null-bench/actions/runs/42052901411",
+      "source": "https://asvs.owasp.org/"
+    },
+    {
+      "id": "REVOKE-001",
+      "category": "Session",
+      "priority": "P0",
+      "status": "BLOCKED",
+      "question_ur": "Lost phone کو منسوخ کرنے پر جاری کال فوراً بند ہوتی ہے؟",
+      "decision_ur": "Pending revoke lab ہے، active call eviction نہیں۔",
+      "next_action_ur": "Durable Object websocket eviction and reconnect-denial tests",
+      "evidence": null,
+      "source": "https://asvs.owasp.org/"
+    },
+    {
+      "id": "MEDIA-001",
+      "category": "Network",
+      "priority": "P0",
+      "status": "UNKNOWN",
+      "question_ur": "کیا مختلف Wi-Fi/5G نیٹ ورک میں کال TURN کے ساتھ جڑتی ہے؟",
+      "decision_ur": "صرف مقامی WebRTC / workerd tests؛ cross-carrier data نہیں۔",
+      "next_action_ur": "two-carrier physical ICE/TURN tests + price budget",
+      "evidence": null,
+      "source": "https://webrtc.org/getting-started/turn-server"
+    },
+    {
+      "id": "MEDIA-002",
+      "category": "Network",
+      "priority": "P1",
+      "status": "OPEN",
+      "question_ur": "Encryption claim کن تہوں پر مبنی ہے؟",
+      "decision_ur": "Lab signaling AES-GCM اور WebRTC؛ E2EE کا independent audit نہیں۔",
+      "next_action_ur": "DTLS-SRTP, relay, device key/auth boundaries audit",
+      "evidence": null,
+      "source": "https://asvs.owasp.org/"
+    },
+    {
+      "id": "MOBILE-001",
+      "category": "Platform",
+      "priority": "P0",
+      "status": "UNKNOWN",
+      "question_ur": "کیا Android/iOS میں اجازت، background اور reconnect واقعی چلتا ہے؟",
+      "decision_ur": "Synthetic Chromium viewports جسمانی فون نہیں ہیں۔",
+      "next_action_ur": "Android Chrome, iPhone Safari, tab closed, permissions tests",
+      "evidence": null,
+      "source": "https://www.w3.org/WAI/standards-guidelines/wcag/"
+    },
+    {
+      "id": "A11Y-001",
+      "category": "Accessibility",
+      "priority": "P1",
+      "status": "OPEN",
+      "question_ur": "کیا screen reader، چھوٹے فون اور کمزور بصارت کے لیے controls واضح ہیں؟",
+      "decision_ur": "Preview static Urdu mobile layout موجود؛ WCAG audit نہیں۔",
+      "next_action_ur": "WCAG 2.2 contrast, targets, keyboard, SR tests",
+      "evidence": null,
+      "source": "https://www.w3.org/WAI/standards-guidelines/wcag/"
+    },
+    {
+      "id": "LANG-001",
+      "category": "Localization",
+      "priority": "P1",
+      "status": "OPEN",
+      "question_ur": "کیا Urdu/English/Arabic میں آسان نام اور errors ایک جیسے ہیں؟",
+      "decision_ur": "Existing QR UI bilingual/trilingual؛ end-to-end translation review نہیں۔",
+      "next_action_ur": "language switch + RTL screenshots + error translation",
+      "evidence": null,
+      "source": "https://www.w3.org/WAI/standards-guidelines/wcag/"
+    },
+    {
+      "id": "PRIVACY-001",
+      "category": "Privacy",
+      "priority": "P0",
+      "status": "OPEN",
+      "question_ur": "کیا خفیہ QR، پاسکی ڈیٹا، میڈیا اور لاگز کم سے کم محفوظ ہوتے ہیں؟",
+      "decision_ur": "Preview strips Set-Cookie; final data retention policy نامکمل۔",
+      "next_action_ur": "retention matrix, export/delete, logs redaction audit",
+      "evidence": null,
+      "source": "https://asvs.owasp.org/"
+    },
+    {
+      "id": "ABUSE-001",
+      "category": "Abuse",
+      "priority": "P0",
+      "status": "BLOCKED",
+      "question_ur": "کیا bots، room spam اور unauthorized signups کی حد ہے؟",
+      "decision_ur": "Local rate gates جزوی؛ real public abuse policies نامکمل۔",
+      "next_action_ur": "rate limits, quotas, IP privacy, account abuse tests",
+      "evidence": null,
+      "source": "https://asvs.owasp.org/"
+    },
+    {
+      "id": "SRE-001",
+      "category": "Reliability",
+      "priority": "P1",
+      "status": "UNKNOWN",
+      "question_ur": "کیا کال completion, failures اور latency کو حقیقی صارف کے مطابق ناپیں گے؟",
+      "decision_ur": "Production SLI/SLO measurements موجود نہیں۔",
+      "next_action_ur": "private metrics، consented aggregate, reliability target experiments",
+      "evidence": null,
+      "source": "https://sre.google/sre-book/service-best-practices/"
+    },
+    {
+      "id": "COST-001",
+      "category": "Operations",
+      "priority": "P0",
+      "status": "OPEN",
+      "question_ur": "کیا Cloudflare، TURN، AI اور storage کا روزانہ زیادہ سے زیادہ خرچ محدود ہے؟",
+      "decision_ur": "Worker disabled; paid/public spending ceiling ابھی متعین نہیں۔",
+      "next_action_ur": "measured budget, per-user quota, emergency kill switch",
+      "evidence": null,
+      "source": "https://sre.google/sre-book/service-best-practices/"
+    },
+    {
+      "id": "SUPPLY-001",
+      "category": "Supply chain",
+      "priority": "P1",
+      "status": "OPEN",
+      "question_ur": "کیا dependencies/actions audited, pinned اور reproducible ہیں؟",
+      "decision_ur": "CI میں pinned package versions مگر lockfile/action SHA review مطلوب۔",
+      "next_action_ur": "dependency lockfile, vulnerability/SBOM and least-privilege CI",
+      "evidence": null,
+      "source": "https://openssf.org/projects/scorecard/"
+    },
+    {
+      "id": "AI-001",
+      "category": "AI governance",
+      "priority": "P0",
+      "status": "OPEN",
+      "question_ur": "کیا بیرونی web pages یا prompts AI کو unauthorized کام نہیں کروا سکتے؟",
+      "decision_ur": "Public AI optional; untrusted source boundaries کی مکمل E2E آزمائش باقی۔",
+      "next_action_ur": "injection tests, restricted tool scopes, sources+uncertainty",
+      "evidence": null,
+      "source": "https://genai.owasp.org/2026/09/01/owasp-genai-security-project-unveils-2026-top-10-for-llm-applications-new-agent-control-standard-and-sponsors-as-community-tops-30000-members/"
+    },
+    {
+      "id": "AI-002",
+      "category": "AI governance",
+      "priority": "P0",
+      "status": "OPEN",
+      "question_ur": "کیا AI تجویز/ٹیسٹ کر سکتی ہے مگر secrets، spend اور deployment کو خود grant نہیں کرتی؟",
+      "decision_ur": "Draft workflow/NO-GO gate ہے؛ AI runtime authorization review باقی۔",
+      "next_action_ur": "human signoff for deploy, expenses, external mutations; red-team",
+      "evidence": null,
+      "source": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+    },
+    {
+      "id": "EVID-001",
+      "category": "Evidence",
+      "priority": "P0",
+      "status": "LAB_PASS",
+      "question_ur": "کیا ریلیز میں PASS_LAB اور REAL_PHONE_VERIFIED کو الگ دکھایا گیا ہے؟",
+      "decision_ur": "GO/NO-GO manifest مصنوعی اور حقیقی ثبوت جدا رکھتا ہے۔",
+      "next_action_ur": "سیف gate کو CI میں لازمی رکھیں اور expert review بھی validate کریں",
+      "evidence": "https://github.com/coma39658-ctrl/null-bench/actions/runs/42046665907",
+      "source": "https://asvs.owasp.org/"
+    },
+    {
+      "id": "RELEASE-001",
+      "category": "Release",
+      "priority": "P0",
+      "status": "BLOCKED",
+      "question_ur": "کیا reversible staged deployment، rollout اور rollback verified ہیں؟",
+      "decision_ur": "Draft PR، public worker OFF؛ rollback drill نہیں۔",
+      "next_action_ur": "preview worker test, stage rollout, rollback playbook, independent review",
+      "evidence": null,
+      "source": "https://developers.cloudflare.com/workers/static-assets/routing/worker-script/"
+    },
+    {
+      "id": "OBD-001",
+      "category": "Safety",
+      "priority": "P0",
+      "status": "OPEN",
+      "question_ur": "کیا Secure Pair کسی گاڑی کو ECU write/Mode04 permission نہیں دیتا؟",
+      "decision_ur": "Modules deny trust, no OBD binding؛ comprehensive cross-app test ابھی باقی۔",
+      "next_action_ur": "static read-only safety guard + permissions audit",
+      "evidence": null,
+      "source": "https://asvs.owasp.org/"
+    }
+  ]
+}
