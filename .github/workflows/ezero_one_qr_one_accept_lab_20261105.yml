@@ -39,6 +39,9 @@ jobs:
           node --check secure_connect/pair_v1/trusted_device_sqlite_lab_v0_1.mjs
           node --check tests/test_ezero_secure_pair_v1_sqlite_devices_v0_1.mjs
           node tests/test_ezero_secure_pair_v1_sqlite_devices_v0_1.mjs
+          node --check secure_connect/pair_v1/mutual_approval_sqlite_lab_v0_1.mjs
+          node --check tests/test_ezero_secure_pair_v1_mutual_approvals_v0_1.mjs
+          node tests/test_ezero_secure_pair_v1_mutual_approvals_v0_1.mjs
           echo "PUBLIC_ROOMS_STAY_DISABLED_SOURCE_AND_STATIC_CONTRACT: PASS"
       - name: Install headless Chromium test environment
         run: |
