@@ -527,6 +527,22 @@
       if (typeof e.data!=="string" || e.data.length>38000) return;
       try {
         const m=JSON.parse(e.data);
+        // A peer profile is displayed only after a real encrypted DataChannel
+        // opens and a signed call envelope has established the remote key.
+        // Name/photo are self-declared, not verified legal identity.
+        if(m?.v===3 && m.kind==="public-profile" &&
+           typeof m.name==="string" && m.name.trim().length>=1 &&
+           m.name.trim().length<=40 &&
+           typeof m.avatar==="string" && m.avatar.length<=12000 &&
+           (m.avatar==="" || /^data:image\\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(m.avatar)) &&
+           /^[a-f0-9]{64}$/.test(peer?.__ezeroPeerFP||"") &&
+           peer?.connectionState==="connected"){
+          document.dispatchEvent(new CustomEvent("ezero:profile-received",{
+            detail:{name:m.name.trim(),avatar:m.avatar,
+              peerFingerprint:peer.__ezeroPeerFP,connected:true}
+          }));
+          return;
+        }
         // The opt-in voice-note add-on receives bounded audio through the existing
         // encrypted WebRTC DataChannel. Never start playback without a user click.
         if(m.v===2 && m.kind==="voice-once" &&
@@ -720,6 +736,27 @@
   }
   // Narrow, size-limited interface: no public SDP APIs or media-track access.
   // The voice recorder exists separately and only uses this connected DataChannel.
+  // Minimal peer-profile channel, never a public photo upload endpoint.
+  // The peer's fingerprint comes from the cryptographically signed call
+  // envelope, NEVER from an untrusted name/photo or incoming profile object.
+  window.EZERO_PEER_PROFILE_TRANSPORT=Object.freeze({
+    connected:()=>!!channel&&channel.readyState==="open" &&
+      peer?.connectionState==="connected" &&
+      /^[a-f0-9]{64}$/.test(peer?.__ezeroPeerFP||""),
+    peerFingerprint:()=>!!channel&&channel.readyState==="open" &&
+      peer?.connectionState==="connected"?peer.__ezeroPeerFP||"": "",
+    send:(name,avatar)=>{
+      if(!window.EZERO_PEER_PROFILE_TRANSPORT.connected())return false;
+      if(typeof name!=="string"||name.trim().length<1||name.trim().length>40 ||
+         typeof avatar!=="string" || avatar.length>12000 ||
+         (avatar!=="" && !/^data:image\\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(avatar)))
+        return false;
+      const encoded=JSON.stringify({v:3,kind:"public-profile",
+        name:name.trim(),avatar});
+      if(encoded.length>14000)return false;
+      channel.send(encoded);return true;
+    }
+  });
   window.EZERO_VOICE_TRANSPORT=Object.freeze({
     connected:()=>!!channel&&channel.readyState==="open",
     send:(mime,encoded)=>{
