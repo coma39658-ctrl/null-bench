@@ -384,3 +384,19 @@ body.communication-page{background:linear-gradient(155deg,#e6f7f6,#eff9fc 55%,#e
  padding:9px 13px;color:#19643e;background:#fff;font:inherit;font-weight:800;
 }
 .communication-page .ezero-people-meta{font-size:12px;color:#597967;line-height:1.7}
+
+/* One consolidated high-quality friends hub; legacy QR contact controls
+   remain functional on the separate signed-identity page. */
+.communication-page .contacts-card{display:none!important}
+.communication-page .ezero-add-verified-friend{
+  display:inline-flex;align-items:center;justify-content:center;min-height:46px;
+  border:1px solid #9acfb1;background:#f4fcf6;color:#125e39;
+  padding:10px 13px;border-radius:13px;font-size:13px;font-weight:850;
+  text-decoration:none;margin:6px 0 12px;
+}
+.communication-page .ezero-add-verified-friend:focus-visible{
+  outline:3px solid #16814a;outline-offset:3px;
+}
+.communication-page #ezeroHistoryClear:disabled{
+  opacity:.55;cursor:not-allowed;
+}
