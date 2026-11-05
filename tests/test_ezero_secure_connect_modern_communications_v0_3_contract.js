@@ -10,9 +10,8 @@ const cosmic=fs.readFileSync("assets/ezero_secure_chat_cosmic_pattern_v0_1.svg",
 const transport=fs.readFileSync("js/ezero_secure_connect_live_p2p_v0_1.js","utf8");
 const profile=fs.readFileSync("js/ezero_secure_connect_peer_profile_v0_1.js","utf8");
 const people=fs.readFileSync("js/ezero_secure_connect_people_v0_1.js","utf8");
-const people=fs.readFileSync("js/ezero_secure_connect_people_v0_1.js","utf8");
 const policy=fs.readFileSync("ezero_secure_connect_privacy_v0_2.html","utf8");
-for(const [label,c] of [["modern UI",modern],["voice transport",transport],["local peer profile",profile],["people and 10-minute history",people],["local people history",people]])
+for(const [label,c] of [["modern UI",modern],["voice transport",transport],["local peer profile",profile],["people and 10-minute history",people]])
   new vm.Script(c,{filename:label});
 for(const mode of ["audio","video","voice","chat"]){
   assert.match(main,new RegExp('data-comm-mode="'+mode+'"'));
@@ -47,39 +46,7 @@ assert.ok(people.includes("noMissed"),"No false missed-call status");
 assert.ok(modern.includes("ezero:call-intent"),"Track actual user-initiated call direction");
 assert.ok(css.includes("accent-color:#16814a"),"Use professional green selection color");
 
-assert.ok(page.includes("ezero_secure_connect_people_v0_1.js"));
-assert.ok(page.includes('id="ezeroCameraButton"'));
-assert.ok(page.includes('id="ezeroGalleryButton"'));
-assert.ok(page.includes('id="ezeroCameraPhoto"'));
-assert.ok(page.includes('capture="user"'));
-for(const id of ["ezeroPeopleHub","ezeroTabFriends","ezeroTabCalls","ezeroTabMissed","ezeroPeopleList","ezeroHistoryConsent","ezeroHistoryClear"])
-  assert.ok(page.includes('id="'+id+'"'),"Missing accessible friend or call history control: "+id);
-assert.ok(profile.includes("ezeroCameraPhoto"));
-assert.ok(profile.includes('ezeroGalleryButton'));
-assert.ok(profile.includes('onPhotoChosen("ezeroCameraPhoto")'));
-assert.ok(profile.includes('onPhotoChosen("ezeroMyPhoto")'));
-assert.ok(people.includes("ezero_secure_connect_local_fingerprints_v0_1"));
-assert.ok(people.includes("ezero_local_completed_call_history_v0_1"));
-assert.ok(people.includes('const consent=()=>{try{return localStorage.getItem(CONSENT)==="yes";}'),
-  "Local call history requires explicit opt-in");
-assert.ok(people.includes("const TEN_MINUTES=600000"),
-  "Privacy retention is bounded at ten minutes");
-assert.ok(people.includes("function ended()"),
-  "Call history is only saved after the real call ends");
-assert.ok(people.includes("if(consent()&&["),
-  "No completed call should be saved without consent");
-assert.ok(!people.includes("getUserMedia(")&&!people.includes("fetch("),
-  "Call history cannot trigger camera, microphone or network upload");
-assert.ok(people.includes('if(!tr?.connected())return;'));
-assert.ok(people.includes('if(!validFP(fp))return;'));
-assert.ok(people.includes('noMissed'),"Unsupported missed calls must be described rather than invented");
-assert.ok(!people.includes("getUserMedia(")&&!people.includes("fetch(")&&!people.includes("XMLHttpRequest"),
-  "Call-history module must not use microphone, make network requests or upload data");
-const cssText=fs.readFileSync("css/ezero_secure_connect_modern_communications_v0_3.css","utf8");
-assert.ok(cssText.includes('background:#e9f7ed;border-color:#19834e'));
-assert.ok(cssText.includes('accent-color:#16814a'));
-assert.ok(cssText.includes(".ezero-photo-action:focus-visible"));
-assert.ok(cssText.includes(".ezero-person-card"));
+assert.ok(css.includes(".ezero-person-card"),"High-quality contacts and calls must have structured cards");
 
 for(const id of ["ezeroProfileEditor","ezeroMyName","ezeroMyPhoto",
     "ezeroShareProfile","ezeroSaveProfile","ezeroPeerProfileCard",
