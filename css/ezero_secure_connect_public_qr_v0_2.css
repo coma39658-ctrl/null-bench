@@ -57,3 +57,23 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:15px 0 6px}
   .policy-language .policy-table{font-size:12px}
   .policy-language .policy-table th,.policy-language .policy-table td{padding:7px 5px}
 }
+
+
+/* Restored four communication tools, available without the legacy raw-code UI */
+.modern-entry{border-color:#a8d5d9!important}
+.modern-entry h2{color:#084e62}
+.modern-entry-hint{font-size:13px;color:#476b79;line-height:1.9;max-width:640px;margin:4px auto 13px}
+.modern-entry-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:7px 0}
+.modern-entry-grid a{min-height:108px;background:#f8fefe;border:1px solid #b5d8dd;border-radius:16px;
+ text-decoration:none;color:#124c60;display:flex;align-items:center;justify-content:center;
+ flex-direction:column;gap:5px;padding:12px;box-shadow:0 6px 13px #15596d0d}
+.modern-entry-grid a span{font-size:31px;line-height:1.4}
+.modern-entry-grid a strong{font-size:17px;line-height:1.4}
+.modern-entry-grid a:focus-visible{outline:3px solid #087f9a;outline-offset:2px}
+.nearby-future{background:#f6fbfc!important}
+.nearby-future h2{font-size:18px}
+.nearby-future p{color:#4c6976;font-size:13px;line-height:1.85}
+.nearby-future .future-consent{display:flex;gap:10px;align-items:flex-start;text-align:start;
+  background:#fff;border:1px solid #b9dce0;border-radius:12px;padding:12px;cursor:pointer}
+.nearby-future .future-consent input{width:20px;height:20px;flex-shrink:0;margin:4px 0 0}
+.nearby-future .future-consent span{font-size:13px;line-height:1.8;color:#245b6d}
