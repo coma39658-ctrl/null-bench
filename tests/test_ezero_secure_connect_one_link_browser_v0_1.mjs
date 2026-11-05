@@ -165,6 +165,8 @@ try{
  // same original camera stream; the UI never exposes manual identity codes.
  await scanner.locator("#oneQrScan").click();
  await scanner.waitForFunction(()=>document.querySelector("#oneQrCameraSlot")?.hidden===false);
+ await scanner.waitForFunction(()=>document.querySelector("#scanVideo")?.hidden===false,
+  {timeout:9000}); // media acquisition is async; stage visibility alone is not video readiness
  assert.equal(await scanner.locator("#oneQrCameraLive video").isVisible(),true);
  assert.ok(await scanner.evaluate(()=>window.__mediaCalls.some(x=>x.video&&x.audio===false)));
  await scanner.locator("#oneQrCancelScan").click();
