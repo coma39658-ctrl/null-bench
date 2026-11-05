@@ -11,7 +11,7 @@ const transport=fs.readFileSync("js/ezero_secure_connect_live_p2p_v0_1.js","utf8
 const profile=fs.readFileSync("js/ezero_secure_connect_peer_profile_v0_1.js","utf8");
 const people=fs.readFileSync("js/ezero_secure_connect_people_v0_1.js","utf8");
 const policy=fs.readFileSync("ezero_secure_connect_privacy_v0_2.html","utf8");
-for(const [label,c] of [["modern UI",modern],["voice transport",transport],["local peer profile",profile,["local people history",people]]])
+for(const [label,c] of [["modern UI",modern],["voice transport",transport],["local peer profile",profile],["local people history",people]])
   new vm.Script(c,{filename:label});
 for(const mode of ["audio","video","voice","chat"]){
   assert.match(main,new RegExp('data-comm-mode="'+mode+'"'));
@@ -26,7 +26,7 @@ assert.ok(page.includes('id="ezeroCameraPhoto"'));
 assert.ok(page.includes('capture="user"'));
 for(const id of ["ezeroPeopleHub","ezeroTabFriends","ezeroTabCalls","ezeroTabMissed","ezeroPeopleList","ezeroHistoryConsent","ezeroHistoryClear"])
   assert.ok(page.includes('id="'+id+'"'),"Missing accessible friend or call history control: "+id);
-assert.ok(profile.includes('ezeroCameraPhoto').toString()==="true");
+assert.ok(profile.includes("ezeroCameraPhoto"));
 assert.ok(profile.includes('ezeroGalleryButton'));
 assert.ok(profile.includes('onPhotoChosen("ezeroCameraPhoto")'));
 assert.ok(profile.includes('onPhotoChosen("ezeroMyPhoto")'));
