@@ -19,14 +19,14 @@
 <link rel="manifest" href="./secure-connect.webmanifest">
 <link rel="stylesheet" href="./css/ezero_secure_connect_live_p2p_v0_1.css">
 <link rel="stylesheet" href="./css/ezero_secure_connect_one_tap_qr_v0_1.css">
-<link rel="stylesheet" href="./css/ezero_secure_connect_modern_communications_v0_3.css?v=20261105green4">
+<link rel="stylesheet" href="./css/ezero_secure_connect_modern_communications_v0_3.css?v=20261105chat1">
 <script defer src="./js/vendor/ezero-qrcode-generator-mit.js"></script>
 <script defer src="./js/ezero_secure_connect_live_p2p_v0_1.js?v=20261105profile1"></script>
 <script defer src="./js/ezero_secure_connect_simple_near_far_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_contacts_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_install_share_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_one_tap_qr_v0_1.js"></script>
-<script defer src="./js/ezero_secure_connect_modern_communications_v0_3.js?v=20261105e"></script>
+<script defer src="./js/ezero_secure_connect_modern_communications_v0_3.js?v=20261105chat1"></script>
 <script defer src="./js/ezero_secure_connect_peer_profile_v0_1.js?v=20261105photo3"></script>
 <script defer src="./js/ezero_secure_connect_people_v0_1.js?v=20261105ttl1"></script>
 </head>
@@ -101,6 +101,9 @@
   </div>
   <p id="ezeroPeopleStatus" class="ezero-people-meta" role="status" aria-live="polite" data-people="historyOff">کال ہسٹری بند ہے۔ حقیقی آنے والی کال کی اطلاع کے بغیر مس کال درج نہیں کی جاتی۔</p>
 </details>
+<div class="ezero-messages-quick">
+  <button type="button" id="ezeroMessagesOpen" class="ezero-messages-open" aria-controls="modernChatPanel" data-chat-i18n="messagesButton">💬 میسجز کھولیں</button>
+</div>
 <section class="modern-workspace" aria-label="Current feature">
   <h2 id="modernFeatureTitle" class="modern-panel-title" aria-live="polite">آڈیو کال</h2>
   <p id="modernFeatureHelp" class="modern-panel-help">دو فون جوڑنے کے لیے ایک دعوت اور جواب درکار ہیں۔ خودکار کال ابھی فعال نہیں۔</p>
@@ -130,7 +133,25 @@
 <section id="modernChatPanel" class="modern-workspace" hidden>
   <h2 class="modern-panel-title" data-modern="chatPanel">نجی چیٹ میسج</h2>
   <p class="modern-panel-help" data-modern="chatHelp">دو فون WebRTC سے جڑنے کے بعد ایک بار کھلنے والا پیغام بھیجیں۔ مستقل چیٹ ہسٹری نہیں۔</p>
-  <div id="ezeroChatSlot"></div>
+  <div class="ezero-chat-shell">
+    <div class="ezero-chat-timeline" id="ezeroChatTimeline">
+      <p class="ezero-chat-empty" id="ezeroChatEmpty" data-chat-i18n="chatEmpty">یہ ایک بار کھلنے والے عارضی پیغامات کی جگہ ہے؛ مستقل چیٹ محفوظ نہیں ہوگی۔</p>
+      <div id="ezeroChatSlot"></div>
+    </div>
+    <div class="ezero-chat-composer" id="ezeroChatComposer">
+      <div class="ezero-chat-compose-row">
+        <button type="button" id="ezeroChatPlus" aria-label="مزید پیغام سہولتیں" aria-expanded="false" aria-controls="ezeroChatTools" title="مزید سہولتیں">+</button>
+        <div class="ezero-chat-compose-input" id="ezeroChatTextSlot"></div>
+        <div class="ezero-chat-send-slot" id="ezeroChatSendSlot"></div>
+      </div>
+      <div id="ezeroChatTools" class="ezero-chat-tools" hidden>
+        <button type="button" id="ezeroChatVoiceOption" data-chat-i18n="voiceOption">🎙️ وائس میسج</button>
+        <button type="button" id="ezeroChatLinkOption" data-chat-i18n="connectOption">🔗 فون جوڑیں</button>
+        <button type="button" id="ezeroChatClearOption" data-chat-i18n="clearOption">✕ غیر بھیجا متن صاف کریں</button>
+      </div>
+      <p class="ezero-chat-privacy" data-chat-i18n="chatPrivacy">پیغام صرف حقیقی محفوظ رابطے پر بھیجا جائے گا؛ کوئی مستقل سرور چیٹ ہسٹری نہیں۔</p>
+    </div>
+  </div>
 </section>
 <section id="modernVoicePanel" class="modern-workspace" hidden>
   <h2 class="modern-panel-title" data-modern="voicePanel">وائس میسج</h2>
