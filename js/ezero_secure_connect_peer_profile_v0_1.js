@@ -117,11 +117,19 @@
     if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size>2*1024*1024){
       labelStatus("photoRejected");$("ezeroMyPhoto").value="";return;
     }
-    const url=URL.createObjectURL(file);
     try{
+      // The page CSP deliberately permits data: photos, but not blob: images.
+      // Read only the explicitly selected file, never upload or request a URL.
+      const localData=await new Promise((resolve,reject)=>{
+        const reader=new FileReader();
+        reader.onload=()=>resolve(reader.result);
+        reader.onerror=()=>reject(Error("READ_FAILED"));
+        reader.readAsDataURL(file);
+      });
+      if(typeof localData!=="string"||!PHOTO.test(localData))throw Error("BAD_IMAGE");
       const photo=new Image();
       await new Promise((resolve,reject)=>{
-        photo.onload=resolve;photo.onerror=reject;photo.src=url;
+        photo.onload=resolve;photo.onerror=reject;photo.src=localData;
       });
       if(!photo.naturalWidth||!photo.naturalHeight)throw Error("BAD_IMAGE");
       const canvas=document.createElement("canvas");canvas.width=72;canvas.height=72;
@@ -135,7 +143,7 @@
       showAvatar("ezeroMyAvatar","ezeroMyInitial",$("ezeroMyName").value,draftAvatar);
       labelStatus("profileLocal");
     }catch(_){labelStatus("photoRejected");}
-    finally{URL.revokeObjectURL(url);$("ezeroMyPhoto").value="";}
+    finally{$("ezeroMyPhoto").value="";}
   });
   $("ezeroSaveProfile").addEventListener("click",()=>{
     const name=cleanName($("ezeroMyName").value);
