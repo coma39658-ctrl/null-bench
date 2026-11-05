@@ -111,14 +111,18 @@
     for(const node of document.querySelectorAll("[data-share-i18n]"))
       node.textContent=t(node.getAttribute("data-share-i18n"));
     appLink.setAttribute("aria-label",t("urlLabel"));
-    $("installHelp").hidden=!showHelp;
-    if(showHelp)$("installHelpText").textContent=helper();
-    if(installed){
-      $("installSecureConnect").disabled=true;
-      status("installed");
-    }else status(statusKey);
+    // Only a confirmed standalone/PWA launch or actual appinstalled event
+    // proves installation in this context. Browser tabs cannot reliably know.
+    const isInstalledHere=installed||isStandalone();
+    $("installSecureConnect").hidden=isInstalledHere;
+    $("installSecureConnect").disabled=isInstalledHere;
+    $("installHelp").hidden=isInstalledHere||!showHelp;
+    if(!isInstalledHere&&showHelp)$("installHelpText").textContent=helper();
+    if(isInstalledHere)status("installed");
+    else status(statusKey);
   }
   function openInstallHelp(key="manual"){
+    if(installed||isStandalone()){render();return;}
     showHelp=true;render();status(key);
     $("installHelp").hidden=false;
   }
@@ -194,5 +198,7 @@
     }
   });
   $("language")?.addEventListener("change",render);
+  window.matchMedia?.("(display-mode: standalone)")?.addEventListener?.("change",render);
+  window.addEventListener("pageshow",render);
   render();
 })();
