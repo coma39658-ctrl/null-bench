@@ -63,6 +63,8 @@ jobs:
           node --check secure_connect/pair_v1/preview_worker_lab/worker.mjs
           node --check tests/test_ezero_secure_pair_v1_preview_worker_contract_v0_1.mjs
           node tests/test_ezero_secure_pair_v1_preview_worker_contract_v0_1.mjs
+          node --check scripts/ezero_expert_ai_review_gate_v0_1.mjs
+          node scripts/ezero_expert_ai_review_gate_v0_1.mjs
           node --check scripts/ezero_secure_pair_public_release_gate_v0_1.mjs
           node scripts/ezero_secure_pair_public_release_gate_v0_1.mjs --status
           if node scripts/ezero_secure_pair_public_release_gate_v0_1.mjs --verify-release; then
@@ -129,3 +131,25 @@ jobs:
           fi
           EZERO_LOCAL_WORKER_ORIGIN=http://127.0.0.1:8790 node tests/test_ezero_secure_connect_workerd_real_websocket_v0_1.mjs
           echo "REAL_WORKER_ONE_QR_SERVER_MINTED_INVITE_AND_ROLE_CONSENT: PASS"
+      - name: Safe same-origin Secure Pair Preview on real local Cloudflare workerd
+        env: {WRANGLER_SEND_METRICS: 'false'}
+        run: |
+          set -euo pipefail
+          grep -q '"workers_dev": false' secure_connect/pair_v1/preview_worker_lab/wrangler.jsonc
+          grep -q '"run_worker_first": true' secure_connect/pair_v1/preview_worker_lab/wrangler.jsonc
+          node --check tests/test_ezero_secure_pair_preview_workerd_local_v0_1.mjs
+          npx --yes wrangler@4 dev --local --config secure_connect/pair_v1/preview_worker_lab/wrangler.jsonc --ip 127.0.0.1 --port 8791 >/tmp/ezero-secure-pair-preview.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          ready=0
+          for i in $(seq 1 45); do
+            if curl -fsS --max-time 2 http://127.0.0.1:8791/health 2>/dev/null | grep -q PREVIEW_ONLY_NO_AUTH; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            echo PREVIEW_LOCAL_WORKER_STARTUP_FAILED
+            tail -n 30 /tmp/ezero-secure-pair-preview.log
+            exit 1
+          fi
+          EZERO_PREVIEW_LOCAL_ORIGIN=http://127.0.0.1:8791 node tests/test_ezero_secure_pair_preview_workerd_local_v0_1.mjs
+          echo "SAFE_SAME_ORIGIN_WORKER_STATIC_PREVIEW_WITH_AUTH_CALLS_DISABLED: PASS"
