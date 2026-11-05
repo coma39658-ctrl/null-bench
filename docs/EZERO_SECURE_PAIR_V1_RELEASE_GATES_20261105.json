@@ -1,0 +1,43 @@
+{
+  "schema": "EZERO_SECURE_PAIR_V1_RELEASE_GATES_20261105",
+  "decision": "NO_GO",
+  "notes": "Machine status is an aid only. A human security review and real physical-device evidence are mandatory. This file cannot authorize deployment on its own.",
+  "gates": {
+    "signed_browser_and_local_worker_regression": {
+      "status": "PASS_LAB_ONLY",
+      "evidence": "https://github.com/coma39658-ctrl/null-bench/actions/runs/42045092517"
+    },
+    "independently_verified_account_ownership_and_recovery": {
+      "status": "BLOCKED",
+      "evidence": null
+    },
+    "stable_same_origin_https_passkey_rp_and_cookie_host": {
+      "status": "BLOCKED",
+      "evidence": null
+    },
+    "authenticated_cookie_csrf_and_session_revocation": {
+      "status": "BLOCKED",
+      "evidence": null
+    },
+    "atomic_90_second_pair_enrollment_and_trusted_device_activation": {
+      "status": "BLOCKED",
+      "evidence": null
+    },
+    "lost_device_and_live_call_revocation": {
+      "status": "BLOCKED",
+      "evidence": null
+    },
+    "android_and_iphone_physical_multinetwork_tests": {
+      "status": "UNKNOWN",
+      "evidence": null
+    },
+    "turn_reliability_rate_limits_and_cost_limit": {
+      "status": "UNKNOWN",
+      "evidence": null
+    },
+    "independent_security_review_and_owner_release_approval": {
+      "status": "BLOCKED",
+      "evidence": null
+    }
+  }
+}
