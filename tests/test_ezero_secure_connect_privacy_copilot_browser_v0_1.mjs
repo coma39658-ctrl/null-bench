@@ -54,6 +54,19 @@ try{
  const codeB=await b.locator("#copilotSafetyCode").innerText();
  assert.equal(codeA,codeB,"Both phones must derive identical safety number");
  assert.match(await a.locator("#copilotIdentity").innerText(),/دستخط شدہ|signed/);
+ // Replacing a displayed peer key must never retain trust in the old key.
+ await a.locator("#peerFingerprint").evaluate(el=>el.textContent="a".repeat(64));
+ await a.waitForFunction(()=>document.querySelector("#copilotIdentity").textContent.includes("نہیں ہوئی"));
+ // A stale or forged event with a different fingerprint must not mark it signed.
+ await a.evaluate(()=>document.dispatchEvent(new CustomEvent("ezero:friend-verification",{
+  detail:{ok:true,signed:true,fingerprint:"b".repeat(64),source:"test"}
+ })));
+ assert.match(await a.locator("#copilotIdentity").innerText(),/نہیں ہوئی/);
+ // Restore the real verified peer identity using the original cryptographic verifier.
+ await a.locator("#friendIdInput").fill(signedB);
+ await a.locator("#verifyFriend").click();
+ await a.waitForFunction(()=>document.querySelector("#copilotIdentity").textContent.includes("چیک ہوئی"));
+ assert.equal(await a.locator("#copilotSafetyCode").innerText(),codeB);
  assert.match(await a.locator("#copilotCall").innerText(),/ابھی|No live/);
  console.log("TWO_PHONE_12_DIGIT_SAFETY_COMPARE_NO_FAKE_CONNECTED: PASS");
 
