@@ -87,7 +87,7 @@
       yourCode:"Your offer/answer — send to other phone",copy:"📋 Copy code",share:"↗ Share code",codeWarning:"Signaling includes network/IP details. Share only with a trusted person. This is not a permanent account ID or automatic friend QR.",
       idle:"No call has started.",liveCall:"Live call",myMedia:"My camera",peerMedia:"Friend's voice / video",playRemote:"🔊 Play incoming audio",mute:"🎙️ Mute microphone",cameraOff:"📷 Turn camera off",hangup:"📴 Hang up",
       callTruth:"Only a WebRTC Connected state confirms a network path. The device shows its own mic/camera permission indicator. No call recording.",
-      oneView:"One-view message",messageHelp:"Send only through the direct DataChannel while connected. No server chat archive. After the first view, it expires within five minutes. No in-app save button.",
+      oneView:"One-view message",messageHelp:"Send only through the direct DataChannel while connected. No server chat archive. Ten minutes after the first view, it expires automatically. No in-app save button.",
       compose:"Write a message",send:"Send private message",notConnected:"Connect two phones before sending.",privatePending:"A temporary message has arrived.",viewOnce:"Open once",
       nextPhase:"Future phases: persistent accounts, QR friends, groups",nextHelp:"Persistent identity, registered SHA-256 QR friends, automatic signaling, voice notes, private groups and TURN relay are not yet enabled or independently audited.",
       identityLink:"Try local SHA-256 identity",footer:"E-ZERO · Community service, no ads, no hidden recording.",policyTitle:"E-ZERO: simple privacy policy",close:"Close",
@@ -162,7 +162,7 @@
       yourCode:"رمزك لإرساله إلى الهاتف الآخر",copy:"📋 نسخ الرمز",share:"↗ مشاركة الرمز",codeWarning:"قد يحتوي الرمز على معلومات IP والشبكة. شاركه مع شخص موثوق فقط. ليس حساباً دائماً ولا دعوة صداقة آلية.",
       idle:"لم تبدأ مكالمة.",liveCall:"مكالمة مباشرة",myMedia:"كاميرتي",peerMedia:"صوت / فيديو الطرف الآخر",playRemote:"🔊 تشغيل صوت الطرف الآخر",mute:"🎙️ كتم الميكروفون",cameraOff:"📷 إغلاق الكاميرا",hangup:"📴 إنهاء المكالمة",
       callTruth:"لا نعتبر الاتصال ناجحاً إلا عند حالة Connected في WebRTC. لا نسجل المكالمات.",oneView:"رسالة تظهر مرة واحدة",
-      messageHelp:"إرسال مباشر عبر DataChannel عند الاتصال. لا أرشيف رسائل على الخادم. تنتهي الرسالة خلال خمس دقائق من أول فتح. لا زر حفظ داخل التطبيق.",
+      messageHelp:"إرسال مباشر عبر DataChannel عند الاتصال. لا أرشيف رسائل على الخادم. تنتهي الرسالة تلقائيًا بعد عشر دقائق من أول فتح. لا زر حفظ داخل التطبيق.",
       compose:"اكتب رسالة",send:"إرسال رسالة خاصة",notConnected:"صل الهاتفين أولاً.",privatePending:"وصلت رسالة مؤقتة.",viewOnce:"فتح مرة واحدة",
       nextPhase:"المراحل القادمة: حسابات دائمة وأصدقاء QR ومجموعات",nextHelp:"هوية دائمة وإضافة أصدقاء برمز SHA-256 واتصال تلقائي وملاحظات صوتية ومجموعات وخادم TURN ليست مفعلة أو مدققة بعد.",
       identityLink:"اختبار هوية SHA-256 محلية",footer:"E-ZERO · خدمة عامة بلا إعلانات ولا تسجيل خفي.",policyTitle:"سياسة الخصوصية المبسطة",close:"إغلاق",
@@ -231,7 +231,7 @@
   const $all = selector => Array.from(document.querySelectorAll(selector));
   let currentLang = "ur", identityPromise = null, identity = null, expectedPeerFingerprint = null;
   let peer = null, channel = null, localStream = null, remoteStream = null, role = null;
-  let incoming = null, unreadExpiry = null, viewedExpiry = null, scanStream = null, scanTimeout = null, scanGeneration = 0;
+  let incoming = null, viewedExpiry = null, scanStream = null, scanTimeout = null, scanGeneration = 0;
   let micMuted = false, cameraMuted = false;
   const me = key => (langs[currentLang] || {})[key] || $("fallbackNever") || null;
   const t = key => typeof me(key) === "string" ? me(key) : ($all('[data-i18n="' + key + '"]')[0]?.textContent || key);
@@ -563,7 +563,7 @@
           $("seenMessage").hidden=true;$("seenMessage").textContent="";
           $("messageTimer").textContent="";
           $("messageStatus").textContent=t("arrived");
-          unreadExpiry=setTimeout(discardIncoming,600000);
+          // Opening, not receipt, starts the ten-minute clock; pending is volatile until the call ends.
         }
       }catch(_){}
     };
@@ -691,7 +691,6 @@
     $("toggleCamera").textContent=cameraMuted?"📷 Camera On / کیمرہ کھولیں":t("cameraOff");
   });
   function discardIncoming() {
-    if(unreadExpiry){clearTimeout(unreadExpiry);unreadExpiry=null;}
     if(viewedExpiry){clearTimeout(viewedExpiry);viewedExpiry=null;}
     incoming=null;$("seenMessage").textContent="";$("seenMessage").hidden=true;
     $("incomingItem").hidden=true;$("messageTimer").textContent="";
@@ -706,20 +705,28 @@
   });
   $("viewMessage").addEventListener("click",()=>{
     if(!incoming||incoming.opened)return;
-    incoming.opened=true;if(unreadExpiry){clearTimeout(unreadExpiry);unreadExpiry=null;}
+    incoming.opened=true;incoming.expiresAt=Date.now()+600000;
     $("seenMessage").textContent=incoming.text;$("seenMessage").hidden=false;$("viewMessage").hidden=true;
     incoming.text="";
     $("messageStatus").textContent=t("opened");
-    let deadline=Date.now()+300000;
     const countdown=()=>{
-      if(!incoming)return;
-      const left=Math.max(0,Math.ceil((deadline-Date.now())/1000));
-      $("messageTimer").textContent="One view · "+left+"s";
+      if(!incoming||!incoming.opened)return;
+      const left=Math.max(0,Math.ceil((incoming.expiresAt-Date.now())/1000));
       if(left<=0){discardIncoming();$("messageStatus").textContent=t("expired");return;}
+      const mins=Math.floor(left/60),secs=String(left%60).padStart(2,"0");
+      $("messageTimer").textContent="10 min after opening · "+mins+":"+secs;
       viewedExpiry=setTimeout(countdown,1000);
     };
     countdown();
   });
+  // Timer callbacks can be delayed when mobile browsers are suspended.
+  function expireOpenedMessage(){
+    if(incoming?.opened && incoming.expiresAt<=Date.now()){
+      discardIncoming();$("messageStatus").textContent=t("expired");
+    }
+  }
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)expireOpenedMessage();});
+  window.addEventListener("focus",expireOpenedMessage);
   function hardHangup(show=true) {
     stopScanner();
     document.dispatchEvent(new CustomEvent("ezero:channel-state",{detail:{connected:false}}));
