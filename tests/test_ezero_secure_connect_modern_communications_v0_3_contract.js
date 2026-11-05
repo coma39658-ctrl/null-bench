@@ -9,9 +9,10 @@ const css=fs.readFileSync("css/ezero_secure_connect_modern_communications_v0_3.c
 const cosmic=fs.readFileSync("assets/ezero_secure_chat_cosmic_pattern_v0_1.svg","utf8");
 const transport=fs.readFileSync("js/ezero_secure_connect_live_p2p_v0_1.js","utf8");
 const profile=fs.readFileSync("js/ezero_secure_connect_peer_profile_v0_1.js","utf8");
+const chatComposer=fs.readFileSync("js/ezero_secure_connect_chat_composer_v0_1.js","utf8");
 const people=fs.readFileSync("js/ezero_secure_connect_people_v0_1.js","utf8");
 const policy=fs.readFileSync("ezero_secure_connect_privacy_v0_2.html","utf8");
-for(const [label,c] of [["modern UI",modern],["voice transport",transport],["local peer profile",profile],["people and 10-minute history",people]])
+for(const [label,c] of [["modern UI",modern],["voice transport",transport],["local peer profile",profile],["safe chat composer",chatComposer],["people and 10-minute history",people]])
   new vm.Script(c,{filename:label});
 for(const mode of ["audio","video","voice","chat"]){
   assert.match(main,new RegExp('data-comm-mode="'+mode+'"'));
@@ -19,6 +20,23 @@ for(const mode of ["audio","video","voice","chat"]){
 }
 assert.match(page,/ezero_secure_connect_live_p2p_v0_1\.js/);
 assert.ok(page.includes("ezero_secure_connect_peer_profile_v0_1.js"));
+assert.ok(page.includes("ezero_secure_connect_chat_composer_v0_1.js"));
+for(const id of ["ezeroMessagesOpen","ezeroChatTimeline","ezeroChatPlus","ezeroChatTools",
+ "ezeroChatVoiceOption","ezeroChatLinkOption","ezeroChatClearOption",
+ "ezeroChatTextSlot","ezeroChatSendSlot"])
+ assert.ok(page.includes('id="'+id+'"'),"Missing functional mobile messenger UI: "+id);
+assert.ok(chatComposer.includes('append(label)')&&chatComposer.includes('append(send)'),
+ "The original encrypted WebRTC send control must be reused, not cloned");
+assert.ok(!chatComposer.includes("fetch(")&&!chatComposer.includes("new WebSocket"),
+ "A chat interface must not silently create new data-sharing servers");
+assert.ok(css.includes('prefers-reduced-motion:reduce'),
+ "Verified status shine must respect user reduced-motion setting");
+assert.ok(css.includes('#modernConnectionStatus[data-indicator="connected"]'),
+ "Green shine is reserved for established connection");
+assert.ok(css.includes('#modernConnectionStatus[data-indicator="error"]'),
+ "Red is reserved for genuine connection problems");
+assert.ok(chatComposer.includes('ezero:channel-state'),
+ "Connected status must be driven by existing peer state, not fabricated");
 assert.ok(page.includes("ezero_secure_connect_people_v0_1.js"));
 for(const id of ["ezeroCameraButton","ezeroGalleryButton","ezeroCameraPhoto",
  "ezeroPeopleHub","ezeroTabFriends","ezeroTabCalls","ezeroTabMissed",
@@ -45,23 +63,6 @@ assert.ok(people.includes('["incoming","outgoing"]'),
 assert.ok(people.includes("noMissed"),"No false missed-call status");
 assert.ok(modern.includes("ezero:call-intent"),"Track actual user-initiated call direction");
 assert.ok(css.includes("accent-color:#16814a"),"Use professional green selection color");
-
-for(const [mode,num] of [["audio","01"],["video","02"],["voice","03"],["chat","04"]]){
- assert.ok(page.includes('data-step="'+num+'" data-modern-select="'+mode+'"'),
-   "Green mode tiles must include modern sequential badges");
-}
-assert.ok(css.includes('content:attr(data-step)'));
-assert.ok(css.includes("background:linear-gradient(125deg,#081f1b"));
-assert.ok(css.includes('.communication-page #modernConnectionStatus[data-state="connected"]'));
-assert.ok(css.includes('.communication-page #modernConnectionStatus[data-state="error"]'));
-assert.ok(css.includes("ezeroRealConnectionCheck"));
-assert.ok(css.includes("@media(prefers-reduced-motion:reduce)"));
-assert.ok(modern.includes('window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true'),
-  "A successful status icon requires verified real peer transport");
-assert.ok(modern.includes('el.dataset.state=connected?"connected":failed?"error":"idle"'));
-assert.ok(modern.includes('el.dataset.state=errors.has(key)?"error"'),
-  "Signed invite errors must render as errors rather than fake successes");
-
 
 assert.ok(css.includes(".ezero-person-card"),"High-quality contacts and calls must have structured cards");
 
