@@ -15,7 +15,7 @@
   const validFP=s=>typeof s==="string"&&/^[a-f0-9]{64}$/.test(s);
   const nameOf=s=>typeof s==="string"?s.trim().replace(/\s+/g," ").slice(0,40):"";
   const dict={
-    ur:{hubTitle:"👥 دوست اور کال ہسٹری",hubDescription:"محفوظ دوست اور حقیقی طور پر کنیکٹ شدہ کالز؛ جعلی آن لائن یا مس کال کا نشان نہیں۔",
+    ur:{verifyFriend:"+ QR شناخت سے دوست محفوظ کریں",hubTitle:"👥 دوست اور کال ہسٹری",hubDescription:"محفوظ دوست اور حقیقی طور پر کنیکٹ شدہ کالز؛ جعلی آن لائن یا مس کال کا نشان نہیں۔",
       friends:"دوست",calls:"کالز",missed:"مس کالز",searchLabel:"دوست یا کال تلاش کریں",
       historyConsent:"صرف واقعی کنیکٹ ہو کر مکمل ہونے والی آڈیو/ویڈیو کال کی مختصر ہسٹری 10 منٹ تک اسی فون پر محفوظ کریں۔ آواز، ویڈیو، تصویر اور چیٹ محفوظ نہیں ہوں گے۔",
       clearHistory:"کال ہسٹری صاف کریں",historyOff:"کال ہسٹری بند ہے؛ کوئی ریکارڈ محفوظ نہیں ہوگا۔",
@@ -27,7 +27,7 @@
       saved:"محفوظ شناخت · نئے سیشن میں دوبارہ تصدیق کریں",current:"ابھی WebRTC پر کنیکٹ",
       incoming:"آنے والی",outgoing:"کی گئی",audio:"آڈیو",video:"ویڈیو",temporary:"عارضی تصدیق شدہ رابطہ",
       unknown:"کنیکٹ شدہ رابطہ",recent:"10 منٹ کی ہسٹری",notOnline:"مستقل آن لائن حالت دستیاب نہیں"},
-    en:{hubTitle:"👥 Friends & call history",hubDescription:"Saved friends and genuinely connected calls; never fake online or missed-call status.",
+    en:{verifyFriend:"+ Add friend via signed QR",hubTitle:"👥 Friends & call history",hubDescription:"Saved friends and genuinely connected calls; never fake online or missed-call status.",
       friends:"Friends",calls:"Calls",missed:"Missed",searchLabel:"Search friends or calls",
       historyConsent:"Keep minimal metadata about genuinely connected and completed audio/video calls on this phone for 10 minutes. Never save audio, video, photos or chat.",
       clearHistory:"Clear call history",historyOff:"Call history is off; no calls will be saved.",
@@ -39,7 +39,7 @@
       saved:"Saved ID · verify in each new session",current:"Connected via WebRTC now",
       incoming:"Incoming",outgoing:"Outgoing",audio:"Audio",video:"Video",temporary:"Temporary verified peer",
       unknown:"Connected peer",recent:"10-minute history",notOnline:"Permanent online status unavailable"},
-    ar:{hubTitle:"👥 الأصدقاء وسجل المكالمات",hubDescription:"جهات الاتصال المحفوظة والمكالمات المتصلة فعليًا، دون حالة مزيفة.",
+    ar:{verifyFriend:"+ إضافة صديق عبر QR موقّع",hubTitle:"👥 الأصدقاء وسجل المكالمات",hubDescription:"جهات الاتصال المحفوظة والمكالمات المتصلة فعليًا، دون حالة مزيفة.",
       friends:"الأصدقاء",calls:"المكالمات",missed:"الفائتة",searchLabel:"البحث عن صديق أو مكالمة",
       historyConsent:"احفظ البيانات المختصرة للمكالمات الصوتية/المرئية المتصلة والمكتملة على هذا الهاتف لمدة 10 دقائق؛ دون تسجيل الصوت أو الفيديو أو الصور أو الرسائل.",
       clearHistory:"مسح سجل المكالمات",historyOff:"السجل معطل ولن تُحفظ المكالمات.",
