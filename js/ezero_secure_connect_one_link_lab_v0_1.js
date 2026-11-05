@@ -10,6 +10,7 @@
 "use strict";
 const $=id=>document.getElementById(id);
 const endpoint="wss://ezero-secure-connect-call-lab-disabled.coma39658.workers.dev";
+const inviteEndpoint=endpoint.replace(/^wss:/,"https:")+"/v1/invite";
 const text={
  ur:{
    title:"نجی ایک لنک کال — تجرباتی محفوظ طریقہ",
@@ -97,15 +98,61 @@ const text={
 };
 let roomId=null,secret=null,auth=null,issued=null,proof=null,secretKey=null,ws=null,role=null,joined=false,approved=false;
 let ready=false, link="",closing=false,connecting=false,creating=false;
+let qrMode="",qrPending=false,hostAccepted=false,guestHelloSent=false,qrRequestVerified=false;
+const oneQrText={
+ ur:{title:"📞 آسان کال — صرف ایک QR",explain:"ایک فون QR دکھائے، دوسرا اسے اسکین کرے، پھر کال قبول کریں۔ کوئی لمبا کوڈ نہیں۔",
+ show:"📱 میرا کال QR دکھائیں",scan:"📷 دوسرے فون کا QR اسکین کریں",accept:"✅ کال قبول کریں",
+ decline:"✕ کال مسترد کریں",end:"📴 کال ختم کریں",
+ ready:"دوسرا فون QR اسکین کرے؛ کال درخواست اسی کھلے صفحے پر آئے گی۔",
+ join:"QR مل گیا؛ دوست کی دستخط شدہ شناخت چیک ہو رہی ہے۔",
+ request:"✓ دستخط شدہ شناخت ملی۔ یہ حقیقی انسان کی شناخت کی ضمانت نہیں۔ قبول یا مسترد کریں۔",
+ rejected:"کال مسترد کر دی گئی۔",waiting:"دوسرے فون کی منظوری کا انتظار ہے۔",
+ unavailable:"محفوظ کال روم ابھی بند ہے یا انٹرنیٹ دستیاب نہیں؛ کوئی کال شروع نہیں ہوئی۔",
+ invalid:"QR غلط، پرانا یا مختلف ویب سائٹ کا ہے۔ نیا QR اسکین کریں۔",
+ connecting:"محفوظ کال روم سے رابطہ ہو رہا ہے۔",
+ connected:"✓ اصل WebRTC کنکشن قائم ہوا۔",limit:"پائلٹ کے آٹھ کال روم بھر گئے ہیں؛ بعد میں نیا QR بنائیں۔",
+ warning:"یہ QR نجی دعوت ہے۔ صرف قابل اعتماد شخص کو دکھائیں، دوسروں سے یا عوامی گروپ میں شیئر نہ کریں۔"
+ },
+ en:{title:"📞 Easy call — one QR",explain:"One phone shows QR, the other scans, then the recipient accepts. No long codes.",
+ show:"📱 Show my call QR",scan:"📷 Scan the other phone's QR",accept:"✅ Accept call",decline:"✕ Decline",end:"📴 End call",
+ ready:"Show the QR to the other phone; a call request will appear here while this page is open.",
+ join:"QR received; verifying signed digital identity.",request:"✓ Signed key checked. This does not prove the person's real-world identity. Accept or decline.",
+ rejected:"Call declined.",waiting:"Waiting for receiver's consent.",unavailable:"The private call room is disabled or unreachable. No call started.",
+ invalid:"QR invalid, expired or for another website. Ask for a fresh QR.",connecting:"Connecting to the private room.",
+ connected:"✓ Actual WebRTC connection established.",limit:"All eight restricted pilot rooms are occupied.",warning:"This QR is a private invitation. Show only to the intended person."
+ },
+ ar:{title:"📞 مكالمة سهلة — QR واحد",explain:"يعرض هاتف QR، ويمسحه الآخر ثم يقبل المستلم. لا رموز طويلة.",
+ show:"📱 اعرض QR للمكالمة",scan:"📷 امسح QR الهاتف الآخر",accept:"✅ قبول",decline:"✕ رفض",end:"📴 إنهاء المكالمة",
+ ready:"اعرض QR للهاتف الآخر؛ سيظهر طلب الاتصال هنا والصفحة مفتوحة.",join:"تم استلام QR؛ يجري فحص الهوية الموقعة.",
+ request:"✓ تم التحقق من المفتاح الرقمي، لا من هوية الشخص الحقيقية. اقبل أو ارفض.",
+ rejected:"رُفض الاتصال.",waiting:"انتظار موافقة الهاتف الآخر.",unavailable:"غرفة الاتصال مغلقة أو الشبكة غير متاحة.",invalid:"QR غير صحيح أو منتهي أو لموقع آخر.",
+ connecting:"جار الاتصال بالغرفة الخاصة.",connected:"✓ تم اتصال WebRTC الحقيقي.",limit:"غرف الاختبار الثماني مشغولة.",warning:"هذا QR دعوة خاصة؛ اعرضه للشخص المقصود فقط."
+ }
+};
+const qtext=k=>(oneQrText[lang()]||oneQrText.ur)[k]||k;
+function qStatus(k){
+ const el=$("oneQrStatus");if(!el)return;
+ el.textContent=qtext(k);el.dataset.state=k;
+}
 const lang=()=>["ur","en","ar"].includes($("language")?.value)?$("language").value:"ur";
 const t=k=>(text[lang()]||text.ur)[k]||text.ur[k]||k;
 const st=k=>{const e=$("roomStatus");e.textContent=t(k);e.dataset.state=k;};
 function draw(){
  for(const el of document.querySelectorAll("[data-room-i18n]"))
    el.textContent=t(el.dataset.roomI18n);
- $("roomStart").disabled=!(ready&&role==="caller"&&approved);
- $("roomAccept").disabled=!(ready&&role==="callee"&&!approved);
- $("roomDecline").disabled=!(ready&&role==="callee"&&!approved);
+ for(const el of document.querySelectorAll("[data-oneqr-i18n]"))
+   el.textContent=qtext(el.dataset.oneqrI18n);
+ $("oneQrShow").disabled=ready||connecting||creating;
+ $("oneQrRequest").hidden=!(qrMode==="host"&&qrRequestVerified&&ready&&!hostAccepted);
+ $("oneQrEnd").hidden=!(ready||connecting);
+ $("oneQrCaller").textContent=qtext("request");
+ $("roomStart").disabled=!(ready&&role==="caller"&&approved&&qrMode!=="host");
+ $("roomAccept").disabled=!(ready&&
+   ((role==="callee"&&!approved&&qrMode!=="guest")||
+    (role==="caller"&&qrMode==="host"&&qrRequestVerified&&!hostAccepted)));
+ $("roomDecline").disabled=!(ready&&
+   ((role==="callee"&&!approved&&qrMode!=="guest")||
+    (role==="caller"&&qrMode==="host"&&qrRequestVerified&&!hostAccepted)));
  $("roomCreate").disabled=ready||connecting||creating;
  $("roomJoin").disabled=ready||connecting||!roomId||!auth;
  $("roomLink").value=ready&&role==="caller"?link:"";
