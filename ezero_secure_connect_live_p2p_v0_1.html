@@ -18,11 +18,13 @@
 <link rel="apple-touch-icon" href="./icon-192.png">
 <link rel="manifest" href="./secure-connect.webmanifest">
 <link rel="stylesheet" href="./css/ezero_secure_connect_live_p2p_v0_1.css">
+<link rel="stylesheet" href="./css/ezero_secure_connect_one_tap_qr_v0_1.css">
 <script defer src="./js/vendor/ezero-qrcode-generator-mit.js"></script>
 <script defer src="./js/ezero_secure_connect_live_p2p_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_simple_near_far_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_contacts_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_install_share_v0_1.js"></script>
+<script defer src="./js/ezero_secure_connect_one_tap_qr_v0_1.js"></script>
 </head>
 <body>
 <div class="shell">
@@ -40,6 +42,22 @@
     <p data-i18n="intro">دو براؤزرز کے درمیان براہِ راست آڈیو، ویڈیو اور ایک بار کھلنے والے پیغامات کی محدود آزمائش۔</p>
     <div class="pills"><span data-i18n="free">بلا فیس</span><span data-i18n="ads">بغیر اشتہارات</span><span data-i18n="consent">اجازت سے ہی مائک/کیمرہ</span></div>
   </div>
+  <section class="card one-tap" id="oneTapPanel" aria-labelledby="oneTapTitle">
+    <div class="one-tap-kicker">E-ZERO · SECURE QR</div>
+    <h2 id="oneTapTitle" data-one-tap-i18n="heading">ایک بٹن سے QR رابطہ</h2>
+    <p data-one-tap-i18n="description">بٹن دبائیں۔ آپ کا QR ظاہر ہوگا اور آپ کی اجازت سے کیمرہ دوست کا QR اسکین کرے گا۔</p>
+    <button type="button" class="primary" id="oneTapStartButton" data-one-tap-i18n="start">📷 QR رابطہ شروع کریں</button>
+    <div class="one-tap-stage" id="oneTapStage" hidden>
+      <div id="oneTapQr" role="img" aria-label="میرا عارضی QR شناختی کوڈ"></div>
+      <div id="oneTapCamera"></div>
+      <p id="oneTapResult" role="status" aria-live="polite">آغاز کے لیے بٹن دبائیں۔</p>
+      <button type="button" id="oneTapStop" hidden>■ کیمرہ بند کریں</button>
+      <button type="button" id="oneTapCall" hidden>📞 کال کی آزمائش کے اختیارات</button>
+    </div>
+    <p class="one-tap-truth" data-one-tap-i18n="truth">QR صرف عارضی ڈیجیٹل شناخت کی تصدیق ہے، مکمل کال نہیں۔ کال کے لیے محفوظ دعوت اور جواب ابھی ضروری ہیں۔</p>
+  </section>
+  <details id="secureAdvanced">
+    <summary data-one-tap-i18n="options">⚙ مزید اختیارات · دوست، شیئر، آڈیو/ویڈیو</summary>
   <section class="share-install card" aria-labelledby="shareInstallTitle">
     <div class="heading"><span class="number" aria-hidden="true">↗</span><h2 id="shareInstallTitle" data-share-i18n="title">E-ZERO دوستوں کو بھیجیں اور ایپ بنائیں</h2></div>
     <p class="small" data-share-i18n="description">یہ لنک WhatsApp، IMO یا کسی بھی میسج میں بھیجیں۔ لنک کھولنے والے دوست کو اسی صفحے پر انسٹال کا بٹن نظر آئے گا۔</p>
@@ -218,6 +236,7 @@
     <p data-i18n="nextHelp">SHA-256 شناخت، دو طرفہ منظوری، خودکار رابطہ، وائس نوٹس، گروپس اور کمزور نیٹ ورک پر TURN سرور بعد کے مرحلے ہیں۔ انہیں یہاں فعال یا محفوظ ثابت نہیں کہا جا رہا۔</p>
     <a class="back" href="./ezero_secure_connect_preview_v0_1.html#qr" data-i18n="identityLink">عارضی SHA-256 شناخت کی آزمائش</a>
   </section>
+  </details>
   </details>
   <footer class="footer"><span data-i18n="footer">E-ZERO · عوامی خدمت، کوئی اشتہار نہیں، کوئی خفیہ ریکارڈنگ نہیں۔</span></footer>
 </main>

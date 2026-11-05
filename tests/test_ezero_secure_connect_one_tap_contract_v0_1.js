@@ -1,0 +1,22 @@
+"use strict";
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const html=fs.readFileSync("ezero_secure_connect_live_p2p_v0_1.html","utf8");
+const script=fs.readFileSync("js/ezero_secure_connect_one_tap_qr_v0_1.js","utf8");
+const css=fs.readFileSync("css/ezero_secure_connect_one_tap_qr_v0_1.css","utf8");
+assert.match(html,/id="oneTapStartButton"/);
+assert.match(html,/<details id="secureAdvanced">/);
+assert.match(html,/id="oneTapResult" role="status" aria-live="polite"/);
+assert.match(html,/id="oneTapStage" hidden/);
+assert.match(html,/ezero_secure_connect_one_tap_qr_v0_1\.js/);
+assert.match(html,/ezero_secure_connect_one_tap_qr_v0_1\.css/);
+assert.match(script,/button\.addEventListener\("click"/);
+assert.match(script,/originalScan\.click\(\)/);
+assert.match(script,/info\.ok===true && info\.signed===true/);
+assert.match(script,/info\.source!=="scan"/);
+assert.match(script,/originalStop\.click\(\)/);
+assert.match(script,/QR verifies only a temporary digital key/);
+assert.doesNotMatch(script,/\b(fetch|XMLHttpRequest|WebSocket|localStorage|sessionStorage)\b/,
+  "One-tap UI must not introduce network or persistent identity storage");
+assert.match(css,/#oneTapStage\b|\.one-tap-stage\[hidden\]/);
+console.log("ONE_TAP_QR_SECURE_UI_CONTRACT: PASS");

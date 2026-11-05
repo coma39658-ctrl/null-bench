@@ -43,9 +43,13 @@ try{
   a=await phone();b=await phone();
   const myId=await a.locator("#myDigitalId").inputValue();
   const idB=await b.locator("#myDigitalId").inputValue();
-  const fpB=await b.locator("#myFingerprint").innerText();
+  const fpB=await b.locator("#myFingerprint").textContent();
   assert.equal(await a.locator("#friendsList .friend-entry").count(),0);
   assert.equal(await a.locator("#saveVerifiedFriend").isDisabled(),true);
+  assert.equal(await a.locator("#oneTapStartButton").isVisible(),true);
+  assert.equal(await a.locator("#scanQR").isVisible(),false,"Manual scan stays under More options");
+  await a.locator("#secureAdvanced").evaluate(el=>el.open=true);
+  await b.locator("#secureAdvanced").evaluate(el=>el.open=true);
   assert.equal(await a.locator("#scanQR").isVisible(),true);
   assert.equal(await a.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
   await a.locator("#language").selectOption("en");
@@ -95,6 +99,7 @@ try{
   await a.locator("#friendSearch").fill("");
   await a.reload();
   await a.waitForFunction(()=>document.querySelector("#myFingerprint")?.textContent.length===64);
+  await a.locator("#secureAdvanced").evaluate(el=>el.open=true);
   assert.equal(await a.locator(".friend-name").innerText(),"Ali Test","Opt-in local-only name persists on this device");
   assert.equal(await a.locator(".friend-fingerprint").innerText(),fpB);
   assert.equal(await a.locator("#saveVerifiedFriend").isDisabled(),true,"New session cannot treat stored fingerprint as a signed verified QR");

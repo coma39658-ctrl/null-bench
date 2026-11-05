@@ -65,13 +65,17 @@ async function connect(a,b,mode){
 let a,b;
 try{
   a=await phone("PHONE_A");b=await phone("PHONE_B");
-  assert.match(await a.locator("#myFingerprint").innerText(),/^[a-f0-9]{64}$/);
-  const fpA=await a.locator("#myFingerprint").innerText();
-  const fpB=await b.locator("#myFingerprint").innerText();
+  assert.match(await a.locator("#myFingerprint").textContent(),/^[a-f0-9]{64}$/);
+  const fpA=await a.locator("#myFingerprint").textContent();
+  const fpB=await b.locator("#myFingerprint").textContent();
   assert.notEqual(fpA,fpB,"Each phone generated a different random identity automatically");
   assert.equal(await a.locator("#myQr svg").count(),1,"QR generated offline");
   assert.equal(await a.evaluate(()=>window.__mediaCalls.length),0,"No camera or mic without a click");
   assert.equal(await b.evaluate(()=>window.__mediaCalls.length),0);
+  assert.equal(await a.locator("#oneTapStartButton").isVisible(),true,"Single QR start is prominent");
+  assert.equal(await a.locator("#secureAdvanced").getAttribute("open"),null,"Complex options are initially closed");
+  await a.locator("#secureAdvanced").evaluate(el=>el.open=true);
+  await b.locator("#secureAdvanced").evaluate(el=>el.open=true);
   assert.equal(await a.locator("#nearbyPanel").isVisible(),true,"Nearby QR is default");
   assert.equal(await a.locator("#remotePanel").isHidden(),true,"Remote copy mode hidden until selected");
   assert.equal(await a.locator("#callSetup").getAttribute("open"),null,
