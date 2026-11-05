@@ -1,0 +1,57 @@
+name: E-ZERO One Request + One Accept WebRTC Pilot QA
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ezero_secure_connect_one_request_lab_20261106.html'
+      - 'js/ezero_one_request_lab_20261106.js'
+      - 'js/ezero_auto_signaling_lab_config_20261106.js'
+      - 'js/ezero_secure_connect_auto_signaling_pilot_v0_1.js'
+      - 'js/ezero_secure_connect_short_link_v0_2.js'
+      - 'tests/test_ezero_one_request_browser_20261106.mjs'
+      - '.github/workflows/ezero_one_request_auto_call_lab_20261106.yml'
+  push:
+    branches: [ezero-one-request-auto-call-lab-20261106]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test-one-request-protocol:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and strict pilot isolation
+        run: |
+          set -euo pipefail
+          node --check js/ezero_one_request_lab_20261106.js
+          node --check js/ezero_secure_connect_auto_signaling_pilot_v0_1.js
+          node --check js/ezero_auto_signaling_lab_config_20261106.js
+          node --check js/ezero_secure_connect_short_link_v0_2.js
+          node --check tests/test_ezero_one_request_browser_20261106.mjs
+          node tests/test_ezero_cloudflare_auto_signaling_v0_1.js
+          grep -Fq 'enabled:false' js/ezero_auto_signaling_config_v0_1.js
+          grep -Fq 'websocketOrigin:""' js/ezero_auto_signaling_config_v0_1.js
+          grep -Fq 'enabled:true' js/ezero_auto_signaling_lab_config_20261106.js
+          grep -Fq 'noindex,nofollow,noarchive' ezero_secure_connect_one_request_lab_20261106.html
+          ! grep -R -n -E 'CF_API_TOKEN=|TURN_KEY_API_TOKEN=|Authorization: Bearer ' js/ezero_auto_signaling_lab_config_20261106.js
+      - name: Install isolated Chromium
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.57.0
+          npx playwright install --with-deps chromium
+      - name: Test one request, one accept, auto signaling and real WebRTC over mocked WS
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8769 --bind 127.0.0.1 >/tmp/ezero-one-request-lab.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8769/ezero_secure_connect_one_request_lab_20261106.html >/dev/null; then break; fi
+            sleep 1
+          done
+          node tests/test_ezero_one_request_browser_20261106.mjs
