@@ -201,3 +201,26 @@
  .communication-page.ezero-one-lab .ezero-unified-card{padding:11px 9px}
  .communication-page.ezero-one-lab .ezero-unified-card .modern-feature-button{min-height:90px}
 }
+
+/* Unified public page: one green primary card; old two-layer experiment is
+   retained only as a hidden compatibility DOM for the existing JS modules. */
+body.ezero-one-lab .ezero-unified-card{margin:12px 0 20px;padding:16px;border-radius:22px;background:linear-gradient(155deg,#073b2d,#086546 48%,#073b2d);border:2px solid #26b67d;box-shadow:0 10px 32px #022c2160;color:#effff7}
+body.ezero-one-lab .ezero-unified-heading{text-align:center;padding:12px 5px 17px}
+body.ezero-one-lab .ezero-unified-label{font-size:12px;letter-spacing:.15em;color:#b6ffda;font-weight:800}
+body.ezero-one-lab .ezero-unified-heading h1{color:#fff;font-size:clamp(23px,6vw,34px);line-height:1.45;margin:8px 0}
+body.ezero-one-lab .ezero-unified-heading p{color:#d6ffe8;font-size:14px;line-height:1.75;margin:4px 0}
+body.ezero-one-lab .ezero-unified-card .modern-workspace{margin:10px 0;background:#f3fff8;color:#153e2e;border-radius:16px;border:1px solid #7bd5a9}
+body.ezero-one-lab .ezero-unified-card .modern-feature-grid{margin:12px 0;gap:9px}
+body.ezero-one-lab .ezero-unified-card .modern-feature-button{border:1px solid #57bd88;background:linear-gradient(145deg,#f3fff9,#d5f9e4);color:#075238;min-height:84px}
+body.ezero-one-lab .ezero-unified-card .modern-feature-button[aria-pressed="true"]{border-color:#14a46c;box-shadow:0 0 0 2px #23b97666}
+body.ezero-one-lab .ezero-unified-card #ezeroOneJoinPanel{margin:10px 0;background:#e6f9ed}
+body.ezero-one-lab .ezero-unified-card #ezeroAutoPilot{background:#e6f9ed}
+body.ezero-one-lab .ezero-unified-card #ezeroOneScanInvite{background:linear-gradient(110deg,#046341,#15a46a);color:#fff}
+body.ezero-one-lab .ezero-unified-card #ezeroAutoAccept{background:#057b4d;color:#fff}
+body.ezero-one-lab .ezero-unified-card .ezero-unified-options{margin:12px 0;padding:10px;border:1px solid #68c39a;border-radius:15px;background:#e8fff0;color:#11432d}
+body.ezero-one-lab .ezero-unified-card .ezero-unified-options>summary{font-weight:850;cursor:pointer;padding:7px}
+body.ezero-one-lab .ezero-unified-disclaimer{font-size:12px;color:#d6ffe9;line-height:1.7;margin:14px 4px 0}
+body.ezero-one-lab main>.ezero-pilot-banner,body.ezero-one-lab main>.modern-hero,body.ezero-one-lab main>#modernOfflinePanel,body.ezero-one-lab main>.modern-secondary-links,body.ezero-one-lab main>.legacy-hero,body.ezero-one-lab main>details.legacy-advanced,body.ezero-one-lab main>#oneTapPanel{display:none!important}
+body.ezero-one-lab .ezero-unified-card #ezeroOneJoinHeading{font-size:20px}
+body.ezero-one-lab .ezero-unified-card #modernCallPanel[hidden],body.ezero-one-lab .ezero-unified-card #modernChatPanel[hidden],body.ezero-one-lab .ezero-unified-card #modernVoicePanel[hidden]{display:none!important}
+@media(max-width:460px){body.ezero-one-lab .ezero-unified-card{padding:10px;border-radius:17px}body.ezero-one-lab .ezero-unified-card .modern-feature-button{min-height:77px}}
