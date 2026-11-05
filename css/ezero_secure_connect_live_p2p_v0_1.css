@@ -160,3 +160,27 @@ button.outline{color:#07546b;background:#ebf9fc;border-color:#b3d5de}button.dang
 .oneqr-card #oneQrStatus[data-state="unavailable"],
 .oneqr-card #oneQrStatus[data-state="invalid"]{background:#fff2e8;color:#713b20;border-color:#e6c2aa}
 @media(max-width:390px){.oneqr-actions{grid-template-columns:1fr}.oneqr-actions button{min-height:49px}}
+
+/* November 2026 one-QR easy-first layout: technical controls are optional.
+   The existing verified camera/identity nodes are reused, not forked. */
+.oneqr-card{order:0;margin-top:12px}
+.oneqr-advanced{border:1px solid #afccd2;background:#fbfefe;padding:12px 12px 5px}
+.oneqr-advanced>summary{cursor:pointer;list-style:revert;font-weight:750;
+ line-height:1.65;font-size:14px;padding:10px;color:#1e5866}
+.oneqr-advanced[open]>summary{margin-bottom:14px;border-bottom:1px solid #d4e7eb}
+.oneqr-camera{border:1px solid #a4ced8;background:#f1f8fb;border-radius:14px;
+ padding:12px;margin:12px auto;max-width:480px}
+.oneqr-camera-live{display:flex;flex-direction:column;align-items:center;gap:8px}
+.oneqr-camera-live video{display:block;max-width:100%;width:100%;max-height:310px;
+ border-radius:10px;object-fit:contain;background:#0b1a23}
+.oneqr-camera-live video[hidden]{display:none}
+.oneqr-camera-live .scan-result{max-width:100%;width:100%;overflow-wrap:anywhere}
+.oneqr-camera #oneQrCancelScan{width:100%;margin:8px 0}
+.oneqr-card #oneQrPrivacy{display:block;min-height:38px;margin:8px auto 4px;
+ border:0;background:transparent;box-shadow:none;font-size:13px}
+.oneqr-card [hidden],.oneqr-camera [hidden]{display:none!important}
+@media(max-width:520px){
+ .oneqr-advanced{padding:10px}
+ .oneqr-advanced>summary{padding:10px 4px}
+ .oneqr-card .oneqr-actions button{font-size:14px}
+}
