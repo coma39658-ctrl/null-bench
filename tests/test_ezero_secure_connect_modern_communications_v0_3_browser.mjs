@@ -124,6 +124,36 @@ try{
   assert.match(await a.locator('[data-modern="voice"]').innerText(),/رسالة صوتية/);
   await a.locator("#language").selectOption("ur");
   console.log("FOUR_VISIBLE_MODE_CONTROLS_AND_THREE_LANGUAGES_NO_AUTO_MEDIA: PASS");
+  // The selected-mode border animates for 160ms; inspect its settled color.
+  await a.waitForFunction(()=>getComputedStyle(
+    document.querySelector('[data-modern-select="voice"]')).borderTopColor==="rgb(25, 131, 78)");
+  // CSS transitions interpolate the border for 160ms; assert settled color,
+  // not an arbitrary mid-transition pixel from a fast headless browser.
+  await a.waitForFunction(()=> {
+    const el=document.querySelector('.modern-feature-button[aria-pressed="true"]');
+    return !!el && getComputedStyle(el).borderTopColor==="rgb(25, 131, 78)";
+  },{timeout:3000});
+  const selectedGreen=await a.locator('.modern-feature-button[aria-pressed="true"]').evaluate(
+    el=>getComputedStyle(el).borderTopColor);
+  assert.equal(selectedGreen,"rgb(25, 131, 78)",
+    "Selected communication mode must settle on professional green");
+  await a.locator("#ezeroPeopleHub").evaluate(el=>el.open=true);
+  const savedFriendFP=(await b.locator("#myFingerprint").innerText()).trim();
+  await a.evaluate(fp=>localStorage.setItem("ezero_secure_connect_local_fingerprints_v0_1",
+    JSON.stringify([{fp,name:"Saved QR Friend"}])),savedFriendFP);
+  await a.locator("#ezeroTabFriends").click();
+  assert.match(await a.locator("#ezeroPeopleList").innerText(),/Saved QR Friend/);
+  assert.match(await a.locator("#ezeroPeopleList").innerText(),/دوبارہ تصدیق/);
+  await a.locator("#ezeroTabMissed").click();
+  assert.match(await a.locator("#ezeroPeopleList").innerText(),/مس کال/);
+  assert.equal(await a.locator("#ezeroHistoryConsent").isChecked(),false);
+  assert.equal(await a.evaluate(()=>
+    localStorage.getItem("ezero_local_completed_call_history_v0_1")),null,
+    "No call history should be created without explicit opt-in");
+  await b.locator("#ezeroPeopleHub").evaluate(el=>el.open=true);
+  await b.locator("#ezeroHistoryConsent").check();
+  assert.equal(await b.locator("#ezeroHistoryConsent").isChecked(),true);
+  console.log("GREEN_SELECTION_SAVED_QR_CONTACTS_NO_FAKE_MISSED_OR_AUTOMATIC_LOGS: PASS");
 
   // Self-declared profile is local until the user explicitly opts in.
   await a.locator("#ezeroProfileEditor").evaluate(el=>el.open=true);
@@ -133,15 +163,28 @@ try{
   assert.equal(await a.locator("#ezeroPeerProfileCard").isHidden(),true);
   await b.locator("#ezeroProfileEditor").evaluate(el=>el.open=true);
   await b.locator("#ezeroMyName").fill("Test Caller B");
-  await b.locator("#ezeroMyPhoto").evaluate(async input=>{
+  // Distinct, real user-triggered Android file-picker and camera actions.
+  assert.equal(await b.locator("#ezeroCameraPhoto").getAttribute("capture"),"user");
+  assert.equal(await b.locator("#ezeroMyPhoto").getAttribute("capture"),null);
+  assert.equal(await a.locator("#ezeroMyAvatar").isHidden(),true);
+  const cameraChooserPromise=a.waitForEvent("filechooser");
+  await a.locator("#ezeroCameraButton").click();
+  const cameraChooser=await cameraChooserPromise;
+  assert.equal(await cameraChooser.element().getAttribute("id"),"ezeroCameraPhoto");
+  await cameraChooser.setFiles([]); // Cancel: no picture may be taken without the user.
+  const pngBase64=await b.evaluate(()=>{
     const canvas=document.createElement("canvas");
     canvas.width=64;canvas.height=64;
     canvas.getContext("2d").fillRect(0,0,64,64);
-    const png=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
-    const transfer=new DataTransfer();
-    transfer.items.add(new File([png],"friend-avatar.png",{type:"image/png"}));
-    input.files=transfer.files;
-    input.dispatchEvent(new Event("change",{bubbles:true}));
+    return canvas.toDataURL("image/png").split(",")[1];
+  });
+  const galleryChooserPromise=b.waitForEvent("filechooser");
+  await b.locator("#ezeroGalleryButton").click();
+  const galleryChooser=await galleryChooserPromise;
+  assert.equal(await galleryChooser.element().getAttribute("id"),"ezeroMyPhoto");
+  await galleryChooser.setFiles({
+    name:"friend-avatar.png",mimeType:"image/png",
+    buffer:Buffer.from(pngBase64,"base64")
   });
   await b.waitForFunction(()=>document.querySelector("#ezeroMyAvatar")?.hidden===false);
   await b.locator("#ezeroShareProfile").check();
@@ -163,6 +206,19 @@ try{
   assert.equal(await a.evaluate(()=>document.querySelector("#localVideo").srcObject.getAudioTracks().length),1);
   assert.equal(await b.evaluate(()=>document.querySelector("#remoteVideo").srcObject.getAudioTracks().length),1);
   console.log("EXPERIMENTAL_REAL_WEBRTC_AUDIO_WITH_MANUAL_SIGNALING: PASS");
+  const bHistory=await b.evaluate(()=>
+    JSON.parse(localStorage.getItem("ezero_local_completed_call_history_v0_1")||"[]"));
+  assert.equal(bHistory.length,0,
+    "Ongoing call must not be saved as a completed call until actual hangup");
+  assert.equal(await a.evaluate(()=>
+    localStorage.getItem("ezero_local_completed_call_history_v0_1")),null,
+    "Non-consenting caller keeps no local call log");
+  await b.locator("#ezeroPeopleHub").evaluate(el=>el.open=true);
+  await b.locator("#ezeroTabCalls").click();
+  assert.match(await b.locator("#ezeroPeopleList").innerText(),/ابھی کوئی مکمل/);
+  await b.locator("#ezeroTabMissed").click();
+  assert.match(await b.locator("#ezeroPeopleList").innerText(),/مس کال/);
+  console.log("REAL_CONNECTED_INCOMING_CALL_OPT_IN_HISTORY_NO_INVENTED_MISSED: PASS");
   await a.locator("#ezeroPeerProfileCard").waitFor({state:"visible",timeout:12000});
   await a.waitForFunction(()=>
     document.querySelector("#ezeroPeerDisplayName")?.textContent==="Test Caller B",{timeout:12000});
@@ -219,6 +275,46 @@ try{
   assert.equal(await a.locator("#ezeroPeerProfileCard").isHidden(),true);
   assert.equal(await b.locator("#ezeroPeerProfileCard").isHidden(),true);
   console.log("PEER_PHOTO_AND_SESSION_ID_REMOVED_ON_HANGUP: PASS");
+  // An opted-in call record should persist after closing the genuine
+  // connection, and be deletable without touching friends or messages.
+  await b.locator("#ezeroTabCalls").click();
+  const finished=await b.evaluate(()=>
+    JSON.parse(localStorage.getItem("ezero_local_completed_call_history_v0_1")||"[]"));
+  assert.equal(finished.length,1);
+  assert.equal(finished[0].direction,"incoming");
+  assert.equal(finished[0].kind,"audio");
+  assert.equal(finished[0].name,"Test Caller A");
+  assert.ok(Date.now()-finished[0].ended<600000);
+  assert.equal(Object.hasOwn(finished[0],"fp"),false);
+  assert.equal(Object.hasOwn(finished[0],"media"),false);
+  assert.equal(await a.evaluate(()=>
+    localStorage.getItem("ezero_local_completed_call_history_v0_1")),null,
+    "Nonconsenting phone must not record a completed call");
+  await b.reload({waitUntil:"domcontentloaded"});
+  await b.locator("#ezeroPeopleHub").evaluate(el=>el.open=true);
+  await b.locator("#ezeroTabCalls").click();
+  assert.equal(await b.locator(".ezero-person-card").count(),1,
+    "Opted-in history survives a reload on this device only");
+  // Move the actual completed record beyond its 10-minute TTL. Loading the
+  // page again must purge it without asking the user or retaining metadata.
+  await b.evaluate(()=>{
+    const key="ezero_local_completed_call_history_v0_1";
+    const list=JSON.parse(localStorage.getItem(key));
+    list[0].ended=Date.now()-600001;
+    localStorage.setItem(key,JSON.stringify(list));
+  });
+  await b.reload({waitUntil:"domcontentloaded"});
+  await b.locator("#ezeroPeopleHub").evaluate(el=>el.open=true);
+  await b.locator("#ezeroTabCalls").click();
+  assert.equal(await b.locator(".ezero-person-card").count(),0);
+  assert.deepEqual(await b.evaluate(()=>
+    JSON.parse(localStorage.getItem("ezero_local_completed_call_history_v0_1")||"[]")),[]);
+  await b.locator("#ezeroHistoryConsent").uncheck();
+  assert.equal(await b.evaluate(()=>
+    localStorage.getItem("ezero_local_completed_call_history_v0_1")),null);
+  await b.locator("#ezeroTabMissed").click();
+  assert.equal(await b.locator(".ezero-person-card").count(),0);
+  console.log("REAL_CALL_HISTORY_AUTO_EXPIRES_AFTER_TEN_MINUTES_AND_OPT_OUT_ERASES: PASS");
   console.log("HANGUP_CLOSES_PEER_CHANNEL_AND_STOPS_STREAM: PASS");
 }finally{
   for(const ctx of contexts)await ctx.close().catch(()=>{});

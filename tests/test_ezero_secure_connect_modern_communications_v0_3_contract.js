@@ -9,8 +9,9 @@ const css=fs.readFileSync("css/ezero_secure_connect_modern_communications_v0_3.c
 const cosmic=fs.readFileSync("assets/ezero_secure_chat_cosmic_pattern_v0_1.svg","utf8");
 const transport=fs.readFileSync("js/ezero_secure_connect_live_p2p_v0_1.js","utf8");
 const profile=fs.readFileSync("js/ezero_secure_connect_peer_profile_v0_1.js","utf8");
+const people=fs.readFileSync("js/ezero_secure_connect_people_v0_1.js","utf8");
 const policy=fs.readFileSync("ezero_secure_connect_privacy_v0_2.html","utf8");
-for(const [label,c] of [["modern UI",modern],["voice transport",transport],["local peer profile",profile]])
+for(const [label,c] of [["modern UI",modern],["voice transport",transport],["local peer profile",profile],["people and 10-minute history",people]])
   new vm.Script(c,{filename:label});
 for(const mode of ["audio","video","voice","chat"]){
   assert.match(main,new RegExp('data-comm-mode="'+mode+'"'));
@@ -18,6 +19,35 @@ for(const mode of ["audio","video","voice","chat"]){
 }
 assert.match(page,/ezero_secure_connect_live_p2p_v0_1\.js/);
 assert.ok(page.includes("ezero_secure_connect_peer_profile_v0_1.js"));
+assert.ok(page.includes("ezero_secure_connect_people_v0_1.js"));
+for(const id of ["ezeroCameraButton","ezeroGalleryButton","ezeroCameraPhoto",
+ "ezeroPeopleHub","ezeroTabFriends","ezeroTabCalls","ezeroTabMissed",
+ "ezeroHistoryConsent","ezeroHistoryClear","ezeroPeopleList"])
+ assert.ok(page.includes('id="'+id+'"'),"Missing modern profile/people control "+id);
+assert.ok(page.includes('capture="user"'),"Mobile selfie camera is user-facing and opt-in");
+assert.ok(page.includes('id="ezeroCameraPhoto"')&&page.includes('id="ezeroMyPhoto"'));
+assert.ok(profile.includes('ezeroCameraPhoto")?.files')||
+  profile.includes('$(inputId).files')||
+  profile.includes('const input=$(inputId),file=input.files'),
+  "User-selected photo must be read from an explicitly chosen file input");
+assert.ok(profile.includes('"cameraPhoto"')||profile.includes('cameraPhoto:'),
+ "Localized camera label is required");
+assert.ok(profile.includes("ezeroCameraButton")&&profile.includes("ezeroGalleryButton"));
+assert.ok(!people.includes("new WebSocket")&&!people.includes("fetch("),
+ "Phone's call-history module must not contact a server");
+assert.ok(people.includes("TEN_MINUTES=600000"),
+ "Locally saved call metadata must expire after ten minutes");
+assert.ok(people.includes("ended:Date.now()"),"Start expiry at actual hangup");
+assert.ok(people.includes("ended<=now-TEN_MINUTES"),
+ "Expired history must be rejected on reload");
+assert.ok(people.includes('["incoming","outgoing"]'),
+ "History must not claim unverified calls");
+assert.ok(people.includes("noMissed"),"No false missed-call status");
+assert.ok(modern.includes("ezero:call-intent"),"Track actual user-initiated call direction");
+assert.ok(css.includes("accent-color:#16814a"),"Use professional green selection color");
+
+assert.ok(css.includes(".ezero-person-card"),"High-quality contacts and calls must have structured cards");
+
 for(const id of ["ezeroProfileEditor","ezeroMyName","ezeroMyPhoto",
     "ezeroShareProfile","ezeroSaveProfile","ezeroPeerProfileCard",
     "ezeroPeerSessionId","ezeroPeerAvatar","ezeroVerifiedConnection"])

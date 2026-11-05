@@ -161,6 +161,7 @@ async function readyToShare(type){
 }
 document.addEventListener("ezero:signal-ready",e=>readyToShare(e.detail?.type));
 $("ezeroPrepareInvite").addEventListener("click",()=>{
+  document.dispatchEvent(new CustomEvent("ezero:call-intent",{detail:{direction:"outgoing",kind:current==="video"?"video":"audio"}}));
   preparedShare=null;
   $("ezeroShareInvite").hidden=true;
   $("ezeroShareInvite").disabled=true;
@@ -189,6 +190,9 @@ async function showIncoming(link){
 $("ezeroAcceptInvite").addEventListener("click",()=>{
   if(!pendingSigned)return;
   const data=pendingSigned;
+  document.dispatchEvent(new CustomEvent("ezero:call-intent",{detail:{
+    direction:data.type==="offer"?"incoming":"outgoing",kind:data.video?"video":"audio"
+  }}));
   pendingSigned=null;$("ezeroIncomingInvite").hidden=true;
   // No network or microphone access is requested until this explicit click.
   if(data.type==="offer"){
