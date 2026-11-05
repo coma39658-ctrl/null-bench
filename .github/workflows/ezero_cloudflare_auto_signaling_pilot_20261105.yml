@@ -1,0 +1,44 @@
+name: E-ZERO Cloudflare Signaling Pilot Security QA
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'signaling/cloudflare/**'
+      - 'js/ezero_auto_signaling_config_v0_1.js'
+      - 'js/ezero_secure_connect_auto_signaling_pilot_v0_1.js'
+      - 'ezero_secure_connect_communications_v0_3.html'
+      - 'tests/test_ezero_cloudflare_auto_signaling_v0_1.js'
+      - '.github/workflows/ezero_cloudflare_auto_signaling_pilot_20261105.yml'
+  push:
+    branches: [ezero-browser-auto-signaling-pilot-20261105]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  zero-secrets-static-security-and-isolated-relay:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax-check browser pilot and Cloudflare module
+        run: |
+          set -euo pipefail
+          node --check js/ezero_auto_signaling_config_v0_1.js
+          node --check js/ezero_secure_connect_auto_signaling_pilot_v0_1.js
+          node --input-type=module --check < signaling/cloudflare/src/worker.js
+          node --check tests/test_ezero_cloudflare_auto_signaling_v0_1.js
+      - name: Simulate origin, host/guest auth, room takeover, signed signaling and expiry
+        run: |
+          set -euo pipefail
+          node tests/test_ezero_cloudflare_auto_signaling_v0_1.js
+      - name: Assert no public auto-call activation or hardcoded credentials
+        run: |
+          set -euo pipefail
+          grep -q 'enabled:false' js/ezero_auto_signaling_config_v0_1.js
+          grep -q 'websocketOrigin:""' js/ezero_auto_signaling_config_v0_1.js
+          ! grep -R -n -E 'CF_API_TOKEN=|TURN_KEY_API_TOKEN=|Authorization: Bearer ' signaling/cloudflare js/ezero_auto_signaling_config_v0_1.js
