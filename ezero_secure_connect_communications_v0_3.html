@@ -20,6 +20,7 @@
 <link rel="stylesheet" href="./css/ezero_secure_connect_live_p2p_v0_1.css">
 <link rel="stylesheet" href="./css/ezero_secure_connect_one_tap_qr_v0_1.css">
 <link rel="stylesheet" href="./css/ezero_secure_connect_modern_communications_v0_3.css?v=20261105forest1">
+<link rel="stylesheet" href="./css/ezero_secure_connect_groups_v0_1.css?v=20261105groups1">
 <script defer src="./js/vendor/ezero-qrcode-generator-mit.js"></script>
 <script defer src="./js/ezero_secure_connect_live_p2p_v0_1.js?v=20261105profile1"></script>
 <script defer src="./js/ezero_secure_connect_simple_near_far_v0_1.js"></script>
@@ -29,6 +30,7 @@
 <script defer src="./js/ezero_secure_connect_modern_communications_v0_3.js?v=20261105forest1"></script>
 <script defer src="./js/ezero_secure_connect_peer_profile_v0_1.js?v=20261105forest1"></script>
 <script defer src="./js/ezero_secure_connect_people_v0_1.js?v=20261105ttl1"></script>
+<script defer src="./js/ezero_secure_connect_groups_v0_1.js?v=20261105groups1"></script>
 <script defer src="./js/ezero_auto_signaling_config_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_auto_signaling_pilot_v0_1.js"></script>
 </head>
@@ -82,6 +84,7 @@
   <button type="button" class="modern-feature-button" data-step="03" data-modern-select="voice" aria-pressed="false"><span class="modern-feature-icon">🎙️</span><span class="modern-feature-name" data-modern="voice">وائس میسج</span><span class="modern-feature-note" data-modern="voiceHint">مختصر ریکارڈ کریں، پھر بھیجیں</span></button>
   <button type="button" class="modern-feature-button" data-step="04" data-modern-select="chat" aria-pressed="false"><span class="modern-feature-icon">💬</span><span class="modern-feature-name" data-modern="chat">نجی چیٹ</span><span class="modern-feature-note" data-modern="chatHint">ایک بار کھلنے والا نجی پیغام</span></button>
 </div>
+<button type="button" id="ezeroGroupShortcut" class="ezero-group-shortcut" aria-controls="ezeroGroupsHub">👥 گروپس</button>
 <details id="ezeroPeopleHub" class="modern-workspace ezero-people-hub">
   <summary id="ezeroPeopleHeading" data-people="hubTitle">👥 دوست اور کال ہسٹری</summary>
   <p class="modern-panel-help" data-people="hubDescription">محفوظ دوستوں کے کارڈ، کامیاب رابطے اور رضامندی سے محفوظ کی گئی کالز؛ آن لائن حالت کا دعویٰ نہیں۔</p>
@@ -103,6 +106,76 @@
   </div>
   <p id="ezeroPeopleStatus" class="ezero-people-meta" role="status" aria-live="polite" data-people="historyOff">کال ہسٹری بند ہے۔ حقیقی آنے والی کال کی اطلاع کے بغیر مس کال درج نہیں کی جاتی۔</p>
 </details>
+
+<details id="ezeroGroupsHub" class="modern-workspace ezero-groups-hub">
+  <summary id="ezeroGroupSummary">👥 گروپس</summary>
+  <p id="ezeroGroupsDescription" class="modern-panel-help">گروپ کا مقامی مسودہ بنائیں۔ کسی دوست کو اس وقت دعوت نہیں بھیجی جائے گی۔</p>
+  <div class="ezero-group-actions">
+    <button id="ezeroNewGroup" type="button">＋ نیا گروپ</button>
+    <a id="ezeroGroupAddFriend" class="ezero-add-verified-friend" href="./ezero_secure_connect_live_p2p_v0_1.html">+ QR سے دوست شامل کریں</a>
+  </div>
+  <div id="ezeroGroupsList" class="ezero-group-list" aria-live="polite"></div>
+  <form id="ezeroGroupForm" class="ezero-group-form" hidden autocomplete="off">
+    <h3 id="ezeroGroupFormHeading">نیا گروپ</h3>
+    <label class="ezero-group-field" for="ezeroGroupName">
+      <span id="ezeroGroupNameLabel">گروپ کا نام</span>
+      <input id="ezeroGroupName" name="groupName" type="text" minlength="1" maxlength="60" required autocomplete="off">
+    </label>
+    <label class="ezero-group-field" for="ezeroGroupAbout">
+      <span id="ezeroGroupAboutLabel">گروپ کی تفصیل (اختیاری)</span>
+      <textarea id="ezeroGroupAbout" maxlength="160" rows="2" spellcheck="false"></textarea>
+    </label>
+    <label class="ezero-group-field" for="ezeroGroupIcon">
+      <span id="ezeroGroupIconLabel">گروپ کا نشان</span>
+      <select id="ezeroGroupIcon" aria-label="Group icon">
+        <option value="👥">👥</option><option value="💬">💬</option>
+        <option value="🛠️">🛠️</option><option value="🚗">🚗</option>
+        <option value="👨‍👩‍👧">👨‍👩‍👧</option><option value="🌍">🌍</option>
+      </select>
+    </label>
+    <p id="ezeroGroupContactsLabel" class="modern-panel-help">دوست منتخب کریں (QR سے محفوظ شدہ)</p>
+    <div id="ezeroGroupContacts" class="ezero-group-contact-options" role="group" aria-labelledby="ezeroGroupContactsLabel"></div>
+    <fieldset id="ezeroGroupAdminSettings" class="ezero-group-admin-settings">
+      <legend id="ezeroGroupAdminSettingsLabel">🛡️ گروپ ایڈمن کے اختیارات — صرف مقامی مسودہ</legend>
+      <p id="ezeroGroupAdminFormTruth" class="modern-panel-help">اس فون کا گروپ بنانے والا مقامی ایڈمن ہے۔ دوسرے فون پر اختیارات ابھی نافذ نہیں۔</p>
+      <label class="ezero-group-permission"><input id="ezeroGroupApproveJoins" type="checkbox" checked>
+        <span id="ezeroGroupApproveJoinsLabel">نئے ممبرز کی درخواست پر ایڈمن کی منظوری (مستقبل کی پالیسی)</span>
+      </label>
+      <label class="ezero-group-permission"><input id="ezeroGroupAdminsEditOnly" type="checkbox" checked>
+        <span id="ezeroGroupAdminsEditOnlyLabel">صرف ایڈمن گروپ کی تفصیل تبدیل کریں (مستقبل کی پالیسی)</span>
+      </label>
+    </fieldset>
+    <div class="ezero-group-actions">
+      <button id="ezeroGroupSave" type="submit">✓ گروپ مسودہ محفوظ کریں</button>
+      <button id="ezeroGroupCancel" type="button" class="secondary">واپس</button>
+    </div>
+  </form>
+  <section id="ezeroGroupView" class="ezero-group-view" hidden aria-label="Local group draft">
+    <div class="ezero-group-view-head">
+      <span id="ezeroGroupViewIcon" class="ezero-group-avatar" aria-hidden="true">👥</span>
+      <div><h3 id="ezeroGroupViewName"></h3><p id="ezeroGroupViewAbout"></p></div>
+    </div>
+    <p id="ezeroGroupAdminBadge" class="ezero-group-admin-badge">🛡️ Group Admin — یہ فون (مقامی)</p>
+    <p id="ezeroGroupAdminPolicy" class="modern-panel-help">ایڈمن کے فیصلے اس وقت صرف آپ کے فون پر محفوظ ہوتے ہیں۔</p>
+    <h4 id="ezeroGroupMemberHeading"></h4>
+    <ul id="ezeroGroupViewMembers"></ul>
+    <p id="ezeroGroupViewTruth" class="ezero-group-inactive" role="status">گروپ رابطہ ابھی فعال نہیں۔</p>
+    <div class="ezero-group-call-buttons">
+      <button id="ezeroGroupChat" type="button" disabled>💬 گروپ چیٹ — ابھی بند</button>
+      <button id="ezeroGroupVoice" type="button" disabled>🎙️ گروپ وائس — ابھی بند</button>
+      <button id="ezeroGroupAudio" type="button" disabled>📞 گروپ آڈیو — ابھی بند</button>
+      <button id="ezeroGroupVideo" type="button" disabled>📹 گروپ ویڈیو — ابھی بند</button>
+      <button id="ezeroGroupPromote" type="button" disabled>🛡️ دوسرا ایڈمن — تصدیق کے بعد</button>
+    </div>
+    <div class="ezero-group-actions">
+      <button id="ezeroGroupEdit" type="button">ممبر/معلومات میں تبدیلی</button>
+      <button id="ezeroGroupDelete" type="button" class="danger">گروپ مسودہ حذف کریں</button>
+      <button id="ezeroGroupBack" type="button" class="secondary">← گروپس کی فہرست</button>
+    </div>
+  </section>
+  <p id="ezeroGroupStatus" class="ezero-group-status" role="status" aria-live="polite">یہ صرف اسی فون پر ہے؛ حقیقی گروپ ابھی نہیں بنا۔</p>
+</details>
+
 <section class="modern-workspace" aria-label="Current feature">
   <h2 id="modernFeatureTitle" class="modern-panel-title" aria-live="polite">آڈیو کال</h2>
   <p id="modernFeatureHelp" class="modern-panel-help">دو فون جوڑنے کے لیے ایک دعوت اور جواب درکار ہیں۔ خودکار کال ابھی فعال نہیں۔</p>
