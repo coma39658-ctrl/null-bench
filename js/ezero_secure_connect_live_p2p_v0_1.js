@@ -515,12 +515,30 @@
   }
   function attachChannel(c) {
     channel=c;
-    c.onopen=()=>{$("sendMessage").disabled=false;$("messageStatus").textContent=t("connected");};
-    c.onclose=()=>{$("sendMessage").disabled=true;$("messageStatus").textContent=t("notConnected");};
+    c.onopen=()=>{
+      $("sendMessage").disabled=false;$("messageStatus").textContent=t("connected");
+      document.dispatchEvent(new CustomEvent("ezero:channel-state",{detail:{connected:true}}));
+    };
+    c.onclose=()=>{
+      $("sendMessage").disabled=true;$("messageStatus").textContent=t("notConnected");
+      document.dispatchEvent(new CustomEvent("ezero:channel-state",{detail:{connected:false}}));
+    };
     c.onmessage=e=>{
-      if (typeof e.data!=="string" || e.data.length>8500) return;
+      if (typeof e.data!=="string" || e.data.length>38000) return;
       try {
         const m=JSON.parse(e.data);
+        // The opt-in voice-note add-on receives bounded audio through the existing
+        // encrypted WebRTC DataChannel. Never start playback without a user click.
+        if(m.v===2 && m.kind==="voice-once" &&
+           /^[a-f0-9]{32}$/.test(m.id) &&
+           ["audio/webm","audio/mp4","audio/ogg"].includes(m.mime) &&
+           typeof m.audio==="string" && m.audio.length>0 &&
+           m.audio.length<=32000 && /^[A-Za-z0-9+/=]+$/.test(m.audio)){
+          document.dispatchEvent(new CustomEvent("ezero:voice-note-received",{
+            detail:{id:m.id,mime:m.mime,audio:m.audio}
+          }));
+          return;
+        }
         if (m.v===1 && m.kind==="once" && typeof m.text==="string" && m.text.length<=2000 &&
             /^[a-f0-9]{32}$/.test(m.id)) {
           discardIncoming();
@@ -688,6 +706,7 @@
   });
   function hardHangup(show=true) {
     stopScanner();
+    document.dispatchEvent(new CustomEvent("ezero:channel-state",{detail:{connected:false}}));
     if(channel){channel.onmessage=channel.onopen=channel.onclose=null;try{channel.close();}catch(_){}channel=null;}
     if(peer){peer.ontrack=peer.ondatachannel=peer.onconnectionstatechange=null;try{peer.close();}catch(_){}peer=null;}
     if(localStream){localStream.getTracks().forEach(x=>x.stop());localStream=null;}
@@ -699,6 +718,20 @@
     $("messageStatus").textContent=t("notConnected");
     if(show)status("idle");
   }
+  // Narrow, size-limited interface: no public SDP APIs or media-track access.
+  // The voice recorder exists separately and only uses this connected DataChannel.
+  window.EZERO_VOICE_TRANSPORT=Object.freeze({
+    connected:()=>!!channel&&channel.readyState==="open",
+    send:(mime,encoded)=>{
+      if(!channel||channel.readyState!=="open")return false;
+      if(!["audio/webm","audio/mp4","audio/ogg"].includes(mime) ||
+         typeof encoded!=="string" || encoded.length<1 || encoded.length>32000 ||
+         !/^[A-Za-z0-9+/=]+$/.test(encoded))return false;
+      channel.send(JSON.stringify({v:2,kind:"voice-once",
+        id:hex(randomBytes(16)),mime,audio:encoded}));
+      return true;
+    }
+  });
   $("hangup").addEventListener("click",()=>hardHangup());
   $("closeAll").addEventListener("click",()=>hardHangup());
   const dialog=$("policyDialog");
