@@ -21,6 +21,7 @@
 <script defer src="./js/vendor/ezero-qrcode-generator-mit.js"></script>
 <script defer src="./js/ezero_secure_connect_public_qr_v0_2.js"></script>
 <script defer src="./js/ezero_secure_connect_remote_invite_v0_2.js"></script>
+
 </head>
 <body>
 <div class="shell">
@@ -53,6 +54,16 @@
       </div>
       <p class="notice" data-ui="truth">QR صرف عارضی ڈیجیٹل چابی کی تصدیق کرتا ہے، انسان کی شناخت یا مکمل کال کی نہیں۔ کال خودکار شروع نہیں ہوگی۔</p>
     </section>
+    <section class="card modern-entry" aria-labelledby="communicationsHeading">
+      <h2 id="communicationsHeading" data-ui="communicationsTitle">📱 E-ZERO آڈیو، ویڈیو اور پیغامات</h2>
+      <p class="modern-entry-hint" data-ui="communicationsTruth">اصل تجرباتی کال اور چیٹ کے بٹن واپس آگئے ہیں۔ دو فونوں کا کنکشن ابھی دعوت اور جواب سے بنایا جاتا ہے؛ خودکار کال دستیاب نہیں۔</p>
+      <div class="modern-entry-grid">
+        <a href="./ezero_secure_connect_communications_v0_3.html?mode=audio" data-comm-mode="audio"><span aria-hidden="true">📞</span><strong data-ui="audioEntry">آڈیو کال</strong></a>
+        <a href="./ezero_secure_connect_communications_v0_3.html?mode=video" data-comm-mode="video"><span aria-hidden="true">📹</span><strong data-ui="videoEntry">ویڈیو کال</strong></a>
+        <a href="./ezero_secure_connect_communications_v0_3.html?mode=voice" data-comm-mode="voice"><span aria-hidden="true">🎙️</span><strong data-ui="voiceEntry">وائس میسج</strong></a>
+        <a href="./ezero_secure_connect_communications_v0_3.html?mode=chat" data-comm-mode="chat"><span aria-hidden="true">💬</span><strong data-ui="chatEntry">نجی چیٹ</strong></a>
+      </div>
+    </section>
     <section class="card distance-card" aria-labelledby="distanceTitle">
       <h2 id="distanceTitle" data-ui="distanceTitle">دور موجود دوست سے رابطہ</h2>
       <p data-ui="distanceHelp">ایک دعوتی لنک کسی بھی میسنجر سے بھیجیں۔ دوسرے شخص کی منظوری کے بعد شناختی جواب مل سکتا ہے؛ کوئی کال خودکار نہیں ہوگی۔</p>
@@ -77,6 +88,11 @@
       </div>
       <p id="installHelp" role="status" aria-live="polite" class="tiny-status"></p>
       <p class="short-link"><span data-ui="shortLabel">E-ZERO مختصر لنک:</span> <a id="shortConnectLink" href="./c.html">coma39658-ctrl.github.io/null-bench/c.html</a></p>
+    </section>
+    <section class="card nearby-future" aria-labelledby="nearbyFutureTitle">
+      <h2 id="nearbyFutureTitle" data-ui="nearbyTitle">📶 مستقبل: E-ZERO Nearby / Offline</h2>
+      <p data-ui="nearbyDesc">قریب موجود فون کے Wi-Fi/ہاٹ اسپاٹ سگنل کی رینج میں مقامی E-ZERO رابطہ ممکن بنانے کا منصوبہ ہے؛ یہ ابھی فعال نہیں۔</p>
+      <p id="nearbyFutureStatus" role="note" data-ui="nearbyNo">مستقبل کا منصوبہ: انٹرنیٹ کے بغیر مقامی Wi-Fi/Bluetooth جیسا رابطہ، جہاں فون اور سسٹم تعاون کریں۔ یہ ابھی فعال نہیں اور کسی دوسرے کا موبائل ڈیٹا استعمال نہیں کرے گا۔</p>
     </section>
     <div class="privacy-link"><a href="./ezero_secure_connect_privacy_v0_2.html" data-ui="policy">🔒 پرائیویسی اور سیکیورٹی پالیسی</a></div>
   </main>

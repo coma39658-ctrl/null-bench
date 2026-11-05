@@ -22,7 +22,7 @@
       timeout:"20 سیکنڈ تک QR نہیں ملا؛ کیمرہ بند ہوگیا۔ دوبارہ آزمائیں۔",
       stopped:"کیمرہ بند کردیا گیا۔",shareCopied:"صرف ایپ کا عوامی لنک کاپی ہوا؛ کوئی ذاتی QR نہیں بھیجا گیا۔",
       shareFail:"شیئر دستیاب نہیں؛ براؤزر کا Share مینو استعمال کریں۔",https:"QR کے لیے محفوظ HTTPS/Web Crypto ضروری ہے۔",
-      retry:"دوبارہ کوشش کریں۔"
+      retry:"دوبارہ کوشش کریں۔",communicationsTitle:"📱 E-ZERO آڈیو، ویڈیو اور پیغامات",communicationsTruth:"اصل تجرباتی کال اور چیٹ کے بٹن واپس آگئے ہیں۔ دو فونوں کا کنکشن ابھی دعوت اور جواب سے بنایا جاتا ہے؛ خودکار کال دستیاب نہیں۔",audioEntry:"آڈیو کال",videoEntry:"ویڈیو کال",voiceEntry:"وائس میسج",chatEntry:"نجی چیٹ",nearbyTitle:"📶 مستقبل: E-ZERO Nearby / Offline",nearbyDesc:"قریب موجود فون کے Wi-Fi/ہاٹ اسپاٹ سگنل کی رینج میں مقامی E-ZERO رابطہ ممکن بنانے کا منصوبہ ہے؛ یہ ابھی فعال نہیں۔",nearbyOpt:"مستقبل میں اختیاری Nearby فیچر کی معلومات دکھائیں۔ یہ موبائل ڈیٹا استعمال کرنے یا ہاٹ اسپاٹ کھولنے کی اجازت نہیں ہے۔",nearbyNo:"اس وقت کوئی خودکار Wi-Fi یا موبائل ڈیٹا شیئرنگ فعال نہیں ہے۔",nearbySaved:"آئندہ Nearby ترجیح اسی براؤزر میں رکھی گئی۔ یہ اصل انٹرنیٹ شیئرنگ کی اجازت نہیں۔"
     },
     en:{
       back:"↩ Back",language:"Language",heading:"Secure QR connect",intro:"One tap shows your QR and scans your friend's QR.",
@@ -39,7 +39,7 @@
       failure:"QR scan failed and the camera was stopped. Retry.",
       timeout:"No QR found within 20 seconds. Camera stopped; retry.",
       stopped:"Camera stopped.",shareCopied:"Only the public app link was copied; no private QR was shared.",
-      shareFail:"Sharing unavailable; use your browser's Share menu.",https:"Secure HTTPS/Web Crypto is required.",retry:"Please retry."
+      shareFail:"Sharing unavailable; use your browser's Share menu.",https:"Secure HTTPS/Web Crypto is required.",retry:"Please retry.",communicationsTitle:"📱 E-ZERO Calls, Voice & Chat",communicationsTruth:"Experimental audio/video and chat controls are restored. Two-phone calls still need an offer and answer; no automatic call connection yet.",audioEntry:"Audio call",videoEntry:"Video call",voiceEntry:"Voice message",chatEntry:"Private chat",nearbyTitle:"📶 Future: E-ZERO Nearby / Offline",nearbyDesc:"Local E-ZERO connectivity within Wi-Fi/hotspot radio range is planned, but not enabled.",nearbyOpt:"Show me updates about an optional future Nearby feature. This does not authorize hotspot or mobile-data access.",nearbyNo:"No automatic Wi-Fi or mobile data sharing is active.",nearbySaved:"Nearby preference saved in this browser; not permission to share mobile data."
     },
     ar:{
       back:"↩ رجوع",language:"اللغة",heading:"اتصال QR آمن",intro:"ضغطة واحدة لعرض رمزك ومسح رمز صديقك.",
@@ -56,7 +56,7 @@
       failure:"فشل المسح وتم إيقاف الكاميرا. أعد المحاولة.",
       timeout:"لم يُعثر على QR خلال 20 ثانية. توقفت الكاميرا.",
       stopped:"أُوقفت الكاميرا.",shareCopied:"نُسخ رابط التطبيق العام فقط دون مشاركة QR شخصي.",
-      shareFail:"المشاركة غير متاحة. استخدم قائمة المشاركة في المتصفح.",https:"يلزم HTTPS/Web Crypto آمن.",retry:"أعد المحاولة."
+      shareFail:"المشاركة غير متاحة. استخدم قائمة المشاركة في المتصفح.",https:"يلزم HTTPS/Web Crypto آمن.",retry:"أعد المحاولة.",communicationsTitle:"📱 مكالمات ورسائل E-ZERO",communicationsTruth:"أُعيدت أدوات المكالمات والمحادثة التجريبية. لا يزال الاتصال بين هاتفين يتطلب دعوة وردًا، دون مكالمة تلقائية.",audioEntry:"مكالمة صوتية",videoEntry:"مكالمة مرئية",voiceEntry:"رسالة صوتية",chatEntry:"محادثة خاصة",nearbyTitle:"📶 مستقبلًا: E-ZERO Nearby دون إنترنت",nearbyDesc:"نخطط لاتصال محلي بين هواتف E-ZERO ضمن نطاق إشارة Wi-Fi أو نقطة الاتصال، لكنه غير مفعّل.",nearbyOpt:"أرغب في رؤية معلومات عن ميزة Nearby الاختيارية المستقبلية. هذا لا يسمح باستخدام نقطة الاتصال أو بيانات الهاتف.",nearbyNo:"لا توجد مشاركة تلقائية لشبكة Wi-Fi أو بيانات الهاتف الآن.",nearbySaved:"حُفظ تفضيل Nearby في هذا المتصفح، وليس تصريحًا لمشاركة بيانات الهاتف."
     }
   };
   const textEncoder=new TextEncoder();
@@ -82,6 +82,12 @@
     if(policyLink){
       const base="./ezero_secure_connect_privacy_v0_2.html";
       policyLink.href=language==="ur"?base:base+"?lang="+encodeURIComponent(language);
+    }
+    // The communications laboratory and policy follow the selected language.
+    for(const link of document.querySelectorAll("[data-comm-mode]")){
+      const mode=link.dataset.commMode;
+      link.href="./ezero_secure_connect_communications_v0_3.html?mode="+
+        encodeURIComponent(mode)+(language==="ur"?"":"&lang="+encodeURIComponent(language));
     }
     if(lastState)showState(lastState.key,lastState.kind);
   }
