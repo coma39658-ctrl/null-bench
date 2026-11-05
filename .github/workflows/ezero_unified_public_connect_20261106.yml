@@ -1,0 +1,50 @@
+name: E-ZERO Unified Public Green Connect Release Gate
+on:
+  push:
+    branches: [ezero-unified-public-green-connect-20261106]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ezero_secure_connect_one_request_lab_20261106.html'
+      - 'css/ezero_one_request_lab_20261106.css'
+      - 'js/ezero_one_request_lab_20261106.js'
+      - 'js/ezero_secure_connect_short_link_v0_2.js'
+      - 'js/ezero_secure_connect_public_entry_redirect_v0_1.js'
+      - 'ezero_secure_connect_live_p2p_v0_1.html'
+      - 'ezero_secure_connect_communications_v0_3.html'
+      - 'secure-connect.webmanifest'
+      - 'c.html'
+      - 'index.html'
+      - 'tests/test_ezero_unified_public_connect_20261106.js'
+      - '.github/workflows/ezero_unified_public_connect_20261106.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-unified-public:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check QR landing and app
+        run: |
+          set -euo pipefail
+          node --check js/ezero_secure_connect_public_entry_redirect_v0_1.js
+          node --check js/ezero_secure_connect_short_link_v0_2.js
+          node --check js/ezero_one_request_lab_20261106.js
+          node --check tests/test_ezero_unified_public_connect_20261106.js
+      - name: One green public link and safe QR routing
+        run: |
+          set -euo pipefail
+          node tests/test_ezero_unified_public_connect_20261106.js
+      - name: Public automatic calling uses isolated pilot config only
+        run: |
+          set -euo pipefail
+          grep -Fq 'enabled:false' js/ezero_auto_signaling_config_v0_1.js
+          grep -Fq 'enabled:true' js/ezero_auto_signaling_lab_config_20261106.js
+          ! grep -R -n -E 'CF_API_TOKEN=|TURN_KEY_API_TOKEN=|Authorization: Bearer ' js/ezero_secure_connect_public_entry_redirect_v0_1.js js/ezero_secure_connect_short_link_v0_2.js
