@@ -96,6 +96,10 @@ async function phone(label){
   return route.abort("blockedbyclient");
  });
  await ctx.addInitScript(()=>{
+  window.__connectedEvents=0;
+  document.addEventListener("ezero:call-status",e=>{
+   if(e.detail?.stage==="connected")window.__connectedEvents++;
+  });
   window.__mediaCalls=[];
   const original=navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
   navigator.mediaDevices.getUserMedia=opts=>{
@@ -185,14 +189,13 @@ try{
  assert.equal(errorCount,0);
  assert.equal(await receiver.evaluate(()=>window.__mediaCalls.some(o=>o.audio!==false)),true);
  assert.equal(await scanner.evaluate(()=>window.__mediaCalls.some(o=>o.audio!==false)),true);
- // DataChannel may open before the browser fires connectionstatechange.
- // Require the actual WebRTC "connected" state, not a guessed call from QR.
+ // Require the actual browser-observed WebRTC connected event on both
+ // phones, not a transient text label that ICE callbacks can overwrite.
  await Promise.all([receiver,scanner].map(page=>page.waitForFunction(
-  ()=>document.querySelector("#connectionStatus")?.textContent.includes("WebRTC"),
-  {timeout:18000}
+   ()=>window.__connectedEvents>0,{timeout:18000}
  )));
- assert.match(await receiver.locator("#connectionStatus").innerText(),/WebRTC/);
- assert.match(await scanner.locator("#connectionStatus").innerText(),/WebRTC/);
+ assert.equal(await receiver.evaluate(()=>window.__connectedEvents>0),true);
+ assert.equal(await scanner.evaluate(()=>window.__connectedEvents>0),true);
  console.log("ONE_QR_ONE_ACCEPT_AUTOMATED_ENCRYPTED_SDP_REAL_TWO_BROWSER_WEBRTC: PASS");
  await receiver.locator("#oneQrEnd").click();
  await receiver.waitForFunction(()=>document.querySelector("#roomStatus").dataset.state==="ended");
