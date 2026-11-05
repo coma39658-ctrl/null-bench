@@ -386,6 +386,17 @@
       return false;
     }
   }
+  // A QR-based call can verify both ephemeral signed identities using this
+  // existing crypto verifier. Never accept a raw "fingerprint matched" claim.
+  document.addEventListener("ezero:oneqr-verify-identity",async event=>{
+    const id=event.detail?.requestId,token=event.detail?.token;
+    if(typeof id!=="string"||!/^[a-f0-9]{32}$/.test(id)||
+       typeof token!=="string"||token.length>1300)return;
+    const ok=await confirmFriend(token,"scan");
+    document.dispatchEvent(new CustomEvent("ezero:oneqr-identity-result",{
+      detail:{requestId:id,ok,fingerprint:ok?$("peerFingerprint").textContent.trim():null}
+    }));
+  });
   $("verifyFriend").addEventListener("click",()=>confirmFriend(undefined,"paste"));
   $("copyIdentity").addEventListener("click", async () => {
     const ok=await copyValue($("myDigitalId"));
@@ -430,6 +441,15 @@
           if(codes.length){
             const code=String(codes[0].rawValue||"");
             stopScanner();
+            if(code.startsWith("https://")&&code.includes("#callroom=")){
+              // The one-QR controller validates origin, exact page path,
+              // HMAC invitation shape, expiry, and signed peer identity.
+              document.dispatchEvent(new CustomEvent("ezero:oneqr-scanned",{
+                detail:{code}
+              }));
+              scanMessage("scanStopped");
+              return;
+            }
             if(!code.startsWith("EZERO1.")){
               scanMessage("qrWrongType","error");checkMessage("qrWrongType","error");
               document.dispatchEvent(new CustomEvent("ezero:friend-verification",{
