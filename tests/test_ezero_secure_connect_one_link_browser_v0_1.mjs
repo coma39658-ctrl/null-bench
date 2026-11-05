@@ -142,6 +142,13 @@ const receiver=await phone("B"),scanner=await phone("A");
 try{
  assert.equal(await receiver.locator("#oneQrShow").isVisible(),true);
  assert.equal(await scanner.locator("#oneQrScan").isVisible(),true);
+ assert.equal(await receiver.locator("#oneQrAdvanced").getAttribute("open"),null,
+  "No technical code fields or old manual exchange on the simple-first screen");
+ assert.equal(await scanner.locator("#oneQrAdvanced").getAttribute("open"),null);
+ assert.equal(await scanner.locator("#guidedOffer").isHidden(),true);
+ assert.equal(await scanner.locator("#oneQrCameraSlot").isHidden(),true);
+ assert.equal(await receiver.locator("#oneQrPrivacy").isVisible(),true);
+ console.log("WHATSAPP_STYLE_ONE_QR_FIRST_NO_MANUAL_JSON_BY_DEFAULT: PASS");
  assert.equal(await receiver.evaluate(()=>window.__mediaCalls.length),0);
  await receiver.locator("#oneQrShow").click();
  await receiver.waitForFunction(()=>document.querySelector("#oneQrVisual").hidden===false,
@@ -154,6 +161,15 @@ try{
   "Owner secret never entered into visitor's browser");
  assert.ok((await receiver.locator("#oneQrCode svg").count())>0);
  console.log("ONE_PHONE_SHOWS_SINGLE_QR_WITHOUT_OWNER_SECRET_OR_MIC: PASS");
+ // Camera opens only after a user click. Canceling a scan must stop the
+ // same original camera stream; the UI never exposes manual identity codes.
+ await scanner.locator("#oneQrScan").click();
+ await scanner.waitForFunction(()=>document.querySelector("#oneQrCameraSlot")?.hidden===false);
+ assert.equal(await scanner.locator("#oneQrCameraLive video").isVisible(),true);
+ assert.ok(await scanner.evaluate(()=>window.__mediaCalls.some(x=>x.video&&x.audio===false)));
+ await scanner.locator("#oneQrCancelScan").click();
+ assert.equal(await scanner.locator("#oneQrCameraSlot").isHidden(),true);
+ assert.equal(await scanner.locator("#scanVideo").getAttribute("src"),null);
  await scanner.evaluate(value=>window.__testQrValue=value,invite);
  await scanner.locator("#oneQrScan").click();
  try{
