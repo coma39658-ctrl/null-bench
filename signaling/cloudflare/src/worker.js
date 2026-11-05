@@ -96,11 +96,23 @@ export class SignalRoom extends DurableObject {
       if(now-old.opened>20000 || m.t!=="hello")
         return ws.close(1008,"unauthorized");
       if(m.role==="host"){
-        if(this.active("host") || !sameProof(m.hostProof,m.hostProof) ||
-            !sameProof(m.guestProof,m.guestProof) ||
-            sameProof(m.hostProof,m.guestProof))
+        if(this.active("host") || !PROOF.test(m.hostProof||"") ||
+           !PROOF.test(m.guestProof||"") ||
+           sameProof(m.hostProof,m.guestProof))
           return ws.close(1008,"unauthorized");
-        const expires=now+TTL_MS;
+        // Bind a random room ID to its original host secret. Without this
+        // reservation, a guest with an invite URL could impersonate the
+        // host after disconnection and intercept the next guest's SDP.
+        // Only metadata (proofs of random room secrets + expiry) is stored.
+        const stored=await this.ctx.storage.get("roomAuth");
+        if(stored && (stored.expires<=now ||
+           !sameProof(stored.hostProof,m.hostProof) ||
+           !sameProof(stored.guestProof,m.guestProof)))
+          return ws.close(1008,"unauthorized");
+        const expires=stored?.expires||now+TTL_MS;
+        if(!stored)await this.ctx.storage.put("roomAuth",{
+          hostProof:m.hostProof,guestProof:m.guestProof,expires
+        });
         ws.serializeAttachment({role:"host",hostProof:m.hostProof,
           guestProof:m.guestProof,expires,signals:0});
         await this.ctx.storage.setAlarm(expires);
@@ -165,5 +177,6 @@ export class SignalRoom extends DurableObject {
   }
   async alarm() {
     this.closeAll("expired");
+    await this.ctx.storage.delete("roomAuth");
   }
 }
