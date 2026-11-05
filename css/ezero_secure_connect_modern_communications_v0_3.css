@@ -542,3 +542,42 @@ body.communication-page{background:linear-gradient(155deg,#e6f7f6,#eff9fc 55%,#e
   animation:none!important;
  }
 }
+
+
+/* Cloudflare signaling pilot is hard-hidden until an explicitly configured,
+ * independently tested backend has been deployed. No fake ringing state. */
+.communication-page #ezeroAutoPilot[hidden],
+.communication-page #ezeroAutoIncoming[hidden]{display:none!important}
+.communication-page .ezero-auto-pilot{
+ border:1px solid #9fcdb1;
+ background:linear-gradient(145deg,#f4fbf5,#eaf6ed);
+}
+.communication-page .ezero-auto-consent{
+ display:flex;align-items:flex-start;gap:10px;line-height:1.8;
+ font-size:13px;color:#154c33;padding:10px;
+ border-radius:12px;background:#fff;border:1px solid #b8dcca;
+}
+.communication-page .ezero-auto-consent input{
+ width:20px;height:20px;margin-top:3px;accent-color:#16814a;
+}
+.communication-page .ezero-auto-actions{
+ display:flex;flex-wrap:wrap;gap:10px;margin:12px 0;
+}
+.communication-page .ezero-auto-actions button{
+ flex:1 1 170px;min-height:51px;border-radius:13px;padding:10px;
+ font:inherit;font-weight:850;cursor:pointer;
+ background:linear-gradient(115deg,#145f39,#158d50);color:#fff;
+ border:1px solid #29875a;
+}
+.communication-page .ezero-auto-actions button.danger{
+ background:#fff1f1;border-color:#d9a1a4;color:#923442;
+}
+.communication-page .ezero-auto-actions button:disabled{
+ opacity:.55;cursor:not-allowed;
+}
+.communication-page #ezeroAutoStatus[data-state="error"]{
+ color:#9f3340;border-color:#d69fa5;background:#fff0f2;
+}
+.communication-page #ezeroAutoStatus[data-state="connected"]{
+ color:#135c37;border-color:#68c38c;background:#e3fae9;
+}
