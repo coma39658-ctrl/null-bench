@@ -11,7 +11,7 @@
   const name=location.pathname.split("/").pop();
   const h=location.hash;
   if(name==="ezero_secure_connect_live_p2p_v0_1.html"){
-    if(/^#(?:i|r)=[A-Za-z0-9_-]+$/.test(h))return;
+    if(/^#(?:i|r)=[A-Za-z0-9_.~-]{1,2900}$/.test(h))return;
   }else if(name==="ezero_secure_connect_communications_v0_3.html"){
     if(/^#(?:e2|e)=[A-Za-z0-9_-]+$/.test(h) ||
        /^#s=[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43}$/.test(h))return;
