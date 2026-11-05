@@ -45,6 +45,23 @@ try{
   assert.equal(await a.locator("#ezeroCallSetupSlot").isHidden(),true);
   assert.equal(await a.locator("#modernConnect").isVisible(),true);
   assert.equal(await a.locator("#secureAdvanced").isHidden(),true);
+  await a.locator('[data-modern-select="chat"]').click();
+  const design=await a.locator("#modernChatPanel").evaluate(panel=>({
+    background:getComputedStyle(panel,"::before").backgroundImage,
+    pointer:getComputedStyle(panel,"::before").pointerEvents,
+    repeat:getComputedStyle(panel,"::before").backgroundRepeat,
+    color:getComputedStyle(panel.querySelector("#sendText")).color,
+    inputBackground:getComputedStyle(panel.querySelector("#sendText")).backgroundColor,
+    overflow:document.documentElement.scrollWidth>innerWidth+1
+  }));
+  assert.ok(design.background.includes("ezero_secure_chat_cosmic_pattern_v0_1.svg"),
+    "Original locally hosted cosmic motifs must appear behind private chat");
+  assert.equal(design.pointer,"none","Decorations must not intercept taps");
+  assert.equal(design.repeat,"repeat");
+  assert.equal(design.inputBackground,"rgb(255, 255, 255)","Chat editor remains legible on white");
+  assert.equal(design.overflow,false,"Chat pattern must not cause mobile horizontal scroll");
+  await a.locator('[data-modern-select="audio"]').click();
+  console.log("PRIVATE_CHAT_ORIGINAL_COSMIC_MOTIF_ACCESSIBLE_AND_READABLE: PASS");
   assert.equal(await a.evaluate(()=>window.__mediaCalls.length),0);
   for(const mode of ["audio","video","voice","chat"])
     assert.equal(await a.locator('[data-modern-select="'+mode+'"]').isVisible(),true);
