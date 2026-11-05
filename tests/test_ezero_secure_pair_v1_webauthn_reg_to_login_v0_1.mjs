@@ -462,6 +462,21 @@ try{
   .get(sessionBegin.sessionId).consumed_at,null,
   "Failed session INSERT must NOT consume signed challenge");
  registrationDB.exec("DROP TRIGGER ezero_lab_block_session_insert");
+ registrationDB.exec(`CREATE TRIGGER ezero_lab_block_csrf_insert
+ BEFORE INSERT ON ezero_v1_session_csrf_lab
+ BEGIN SELECT RAISE(ABORT,'FORCED_CSRF_LEDGER_FAILURE'); END`);
+ const csrfFailed=await sessionIssuer.finishForObservationSessionLab(authRequest,now+13);
+ assert.equal(csrfFailed.ok,false);
+ assert.equal(csrfFailed.serverOnlySetCookie,undefined);
+ assert.equal(registrationDB.prepare(`SELECT sign_count FROM
+  ezero_v1_auth_credentials_lab WHERE credential_id=?`).get(id).sign_count,2);
+ assert.equal(registrationDB.prepare(`SELECT consumed_at FROM
+  ezero_v1_auth_pending_lab WHERE session_id=?`)
+  .get(sessionBegin.sessionId).consumed_at,null);
+ assert.equal(registrationDB.prepare(`SELECT COUNT(*) AS c
+  FROM ezero_v1_sessions_guard_lab`).get().c,0,
+  "CSRF persistence error must roll back session and WebAuthn writes");
+ registrationDB.exec("DROP TRIGGER ezero_lab_block_csrf_insert");
  const outcomes=await Promise.all(Array.from({length:20},
   ()=>sessionIssuer.finishForObservationSessionLab(authRequest,now+14)));
  assert.equal(outcomes.filter(x=>x.ok).length,1);
@@ -476,6 +491,12 @@ try{
  assert.match(issued.serverOnlySetCookie,
   /; Path=\/; Secure; HttpOnly; SameSite=Strict; Max-Age=900$/);
  assert.doesNotMatch(issued.serverOnlySetCookie,/; Domain=/);
+ assert.match(issued.serverOnlyCsrfToken,/^[A-Za-z0-9_-]{43}$/);
+ assert.ok(!issued.serverOnlySetCookie.includes(issued.serverOnlyCsrfToken),
+  "Synchronizer CSRF token is never placed in the HttpOnly session cookie");
+ assert.equal(registrationDB.prepare(`SELECT COUNT(*) AS c FROM
+  ezero_v1_session_csrf_lab`).get().c,1,
+  "CSRF digest stored in the SAME successful WebAuthn transaction");
  const sessionGuard=new PairV1SessionGuardSqliteLab(
   store(registrationDB),{serverOrigin});
  const cookieHeader=issued.serverOnlySetCookie.split(";")[0];
@@ -491,6 +512,29 @@ try{
   "GitHub Pages origin and Worker account origin MUST NOT be conflated");
  assert.equal((await sessionIssuer.finishForObservationSessionLab(
   authRequest,now+16)).ok,false,"Replayed assertion must not mint cookies");
+ const logoutArgs={
+  cookieHeader,csrfToken:issued.serverOnlyCsrfToken,
+  origin:serverOrigin,method:"POST",now:now+17
+ };
+ assert.equal((await sessionGuard.logoutOwnSessionWithCsrfLab({
+  ...logoutArgs,origin:"https://attacker.invalid"
+ })).ok,false);
+ assert.equal((await sessionGuard.logoutOwnSessionWithCsrfLab({
+  ...logoutArgs,csrfToken:issued.serverOnlySetCookie.split(".")[1]?.slice(0,43)
+ })).ok,false,"Cookie and CSRF tokens are separate secrets");
+ assert.equal((await sessionGuard.inspect({
+  cookieHeader,origin:serverOrigin,now:now+17
+ })).ok,true,"Wrong CSRF does not revoke session");
+ const logout=await sessionGuard.logoutOwnSessionWithCsrfLab(logoutArgs);
+ assert.equal(logout.ok,true);
+ assert.equal(logout.authorized,false);
+ assert.equal((await sessionGuard.inspect({
+  cookieHeader,origin:serverOrigin,now:now+18
+ })).ok,false,"Logout must invalidate session immediately");
+ assert.equal((await sessionGuard.logoutOwnSessionWithCsrfLab({
+  ...logoutArgs,now:now+18
+ })).ok,false,"Logout replay is denied");
+ console.log("PASSKEY_SQLITE_REAL_SIGNATURE_AND_SAME_ORIGIN_CSRF_LOGOUT_NO_GRANT: PASS");
  console.log("PASSKEY_SQLITE_REAL_SIGNATURE_ATOMIC_HASHED_HTTPONLY_COOKIE_OBSERVE_ONLY: PASS");
  console.log("PASSKEY_SQLITE_SESSION_INSERT_FAILURE_ROLLBACK_AND_20_RACE_ONE_WINNER: PASS");
 
