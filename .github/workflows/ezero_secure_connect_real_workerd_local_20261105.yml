@@ -1,0 +1,65 @@
+name: E-ZERO Cloudflare Workerd REAL Local WebSocket Preflight
+on:
+  push:
+    branches: [ezero-secure-connect-real-worker-preflight-20261105]
+permissions:
+  contents: read
+jobs:
+  local-only:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Block deployments and production secrets; syntax and existing synthetic security tests
+        run: |
+          set -euo pipefail
+          node --check secure_connect/call_room_lab/room_worker.mjs
+          node --check tests/test_ezero_secure_connect_workerd_real_websocket_v0_1.mjs
+          node secure_connect/call_room_lab/test_room_worker.mjs
+          node - <<'GATE'
+          const fs=require('node:fs');
+          const cfg=fs.readFileSync('secure_connect/call_room_lab/wrangler.jsonc','utf8');
+          const test=fs.readFileSync('tests/test_ezero_secure_connect_workerd_real_websocket_v0_1.mjs','utf8');
+          if(!cfg.includes('"ROOMS_ENABLED": "false"') ||
+             !cfg.includes('"name": "ezero-secure-connect-call-lab-disabled"') ||
+             !test.includes('ONLY_LOOPBACK_WORKER_ALLOWED') ||
+             !test.includes('NO_REMOTE_OR_DEPLOYED_WORKER_TEST')){
+            process.exitCode=1;
+            console.error('LOCAL_ONLY_SECURITY_GATE_FAILED');
+          }else console.log('NO_REMOTE_DEPLOY_TEST_ONLY_GATE: PASS');
+          GATE
+      - name: Install local WebSocket client; never configure Cloudflare credentials
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts --no-audit --no-fund ws@8.18.3
+      - name: Run Cloudflare local workerd with SYNTHETIC temporary owner code
+        env: {WRANGLER_SEND_METRICS: 'false'}
+        run: |
+          set -euo pipefail
+          TEST_ONLY_OWNER="$(printf 'e%.0s' {1..64})"
+          npx --yes wrangler@4 dev --local \
+            --config secure_connect/call_room_lab/wrangler.jsonc \
+            --ip 127.0.0.1 --port 8790 \
+            --var "ROOMS_ENABLED:true" \
+            --var "PILOT_OWNER_SECRET:${TEST_ONLY_OWNER}" \
+            > /tmp/ezero-real-workerd-preflight.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          ready=0
+          for i in $(seq 1 45); do
+            if curl -fsS --max-time 2 http://127.0.0.1:8790/health \
+              | grep -q STAGING_ENABLED; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            echo "LOCAL_WORKER_FAILED_TO_START (no credentials used)"
+            tail -n 35 /tmp/ezero-real-workerd-preflight.log | sed -E 's/[a-f0-9]{64}/[REDACTED]/g'
+            exit 1
+          fi
+          echo "LOCAL_WORKER_BOUND_TO_LOOPBACK_ONLY: PASS"
+          EZERO_LOCAL_WORKER_ORIGIN=http://127.0.0.1:8790 \
+            node tests/test_ezero_secure_connect_workerd_real_websocket_v0_1.mjs
+          echo "REAL_WORKER_LOCAL_TWO_PHONE_SIGNAL_PATH: PASS"
