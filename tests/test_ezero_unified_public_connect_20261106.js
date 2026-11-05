@@ -56,6 +56,11 @@ assert.match(result,/\/ezero_secure_connect_one_request_lab_20261106\.html\?mode
 assert.ok(result.endsWith(room),"Private capability must stay in URL fragment");
 assert.equal(routeCode(legacy,"ezero_secure_connect_live_p2p_v0_1.html","#i=abc"),"",
  "Legacy identity QR must stay compatible when explicitly requested");
+const signedIdentity="#i="+"a".repeat(32)+"~EZERO1.public.fingerprint.nonce.expiry.signature";
+assert.match(routeCode(router,"c.html",signedIdentity),/ezero_secure_connect_live_p2p_v0_1\.html/,
+ "Short links for existing dot/tilde-signed identity invites must not open the call-QR scanner");
+assert.equal(routeCode(legacy,"ezero_secure_connect_live_p2p_v0_1.html",signedIdentity),"",
+ "Explicit legacy signed identity invitations should retain their QR verification page");
 assert.equal(routeCode(legacy,"ezero_secure_connect_communications_v0_3.html","#e=abc"),"",
  "Legacy signed manual invite must stay compatible when explicitly requested");
 assert.equal(routeCode(legacy,"ezero_secure_connect_communications_v0_3.html",
