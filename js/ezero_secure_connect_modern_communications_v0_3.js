@@ -50,8 +50,10 @@ function parseInviteLink(value){
   if(!entered)throw Error("EMPTY_LINK");
   // Some share targets prepend a greeting or wrap the complete URL in text.
   // Extract only a complete http(s) URL; never accept an origin or path mismatch.
-  const found=entered.match(/https?:\\/\\/[^\\s<>"'،]+/i);
-  const candidate=(found?found[0]:entered).replace(/[.,)،。]+$/u,"");
+  const httpsAt=entered.indexOf("https://"),httpAt=entered.indexOf("http://");
+  const start=httpsAt>=0?httpsAt:httpAt;
+  const urlPart=start>=0?entered.slice(start):entered;
+  const candidate=urlPart.split(" ")[0].split("\n")[0].split("\r")[0].split("<")[0].split(">")[0].split('"')[0].replace(/[.,)،。]+$/u,"");
   let uri;
   try{uri=new URL(candidate,location.href);}catch(_){throw Error("BAD_URL");}
   if(uri.origin!==location.origin||uri.pathname!==exactPage.pathname)throw Error("WRONG_ORIGIN");
