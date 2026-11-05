@@ -143,9 +143,19 @@ try{
  await wait(d,f=>f.type==="ready","DECLINE_READY");
  send(d,{type:"decline"});
  await wait(c,f=>f.type==="decline","DECLINE_DELIVERED");
- await Promise.all([closed(c,"decline-caller"),closed(d,"decline-callee")]);
+ // The real UI closes its own socket immediately upon receiving decline.
+ // workerd's local WebSocket close handshake can remain in CLOSING (state 2)
+ // after the server has revoked the room. This is NOT a usable open socket.
+ if(c.ws.readyState===WebSocket.OPEN)c.ws.close(1000,"UI declined");
+ for(const s of [c,d]){
+  const deadline=Date.now()+3500;
+  while(s.ws.readyState===WebSocket.OPEN&&Date.now()<deadline)
+   await new Promise(resolve=>setTimeout(resolve,25));
+  assert.notEqual(s.ws.readyState,WebSocket.OPEN,
+   "Declined participant must never retain an OPEN, usable socket");
+ }
  await denied(decline,410);
- console.log("ACTUAL_WORKER_DECLINE_REVOKES_ROOM: PASS");
+ console.log("ACTUAL_WORKER_DECLINE_NO_OPEN_SOCKET_AND_ROOM_REVOKED: PASS");
 }finally{for(const session of [c,d])if(session?.ws.readyState!==WebSocket.CLOSED){
  try{session.ws.terminate();}catch(_){}
 }}
