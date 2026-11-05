@@ -81,6 +81,11 @@ try{
   assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),0,
     "Opening the call lab should not ask for microphone/camera permission");
   assert.equal(await caller.locator("#ezeroAutoPilot").isVisible(),true);
+  assert.equal(await caller.locator("#ezeroOneJoinPanel").isVisible(),true,
+    "Call-QR scanner must be prominent on the receiving phone");
+  assert.equal(await caller.locator("#ezeroOneScanInvite").isVisible(),true);
+  assert.equal(await caller.locator("#oneTapPanel").isHidden(),true,
+    "Identity-only scanner must not appear as a competing call scanner");
   // One click initiates offer; the share URL is short and has an ephemeral capability.
   await caller.locator('[data-modern-select="audio"]').click();
   await caller.waitForFunction(()=>!!window.__oneInvite,{timeout:30000});
@@ -98,12 +103,18 @@ try{
   await callee.goto(invite,{waitUntil:"domcontentloaded"});
   await callee.waitForURL(new RegExp("one_request_lab_20261106.html"),{timeout:10000});
   await callee.locator("#ezeroAutoIncoming").waitFor({state:"visible"});
+  assert.equal(await callee.locator("#ezeroOneIncomingShell").isVisible(),true,
+    "Opening a call QR must directly expose the incoming-accept card");
+  assert.equal(await callee.locator("#ezeroOneIncomingHeading").innerText(),
+    "📞 آنے والی آڈیو کال — قبول کریں؟");
   assert.equal(await callee.evaluate(()=>window.__mediaCalls.length),0,
     "Opening a friend request must NOT activate camera or microphone");
   assert.equal(await callee.locator("#ezeroAutoAccept").isVisible(),true);
   assert.equal(await callee.locator("#ezeroAutoDecline").isVisible(),true);
   // Only recipient approval. No second link, pasted code or caller approval.
   await callee.locator("#ezeroAutoAccept").click();
+  assert.equal(await callee.locator("#ezeroOneCallProgress").getAttribute("data-state"),
+    "connecting","Accept should trigger connection without second link");
   await Promise.all([caller,callee].map(page=>page.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===true,{timeout:45000})));
   assert.equal(offers,1,"Only one signed offer should cross the signaling room");
@@ -111,6 +122,9 @@ try{
   assert.ok(await caller.evaluate(()=>window.__mediaCalls.length)>0);
   assert.ok(await callee.evaluate(()=>window.__mediaCalls.length)>0);
   assert.equal(await caller.locator("#modernConnectionStatus").getAttribute("data-state"),"connected");
+  await callee.waitForFunction(()=>document.getElementById("ezeroOneCallProgress")?.dataset.state==="connected",
+    {timeout:10000});
+  assert.equal(await callee.locator("#ezeroOneCallProgress").getAttribute("data-state"),"connected");
   assert.equal(await caller.locator('[data-modern-select="audio"]').getAttribute("aria-pressed"),"true");
   console.log("ONE_REQUEST_ONE_ACCEPT_AUTOMATIC_SIGNED_ANSWER_REAL_BROWSER_WEBRTC: PASS");
   console.log("NO_SECOND_MANUAL_LINK_NO_AUTO_MIC_BEFORE_ACCEPT: PASS");
