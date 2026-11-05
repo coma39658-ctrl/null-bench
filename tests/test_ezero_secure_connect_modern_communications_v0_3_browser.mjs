@@ -127,10 +127,16 @@ try{
   // The selected-mode border animates for 160ms; inspect its settled color.
   await a.waitForFunction(()=>getComputedStyle(
     document.querySelector('[data-modern-select="voice"]')).borderTopColor==="rgb(25, 131, 78)");
-  const selectedGreen=await a.locator('[data-modern-select="voice"]').evaluate(
+  // CSS transitions interpolate the border for 160ms; assert settled color,
+  // not an arbitrary mid-transition pixel from a fast headless browser.
+  await a.waitForFunction(()=> {
+    const el=document.querySelector('.modern-feature-button[aria-pressed="true"]');
+    return !!el && getComputedStyle(el).borderTopColor==="rgb(25, 131, 78)";
+  },{timeout:3000});
+  const selectedGreen=await a.locator('.modern-feature-button[aria-pressed="true"]').evaluate(
     el=>getComputedStyle(el).borderTopColor);
   assert.equal(selectedGreen,"rgb(25, 131, 78)",
-    "Selected communication mode should use confident accessible green");
+    "Selected communication mode must settle on professional green");
   await a.locator("#ezeroPeopleHub").evaluate(el=>el.open=true);
   const savedFriendFP=(await b.locator("#myFingerprint").innerText()).trim();
   await a.evaluate(fp=>localStorage.setItem("ezero_secure_connect_local_fingerprints_v0_1",
