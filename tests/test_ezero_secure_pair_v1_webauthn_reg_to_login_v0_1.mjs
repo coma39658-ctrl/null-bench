@@ -14,6 +14,8 @@ import {PairV1SqliteAtomicPasskeyRegistrationLab}
  from "../secure_connect/pair_v1/passkey_registration_atomic_sqlite_lab_v0_1.mjs";
 import {PairV1TrustCandidateSqliteLab}
  from "../secure_connect/pair_v1/trust_candidate_sqlite_lab_v0_1.mjs";
+import {PairV1SessionGuardSqliteLab,SESSION_LAB_COOKIE}
+ from "../secure_connect/pair_v1/account_session_guard_sqlite_lab_v0_1.mjs";
 import {PairV1PendingDeviceRegistryLab}
  from "../secure_connect/pair_v1/trusted_device_sqlite_lab_v0_1.mjs";
 import {PairV1MutualApprovalSqliteLab}
@@ -426,6 +428,72 @@ try{
   response:await assertion({challenge:newLogin.options.challenge,counter:3})
  },now+11)).ok,false,"A consumed challenge cannot authenticate again");
  console.log("PASSKEY_SQLITE_PERSISTED_REGISTRATION_TO_REAL_COSE_LOGIN: PASS");
+
+ // Server-only stage: SAME cryptographically verified WebAuthn signature
+ // commits a hashed observe-only session in the SAME transaction as counter
+ // and one-time challenge. No actual production account ownership exists.
+ const serverOrigin="https://secure.example.test";
+ const sessionIssuer=new PairV1SqliteAtomicPasskeyFinishLab(
+  store(registrationDB),{labServerOrigin:serverOrigin});
+ const sessionBegin=await sessionIssuer.begin({accountId,credentialId:id},now+11);
+ assert.equal(sessionBegin.ok,true);
+ const authRequest={
+  accountId,sessionId:sessionBegin.sessionId,
+  response:await assertion({challenge:sessionBegin.options.challenge,counter:3})
+ };
+ const fake=await sessionIssuer.finishForObservationSessionLab({
+  ...authRequest,
+  response:await assertion({challenge:sessionBegin.options.challenge,
+   counter:3,signer:evil})
+ },now+12);
+ assert.equal(fake.ok,false);
+ assert.equal(fake.serverOnlySetCookie,undefined);
+ registrationDB.exec(`CREATE TRIGGER ezero_lab_block_session_insert
+ BEFORE INSERT ON ezero_v1_sessions_guard_lab
+ BEGIN SELECT RAISE(ABORT,'FORCED_SESSION_FAILURE'); END`);
+ const failed=await sessionIssuer.finishForObservationSessionLab(authRequest,now+13);
+ assert.equal(failed.code,"ATOMIC_COMMIT_REJECTED");
+ assert.equal(failed.serverOnlySetCookie,undefined);
+ assert.equal(registrationDB.prepare(`SELECT sign_count FROM
+  ezero_v1_auth_credentials_lab WHERE credential_id=?`).get(id).sign_count,2,
+  "Failed session INSERT must roll back credential counter");
+ assert.equal(registrationDB.prepare(`SELECT consumed_at FROM
+  ezero_v1_auth_pending_lab WHERE session_id=?`)
+  .get(sessionBegin.sessionId).consumed_at,null,
+  "Failed session INSERT must NOT consume signed challenge");
+ registrationDB.exec("DROP TRIGGER ezero_lab_block_session_insert");
+ const outcomes=await Promise.all(Array.from({length:20},
+  ()=>sessionIssuer.finishForObservationSessionLab(authRequest,now+14)));
+ assert.equal(outcomes.filter(x=>x.ok).length,1);
+ assert.equal(outcomes.filter(x=>!x.ok).length,19);
+ const issued=outcomes.find(x=>x.ok);
+ assert.equal(issued.authenticatedSessionIssued,false);
+ assert.equal(issued.observationOnlySessionStored,true);
+ assert.equal(issued.trustedDeviceActivated,false);
+ assert.equal(issued.challengeConsumed,true);
+ assert.equal(issued.counterPersisted,true);
+ assert.ok(issued.serverOnlySetCookie.startsWith(SESSION_LAB_COOKIE+"="));
+ assert.match(issued.serverOnlySetCookie,
+  /; Path=\/; Secure; HttpOnly; SameSite=Strict; Max-Age=900$/);
+ assert.doesNotMatch(issued.serverOnlySetCookie,/; Domain=/);
+ const sessionGuard=new PairV1SessionGuardSqliteLab(
+  store(registrationDB),{serverOrigin});
+ const cookieHeader=issued.serverOnlySetCookie.split(";")[0];
+ const guarded=await sessionGuard.inspect({
+  cookieHeader,origin:serverOrigin,method:"GET",now:now+15});
+ assert.deepEqual(guarded,{
+  ok:true,code:"SESSION_OBSERVED_ONLY_NO_AUTHORITY",
+  authorized:false,trusted:false});
+ assert.equal((await sessionGuard.inspect({
+  cookieHeader,origin:serverOrigin,method:"POST",now:now+15})).ok,false);
+ assert.equal((await sessionGuard.inspect({
+  cookieHeader,origin:PAIR_V1_ORIGIN,now:now+15})).ok,false,
+  "GitHub Pages origin and Worker account origin MUST NOT be conflated");
+ assert.equal((await sessionIssuer.finishForObservationSessionLab(
+  authRequest,now+16)).ok,false,"Replayed assertion must not mint cookies");
+ console.log("PASSKEY_SQLITE_REAL_SIGNATURE_ATOMIC_HASHED_HTTPONLY_COOKIE_OBSERVE_ONLY: PASS");
+ console.log("PASSKEY_SQLITE_SESSION_INSERT_FAILURE_ROLLBACK_AND_20_RACE_ONE_WINNER: PASS");
+
 
  // Correlate the VERIFIED AND DURABLY CONSUMED passkey with TWO
  // real separately signed device approvals and the pending registry.
