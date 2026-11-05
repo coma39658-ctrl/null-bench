@@ -34,7 +34,7 @@ assert.ok(transport.includes('m.kind==="public-profile"'));
 assert.ok(transport.includes('peer.__ezeroPeerFP'),"Never trust a profile self-asserted fingerprint");
 assert.ok(transport.includes('peer?.connectionState==="connected"'));
 assert.ok(transport.includes('channel.readyState==="open"'));
-assert.ok(profile.includes('if(!profile.share||!profile.name'));
+assert.ok(profile.includes('!profile.share||!profile.name'), "Never send local profile without explicit sharing permission and a name");
 
 assert.ok(modern.includes('function inviteFailure(error)'));
 assert.ok(modern.includes('async function encodeSignal(raw)'));
