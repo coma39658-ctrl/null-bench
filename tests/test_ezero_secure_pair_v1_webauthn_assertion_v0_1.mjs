@@ -135,7 +135,7 @@ await deny({pendingChallenge:{...pending,accountId:"another_account"}},
 await deny({pendingChallenge:{...pending,credentialId:"different-credential"}},
  "CHALLENGE_NOT_AUTHORIZED");
 await deny({pendingChallenge:{...pending,value:"abc"}},
- "ASSERTION_INVALID_ENCODING");
+ "ASSERTION_UNSUPPORTED_ENCODING");
 await deny({pendingChallenge:{...pending,expires:now}},
  "CHALLENGE_EXPIRED");
 await deny({pendingChallenge:{...pending,expires:now+91_000}},
