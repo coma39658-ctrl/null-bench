@@ -54,6 +54,9 @@ jobs:
           node --check secure_connect/pair_v1/passkey_atomic_finish_sqlite_lab_v0_1.mjs
           node --check secure_connect/pair_v1/passkey_registration_atomic_sqlite_lab_v0_1.mjs
           node --check secure_connect/pair_v1/trust_candidate_sqlite_lab_v0_1.mjs
+          node --check secure_connect/pair_v1/account_session_guard_sqlite_lab_v0_1.mjs
+          node --check tests/test_ezero_pair_v1_session_guard_sqlite_v0_1.mjs
+          node tests/test_ezero_pair_v1_session_guard_sqlite_v0_1.mjs
           node tests/test_ezero_secure_pair_v1_webauthn_reg_to_login_v0_1.mjs
           echo "PUBLIC_ROOMS_STAY_DISABLED_SOURCE_AND_STATIC_CONTRACT: PASS"
       - name: Install headless Chromium test environment
