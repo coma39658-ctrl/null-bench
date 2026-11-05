@@ -400,3 +400,145 @@ body.communication-page{background:linear-gradient(155deg,#e6f7f6,#eff9fc 55%,#e
 .communication-page #ezeroHistoryClear:disabled{
   opacity:.55;cursor:not-allowed;
 }
+
+
+/* Premium E-ZERO forest-green identity: visual assurance is never proof.
+   Verified green is restricted to actually connected WebRTC state;
+   failures are red, while unverified and pending states remain neutral. */
+.communication-page{
+ --ez-military:#0b3426;--ez-evergreen:#125535;--ez-green:#16814a;
+ --ez-vivid:#25d27a;--ez-alert:#a82e39;--ez-silver:#eff8f0;
+ background:linear-gradient(145deg,#e6f1e8 0%,#f7fbf6 48%,#e5f1e9 100%);
+}
+.communication-page .modern-hero{
+ background:linear-gradient(125deg,#081f1b 0%,#0b3426 36%,#14663e 73%,#127b49 100%);
+ border:1px solid #37785a;
+ box-shadow:0 12px 26px #09291f24,inset 0 1px 0 #ffffff24;
+}
+.communication-page .modern-kicker{color:#bcf5d4}
+.communication-page .modern-trust span{border-color:#c5f7d277;background:#e6ffe010}
+.communication-page .modern-feature-button{
+ position:relative;isolation:isolate;border:1px solid #bdd7c5;
+ color:#16412f;background:linear-gradient(150deg,#fff,#f6fbf6);
+ box-shadow:0 4px 14px #12392410;
+}
+.communication-page .modern-feature-button[aria-pressed="true"]{
+ background:linear-gradient(145deg,#f0fdf3,#e2f7e8);
+ color:#104f2b;border-color:#19834e;
+ box-shadow:inset 0 0 0 2px #19834e,0 5px 19px #197c3b26;
+}
+.communication-page .modern-feature-button::before{
+ content:attr(data-step);position:absolute;top:9px;inset-inline-start:9px;
+ display:grid;place-items:center;width:28px;height:28px;border-radius:9px;
+ background:linear-gradient(150deg,#123d2a,#1b7550);color:#f7fff9;
+ border:1px solid #6ab58b;box-shadow:0 2px 7px #092d1b29;
+ font:800 12px/1 ui-monospace,monospace;letter-spacing:.02em;
+}
+.communication-page .modern-feature-button[aria-pressed="true"]::before{
+ background:linear-gradient(135deg,#075630,#15965a);
+ color:white;border-color:#4fea99;
+ box-shadow:0 0 0 2px #e4fcef,0 2px 10px #0b8b4255;
+}
+.communication-page .modern-feature-button[aria-pressed="true"] .modern-feature-name{color:#105632}
+.communication-page .modern-feature-note{color:#4a7562}
+.communication-page .modern-workspace{
+ border-color:#bbd6c3;box-shadow:0 6px 22px #153c2c0d;
+}
+.communication-page .modern-panel-title{color:#134d35}
+.communication-page .modern-panel-help{color:#486b5a}
+.communication-page .modern-status{
+ background:#f1f8f2;color:#305e48;border-color:#c2dfcb;
+}
+.communication-page #modernConnectionStatus{
+ padding-inline-start:17px;position:relative;
+}
+.communication-page #modernConnectionStatus[data-state="connected"]{
+ background:linear-gradient(115deg,#dff9e7,#f1fff3);color:#105b34;
+ border:1.5px solid #20a864;box-shadow:0 0 0 1px #ffffff,0 0 14px #22b65b27;
+ font-weight:850;
+}
+.communication-page #modernConnectionStatus[data-state="connected"]::before,
+.communication-page #ezeroVerifiedConnection::before{
+ content:"✓";display:inline-grid;place-items:center;
+ width:25px;height:25px;margin-inline-end:9px;
+ vertical-align:middle;color:white;border-radius:50%;
+ background:linear-gradient(135deg,#178245,#1ac66b);
+ border:1px solid #79e9a6;
+ box-shadow:0 0 11px #1bdc7855,inset 0 1px 0 #ffffff60;
+ font-size:17px;font-weight:900;
+}
+.communication-page #ezeroVerifiedConnection::before{width:23px;height:23px}
+.communication-page #modernConnectionStatus[data-state="error"],
+.communication-page #ezeroInviteStatus[data-state="error"]{
+ background:linear-gradient(115deg,#fff4f0,#fff1f3);
+ border:1px solid #e1a0a4;color:#872d39;
+}
+.communication-page #modernConnectionStatus[data-state="error"]::before{
+ content:"!";font-weight:900;display:inline-grid;place-items:center;
+ width:23px;height:23px;border-radius:50%;margin-inline-end:8px;
+ color:#fff;background:#b83441;
+}
+.communication-page #ezeroInviteStatus[data-state="ready"]{
+ border-color:#9dcfae;background:#edf9f1;color:#1c673d;
+}
+.communication-page #ezeroCallSetupSlot #callSetup .heading .number,
+.communication-page .heading .number{
+ background:linear-gradient(135deg,#0b3b29,#208b53);
+ color:#fff;border:1px solid #54af7a;
+ box-shadow:0 3px 9px #084a2d33,inset 0 1px 0 #ffffff35;
+ font-weight:900;
+}
+.communication-page .modern-connection-actions .primary,
+.communication-page .modern-connection-actions #modernConnect,
+.communication-page .ezero-wizard-primary,
+.communication-page #modernChatPanel #sendMessage,
+.communication-page .modern-voice-actions button:not(.secondary){
+ background:linear-gradient(135deg,#115936,#14824e);
+ color:#fff!important;border-color:#1c8852;
+ box-shadow:0 4px 13px #115c3624;
+}
+.communication-page .modern-connection-actions .danger,
+.communication-page .modern-connection-actions #modernHangup{
+ color:#9b2c38!important;background:#fff3f3;border-color:#db9e9e;
+}
+.communication-page .ezero-wizard-secondary{
+ background:#f6fcf7;color:#145a37!important;border-color:#add3bb;
+}
+.communication-page #modernChatPanel{
+ background:#f7fcf8;border-color:#bad9c5;
+}
+.communication-page #modernChatPanel #sendText{
+ border-color:#bad9c5;color:#153d2b;
+}
+.communication-page #modernChatPanel #sendText:focus-visible{
+ outline-color:#16814a;
+}
+.communication-page #modernChatPanel #incomingItem,
+.communication-page #modernChatPanel #seenMessage{border-color:#b5d6bf}
+.communication-page .modern-secondary-links a,
+.communication-page .modern-nav-back{color:#155e3c;border-color:#abd0b9}
+.communication-page .ezero-peer-profile{
+ background:#effbf2;border-color:#a9dab9;
+}
+.communication-page #ezeroPeerSessionId{color:#326549}
+.communication-page #ezeroVerifiedConnection{color:#116e3b}
+.communication-page button:focus-visible,
+.communication-page a:focus-visible,
+.communication-page summary:focus-visible{
+ outline:3px solid #16814a;outline-offset:3px;
+}
+@keyframes ezeroRealConnectionCheck{
+  0%{box-shadow:0 0 0 0 #22c55e55}
+  70%{box-shadow:0 0 0 7px #22c55e00}
+  100%{box-shadow:0 0 0 0 #22c55e00}
+}
+@media(prefers-reduced-motion:no-preference){
+ .communication-page #modernConnectionStatus[data-state="connected"]::before{
+  animation:ezeroRealConnectionCheck 900ms ease-out 2;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .communication-page #modernConnectionStatus[data-state="connected"]::before{
+  animation:none!important;
+ }
+}
