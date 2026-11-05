@@ -61,8 +61,29 @@
 <nav class="ezero-quick-actions" aria-label="E-ZERO profile, digital identity and received invitation">
   <button type="button" id="ezeroQuickProfile">👤 میری پروفائل / تصویر</button>
   <button type="button" id="ezeroQuickPaste">📋 دوست کا لنک پیسٹ کریں</button>
-  <a id="ezeroQuickIdentity" href="./ezero_secure_connect_live_p2p_v0_1.html">🔐 میری عارضی آئی ڈی / QR</a>
+  <a id="ezeroQuickIdentity" href="./ezero_secure_connect_live_p2p_v0_1.html">🔐 شناختی QR (کال والا نہیں)</a>
 </nav>
+<section id="ezeroOneJoinPanel" class="modern-workspace ezero-one-join-panel" aria-labelledby="ezeroOneJoinHeading">
+  <h2 id="ezeroOneJoinHeading">📷 ایک QR سے کال کی درخواست</h2>
+  <p class="ezero-one-join-help">دوسرے فون کا کال والا QR اسکین کریں۔ درخواست نظر آئے گی؛ «قبول کریں» دبانے پر جواب خود واپس جائے گا۔ شناختی QR کال نہیں ہے۔</p>
+  <div class="ezero-one-qr-receive">
+    <button type="button" id="ezeroOneScanInvite" class="secondary">📷 دوست کی کال QR اسکین کریں</button>
+    <video id="ezeroOneScannerVideo" hidden muted playsinline aria-label="Call invite QR camera"></video>
+    <button type="button" id="ezeroOneStopScan" class="secondary" hidden>■ اسکین بند کریں</button>
+    <p id="ezeroOneScanStatus" role="status" aria-live="polite">QR اسکین صرف آپ کے بٹن دبانے سے کیمرہ کھولے گا۔</p>
+  </div>
+  <div id="ezeroOneIncomingShell" class="ezero-one-incoming-shell" hidden>
+    <h3 id="ezeroOneIncomingHeading">📞 آنے والی کال — درخواست قبول کریں؟</h3>
+  <div id="ezeroAutoIncoming" hidden>
+    <p data-auto="incoming">دوست کی درخواست آئی ہے۔ صرف واضح منظوری کے بعد مائیک/کیمرہ چل سکتا ہے۔</p>
+    <div class="ezero-auto-actions">
+      <button type="button" id="ezeroAutoAccept" class="primary" data-auto="join">✓ درخواست قبول کریں</button>
+      <button type="button" id="ezeroAutoDecline" class="danger" data-auto="decline">✕ درخواست مسترد کریں</button>
+    </div>
+  </div>
+  </div>
+  <p id="ezeroOneCallProgress" role="status" aria-live="polite" hidden></p>
+</section>
 <details class="modern-workspace ezero-profile-editor" id="ezeroProfileEditor">
   <summary id="ezeroProfileSummary" data-profile-i18n="editProfile">👤 میری E-ZERO پروفائل — نام اور تصویر</summary>
   <p class="modern-panel-help" data-profile-i18n="profilePrivacy">پروفائل صرف اس براؤزر میں رہے گی۔ دوسرے فون کو تصویر/نام صرف آپ کی اجازت سے، حقیقی محفوظ کال کنکشن کے بعد بھیجے جائیں گے۔</p>
@@ -92,7 +113,7 @@
   <p id="ezeroProfileStatus" class="modern-status" role="status" aria-live="polite" data-profile-i18n="profileLocal">پروفائل ابھی صرف اس فون پر ہے۔</p>
 </details>
 <div class="modern-feature-grid" aria-label="Communication features">
-  <button type="button" class="modern-feature-button" data-step="01" data-modern-select="audio" aria-pressed="true"><span class="modern-feature-icon">📞</span><span class="modern-feature-name" data-modern="audio">آڈیو کال</span><span class="modern-feature-note" data-modern="audioHint">دو فونوں کے درمیان براہِ راست آواز</span></button>
+  <button type="button" class="modern-feature-button" data-step="01" data-modern-select="audio" aria-pressed="false"><span class="modern-feature-icon">📞</span><span class="modern-feature-name" data-modern="audio">آڈیو کال</span><span class="modern-feature-note" data-modern="audioHint">دو فونوں کے درمیان براہِ راست آواز</span></button>
   <button type="button" class="modern-feature-button" data-step="02" data-modern-select="video" aria-pressed="false"><span class="modern-feature-icon">📹</span><span class="modern-feature-name" data-modern="video">ویڈیو کال</span><span class="modern-feature-note" data-modern="videoHint">اجازت سے تصویر اور آواز</span></button>
   <button type="button" class="modern-feature-button" data-step="03" data-modern-select="voice" aria-pressed="false"><span class="modern-feature-icon">🎙️</span><span class="modern-feature-name" data-modern="voice">وائس میسج</span><span class="modern-feature-note" data-modern="voiceHint">مختصر ریکارڈ کریں، پھر بھیجیں</span></button>
   <button type="button" class="modern-feature-button" data-step="04" data-modern-select="chat" aria-pressed="false"><span class="modern-feature-icon">💬</span><span class="modern-feature-name" data-modern="chat">نجی چیٹ</span><span class="modern-feature-note" data-modern="chatHint">ایک بار کھلنے والا نجی پیغام</span></button>
@@ -141,7 +162,7 @@
 </section>
 <section id="ezeroAutoPilot" class="modern-workspace ezero-auto-pilot" hidden aria-label="Experimental automatic call signaling">
   <h2 class="modern-panel-title" data-auto="title">محفوظ خودکار رابطہ — تجرباتی</h2>
-  <p class="modern-panel-help">Cloudflare پر آزمودہ سرور فعال ہونے پر دو فون صرف ایک دعوتی لنک سے رابطے کی کوشش کر سکیں گے۔ دوست کی منظوری اور دستخط شدہ WebRTC تصدیق ضروری رہے گی۔</p>
+  <p class="modern-panel-help">📞 آڈیو یا 📹 ویڈیو دبانے پر ایک مختصر کال QR تیار ہوگا۔ دوسرے فون پر اوپر دیا گیا «دوست کی کال QR اسکین کریں» بٹن استعمال کریں، پھر درخواست قبول کریں۔ جواب خودکار طور پر واپس جائے گا۔</p>
   <label class="ezero-auto-consent"><input id="ezeroAutoStun" type="checkbox">
     <span data-auto="stun">مختلف نیٹ ورکس کے لیے اختیاری STUN — اس سے IP/نیٹ ورک معلومات ظاہر ہوسکتی ہیں</span>
   </label>
@@ -155,19 +176,8 @@
     <div id="ezeroOneQr" role="img" aria-label="E-ZERO temporary call invitation QR"></div>
     <p>دوست کے فون پر صرف «قبول کریں» ہوگا؛ واپس لنک بھیجنا ضروری نہیں۔</p>
   </div>
-  <div class="ezero-one-qr-receive">
-    <button type="button" id="ezeroOneScanInvite" class="secondary">📷 دوست کی کال QR اسکین کریں</button>
-    <video id="ezeroOneScannerVideo" hidden muted playsinline aria-label="Call invite QR camera"></video>
-    <button type="button" id="ezeroOneStopScan" class="secondary" hidden>■ اسکین بند کریں</button>
-    <p id="ezeroOneScanStatus" role="status" aria-live="polite">QR اسکین صرف آپ کے بٹن دبانے سے کیمرہ کھولے گا۔</p>
-  </div>
-  <div id="ezeroAutoIncoming" hidden>
-    <p data-auto="incoming">دوست کی درخواست آئی ہے۔ صرف واضح منظوری کے بعد مائیک/کیمرہ چل سکتا ہے۔</p>
-    <div class="ezero-auto-actions">
-      <button type="button" id="ezeroAutoAccept" class="primary" data-auto="join">✓ درخواست قبول کریں</button>
-      <button type="button" id="ezeroAutoDecline" class="danger" data-auto="decline">✕ درخواست مسترد کریں</button>
-    </div>
-  </div>
+
+
   <p id="ezeroAutoStatus" role="status" aria-live="polite" data-state="idle" class="modern-status">فی الحال کوئی حقیقی فون کنکشن قائم نہیں۔</p>
 </section>
 <section id="modernCallPanel" class="modern-workspace">
