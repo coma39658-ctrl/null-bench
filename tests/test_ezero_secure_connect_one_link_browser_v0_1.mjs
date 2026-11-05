@@ -160,6 +160,17 @@ try{
  assert.equal(await receiver.locator("#roomOwnerSecret").inputValue(),"",
   "Owner secret never entered into visitor's browser");
  assert.ok((await receiver.locator("#oneQrCode svg").count())>0);
+ // A phone without a camera gets a private shareable link, NOT raw offer
+ // or answer JSON. The user chooses the messaging app explicitly.
+ await receiver.evaluate(()=>{navigator.share=async ({url})=>{
+  window.__privateLinkShared=typeof url==="string"&&
+    url.startsWith(location.origin)&&url.includes("#callroom=");
+ };});
+ assert.equal(await receiver.locator("#oneQrShareLink").isVisible(),true);
+ await receiver.locator("#oneQrShareLink").click();
+ assert.equal(await receiver.evaluate(()=>window.__privateLinkShared),true);
+ assert.equal(await receiver.evaluate(()=>window.__mediaCalls.length),0);
+ console.log("ONE_TAP_CAMERA_BROKEN_PRIVATE_LINK_SHARE_WITHOUT_SDP_OR_MIC: PASS");
  console.log("ONE_PHONE_SHOWS_SINGLE_QR_WITHOUT_OWNER_SECRET_OR_MIC: PASS");
  // Camera opens only after a user click. Canceling a scan must stop the
  // same original camera stream; the UI never exposes manual identity codes.
