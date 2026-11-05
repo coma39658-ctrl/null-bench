@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0b3426">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self' https://ezero-shortlink-pilot.coma39658.workers.dev; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
 <title>E-ZERO Secure Connect — Audio, Video, Voice & Chat</title>
 <meta name="description" content="E-ZERO secure experimental WebRTC audio, video, one-view chat and opt-in voice messages. Manual setup still required.">
 <meta property="og:title" content="E-ZERO Secure Connect — Friends & Calls">
@@ -27,7 +27,8 @@
 <script defer src="./js/ezero_secure_connect_contacts_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_install_share_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_one_tap_qr_v0_1.js"></script>
-<script defer src="./js/ezero_secure_connect_modern_communications_v0_3.js?v=20261105forest1"></script>
+<script defer src="./js/ezero_private_short_invite_v0_1.js"></script>
+<script defer src="./js/ezero_secure_connect_modern_communications_v0_3.js?v=20261106short1"></script>
 <script defer src="./js/ezero_secure_connect_peer_profile_v0_1.js?v=20261105forest1"></script>
 <script defer src="./js/ezero_secure_connect_people_v0_1.js?v=20261105ttl1"></script>
 <script defer src="./js/ezero_auto_signaling_config_v0_1.js"></script>
@@ -180,6 +181,14 @@
   <div class="ezero-invite-wizard">
     <button id="ezeroPrepareInvite" type="button" class="ezero-wizard-primary" data-modern="prepareInvite">↗ دوست کو دعوت تیار کریں</button>
     <button id="ezeroShareInvite" type="button" class="ezero-wizard-primary" disabled hidden data-modern="shareInvite">↗ دعوت یا جواب شیئر کریں</button>
+    <div id="ezeroShortLinkControls" class="ezero-short-link-optin" hidden>
+      <label for="ezeroShortLinkConsent">
+        <input type="checkbox" id="ezeroShortLinkConsent">
+        <span>🔒 چھوٹا لنک: دعوت کا مواد اسی فون پر encrypted ہوگا اور Cloudflare پر صرف خفیہ شدہ کاپی زیادہ سے زیادہ 10 منٹ رہے گی۔</span>
+      </label>
+      <button id="ezeroMakeShortLink" class="ezero-wizard-primary" type="button" disabled>🔗 مختصر محفوظ لنک بنائیں</button>
+      <p id="ezeroShortLinkStatus" role="status" class="modern-call-note" aria-live="polite">یہ فیچر صرف آپ کی واضح منظوری سے استعمال ہوگا۔</p>
+    </div>
     <p id="ezeroInviteStatus" class="modern-status" role="status" aria-live="polite">فون جوڑنے کے لیے دعوت تیار کریں، یا دوست سے آیا لنک کھولیں۔</p>
     <div id="ezeroIncomingInvite" class="ezero-incoming-invite" hidden>
       <strong id="ezeroIncomingHeading" data-modern="incomingTitle">دوست کی رابطہ درخواست</strong>
