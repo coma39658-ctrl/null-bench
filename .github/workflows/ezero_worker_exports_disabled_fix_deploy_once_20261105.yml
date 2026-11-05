@@ -79,17 +79,17 @@ jobs:
           set -euo pipefail
           npm install --no-save --ignore-scripts --no-audit --no-fund ws@8.18.3
           TEST_ONLY_OWNER="$(printf 'e%.0s' {1..64})"
-          npx --yes wrangler@4 dev --local \\
-            --config secure_connect/call_room_lab/wrangler.jsonc \\
-            --ip 127.0.0.1 --port 8790 \\
-            --var "ROOMS_ENABLED:true" \\
-            --var "PILOT_OWNER_SECRET:${TEST_ONLY_OWNER}" \\
+          npx --yes wrangler@4 dev --local \
+            --config secure_connect/call_room_lab/wrangler.jsonc \
+            --ip 127.0.0.1 --port 8790 \
+            --var "ROOMS_ENABLED:true" \
+            --var "PILOT_OWNER_SECRET:${TEST_ONLY_OWNER}" \
             >/tmp/ezero-workerd-redeploy-preflight.log 2>&1 &
           pid=$!
           trap 'kill "$pid" 2>/dev/null || true' EXIT
           ready=0
           for i in $(seq 1 45); do
-            if curl -fsS --max-time 2 http://127.0.0.1:8790/health 2>/dev/null \\
+            if curl -fsS --max-time 2 http://127.0.0.1:8790/health 2>/dev/null \
               | grep -q STAGING_ENABLED; then ready=1; break; fi
             sleep 1
           done
