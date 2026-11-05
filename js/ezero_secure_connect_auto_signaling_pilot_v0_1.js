@@ -208,7 +208,12 @@
   }
   const shareLink=()=>{
     if(!session||session.role!=="host")return "";
-    const u=new URL(location.href);u.hash="room="+session.room+"."+session.guestToken;
+    // When the user explicitly opens the opt-in lab, its one-request
+    // invite uses the existing concise E-ZERO c.html public entry point.
+    const isLab=cfg.version==="0.1-lab" &&
+      location.pathname.endsWith("/ezero_secure_connect_one_request_lab_20261106.html");
+    const u=new URL(isLab?"./c.html":location.href,location.href);
+    u.hash="room="+session.room+"."+session.guestToken;
     const mode=document.querySelector('input[name="mode"]:checked')?.value||"audio";
     u.searchParams.set("mode",mode);
     return u.href;
