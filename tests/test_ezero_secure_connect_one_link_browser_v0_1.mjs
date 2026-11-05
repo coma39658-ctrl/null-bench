@@ -209,8 +209,24 @@ try{
  const remoteLink=await receiver.locator("#roomLink").inputValue();
  await scanner.goto(remoteLink);
  await scanner.waitForFunction(()=>document.querySelector("#myDigitalId")?.value.startsWith("EZERO1."));
- await receiver.waitForFunction(()=>!document.querySelector("#oneQrRequest").hidden,
-  {timeout:15000});
+ try{
+  await receiver.waitForFunction(()=>!document.querySelector("#oneQrRequest").hidden,
+   {timeout:12000});
+ }catch(error){
+  const diag=await Promise.all([receiver,scanner].map(async page=>page.evaluate(()=>{
+   const ids=["oneQrStatus","roomStatus","qrScanStatus","identityPeerStatus","oneQrRequest",
+    "oneQrVisual","myDigitalId"];
+   return Object.fromEntries(ids.map(id=>{
+    const el=document.getElementById(id);
+    return [id,{state:el?.dataset?.state,hidden:el?.hidden,
+     valuePresent:id==="myDigitalId"?!!el?.value:undefined,
+     status:id==="myDigitalId"?undefined:el?.textContent?.slice(0,170)}];
+   }));
+  })));
+  // Deliberately do not print bearer link, signed identities, keys, or fingerprints.
+  console.log("REMOTE_ONE_LINK_DIAGNOSTIC_NO_PRIVATE_DATA",JSON.stringify(diag));
+  throw error;
+ }
  assert.equal((await scanner.evaluate(()=>location.hash)),"","Private link erased from browser history");
  assert.equal(await receiver.evaluate(()=>window.__mediaCalls.length),priorMic,
   "Incoming distant request never silently opens host mic");
