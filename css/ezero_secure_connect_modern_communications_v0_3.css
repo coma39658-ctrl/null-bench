@@ -207,3 +207,83 @@ body.communication-page{background:linear-gradient(155deg,#e6f7f6,#eff9fc 55%,#e
   .communication-page #modernChatPanel::before{background-size:320px 394px}
 }
 /* No animated or flashing backgrounds; remains comfortable for reduced motion. */
+
+
+/* E-ZERO local profile and connected-peer identity — restrained, responsive. */
+.communication-page .ezero-profile-editor{padding:14px 16px;}
+.communication-page .ezero-profile-editor>summary{
+  cursor:pointer;min-height:48px;font-size:17px;font-weight:850;color:#0c5166;
+  display:flex;align-items:center;line-height:1.65;
+}
+.communication-page .ezero-profile-editor>summary:focus-visible{
+  outline:3px solid #0c8eaa;outline-offset:3px;
+}
+.communication-page .ezero-profile-editor-row{
+  display:flex;gap:15px;align-items:center;margin:13px 0;flex-wrap:wrap;
+}
+.communication-page .ezero-profile-image-frame{
+  width:76px;height:76px;min-width:76px;max-width:76px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50%;border:2px solid #85c4cb;background:#e6f5f5;color:#176274;
+  font-weight:900;font-size:26px;overflow:hidden;flex-shrink:0;
+}
+.communication-page .ezero-profile-image-frame img{
+  width:100%;height:100%;object-fit:cover;
+}
+.communication-page .ezero-profile-image-frame [hidden]{display:none!important}
+.communication-page .ezero-profile-fields{
+  flex:1;min-width:180px;display:grid;gap:7px;
+}
+.communication-page .ezero-profile-fields label{
+  font-size:13px;font-weight:800;color:#0c5668;line-height:1.6;
+}
+.communication-page #ezeroMyName{
+  width:100%;max-width:100%;min-height:45px;box-sizing:border-box;
+  background:#fff;color:#184657;font:inherit;border:1px solid #afd6db;
+  border-radius:10px;padding:9px 11px;
+}
+.communication-page #ezeroMyPhoto{
+  width:100%;max-width:100%;color:#315969;font:inherit;font-size:13px;
+}
+.communication-page .ezero-profile-consent{
+  display:flex;gap:11px;align-items:flex-start;
+  background:#f0f8f9;border-radius:13px;padding:11px;
+  margin:12px 0;border:1px solid #c5e0e3;
+  font-size:13px;color:#224e5d;line-height:1.85;
+}
+.communication-page #ezeroShareProfile{
+  flex-shrink:0;width:19px;height:19px;margin-top:4px;
+}
+.communication-page #ezeroSaveProfile{
+  min-height:52px;color:#fff!important;background:#0b7487;
+  border-color:#0b7487;
+}
+.communication-page .ezero-peer-profile{
+  display:flex;gap:13px;align-items:center;padding:13px;
+  background:#f0faf7;border:1px solid #a6d5c8;border-radius:16px;margin:10px 0;
+}
+.communication-page .ezero-peer-profile[hidden]{display:none!important;}
+.communication-page .ezero-peer-avatar{
+  width:64px;height:64px;min-width:64px;max-width:64px;
+}
+.communication-page .ezero-peer-profile-text{
+  min-width:0;flex:1;display:flex;flex-direction:column;gap:4px;
+}
+.communication-page #ezeroPeerDisplayName{
+  font-size:19px;font-weight:900;color:#0b4f63;overflow-wrap:anywhere;
+}
+.communication-page #ezeroVerifiedConnection{
+  color:#16603e;font-size:13px;font-weight:850;line-height:1.65;margin:0;
+}
+.communication-page #ezeroPeerSessionId{
+  font-size:12px;font-family:ui-monospace,monospace;color:#2a6872;
+  line-height:1.8;direction:ltr;text-align:start;overflow-wrap:anywhere;
+}
+.communication-page #ezeroPeerTrustNote{
+  font-size:11px;color:#5d737b;line-height:1.65;
+}
+@media(max-width:390px){
+ .communication-page .ezero-profile-editor-row{gap:10px}
+ .communication-page .ezero-profile-image-frame{width:64px;height:64px;min-width:64px}
+ .communication-page .ezero-profile-fields{min-width:160px}
+}
