@@ -29,7 +29,7 @@ async function phone(label){
 try{
   const a=await phone("QUICK_A"),b=await phone("QUICK_B");
   const signedB=await b.locator("#myDigitalId").inputValue();
-  const fpB=await b.locator("#myFingerprint").innerText();
+  const fpB=await b.locator("#myFingerprint").textContent();
   assert.equal(await a.locator("#oneTapStartButton").isVisible(),true);
   assert.equal(await a.locator("#oneTapStage").isHidden(),true);
   assert.equal(await a.locator("#secureAdvanced").getAttribute("open"),null);
@@ -57,7 +57,7 @@ try{
   assert.equal(await a.locator("#oneTapStage").isVisible(),true);
   assert.equal(await a.locator("#oneTapResult").getAttribute("data-kind"),"success");
   assert.match(await a.locator("#oneTapResult").innerText(),/دستخط شدہ QR/);
-  assert.equal(await a.locator("#peerFingerprint").innerText(),fpB);
+  assert.equal(await a.locator("#peerFingerprint").textContent(),fpB);
   assert.equal(await a.evaluate(()=>window.__qrCameraRequests.length),1,
     "QR camera is requested only after pressing one-tap start");
   assert.equal(await a.evaluate(()=>window.__qrCameraRequests[0].audio),false,
