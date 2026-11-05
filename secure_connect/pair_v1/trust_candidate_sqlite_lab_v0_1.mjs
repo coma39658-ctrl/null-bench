@@ -150,6 +150,24 @@ export class PairV1TrustCandidateSqliteLab{
  recordEvidenceAndConsumeEnrollmentQrLab({
   accountId,pairSid,authSessionId,aDeviceId,bDeviceId
  }={},now=Date.now()){
+  return this.#consumeQrEvidence({
+   accountId,pairSid,authSessionId,aDeviceId,bDeviceId
+  },now,null);
+ }
+ // Stronger evidence-only method: server Session is mandatory but NEVER
+ // becomes account/call/Trusted Device authorization.
+ recordSessionBoundEnrollmentQrEvidenceLab({
+  accountId,pairSid,authSessionId,aDeviceId,bDeviceId,serverSessionSid
+ }={},now=Date.now()){
+  if(!SID.test(serverSessionSid||"")||!this.#serverOrigin)
+   return answer(false,"SERVER_OBSERVATION_SESSION_REQUIRED");
+  return this.#consumeQrEvidence({
+   accountId,pairSid,authSessionId,aDeviceId,bDeviceId
+  },now,serverSessionSid);
+ }
+ #consumeQrEvidence({
+  accountId,pairSid,authSessionId,aDeviceId,bDeviceId
+ }={},now=Date.now(),serverSessionSid=null){
   if(!ID.test(accountId||"")||!SID.test(pairSid||"")||
      !SID.test(authSessionId||"")||!ID.test(aDeviceId||"")||
      !ID.test(bDeviceId||"")||aDeviceId===bDeviceId||
