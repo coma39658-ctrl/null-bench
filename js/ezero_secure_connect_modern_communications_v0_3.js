@@ -168,6 +168,9 @@ function receiveHash(){
   try{showIncoming(link);}catch(_){wizardStatus("inviteInvalid");}
 }
 receiveHash();
+// Opening a same-page invite changes only the fragment and will not reload
+// defer scripts; process the hashchange as well as initial page load.
+window.addEventListener("hashchange",receiveHash);
 function setConnection(stage){
  const el=$("modernConnectionStatus");
  const connected=stage==="connected";
