@@ -4,6 +4,10 @@
  */
 (() => {
   "use strict";
+  const host=new URL(location.href).hostname;
+  // Preserve existing isolated local browser regressions and developer labs.
+  // The public github.io deployment still converges to the green page.
+  if(host==="localhost"||host==="127.0.0.1")return;
   const name=location.pathname.split("/").pop();
   const h=location.hash;
   if(name==="ezero_secure_connect_live_p2p_v0_1.html"){
