@@ -33,6 +33,13 @@ async function offerAndAnswer(a,b){
   assert.match(offer,/^http:\/\/127\.0\.0\.1:8769\/ezero_secure_connect_communications_v0_3\.html\?/);
   assert.match(offer,/#e=/);
   await b.goto(offer,{waitUntil:"domcontentloaded"});
+  const inviteDebug=await b.evaluate(()=>({
+    status:document.getElementById("ezeroInviteStatus")?.textContent,
+    panelHidden:document.getElementById("ezeroCallSetupSlot")?.hidden,
+    inviteHidden:document.getElementById("ezeroIncomingInvite")?.hidden,
+    fragmentLength:location.hash.length
+  }));
+  console.log("RECEIVED_SIGNED_LINK_STATUS",JSON.stringify(inviteDebug));
   await b.locator("#ezeroIncomingInvite").waitFor({state:"visible",timeout:30000});
   assert.equal(await b.locator("#ezeroPrepareInvite").isVisible(),true);
   assert.equal(await b.locator("#guidedContinue").isVisible(),false);
