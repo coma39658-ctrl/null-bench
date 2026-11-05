@@ -19,14 +19,14 @@
 <link rel="manifest" href="./secure-connect.webmanifest">
 <link rel="stylesheet" href="./css/ezero_secure_connect_live_p2p_v0_1.css">
 <link rel="stylesheet" href="./css/ezero_secure_connect_one_tap_qr_v0_1.css">
-<link rel="stylesheet" href="./css/ezero_secure_connect_modern_communications_v0_3.css">
+<link rel="stylesheet" href="./css/ezero_secure_connect_modern_communications_v0_3.css?v=20261105b">
 <script defer src="./js/vendor/ezero-qrcode-generator-mit.js"></script>
 <script defer src="./js/ezero_secure_connect_live_p2p_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_simple_near_far_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_contacts_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_install_share_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_one_tap_qr_v0_1.js"></script>
-<script defer src="./js/ezero_secure_connect_modern_communications_v0_3.js"></script>
+<script defer src="./js/ezero_secure_connect_modern_communications_v0_3.js?v=20261105b"></script>
 </head>
 <body class="communication-page">
 <div class="shell">
@@ -81,10 +81,37 @@
   <div id="ezeroVoiceDraft" hidden><p data-modern="preview">یہ آواز ابھی صرف اس فون پر ہے؛ خودکار شیئر نہیں ہوئی۔</p><audio id="ezeroVoicePreview" class="modern-voice-audio" controls preload="none" aria-label="Local voice note preview"></audio></div>
   <div id="ezeroVoiceReceived" hidden><p data-modern="incomingVoice">دوست کا عارضی وائس میسج موصول ہوا۔</p><button type="button" id="ezeroVoiceOpenIncoming" class="primary" data-modern="playVoice">🎧 ایک بار سنیں</button><audio id="ezeroVoiceIncomingAudio" class="modern-voice-audio" controls preload="none" hidden aria-label="Received voice note"></audio></div>
   <p id="ezeroVoiceStatus" class="modern-status" role="status" aria-live="polite">وائس میسج بھیجنے کے لیے دو فون جوڑیں۔</p>
+  <button id="ezeroVoiceConnect" class="modern-voice-connect" type="button" data-modern="voiceConnect">📱 وائس میسج بھیجنے کے لیے فون جوڑیں</button>
 </section>
-<section id="ezeroCallSetupSlot" class="modern-workspace">
-  <h2 class="modern-panel-title" data-modern="setupTitle">محفوظ رابطہ جوڑیں</h2>
-  <p class="modern-panel-help" data-modern="setupHelp">دو فونوں کا تجرباتی کنکشن ہے۔ ایک فون دعوت بھیجے گا، دوسرا جواب واپس دے گا۔ ابھی خودکار سگنلنگ سرور نہیں۔</p>
+<section id="ezeroCallSetupSlot" class="modern-workspace" hidden aria-labelledby="modernSetupHeading">
+  <h2 id="modernSetupHeading" class="modern-panel-title" data-modern="setupTitle">محفوظ رابطہ جوڑیں</h2>
+  <p class="modern-panel-help" data-modern="setupHelp">دو فونوں کے درمیان دعوت اور جواب کے تبادلے سے تجرباتی رابطہ بنے گا۔ ابھی خودکار کال سرور نہیں۔</p>
+  <div class="ezero-invite-wizard">
+    <button id="ezeroPrepareInvite" type="button" class="ezero-wizard-primary" data-modern="prepareInvite">↗ دوست کو دعوت تیار کریں</button>
+    <button id="ezeroShareInvite" type="button" class="ezero-wizard-primary" disabled hidden data-modern="shareInvite">↗ دعوت یا جواب شیئر کریں</button>
+    <p id="ezeroInviteStatus" class="modern-status" role="status" aria-live="polite">فون جوڑنے کے لیے دعوت تیار کریں، یا دوست سے آیا لنک کھولیں۔</p>
+    <div id="ezeroIncomingInvite" class="ezero-incoming-invite" hidden>
+      <strong id="ezeroIncomingHeading" data-modern="incomingTitle">دوست کی رابطہ درخواست</strong>
+      <p id="ezeroIncomingDescription" data-modern="incomingDescription">اس لنک میں دوست کی عارضی WebRTC دعوت یا جواب شامل ہے۔ صرف قابلِ اعتماد شخص کے ساتھ جاری رکھیں۔</p>
+      <div class="ezero-wizard-choices">
+        <button id="ezeroAcceptInvite" type="button" class="ezero-wizard-primary" data-modern="acceptInvite">✓ درخواست قبول کریں</button>
+        <button id="ezeroDeclineInvite" type="button" class="ezero-wizard-secondary" data-modern="declineInvite">✕ مسترد کریں</button>
+      </div>
+    </div>
+    <details id="ezeroLinkFallback" class="ezero-link-fallback">
+      <summary data-modern="linkFallbackTitle">دوست کا لنک اسی ٹیب میں نہ کھلے تو</summary>
+      <p data-modern="linkFallbackHelp">موجودہ کال والا ٹیب بند نہ کریں۔ دوست سے آیا مکمل E-ZERO دعوت/جواب لنک یہاں درج کریں؛ تکنیکی کوڈ درکار نہیں۔</p>
+      <label for="ezeroPasteLink" data-modern="pasteLinkLabel">دعوت یا جواب کا لنک</label>
+      <textarea id="ezeroPasteLink" rows="2" maxlength="210000" autocomplete="off" spellcheck="false" placeholder="https://…/ezero_secure_connect_communications_v0_3.html#e=…"></textarea>
+      <button id="ezeroLoadLink" type="button" class="ezero-wizard-secondary" data-modern="loadLink">✓ موصولہ لنک کھولیں</button>
+    </details>
+    <div id="ezeroGeneratedFallback" hidden>
+      <label for="ezeroGeneratedLink" data-modern="generatedLabel">صرف اپنے دوست کو بھیجنے والا عارضی لنک</label>
+      <textarea id="ezeroGeneratedLink" readonly rows="2" spellcheck="false"></textarea>
+      <button id="ezeroCopyLink" type="button" class="ezero-wizard-secondary" data-modern="copyLink">📋 لنک کاپی کریں</button>
+    </div>
+    <p class="modern-call-note" data-modern="signalPrivacy">لنک میں IP اور نیٹ ورک کی معلومات ہوسکتی ہیں۔ اسے صرف قابلِ اعتماد دوست کو بھیجیں۔ دوسری ایپ لنک محفوظ کرسکتی ہے؛ یہاں مستقل رابطہ سرور نہیں۔</p>
+  </div>
 </section>
 <section id="modernOfflinePanel" class="modern-workspace" aria-labelledby="modernOfflineHeading">
   <h2 id="modernOfflineHeading" class="modern-panel-title" data-modern="offlineTitle">📶 مستقبل میں: انٹرنیٹ کے بغیر Nearby Connect</h2>

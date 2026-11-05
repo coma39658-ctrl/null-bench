@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="480" viewBox="0 0 390 480" role="img" aria-label="E-ZERO original cosmic trust motifs">
+  <title>E-ZERO original cosmic trust and discovery pattern</title>
+  <desc>Subtle decorative interconnected orbits, small constellations, a shield, rays of discovery, collaborative circles and growth arrows. No identifying data or text.</desc>
+  <g fill="none" stroke="#2e8d9a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" opacity=".23">
+    <!-- Wide knowledge orbit / shared connections -->
+    <ellipse cx="90" cy="80" rx="47" ry="20" transform="rotate(-25 90 80)"/>
+    <ellipse cx="90" cy="80" rx="47" ry="20" transform="rotate(30 90 80)"/>
+    <circle cx="90" cy="80" r="10"/>
+    <circle cx="90" cy="80" r="3" fill="#2e8d9a"/>
+    <path d="M137 60l8-4m-12 1l2-9m-13 78l-8 10"/>
+    <!-- Three peers and an open central network -->
+    <circle cx="278" cy="95" r="12"/>
+    <circle cx="320" cy="62" r="8"/>
+    <circle cx="323" cy="127" r="9"/>
+    <path d="M288 86l25-19m-23 16l28 34m-13-48l3 46" stroke-dasharray="3 5"/>
+    <path d="M276 80a17 17 0 0 1 18 14m31 35l9 0"/>
+    <!-- Trusted communication: shield with connected point -->
+    <path d="M70 213c14-11 27-12 42-1v26c0 17-21 30-21 30S70 255 70 238z"/>
+    <path d="M81 238l8 8 13-15" stroke-width="2.6"/>
+    <circle cx="118" cy="211" r="3"/>
+    <!-- Friendly message and safe conversation -->
+    <path d="M239 234a22 17 0 0 1 22-17h26a22 17 0 0 1 22 17v8a22 17 0 0 1-22 17h-12l-12 10v-10h-2a22 17 0 0 1-22-17z"/>
+    <circle cx="259" cy="240" r="2" fill="#2e8d9a"/>
+    <circle cx="273" cy="240" r="2" fill="#2e8d9a"/>
+    <circle cx="287" cy="240" r="2" fill="#2e8d9a"/>
+    <!-- Constellation of exploration -->
+    <circle cx="127" cy="357" r="4" fill="#2e8d9a"/>
+    <circle cx="154" cy="329" r="3"/>
+    <circle cx="179" cy="360" r="5"/>
+    <circle cx="214" cy="349" r="3"/>
+    <circle cx="200" cy="390" r="3"/>
+    <path d="M127 357l27-28 25 31 35-11m-35 11l21 30" stroke-dasharray="3 6"/>
+    <!-- Upward growth, not a monetary promise -->
+    <path d="M29 438l19-18 16 6 27-28m-13 0h13v13"/>
+    <path d="M265 415a25 25 0 1 0 42 20m-6-27l6-4 5 5"/>
+    <!-- Tiny sparkle / exploratory signals -->
+    <path d="M189 67v-10m-5 5h10m-5-5l2 4 4 2-4 2-2 4-2-4-4-2 4-2z"/>
+    <path d="M335 309v-13m-6 7h12m-6-7l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/>
+    <path d="M34 302v-8m-4 4h8"/>
+    <path d="M199 174v-9m-4 4h8"/>
+  </g>
+  <!-- Soft secondary signals, intentionally low contrast -->
+  <g fill="#41a7a7" opacity=".11">
+    <circle cx="45" cy="156" r="2.5"/><circle cx="177" cy="230" r="3"/>
+    <circle cx="359" cy="177" r="3"/><circle cx="337" cy="358" r="2.5"/>
+    <circle cx="32" cy="357" r="3"/><circle cx="234" cy="25" r="2.5"/>
+  </g>
+</svg>
