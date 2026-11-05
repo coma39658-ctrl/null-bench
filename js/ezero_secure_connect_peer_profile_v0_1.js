@@ -122,7 +122,7 @@
   async function onPhotoChosen(inputId){
     const input=$(inputId),file=input.files?.[0];
     if(!file||photoBusy)return;
-    if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size>2*1024*1024){
+    if(!["image/jpeg","image/png","image/webp","image/heic","image/heif"].includes(file.type)||file.size>12*1024*1024){
       labelStatus("photoRejected");input.value="";return;
     }
     photoBusy=true;
@@ -137,7 +137,7 @@
         reader.onerror=()=>reject(Error("READ_FAILED"));
         reader.readAsDataURL(file);
       });
-      if(typeof localData!=="string"||!PHOTO.test(localData))throw Error("BAD_IMAGE");
+      if(typeof localData!=="string"||!/^data:image\/(jpeg|png|webp|heic|heif);base64,[A-Za-z0-9+/=]+$/.test(localData))throw Error("BAD_IMAGE");
       const photo=new Image();
       await new Promise((resolve,reject)=>{
         photo.onload=resolve;photo.onerror=reject;photo.src=localData;
