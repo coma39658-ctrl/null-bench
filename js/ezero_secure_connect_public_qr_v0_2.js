@@ -76,6 +76,13 @@
     $("language").value=language;
     for(const el of document.querySelectorAll("[data-ui]"))el.textContent=say(el.dataset.ui);
     $start.textContent=say(started?"again":"start");
+    // Keep the user's choice when opening the complete privacy policy.
+    // The Urdu default keeps its simple, unchanged public URL.
+    const policyLink=document.querySelector(".privacy-link a");
+    if(policyLink){
+      const base="./ezero_secure_connect_privacy_v0_2.html";
+      policyLink.href=language==="ur"?base:base+"?lang="+encodeURIComponent(language);
+    }
     if(lastState)showState(lastState.key,lastState.kind);
   }
   $("language").addEventListener("change",e=>selectLanguage(e.target.value));

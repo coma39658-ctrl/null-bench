@@ -3,15 +3,25 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="referrer" content="no-referrer"><meta name="theme-color" content="#083d52">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self'; connect-src 'none'; script-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self'; connect-src 'none'; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
 <title>E-ZERO Secure Connect — پرائیویسی اور سیکیورٹی پالیسی</title>
 <meta name="description" content="E-ZERO Secure Connect کی پرائیویسی پالیسی: ڈیٹا فروخت نہیں، اشتہارات نہیں، مقامی دستخط شدہ QR اور اجازت کے بغیر کیمرہ نہیں۔">
 <link rel="stylesheet" href="./css/ezero_secure_connect_public_qr_v0_2.css">
+<script defer src="./js/ezero_secure_connect_policy_i18n_v0_3.js"></script>
 </head><body>
 <div class="policy-shell">
-<header class="top"><a class="back" href="./ezero_secure_connect_live_p2p_v0_1.html">↩ رابطے پر واپس</a><strong class="brand">E-ZERO <span>Privacy &amp; Security</span></strong></header>
-<main>
-<section class="intro"><span class="kicker">E-ZERO · PRIVACY FIRST</span>
+<header class="top policy-header">
+  <a class="back" id="policyBack" href="./ezero_secure_connect_live_p2p_v0_1.html">↩ رابطے پر واپس</a>
+  <strong class="brand">E-ZERO <span id="policyBrandSubtitle">پرائیویسی اور سیکیورٹی</span></strong>
+  <label class="language" for="policyLanguage"><span id="policyLanguageLabel">زبان</span>
+    <select id="policyLanguage" aria-label="Policy language · پالیسی کی زبان · لغة السياسة">
+      <option value="ur">اردو</option><option value="ar">العربية</option><option value="en">English</option>
+    </select>
+  </label>
+</header>
+<main id="policyContents">
+<div class="policy-language" data-policy-lang="ur">
+<section class="intro"><span class="kicker">E-ZERO · رازداری مقدم</span>
 <h1>پرائیویسی اور سیکیورٹی پالیسی</h1>
 <p>کاروباری افراد، پیشہ ورانہ گفتگو کرنے والوں اور ہر ایسے شخص کے لیے جو اپنی نجی معلومات اور ڈیجیٹل شناخت کا احترام چاہتا ہے۔</p>
 <p>مؤثر تاریخ: 5 نومبر 2026 · موجودہ عوامی Secure QR ورژن</p>
@@ -57,6 +67,99 @@
 <section class="policy-card"><h2>7۔ سروس کی حقیقی حدود اور مستقبل کی تبدیلیاں</h2>
 <p>یہ نظام کاروباری صارفین سمیت ہر فرد کو ایک سادہ، پرائیویسی کو ترجیح دینے والی ڈیجیٹل شناختی سہولت دینے کے لیے ہے۔ فی الحال یہ مستقل messaging account، خودکار push request، صوتی یا ویڈیو کال، end-to-end encrypted chat یا عالمی طور پر آڈٹ شدہ communicator نہیں۔ نئی سہولیات آنے پر ان کی پرائیویسی اور ڈیٹا پروسیسنگ کی معلومات پالیسی میں واضح طور پر شامل کرنا ضروری ہوگا۔</p>
 <p class="small">یہ صفحہ E-ZERO کے موجودہ عوامی QR ورژن کی سروس وضاحت اور پالیسی ہے؛ قانونی یا حفاظتی ضمانت کا متبادل نہیں۔</p></section>
+</div>
+<div class="policy-language" data-policy-lang="en" lang="en" dir="ltr" hidden>
+
+<section class="intro"><span class="kicker">E-ZERO · PRIVACY FIRST</span>
+<h1>Privacy &amp; Security Policy</h1>
+<p>For business owners, professionals and anyone who wants their private information and digital identity treated with care.</p>
+<p>Effective date: 5 November 2026 · Current public Secure QR version</p></section>
+<section class="policy-card policy-summary"><h2>Our commitment</h2>
+<p><strong>E-ZERO does not sell users' private data or run advertising on this page. It does not record calls, conversations, audio or video, or store them on an E-ZERO server.</strong> The current service is limited to temporary signed QR identity checks and the exchange of identity invitations and approvals with distant friends. It is not a full audio/video calling or chat service.</p>
+<p>Our policy describes operations within our control. We cannot control every action taken on another person's phone or by a messaging provider, host, network or operating system.</p></section>
+<section class="policy-card"><h2>1. User choice, consent and convenience</h2>
+<p>Show a nearby friend your QR code or scan theirs. For a distant friend, share the short E-ZERO invitation link over WhatsApp, Facebook Messenger, Telegram, IMO, SMS, email or another service that supports links, <strong>provided that service permits such sharing under its rules</strong>.</p>
+<p>The recipient may <strong>accept or decline</strong> an invitation. If they accept, they must separately share a signed identity response back. Opening an invitation does not automatically start a call or activate a camera or microphone. Verification checks a self-signed public cryptographic key, not the person's actual or legal identity.</p></section>
+<section class="policy-card"><h2>2. What information is kept, and where?</h2>
+<table class="policy-table"><thead><tr><th scope="col">Information</th><th scope="col">How the current system handles it</th></tr></thead><tbody>
+<tr><td>Private cryptographic key</td><td>A temporary ECDSA P-256 key is created in the browser and kept non-exportable. It is not sent to an E-ZERO server.</td></tr>
+<tr><td>QR and public identity</td><td>The public key, SHA-256 fingerprint and self-signed QR token, valid for approximately 10 minutes, are created and checked in the browser.</td></tr>
+<tr><td>Pending remote invitation</td><td>Only a random request ID, the requester's public fingerprint and an approximately 10-minute expiry are temporarily kept in browser localStorage to match a reply with its original request. They contain no private key, name or conversation. Expired records are cleaned on the next access.</td></tr>
+<tr><td>Invitation link</td><td>The public, signed identity is placed in the URL fragment. It is not sent in the normal HTTP request for the page to the E-ZERO host, but the chosen messaging provider may save the link, its text or metadata.</td></tr>
+<tr><td>Camera frames, voice and messages</td><td>QR-camera frames are not uploaded to E-ZERO. This page does not activate microphone access, calling, a message archive or recording.</td></tr>
+</tbody></table></section>
+<section class="policy-card"><h2>3. Recording, camera and microphone</h2>
+<ul>
+<li>The QR camera starts only after the user presses a button and the browser grants permission. The system stops its camera track after a successful scan, a time limit, leaving the page or closing the scanner.</li>
+<li>This page does not access the microphone, establish audio/video calls, run MediaRecorder, or listen to, transcribe, record or save conversations.</li>
+<li><strong>No website can guarantee that another person cannot record with their own phone, an external camera, a screen recorder or malicious software.</strong> Any future calling feature would require its own privacy and security evaluation.</li>
+</ul></section>
+<section class="policy-card"><h2>4. Advertising, data sales and third parties</h2>
+<p><strong>E-ZERO does not run advertisements, advertising SDKs, covert tracking pixels or a system for selling private data on the current QR page.</strong> The current page also does not collect friends' telephone numbers, address books, names or conversations.</p>
+<p>If a user shares an invitation through WhatsApp, Facebook, SMS or another provider, that provider may collect the link, communication metadata and possibly previews under its own policy. E-ZERO cannot control those providers' logs or rules. Likewise, GitHub Pages and associated network services may see ordinary HTTPS requests, IP addresses and technical access logs.</p></section>
+<section class="policy-card"><h2>5. Security measures implemented</h2>
+<ul>
+<li>HTTPS and Web Crypto, ECDSA P-256 self-signed identity and SHA-256 fingerprints.</li>
+<li>Rejection of invalid signatures, modified or expired tokens, and an attempt to treat one's own QR as a friend's identity.</li>
+<li>Non-exportable private keys, short-lived signed identity tokens, random request IDs and cryptographic binding of responses to specific requests.</li>
+<li>No signed invitation reply is shared without a user action. Camera access and installation likewise require explicit user action and browser permissions.</li>
+<li>Content Security Policy, no external JavaScript SDK, and no automatic call signaling server or concealed background calls.</li>
+<li>Data-minimizing design, with no central server-side contact or recording database for this page.</li>
+</ul>
+<p><strong>Limitations:</strong> These describe safeguards implemented in the current code. They do not establish international certification, comprehensive penetration testing, an independent third-party security audit or a guarantee of perfect security.</p></section>
+<section class="policy-card"><h2>6. Invitation links, installation and user choice</h2>
+<p>The short <code>c.html</code> address opens the official E-ZERO Secure Connect page. We do not disguise links to bypass a platform's rules. If a sharing service blocks the link, its restrictions must be respected.</p>
+<p>When E-ZERO is actually running inside an installed standalone PWA, it hides the <strong>Install again</strong> button. In a normal browser it offers installation or a home-screen shortcut. Installation always requires approval from the browser or operating system. Whether a link received in a messenger opens an installed PWA or the browser depends on the phone and browser's link-handling behavior.</p></section>
+<section class="policy-card"><h2>7. Actual service limits and future changes</h2>
+<p>This service is designed as a simple, privacy-focused digital identity tool for everyone, including business users. It does not yet provide persistent messaging accounts, automatic push requests, audio/video calls, end-to-end encrypted chat or an internationally audited communications platform. If new features are launched, this policy must be updated to describe the relevant privacy and data-processing changes clearly.</p>
+<p class="small">This policy describes the current public E-ZERO Secure QR version. It is not a substitute for legal advice or an absolute security guarantee.</p></section>
+</div>
+<div class="policy-language" data-policy-lang="ar" lang="ar" dir="rtl" hidden>
+
+<section class="intro"><span class="kicker">E-ZERO · الخصوصية أولاً</span>
+<h1>سياسة الخصوصية والأمان</h1>
+<p>لأصحاب الأعمال والمهنيين وكل من يرغب في احترام معلوماته الخاصة وهويته الرقمية والحفاظ على خصوصيته.</p>
+<p>تاريخ السريان: 5 نوفمبر 2026 · الإصدار العام الحالي من Secure QR</p></section>
+<section class="policy-card policy-summary"><h2>التزامنا</h2>
+<p><strong>لا تبيع E-ZERO البيانات الخاصة بالمستخدمين ولا تعرض إعلانات على هذه الصفحة، ولا تسجّل المكالمات أو المحادثات أو الصوت أو الفيديو، ولا تحفظها على خوادم E-ZERO.</strong> تقتصر الخدمة الحالية على التحقق من الهوية الرقمية المؤقتة عبر QR موقّع، وتبادل دعوات التحقق والموافقة بين مستخدمين متباعدين. وليست خدمة مكالمات صوتية أو مرئية أو دردشة متكاملة.</p>
+<p>تنطبق هذه السياسة على العمليات الواقعة ضمن سيطرتنا. ولا يمكننا التحكم في كل ما يحدث على هاتف شخص آخر أو لدى مزود المراسلة أو الاستضافة أو الشبكة أو نظام التشغيل.</p></section>
+<section class="policy-card"><h2>1. راحة المستخدم واختياره وموافقته</h2>
+<p>يمكنك إظهار رمز QR لصديق قريب أو مسح رمزه. ولصديق بعيد، يمكنك إرسال رابط دعوة E-ZERO المختصر عبر WhatsApp أو Facebook Messenger أو Telegram أو IMO أو الرسائل القصيرة SMS أو البريد الإلكتروني أو أي خدمة تدعم الروابط، <strong>شريطة أن تسمح قواعد تلك الخدمة بهذه المشاركة</strong>.</p>
+<p>يستطيع المستلم <strong>قبول الدعوة أو رفضها</strong>. وعند القبول، يشارك المستلم ردًا منفصلًا موقّعًا للتحقق من الهوية الرقمية. لا يؤدي فتح الدعوة وحده إلى بدء مكالمة أو تشغيل الكاميرا أو الميكروفون تلقائيًا. ويتحقق النظام من مفتاح عام موقّع ذاتيًا، وليس من الهوية الحقيقية أو القانونية للشخص.</p></section>
+<section class="policy-card"><h2>2. ما المعلومات التي تُحفظ وأين؟</h2>
+<table class="policy-table"><thead><tr><th scope="col">نوع المعلومات</th><th scope="col">طريقة التعامل معها حاليًا</th></tr></thead><tbody>
+<tr><td>المفتاح التشفيري الخاص</td><td>ينشئ المتصفح مفتاح ECDSA P-256 مؤقتًا وغير قابل للتصدير، ولا يُرسَل إلى خادم E-ZERO.</td></tr>
+<tr><td>رمز QR والهوية العامة</td><td>ينشئ المتصفح ويتحقق من المفتاح العام وبصمة SHA-256 ورمز QR الموقّع ذاتيًا، بصلاحية تقارب 10 دقائق.</td></tr>
+<tr><td>دعوة بعيدة قيد الانتظار</td><td>يحتفظ المتصفح مؤقتًا في localStorage بمعرّف طلب عشوائي وبصمة المرسل العامة ووقت انتهاء بعد نحو 10 دقائق لمطابقة الرد مع الطلب الأصلي. ولا تتضمن هذه البيانات مفتاحًا خاصًا أو اسمًا أو محادثة. تُنظَّف السجلات المنتهية عند الوصول التالي.</td></tr>
+<tr><td>رابط الدعوة</td><td>تُضمَّن الهوية العامة الموقّعة في جزء fragment من الرابط، ولا تُرسَل ضمن طلب HTTP المعتاد للصفحة إلى مضيف E-ZERO. لكن تطبيق المراسلة المختار قد يحفظ الرابط أو نصه أو بياناته الوصفية.</td></tr>
+<tr><td>صور الكاميرا والصوت والرسائل</td><td>لا تُرفع إطارات كاميرا QR إلى E-ZERO. ولا تُفعِّل هذه الصفحة الميكروفون أو المكالمات أو أرشفة الرسائل أو التسجيل.</td></tr>
+</tbody></table></section>
+<section class="policy-card"><h2>3. التسجيل والكاميرا والميكروفون</h2>
+<ul>
+<li>تعمل كاميرا مسح QR فقط بعد ضغط المستخدم على زر واضح ومنح إذن المتصفح. ويتوقف مسار الكاميرا بعد نجاح المسح أو انتهاء المدة المحددة أو مغادرة الصفحة أو إغلاق الماسح.</li>
+<li>لا تصل هذه الصفحة إلى الميكروفون ولا تُنشئ مكالمات صوتية أو مرئية، ولا تستخدم MediaRecorder، ولا تستمع إلى المحادثات أو تنسخها أو تسجلها أو تحفظها.</li>
+<li><strong>لا يستطيع أي موقع ضمان منع شخص آخر من التسجيل بهاتفه أو بكاميرا خارجية أو عبر تسجيل الشاشة أو برنامج خبيث.</strong> وأي ميزة مكالمات مستقبلية تحتاج إلى تقييم مستقل للخصوصية والأمان.</li>
+</ul></section>
+<section class="policy-card"><h2>4. الإعلانات وبيع البيانات والجهات الخارجية</h2>
+<p><strong>لا تستخدم E-ZERO في صفحة QR الحالية إعلانات أو حزم SDK إعلانية أو عناصر تتبّع خفية أو نظامًا لبيع البيانات الخاصة.</strong> كما لا تجمع الصفحة الحالية أرقام هواتف الأصدقاء أو جهات الاتصال أو الأسماء أو المحادثات.</p>
+<p>إذا أرسل المستخدم دعوة عبر WhatsApp أو Facebook أو SMS أو خدمة أخرى، فقد تجمع تلك الخدمة الرابط وبيانات التواصل الوصفية وربما معاينات الروابط وفقًا لسياستها. لا تتحكم E-ZERO في سجلات الجهات الخارجية أو قواعدها. وقد تطّلع GitHub Pages وخدمات الشبكة المرتبطة بها على طلبات HTTPS العادية وعناوين IP والسجلات التقنية للوصول.</p></section>
+<section class="policy-card"><h2>5. الإجراءات الأمنية المطبَّقة</h2>
+<ul>
+<li>استخدام HTTPS وWeb Crypto وهوية موقّعة ذاتيًا بخوارزمية ECDSA P-256 وبصمة SHA-256.</li>
+<li>رفض التوقيعات غير الصحيحة والرموز المعدَّلة أو المنتهية الصلاحية، ورفض اعتبار رمز QR الخاص بالمستخدم هوية صديق.</li>
+<li>مفاتيح خاصة غير قابلة للتصدير ورموز هوية موقّعة قصيرة العمر ومعرّفات طلبات عشوائية وربط الردود بالطلبات المحددة بالتشفير.</li>
+<li>لا تتم مشاركة رد الدعوة الموقّع دون إجراء صريح من المستخدم. وتتطلب الكاميرا والتثبيت أيضًا إجراءً واضحًا وأذونات المتصفح.</li>
+<li>سياسة أمان المحتوى Content Security Policy، وعدم استخدام حزم JavaScript خارجية، وعدم وجود خادم إشارات للاتصال التلقائي أو مكالمات خفية في الخلفية.</li>
+<li>تقليل البيانات إلى الحد الأدنى، دون قاعدة بيانات مركزية على الخادم لجهات الاتصال أو التسجيلات لهذه الصفحة.</li>
+</ul>
+<p><strong>حدود الضمان:</strong> هذه خصائص أمنية مطبَّقة في الكود الحالي، ولا تعني الحصول على شهادة دولية أو اكتمال اختبارات الاختراق الشاملة أو تدقيق أمني مستقل من طرف ثالث أو ضمان أمان مطلق.</p></section>
+<section class="policy-card"><h2>6. روابط الدعوة والتثبيت واختيار المستخدم</h2>
+<p>يفتح عنوان <code>c.html</code> المختصر صفحة E-ZERO Secure Connect الرسمية. ولا نخفي الروابط للتحايل على قواعد المنصات. وإذا منعت خدمة مشاركة الرابط فيجب احترام قيودها.</p>
+<p>عندما يكون E-ZERO مفتوحًا بالفعل داخل تطبيق ويب تقدمي PWA مثبّت يعمل في الوضع المستقل، يُخفى زر <strong>التثبيت مجددًا</strong>. أما في المتصفح العادي، فيُعرض خيار التثبيت أو إضافة اختصار إلى الشاشة الرئيسية. ويظل التثبيت خاضعًا لموافقة المتصفح أو نظام التشغيل. ويعتمد فتح رابط وارد عبر تطبيق مراسلة داخل التطبيق المثبّت أو داخل المتصفح على طريقة تعامل الهاتف والمتصفح مع الروابط.</p></section>
+<section class="policy-card"><h2>7. الحدود الفعلية للخدمة والتغييرات المستقبلية</h2>
+<p>صُممت هذه الخدمة لتوفير وسيلة بسيطة للتحقق من الهوية الرقمية تُعطي الأولوية للخصوصية للجميع، بمن فيهم أصحاب الأعمال. ولا توفر حاليًا حسابات مراسلة دائمة أو طلبات فورية تلقائية أو مكالمات صوتية ومرئية أو دردشة مشفرة تشفيرًا تامًا بين الطرفين أو منصة اتصالات خضعت لتدقيق دولي. وإذا أُطلقت ميزات جديدة، فيجب تحديث هذه السياسة لتوضيح آثارها المتعلقة بالخصوصية ومعالجة البيانات.</p>
+<p class="small">تصف هذه السياسة الإصدار العام الحالي من E-ZERO Secure QR، ولا تحل محل المشورة القانونية أو تمثل ضمانًا مطلقًا للأمان.</p></section>
+</div>
 </main>
-<footer>E-ZERO · Privacy by design · No ads · No sale of private data</footer>
+<footer id="policyFooter">E-ZERO · رازداری کو ترجیح · اشتہار نہیں · نجی ڈیٹا فروخت نہیں</footer>
 </div></body></html>
