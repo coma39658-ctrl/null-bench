@@ -19,7 +19,7 @@
 <link rel="manifest" href="./secure-connect.webmanifest">
 <link rel="stylesheet" href="./css/ezero_secure_connect_live_p2p_v0_1.css">
 <link rel="stylesheet" href="./css/ezero_secure_connect_one_tap_qr_v0_1.css">
-<link rel="stylesheet" href="./css/ezero_secure_connect_modern_communications_v0_3.css?v=20261105photo2">
+<link rel="stylesheet" href="./css/ezero_secure_connect_modern_communications_v0_3.css?v=20261105green3">
 <script defer src="./js/vendor/ezero-qrcode-generator-mit.js"></script>
 <script defer src="./js/ezero_secure_connect_live_p2p_v0_1.js?v=20261105profile1"></script>
 <script defer src="./js/ezero_secure_connect_simple_near_far_v0_1.js"></script>
@@ -28,6 +28,7 @@
 <script defer src="./js/ezero_secure_connect_one_tap_qr_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_modern_communications_v0_3.js?v=20261105e"></script>
 <script defer src="./js/ezero_secure_connect_peer_profile_v0_1.js?v=20261105photo2"></script>
+<script defer src="./js/ezero_secure_connect_people_v0_1.js"></script>
 </head>
 <body class="communication-page">
 <div class="shell">
@@ -79,6 +80,26 @@
   <button type="button" class="modern-feature-button" data-modern-select="voice" aria-pressed="false"><span class="modern-feature-icon">🎙️</span><span class="modern-feature-name" data-modern="voice">وائس میسج</span><span class="modern-feature-note" data-modern="voiceHint">مختصر ریکارڈ کریں، پھر بھیجیں</span></button>
   <button type="button" class="modern-feature-button" data-modern-select="chat" aria-pressed="false"><span class="modern-feature-icon">💬</span><span class="modern-feature-name" data-modern="chat">نجی چیٹ</span><span class="modern-feature-note" data-modern="chatHint">ایک بار کھلنے والا نجی پیغام</span></button>
 </div>
+<details id="ezeroPeopleHub" class="modern-workspace ezero-people-hub">
+  <summary id="ezeroPeopleHeading" data-people="hubTitle">👥 دوست اور کال ہسٹری</summary>
+  <p class="modern-panel-help" data-people="hubDescription">محفوظ دوستوں کے کارڈ، کامیاب رابطے اور رضامندی سے محفوظ کی گئی کالز؛ آن لائن حالت کا دعویٰ نہیں۔</p>
+  <div class="ezero-people-tabs" role="group" aria-label="دوست، کالز اور مس کالز">
+    <button id="ezeroTabFriends" type="button" aria-pressed="true" data-people="friends">دوست</button>
+    <button id="ezeroTabCalls" type="button" aria-pressed="false" data-people="calls">کالز</button>
+    <button id="ezeroTabMissed" type="button" aria-pressed="false" data-people="missed">مس کالز</button>
+  </div>
+  <label for="ezeroPeopleSearch" class="ezero-photo-heading" data-people="searchLabel">دوست یا کال تلاش کریں</label>
+  <input id="ezeroPeopleSearch" type="search" autocomplete="off" maxlength="40" placeholder="نام تلاش کریں" aria-label="دوست یا کال تلاش کریں">
+  <div id="ezeroPeopleList" class="ezero-people-list" aria-live="polite"></div>
+  <label class="ezero-history-consent">
+    <input type="checkbox" id="ezeroHistoryConsent">
+    <span data-people="historyConsent">کامیابی سے جڑی کالوں کا مختصر ریکارڈ صرف اسی فون پر رکھیں۔ گفتگو، آواز، ویڈیو یا دوست کی تصویر محفوظ نہیں ہوگی۔</span>
+  </label>
+  <div class="ezero-journal-actions">
+    <button id="ezeroHistoryClear" type="button" data-people="clearHistory">تاریخ صاف کریں</button>
+  </div>
+  <p id="ezeroPeopleStatus" class="ezero-people-meta" role="status" aria-live="polite" data-people="historyOff">کال ہسٹری بند ہے۔ حقیقی آنے والی کال کی اطلاع کے بغیر مس کال درج نہیں کی جاتی۔</p>
+</details>
 <section class="modern-workspace" aria-label="Current feature">
   <h2 id="modernFeatureTitle" class="modern-panel-title" aria-live="polite">آڈیو کال</h2>
   <p id="modernFeatureHelp" class="modern-panel-help">دو فون جوڑنے کے لیے ایک دعوت اور جواب درکار ہیں۔ خودکار کال ابھی فعال نہیں۔</p>
