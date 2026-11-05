@@ -17,6 +17,8 @@
 import {makeAuthenticationOptionsLabV1,verifyAuthenticationResponseLabV1}
  from "./webauthn_authentication_library_lab_v0_1.mjs";
 import {PAIR_V1_RP_ID} from "./pair_policy_v1.mjs";
+import {SESSION_LAB_COOKIE,SESSION_LAB_MAX_MS,sessionSecretDigestForLab}
+ from "./account_session_guard_sqlite_lab_v0_1.mjs";
 
 const ACCOUNT=/^[A-Za-z0-9_-]{12,64}$/;
 const ID=/^[A-Za-z0-9_-]{16,256}$/;
@@ -29,6 +31,16 @@ const out=(ok,code,extra={})=>Object.freeze({
  trustedDeviceActivated:false,...extra
 });
 const hex=bytes=>[...bytes].map(v=>v.toString(16).padStart(2,"0")).join("");
+function b64(bytes){let s="";for(const b of bytes)s+=String.fromCharCode(b);
+ return btoa(s).replace(/\\+/g,"-").replace(/\\//g,"_").replace(/=+$/,"");
+}
+function trustedServerOrigin(raw){
+ try{
+  const u=new URL(raw);
+  return u.protocol==="https:"&&u.pathname==="/"&&!u.search&&!u.hash&&
+   !u.username&&!u.password?u.origin:null;
+ }catch(_){return null;}
+}
 async function digestChallenge(raw){
  if(typeof raw!=="string"||!B64.test(raw)||raw.length!==43)
   throw Error("INVALID_CHALLENGE");
@@ -63,13 +75,16 @@ function registryRow(row){
  };
 }
 export class PairV1SqliteAtomicPasskeyFinishLab{
- #sql;#tx;
- constructor(storage){
+ #sql;#tx;#origin;
+ constructor(storage,{labServerOrigin=null}={}){
   if(typeof storage?.sql?.exec!=="function"||
      typeof storage?.transactionSync!=="function")
    throw Error("SQLITE_TRANSACTION_REQUIRED");
   this.#sql=storage.sql;
   this.#tx=storage.transactionSync.bind(storage);
+  this.#origin=labServerOrigin===null?null:trustedServerOrigin(labServerOrigin);
+  if(labServerOrigin!==null&&!this.#origin)
+   throw Error("HTTPS_SAME_ORIGIN_SERVER_REQUIRED");
   this.#sql.exec(`CREATE TABLE IF NOT EXISTS ezero_v1_auth_credentials_lab (
    account_id TEXT NOT NULL,
    credential_id TEXT PRIMARY KEY,
@@ -91,6 +106,19 @@ export class PairV1SqliteAtomicPasskeyFinishLab{
    expires INTEGER NOT NULL,
    purpose TEXT NOT NULL CHECK(purpose='WEBAUTHN_AUTHENTICATE'),
    consumed_at INTEGER
+  )`);
+  // Same guard schema: no public token-minting endpoint, no scope escalation.
+  this.#sql.exec(`CREATE TABLE IF NOT EXISTS ezero_v1_sessions_guard_lab (
+   sid TEXT PRIMARY KEY,
+   secret_digest TEXT NOT NULL UNIQUE,
+   account_id TEXT NOT NULL,
+   credential_id TEXT NOT NULL,
+   issued INTEGER NOT NULL,
+   expires INTEGER NOT NULL,
+   seen_at INTEGER NOT NULL,
+   origin TEXT NOT NULL,
+   scope TEXT NOT NULL CHECK(scope='ACCOUNT_OBSERVE_ONLY'),
+   revoked_at INTEGER
   )`);
  }
  #record(accountId,credentialId){
@@ -136,6 +164,23 @@ export class PairV1SqliteAtomicPasskeyFinishLab{
   });
  }
  async finish({accountId,sessionId,response},now=Date.now()){
+  return this.#finish({accountId,sessionId,response},now,null);
+ }
+ // Called only by an audited SAME-ORIGIN server route in the future.
+ // A REAL WebAuthn signed assertion is verified before any session INSERT;
+ // the token is created and committed in the SAME SQLite transaction as the
+ // challenge consume + counter update. Only a preverified LAB fixture account
+ // can be used; account onboarding and authorized routes still DO NOT EXIST.
+ async finishForObservationSessionLab({accountId,sessionId,response}={},now=Date.now()){
+  if(!this.#origin)return out(false,"HTTPS_SAME_ORIGIN_SERVER_REQUIRED");
+  const secret=b64(crypto.getRandomValues(new Uint8Array(32)));
+  const cookieSid=hex(crypto.getRandomValues(new Uint8Array(16)));
+  const digest=await sessionSecretDigestForLab(secret);
+  return this.#finish({accountId,sessionId,response},now,{
+   secret,cookieSid,digest,origin:this.#origin
+  });
+ }
+ async #finish({accountId,sessionId,response},now,issuance){
   if(!ACCOUNT.test(accountId||"")||!SID.test(sessionId||"")||
      !Number.isSafeInteger(now)||now<=0||!response||
      response.type!=="public-key"||!ID.test(response.id||""))
@@ -204,6 +249,30 @@ export class PairV1SqliteAtomicPasskeyFinishLab{
       now,sessionId,accountId,record.credentialId,
       pendingRow.challenge_digest,now,now).toArray();
     if(used.length!==1)throw Error("CHALLENGE_ALREADY_USED");
+    if(issuance){
+     // Test-only account fixture cannot be forged using browser flags; the
+     // sole owner-verification/onboarding service is not implemented.
+     const account=this.#sql.exec(`SELECT status FROM
+      ezero_v1_auth_accounts_lab WHERE account_id=?`,
+      accountId).toArray()[0];
+     if(!account||account.status!=="PREVERIFIED_LAB_ONLY")
+      throw Error("UNVERIFIED_ACCOUNT");
+     this.#sql.exec(`INSERT INTO ezero_v1_sessions_guard_lab
+       (sid,secret_digest,account_id,credential_id,issued,expires,seen_at,
+        origin,scope,revoked_at)
+       VALUES(?,?,?,?,?,?,?,?,'ACCOUNT_OBSERVE_ONLY',NULL)`,
+       issuance.cookieSid,issuance.digest,accountId,record.credentialId,
+       now,now+SESSION_LAB_MAX_MS,now,issuance.origin);
+     return out(true,"PASSKEY_AND_OBSERVE_ONLY_SESSION_ATOMIC_LAB",{
+      challengeConsumed:true,counterPersisted:true,nextSignCount:next,
+      // This header belongs ONLY in a trusted same-origin HTTPS Set-Cookie
+      // response, NEVER JSON, localStorage, a QR, log or a redirect URL.
+      serverOnlySetCookie:SESSION_LAB_COOKIE+"="+issuance.cookieSid+"."+
+       issuance.secret+"; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=900",
+      authenticatedSessionIssued:false,
+      observationOnlySessionStored:true
+     });
+    }
     return out(true,"PASSKEY_CRYPTO_AND_ATOMIC_CONSUME_LAB",{
      challengeConsumed:true,counterPersisted:true,
      nextSignCount:next
