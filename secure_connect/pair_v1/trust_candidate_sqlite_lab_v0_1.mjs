@@ -23,13 +23,23 @@ function answer(ok,code,extra={}){
   accountSessionIssued:false,...extra});
 }
 export class PairV1TrustCandidateSqliteLab{
- #s;#tx;
- constructor(storage){
+ #s;#tx;#serverOrigin;
+ constructor(storage,{serverOrigin=null}={}){
   if(typeof storage?.sql?.exec!=="function"||
      typeof storage?.transactionSync!=="function")
    throw Error("SQLITE_TRANSACTION_REQUIRED");
   this.#s=storage.sql;
   this.#tx=storage.transactionSync.bind(storage);
+  this.#serverOrigin=null;
+  if(serverOrigin!==null){
+   try{
+    const u=new URL(serverOrigin);
+    if(u.protocol!=="https:"||u.username||u.password||
+       u.pathname!=="/"||u.search||u.hash)
+     throw Error("INVALID_ORIGIN");
+    this.#serverOrigin=u.origin;
+   }catch(_){throw Error("HTTPS_SAME_ORIGIN_SERVER_REQUIRED");}
+  }
   this.#s.exec(`CREATE TABLE IF NOT EXISTS ezero_pair_v1_candidate_lab (
     pair_sid TEXT PRIMARY KEY,
     account_id TEXT NOT NULL,
