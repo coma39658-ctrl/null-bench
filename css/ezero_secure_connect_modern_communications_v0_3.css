@@ -79,3 +79,12 @@ body.communication-page{background:linear-gradient(155deg,#e6f7f6,#eff9fc 55%,#e
  .communication-page .modern-voice-actions button{width:100%}
 }
 @media(prefers-reduced-motion:reduce){.communication-page .modern-feature-button{transition:none}}
+
+
+.communication-page .modern-connection-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:11px}
+.communication-page .modern-connection-actions button{font:inherit;font-weight:850;border-radius:13px;
+  padding:10px 14px;min-height:48px;cursor:pointer}
+.communication-page .modern-connection-actions .primary{background:#046b83;color:#fff;border:1px solid #046b83}
+.communication-page .modern-connection-actions .danger{background:#fff3f2;color:#9e3434;border:1px solid #dda8a2}
+@media(max-width:440px){.communication-page .modern-connection-actions{flex-direction:column}
+.communication-page .modern-connection-actions button{width:100%}}
