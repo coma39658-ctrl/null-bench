@@ -4,6 +4,12 @@
  * Never issues authenticated account session or trusted device admission.
  */
 import assert from "node:assert/strict";
+import {DatabaseSync} from "node:sqlite";
+import {mkdtempSync,rmSync} from "node:fs";
+import {tmpdir} from "node:os";
+import {join} from "node:path";
+import {PairV1SqliteAtomicPasskeyFinishLab}
+ from "../secure_connect/pair_v1/passkey_atomic_finish_sqlite_lab_v0_1.mjs";
 import {makeRegistrationOptionsLab,verifyRegistrationResponseLab}
  from "../secure_connect/pair_v1/webauthn_registration_library_lab_v0_1.mjs";
 import {makeAuthenticationOptionsLabV1,verifyAuthenticationResponseLabV1}
@@ -169,3 +175,127 @@ await reject({response:{...validAssertion,rawId:"wrong_credential"}},
  "AUTH_RESPONSE_INVALID");
 console.log("PASSKEY_ACCOUNT_ORIGIN_RPID_UV_SIGNATURE_REPLAY_REVOKE_ADVERSARIAL: PASS");
 console.log("PASSKEY_LIBRARY_LAB_NO_REAL_LOGIN_COOKIE_OR_TRUSTED_DEVICE_PERMISSION: PASS");
+
+/*
+ * Durable integration: the validated COSE key is seeded into a TEST-ONLY
+ * account registry, then the real SimpleWebAuthn verifier checks a challenge
+ * read from the SQLite ledger. A single transaction commits the counter and
+ * challenge together. Does NOT mint login tokens or activate trusted devices.
+ */
+const dir=mkdtempSync(join(tmpdir(),"ezero_v1_passkey_commit_"));
+const path=join(dir,"auth.sqlite3");
+const store=db=>({
+ sql:{exec(sql,...args){
+  const command=sql.trim();
+  if(command.startsWith("CREATE TABLE")){db.exec(command);return{toArray:()=>[]};}
+  const statement=db.prepare(command);
+  if(command.startsWith("SELECT")||command.includes("RETURNING"))
+   return {toArray:()=>statement.all(...args)};
+  statement.run(...args);return {toArray:()=>[]};
+ }},
+ transactionSync(fn){
+  db.exec("BEGIN IMMEDIATE");
+  try{const r=fn();db.exec("COMMIT");return r;}
+  catch(e){db.exec("ROLLBACK");throw e;}
+ }
+});
+let db;
+try{
+ db=new DatabaseSync(path);
+ let lab=new PairV1SqliteAtomicPasskeyFinishLab(store(db));
+ // Only a server's independently verified credential-registration ceremony
+ // may eventually perform this INSERT. This is trusted test fixture setup,
+ // not a browser endpoint or enrollment method.
+ db.prepare(`INSERT INTO ezero_v1_auth_credentials_lab
+  (account_id,credential_id,cose_public_key,sign_count,alg,rp_id,
+   transports_json,status,revoked,version)
+  VALUES(?,?,?,?,?,?,?,?,0,1)`).run(
+  accountId,id,record.publicKeyCoseB64,record.signCount,-7,PAIR_V1_RP_ID,
+  '["internal"]',"ACTIVE"
+ );
+ const started=await lab.begin({accountId,credentialId:id},now);
+ assert.equal(started.ok,true,started.code);
+ assert.equal(started.authorized,false);
+ assert.equal(started.expires-now,90_000);
+ const signing={accountId,sessionId:started.sessionId,
+  response:await assertion({challenge:started.options.challenge,counter:3})};
+ const forged=await lab.finish({...signing,
+  response:await assertion({challenge:started.options.challenge,
+   counter:3,signer:evil})},now+15);
+ assert.equal(forged.ok,false);
+ const wrongAccount=await lab.finish({...signing,accountId:"another_account"},now+16);
+ assert.equal(wrongAccount.ok,false);
+ const badChallenge=await lab.finish({...signing,
+  response:await assertion({challenge:b64(crypto.getRandomValues(new Uint8Array(32))),
+   counter:3})},now+16);
+ assert.equal(badChallenge.code,"CHALLENGE_MISMATCH");
+ const untouched=db.prepare(
+  "SELECT consumed_at FROM ezero_v1_auth_pending_lab WHERE session_id=?"
+ ).get(started.sessionId);
+ assert.equal(untouched.consumed_at,null);
+ assert.equal(db.prepare(
+  "SELECT sign_count FROM ezero_v1_auth_credentials_lab WHERE credential_id=?"
+ ).get(id).sign_count,record.signCount);
+
+ // Force the challenge update to fail AFTER the counter update has been
+ // attempted, and verify SQLite rolls back BOTH changes. No partial auth.
+ db.exec(`CREATE TRIGGER ezero_v1_lab_block_consume
+  BEFORE UPDATE OF consumed_at ON ezero_v1_auth_pending_lab
+  BEGIN SELECT RAISE(ABORT,'INJECTED_LEDGER_FAILURE'); END`);
+ const aborted=await lab.finish(signing,now+17);
+ assert.equal(aborted.code,"ATOMIC_COMMIT_REJECTED");
+ assert.equal(db.prepare(
+  "SELECT sign_count FROM ezero_v1_auth_credentials_lab WHERE credential_id=?"
+ ).get(id).sign_count,record.signCount);
+ assert.equal(db.prepare(
+  "SELECT consumed_at FROM ezero_v1_auth_pending_lab WHERE session_id=?"
+ ).get(started.sessionId).consumed_at,null);
+ db.exec("DROP TRIGGER ezero_v1_lab_block_consume");
+
+ const first=await lab.finish(signing,now+18);
+ assert.equal(first.ok,true,first.code);
+ assert.equal(first.code,"PASSKEY_CRYPTO_AND_ATOMIC_CONSUME_LAB");
+ assert.equal(first.authorized,false);
+ assert.equal(first.authenticatedSessionIssued,false);
+ assert.equal(first.trustedDeviceActivated,false);
+ assert.equal(first.challengeConsumed,true);
+ assert.equal(first.counterPersisted,true);
+ assert.equal(first.nextSignCount,3);
+ assert.equal((await lab.finish(signing,now+19)).ok,false);
+ db.close();
+ db=new DatabaseSync(path);
+ lab=new PairV1SqliteAtomicPasskeyFinishLab(store(db));
+ assert.equal((await lab.finish(signing,now+20)).ok,false,
+  "Replay must remain denied after restarting the SQLite ledger");
+ console.log("PASSKEY_SQLITE_ATOMIC_COUNTER_AND_CHALLENGE_RESTART_REPLAY: PASS");
+
+ const fresh=await lab.begin({accountId,credentialId:id},now+24);
+ assert.equal(fresh.ok,true);
+ const candidate={accountId,sessionId:fresh.sessionId,
+  response:await assertion({challenge:fresh.options.challenge,counter:4})};
+ // Multiple asynchronous verifications may finish before either writes.
+ // Only ONE SQLite transaction is permitted to update this challenge.
+ const outcomes=await Promise.all(
+  Array.from({length:20},()=>lab.finish(candidate,now+28)));
+ assert.equal(outcomes.filter(r=>r.ok).length,1,"Twenty contenders, exactly one commit");
+ assert.equal(outcomes.filter(r=>!r.ok).length,19);
+ assert.ok(outcomes.every(r=>r.authorized===false));
+ assert.equal(db.prepare(
+  "SELECT sign_count FROM ezero_v1_auth_credentials_lab WHERE credential_id=?"
+ ).get(id).sign_count,4);
+ console.log("PASSKEY_SQLITE_TWENTY_COMPETING_ASSERTIONS_ONE_COMMIT: PASS");
+
+ const expired=await lab.begin({accountId,credentialId:id},now+30);
+ assert.equal(expired.ok,true);
+ const expiredResponse={accountId,sessionId:expired.sessionId,
+  response:await assertion({challenge:expired.options.challenge,counter:5})};
+ assert.equal((await lab.finish(expiredResponse,now+90_031)).ok,false);
+ db.prepare(`UPDATE ezero_v1_auth_credentials_lab
+  SET status='REVOKED',revoked=1 WHERE credential_id=?`).run(id);
+ assert.equal((await lab.begin({accountId,credentialId:id},now+100)).ok,false);
+ assert.equal((await lab.finish(expiredResponse,now+101)).ok,false);
+ console.log("PASSKEY_SQLITE_EXPIRED_OR_REVOKED_FAIL_CLOSED_NO_TRUST_ACTIVATION: PASS");
+}finally{
+ try{db?.close();}catch(_){}
+ rmSync(dir,{recursive:true,force:true});
+}
