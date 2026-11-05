@@ -184,3 +184,6 @@ button.outline{color:#07546b;background:#ebf9fc;border-color:#b3d5de}button.dang
  .oneqr-advanced>summary{padding:10px 4px}
  .oneqr-card .oneqr-actions button{font-size:14px}
 }
+
+.oneqr-share{width:100%;min-height:48px;margin:10px auto;
+ font-size:14px;font-weight:750;line-height:1.6;white-space:normal}
