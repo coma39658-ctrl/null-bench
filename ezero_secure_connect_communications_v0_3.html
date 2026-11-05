@@ -163,7 +163,7 @@
     <button type="button" id="ezeroVoiceClear" class="secondary" disabled data-modern="discard">✕ حذف کریں</button>
   </div>
   <div id="ezeroVoiceDraft" hidden><p data-modern="preview">یہ آواز ابھی صرف اس فون پر ہے؛ خودکار شیئر نہیں ہوئی۔</p><audio id="ezeroVoicePreview" class="modern-voice-audio" controls preload="none" aria-label="Local voice note preview"></audio></div>
-  <div id="ezeroVoiceReceived" hidden><p data-modern="incomingVoice">دوست کا عارضی وائس میسج موصول ہوا۔</p><button type="button" id="ezeroVoiceOpenIncoming" class="primary" data-modern="playVoice">🎧 ایک بار سنیں</button><audio id="ezeroVoiceIncomingAudio" class="modern-voice-audio" controls preload="none" hidden aria-label="Received voice note"></audio></div>
+  <div id="ezeroVoiceReceived" hidden><p data-modern="incomingVoice">دوست کا عارضی وائس نوٹ آیا؛ پہلی بار سننے کے 10 منٹ بعد عارضی کاپی حذف ہوگی۔</p><button type="button" id="ezeroVoiceOpenIncoming" class="primary" data-modern="playVoice">🎧 وائس نوٹ سنیں</button><audio id="ezeroVoiceIncomingAudio" class="modern-voice-audio" controls preload="none" hidden aria-label="Received voice note"></audio></div>
   <p id="ezeroVoiceStatus" class="modern-status" role="status" aria-live="polite">وائس میسج بھیجنے کے لیے دو فون جوڑیں۔</p>
   <button id="ezeroVoiceConnect" class="modern-voice-connect" type="button" data-modern="voiceConnect">📱 وائس میسج بھیجنے کے لیے فون جوڑیں</button>
 </section>
@@ -392,7 +392,7 @@
   </section>
   <section class="card" aria-labelledby="messageTitle">
     <div class="heading"><span class="number">4</span><h2 id="messageTitle" data-i18n="oneView">ایک بار کھلنے والا پیغام</h2></div>
-    <p class="muted" data-i18n="messageHelp">صرف کال کے دوران براہِ راست DataChannel سے پیغام جائے گا۔ سرور پر میسج نہیں رکھا جاتا۔ کھولنے کے بعد زیادہ سے زیادہ 5 منٹ میں ختم ہوگا؛ پیغام محفوظ کرنے کا کوئی بٹن نہیں۔</p>
+    <p class="muted" data-i18n="messageHelp">صرف کال کے دوران براہِ راست DataChannel سے پیغام جائے گا۔ سرور پر میسج نہیں رکھا جاتا۔ پہلی بار کھولنے کے 10 منٹ بعد عارضی پیغام خودکار ختم ہوگا؛ اس سے پہلے نہ کھولا گیا پیغام اس فعال سیشن کی عارضی میموری میں رہے گا۔ ڈاؤن لوڈ یا اسکرین شاٹ بنائی ہوئی کاپی E-ZERO حذف نہیں کر سکتا۔</p>
     <label class="field"><span data-i18n="compose">پیغام لکھیں</span><textarea id="sendText" rows="2" maxlength="2000" spellcheck="false"></textarea></label>
     <button id="sendMessage" class="primary" type="button" disabled data-i18n="send">محفوظ پیغام بھیجیں</button>
     <p id="messageStatus" class="status" role="status" data-i18n="notConnected">میسج کے لیے دو فونوں کا کنکشن ضروری ہے۔</p>
