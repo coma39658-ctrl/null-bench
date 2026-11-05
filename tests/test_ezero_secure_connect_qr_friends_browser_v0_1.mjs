@@ -46,6 +46,10 @@ try{
   const fpB=await b.locator("#myFingerprint").innerText();
   assert.equal(await a.locator("#friendsList .friend-entry").count(),0);
   assert.equal(await a.locator("#saveVerifiedFriend").isDisabled(),true);
+  assert.equal(await a.locator("#oneTapStartButton").isVisible(),true);
+  assert.equal(await a.locator("#scanQR").isVisible(),false,"Manual scan stays under More options");
+  await a.locator("#secureAdvanced").evaluate(el=>el.open=true);
+  await b.locator("#secureAdvanced").evaluate(el=>el.open=true);
   assert.equal(await a.locator("#scanQR").isVisible(),true);
   assert.equal(await a.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
   await a.locator("#language").selectOption("en");
