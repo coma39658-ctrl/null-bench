@@ -124,7 +124,7 @@ try{
   assert.match(await a.locator('[data-modern="voice"]').innerText(),/رسالة صوتية/);
   await a.locator("#language").selectOption("ur");
   console.log("FOUR_VISIBLE_MODE_CONTROLS_AND_THREE_LANGUAGES_NO_AUTO_MEDIA: PASS");
-  const selectedGreen=await a.locator('[data-modern-select="audio"]').evaluate(
+  const selectedGreen=await a.locator('[data-modern-select="voice"]').evaluate(
     el=>getComputedStyle(el).borderTopColor);
   assert.equal(selectedGreen,"rgb(25, 131, 78)",
     "Selected communication mode should use confident accessible green");
