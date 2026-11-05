@@ -100,7 +100,7 @@ let roomId=null,secret=null,auth=null,issued=null,proof=null,secretKey=null,ws=n
 let ready=false, link="",closing=false,connecting=false,creating=false;
 let qrMode="",qrPending=false,hostAccepted=false,guestHelloSent=false,qrRequestVerified=false;
 const oneQrText={
- ur:{advanced:"⚙ مزید اختیارات اور تکنیکی آزمائشیں (اختیاری)",privacy:"🔒 رازداری اور اجازت",cameraHelp:"دوسرے فون کا کال QR کیمرے کے سامنے رکھیں؛ کیمرہ صرف آپ کے اسکین دبانے پر کھلے گا۔",cancelScan:"✕ اسکین بند کریں",title:"📞 آسان کال — صرف ایک QR",explain:"ایک فون QR دکھائے، دوسرا اسے اسکین کرے، پھر کال قبول کریں۔ کوئی لمبا کوڈ نہیں۔",
+ ur:{advanced:"⚙ مزید اختیارات اور تکنیکی آزمائشیں (اختیاری)",privacy:"🔒 رازداری اور اجازت",cameraHelp:"دوسرے فون کا کال QR کیمرے کے سامنے رکھیں؛ کیمرہ صرف آپ کے اسکین دبانے پر کھلے گا۔",cancelScan:"✕ اسکین بند کریں",shareLink:"↗ نجی لنک بھیجیں (اگر کیمرہ خراب ہو)",linkShared:"نجی دعوت صرف آپ کی منتخب ایپ سے شیئر ہوئی؛ دوسرے فون کی منظوری ضروری ہے۔",linkCopied:"نجی لنک کاپی ہوا؛ اسے صرف قابلِ اعتماد فرد کو بھیجیں۔",shareUnavailable:"شیئر یا کاپی دستیاب نہیں؛ QR دوسرے فون کو دکھائیں۔",title:"📞 آسان کال — صرف ایک QR",explain:"ایک فون QR دکھائے، دوسرا اسے اسکین کرے، پھر کال قبول کریں۔ کوئی لمبا کوڈ نہیں۔",
  show:"📱 میرا کال QR دکھائیں",scan:"📷 دوسرے فون کا QR اسکین کریں",accept:"✅ کال قبول کریں",
  decline:"✕ کال مسترد کریں",end:"📴 کال ختم کریں",
  ready:"دوسرا فون QR اسکین کرے؛ کال درخواست اسی کھلے صفحے پر آئے گی۔",
@@ -113,7 +113,7 @@ const oneQrText={
  connected:"✓ اصل WebRTC کنکشن قائم ہوا۔",limit:"پائلٹ کے آٹھ کال روم بھر گئے ہیں؛ بعد میں نیا QR بنائیں۔",
  warning:"یہ QR نجی دعوت ہے۔ صرف قابل اعتماد شخص کو دکھائیں، دوسروں سے یا عوامی گروپ میں شیئر نہ کریں۔"
  },
- en:{advanced:"⚙ More options and manual tests (optional)",privacy:"🔒 Privacy and permissions",cameraHelp:"Point this camera at the other phone's CALL QR. Camera opens only when you tap Scan.",cancelScan:"✕ Stop scanning",title:"📞 Easy call — one QR",explain:"One phone shows QR, the other scans, then the recipient accepts. No long codes.",
+ en:{advanced:"⚙ More options and manual tests (optional)",privacy:"🔒 Privacy and permissions",cameraHelp:"Point this camera at the other phone's CALL QR. Camera opens only when you tap Scan.",cancelScan:"✕ Stop scanning",shareLink:"↗ Share a private link (if camera unavailable)",linkShared:"You shared the invitation through your chosen app; phone approval is still required.",linkCopied:"Private link copied. Send only to the intended person.",shareUnavailable:"Sharing and clipboard are unavailable; use the on-screen QR.",title:"📞 Easy call — one QR",explain:"One phone shows QR, the other scans, then the recipient accepts. No long codes.",
  show:"📱 Show my call QR",scan:"📷 Scan the other phone's QR",accept:"✅ Accept call",decline:"✕ Decline",end:"📴 End call",
  ready:"Show the QR to the other phone; a call request will appear here while this page is open.",
  join:"QR received; verifying signed digital identity.",request:"✓ Signed key checked. This does not prove the person's real-world identity. Accept or decline.",
@@ -121,7 +121,7 @@ const oneQrText={
  invalid:"QR invalid, expired or for another website. Ask for a fresh QR.",connecting:"Connecting to the private room.",
  connected:"✓ Actual WebRTC connection established.",limit:"All eight restricted pilot rooms are occupied.",warning:"This QR is a private invitation. Show only to the intended person."
  },
- ar:{advanced:"⚙ خيارات إضافية واختبارات تقنية (اختياري)",privacy:"🔒 الخصوصية والأذونات",cameraHelp:"وجه الكاميرا إلى رمز QR للمكالمة على الهاتف الآخر. تعمل الكاميرا عند الضغط على المسح فقط.",cancelScan:"✕ إيقاف المسح",title:"📞 مكالمة سهلة — QR واحد",explain:"يعرض هاتف QR، ويمسحه الآخر ثم يقبل المستلم. لا رموز طويلة.",
+ ar:{advanced:"⚙ خيارات إضافية واختبارات تقنية (اختياري)",privacy:"🔒 الخصوصية والأذونات",cameraHelp:"وجه الكاميرا إلى رمز QR للمكالمة على الهاتف الآخر. تعمل الكاميرا عند الضغط على المسح فقط.",cancelScan:"✕ إيقاف المسح",shareLink:"↗ أرسل الرابط الخاص (إذا تعذرت الكاميرا)",linkShared:"تمت مشاركة الدعوة عبر التطبيق الذي اخترته؛ الموافقة لا تزال مطلوبة.",linkCopied:"تم نسخ الرابط الخاص؛ أرسله للشخص المقصود فقط.",shareUnavailable:"المشاركة والنسخ غير متاحين؛ اعرض رمز QR للهاتف الآخر.",title:"📞 مكالمة سهلة — QR واحد",explain:"يعرض هاتف QR، ويمسحه الآخر ثم يقبل المستلم. لا رموز طويلة.",
  show:"📱 اعرض QR للمكالمة",scan:"📷 امسح QR الهاتف الآخر",accept:"✅ قبول",decline:"✕ رفض",end:"📴 إنهاء المكالمة",
  ready:"اعرض QR للهاتف الآخر؛ سيظهر طلب الاتصال هنا والصفحة مفتوحة.",join:"تم استلام QR؛ يجري فحص الهوية الموقعة.",
  request:"✓ تم التحقق من المفتاح الرقمي، لا من هوية الشخص الحقيقية. اقبل أو ارفض.",
@@ -502,6 +502,23 @@ const cameraSlot=$("oneQrCameraSlot");
 const cameraBody=$("oneQrCameraLive");
 cameraBody.append($("scanVideo"),$("qrScanStatus"));
 $("oneQrPrivacy").addEventListener("click",()=>$("openPolicy").click());
+$("oneQrShareLink").addEventListener("click",async()=>{
+ if(!ready||qrMode!=="host"||!link)return;
+ // A private room URL contains an ephemeral bearer key. Never append it to
+ // analytics, put it in browser logs or auto-share it without a user click.
+ try{
+  if(typeof navigator.share==="function"){
+   await navigator.share({title:"E-ZERO private call",url:link});
+   qStatus("linkShared");return;
+  }
+ }catch(error){if(error?.name==="AbortError")return;}
+ try{
+  if(typeof navigator.clipboard?.writeText!=="function")
+   throw Error("CLIPBOARD_UNAVAILABLE");
+  await navigator.clipboard.writeText(link);
+  qStatus("linkCopied");
+ }catch(_){qStatus("shareUnavailable");}
+});
 $("oneQrCancelScan").addEventListener("click",()=>{
  $("stopScan").click();
  cameraSlot.hidden=true;
