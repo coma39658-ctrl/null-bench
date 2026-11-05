@@ -1,0 +1,69 @@
+/* E-ZERO groups: WhatsApp-familiar flow, locally drafted groups only.
+   Never style an unconnected group as a live or secure group call. */
+.communication-page .ezero-group-shortcut{display:flex;align-items:center;gap:10px;
+  background:linear-gradient(115deg,#092c23,#106b48);color:#f6fff8;border:1px solid #58b986;
+  box-shadow:0 6px 23px #03291736;border-radius:17px;padding:15px 19px;margin:6px 0 12px;
+  font-weight:900;font-size:17px;min-height:52px;width:100%;cursor:pointer}
+.communication-page .ezero-group-shortcut:focus-visible,
+.communication-page .ezero-group-card:focus-visible,
+.communication-page #ezeroGroupsHub button:focus-visible,
+.communication-page #ezeroGroupsHub input:focus-visible,
+.communication-page #ezeroGroupsHub select:focus-visible,
+.communication-page #ezeroGroupsHub textarea:focus-visible{outline:3px solid #4adba1;outline-offset:3px}
+.communication-page #ezeroGroupsHub{border-color:#83c5a3;background:linear-gradient(165deg,#ffffff,#edfbf2)}
+.communication-page #ezeroGroupsHub summary{color:#0b5a36;font-weight:900;font-size:18px;cursor:pointer}
+.communication-page .ezero-group-actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}
+.communication-page #ezeroGroupsHub button:not(.ezero-group-card){font:inherit;
+  background:#086b43;color:white;border:1px solid #067044;padding:10px 13px;
+  border-radius:13px;min-height:44px;font-weight:800;cursor:pointer}
+.communication-page #ezeroGroupsHub button.secondary{background:white;color:#086b43;border-color:#82bd9c}
+.communication-page #ezeroGroupsHub button.danger{background:#8a292b;color:#fff;border-color:#ac5150}
+.communication-page #ezeroGroupsHub button:disabled{background:#e8eeea!important;
+  border-color:#b8c5bf!important;color:#526c5c!important;cursor:not-allowed!important;
+  box-shadow:none!important;opacity:1}
+.communication-page .ezero-group-list{display:grid;gap:9px;margin:12px 0}
+.communication-page .ezero-group-card{display:flex;align-items:center;text-align:start;
+  gap:12px;width:100%;background:#fff;color:#153b2d;border:1px solid #a9d8ba;
+  border-radius:17px;padding:12px 13px;cursor:pointer;min-height:70px;font:inherit}
+.communication-page .ezero-group-card:hover{border-color:#05814d;background:#f4fff8}
+.communication-page .ezero-group-avatar{display:grid;place-items:center;
+  flex:0 0 47px;height:47px;border-radius:50%;font-size:24px;
+  background:linear-gradient(145deg,#135e3b,#0c362d);color:white}
+.communication-page .ezero-group-card-body{display:grid;gap:3px;min-width:0}
+.communication-page .ezero-group-card-body strong{font-size:16px;overflow-wrap:anywhere}
+.communication-page .ezero-group-card-body small{font-size:12px;color:#536e61}
+.communication-page .ezero-group-empty{font-size:13px;color:#546e60;padding:10px 3px}
+.communication-page .ezero-group-form{background:#fbfffc;border:1px solid #b5dcc3;
+  border-radius:16px;padding:14px 12px;margin:8px 0}
+.communication-page .ezero-group-form h3{font-size:19px;color:#144a34;margin:0 0 10px}
+.communication-page .ezero-group-form label.ezero-group-field{display:grid;
+  gap:6px;font-weight:800;font-size:13px;color:#234f37;margin:13px 0}
+.communication-page .ezero-group-form input[type=text],
+.communication-page .ezero-group-form textarea,
+.communication-page .ezero-group-form select{background:#fff;border:1px solid #95beab;
+  border-radius:11px;font-size:16px;font:inherit;padding:11px;max-width:100%;width:100%;
+  box-sizing:border-box;color:#102e20;direction:inherit}
+.communication-page .ezero-group-contact-options{max-height:260px;overflow:auto;
+  border:1px solid #c7e4d0;border-radius:13px;background:white;padding:5px 8px}
+.communication-page .ezero-group-person{display:flex;align-items:center;gap:10px;
+  min-height:54px;padding:8px 4px;border-bottom:1px solid #e5f1e9;cursor:pointer}
+.communication-page .ezero-group-person:last-child{border:0}
+.communication-page .ezero-group-person input{width:20px;height:20px;accent-color:#08783f}
+.communication-page .ezero-group-mini-avatar{display:grid;place-items:center;
+  width:34px;height:34px;background:#d8f4e0;color:#075c31;border-radius:50%;font-weight:900}
+.communication-page .ezero-group-person-name{font-size:14px;color:#173c2a}
+.communication-page .ezero-group-view{background:#f6fff8;border:1px solid #b0dcc0;border-radius:16px;padding:14px}
+.communication-page .ezero-group-view-head{display:flex;align-items:center;gap:13px}
+.communication-page .ezero-group-view-head h3{color:#155237;font-size:21px;margin:0 0 3px}
+.communication-page .ezero-group-view-head p{font-size:13px;color:#567363;margin:0}
+.communication-page .ezero-group-member{padding:5px 0;font-size:13px;overflow-wrap:anywhere;color:#284b35}
+.communication-page .ezero-group-inactive{background:#fff5ed!important;color:#754826!important;
+  border:1px solid #eed4b5!important;border-radius:14px;padding:10px 12px;
+  font-size:13px;line-height:1.8}
+.communication-page .ezero-group-call-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.communication-page .ezero-group-status{font-size:13px;line-height:1.75;color:#215338;
+  border-top:1px solid #c6dfcd;padding-top:10px}
+@media(max-width:380px){
+  .communication-page .ezero-group-call-buttons{grid-template-columns:1fr}
+  .communication-page .ezero-group-form{padding:12px 9px}
+}
