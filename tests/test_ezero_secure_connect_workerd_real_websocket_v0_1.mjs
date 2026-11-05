@@ -79,10 +79,10 @@ async function denied(inv,expected,options){
  assert.equal(caught,"WORKER_DENIED_HTTP_"+expected,
   "WebSocket upgrade must fail with intended HTTP status");
 }
-async function closed(s){
+async function closed(s,label="socket"){
  if(s.ws.readyState===WebSocket.CLOSED)return;
  await new Promise((resolve,reject)=>{
-  const timer=setTimeout(()=>reject(Error("SOCKET_NOT_CLOSED")),8000);
+  const timer=setTimeout(()=>reject(Error("SOCKET_NOT_CLOSED_"+label+"_STATE_"+s.ws.readyState)),8000);
   s.ws.once("close",()=>{clearTimeout(timer);resolve();});
  });
 }
@@ -143,7 +143,7 @@ try{
  await wait(d,f=>f.type==="ready","DECLINE_READY");
  send(d,{type:"decline"});
  await wait(c,f=>f.type==="decline","DECLINE_DELIVERED");
- await Promise.all([closed(c),closed(d)]);
+ await Promise.all([closed(c,"decline-caller"),closed(d,"decline-callee")]);
  await denied(decline,410);
  console.log("ACTUAL_WORKER_DECLINE_REVOKES_ROOM: PASS");
 }finally{for(const session of [c,d])if(session?.ws.readyState!==WebSocket.CLOSED){
