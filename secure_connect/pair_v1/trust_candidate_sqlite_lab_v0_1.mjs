@@ -277,6 +277,43 @@ export class PairV1TrustCandidateSqliteLab{
    });
   }catch(_){return answer(false,"ENROLLMENT_ATOMIC_COMMIT_REJECTED");}
  }
+ // Recheck the bound observation session on EVERY read: logout,
+ // account/passkey revocation, or expiration invalidates evidence,
+ // even when the QR was already burned. This is NOT permission.
+ inspectSessionBoundConsumedEnrollmentQrLab({
+  accountId,pairSid
+ }={},now=Date.now()){
+  if(!ID.test(accountId||"")||!SID.test(pairSid||"")||
+     !Number.isSafeInteger(now)||now<=0||!this.#serverOrigin)
+   return answer(false,"ENROLLMENT_CONTEXT_INVALID");
+  try{
+   return this.#tx(()=>{
+    const row=this.#s.exec(`SELECT * FROM
+     ezero_pair_v1_qr_consumed_evidence_lab
+     WHERE pair_sid=? AND account_id=?`,pairSid,accountId).toArray()[0];
+    const link=this.#s.exec(`SELECT * FROM
+     ezero_pair_v1_session_qr_link_lab
+     WHERE pair_sid=? AND account_id=?`,pairSid,accountId).toArray()[0];
+    if(!row||!link||link.auth_session_id!==row.auth_session_id)
+     return answer(false,"SESSION_BOUND_EVIDENCE_NOT_FOUND");
+    const risk=this.#check({
+     accountId,pairSid,authSessionId:row.auth_session_id,
+     aDeviceId:row.a_device_id,bDeviceId:row.b_device_id
+    },now);
+    if(risk)return answer(false,risk);
+    const sessionProblem=this.#checkSessionBinding(
+     accountId,row.auth_session_id,link.server_session_sid,now);
+    if(sessionProblem)return answer(false,sessionProblem);
+    const qr=this.#s.exec(`SELECT consumed_at FROM
+     ezero_pair_v1_challenges WHERE session_id=? AND account_id=?`,
+     pairSid,accountId).toArray()[0];
+    if(!qr||qr.consumed_at!==row.consumed_at)
+     return answer(false,"QR_CONSUMPTION_AUDIT_MISMATCH");
+    return answer(true,"SESSION_BOUND_ENROLLMENT_EVIDENCE_NO_AUTHORITY",{
+     stage:row.state,pairQrConsumed:true});
+   });
+  }catch(_){return answer(false,"SESSION_BOUND_LEDGER_UNAVAILABLE");}
+ }
  inspectConsumedEnrollmentQrLab({accountId,pairSid}={},now=Date.now()){
   if(!ID.test(accountId||"")||!SID.test(pairSid||"")||
      !Number.isSafeInteger(now)||now<=0)
