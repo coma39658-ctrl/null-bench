@@ -52,7 +52,31 @@
       </div>
       <p class="notice" data-ui="truth">QR صرف عارضی ڈیجیٹل چابی کی تصدیق کرتا ہے، انسان کی شناخت یا مکمل کال کی نہیں۔ کال خودکار شروع نہیں ہوگی۔</p>
     </section>
-    <p class="share-row"><a href="./ezero_secure_connect_live_p2p_v0_1.html" id="shareAppLink" data-ui="share">↗ دوست کو ایپ کا لنک بھیجیں</a></p>
+    <section class="card distance-card" aria-labelledby="distanceTitle">
+      <h2 id="distanceTitle" data-ui="distanceTitle">دور موجود دوست سے رابطہ</h2>
+      <p data-ui="distanceHelp">ایک دعوتی لنک کسی بھی میسنجر سے بھیجیں۔ دوسرے شخص کی منظوری کے بعد شناختی جواب مل سکتا ہے؛ کوئی کال خودکار نہیں ہوگی۔</p>
+      <button type="button" id="remoteInviteButton" class="primary-action" data-ui="invite">↗ دعوتی لنک بھیجیں</button>
+      <p id="inviteStatus" role="status" aria-live="polite" class="tiny-status"></p>
+    </section>
+    <section id="incomingPanel" class="card incoming-card" hidden aria-labelledby="incomingTitle">
+      <h2 id="incomingTitle" data-ui="incomingTitle">دوست کی دعوت</h2>
+      <p id="incomingInfo" aria-live="polite"></p>
+      <div class="choice-row">
+        <button type="button" id="acceptInviteButton" class="primary-action" data-ui="accept">✓ قبول کریں اور جواب شیئر کریں</button>
+        <button type="button" id="declineInviteButton" class="secondary-action" data-ui="decline">مسترد کریں</button>
+      </div>
+      <p id="incomingStatus" role="status" aria-live="polite" class="tiny-status"></p>
+    </section>
+    <section class="card action-card" aria-label="E-ZERO application">
+      <h2 data-ui="appTitle">ایپ شیئر کریں یا انسٹال کریں</h2>
+      <div class="choice-row">
+        <button type="button" id="shareAppButton" class="secondary-action" data-ui="share">↗ ایپ لنک شیئر کریں</button>
+        <button type="button" id="installAppButton" class="secondary-action" data-ui="install">📲 انسٹال / شارٹ کٹ</button>
+      </div>
+      <p id="installHelp" role="status" aria-live="polite" class="tiny-status"></p>
+      <p class="short-link"><span data-ui="shortLabel">E-ZERO مختصر لنک:</span> <a id="shortConnectLink" href="./c.html">coma39658-ctrl.github.io/null-bench/c.html</a></p>
+    </section>
+    <div class="privacy-link"><a href="./ezero_secure_connect_privacy_v0_2.html" data-ui="policy">🔒 پرائیویسی اور سیکیورٹی پالیسی</a></div>
   </main>
   <footer data-ui="footer">E-ZERO · کوئی اشتہار نہیں، کوئی خفیہ ریکارڈنگ نہیں۔</footer>
 </div>
