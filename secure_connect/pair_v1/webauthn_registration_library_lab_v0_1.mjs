@@ -78,6 +78,8 @@ export async function verifyRegistrationResponseLab({
    expectedChallenge:pending.challenge,
    expectedOrigin:PAIR_V1_ORIGIN,
    expectedRPID:PAIR_V1_RP_ID,
+   supportedAlgorithmIDs:[-7],
+   requireUserPresence:true,
    requireUserVerification:true
   });
   const info=checked?.registrationInfo;
