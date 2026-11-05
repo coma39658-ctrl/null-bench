@@ -203,6 +203,8 @@ try{
  // Distant friend: opening the single private link initiates signaling
  // automatically, without copying SDP or opening a microphone until Accept.
  const priorMic=await receiver.evaluate(()=>window.__mediaCalls.length);
+ const priorGuestMic=await scanner.evaluate(()=>window.__mediaCalls.filter(o=>o.audio!==false).length);
+ const priorGuestFingerprint=await scanner.locator("#myFingerprint").innerText();
  await receiver.locator("#oneQrShow").click();
  await receiver.waitForFunction(()=>!document.querySelector("#oneQrVisual").hidden,
   {timeout:18000});
@@ -230,8 +232,10 @@ try{
  assert.equal((await scanner.evaluate(()=>location.hash)),"","Private link erased from browser history");
  assert.equal(await receiver.evaluate(()=>window.__mediaCalls.length),priorMic,
   "Incoming distant request never silently opens host mic");
- assert.equal(await scanner.evaluate(()=>window.__mediaCalls.length),0,
-  "Opening one private URL never silently opens guest mic");
+ assert.equal(await scanner.evaluate(()=>window.__mediaCalls.filter(o=>o.audio!==false).length),
+  priorGuestMic,"Opening one private URL never silently opens guest mic");
+ assert.equal(await scanner.locator("#myFingerprint").innerText(),priorGuestFingerprint,
+  "Hash-only navigation does not reload the existing signed identity session");
  await receiver.locator("#oneQrAccept").click();
  await Promise.all([receiver,scanner].map(page=>page.waitForFunction(
   ()=>document.querySelector("#sendMessage")?.disabled===false,{timeout:40000})));
