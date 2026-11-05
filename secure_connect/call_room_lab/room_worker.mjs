@@ -5,7 +5,7 @@
  * Cloudflare Durable Object Hibernation: no background browser polling.
  * Only an opt-in one-to-one signed WebRTC test; no audio/video relay/recording.
  */
-export const ROOM_LIFETIME_MS=10*60*1000;
+import {ROOM_LIFETIME_MS,MAX_PILOT_ACTIVE_ROOMS} from "./room_constants.mjs";
 const PAGE_ORIGIN="https://coma39658-ctrl.github.io";
 const ROOM_ID=/^[a-f0-9]{32}$/;
 const ROOM_KEY=/^ezero-key-([a-f0-9]{64})$/;
@@ -259,7 +259,7 @@ export class CallRoom {
  * Stores only random room IDs and expiry timestamps; no IP, names, SDP,
  * media, private keys, WebSocket tokens or friend identifiers.
  */
-export const MAX_PILOT_ACTIVE_ROOMS=8;
+
 export class RoomAdmission {
   constructor(ctx,env){this.ctx=ctx;this.env=env;}
   async fetch(request){

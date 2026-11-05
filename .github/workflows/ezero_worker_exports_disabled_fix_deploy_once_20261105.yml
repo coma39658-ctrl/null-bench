@@ -1,0 +1,162 @@
+name: E-ZERO FIX Workerd Entry Exports - DISABLED Staging Update Once
+on:
+  push:
+    branches: [ezero-secure-connect-real-worker-preflight-20261105]
+    paths:
+      - docs/EZERO_WORKER_EXPORT_FIX_DISABLED_DEPLOY_TRIGGER_20261105.md
+permissions:
+  contents: read
+concurrency:
+  group: ezero-one-link-disabled-staging-20261104
+  cancel-in-progress: false
+jobs:
+  hardened-disabled-staging:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Require bounded crypto, eight-room global cap and disabled deployment
+        run: |
+          set -euo pipefail
+          node --check secure_connect/call_room_lab/room_worker.mjs
+          node --check js/ezero_secure_connect_one_link_lab_v0_1.js
+          node secure_connect/call_room_lab/test_room_worker.mjs
+          node - <<'VERIFY'
+          const fs=require("node:fs");
+          const src=fs.readFileSync("secure_connect/call_room_lab/room_worker.mjs","utf8");
+          const roomConstants=fs.readFileSync("secure_connect/call_room_lab/room_constants.mjs","utf8");
+          const cfg=fs.readFileSync("secure_connect/call_room_lab/wrangler.jsonc","utf8");
+          const web=fs.readFileSync("js/ezero_secure_connect_one_link_lab_v0_1.js","utf8");
+          const must=[
+            cfg.includes('"name": "ezero-secure-connect-call-lab-disabled"'),
+            cfg.includes('"ROOMS_ENABLED": "false"'),
+            cfg.includes('"ROOM_RATE_LIMIT"'),
+            cfg.includes('"ROOM_ADMISSION"'),
+            cfg.includes('"room-lab-v2"'),
+            cfg.includes('"new_sqlite_classes": ["RoomAdmission"]'),
+            src.includes('env.ROOMS_ENABLED!=="true"'),
+            roomConstants.includes('MAX_PILOT_ACTIVE_ROOMS=8'),
+            roomConstants.includes('ROOM_LIFETIME_MS=10*60*1000'),
+            src.includes('ownerProofValid(request,env,id,token,issued)'),
+            src.includes('issuedFrom(request)'),
+            src.includes('ROOM_RATE_LIMIT.limit'),
+            src.includes('storage.deleteAll()'),
+            web.includes('"EZERO-ROOM-AUTH-1:"+value'),
+            web.includes('"AES-GCM"')
+          ];
+          if(must.some(x=>!x)){console.error("HARDENED_STAGING_SOURCE_GATES_FAILED");process.exit(1);}
+          console.log("HARDENED_STAGING_SOURCE_GATES: PASS");
+          VERIFY
+      - name: Verify only handler exports in the real Cloudflare entrypoint
+        run: |
+          set -euo pipefail
+          node --input-type=module - <<'GATE'
+          const fs=await import('node:fs');
+          const src=fs.readFileSync('secure_connect/call_room_lab/room_worker.mjs','utf8');
+          const constants=fs.readFileSync('secure_connect/call_room_lab/room_constants.mjs','utf8');
+          if(!src.includes('from "./room_constants.mjs"')||
+            /export\s+(?:const|let|var)\s+/u.test(src)||
+            !constants.includes('export const ROOM_LIFETIME_MS=10*60*1000')||
+            !constants.includes('export const MAX_PILOT_ACTIVE_ROOMS=8')){
+            console.error('WRANGLER_HANDLER_EXPORT_ONLY_GATE_FAILED');process.exit(1);
+          }
+          console.log('WORKER_ENTRYPOINT_EXPORTS_HANDLER_CLASSES_ONLY: PASS');
+          GATE
+      - name: Wrangler compile only
+        env:
+          WRANGLER_SEND_METRICS: 'false'
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4 deploy --dry-run --config secure_connect/call_room_lab/wrangler.jsonc --outdir /tmp/ezero-one-link-hardening
+          test -d /tmp/ezero-one-link-hardening
+      - name: Full local workerd boot and two-peer WebSocket consent regression
+        env: {WRANGLER_SEND_METRICS: 'false'}
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts --no-audit --no-fund ws@8.18.3
+          TEST_ONLY_OWNER="$(printf 'e%.0s' {1..64})"
+          npx --yes wrangler@4 dev --local \
+            --config secure_connect/call_room_lab/wrangler.jsonc \
+            --ip 127.0.0.1 --port 8790 \
+            --var "ROOMS_ENABLED:true" \
+            --var "PILOT_OWNER_SECRET:${TEST_ONLY_OWNER}" \
+            >/tmp/ezero-workerd-redeploy-preflight.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          ready=0
+          for i in $(seq 1 45); do
+            if curl -fsS --max-time 2 http://127.0.0.1:8790/health 2>/dev/null \
+              | grep -q STAGING_ENABLED; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            echo 'REAL_LOCAL_WORKER_FAILED_TO_START'
+            tail -n 25 /tmp/ezero-workerd-redeploy-preflight.log | sed -E 's/[a-f0-9]{64}/[REDACTED]/g'
+            exit 1
+          fi
+          node tests/test_ezero_secure_connect_workerd_real_websocket_v0_1.mjs
+          echo "ACTUAL_WORKER_SAFE_LOCAL_TWO_WEBSOCKET_CHECK: PASS"
+      - name: Verify existing exactly named Worker and currently disabled status
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          node --input-type=module - <<'PRE'
+          const account=process.env.CLOUDFLARE_ACCOUNT_ID,token=process.env.CLOUDFLARE_API_TOKEN;
+          if(!/^[a-f0-9]{32}$/i.test(account||"")||
+             !/^[A-Za-z0-9_-]{20,200}$/.test(token||"")){
+            console.error("CREDENTIALS_NOT_CONFIGURED");process.exit(1);
+          }
+          const r=await fetch("https://api.cloudflare.com/client/v4/accounts/"+account+"/workers/scripts",{
+            method:"GET",headers:{Authorization:"Bearer "+token,Accept:"application/json"},
+            redirect:"error",signal:AbortSignal.timeout(10000)});
+          if(!r.ok){console.error("WORKERS_LIST_UNKNOWN");process.exit(1);}
+          const j=await r.json();
+          if(j.success!==true || !Array.isArray(j.result) ||
+             j.result.filter(x=>x.id==="ezero-secure-connect-call-lab-disabled").length!==1){
+            console.error("EXACT_STAGING_WORKER_NOT_FOUND");process.exit(1);
+          }
+          const url="https://ezero-secure-connect-call-lab-disabled.coma39658.workers.dev/health";
+          const health=await fetch(url,{method:"GET",redirect:"error",signal:AbortSignal.timeout(10000)});
+          if(!health.ok || (await health.json()).code!=="STAGING_DISABLED"){
+            console.error("REFUSE_OVERWRITE_NON_DISABLED_STAGING");process.exit(1);
+          }
+          console.log("EXISTING_STAGING_DISABLED: PASS");
+          PRE
+      - name: Update ONLY disabled isolated Worker with fixed runtime exports, no pilot secret or enrollment
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_SEND_METRICS: 'false'
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4 deploy --config secure_connect/call_room_lab/wrangler.jsonc
+          echo "WORKER_EXPORT_FIX_DISABLED_STAGING_UPLOAD: FINISHED"
+      - name: Must remain disabled after upload, including private rooms
+        run: |
+          set -euo pipefail
+          node --input-type=module - <<'CHECK'
+          const origin="https://ezero-secure-connect-call-lab-disabled.coma39658.workers.dev";
+          let verified=false;
+          for(let i=0;i<6;i++){
+            try {
+              const health=await fetch(origin+"/health",{
+                method:"GET",redirect:"error",signal:AbortSignal.timeout(10000)});
+              if(health.ok&&(await health.json()).code==="STAGING_DISABLED"){
+                verified=true;break;
+              }
+            }catch(_){}
+            if(i<5)await new Promise(r=>setTimeout(r,3000));
+          }
+          if(!verified){console.error("POST_DEPLOY_DISABLED_HEALTH_FAILED");process.exit(1);}
+          const room=await fetch(origin+"/v1/room/"+"a".repeat(32),{
+            method:"GET",redirect:"error",signal:AbortSignal.timeout(10000)});
+          if(room.status!==503){console.error("POST_DEPLOY_ROOM_IS_NOT_DISABLED");process.exit(1);}
+          console.log("WORKER_ENTRY_EXPORT_FIX_REMOTE_HEALTH: PASS; ALL_ROOMS_DISABLED; NO_CALLS");
+          CHECK
