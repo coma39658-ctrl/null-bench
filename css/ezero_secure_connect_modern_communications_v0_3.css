@@ -88,3 +88,49 @@ body.communication-page{background:linear-gradient(155deg,#e6f7f6,#eff9fc 55%,#e
 .communication-page .modern-connection-actions .danger{background:#fff3f2;color:#9e3434;border:1px solid #dda8a2}
 @media(max-width:440px){.communication-page .modern-connection-actions{flex-direction:column}
 .communication-page .modern-connection-actions button{width:100%}}
+
+
+/* E-ZERO starlight: original geometric trust, discovery and connection marks.
+   Only behind chat. Decorative, local, still, readable, no user profiling. */
+.communication-page #modernChatPanel{
+  position:relative;isolation:isolate;overflow:hidden;
+  background:#f7fcfb;border-color:#b6dadd;
+}
+.communication-page #modernChatPanel::before{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background-image:url("../assets/ezero_secure_chat_cosmic_pattern_v0_1.svg");
+  background-repeat:repeat;background-position:center top;background-size:390px 480px;
+  opacity:.7;
+}
+.communication-page #modernChatPanel>:not([hidden]){
+  position:relative;z-index:1;
+}
+.communication-page #modernChatPanel #ezeroChatSlot>section.card{
+  position:relative;background:transparent;box-shadow:none;
+}
+.communication-page #modernChatPanel #sendText{
+  box-sizing:border-box;width:100%;min-height:90px;
+  background:#fff;color:#173e4c;border:1px solid #aed2d8;
+  border-radius:14px;padding:12px 14px;
+  box-shadow:0 4px 12px #083e520d;font:inherit;
+}
+.communication-page #modernChatPanel #sendText:focus-visible{
+  outline:3px solid #37a9b7;outline-offset:2px;
+}
+.communication-page #modernChatPanel #incomingItem,
+.communication-page #modernChatPanel #seenMessage{
+  background:#fff;color:#153b4b;border:1px solid #b8dadd;
+  border-radius:16px;box-shadow:0 4px 12px #0c51610c;
+}
+.communication-page #modernChatPanel #sendMessage{
+  background:#087588;color:#fff;border-color:#087588;
+}
+.communication-page #modernChatPanel #sendMessage:disabled{
+  background:#eef6f7;color:#627f88;border-color:#cedfe2;opacity:1;
+}
+@media(max-width:400px){
+  .communication-page #modernChatPanel::before{background-size:320px 394px}
+}
+@media(prefers-reduced-motion:reduce){
+  .communication-page #modernChatPanel::before{animation:none;transition:none}
+}
