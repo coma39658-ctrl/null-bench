@@ -143,7 +143,7 @@ const words={
 const lang=()=>["en","ur","ar"].includes($("language")?.value)?$("language").value:"ur";
 const tr=k=>(words[lang()]||words.ur)[k]||words.ur[k]||k;
 const set=(id,value)=>{const el=$(id);if(el)el.textContent=value;};
-let live=false,signed=false,own="",peer="",epoch=0,allowedOnce=false;
+let live=false,signed=false,verifiedPeer="",own="",peer="",epoch=0,allowedOnce=false;
 let caption=null,translatorResult="",translating=false,recognizing=false;
 function renderLang(){
  for(const el of document.querySelectorAll("[data-copilot-i18n]"))
@@ -151,8 +151,13 @@ function renderLang(){
  $("copilotCaptionToggle").textContent=recognizing?tr("captionStop"):tr("captionStart");
  updateIdentity();updateCall();inspectDraft();
 }
-function signatureState(ok){
- signed=ok===true;
+function signatureState(ok,fingerprint=""){
+ // Only a valid signed verification bound to the CURRENT displayed peer
+ // can produce a positive identity state. Never trust event booleans alone.
+ const current=$("peerFingerprint")?.textContent.trim()||"";
+ const valid=/^[a-f0-9]{64}$/.test(current)&&fingerprint===current;
+ signed=ok===true&&valid;
+ verifiedPeer=signed?current:"";
  const state=ok===false?"identityNo":signed?"identityYes":"identityNone";
  set("copilotIdentity",tr(state));
 }
@@ -165,7 +170,7 @@ async function updateIdentity(){
  const theirs=$("peerFingerprint")?.textContent.trim()||"";
  if(my===own&&theirs===peer)return;
  // A new remote key invalidates prior signed-QR trust; compare afresh.
- if(peer&&theirs&&peer!==theirs&&signed)signatureState(null);
+ if(signed&&theirs!==verifiedPeer)signatureState(null);
  own=my;peer=theirs;
  const target=$("copilotSafetyCode");
  if(!/^[a-f0-9]{64}$/.test(own)||!/^[a-f0-9]{64}$/.test(peer)||own===peer){
@@ -336,7 +341,8 @@ document.addEventListener("ezero:call-status",event=>{
  if(!live&&["idle","offline","iceNoRoute"].includes(stage))stopCaptions();
 });
 document.addEventListener("ezero:friend-verification",event=>{
- if(event.detail?.ok===true&&event.detail?.signed===true)signatureState(true);
+ if(event.detail?.ok===true&&event.detail?.signed===true)
+  signatureState(true,event.detail.fingerprint);
  else if(event.detail?.ok===false)signatureState(false);
  else signatureState(null);
  void updateIdentity();
