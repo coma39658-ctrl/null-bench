@@ -152,8 +152,19 @@ try{
  console.log("ONE_PHONE_SHOWS_SINGLE_QR_WITHOUT_OWNER_SECRET_OR_MIC: PASS");
  await scanner.evaluate(value=>window.__testQrValue=value,invite);
  await scanner.locator("#oneQrScan").click();
- await receiver.waitForFunction(()=>!document.querySelector("#oneQrRequest").hidden,
-  {timeout:20000});
+ try{
+  await receiver.waitForFunction(()=>!document.querySelector("#oneQrRequest").hidden,
+   {timeout:12000});
+ }catch(e){
+  const diag=await Promise.all([receiver,scanner].map(async page=>page.evaluate(()=>{
+   const ids=["oneQrStatus","roomStatus","qrScanStatus","identityPeerStatus","peerFingerprint","scanQR","oneQrVisual"];
+   return Object.fromEntries(ids.map(id=>{const el=document.getElementById(id);
+    return [id,{text:el?.textContent?.slice(0,160),state:el?.dataset?.state,
+     hidden:el?.hidden,disabled:el?.disabled}];}));
+  })));
+  console.log("ONE_QR_SCAN_DIAGNOSTIC_NO_PRIVATE_DATA",JSON.stringify(diag));
+  throw e;
+ }
  assert.equal(await scanner.evaluate(()=>window.__mediaCalls.filter(o=>o.audio===true).length),0);
  assert.equal(await receiver.evaluate(()=>window.__mediaCalls.length),0);
  assert.equal(await receiver.locator("#oneQrAccept").isEnabled(),true);
