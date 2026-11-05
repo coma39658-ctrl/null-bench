@@ -6,7 +6,7 @@ const main=fs.readFileSync("ezero_secure_connect_live_p2p_v0_1.html","utf8");
 const page=fs.readFileSync("ezero_secure_connect_communications_v0_3.html","utf8");
 const modern=fs.readFileSync("js/ezero_secure_connect_modern_communications_v0_3.js","utf8");
 const css=fs.readFileSync("css/ezero_secure_connect_modern_communications_v0_3.css","utf8");
-const cosmicSvg=fs.readFileSync("assets/ezero_secure_chat_cosmic_pattern_v0_1.svg","utf8");
+const cosmic=fs.readFileSync("assets/ezero_secure_chat_cosmic_pattern_v0_1.svg","utf8");
 const transport=fs.readFileSync("js/ezero_secure_connect_live_p2p_v0_1.js","utf8");
 const policy=fs.readFileSync("ezero_secure_connect_privacy_v0_2.html","utf8");
 for(const [label,c] of [["modern UI",modern],["voice transport",transport]])
@@ -36,13 +36,20 @@ assert.match(transport,/kind==="voice-once"/);
 assert.match(transport,/ezero:voice-note-received/);
 assert.match(transport,/e\.data\.length>38000/);
 assert.match(css,/\.modern-feature-grid/);
-assert.ok(css.includes("#modernChatPanel::before"));
+assert.match(css,/#modernChatPanel::before/);
 assert.ok(css.includes("ezero_secure_chat_cosmic_pattern_v0_1.svg"));
-assert.ok(css.includes("pointer-events:none"));
-assert.ok(cosmicSvg.includes('xmlns="http://www.w3.org/2000/svg"'));
-assert.ok(cosmicSvg.includes("E-ZERO original cosmic trust"));
-assert.doesNotMatch(cosmicSvg,/<script|<image|<foreignObject|<animate|https:\/\//i,
-  "Pattern must use only original local, inert SVG shapes with no network assets");
+assert.match(css,/pointer-events:none/);
+assert.ok(cosmic.includes('<svg xmlns="http://www.w3.org/2000/svg"'));
+assert.match(cosmic,/cosmic trust and discovery pattern/);
+assert.doesNotMatch(cosmic,/<script|<image|<foreignObject|https:\/\/|<animate/i,
+  "Chat pattern must be local SVG artwork without scripts or external resources");
+assert.match(page,/id="ezeroIncomingInvite"/);
+assert.match(page,/id="ezeroPrepareInvite"/);
+assert.match(page,/id="ezeroShareInvite"/);
+assert.match(modern,/function parseInviteLink/);
+assert.ok(modern.includes("location.hash.startsWith"));
+assert.match(modern,/ezero:signal-ready/);
+assert.ok(css.includes("#secureAdvanced{display:none!important}"));
 
 assert.match(main,/id="nearbyFutureTitle"/);
 assert.doesNotMatch(main,/id="nearbyFutureOpt"/);
@@ -51,7 +58,7 @@ assert.doesNotMatch(modern,/\bfetch\(|\bWebSocket\b|localStorage|sessionStorage|
 assert.match(page,/data-modern="offlineTruth"/);
 for(const phrase of ["وائس نوٹ کی یہ واضح مقامی ریکارڈنگ","explicitly initiated voice-note recording","التسجيل الصريح للرسالة الصوتية"])
   assert.ok(policy.includes(phrase),"Policy must disclose deliberate voice note recording in all three languages");
-console.log("CALM_LOCAL_EZERO_COSMIC_CHAT_PATTERN_AND_LEGIBILITY: PASS");
+console.log("ORIGINAL_COSMIC_CHAT_MOTIFS_NO_TRACKING_OR_LEGACY_CODE_UI: PASS");
 console.log("RESTORED_FOUR_PROMINENT_COMMUNICATION_TOOLS: PASS");
 console.log("TESTED_WEBRTC_CORE_PRESERVED_AND_MANUAL_SIGNALING_DISCLOSED: PASS");
 console.log("VOICE_NOTES_LOCAL_CONSENT_AND_SIZE_BOUNDED_P2P_ONLY: PASS");
