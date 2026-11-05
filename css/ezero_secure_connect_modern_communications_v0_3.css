@@ -134,3 +134,76 @@ body.communication-page{background:linear-gradient(155deg,#e6f7f6,#eff9fc 55%,#e
 @media(prefers-reduced-motion:reduce){
   .communication-page #modernChatPanel::before{animation:none;transition:none}
 }
+
+
+/* Nontechnical, consent-first invitation cards and controls */
+/* The signed call engine remains mounted under #secureAdvanced, never
+   render its manual SDP form below the redesigned guided connection. */
+.communication-page #secureAdvanced{display:none!important}
+.communication-page #ezeroCallSetupSlot[hidden]{display:none!important}
+.communication-page .ezero-invite-wizard{display:grid;gap:11px;margin-top:9px}
+.communication-page .ezero-wizard-primary,
+.communication-page .ezero-wizard-secondary,
+.communication-page .modern-voice-connect{
+  box-sizing:border-box;display:block;width:100%;min-height:52px;
+  border-radius:13px;border:1px solid #087486;padding:11px 15px;
+  background:#08788a;color:#fff!important;line-height:1.65;font-size:15px;
+  font-weight:850;font-family:inherit;text-align:center;
+  text-shadow:none;cursor:pointer;box-shadow:none;
+}
+.communication-page .ezero-wizard-secondary{
+  background:#f6fbfc;color:#0a5a70!important;border-color:#a3cfd7;
+}
+.communication-page .ezero-wizard-primary:disabled{
+  background:#e1eded;color:#607c85!important;border-color:#c9dfe2;cursor:not-allowed;
+}
+.communication-page .ezero-wizard-choices{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;
+}
+.communication-page .ezero-incoming-invite{
+  background:#edf9f9;padding:13px;
+  border:1px solid #b1dae0;border-radius:15px;
+}
+.communication-page .ezero-incoming-invite strong{color:#0c5368}
+.communication-page .ezero-incoming-invite p{font-size:14px;line-height:1.8}
+.communication-page .ezero-link-fallback{
+  padding:9px 13px;background:#f9fcfc;
+  border:1px solid #d5e6e9;border-radius:12px;
+}
+.communication-page .ezero-link-fallback>summary{
+  color:#0d6277;font-weight:750;cursor:pointer;line-height:1.8;
+}
+.communication-page #ezeroCallSetupSlot textarea{
+  box-sizing:border-box;display:block;width:100%;min-height:75px;max-height:170px;
+  font:12px/1.6 ui-monospace,monospace;direction:ltr;text-align:left;
+  border:1px solid #b7d6dd;border-radius:9px;
+  background:#fff;color:#1c485a;padding:10px;margin:8px 0;
+  overflow-wrap:anywhere;resize:vertical;
+}
+.communication-page #ezeroCallSetupSlot label{
+  display:block;color:#1d5869;font-size:13px;font-weight:750;
+}
+.communication-page #ezeroCallSetupSlot .modern-call-note{
+  background:#f5f9fa;border-radius:9px;padding:10px;
+}
+.communication-page .modern-connection-actions button{
+  font:inherit;font-size:15px;line-height:1.7;font-weight:850;
+  min-height:52px;padding:10px 15px;color:#fff;
+}
+.communication-page .modern-connection-actions #modernConnect{
+  background:#076b81;color:#fff!important;border-color:#076b81;
+}
+.communication-page .modern-connection-actions #modernHangup{
+  background:#fff1f1;color:#9a3737!important;border-color:#d9a9aa;
+}
+.communication-page .modern-voice-connect:focus-visible,
+.communication-page .modern-connection-actions button:focus-visible,
+.communication-page .ezero-invite-wizard button:focus-visible,
+.communication-page .ezero-link-fallback>summary:focus-visible{
+  outline:3px solid #31afc3;outline-offset:3px;
+}
+@media(max-width:400px){
+  .communication-page .ezero-wizard-choices{grid-template-columns:1fr}
+  .communication-page #modernChatPanel::before{background-size:320px 394px}
+}
+/* No animated or flashing backgrounds; remains comfortable for reduced motion. */
