@@ -405,7 +405,7 @@ try{
 
  // The LOGIN module now reads the actual verified COSE credential stored
  // by the REGISTRATION module; no manual production-style account insertion.
- const authLab=new PairV1SqliteAtomicPasskeyFinishLab(store(registrationDB));
+ let authLab=new PairV1SqliteAtomicPasskeyFinishLab(store(registrationDB));
  const newLogin=await authLab.begin({accountId,credentialId:id},now+9);
  assert.equal(newLogin.ok,true,newLogin.code);
  const loginFinished=await authLab.finish({
@@ -516,6 +516,9 @@ try{
  },now+15).code,"LAB_EVIDENCE_STILL_PRESENT_NO_AUTHORITY");
  registrationDB.close();
  registrationDB=new DatabaseSync(registrationPath);
+ // Reconstruct ALL SQLite adapters after restart; do not use stale handles.
+ registrationLab=new PairV1SqliteAtomicPasskeyRegistrationLab(store(registrationDB));
+ authLab=new PairV1SqliteAtomicPasskeyFinishLab(store(registrationDB));
  const reloadedCandidate=new PairV1TrustCandidateSqliteLab(store(registrationDB));
  assert.equal(reloadedCandidate.recordEvidenceCandidate(pairCtx,now+16).ok,false,
   "Evidence cannot be replayed after restart");
