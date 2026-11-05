@@ -8,14 +8,34 @@ const modern=fs.readFileSync("js/ezero_secure_connect_modern_communications_v0_3
 const css=fs.readFileSync("css/ezero_secure_connect_modern_communications_v0_3.css","utf8");
 const cosmic=fs.readFileSync("assets/ezero_secure_chat_cosmic_pattern_v0_1.svg","utf8");
 const transport=fs.readFileSync("js/ezero_secure_connect_live_p2p_v0_1.js","utf8");
+const profile=fs.readFileSync("js/ezero_secure_connect_peer_profile_v0_1.js","utf8");
 const policy=fs.readFileSync("ezero_secure_connect_privacy_v0_2.html","utf8");
-for(const [label,c] of [["modern UI",modern],["voice transport",transport]])
+for(const [label,c] of [["modern UI",modern],["voice transport",transport],["local peer profile",profile]])
   new vm.Script(c,{filename:label});
 for(const mode of ["audio","video","voice","chat"]){
   assert.match(main,new RegExp('data-comm-mode="'+mode+'"'));
   assert.match(page,new RegExp('data-modern-select="'+mode+'"'));
 }
 assert.match(page,/ezero_secure_connect_live_p2p_v0_1\.js/);
+assert.ok(page.includes("ezero_secure_connect_peer_profile_v0_1.js"));
+for(const id of ["ezeroProfileEditor","ezeroMyName","ezeroMyPhoto",
+    "ezeroShareProfile","ezeroSaveProfile","ezeroPeerProfileCard",
+    "ezeroPeerSessionId","ezeroPeerAvatar","ezeroVerifiedConnection"])
+  assert.ok(page.includes('id="'+id+'"'),"Profile UI missing: "+id);
+assert.ok(profile.includes("ezero_secure_connect_local_profile_v0_1"),
+  "Local profile must be stored separately from verified contacts");
+assert.ok(profile.includes("ezero:profile-received"));
+assert.ok(profile.includes("window.EZERO_PEER_PROFILE_TRANSPORT"));
+assert.ok(profile.includes('share:p.share===true'));
+assert.ok(profile.includes('localStorage.setItem(KEY'));
+assert.ok(!/fetch\\(|XMLHttpRequest|new WebSocket/.test(profile),
+  "No profile file uploads, remote logging or account API");
+assert.ok(transport.includes('m.kind==="public-profile"'));
+assert.ok(transport.includes('peer.__ezeroPeerFP'),"Never trust a profile self-asserted fingerprint");
+assert.ok(transport.includes('peer?.connectionState==="connected"'));
+assert.ok(transport.includes('channel.readyState==="open"'));
+assert.ok(profile.includes('if(!profile.share||!profile.name'));
+
 assert.ok(modern.includes('function inviteFailure(error)'));
 assert.ok(modern.includes('async function encodeSignal(raw)'));
 assert.ok(modern.includes('async function parseInviteLink(value)'));
