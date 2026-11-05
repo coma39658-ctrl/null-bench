@@ -36,18 +36,20 @@ jobs:
           grep -Fq 'websocketOrigin:""' js/ezero_auto_signaling_config_v0_1.js
           grep -Fq '"name": "ezero-browser-signaling-pilot"' signaling/cloudflare/wrangler.jsonc
           grep -Fq '"new_sqlite_classes": ["SignalRoom"]' signaling/cloudflare/wrangler.jsonc
-      - name: Check signaling-only deployment credentials
+      # Reuse pre-existing Secure Connect staging credentials from 2026-11-04.
+      # Do not modify the AI/Vision worker or expose secrets in logs.
+      - name: Check existing staging deployment credentials
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.EZERO_SIGNALING_CF_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.EZERO_SIGNALING_CF_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
-          test -n "$CLOUDFLARE_API_TOKEN" || { echo "BLOCKED: EZERO_SIGNALING_CF_API_TOKEN unavailable; no deploy"; exit 1; }
-          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "BLOCKED: EZERO_SIGNALING_CF_ACCOUNT_ID unavailable; no deploy"; exit 1; }
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "BLOCKED: CLOUDFLARE_API_TOKEN unavailable; no deploy"; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "BLOCKED: CLOUDFLARE_ACCOUNT_ID unavailable; no deploy"; exit 1; }
       - name: Deploy only dedicated signaling Worker (not AI/Vision)
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.EZERO_SIGNALING_CF_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.EZERO_SIGNALING_CF_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
           npm install --no-save --ignore-scripts wrangler@4
