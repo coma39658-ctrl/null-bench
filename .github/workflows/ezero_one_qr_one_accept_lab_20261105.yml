@@ -46,6 +46,8 @@ jobs:
           node --check secure_connect/pair_v1/mutual_approval_sqlite_lab_v0_1.mjs
           node --check tests/test_ezero_secure_pair_v1_mutual_approvals_v0_1.mjs
           node tests/test_ezero_secure_pair_v1_mutual_approvals_v0_1.mjs
+          node --check tests/test_ezero_secure_pair_v1_server_bound_device_approval_v0_1.mjs
+          node tests/test_ezero_secure_pair_v1_server_bound_device_approval_v0_1.mjs
           node --check secure_connect/pair_v1/webauthn_registration_library_lab_v0_1.mjs
           node --check tests/test_ezero_secure_pair_v1_webauthn_registration_library_v0_1.mjs
           node tests/test_ezero_secure_pair_v1_webauthn_registration_library_v0_1.mjs
