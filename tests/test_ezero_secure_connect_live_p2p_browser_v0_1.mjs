@@ -65,9 +65,9 @@ async function connect(a,b,mode){
 let a,b;
 try{
   a=await phone("PHONE_A");b=await phone("PHONE_B");
-  assert.match(await a.locator("#myFingerprint").innerText(),/^[a-f0-9]{64}$/);
-  const fpA=await a.locator("#myFingerprint").innerText();
-  const fpB=await b.locator("#myFingerprint").innerText();
+  assert.match(await a.locator("#myFingerprint").textContent(),/^[a-f0-9]{64}$/);
+  const fpA=await a.locator("#myFingerprint").textContent();
+  const fpB=await b.locator("#myFingerprint").textContent();
   assert.notEqual(fpA,fpB,"Each phone generated a different random identity automatically");
   assert.equal(await a.locator("#myQr svg").count(),1,"QR generated offline");
   assert.equal(await a.evaluate(()=>window.__mediaCalls.length),0,"No camera or mic without a click");
