@@ -81,6 +81,9 @@ try{
   assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),0,
     "Opening the call lab should not ask for microphone/camera permission");
   assert.equal(await caller.locator("#ezeroAutoPilot").isVisible(),true);
+  assert.equal(await caller.locator("#ezeroUnifiedCard").isVisible(),true);
+  assert.equal(await caller.locator("#ezeroLegacyCompatibility").isHidden(),true,
+    "Old second-color duplicate layers must not be displayed");
   assert.equal(await caller.locator("#ezeroOneJoinPanel").isVisible(),true,
     "Call-QR scanner must be prominent on the receiving phone");
   assert.equal(await caller.locator("#ezeroOneScanInvite").isVisible(),true);
