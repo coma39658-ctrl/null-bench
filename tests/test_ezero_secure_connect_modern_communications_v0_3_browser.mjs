@@ -269,6 +269,27 @@ try{
   assert.equal(await a.locator("#ezeroPeerProfileCard").isHidden(),true);
   assert.equal(await b.locator("#ezeroPeerProfileCard").isHidden(),true);
   console.log("PEER_PHOTO_AND_SESSION_ID_REMOVED_ON_HANGUP: PASS");
+  // An opted-in call record should persist after closing the genuine
+  // connection, and be deletable without touching friends or messages.
+  await b.locator("#ezeroTabCalls").click();
+  const finished=await b.evaluate(()=>
+    JSON.parse(localStorage.getItem("ezero_local_completed_call_history_v0_1")||"[]"));
+  assert.equal(finished.length,1);
+  assert.equal(finished[0].direction,"inbound");
+  assert.ok(finished[0].seconds>=0);
+  await b.reload({waitUntil:"domcontentloaded"});
+  await b.locator("#ezeroPeopleHub").evaluate(el=>el.open=true);
+  await b.locator("#ezeroTabCalls").click();
+  assert.equal(await b.locator(".ezero-person-card").count(),1,
+    "Opted-in history survives a reload on this device only");
+  b.once("dialog",async dialog=>dialog.accept());
+  await b.locator("#ezeroHistoryClear").click();
+  assert.equal(await b.locator(".ezero-person-card").count(),0);
+  assert.equal(await b.evaluate(()=>
+    localStorage.getItem("ezero_local_completed_call_history_v0_1")),null);
+  await b.locator("#ezeroTabMissed").click();
+  assert.equal(await b.locator(".ezero-person-card").count(),0);
+  console.log("OPT_IN_LOCAL_HISTORY_PERSISTS_AND_CAN_BE_ERASED_NO_FALSE_MISSED: PASS");
   console.log("HANGUP_CLOSES_PEER_CHANNEL_AND_STOPS_STREAM: PASS");
 }finally{
   for(const ctx of contexts)await ctx.close().catch(()=>{});
