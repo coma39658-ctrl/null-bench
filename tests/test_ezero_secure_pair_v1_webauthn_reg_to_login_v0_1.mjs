@@ -667,6 +667,92 @@ try{
   pairCtx,now+16);
  assert.equal(replay.ok,false);
  assert.equal(replay.code,"SERVER_ENROLLMENT_QR_INVALID_OR_REPLAYED");
+ // New stronger join: mint a separate verified, unrevoked server
+ // observation session and bind it to the exact consumed WebAuthn login.
+ // This test provides NO real account onboarding or Trusted Device grant.
+ const freshAuth=await sessionIssuer.begin({accountId,credentialId:id},now+19);
+ assert.equal(freshAuth.ok,true,freshAuth.code);
+ const freshSigned=await sessionIssuer.finishForObservationSessionLab({
+  accountId,sessionId:freshAuth.sessionId,
+  response:await assertion({challenge:freshAuth.options.challenge,counter:4})
+ },now+20);
+ assert.equal(freshSigned.ok,true,freshSigned.code);
+ assert.equal(freshSigned.authorized,false);
+ const freshCookie=freshSigned.serverOnlySetCookie.split(";")[0];
+ const freshServerSid=freshCookie.split("=")[1].split(".")[0];
+ const formerServerSid=issued.serverOnlySetCookie.split(";")[0]
+  .split("=")[1].split(".")[0];
+ const strictCandidate=new PairV1TrustCandidateSqliteLab(
+  store(registrationDB),{serverOrigin});
+ const freshPairSid="4".repeat(32),freshNonce="9".repeat(32);
+ const freshNonceDigest=Array.from(await hash(te.encode(freshNonce)),
+  x=>x.toString(16).padStart(2,"0")).join("");
+ const freshExpires=now+65_000;
+ assert.equal(approvalDB.createSession({
+  sid:freshPairSid,nonceDigest:freshNonceDigest,accountId,
+  aKeyHash:aHash,bKeyHash:bHash,issued:now+18,
+  expires:freshExpires,purpose:"PAIR"
+ },now+21).ok,true);
+ assert.equal(enrollmentQrDB.issue({
+  sessionId:freshPairSid,nonceDigest:freshNonceDigest,accountId,
+  credentialId:id,issued:now+18,expires:freshExpires,
+  purpose:"PAIR_OR_RECONNECT"
+ },now+21).ok,true);
+ const freshA={sid:freshPairSid,nonce:freshNonce,accountId,
+  selfKeyHash:aHash,peerKeyHash:bHash,
+  expires:freshExpires,decision:"APPROVE"};
+ const freshB={...freshA,selfKeyHash:bHash,peerKeyHash:aHash};
+ assert.equal((await approvalDB.recordServerRegisteredDecisionLab({
+  accountId,deviceId:aDeviceId,role:"A",
+  approval:freshA,signature:await signPair(aDev,freshA)
+ },now+21)).stage,"A_SIGNED");
+ assert.equal((await approvalDB.recordServerRegisteredDecisionLab({
+  accountId,deviceId:bDeviceId,role:"B",
+  approval:freshB,signature:await signPair(bDev,freshB)
+ },now+22)).stage,"BOTH_SIGNED_UNAUTHORIZED");
+ const strictCtx={accountId,pairSid:freshPairSid,
+  authSessionId:freshAuth.sessionId,aDeviceId,bDeviceId,
+  serverSessionSid:freshServerSid};
+ assert.equal(strictCandidate.recordSessionBoundEnrollmentQrEvidenceLab(
+  {...strictCtx,serverSessionSid:formerServerSid},now+23).code,
+  "OBSERVATION_SESSION_REVOKED_EXPIRED_OR_UNBOUND",
+  "Logged-out old cookie cannot be rebound to another Passkey event");
+ assert.equal(strictCandidate.recordSessionBoundEnrollmentQrEvidenceLab(
+  {...strictCtx,serverSessionSid:"8".repeat(32)},now+23).ok,false);
+ assert.equal(strictCandidate.recordSessionBoundEnrollmentQrEvidenceLab(
+  {...strictCtx,authSessionId:newLogin.sessionId},now+23).ok,false,
+  "A separate successful Passkey event cannot borrow this server session");
+ assert.equal(strictCandidate.recordSessionBoundEnrollmentQrEvidenceLab(
+  {...strictCtx,accountId:"another_account_001"},now+23).ok,false);
+ assert.equal(strictCandidate.recordSessionBoundEnrollmentQrEvidenceLab(
+  {...strictCtx,serverSessionSid:null},now+23).ok,false);
+ assert.equal(registrationDB.prepare(`SELECT consumed_at FROM
+  ezero_pair_v1_challenges WHERE session_id=?`)
+  .get(freshPairSid).consumed_at,null,
+  "Rejected session provenance must not consume the QR");
+ const strictWinners=await Promise.all(Array.from({length:20},
+  ()=>strictCandidate.recordSessionBoundEnrollmentQrEvidenceLab(
+   strictCtx,now+23)));
+ assert.equal(strictWinners.filter(x=>x.ok).length,1);
+ assert.equal(strictWinners.filter(x=>!x.ok).length,19);
+ assert.ok(strictWinners.every(x=>x.authorized===false&&
+  x.trusted===false&&x.accountSessionIssued===false));
+ assert.equal(strictCandidate.inspectSessionBoundConsumedEnrollmentQrLab({
+  accountId,pairSid:freshPairSid
+ },now+24).code,"SESSION_BOUND_ENROLLMENT_EVIDENCE_NO_AUTHORITY");
+ // A valid logout revokes the already-consumed QR evidence's eligibility.
+ const strictLogout=await sessionGuard.logoutOwnSessionWithCsrfLab({
+  cookieHeader:freshCookie,csrfToken:freshSigned.serverOnlyCsrfToken,
+  origin:serverOrigin,method:"POST",now:now+25
+ });
+ assert.equal(strictLogout.ok,true,strictLogout.code);
+ assert.equal(strictCandidate.inspectSessionBoundConsumedEnrollmentQrLab({
+  accountId,pairSid:freshPairSid
+ },now+26).code,"OBSERVATION_SESSION_REVOKED_EXPIRED_OR_UNBOUND");
+ assert.equal(strictCandidate.recordSessionBoundEnrollmentQrEvidenceLab(
+  strictCtx,now+26).ok,false,"Consumed QR cannot be reused after logout");
+ console.log("PAIR_V1_SESSION_EXACT_PASSKEY_CHALLENGE_TO_QR_ATOMIC_ONE_USE: PASS");
+ console.log("PAIR_V1_LOGOUT_REVOKES_PREVIOUSLY_CONSUMED_QR_EVIDENCE: PASS");
  console.log("PAIR_V1_QR_90S_SINGLE_USE_CONSUME_ATOMIC_WITH_BOTH_SIGNED_DEVICES: PASS");
  console.log("PAIR_V1_QR_TWENTY_RACE_ONE_WINNER_ROLLBACK_TAMPER_NO_TRUST: PASS");
 
