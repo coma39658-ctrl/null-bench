@@ -51,7 +51,8 @@ try{
   await a.locator("#remoteInviteButton").click();
   await a.waitForFunction(()=>window.__shared?.length===1);
   const invite=await a.evaluate(()=>window.__shared[0].url);
-  assert.match(invite,/\/null-bench\/c\.html#i=/);
+  assert.equal(new URL(invite).pathname.endsWith("/c.html"),true);
+  assert.match(new URL(invite).hash,/^#i=/);
   assert.equal(invite.includes("privateKey"),false);
   const previous=await a.evaluate(()=>JSON.parse(
     localStorage.getItem("ezero_secure_connect_pending_v0_2")));
@@ -75,7 +76,8 @@ try{
   await b.locator("#acceptInviteButton").click();
   await b.waitForFunction(()=>window.__shared?.length===1);
   const reply=await b.evaluate(()=>window.__shared[0].url);
-  assert.match(reply,/\/null-bench\/c\.html#r=/);
+  assert.equal(new URL(reply).pathname.endsWith("/c.html"),true);
+  assert.match(new URL(reply).hash,/^#r=/);
   console.log("DISTANT_FRIEND_EXPLICIT_ACCEPT_AND_SIGNED_BOUND_REPLY: PASS");
 
   await a.goto(reply,{waitUntil:"domcontentloaded"});
