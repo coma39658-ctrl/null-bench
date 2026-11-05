@@ -32,6 +32,25 @@ async function offerAndAnswer(a,b){
   const offer=await a.locator("#ezeroGeneratedLink").inputValue();
   assert.match(offer,/^http:\/\/127\.0\.0\.1:8769\/ezero_secure_connect_communications_v0_3\.html\?/);
   assert.match(offer,/#e=/);
+  // A messenger that preserves only a truncated fragment must fail safely,
+  // with a useful recovery reason and without activating media.
+  await b.goto(base+"ezero_secure_connect_communications_v0_3.html?mode=audio#e=short",
+    {waitUntil:"domcontentloaded"});
+  assert.match(await b.locator("#ezeroInviteStatus").innerText(),/نامکمل یا تبدیل/);
+  assert.equal(await b.evaluate(()=>window.__mediaCalls.length),0);
+  await b.locator("#ezeroLinkFallback").evaluate(el=>el.open=true);
+  assert.equal(await b.locator("#ezeroLoadLink").isDisabled(),true,
+    "Empty example must not be submitted as a real invitation");
+  await b.locator("#ezeroPasteLink").fill(base+"ezero_secure_connect_communications_v0_3.html?mode=audio");
+  await b.locator("#ezeroLoadLink").click();
+  assert.match(await b.locator("#ezeroInviteStatus").innerText(),/ضروری حصہ نہیں ملا/);
+  assert.equal(await b.evaluate(()=>window.__mediaCalls.length),0);
+  // A valid full link is accepted even when copied with messenger text.
+  await b.locator("#ezeroPasteLink").fill("E-ZERO دوست کی دعوت\\n"+offer);
+  await b.locator("#ezeroLoadLink").click();
+  await b.locator("#ezeroIncomingInvite").waitFor({state:"visible",timeout:30000});
+  assert.equal(await b.evaluate(()=>window.__mediaCalls.length),0,
+    "Pasting a valid invitation must still require explicit acceptance");
   await b.goto(offer,{waitUntil:"domcontentloaded"});
   const inviteDebug=await b.evaluate(()=>({
     status:document.getElementById("ezeroInviteStatus")?.textContent,
