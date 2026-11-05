@@ -28,10 +28,11 @@ async function offerAndAnswer(a,b){
   assert.equal(await a.locator("#guidedOffer").isVisible(),false,
     "Original technical copy/paste must remain hidden");
   await a.locator("#ezeroPrepareInvite").click();
-  await a.waitForFunction(()=>document.querySelector("#ezeroGeneratedLink")?.value.includes("#e="),{timeout:30000});
+  await a.waitForFunction(()=>document.querySelector("#ezeroGeneratedLink")?.value.includes("#e=")||document.querySelector("#ezeroGeneratedLink")?.value.includes("#e2="),{timeout:30000});
   const offer=await a.locator("#ezeroGeneratedLink").inputValue();
   assert.match(offer,/^http:\/\/127\.0\.0\.1:8769\/ezero_secure_connect_communications_v0_3\.html\?/);
-  assert.match(offer,/#e=/);
+  assert.match(offer,/#e2=/, "Modern browser should create a compressed signed WebRTC invite");
+  assert.ok(offer.length<19000, "Invitation must be compact enough for common share applications");
   // A messenger that preserves only a truncated fragment must fail safely,
   // with a useful recovery reason and without activating media.
   await b.goto(base+"ezero_secure_connect_communications_v0_3.html?mode=audio#e=short",
@@ -65,8 +66,9 @@ async function offerAndAnswer(a,b){
   assert.equal(await b.evaluate(()=>window.__mediaCalls.length),0,
     "Opening an invite alone must not activate camera/mic");
   await b.locator("#ezeroAcceptInvite").click();
-  await b.waitForFunction(()=>document.querySelector("#ezeroGeneratedLink")?.value.includes("#e="),{timeout:30000});
+  await b.waitForFunction(()=>document.querySelector("#ezeroGeneratedLink")?.value.includes("#e=")||document.querySelector("#ezeroGeneratedLink")?.value.includes("#e2="),{timeout:30000});
   const answer=await b.locator("#ezeroGeneratedLink").inputValue();
+  assert.match(answer,/#e2=/, "Answer should also use compressed signed signaling");
   assert.notEqual(answer,offer);
   await a.locator("#ezeroLinkFallback").evaluate(e=>e.open=true);
   await a.locator("#ezeroPasteLink").fill(answer);
