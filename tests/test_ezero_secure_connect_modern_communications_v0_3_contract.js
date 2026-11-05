@@ -37,9 +37,9 @@ assert.match(transport,/ezero:voice-note-received/);
 assert.match(transport,/e\.data\.length>38000/);
 assert.match(css,/\.modern-feature-grid/);
 assert.match(css,/#modernChatPanel::before/);
-assert.match(css,/ezero_secure_chat_cosmic_pattern_v0_1\\.svg/);
+assert.ok(css.includes("ezero_secure_chat_cosmic_pattern_v0_1.svg"));
 assert.match(css,/pointer-events:none/);
-assert.match(cosmic,/<svg xmlns="http:\/\/www\\.w3\\.org\/2000\/svg"/);
+assert.ok(cosmic.includes('<svg xmlns="http://www.w3.org/2000/svg"'));
 assert.match(cosmic,/cosmic trust and discovery pattern/);
 assert.doesNotMatch(cosmic,/<script|<image|<foreignObject|https:\/\/|<animate/i,
   "Chat pattern must be local SVG artwork without scripts or external resources");
@@ -47,9 +47,9 @@ assert.match(page,/id="ezeroIncomingInvite"/);
 assert.match(page,/id="ezeroPrepareInvite"/);
 assert.match(page,/id="ezeroShareInvite"/);
 assert.match(modern,/function parseInviteLink/);
-assert.match(modern,/location\\.hash\\.startsWith/);
+assert.ok(modern.includes("location.hash.startsWith"));
 assert.match(modern,/ezero:signal-ready/);
-assert.match(css,/#secureAdvanced\\{display:none!important\\}/);
+assert.ok(css.includes("#secureAdvanced{display:none!important}"));
 
 assert.match(main,/id="nearbyFutureTitle"/);
 assert.doesNotMatch(main,/id="nearbyFutureOpt"/);
