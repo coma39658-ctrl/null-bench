@@ -103,8 +103,10 @@ try{
   assert.equal(await b.locator("#ezeroVoiceIncomingAudio").isVisible(),true);
   console.log("USER_CONSENT_LOCAL_RECORD_AND_EXPLICIT_P2P_VOICE_SEND: PASS");
 
-  await a.locator("#hangup").click();
-  await b.locator("#hangup").click();
+  assert.equal(await a.locator("#modernHangup").isVisible(),true);
+  await a.locator("#modernHangup").click();
+  assert.equal(await b.locator("#modernHangup").isVisible(),true);
+  await b.locator("#modernHangup").click();
   assert.equal(await a.evaluate(()=>window.EZERO_VOICE_TRANSPORT.connected()),false);
   console.log("HANGUP_CLOSES_PEER_CHANNEL_AND_STOPS_STREAM: PASS");
 }finally{
