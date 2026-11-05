@@ -11,6 +11,7 @@
   const destination=new URL(callInvite?"./ezero_secure_connect_communications_v0_3.html":
     identity?"./ezero_secure_connect_live_p2p_v0_1.html":unified,location.href);
   destination.search=location.search;
-  destination.hash=h;
+  // Preserve the complete private room or signed identity fragment unchanged.
+  destination.hash=location.hash;
   location.replace(destination.href);
 })();
