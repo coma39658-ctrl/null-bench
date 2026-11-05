@@ -44,28 +44,58 @@ $("ezeroVoiceConnect").addEventListener("click",openConnectionSteps);
 let pendingSigned=null,preparedShare=null;
 const wizardStatus=key=>{$("ezeroInviteStatus").textContent=t(key);};
 const exactPage=new URL("./ezero_secure_connect_communications_v0_3.html",location.href);
-function parseInviteLink(value){
+async function parseInviteLink(value){
   if(typeof value!=="string"||value.length>210000)throw Error("TOO_LONG");
   const entered=value.trim();
   if(!entered)throw Error("EMPTY_LINK");
-  // Some share targets prepend a greeting or wrap the complete URL in text.
-  // Extract only a complete http(s) URL; never accept an origin or path mismatch.
+  // Accept a complete URL embedded in IMO's "message + link" format.
+  // The origin and exact path remain mandatory and cannot be bypassed.
   const httpsAt=entered.indexOf("https://"),httpAt=entered.indexOf("http://");
   const start=httpsAt>=0?httpsAt:httpAt;
   const urlPart=start>=0?entered.slice(start):entered;
-  const candidate=urlPart.split(" ")[0].split("\n")[0].split("\r")[0].split("<")[0].split(">")[0].split('"')[0].replace(/[.,)،。]+$/u,"");
+  const candidate=urlPart.split(" ")[0].split("\n")[0].split("\r")[0]
+    .split("<")[0].split(">")[0].split('"')[0].replace(/[.,)،。]+$/u,"");
   let uri;
   try{uri=new URL(candidate,location.href);}catch(_){throw Error("BAD_URL");}
   if(uri.origin!==location.origin||uri.pathname!==exactPage.pathname)throw Error("WRONG_ORIGIN");
   if(!uri.hash)throw Error("MISSING_INVITE");
-  const m=/^#e=([A-Za-z0-9_-]+)$/.exec(uri.hash);
-  if(!m||m[1].length<100||m[1].length>195000)throw Error("BAD_FRAGMENT");
+  // e2 = gzip-compressed offer/answer; e = older uncompressed offer/answer.
+  // The historic format remains compatible with existing open call sessions.
+  const m=/^#(e2|e)=([A-Za-z0-9_-]+)$/.exec(uri.hash);
+  if(!m||m[2].length<100||m[2].length>195000)throw Error("BAD_FRAGMENT");
   let decoded;
   try{
-    const str=atob(m[1].replace(/-/g,"+").replace(/_/g,"/")+"=".repeat((4-m[1].length%4)%4));
-    const bytes=Uint8Array.from(str,x=>x.charCodeAt(0));
-    decoded=new TextDecoder("utf-8",{fatal:true}).decode(bytes);
-  }catch(_){throw Error("BAD_ENCODING");}
+    const raw=atob(m[2].replace(/-/g,"+").replace(/_/g,"/")+"=".repeat((4-m[2].length%4)%4));
+    if(raw.length>145000)throw Error("TOO_LARGE");
+    const bytes=Uint8Array.from(raw,x=>x.charCodeAt(0));
+    if(m[1]==="e2"){
+      if(typeof DecompressionStream!=="function")throw Error("UNSUPPORTED_COMPRESSION");
+      const reader=new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip")).getReader();
+      let chunks=[],size=0;
+      try{
+        for(;;){
+          const {done,value}=await reader.read();
+          if(done)break;
+          size+=value.byteLength;
+          if(size>145000)throw Error("TOO_LARGE");
+          chunks.push(value);
+        }
+      }catch(error){
+        try{await reader.cancel();}catch(_){}
+        throw error;
+      }
+      const output=new Uint8Array(size);
+      let offset=0;
+      for(const chunk of chunks){output.set(chunk,offset);offset+=chunk.length;}
+      decoded=new TextDecoder("utf-8",{fatal:true}).decode(output);
+    }else{
+      decoded=new TextDecoder("utf-8",{fatal:true}).decode(bytes);
+    }
+  }catch(error){
+    if(error?.message==="UNSUPPORTED_COMPRESSION")throw error;
+    if(error?.message==="TOO_LARGE")throw error;
+    throw Error("BAD_ENCODING");
+  }
   if(decoded.length>145000)throw Error("TOO_LARGE");
   let v;
   try{v=JSON.parse(decoded);}catch(_){throw Error("BAD_JSON");}
@@ -89,26 +119,40 @@ function inviteFailure(error){
   wizardStatus(key);
   // Intentionally do not log, send, or display the private invitation payload.
 }
-function encodeSignal(raw){
+async function encodeSignal(raw){
   const bytes=new TextEncoder().encode(raw);
   if(!bytes.length||bytes.length>120000)throw Error("TOO_LARGE");
-  let text="";for(const byte of bytes)text+=String.fromCharCode(byte);
-  const token=btoa(text).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+  let encoded=bytes,tag="e";
+  if(typeof CompressionStream==="function" && typeof DecompressionStream==="function"){
+    try{
+      const zipped=await new Response(
+        new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"))
+      ).arrayBuffer();
+      const compact=new Uint8Array(zipped);
+      // Avoid expansion and preserve fallback for older browsers.
+      if(compact.byteLength<bytes.byteLength && compact.byteLength<120000){
+        encoded=compact;tag="e2";
+      }
+    }catch(_){}
+  }
+  let binary="";
+  for(let i=0;i<encoded.length;i++)binary+=String.fromCharCode(encoded[i]);
+  const token=btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
   if(token.length>195000)throw Error("TOO_LONG");
   const u=new URL(exactPage.href);
   u.searchParams.set("mode",current==="video"?"video":"audio");
   const lang=document.documentElement.lang||"ur";
   if(lang!=="ur")u.searchParams.set("lang",lang);
-  u.hash="e="+token;
+  u.hash=tag+"="+token;
   return u.href;
 }
-function readyToShare(type){
+async function readyToShare(type){
   try{
     const raw=$("localSignal").value;
     const signal=JSON.parse(raw);
     if(signal?.v!==1||!["offer","answer"].includes(signal.type)||signal.type!==type)
       throw Error("NOT_READY");
-    preparedShare=encodeSignal(raw);
+    preparedShare=await encodeSignal(raw);
     $("ezeroGeneratedLink").value=preparedShare;
     $("ezeroShareInvite").hidden=false;
     $("ezeroShareInvite").disabled=false;
@@ -130,8 +174,8 @@ $("ezeroPrepareInvite").addEventListener("click",()=>{
   document.addEventListener("ezero:signal-ready",done,{once:true});
   setTimeout(done,20000);
 });
-function showIncoming(link){
-  const data=parseInviteLink(link);
+async function showIncoming(link){
+  const data=await parseInviteLink(link);
   pendingSigned=data;
   $("ezeroIncomingInvite").hidden=false;
   $("ezeroIncomingHeading").textContent=t("incomingTitle");
@@ -163,8 +207,8 @@ $("ezeroDeclineInvite").addEventListener("click",()=>{
 $("ezeroPasteLink").addEventListener("input",()=>{
   $("ezeroLoadLink").disabled=!$("ezeroPasteLink").value.trim();
 });
-$("ezeroLoadLink").addEventListener("click",()=>{
-  try{showIncoming($("ezeroPasteLink").value.trim());}
+$("ezeroLoadLink").addEventListener("click",async()=>{
+  try{await showIncoming($("ezeroPasteLink").value.trim());}
   catch(error){inviteFailure(error);}
 });
 $("ezeroShareInvite").addEventListener("click",async()=>{
@@ -184,12 +228,12 @@ $("ezeroCopyLink").addEventListener("click",async()=>{
   try{await navigator.clipboard.writeText(preparedShare);wizardStatus("inviteCopied");}
   catch(_){wizardStatus("inviteNoShare");}
 });
-function receiveHash(){
-  if(!location.hash.startsWith("#e="))return;
+async function receiveHash(){
+  if(!location.hash.startsWith("#e=")&&!location.hash.startsWith("#e2="))return;
   const link=location.href;
   const sanitized=new URL(location.href);sanitized.hash="";
   try{history.replaceState(null,"",sanitized.href);}catch(_){}
-  try{showIncoming(link);}catch(error){inviteFailure(error);}
+  try{await showIncoming(link);}catch(error){inviteFailure(error);}
 }
 receiveHash();
 // Opening a same-page invite changes only the fragment and will not reload
