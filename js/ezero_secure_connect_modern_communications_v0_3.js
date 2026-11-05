@@ -160,17 +160,57 @@ async function readyToShare(type){
     const signal=JSON.parse(raw);
     if(signal?.v!==1||!["offer","answer"].includes(signal.type)||signal.type!==type)
       throw Error("NOT_READY");
+    // Signed legacy links remain available as manual fallback. The private
+    // encrypted short link requires an explicit user tap/consent.
     preparedShare=await encodeSignal(raw);
     $("ezeroGeneratedLink").value=preparedShare;
+    $("ezeroShortLinkControls").hidden=false;
+    $("ezeroMakeShortLink").disabled=!$("ezeroShortLinkConsent").checked;
+    $("ezeroShortLinkStatus").textContent="مختصر لنک بنانے کے لیے رضامندی دیں؛ اصل کوڈ صرف اسی فون پر encrypted ہوگا۔";
     $("ezeroShareInvite").hidden=false;
     $("ezeroShareInvite").disabled=false;
     wizardStatus(type==="offer"?"inviteReady":"answerReadyWizard");
   }catch(_){wizardStatus("inviteInvalid");}
 }
 document.addEventListener("ezero:signal-ready",e=>readyToShare(e.detail?.type));
+const shortLabel={
+ ur:{ready:"✓ مختصر محفوظ لنک تیار ہے۔ اسے دوست کو شیئر کریں۔",working:"خفیہ کردہ مختصر لنک تیار ہو رہا ہے۔",
+   fail:"مختصر لنک اس وقت دستیاب نہیں۔ پرانا دعوتی طریقہ برقرار ہے۔",consent:"پہلے مختصر لنک کے لیے رضامندی دیں۔"},
+ en:{ready:"✓ Private short link is ready. Share it with your friend.",working:"Encrypting and preparing short link…",
+   fail:"Short-link server unavailable; the old invite method still works.",consent:"Approve encrypted short-link creation first."},
+ ar:{ready:"✓ الرابط المختصر المشفر جاهز. شاركه مع صديقك.",working:"جارٍ تشفير الرابط المختصر…",
+   fail:"الخادم المختصر غير متاح؛ طريقة الدعوة السابقة ما زالت تعمل.",consent:"وافق على إنشاء الرابط المشفر أولًا."}
+};
+const shortT=k=>(shortLabel[document.documentElement.lang]||shortLabel.ur)[k];
+$("ezeroShortLinkConsent").addEventListener("change",()=>{
+ $("ezeroMakeShortLink").disabled=!$("ezeroShortLinkConsent").checked;
+});
+$("ezeroMakeShortLink").addEventListener("click",async()=>{
+ if(!$("ezeroShortLinkConsent").checked){
+   $("ezeroShortLinkStatus").textContent=shortT("consent");return;
+ }
+ const signed=$("localSignal").value;
+ if(!signed||!window.EZERO_PRIVATE_SHORT_INVITES){
+   $("ezeroShortLinkStatus").textContent=shortT("fail");return;
+ }
+ const btn=$("ezeroMakeShortLink");btn.disabled=true;
+ $("ezeroShortLinkStatus").textContent=shortT("working");
+ try{
+   const link=await window.EZERO_PRIVATE_SHORT_INVITES.create(signed);
+   preparedShare=link;
+   $("ezeroGeneratedLink").value=link;
+   $("ezeroShortLinkStatus").textContent=shortT("ready");
+   $("ezeroShareInvite").hidden=false;
+   $("ezeroShareInvite").disabled=false;
+ }catch(_){$("ezeroShortLinkStatus").textContent=shortT("fail");}
+ finally{btn.disabled=!$("ezeroShortLinkConsent").checked;}
+});
 $("ezeroPrepareInvite").addEventListener("click",()=>{
   document.dispatchEvent(new CustomEvent("ezero:call-intent",{detail:{direction:"outgoing",kind:current==="video"?"video":"audio"}}));
   preparedShare=null;
+  $("ezeroShortLinkControls").hidden=true;
+  $("ezeroShortLinkConsent").checked=false;
+  $("ezeroMakeShortLink").disabled=true;
   $("ezeroShareInvite").hidden=true;
   $("ezeroShareInvite").disabled=true;
   $("ezeroGeneratedFallback").hidden=true;
@@ -241,11 +281,19 @@ $("ezeroCopyLink").addEventListener("click",async()=>{
   catch(_){wizardStatus("inviteNoShare");}
 });
 async function receiveHash(){
-  if(!location.hash.startsWith("#e=")&&!location.hash.startsWith("#e2="))return;
-  const link=location.href;
+  const short=location.hash.startsWith("#s=");
+  if(!short&&!location.hash.startsWith("#e=")&&!location.hash.startsWith("#e2="))return;
+  const link=location.href,fragment=location.hash;
   const sanitized=new URL(location.href);sanitized.hash="";
   try{history.replaceState(null,"",sanitized.href);}catch(_){}
-  try{await showIncoming(link);}catch(error){inviteFailure(error);}
+  try{
+    if(short){
+      const raw=await window.EZERO_PRIVATE_SHORT_INVITES.resolve(fragment);
+      const rebuilt=await encodeSignal(raw);
+      await showIncoming(rebuilt);
+    }else await showIncoming(link);
+    $("ezeroIncomingInvite").scrollIntoView({block:"start",behavior:"smooth"});
+  }catch(error){inviteFailure(error);}
 }
 receiveHash();
 // Opening a same-page invite changes only the fragment and will not reload
