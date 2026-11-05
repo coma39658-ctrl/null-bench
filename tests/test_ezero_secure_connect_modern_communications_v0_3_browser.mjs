@@ -24,20 +24,34 @@ async function phone(name,mode="audio"){
 }
 async function offerAndAnswer(a,b){
   await a.locator("#modernConnect").click();
-  await b.locator("#modernConnect").click();
   assert.equal(await a.locator("#ezeroCallSetupSlot").isVisible(),true);
-  await a.locator("#guidedOffer").click();
-  await a.waitForFunction(()=>document.querySelector("#localSignal")?.value.length>500);
-  const offer=await a.locator("#localSignal").inputValue();
-  await b.locator("#guidedIncoming").fill(offer);
-  await b.locator("#guidedContinue").click();
-  await b.waitForFunction(()=>document.querySelector("#localSignal")?.value.includes('"type":"answer"'));
-  const answer=await b.locator("#localSignal").inputValue();
-  await a.locator("#guidedIncoming").fill(answer);
-  await a.locator("#guidedContinue").click();
+  assert.equal(await a.locator("#guidedOffer").isVisible(),false,
+    "Original technical copy/paste must remain hidden");
+  await a.locator("#ezeroPrepareInvite").click();
+  await a.waitForFunction(()=>document.querySelector("#ezeroGeneratedLink")?.value.includes("#e="),{timeout:30000});
+  const offer=await a.locator("#ezeroGeneratedLink").inputValue();
+  assert.match(offer,/^http:\/\/127\.0\.0\.1:8769\/ezero_secure_connect_communications_v0_3\.html\?/);
+  assert.match(offer,/#e=/);
+  await b.goto(offer,{waitUntil:"domcontentloaded"});
+  await b.locator("#ezeroIncomingInvite").waitFor({state:"visible",timeout:30000});
+  assert.equal(await b.locator("#ezeroPrepareInvite").isVisible(),true);
+  assert.equal(await b.locator("#guidedContinue").isVisible(),false);
+  assert.equal(await b.evaluate(()=>window.__mediaCalls.length),0,
+    "Opening an invite alone must not activate camera/mic");
+  await b.locator("#ezeroAcceptInvite").click();
+  await b.waitForFunction(()=>document.querySelector("#ezeroGeneratedLink")?.value.includes("#e="),{timeout:30000});
+  const answer=await b.locator("#ezeroGeneratedLink").inputValue();
+  assert.notEqual(answer,offer);
+  await a.locator("#ezeroLinkFallback").evaluate(e=>e.open=true);
+  await a.locator("#ezeroPasteLink").fill(answer);
+  await a.locator("#ezeroLoadLink").click();
+  await a.locator("#ezeroIncomingInvite").waitFor({state:"visible",timeout:30000});
+  assert.equal(await a.locator("#ezeroAcceptInvite").isVisible(),true);
+  await a.locator("#ezeroAcceptInvite").click();
   await Promise.all([a,b].map(p=>p.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===true,{timeout:30000})));
 }
+
 try{
   const a=await phone("A"),b=await phone("B");
   assert.equal(await a.locator("#modernCallPanel").isVisible(),true);
@@ -45,6 +59,21 @@ try{
   assert.equal(await a.locator("#ezeroCallSetupSlot").isHidden(),true);
   assert.equal(await a.locator("#modernConnect").isVisible(),true);
   assert.equal(await a.locator("#secureAdvanced").isHidden(),true);
+  await a.locator('[data-modern-select="chat"]').click();
+  const chatPattern=await a.locator("#modernChatPanel").evaluate(el=>({
+    image:getComputedStyle(el,"::before").backgroundImage,
+    pointer:getComputedStyle(el,"::before").pointerEvents,
+    repeat:getComputedStyle(el,"::before").backgroundRepeat,
+    width:document.documentElement.scrollWidth,
+    innerWidth:window.innerWidth
+  }));
+  assert.match(chatPattern.image,/ezero_secure_chat_cosmic_pattern_v0_1\.svg/,
+    "Original E-ZERO cosmic icons appear only behind chat");
+  assert.equal(chatPattern.pointer,"none");
+  assert.equal(chatPattern.repeat,"repeat");
+  assert.ok(chatPattern.width<=chatPattern.innerWidth+1,
+    "Cosmic pattern must not cause horizontal overflow");
+  await a.locator('[data-modern-select="audio"]').click();
   assert.equal(await a.evaluate(()=>window.__mediaCalls.length),0);
   for(const mode of ["audio","video","voice","chat"])
     assert.equal(await a.locator('[data-modern-select="'+mode+'"]').isVisible(),true);
