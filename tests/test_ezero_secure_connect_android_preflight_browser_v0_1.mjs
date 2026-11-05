@@ -39,6 +39,7 @@ try{
  await page.waitForFunction(()=>document.querySelector("#androidReadinessRun")&&!document.querySelector("#androidReadinessRun").disabled);
  assert.equal(probeCount,0,"No probe before user click");
  assert.equal(await page.evaluate(()=>window.__micRequests),0);
+ await page.locator("#oneQrAdvanced").evaluate(el=>el.open=true);
  await page.locator("#androidReadiness").evaluate(el=>el.open=true);
  await page.locator("#androidReadinessRun").click();
  await page.waitForFunction(()=>document.querySelector("#androidReadinessDetail")?.dataset.networkVersion==="current");
