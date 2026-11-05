@@ -36,4 +36,23 @@ assert.match(main,/ezeroAcceptInvite.*?addEventListener\("click"/,
   "Keep explicit receiver acceptance");
 assert.match(main,/await showIncoming\(link\)/,
   "Opening call link must only show invitation, never turn on media");
+
+const communications=fs.readFileSync("ezero_secure_connect_communications_v0_3.html","utf8");
+const quick=fs.readFileSync("js/ezero_secure_connect_quick_nav_v0_1.js","utf8");
+const quickCss=fs.readFileSync("css/ezero_secure_connect_quick_nav_v0_1.css","utf8");
+new vm.Script(quick);
+for(const id of ["ezeroQuickProfile","ezeroQuickPaste","ezeroQuickIdentity"]){
+  assert.ok(communications.includes('id="'+id+'"'),"Missing quick access button "+id);
+}
+for(const src of ["js/ezero_secure_connect_quick_nav_v0_1.js",
+   "css/ezero_secure_connect_quick_nav_v0_1.css"]){
+  assert.ok(communications.includes(src),"Quick navigation not loaded: "+src);
+}
+assert.match(quick,/profile\.open=true/);
+assert.match(quick,/setup\.hidden=false/);
+assert.match(quick,/fallback\.open=true/);
+assert.doesNotMatch(quick,/getUserMedia|RTCPeerConnection|WebSocket|fetch\(|navigator\.share|eval\(/);
+assert.match(quickCss,/ezero-quick-actions/);
+
 console.log("SIGNED_CALL_INVITE_LANDING_RECOVERY_NO_AUTO_MEDIA: PASS");
+console.log("ONE_TAP_PROFILE_AND_SAFE_PASTE_NAV: PASS");
