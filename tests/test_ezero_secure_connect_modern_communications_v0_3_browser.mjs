@@ -124,6 +124,9 @@ try{
   assert.match(await a.locator('[data-modern="voice"]').innerText(),/رسالة صوتية/);
   await a.locator("#language").selectOption("ur");
   console.log("FOUR_VISIBLE_MODE_CONTROLS_AND_THREE_LANGUAGES_NO_AUTO_MEDIA: PASS");
+  // The selected-mode border animates for 160ms; inspect its settled color.
+  await a.waitForFunction(()=>getComputedStyle(
+    document.querySelector('[data-modern-select="voice"]')).borderTopColor==="rgb(25, 131, 78)");
   const selectedGreen=await a.locator('[data-modern-select="voice"]').evaluate(
     el=>getComputedStyle(el).borderTopColor);
   assert.equal(selectedGreen,"rgb(25, 131, 78)",
