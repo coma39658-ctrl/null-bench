@@ -100,7 +100,7 @@ let roomId=null,secret=null,auth=null,issued=null,proof=null,secretKey=null,ws=n
 let ready=false, link="",closing=false,connecting=false,creating=false;
 let qrMode="",qrPending=false,hostAccepted=false,guestHelloSent=false,qrRequestVerified=false;
 const oneQrText={
- ur:{title:"📞 آسان کال — صرف ایک QR",explain:"ایک فون QR دکھائے، دوسرا اسے اسکین کرے، پھر کال قبول کریں۔ کوئی لمبا کوڈ نہیں۔",
+ ur:{advanced:"⚙ مزید اختیارات اور تکنیکی آزمائشیں (اختیاری)",privacy:"🔒 رازداری اور اجازت",cameraHelp:"دوسرے فون کا کال QR کیمرے کے سامنے رکھیں؛ کیمرہ صرف آپ کے اسکین دبانے پر کھلے گا۔",cancelScan:"✕ اسکین بند کریں",title:"📞 آسان کال — صرف ایک QR",explain:"ایک فون QR دکھائے، دوسرا اسے اسکین کرے، پھر کال قبول کریں۔ کوئی لمبا کوڈ نہیں۔",
  show:"📱 میرا کال QR دکھائیں",scan:"📷 دوسرے فون کا QR اسکین کریں",accept:"✅ کال قبول کریں",
  decline:"✕ کال مسترد کریں",end:"📴 کال ختم کریں",
  ready:"دوسرا فون QR اسکین کرے؛ کال درخواست اسی کھلے صفحے پر آئے گی۔",
@@ -113,7 +113,7 @@ const oneQrText={
  connected:"✓ اصل WebRTC کنکشن قائم ہوا۔",limit:"پائلٹ کے آٹھ کال روم بھر گئے ہیں؛ بعد میں نیا QR بنائیں۔",
  warning:"یہ QR نجی دعوت ہے۔ صرف قابل اعتماد شخص کو دکھائیں، دوسروں سے یا عوامی گروپ میں شیئر نہ کریں۔"
  },
- en:{title:"📞 Easy call — one QR",explain:"One phone shows QR, the other scans, then the recipient accepts. No long codes.",
+ en:{advanced:"⚙ More options and manual tests (optional)",privacy:"🔒 Privacy and permissions",cameraHelp:"Point this camera at the other phone's CALL QR. Camera opens only when you tap Scan.",cancelScan:"✕ Stop scanning",title:"📞 Easy call — one QR",explain:"One phone shows QR, the other scans, then the recipient accepts. No long codes.",
  show:"📱 Show my call QR",scan:"📷 Scan the other phone's QR",accept:"✅ Accept call",decline:"✕ Decline",end:"📴 End call",
  ready:"Show the QR to the other phone; a call request will appear here while this page is open.",
  join:"QR received; verifying signed digital identity.",request:"✓ Signed key checked. This does not prove the person's real-world identity. Accept or decline.",
@@ -121,7 +121,7 @@ const oneQrText={
  invalid:"QR invalid, expired or for another website. Ask for a fresh QR.",connecting:"Connecting to the private room.",
  connected:"✓ Actual WebRTC connection established.",limit:"All eight restricted pilot rooms are occupied.",warning:"This QR is a private invitation. Show only to the intended person."
  },
- ar:{title:"📞 مكالمة سهلة — QR واحد",explain:"يعرض هاتف QR، ويمسحه الآخر ثم يقبل المستلم. لا رموز طويلة.",
+ ar:{advanced:"⚙ خيارات إضافية واختبارات تقنية (اختياري)",privacy:"🔒 الخصوصية والأذونات",cameraHelp:"وجه الكاميرا إلى رمز QR للمكالمة على الهاتف الآخر. تعمل الكاميرا عند الضغط على المسح فقط.",cancelScan:"✕ إيقاف المسح",title:"📞 مكالمة سهلة — QR واحد",explain:"يعرض هاتف QR، ويمسحه الآخر ثم يقبل المستلم. لا رموز طويلة.",
  show:"📱 اعرض QR للمكالمة",scan:"📷 امسح QR الهاتف الآخر",accept:"✅ قبول",decline:"✕ رفض",end:"📴 إنهاء المكالمة",
  ready:"اعرض QR للهاتف الآخر؛ سيظهر طلب الاتصال هنا والصفحة مفتوحة.",join:"تم استلام QR؛ يجري فحص الهوية الموقعة.",
  request:"✓ تم التحقق من المفتاح الرقمي، لا من هوية الشخص الحقيقية. اقبل أو ارفض.",
@@ -484,6 +484,8 @@ document.addEventListener("ezero:call-status",e=>{
 // A scanner click is the only action required on Phone A. It validates the
 // peer's signed ephemeral identity before joining the encrypted room.
 document.addEventListener("ezero:oneqr-scanned",event=>{
+ // The user does not need to locate any of the old manual testing screens.
+ $("oneQrCameraSlot").hidden=true;
  const raw=event.detail?.code;
  try{
   if(typeof raw!=="string"||raw.length>1600)throw Error("BAD_QR_SIZE");
@@ -493,11 +495,24 @@ document.addEventListener("ezero:oneqr-scanned",event=>{
  }catch(_){qStatus("invalid");}
 });
 $("oneQrShow").addEventListener("click",()=>{if(!ready&&!creating)$("roomCreate").click();});
+// Reuse the existing camera-only QR scanner without duplicating parser,
+// camera permissions, timeout or identity verification logic. Moving an
+// existing DOM video node preserves its event listeners and security guards.
+const cameraSlot=$("oneQrCameraSlot");
+const cameraBody=$("oneQrCameraLive");
+cameraBody.append($("scanVideo"),$("qrScanStatus"));
+$("oneQrPrivacy").addEventListener("click",()=>$("openPolicy").click());
+$("oneQrCancelScan").addEventListener("click",()=>{
+ $("stopScan").click();
+ cameraSlot.hidden=true;
+});
+$("scanQR").addEventListener("click",()=>{cameraSlot.hidden=false;});
 $("oneQrScan").addEventListener("click",()=>{
  if(ready||creating||connecting){qStatus("invalid");return;}
  $("chooseNearby")?.click();
- $("scanQR")?.click();
- $("scanQR")?.scrollIntoView?.({block:"center",behavior:"smooth"});
+ cameraSlot.hidden=false;
+ $("scanQR").click();
+ cameraSlot.scrollIntoView?.({block:"center",behavior:"smooth"});
 });
 $("oneQrAccept").addEventListener("click",()=>{if(!$("roomAccept").disabled)$("roomAccept").click();});
 $("oneQrDecline").addEventListener("click",()=>{if(!$("roomDecline").disabled)$("roomDecline").click();});
