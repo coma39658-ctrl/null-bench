@@ -473,11 +473,33 @@ document.addEventListener("ezero:signal-ready",async event=>{
  }catch(_){st("encryptionError");closeRoom(true);}
 });
 document.addEventListener("ezero:call-status",e=>{
- if(e.detail?.stage==="connected"&&ready)st("connected");
- if(["signalInvalid","fingerprintMismatch","iceNoRoute","micDenied"].includes(e.detail?.stage)&&ready)
-   st("failed");
+ if(e.detail?.stage==="connected"&&ready){st("connected");qStatus("connected");clearQr();}
+ if(["signalInvalid","fingerprintMismatch","iceNoRoute","micDenied"].includes(e.detail?.stage)&&ready){
+   st("failed");qStatus("unavailable");
+ }
 });
-window.addEventListener("pagehide",()=>{try{ws?.close(1000,"Page closed");}catch(_){}});
+// A scanner click is the only action required on Phone A. It validates the
+// peer's signed ephemeral identity before joining the encrypted room.
+document.addEventListener("ezero:oneqr-scanned",event=>{
+ const raw=event.detail?.code;
+ try{
+  if(typeof raw!=="string"||raw.length>1600)throw Error("BAD_QR_SIZE");
+  const invite=parseOneQr(raw);
+  if(!invite.identity)throw Error("SIGNED_IDENTITY_REQUIRED");
+  void applyInvite(invite,true);
+ }catch(_){qStatus("invalid");}
+});
+$("oneQrShow").addEventListener("click",()=>{if(!ready&&!creating)$("roomCreate").click();});
+$("oneQrScan").addEventListener("click",()=>{
+ if(ready||creating||connecting){qStatus("invalid");return;}
+ $("chooseNearby")?.click();
+ $("scanQR")?.click();
+ $("scanQR")?.scrollIntoView?.({block:"center",behavior:"smooth"});
+});
+$("oneQrAccept").addEventListener("click",()=>{if(!$("roomAccept").disabled)$("roomAccept").click();});
+$("oneQrDecline").addEventListener("click",()=>{if(!$("roomDecline").disabled)$("roomDecline").click();});
+$("oneQrEnd").addEventListener("click",()=>{if(!$("roomEnd").disabled)$("roomEnd").click();});
+window.addEventListener("pagehide",()=>{try{ws?.close(1000,"Page closed");}catch(_){}clearQr();});
 $("language").addEventListener("change",draw);
 readLink();draw();
 })();
