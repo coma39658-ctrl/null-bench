@@ -1,5 +1,5 @@
 /* E-ZERO public Secure Connect: standalone, read-only, QR-only identity demo.
- * Browser-local ECDSA P-256 + SHA-256; no WebRTC, signaling, fetch, storage,
+ * Browser-local ECDSA P-256 + SHA-256; no WebRTC, call signaling,
  * analytics, advertising, upload, microphone, automatic pairing or call.
  */
 (() => {
@@ -99,7 +99,7 @@
     const nonce=hex(bytes(12)),expiry=Date.now()+600000;
     const signature=toBase64(await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},keys.privateKey,
       textEncoder.encode(payload(pub,fp,nonce,expiry))));
-    return {fp,token:["EZERO1",pub,fp,nonce,String(expiry),signature].join(".")};
+    return {fp,token:["EZERO1",pub,fp,nonce,String(expiry),signature].join("."),keys};
   }
   function drawQr(token){
     $qr.replaceChildren();
@@ -124,7 +124,7 @@
       textEncoder.encode(payload(p[1],p[2],p[3],expiry)));
     if(!good)throw Error("INVALID");
     if(p[2]===identity?.fp)throw Error("SELF");
-    return true;
+    return {fingerprint:p[2],publicKey:pubKey};
   }
   function stopCamera(show=false){
     ++generation;
@@ -194,14 +194,24 @@
   });
   document.addEventListener("visibilitychange",()=>{if(document.hidden)stopCamera();});
   window.addEventListener("pagehide",()=>{stopCamera();identity=null;$qr.replaceChildren();});
-  $("shareAppLink").addEventListener("click",async e=>{
-    e.preventDefault();
-    const url=new URL("./ezero_secure_connect_live_p2p_v0_1.html",location.href).href;
-    if(typeof navigator.share==="function"){
-      try{await navigator.share({title:"E-ZERO Secure Connect",url});return;}
-      catch(e){if(e?.name==="AbortError")return;}
+  // Narrow boundary for a separate user-controlled remote-invite UI.
+  // No private CryptoKey is exported. No general-purpose arbitrary signing API.
+  async function publicIdentity(){
+    if(!identity||Number(identity.token.split(".")[4])<Date.now()){
+      identity=await newIdentity();drawQr(identity.token);
     }
-    try{await navigator.clipboard.writeText(url);showState("shareCopied","success");}
-    catch(_){showState("shareFail","warning");}
+    return Object.freeze({token:identity.token,fp:identity.fp});
+  }
+  async function signedRemoteReply(id,requesterFp){
+    if(!/^[a-f0-9]{32}$/.test(id)||!/^[a-f0-9]{64}$/.test(requesterFp))throw Error("INVALID_REQUEST");
+    const current=await publicIdentity();
+    const data=["E-ZERO-REPLY-1",location.origin,id,requesterFp,current.fp].join("|");
+    const sig=toBase64(await crypto.subtle.sign(
+      {name:"ECDSA",hash:"SHA-256"},identity.keys.privateKey,textEncoder.encode(data)));
+    return Object.freeze({token:current.token,sig});
+  }
+  window.EZERO_PUBLIC_QR_CORE=Object.freeze({
+    identity:publicIdentity,verifySignedQr:verify,signBoundReply:signedRemoteReply
   });
+
 })();
