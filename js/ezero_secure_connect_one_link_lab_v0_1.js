@@ -191,25 +191,100 @@ async function decrypt(blob){
  const raw=await crypto.subtle.decrypt({name:"AES-GCM",iv:packed.slice(0,12)},secretKey,packed.slice(12));
  const plain=new TextDecoder("utf-8",{fatal:true}).decode(raw);
  const envelope=JSON.parse(plain);
- if(envelope?.v!==1||!["offer","answer"].includes(envelope.type)||typeof envelope.sdp!=="string")
-   throw Error("SIGNAL_INVALID");
+ if(envelope?.v!==1)throw Error("SIGNAL_INVALID");
+ if(envelope.type==="hello"){
+   if(typeof envelope.identity!=="string"||!/^EZERO1\./.test(envelope.identity)||
+      envelope.identity.length>1300)throw Error("IDENTITY_INVALID");
+ }else if(!["offer","answer"].includes(envelope.type)||
+          typeof envelope.sdp!=="string")throw Error("SIGNAL_INVALID");
  return plain;
+}
+function localSignedIdentity(){
+ const token=$("myDigitalId")?.value||"";
+ return /^EZERO1\.[A-Za-z0-9._-]{100,1000}$/.test(token)?token:null;
+}
+async function waitLocalIdentity(){
+ const ready=localSignedIdentity();if(ready)return ready;
+ return new Promise((resolve,reject)=>{
+  const timer=setTimeout(()=>{document.removeEventListener("ezero:identity-ready",done);
+   reject(Error("IDENTITY_NOT_READY"));},7000);
+  function done(){const token=localSignedIdentity();if(!token)return;
+   clearTimeout(timer);document.removeEventListener("ezero:identity-ready",done);resolve(token);}
+  document.addEventListener("ezero:identity-ready",done);
+  done();
+ });
+}
+async function verifySignedIdentity(token){
+ if(!/^EZERO1\.[A-Za-z0-9._-]{100,1000}$/.test(token))return false;
+ return new Promise(resolve=>{
+  const requestId=hex(crypto.getRandomValues(new Uint8Array(16)));
+  let finished=false;
+  const finish=ok=>{if(finished)return;finished=true;clearTimeout(timer);
+   document.removeEventListener("ezero:oneqr-identity-result",got);resolve(ok);};
+  const timer=setTimeout(()=>finish(false),6500);
+  const got=e=>{if(e.detail?.requestId===requestId)finish(e.detail.ok===true);};
+  document.addEventListener("ezero:oneqr-identity-result",got);
+  document.dispatchEvent(new CustomEvent("ezero:oneqr-verify-identity",{
+   detail:{requestId,token}
+  }));
+ });
+}
+function parseOneQr(raw){
+ let url;try{url=new URL(raw);}catch(_){throw Error("INVALID_QR");}
+ if(url.origin!==location.origin||url.pathname!==location.pathname||
+    url.search!==location.search)throw Error("INVALID_QR");
+ const m=url.hash.slice(1).match(
+  /^callroom=([a-f0-9]{32})\.([a-f0-9]{64})\.([0-9]{13})\.([a-f0-9]{64})(?:&identity=(EZERO1\.[A-Za-z0-9._-]{100,1000}))?$/);
+ if(!m)throw Error("INVALID_QR");
+ const timestamp=Number(m[3]);
+ if(!Number.isSafeInteger(timestamp)||timestamp+600000<Date.now()||
+    timestamp>Date.now()+30000)throw Error("EXPIRED_QR");
+ return {id:m[1],aes:m[2],issued:timestamp,proof:m[4],identity:m[5]||null};
+}
+function clearQr(){
+ $("oneQrVisual").hidden=true;
+ $("oneQrCode").replaceChildren();
+}
+function drawQr(){
+ if(qrMode!=="host"||!ready||role!=="caller"||!link)return;
+ try{
+  const qr=window.qrcode(0,"L");
+  qr.addData(link);qr.make();
+  const el=$("oneQrCode");
+  el.innerHTML=qr.createSvgTag(3,4);
+  el.querySelector("svg")?.setAttribute("aria-label","One-time private E-ZERO call QR");
+  $("oneQrVisual").hidden=false;
+  qStatus("ready");
+ }catch(_){qStatus("invalid");clearQr();}
+}
+async function applyInvite(inv,scanned){
+ if(ready||connecting||creating||qrMode)throw Error("ROOM_BUSY");
+ creating=true;draw();
+ try{
+  const token=inv.identity;
+  if(!token||!await verifySignedIdentity(token))throw Error("SIGNATURE_REQUIRED");
+  await waitLocalIdentity();
+  roomId=inv.id;issued=inv.issued;proof=inv.proof;
+  await useSecret(inv.aes);secret=null;
+  qrMode="guest";
+  qStatus("join");
+  if(scanned)connect(); // Scan is the user's explicit one-tap join.
+  else draw();
+ }catch(error){
+  qrMode="";roomId=null;auth=null;proof=null;issued=null;
+  secret=null;secretKey=null;qStatus("invalid");
+ }finally{creating=false;draw();}
 }
 function readLink(){
  const raw=location.hash.slice(1);
- // Parsing only; a fragment is never sent to the origin server.
- const m=raw.match(/^callroom=([a-f0-9]{32})\.([a-f0-9]{64})\.([0-9]{13})\.([a-f0-9]{64})$/);
- if(!m)return false;
- roomId=m[1];issued=Number(m[3]);proof=m[4];
- creating=true; // Disable conflicting room creation during async key derivation.
- // Strip the fragment before any asynchronous operation; incoming participants
- // must not expose their bearer link in the UI or browser history.
+ if(!raw.startsWith("callroom="))return false;
+ const full=location.href;
+ // Never persist private URL fragments in browser history or analytics.
  history.replaceState(null,"",location.pathname+location.search);
- $("roomLink").value="";link="";
- st("incoming");draw();
- void useSecret(m[2]).then(()=>{secret=null;}).catch(()=>{
-   roomId=null;auth=null;proof=null;issued=null;secretKey=null;secret=null;st("invalid");
- }).finally(()=>{creating=false;draw();});
+ try{
+  const inv=parseOneQr(full);
+  void applyInvite(inv,false);
+ }catch(_){qStatus("invalid");st("invalid");}
  return true;
 }
 function send(type,body={}){
