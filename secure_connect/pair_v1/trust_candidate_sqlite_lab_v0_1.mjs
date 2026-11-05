@@ -39,6 +39,18 @@ export class PairV1TrustCandidateSqliteLab{
     recorded_at INTEGER NOT NULL,
     state TEXT NOT NULL CHECK(state='EVIDENCE_PRESENT_NO_TRUST')
   )`);
+  // This separate, stricter evidence ledger ONLY records that a server-
+  // issued QR was consumed atomically with a full (non-authorizing) join.
+  // The old candidate ledger can never substitute for this QR ledger.
+  this.#s.exec(`CREATE TABLE IF NOT EXISTS ezero_pair_v1_qr_consumed_evidence_lab (
+    pair_sid TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL,
+    auth_session_id TEXT NOT NULL UNIQUE,
+    a_device_id TEXT NOT NULL,
+    b_device_id TEXT NOT NULL,
+    consumed_at INTEGER NOT NULL,
+    state TEXT NOT NULL CHECK(state='QR_BURNED_NO_TRUST')
+  )`);
  }
  #check({accountId,pairSid,authSessionId,aDeviceId,bDeviceId},now){
   const account=this.#s.exec(`SELECT account_id,status FROM
@@ -112,6 +124,100 @@ export class PairV1TrustCandidateSqliteLab{
      answer(false,"CANDIDATE_ALREADY_RECORDED");
    });
   }catch(_){return answer(false,"CANDIDATE_LEDGER_UNAVAILABLE");}
+ }
+ /*
+  * A deliberately separate, HIGHER assurance evidence route. Never call this
+  * from a browser body: the preverified account, fresh consumed Passkey,
+  * checked P-256 approval ledger and staged device key records MUST already
+  * exist in server-owned SQLite on this *same* Durable Object. The QR ledger
+  * is minted by a trusted server; neither its nonce nor "verified" boolean
+  * is accepted from a browser.
+  *
+  * Both the single-use QR consume and durable evidence record are ONE SQLite
+  * transaction. Any collision or database failure rolls back both. This
+  * explicitly DOES NOT activate a Trusted Device or authorize a call.
+  */
+ recordEvidenceAndConsumeEnrollmentQrLab({
+  accountId,pairSid,authSessionId,aDeviceId,bDeviceId
+ }={},now=Date.now()){
+  if(!ID.test(accountId||"")||!SID.test(pairSid||"")||
+     !SID.test(authSessionId||"")||!ID.test(aDeviceId||"")||
+     !ID.test(bDeviceId||"")||aDeviceId===bDeviceId||
+     !Number.isSafeInteger(now)||now<=0)
+   return answer(false,"ENROLLMENT_CONTEXT_INVALID");
+  try{
+   return this.#tx(()=>{
+    const ctx={accountId,pairSid,authSessionId,aDeviceId,bDeviceId};
+    const reason=this.#check(ctx,now);
+    if(reason)return answer(false,reason);
+    // Bind the QR to precisely the same signed session transcript AND the
+    // same registered credential that verified the WebAuthn assertion.
+    const proof=this.#s.exec(`SELECT nonce_digest,issued,expires
+      FROM ezero_pair_v1_signed_approvals
+      WHERE sid=? AND account_id=? AND stage='BOTH_SIGNED_UNAUTHORIZED'`,
+      pairSid,accountId).toArray()[0];
+    const webauthn=this.#s.exec(`SELECT credential_id,consumed_at
+      FROM ezero_v1_auth_pending_lab WHERE session_id=?
+      AND account_id=? AND purpose='WEBAUTHN_AUTHENTICATE'`,
+      authSessionId,accountId).toArray()[0];
+    const qr=this.#s.exec(`SELECT nonce_digest,credential_id,issued,expires,
+      consumed_at,purpose FROM ezero_pair_v1_challenges
+      WHERE session_id=? AND account_id=?`,
+      pairSid,accountId).toArray()[0];
+    if(!proof||!webauthn||!qr||qr.purpose!=="PAIR_OR_RECONNECT"||
+       qr.consumed_at!==null||qr.nonce_digest!==proof.nonce_digest||
+       qr.credential_id!==webauthn.credential_id||
+       qr.issued!==proof.issued||qr.expires!==proof.expires||
+       qr.expires<=now||qr.issued>now)
+     return answer(false,"SERVER_ENROLLMENT_QR_INVALID_OR_REPLAYED");
+    const updated=this.#s.exec(`UPDATE ezero_pair_v1_challenges
+      SET consumed_at=? WHERE session_id=? AND account_id=?
+      AND credential_id=? AND nonce_digest=? AND purpose='PAIR_OR_RECONNECT'
+      AND issued=? AND expires=? AND consumed_at IS NULL
+      AND issued<=? AND expires>?
+      RETURNING session_id`,
+      now,pairSid,accountId,webauthn.credential_id,
+      proof.nonce_digest,proof.issued,proof.expires,now,now).toArray();
+    if(updated.length!==1)throw Error("QR_ALREADY_CONSUMED");
+    // Never use INSERT OR IGNORE here: silently ignoring a duplicate
+    // after burning the QR would create a partial success.
+    const saved=this.#s.exec(`INSERT INTO
+      ezero_pair_v1_qr_consumed_evidence_lab
+      (pair_sid,account_id,auth_session_id,a_device_id,b_device_id,
+       consumed_at,state) VALUES(?,?,?,?,?,?,'QR_BURNED_NO_TRUST')
+      RETURNING pair_sid`,pairSid,accountId,authSessionId,
+      aDeviceId,bDeviceId,now).toArray();
+    if(saved.length!==1)throw Error("EVIDENCE_WRITE_FAILED");
+    return answer(true,"ENROLLMENT_QR_CONSUMED_EVIDENCE_ONLY",{
+      stage:"QR_BURNED_NO_TRUST",pairQrConsumed:true});
+   });
+  }catch(_){return answer(false,"ENROLLMENT_ATOMIC_COMMIT_REJECTED");}
+ }
+ inspectConsumedEnrollmentQrLab({accountId,pairSid}={},now=Date.now()){
+  if(!ID.test(accountId||"")||!SID.test(pairSid||"")||
+     !Number.isSafeInteger(now)||now<=0)
+   return answer(false,"ENROLLMENT_CONTEXT_INVALID");
+  try{
+   return this.#tx(()=>{
+    const row=this.#s.exec(`SELECT * FROM
+     ezero_pair_v1_qr_consumed_evidence_lab
+     WHERE pair_sid=? AND account_id=?`,
+     pairSid,accountId).toArray()[0];
+    if(!row)return answer(false,"ENROLLMENT_EVIDENCE_NOT_FOUND");
+    const reason=this.#check({
+     accountId,pairSid,authSessionId:row.auth_session_id,
+     aDeviceId:row.a_device_id,bDeviceId:row.b_device_id
+    },now);
+    if(reason)return answer(false,reason);
+    const qr=this.#s.exec(`SELECT consumed_at FROM
+      ezero_pair_v1_challenges WHERE session_id=? AND account_id=?`,
+      pairSid,accountId).toArray()[0];
+    if(!qr||qr.consumed_at!==row.consumed_at)
+     return answer(false,"QR_CONSUMPTION_AUDIT_MISMATCH");
+    return answer(true,"ENROLLMENT_EVIDENCE_PRESENT_NO_AUTHORITY",{
+     stage:row.state,pairQrConsumed:true});
+   });
+  }catch(_){return answer(false,"ENROLLMENT_LEDGER_UNAVAILABLE");}
  }
  inspectCandidate({accountId,pairSid}={},now=Date.now()){
   if(!ID.test(accountId||"")||!SID.test(pairSid||"")||
