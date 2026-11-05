@@ -12,6 +12,14 @@ import {PairV1SqliteAtomicPasskeyFinishLab}
  from "../secure_connect/pair_v1/passkey_atomic_finish_sqlite_lab_v0_1.mjs";
 import {PairV1SqliteAtomicPasskeyRegistrationLab}
  from "../secure_connect/pair_v1/passkey_registration_atomic_sqlite_lab_v0_1.mjs";
+import {PairV1TrustCandidateSqliteLab}
+ from "../secure_connect/pair_v1/trust_candidate_sqlite_lab_v0_1.mjs";
+import {PairV1PendingDeviceRegistryLab}
+ from "../secure_connect/pair_v1/trusted_device_sqlite_lab_v0_1.mjs";
+import {PairV1MutualApprovalSqliteLab}
+ from "../secure_connect/pair_v1/mutual_approval_sqlite_lab_v0_1.mjs";
+import {pairApprovalText}
+ from "../secure_connect/pair_v1/pair_policy_v1.mjs";
 import {makeRegistrationOptionsLab,verifyRegistrationResponseLab}
  from "../secure_connect/pair_v1/webauthn_registration_library_lab_v0_1.mjs";
 import {makeAuthenticationOptionsLabV1,verifyAuthenticationResponseLabV1}
@@ -418,6 +426,114 @@ try{
   response:await assertion({challenge:newLogin.options.challenge,counter:3})
  },now+11)).ok,false,"A consumed challenge cannot authenticate again");
  console.log("PASSKEY_SQLITE_PERSISTED_REGISTRATION_TO_REAL_COSE_LOGIN: PASS");
+
+ // Correlate the VERIFIED AND DURABLY CONSUMED passkey with TWO
+ // real separately signed device approvals and the pending registry.
+ // This still cannot grant Trusted Device, login cookie or call authority.
+ const deviceDB=new PairV1PendingDeviceRegistryLab(store(registrationDB));
+ const approvalDB=new PairV1MutualApprovalSqliteLab(store(registrationDB));
+ const candidateDB=new PairV1TrustCandidateSqliteLab(store(registrationDB));
+ const aDev=await crypto.subtle.generateKey(
+  {name:"ECDSA",namedCurve:"P-256"},false,["sign","verify"]);
+ const bDev=await crypto.subtle.generateKey(
+  {name:"ECDSA",namedCurve:"P-256"},false,["sign","verify"]);
+ const aPub=u8(await crypto.subtle.exportKey("spki",aDev.publicKey));
+ const bPub=u8(await crypto.subtle.exportKey("spki",bDev.publicKey));
+ const aHash=Array.from(await hash(aPub),x=>x.toString(16).padStart(2,"0")).join("");
+ const bHash=Array.from(await hash(bPub),x=>x.toString(16).padStart(2,"0")).join("");
+ const aDeviceId="device_phone_alpha_01",bDeviceId="device_phone_beta_01";
+ assert.equal((await deviceDB.stagePendingDevice({
+  accountId,deviceId:aDeviceId,publicSpki:b64(aPub),keyHash:aHash
+ },now+11)).ok,true);
+ assert.equal((await deviceDB.stagePendingDevice({
+  accountId,deviceId:bDeviceId,publicSpki:b64(bPub),keyHash:bHash
+ },now+11)).ok,true);
+ const pairSid="d".repeat(32),pairNonce="f".repeat(32);
+ const pairExpires=now+80_000;
+ const pairNonceDigest=Array.from(await hash(te.encode(pairNonce)),
+  x=>x.toString(16).padStart(2,"0")).join("");
+ assert.equal(approvalDB.createSession({
+  sid:pairSid,nonceDigest:pairNonceDigest,accountId,
+  aKeyHash:aHash,bKeyHash:bHash,issued:now,expires:pairExpires,
+  purpose:"PAIR"
+ },now+11).ok,true);
+ const pairCtx={
+  accountId,pairSid,authSessionId:newLogin.sessionId,aDeviceId,bDeviceId
+ };
+ assert.equal(candidateDB.recordEvidenceCandidate(pairCtx,now+12).code,
+  "DUAL_SIGNED_UNEXPIRED_APPROVALS_REQUIRED",
+  "Single passkey must NEVER authorize pair before both signatures");
+ const aApproval={
+  sid:pairSid,nonce:pairNonce,accountId,selfKeyHash:aHash,
+  peerKeyHash:bHash,expires:pairExpires,decision:"APPROVE"
+ };
+ const bApproval={...aApproval,selfKeyHash:bHash,peerKeyHash:aHash};
+ const signPair=async(key,data)=>u8(await crypto.subtle.sign(
+  {name:"ECDSA",hash:"SHA-256"},key.privateKey,
+  te.encode(pairApprovalText(data))));
+ const badPairSignature=await signPair(bDev,aApproval);
+ const wrongSig=await approvalDB.recordSignedDecision({
+  role:"A",approval:aApproval,signature:badPairSignature,
+  registeredSpki:aPub,registeredDeviceKeyHash:aHash,
+  accountFromRegistry:accountId
+ },now+12);
+ assert.equal(wrongSig.ok,false,"Wrong device cannot approve role A");
+ const aSigned=await approvalDB.recordSignedDecision({
+  role:"A",approval:aApproval,signature:await signPair(aDev,aApproval),
+  registeredSpki:aPub,registeredDeviceKeyHash:aHash,
+  accountFromRegistry:accountId
+ },now+12);
+ assert.equal(aSigned.stage,"A_SIGNED");
+ assert.equal(candidateDB.recordEvidenceCandidate(pairCtx,now+12).ok,false,
+  "No trust from one signed approval");
+ const bSigned=await approvalDB.recordSignedDecision({
+  role:"B",approval:bApproval,signature:await signPair(bDev,bApproval),
+  registeredSpki:bPub,registeredDeviceKeyHash:bHash,
+  accountFromRegistry:accountId
+ },now+13);
+ assert.equal(bSigned.stage,"BOTH_SIGNED_UNAUTHORIZED");
+ assert.equal(candidateDB.recordEvidenceCandidate({
+  ...pairCtx,bDeviceId:aDeviceId
+ },now+14).ok,false,"Cannot pair a device with itself");
+ assert.equal(candidateDB.recordEvidenceCandidate({
+  ...pairCtx,accountId:"another_account_001"
+ },now+14).ok,false,"Wrong account rejected");
+ assert.equal(candidateDB.recordEvidenceCandidate({
+  ...pairCtx,aDeviceId:bDeviceId,bDeviceId:aDeviceId
+ },now+14).code,"DEVICE_KEYS_REVOKED_OR_UNBOUND");
+ assert.equal(candidateDB.recordEvidenceCandidate({
+  ...pairCtx,authSessionId:"e".repeat(32)
+ },now+14).code,"FRESH_CONSUMED_PASSKEY_REQUIRED");
+ const winners=await Promise.all(Array.from({length:20},
+  ()=>candidateDB.recordEvidenceCandidate(pairCtx,now+14)));
+ assert.equal(winners.filter(x=>x.ok).length,1,
+  "Same verified account and bilateral signed pair can be recorded once");
+ assert.equal(winners.filter(x=>!x.ok).length,19);
+ assert.ok(winners.every(x=>x.authorized===false&&x.trusted===false&&
+  x.accountSessionIssued===false));
+ assert.equal(candidateDB.inspectCandidate({
+  accountId,pairSid
+ },now+15).code,"LAB_EVIDENCE_STILL_PRESENT_NO_AUTHORITY");
+ registrationDB.close();
+ registrationDB=new DatabaseSync(registrationPath);
+ const reloadedCandidate=new PairV1TrustCandidateSqliteLab(store(registrationDB));
+ assert.equal(reloadedCandidate.recordEvidenceCandidate(pairCtx,now+16).ok,false,
+  "Evidence cannot be replayed after restart");
+ assert.equal(reloadedCandidate.inspectCandidate({
+  accountId,pairSid
+ },now+16).ok,true);
+ assert.equal(reloadedCandidate.inspectCandidate({
+  accountId,pairSid
+ },now+80_000).ok,false,"Expired QR never remains eligible");
+ const reloadedDevices=new PairV1PendingDeviceRegistryLab(store(registrationDB));
+ assert.equal(reloadedDevices.revokeServerSide(
+  accountId,bDeviceId,now+17).ok,true);
+ assert.equal(reloadedCandidate.inspectCandidate({
+  accountId,pairSid
+ },now+18).code,"DEVICE_KEYS_REVOKED_OR_UNBOUND");
+ console.log("PASSKEY_SQLITE_BOTH_REAL_DEVICE_SIGNATURES_EVIDENCE_CORRELATED_ONLY: PASS");
+ console.log("PASSKEY_SQLITE_REPLAY_REVOKE_EXPIRY_NEVER_ACTIVATES_TRUST: PASS");
+
 
  const duplicate=await registrationLab.begin({accountId},now+12);
  assert.equal(duplicate.ok,true);
