@@ -1,0 +1,50 @@
+name: E-ZERO Cloudflare Signaling Staging Deploy (Explicit Manual Only)
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_target:
+        description: "Deploy isolated E-ZERO signaling pilot — not the AI/vision Worker"
+        type: choice
+        options:
+          - "staging-only"
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: ezero-cloudflare-signaling-staging
+  cancel-in-progress: false
+jobs:
+  deploy-signaling-staging:
+    if: github.event.inputs.confirm_target == 'staging-only'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    environment: signaling-staging
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run isolated security gate before deployment
+        run: |
+          set -euo pipefail
+          node --input-type=module --check < signaling/cloudflare/src/worker.js
+          node tests/test_ezero_cloudflare_auto_signaling_v0_1.js
+          grep -q 'enabled:false' js/ezero_auto_signaling_config_v0_1.js
+      - name: Verify scoped Cloudflare secrets are present
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.EZERO_SIGNALING_CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.EZERO_SIGNALING_CF_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "Missing signaling-only API token secret"; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "Missing confirmed Cloudflare account ID secret"; exit 1; }
+      - name: Deploy isolated Durable Object to staging only
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.EZERO_SIGNALING_CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.EZERO_SIGNALING_CF_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts wrangler@4
+          npx wrangler deploy --config signaling/cloudflare/wrangler.jsonc
