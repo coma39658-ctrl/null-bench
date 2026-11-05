@@ -19,3 +19,6 @@ Owner's prior authorization: safely improve experimental E-ZERO Secure Connect f
 - Fail closed on any preflight, permission, capability, CI or remote state mismatch.
 
 The local synthetic owner secret is a test fixture and MUST NOT be copied into the real Worker. Actual two-phone pilot and owner-provisioned private secret remain future work.
+
+## Gated retry note — 2026-11-05
+The first attempt failed closed before Cloudflare deployment because the workflow's inherited static check still expected the two limit constants inside the Worker entrypoint. That is exactly the compatibility defect the fix removes. The source gate now checks those exact same values in imported `room_constants.mjs`, while a separate safety gate requires no primitive named entrypoint exports. All original remote preflight and post-deploy gates remain unchanged. This text change re-triggers the single-purpose guarded workflow; never enable public rooms.
