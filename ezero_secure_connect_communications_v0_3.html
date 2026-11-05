@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
-<meta name="theme-color" content="#073e53">
+<meta name="theme-color" content="#0b3426">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
 <title>E-ZERO Secure Connect — Audio, Video, Voice & Chat</title>
 <meta name="description" content="E-ZERO secure experimental WebRTC audio, video, one-view chat and opt-in voice messages. Manual setup still required.">
@@ -19,15 +19,15 @@
 <link rel="manifest" href="./secure-connect.webmanifest">
 <link rel="stylesheet" href="./css/ezero_secure_connect_live_p2p_v0_1.css">
 <link rel="stylesheet" href="./css/ezero_secure_connect_one_tap_qr_v0_1.css">
-<link rel="stylesheet" href="./css/ezero_secure_connect_modern_communications_v0_3.css?v=20261105green4">
+<link rel="stylesheet" href="./css/ezero_secure_connect_modern_communications_v0_3.css?v=20261105forest1">
 <script defer src="./js/vendor/ezero-qrcode-generator-mit.js"></script>
 <script defer src="./js/ezero_secure_connect_live_p2p_v0_1.js?v=20261105profile1"></script>
 <script defer src="./js/ezero_secure_connect_simple_near_far_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_contacts_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_install_share_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_one_tap_qr_v0_1.js"></script>
-<script defer src="./js/ezero_secure_connect_modern_communications_v0_3.js?v=20261105e"></script>
-<script defer src="./js/ezero_secure_connect_peer_profile_v0_1.js?v=20261105photo3"></script>
+<script defer src="./js/ezero_secure_connect_modern_communications_v0_3.js?v=20261105forest1"></script>
+<script defer src="./js/ezero_secure_connect_peer_profile_v0_1.js?v=20261105forest1"></script>
 <script defer src="./js/ezero_secure_connect_people_v0_1.js?v=20261105ttl1"></script>
 </head>
 <body class="communication-page">
@@ -75,10 +75,10 @@
   <p id="ezeroProfileStatus" class="modern-status" role="status" aria-live="polite" data-profile-i18n="profileLocal">پروفائل ابھی صرف اس فون پر ہے۔</p>
 </details>
 <div class="modern-feature-grid" aria-label="Communication features">
-  <button type="button" class="modern-feature-button" data-modern-select="audio" aria-pressed="true"><span class="modern-feature-icon">📞</span><span class="modern-feature-name" data-modern="audio">آڈیو کال</span><span class="modern-feature-note" data-modern="audioHint">دو فونوں کے درمیان براہِ راست آواز</span></button>
-  <button type="button" class="modern-feature-button" data-modern-select="video" aria-pressed="false"><span class="modern-feature-icon">📹</span><span class="modern-feature-name" data-modern="video">ویڈیو کال</span><span class="modern-feature-note" data-modern="videoHint">اجازت سے تصویر اور آواز</span></button>
-  <button type="button" class="modern-feature-button" data-modern-select="voice" aria-pressed="false"><span class="modern-feature-icon">🎙️</span><span class="modern-feature-name" data-modern="voice">وائس میسج</span><span class="modern-feature-note" data-modern="voiceHint">مختصر ریکارڈ کریں، پھر بھیجیں</span></button>
-  <button type="button" class="modern-feature-button" data-modern-select="chat" aria-pressed="false"><span class="modern-feature-icon">💬</span><span class="modern-feature-name" data-modern="chat">نجی چیٹ</span><span class="modern-feature-note" data-modern="chatHint">ایک بار کھلنے والا نجی پیغام</span></button>
+  <button type="button" class="modern-feature-button" data-step="01" data-modern-select="audio" aria-pressed="true"><span class="modern-feature-icon">📞</span><span class="modern-feature-name" data-modern="audio">آڈیو کال</span><span class="modern-feature-note" data-modern="audioHint">دو فونوں کے درمیان براہِ راست آواز</span></button>
+  <button type="button" class="modern-feature-button" data-step="02" data-modern-select="video" aria-pressed="false"><span class="modern-feature-icon">📹</span><span class="modern-feature-name" data-modern="video">ویڈیو کال</span><span class="modern-feature-note" data-modern="videoHint">اجازت سے تصویر اور آواز</span></button>
+  <button type="button" class="modern-feature-button" data-step="03" data-modern-select="voice" aria-pressed="false"><span class="modern-feature-icon">🎙️</span><span class="modern-feature-name" data-modern="voice">وائس میسج</span><span class="modern-feature-note" data-modern="voiceHint">مختصر ریکارڈ کریں، پھر بھیجیں</span></button>
+  <button type="button" class="modern-feature-button" data-step="04" data-modern-select="chat" aria-pressed="false"><span class="modern-feature-icon">💬</span><span class="modern-feature-name" data-modern="chat">نجی چیٹ</span><span class="modern-feature-note" data-modern="chatHint">ایک بار کھلنے والا نجی پیغام</span></button>
 </div>
 <details id="ezeroPeopleHub" class="modern-workspace ezero-people-hub">
   <summary id="ezeroPeopleHeading" data-people="hubTitle">👥 دوست اور کال ہسٹری</summary>
@@ -112,7 +112,7 @@
   </div>
   <div class="ezero-peer-profile-text">
     <strong id="ezeroPeerDisplayName" data-profile-i18n="noProfile">دوست نے ابھی پروفائل شیئر نہیں کی</strong>
-    <p id="ezeroVerifiedConnection" class="ezero-peer-connection-status" data-profile-i18n="verifiedConnection">✓ دونوں فون WebRTC پر کنیکٹ ہیں</p>
+    <p id="ezeroVerifiedConnection" class="ezero-peer-connection-status" data-profile-i18n="verifiedConnection">دونوں فون WebRTC پر کنیکٹ ہیں</p>
     <small id="ezeroPeerSessionId"></small>
     <small id="ezeroPeerTrustNote" data-profile-i18n="selfDeclared">نام اور تصویر خود فراہم کی گئی ہیں؛ حقیقی شخص کی شناخت کی تصدیق نہیں۔</small>
   </div>

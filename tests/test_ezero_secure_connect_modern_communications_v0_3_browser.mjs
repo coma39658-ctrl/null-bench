@@ -124,6 +124,27 @@ try{
   assert.match(await a.locator('[data-modern="voice"]').innerText(),/رسالة صوتية/);
   await a.locator("#language").selectOption("ur");
   console.log("FOUR_VISIBLE_MODE_CONTROLS_AND_THREE_LANGUAGES_NO_AUTO_MEDIA: PASS");
+
+  // Purely visible controls must not masquerade as a genuinely connected phone.
+  const numberStages=await a.locator(".modern-feature-button").evaluateAll(nodes=>
+    nodes.map(el=>({n:el.getAttribute("data-step"),
+      badge:getComputedStyle(el,"::before").content})));
+  assert.deepEqual(numberStages.map(x=>x.n),["01","02","03","04"]);
+  assert.ok(numberStages.every(x=>x.badge.includes(x.n)));
+  assert.notEqual(await a.locator("#modernConnectionStatus").getAttribute("data-state"),"connected");
+  await a.evaluate(()=>document.dispatchEvent(new CustomEvent("ezero:call-status",
+    {detail:{stage:"connected"}})));
+  assert.notEqual(await a.locator("#modernConnectionStatus").getAttribute("data-state"),"connected",
+    "A fake event must not light a verified green tick without a connected peer");
+  await a.evaluate(()=>document.dispatchEvent(new CustomEvent("ezero:call-status",
+    {detail:{stage:"iceNoRoute"}})));
+  assert.equal(await a.locator("#modernConnectionStatus").getAttribute("data-state"),"error");
+  assert.match(await a.locator("#modernConnectionStatus").evaluate(el=>
+    getComputedStyle(el,"::before").content),/!/);
+  await a.evaluate(()=>document.dispatchEvent(new CustomEvent("ezero:call-status",
+    {detail:{stage:"idle"}})));
+  console.log("MILITARY_GREEN_NUMBERED_TILES_NO_FALSE_SUCCESS_RED_ERRORS: PASS");
+
   // The selected-mode border animates for 160ms; inspect its settled color.
   await a.waitForFunction(()=>getComputedStyle(
     document.querySelector('[data-modern-select="voice"]')).borderTopColor==="rgb(25, 131, 78)");
@@ -203,6 +224,10 @@ try{
   await a.locator('[data-modern-select="audio"]').click();
   await offerAndAnswer(a,b);
   assert.equal(await a.locator("#modernConnectionStatus").getAttribute("data-state"),"connected");
+  assert.match(await a.locator("#modernConnectionStatus").evaluate(el=>
+    getComputedStyle(el,"::before").content),/✓/,
+    "Verified real WebRTC connection should display a luminous checkmark");
+
   assert.equal(await a.evaluate(()=>document.querySelector("#localVideo").srcObject.getAudioTracks().length),1);
   assert.equal(await b.evaluate(()=>document.querySelector("#remoteVideo").srcObject.getAudioTracks().length),1);
   console.log("EXPERIMENTAL_REAL_WEBRTC_AUDIO_WITH_MANUAL_SIGNALING: PASS");
