@@ -67,10 +67,71 @@ export class PairV1MutualApprovalSqliteLab{
    });
   }catch(_){return result(false,"SESSION_LEDGER_UNAVAILABLE");}
  }
+ // LEGACY LAB ENTRY POINT: caller supplies a registered key. Never
+ // expose this method to a browser or production API. The server-bound
+ // entry point below fetches the public key itself from SQLite.
  async recordSignedDecision({
   role,approval,signature,registeredSpki,registeredDeviceKeyHash,
   accountFromRegistry,recordRevoked=false
  },now=Date.now()){
+  return this.#recordDecision({
+   role,approval,signature,registeredSpki,registeredDeviceKeyHash,
+   accountFromRegistry,recordRevoked
+  },now,null);
+ }
+ /*
+  * Preferred server-BOUND laboratory path. The caller supplies only the
+  * device ID, its role, the signed approval and signature. The public key,
+  * key hash, account and revocation status come entirely from trusted
+  * SQLite, not a browser-provided "verified" flag or key. The registration
+  * record must remain PENDING, and is checked AGAIN inside the decision
+  * transaction to close the async signature-verification revocation race.
+  * This remains evidence only: it NEVER activates Trusted Device state.
+  */
+ async recordServerRegisteredDecisionLab({
+  accountId,deviceId,role,approval,signature
+ }={},now=Date.now()){
+  if(!ACCOUNT.test(accountId||"")||
+     !ACCOUNT.test(deviceId||"")||
+     !["A","B"].includes(role)||
+     !approval||approval.accountId!==accountId||
+     !(signature instanceof Uint8Array)||
+     !Number.isSafeInteger(now)||now<=0)
+   return result(false,"REGISTRY_DECISION_INVALID");
+  let record,spki;
+  try{
+   record=this.#db.exec(`SELECT account_id,device_id,public_spki,
+    key_hash,status,version,revoked_at
+    FROM ezero_pair_v1_device_records
+    WHERE account_id=? AND device_id=?`,accountId,deviceId).toArray()[0];
+   if(!record||record.status!=="PENDING"||
+      record.revoked_at!==null||!HEX64.test(record.key_hash||"")||
+      !Number.isSafeInteger(record.version)||record.version<1)
+    return result(false,"REGISTERED_DEVICE_NOT_ACTIVE_FOR_APPROVAL");
+   if(typeof record.public_spki!=="string"||
+      !/^[A-Za-z0-9_-]{80,280}$/.test(record.public_spki))
+    return result(false,"REGISTERED_KEY_INVALID");
+   const encoded=record.public_spki;
+   const raw=atob(encoded.replace(/-/g,"+").replace(/_/g,"/")+
+    "=".repeat((4-encoded.length%4)%4));
+   spki=Uint8Array.from(raw,c=>c.charCodeAt(0));
+   let canonical="";for(const x of spki)canonical+=String.fromCharCode(x);
+   canonical=btoa(canonical).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+   if(canonical!==encoded)return result(false,"REGISTERED_KEY_INVALID");
+  }catch(_){return result(false,"REGISTERED_DEVICE_LEDGER_UNAVAILABLE");}
+  return this.#recordDecision({
+   role,approval,signature,
+   registeredSpki:spki,registeredDeviceKeyHash:record.key_hash,
+   accountFromRegistry:record.account_id,recordRevoked:false
+  },now,{
+   accountId,deviceId,version:record.version,
+   publicSpki:record.public_spki,keyHash:record.key_hash
+  });
+ }
+ async #recordDecision({
+  role,approval,signature,registeredSpki,registeredDeviceKeyHash,
+  accountFromRegistry,recordRevoked=false
+ },now=Date.now(),serverBinding=null){
   if(!["A","B"].includes(role)||!approval||
      !Number.isSafeInteger(now)||!HEX32.test(approval.sid||"")||
      !HEX32.test(approval.nonce||""))
@@ -89,6 +150,18 @@ export class PairV1MutualApprovalSqliteLab{
   }catch(_){return result(false,"NONCE_HASH_FAILED");}
   try{
    return this.#tx(()=>{
+    if(serverBinding){
+     const current=this.#db.exec(`SELECT status,version,key_hash,
+       public_spki,revoked_at FROM ezero_pair_v1_device_records
+       WHERE account_id=? AND device_id=?`,
+       serverBinding.accountId,serverBinding.deviceId).toArray()[0];
+     if(!current||current.status!=="PENDING"||
+        current.revoked_at!==null||
+        current.key_hash!==serverBinding.keyHash||
+        current.public_spki!==serverBinding.publicSpki||
+        current.version!==serverBinding.version)
+      return result(false,"REGISTERED_DEVICE_REVOKED_OR_CHANGED");
+    }
     const records=this.#db.exec(
      "SELECT * FROM ezero_pair_v1_signed_approvals WHERE sid=?",
      approval.sid).toArray();
