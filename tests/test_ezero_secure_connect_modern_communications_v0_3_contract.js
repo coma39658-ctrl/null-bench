@@ -60,7 +60,16 @@ assert.ok(profile.includes('onPhotoChosen("ezeroCameraPhoto")'));
 assert.ok(profile.includes('onPhotoChosen("ezeroMyPhoto")'));
 assert.ok(people.includes("ezero_secure_connect_local_fingerprints_v0_1"));
 assert.ok(people.includes("ezero_local_completed_call_history_v0_1"));
-assert.ok(people.includes('logging=(()=>{try{return localStorage.getItem(CONSENT_KEY)==="yes";}'));
+assert.ok(people.includes('const consent=()=>{try{return localStorage.getItem(CONSENT)==="yes";}'),
+  "Local call history requires explicit opt-in");
+assert.ok(people.includes("const TEN_MINUTES=600000"),
+  "Privacy retention is bounded at ten minutes");
+assert.ok(people.includes("function ended()"),
+  "Call history is only saved after the real call ends");
+assert.ok(people.includes("if(consent()&&["),
+  "No completed call should be saved without consent");
+assert.ok(!people.includes("getUserMedia(")&&!people.includes("fetch("),
+  "Call history cannot trigger camera, microphone or network upload");
 assert.ok(people.includes('if(!tr?.connected())return;'));
 assert.ok(people.includes('if(!validFP(fp))return;'));
 assert.ok(people.includes('noMissed'),"Unsupported missed calls must be described rather than invented");
