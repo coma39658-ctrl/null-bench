@@ -41,6 +41,7 @@ jobs:
           node tests/test_ezero_secure_connect_live_p2p_contract_v0_1.js
           node tests/test_ezero_secure_connect_install_share_contract_v0_1.js
           node tests/test_ezero_secure_connect_hub_contract_v0_1.js
+          node tests/test_ezero_call_invite_landing_recovery_v0_1.js
           node tests/test_ezero_secure_connect_one_tap_contract_v0_1.js
           node tests/test_ezero_secure_connect_public_qr_v0_2_contract.js
           node tests/test_ezero_secure_connect_modern_communications_v0_3_contract.js
