@@ -10,6 +10,8 @@ import {tmpdir} from "node:os";
 import {join} from "node:path";
 import {PairV1SqliteAtomicPasskeyFinishLab}
  from "../secure_connect/pair_v1/passkey_atomic_finish_sqlite_lab_v0_1.mjs";
+import {PairV1SqliteAtomicPasskeyRegistrationLab}
+ from "../secure_connect/pair_v1/passkey_registration_atomic_sqlite_lab_v0_1.mjs";
 import {makeRegistrationOptionsLab,verifyRegistrationResponseLab}
  from "../secure_connect/pair_v1/webauthn_registration_library_lab_v0_1.mjs";
 import {makeAuthenticationOptionsLabV1,verifyAuthenticationResponseLabV1}
@@ -298,4 +300,147 @@ try{
 }finally{
  try{db?.close();}catch(_){}
  rmSync(dir,{recursive:true,force:true});
+}
+
+/*
+ * Full persistence pipeline: server-fixtured account -> VERIFIED WebAuthn
+ * registration -> SQLite one-use challenge & COSE credential -> real passkey
+ * assertion -> SQLite one-use login challenge & counter. No account login
+ * token or Trusted Device is granted. No public endpoint calls these methods.
+ */
+const registrationDir=mkdtempSync(join(tmpdir(),"ezero_passkey_reg_atomic_"));
+const registrationPath=join(registrationDir,"registration.sqlite3");
+let registrationDB;
+function registerResponse(challenge,overrides={}){
+ const client=te.encode(JSON.stringify({
+  type:"webauthn.create",challenge,
+  origin:overrides.origin||PAIR_V1_ORIGIN,crossOrigin:false
+ }));
+ return {...regRes,response:{...regRes.response,clientDataJSON:b64(client)}};
+}
+try{
+ registrationDB=new DatabaseSync(registrationPath);
+ let registrationLab=new PairV1SqliteAtomicPasskeyRegistrationLab(
+  store(registrationDB));
+ assert.equal((await registrationLab.begin({accountId},now)).ok,false,
+  "Unknown account must never be auto-created from a user-supplied ID");
+ // A trusted external identity authority would need to create this record
+ // after independent account proof. Unit test fixture ONLY; no public API.
+ const userHandle=b64(crypto.getRandomValues(new Uint8Array(32)));
+ registrationDB.prepare(`INSERT INTO ezero_v1_auth_accounts_lab
+  (account_id,user_handle,status,version) VALUES(?,?,?,1)`)
+  .run(accountId,userHandle,"PREVERIFIED_LAB_ONLY");
+ const started=await registrationLab.begin({accountId},now);
+ assert.equal(started.ok,true,started.code);
+ assert.equal(started.authorized,false);
+ assert.equal(started.accountSessionIssued,false);
+ assert.equal(started.trustedDeviceActivated,false);
+ assert.equal(started.expires-now,90_000);
+ const payload={accountId,sessionId:started.sessionId,
+  response:registerResponse(started.options.challenge)};
+ const forged=await registrationLab.finish({
+  ...payload,response:registerResponse(started.options.challenge,
+   {origin:"https://attacker.invalid"})
+ },now+1);
+ assert.equal(forged.ok,false);
+ const wrongChallenge=await registrationLab.finish({
+  ...payload,response:registerResponse(b64(
+   crypto.getRandomValues(new Uint8Array(32))))
+ },now+2);
+ assert.equal(wrongChallenge.code,"CHALLENGE_MISMATCH");
+ assert.equal((await registrationLab.finish({...payload,
+  accountId:"another_account_001"},now+3)).ok,false);
+ assert.equal(registrationDB.prepare(`SELECT consumed_at
+  FROM ezero_v1_register_pending_lab WHERE session_id=?`)
+  .get(started.sessionId).consumed_at,null,
+  "Failed signature / challenge must not consume the pending session");
+
+ // A transaction failure after inserting a key must roll back both the
+ // credential and the challenge consumption. No half-registered accounts.
+ registrationDB.exec(`CREATE TRIGGER ezero_lab_fail_registration_commit
+ BEFORE UPDATE OF consumed_at ON ezero_v1_register_pending_lab
+ BEGIN SELECT RAISE(ABORT,'FORCED_REGISTRATION_COMMIT_FAILURE'); END`);
+ const aborted=await registrationLab.finish(payload,now+4);
+ assert.equal(aborted.code,"REGISTRATION_ATOMIC_COMMIT_REJECTED");
+ assert.equal(registrationDB.prepare(`SELECT COUNT(*) AS c FROM
+  ezero_v1_auth_credentials_lab WHERE credential_id=?`).get(id).c,0);
+ assert.equal(registrationDB.prepare(`SELECT consumed_at
+  FROM ezero_v1_register_pending_lab WHERE session_id=?`)
+  .get(started.sessionId).consumed_at,null);
+ registrationDB.exec("DROP TRIGGER ezero_lab_fail_registration_commit");
+
+ // Parallel valid submissions all pass signature verification, but ONLY
+ // ONE can atomically insert the credential and consume the nonce.
+ const races=await Promise.all(Array.from({length:20},
+  ()=>registrationLab.finish(payload,now+6)));
+ assert.equal(races.filter(x=>x.ok).length,1,"One registration winner");
+ assert.equal(races.filter(x=>!x.ok).length,19,"No duplicate registration");
+ assert.ok(races.every(x=>x.authorized===false&&
+  x.trustedDeviceActivated===false));
+ const committed=races.find(x=>x.ok);
+ assert.equal(committed.credentialPersisted,true);
+ assert.equal(committed.challengeConsumed,true);
+ assert.equal(committed.accountSessionIssued,false);
+ assert.equal(committed.verifiedPasskeyRecordOnly,true);
+ assert.equal((await registrationLab.finish(payload,now+7)).ok,false);
+ assert.equal(registrationDB.prepare(`SELECT version
+  FROM ezero_v1_auth_accounts_lab WHERE account_id=?`)
+  .get(accountId).version,2);
+ console.log("PASSKEY_SQLITE_REGISTER_ONE_WINNER_ATOMIC_WITH_ROLLBACK: PASS");
+
+ registrationDB.close();
+ registrationDB=new DatabaseSync(registrationPath);
+ registrationLab=new PairV1SqliteAtomicPasskeyRegistrationLab(
+  store(registrationDB));
+ assert.equal((await registrationLab.finish(payload,now+8)).ok,false,
+  "Registration replay rejected across SQLite process restarts");
+
+ // The LOGIN module now reads the actual verified COSE credential stored
+ // by the REGISTRATION module; no manual production-style account insertion.
+ const authLab=new PairV1SqliteAtomicPasskeyFinishLab(store(registrationDB));
+ const newLogin=await authLab.begin({accountId,credentialId:id},now+9);
+ assert.equal(newLogin.ok,true,newLogin.code);
+ const loginFinished=await authLab.finish({
+  accountId,sessionId:newLogin.sessionId,
+  response:await assertion({challenge:newLogin.options.challenge,counter:2})
+ },now+10);
+ assert.equal(loginFinished.ok,true,loginFinished.code);
+ assert.equal(loginFinished.challengeConsumed,true);
+ assert.equal(loginFinished.counterPersisted,true);
+ assert.equal(loginFinished.authenticatedSessionIssued,false);
+ assert.equal(loginFinished.trustedDeviceActivated,false);
+ const loginRecord=registrationDB.prepare(`SELECT sign_count,version
+  FROM ezero_v1_auth_credentials_lab WHERE credential_id=?`).get(id);
+ assert.equal(loginRecord.sign_count,2);
+ assert.equal(loginRecord.version,2);
+ assert.equal((await authLab.finish({
+  accountId,sessionId:newLogin.sessionId,
+  response:await assertion({challenge:newLogin.options.challenge,counter:3})
+ },now+11)).ok,false,"A consumed challenge cannot authenticate again");
+ console.log("PASSKEY_SQLITE_PERSISTED_REGISTRATION_TO_REAL_COSE_LOGIN: PASS");
+
+ const duplicate=await registrationLab.begin({accountId},now+12);
+ assert.equal(duplicate.ok,true);
+ assert.ok(duplicate.options.excludeCredentials.some(x=>x.id===id),
+  "Re-registering same credential should be discouraged in native picker");
+ const duplicateResult=await registrationLab.finish({
+  accountId,sessionId:duplicate.sessionId,
+  response:registerResponse(duplicate.options.challenge)
+ },now+13);
+ assert.equal(duplicateResult.ok,false,"Existing credential ID is unique");
+ const count=registrationDB.prepare(`SELECT COUNT(*) AS c
+  FROM ezero_v1_auth_credentials_lab`).get().c;
+ assert.equal(count,1);
+ registrationDB.prepare(`UPDATE ezero_v1_auth_credentials_lab
+  SET status='REVOKED',revoked=1 WHERE credential_id=?`).run(id);
+ assert.equal((await authLab.begin({accountId,credentialId:id},now+14)).ok,false,
+  "Revocation prevents another credential authentication challenge");
+ registrationDB.prepare(`UPDATE ezero_v1_auth_accounts_lab
+  SET status='REVOKED' WHERE account_id=?`).run(accountId);
+ assert.equal((await registrationLab.begin({accountId},now+15)).ok,false,
+  "Revoked account cannot register another passkey");
+ console.log("PASSKEY_SQLITE_DUPLICATE_CREDENTIAL_REVOKED_ACCOUNT_FAIL_CLOSED: PASS");
+}finally{
+ try{registrationDB?.close();}catch(_){}
+ rmSync(registrationDir,{recursive:true,force:true});
 }
