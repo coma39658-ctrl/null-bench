@@ -128,3 +128,16 @@ button.outline{color:#07546b;background:#ebf9fc;border-color:#b3d5de}button.dang
 #copilotOverride:not([hidden]){display:block;width:100%;margin-bottom:10px;border:2px solid #ce8262;background:#fff8f5;color:#843b24}
 #copilotOverride[hidden]{display:none!important}
 @media(max-width:390px){.copilot-grid{grid-template-columns:1fr}.copilot-panel>summary{font-size:15px}.copilot-trust output{font-size:21px}}
+
+/* User-triggered phone readiness: compact, explanatory, no hidden action. */
+.android-preflight{background:linear-gradient(140deg,#f4fbfc,#fff);border:1px solid #bbdce2}
+.android-preflight summary{cursor:pointer;color:#17566c;font-size:15px;font-weight:850;line-height:1.7}
+.android-preflight button{width:100%;min-height:46px;margin:10px 0}
+.android-preflight .small{line-height:1.85}
+.android-readiness-detail{font:inherit;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere;
+ color:#245166;line-height:1.85;background:#f4fafb;border:1px solid #cbdee5;
+ border-radius:12px;padding:12px;margin:9px 0 0}
+.android-readiness-detail:empty{display:none}
+.android-preflight #androidReadinessStatus[data-state="unsupported"]{
+ background:#fff4ed;border-color:#e7b99e;color:#82431c
+}
