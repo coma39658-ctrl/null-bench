@@ -296,6 +296,8 @@ function closeRoom(sendHangup=false){
  closing=true;
  try{ws?.close(1000,"Done");}catch(_){}
  ws=null;ready=false;approved=false;joined=false;connecting=false;creating=false;
+ qrMode="";qrPending=false;hostAccepted=false;guestHelloSent=false;qrRequestVerified=false;
+ clearQr();
  secret=null;secretKey=null;auth=null;proof=null;issued=null;link="";roomId=null;
  $("roomLink").value="";
  $("hangup")?.click();
@@ -303,13 +305,55 @@ function closeRoom(sendHangup=false){
 }
 async function receive(frame){
  if(frame?.v!==1||typeof frame.type!=="string")return;
- if(frame.type==="ready"){role=frame.role;ready=true;st("joined");draw();return;}
- if(frame.type==="peer_joined"){joined=true;st("peer");draw();return;}
- if(frame.type==="accepted"){if(role!=="caller")return;approved=true;st("accepted");draw();return;}
- if(frame.type==="decline"){closeRoom();st("declined");return;}
+ if(frame.type==="ready"){
+   role=frame.role;ready=true;st("joined");
+   if(qrMode==="host"){
+     if(role!=="caller"){closeRoom(true);qStatus("invalid");return;}
+     drawQr();
+   }else if(qrMode==="guest"){
+     if(role!=="callee"){closeRoom(true);qStatus("invalid");return;}
+     try{
+       const identity=await waitLocalIdentity();
+       const blob=await encrypt(JSON.stringify({v:1,type:"hello",identity}));
+       if(!send("guest_hello",{blob}))throw Error("HELLO_NOT_SENT");
+       guestHelloSent=true;
+       qStatus("waiting");
+     }catch(_){closeRoom(true);qStatus("unavailable");return;}
+   }
+   draw();return;
+ }
+ if(frame.type==="peer_joined"){joined=true;st("peer");
+   if(qrMode==="host")qStatus("connecting");draw();return;}
+ if(frame.type==="guest_hello"){
+   if(qrMode!=="host"||role!=="caller"||qrPending)return;
+   try{
+     const hello=JSON.parse(await decrypt(frame.blob));
+     if(hello.type!=="hello"||!await verifySignedIdentity(hello.identity))
+       throw Error("INVALID_SIGNED_GUEST");
+     qrPending=true;qrRequestVerified=true;st("peer");qStatus("request");
+     clearQr();draw();return;
+   }catch(_){closeRoom(true);qStatus("invalid");return;}
+ }
+ if(frame.type==="host_accepted"){
+   if(qrMode!=="guest"||role!=="callee"||!guestHelloSent||approved)return;
+   approved=send("accept");if(!approved){closeRoom();qStatus("unavailable");return;}
+   st("receiving");qStatus("connecting");draw();return;
+ }
+ if(frame.type==="accepted"){
+   if(role!=="caller")return;
+   approved=true;st("accepted");draw();
+   if(qrMode==="host"&&hostAccepted){
+     // The host explicitly tapped Accept; only now does WebRTC request
+     // microphone permission (which the browser must separately grant).
+     $("guidedOffer").click();
+     qStatus("connecting");
+   }
+   return;
+ }
+ if(frame.type==="decline"){closeRoom();st("declined");qStatus("rejected");return;}
  if(frame.type==="hangup"){closeRoom();return;}
  if(frame.type==="peer_left"){closeRoom();return;}
- if(frame.type==="error"){closeRoom();st("failed");return;}
+ if(frame.type==="error"){closeRoom();st("failed");qStatus("invalid");return;}
  if(frame.type==="offer"||frame.type==="answer"){
    if(frame.type==="offer"&&(role!=="callee"||!approved))return;
    if(frame.type==="answer"&&role!=="caller")return;
@@ -346,33 +390,60 @@ function connect(){
 }
 $("roomCreate").addEventListener("click",async()=>{
  if(ready||connecting||creating)return;
- if(!window.isSecureContext||!crypto?.subtle){st("failed");return;}
- creating=true;draw();
+ if(!window.isSecureContext||!crypto?.subtle){st("failed");qStatus("unavailable");return;}
+ creating=true;qrMode="host";draw();qStatus("connecting");
  try{
-  const owner=$("roomOwnerSecret").value.trim();
-  if(!/^[a-f0-9]{64}$/.test(owner)){st("ownerRequired");return;}
+  // Server mints a one-room owner HMAC. Its actual secret NEVER enters
+  // the browser, the QR, or any per-user UI.
+  const identity=await waitLocalIdentity();
   roomId=hex(crypto.getRandomValues(new Uint8Array(16)));
   issued=Date.now();
   await useSecret(hex(crypto.getRandomValues(new Uint8Array(32))));
-  const hmacKey=await crypto.subtle.importKey("raw",new TextEncoder().encode(owner),
-    {name:"HMAC",hash:"SHA-256"},false,["sign"]);
-  const signed=new Uint8Array(await crypto.subtle.sign("HMAC",hmacKey,
-    new TextEncoder().encode(roomId+"."+auth+"."+issued)));
-  proof=hex(signed);
-  $("roomOwnerSecret").value=""; // never store or forward the operator's passcode
-  link=new URL(location.pathname+location.search+"#callroom="+roomId+"."+secret+"."+issued+"."+proof,location.origin).href;
-  secret=null; // Raw link key remains only in approved share field and CryptoKey.
+  const res=await fetch(inviteEndpoint,{
+   method:"POST",mode:"cors",cache:"no-store",credentials:"omit",
+   redirect:"error",headers:{"Content-Type":"text/plain"},
+   body:JSON.stringify({id:roomId,auth,issued}),
+   signal:AbortSignal.timeout(8500)
+  });
+  if(res.status===503)throw Error("ROOMS_DISABLED");
+  if(res.status===429)throw Error("PILOT_LIMIT");
+  if(!res.ok)throw Error("INVITE_NOT_CREATED");
+  const issuedProof=await res.json();
+  if(issuedProof?.code!=="INVITE_CREATED"||
+     !/^[a-f0-9]{64}$/.test(issuedProof.proof||"")||
+     issuedProof.expires!==issued+600000)
+    throw Error("INVITE_INVALID");
+  proof=issuedProof.proof;
+  link=new URL(location.pathname+location.search+"#callroom="+roomId+"."+
+   secret+"."+issued+"."+proof+"&identity="+identity,location.origin).href;
+  secret=null;
+  $("roomOwnerSecret").value="";
   st("linkReady");draw();connect();
- }catch(_){st("failed");}finally{creating=false;draw();}
+ }catch(error){
+  const limit=error?.message==="PILOT_LIMIT";
+  closeRoom(false);qStatus(limit?"limit":"unavailable");
+  st("serverOff");
+ }finally{creating=false;draw();}
 });
 $("roomJoin").addEventListener("click",()=>connect());
 $("roomAccept").addEventListener("click",()=>{
- if(role!=="callee"||!ready)return;
+ if(!ready)return;
+ if(role==="caller"&&qrMode==="host"&&qrRequestVerified&&!hostAccepted){
+   hostAccepted=send("host_accept");
+   if(hostAccepted){st("receiving");qStatus("connecting");}
+   else qStatus("unavailable");
+   draw();return;
+ }
+ if(role!=="callee"||qrMode==="guest")return;
  approved=send("accept");if(approved)st("receiving");draw();
 });
 $("roomDecline").addEventListener("click",()=>{
- if(role!=="callee"||!ready)return;
- send("decline");closeRoom();
+ if(!ready)return;
+ if(role==="caller"&&qrMode==="host"&&qrRequestVerified&&!hostAccepted){
+   send("decline");closeRoom();qStatus("rejected");return;
+ }
+ if(role!=="callee"||qrMode==="guest")return;
+ send("decline");closeRoom();qStatus("rejected");
 });
 $("roomStart").addEventListener("click",()=>{
  if(role!=="caller"||!approved||!ready)return;
