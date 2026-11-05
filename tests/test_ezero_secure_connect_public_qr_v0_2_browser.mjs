@@ -109,7 +109,7 @@ try{
   console.log("ONE_CLICK_CAMERA_CONSENT_SIGNED_QR_NO_MIC: PASS");
 
   const installed=await phone("INSTALLED");
-  await installed.evaluate(()=>{
+  await installed.addInitScript(()=>{
     const m=window.matchMedia.bind(window);
     window.matchMedia=q=>q.includes("display-mode: standalone")?
       {matches:true,addEventListener(){},removeEventListener(){}}:m(q);
