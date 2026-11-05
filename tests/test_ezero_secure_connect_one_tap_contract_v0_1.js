@@ -1,7 +1,7 @@
 "use strict";
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
-const html=fs.readFileSync("ezero_secure_connect_live_p2p_v0_1.html","utf8");
+const html=fs.readFileSync("_ezero_secure_connect_lab_fixture_v0_1.html","utf8");
 const script=fs.readFileSync("js/ezero_secure_connect_one_tap_qr_v0_1.js","utf8");
 const css=fs.readFileSync("css/ezero_secure_connect_one_tap_qr_v0_1.css","utf8");
 assert.match(html,/id="oneTapStartButton"/);
