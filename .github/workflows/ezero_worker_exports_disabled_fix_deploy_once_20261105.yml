@@ -29,6 +29,7 @@ jobs:
           node - <<'VERIFY'
           const fs=require("node:fs");
           const src=fs.readFileSync("secure_connect/call_room_lab/room_worker.mjs","utf8");
+          const roomConstants=fs.readFileSync("secure_connect/call_room_lab/room_constants.mjs","utf8");
           const cfg=fs.readFileSync("secure_connect/call_room_lab/wrangler.jsonc","utf8");
           const web=fs.readFileSync("js/ezero_secure_connect_one_link_lab_v0_1.js","utf8");
           const must=[
@@ -39,8 +40,8 @@ jobs:
             cfg.includes('"room-lab-v2"'),
             cfg.includes('"new_sqlite_classes": ["RoomAdmission"]'),
             src.includes('env.ROOMS_ENABLED!=="true"'),
-            src.includes('MAX_PILOT_ACTIVE_ROOMS=8'),
-            src.includes('ROOM_LIFETIME_MS=10*60*1000'),
+            roomConstants.includes('MAX_PILOT_ACTIVE_ROOMS=8'),
+            roomConstants.includes('ROOM_LIFETIME_MS=10*60*1000'),
             src.includes('ownerProofValid(request,env,id,token,issued)'),
             src.includes('issuedFrom(request)'),
             src.includes('ROOM_RATE_LIMIT.limit'),
