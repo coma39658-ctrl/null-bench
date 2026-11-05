@@ -312,6 +312,7 @@
     const signed = await signedIdentityInternal(identity);
     $("myFingerprint").textContent = identity.fingerprint;
     $("myDigitalId").value = signed;
+    document.dispatchEvent(new CustomEvent("ezero:identity-ready"));
     $("identityStatus").textContent = t("identityNotAccount");
     showQr(signed);
   }
