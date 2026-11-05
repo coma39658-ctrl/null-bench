@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import {CallRoom,RoomAdmission,ROOM_LIFETIME_MS,MAX_PILOT_ACTIVE_ROOMS} from "./room_worker.mjs";
+import {CallRoom,RoomAdmission} from "./room_worker.mjs";
+import {ROOM_LIFETIME_MS,MAX_PILOT_ACTIVE_ROOMS} from "./room_constants.mjs";
 import worker from "./room_worker.mjs";
 
 // In-memory model of the WebSocket Hibernation attachment contract.
