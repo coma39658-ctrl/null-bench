@@ -6,6 +6,10 @@ on:
       - 'js/ezero_secure_connect_live_p2p_v0_1.js'
       - 'js/ezero_secure_connect_modern_communications_v0_3.js'
       - 'js/ezero_incall_messages_v0_1.js'
+      - 'js/ezero_mutual_friend_request_v0_1.js'
+      - 'js/ezero_secure_connect_contacts_v0_1.js'
+      - 'js/ezero_secure_connect_people_v0_1.js'
+      - 'css/ezero_mutual_friend_request_v0_1.css'
       - 'css/ezero_incall_messages_v0_1.css'
       - 'ezero_secure_connect_one_request_lab_20261106.html'
       - 'tests/test_ezero_audio_chat_voice_languages_20261106.mjs'
@@ -32,6 +36,9 @@ jobs:
           node --check js/ezero_secure_connect_live_p2p_v0_1.js
           node --check js/ezero_secure_connect_modern_communications_v0_3.js
           node --check js/ezero_incall_messages_v0_1.js
+          node --check js/ezero_mutual_friend_request_v0_1.js
+          node --check js/ezero_secure_connect_contacts_v0_1.js
+          node --check js/ezero_secure_connect_people_v0_1.js
           node --check tests/test_ezero_audio_chat_voice_languages_20261106.mjs
           grep -Fq 'id="ezeroRemoteAudio"' ezero_secure_connect_one_request_lab_20261106.html
           grep -Fq 'ezero_incall_messages_v0_1.js' ezero_secure_connect_one_request_lab_20261106.html
@@ -43,7 +50,7 @@ jobs:
           npm install --no-save --ignore-scripts playwright@1.57.0 ws@8.18.3
           # This regression uses headless Chromium exclusively. Do not fetch
           # the redundant full headed browser (smaller, faster CI download).
-          npx playwright install --with-deps chromium --only-shell
+          npx playwright install chromium --only-shell
       - name: Test actual two-browser WebRTC audio routes, text, voice, and languages
         run: |
           set -euo pipefail

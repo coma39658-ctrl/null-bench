@@ -255,6 +255,89 @@ try{
   console.log("ONE_IMMERSIVE_VIDEO_REMOTE_LARGE_LOCAL_PIP_REAL_TRACKS: PASS");
   console.log("ONE_REQUEST_ONE_ACCEPT_AUTOMATIC_SIGNED_ANSWER_REAL_BROWSER_WEBRTC: PASS");
   console.log("NO_SECOND_MANUAL_LINK_NO_AUTO_MIC_BEFORE_ACCEPT: PASS");
+  // A real call does not automatically create a friend. Friendship is a
+  // second explicit, mutually accepted decision, visible in local Contacts
+  // on both handsets. Only signed WebRTC peer fingerprints are stored.
+  const CONTACTS="ezero_secure_connect_local_fingerprints_v0_1";
+  const readContacts=page=>page.evaluate(key=>
+    JSON.parse(localStorage.getItem(key)||"[]"),CONTACTS);
+  assert.equal((await readContacts(caller)).length,0,
+    "Caller answering/making a call must not auto-save friend");
+  assert.equal((await readContacts(callee)).length,0,
+    "Receiver accepting a call must not auto-save friend");
+  await caller.locator("#ezeroSendFriendRequest").click();
+  assert.equal(await caller.locator("#ezeroMutualFriendStatus").innerText(),
+    "پہلے اپنا نام لکھیں۔");
+  await caller.locator("#ezeroMyFriendName").fill("Test Caller A");
+  await caller.locator("#ezeroSendFriendRequest").click();
+  await callee.locator("#ezeroFriendRequestPrompt").waitFor({state:"visible",timeout:10000});
+  assert.match(await callee.locator("#ezeroFriendRequestDescription").innerText(),
+    /Test Caller A/);
+  assert.equal((await readContacts(caller)).length,0,
+    "Unapproved friend request may not save caller's contact");
+  assert.equal((await readContacts(callee)).length,0,
+    "Receiving an unanswered friend request may not save recipient's contact");
+  await callee.locator("#ezeroMyFriendName").fill("Test Receiver B");
+  await callee.locator("#ezeroAcceptFriendRequest").click();
+  await caller.waitForFunction(key=>{
+    const entries=JSON.parse(localStorage.getItem(key)||"[]");
+    return entries.length===1;
+  },CONTACTS,{timeout:12000});
+  const callerSaved=await readContacts(caller);
+  const calleeSaved=await readContacts(callee);
+  assert.equal(callerSaved.length,1);
+  assert.equal(calleeSaved.length,1);
+  assert.equal(callerSaved[0].name,"Test Receiver B");
+  assert.equal(calleeSaved[0].name,"Test Caller A");
+  assert.equal(callerSaved[0].fp,await callee.locator("#myFingerprint").innerText());
+  assert.equal(calleeSaved[0].fp,await caller.locator("#myFingerprint").innerText());
+  assert.equal(await caller.locator("#friendsList .friend-entry").count(),1);
+  assert.equal(await callee.locator("#friendsList .friend-entry").count(),1);
+  assert.equal(await caller.locator("#ezeroPeopleList .ezero-person-card").count()>=1,true,
+    "Mutual friend must appear in the primary Friends tab without a reload");
+  assert.equal(await caller.evaluate(()=>window.EZERO_VOICE_TRANSPORT.connected()),true,
+    "Friend acceptance may not interrupt the established call");
+  console.log("MUTUAL_FRIEND_REQUEST_ACCEPT_BOTH_CONTACTS_NO_AUTO_SAVE: PASS");
+
+  // Browser UI regression only: inject control events as a bounded unit test.
+  // This does NOT claim that a synthetic event proves remote authentication.
+  // A timed-out incoming request must not keep blocking fresh requests.
+  await callee.evaluate(()=>{
+    const fp=window.EZERO_FRIEND_TRANSPORT.peerFingerprint();
+    const now=Date.now;
+    const dispatch=(id,name)=>document.dispatchEvent(
+      new CustomEvent("ezero:friend-control",{detail:{
+        kind:"friend-request",id,name,peerFingerprint:fp
+      }})
+    );
+    dispatch("a".repeat(32),"Old request");
+    Date.now=()=>now()+120001;
+    try{dispatch("b".repeat(32),"Fresh request");}
+    finally{Date.now=now;}
+  });
+  assert.match(await callee.locator("#ezeroFriendRequestDescription").innerText(),
+    /Fresh request/,"Expired request must not block a fresh request");
+  await callee.evaluate(()=>{
+    document.dispatchEvent(new CustomEvent("ezero:friend-control",{detail:{
+      kind:"friend-request",id:"c".repeat(32),name:"Unverified impostor",
+      peerFingerprint:"f".repeat(64)
+    }}));
+  });
+  assert.match(await callee.locator("#ezeroFriendRequestDescription").innerText(),
+    /Fresh request/,"Different unverified fingerprint must never replace the authenticated peer");
+  await callee.locator("#ezeroDeclineFriendRequest").click();
+  assert.equal(await callee.locator("#ezeroFriendRequestPrompt").isVisible(),false);
+  await callee.evaluate(()=>{
+    document.dispatchEvent(new CustomEvent("ezero:friend-control",{detail:{
+      kind:"friend-request",id:"d".repeat(32),name:"Wrong sender",
+      peerFingerprint:"f".repeat(64)
+    }}));
+  });
+  assert.equal(await callee.locator("#ezeroFriendRequestPrompt").isVisible(),false,
+    "A forged fingerprint must not create a new friend request");
+  console.log("EXPIRED_FRIEND_REQUEST_CAN_BE_REPLACED_WITHOUT_RELOAD: PASS");
+
+
   // Additional two-phone browser test: video still works; incoming audio
   // really arrives as one live WebRTC track routed to an independent player.
   // A successful play() does not prove that a human heard the sound.
@@ -289,6 +372,40 @@ try{
   assert.notEqual(await caller.locator("#ezeroAudioStatus").getAttribute("data-state"),"missing",
     "Real remote audio exists and should be offered to the speaker");
   console.log("DEDICATED_LIVE_REMOTE_AUDIO_AND_MANUAL_SPEAKER_ROUTE: PASS");
+  // The public lens must replace the actual outgoing WebRTC video sender
+  // (NOT simply CSS on the local selfie) and leave real call audio intact.
+  const rawTrackId=await caller.evaluate(()=>document.getElementById("localVideo")
+    .srcObject.getVideoTracks()[0]?.id);
+  await caller.locator("#ezeroBeautyPreset").selectOption("smooth");
+  await caller.waitForFunction(()=>window.EZERO_BEAUTY_FILTER?.applied()===true,
+    {timeout:15000});
+  const lens=await caller.evaluate(()=>({
+    preset:window.EZERO_BEAUTY_FILTER.preset(),
+    previewVideoTrack:document.getElementById("localVideo").srcObject.getVideoTracks()[0].id,
+    processedSender:window.EZERO_BEAUTY_FILTER.applied(),
+    audioTrackLive:document.getElementById("localVideo").srcObject.getAudioTracks()
+      .some(t=>t.readyState==="live")
+  }));
+  assert.equal(lens.preset,"smooth");
+  assert.equal(lens.processedSender,true);
+  assert.notEqual(lens.previewVideoTrack,rawTrackId,
+    "Self-preview must show same outgoing processed video track, not merely CSS");
+  assert.equal(lens.audioTrackLive,true);
+  await callee.waitForFunction(()=>{
+    const v=document.getElementById("remoteVideo");
+    const a=document.getElementById("ezeroRemoteAudio");
+    return v?.srcObject?.getVideoTracks().some(t=>t.readyState==="live")&&
+      a?.srcObject?.getAudioTracks().some(t=>t.readyState==="live");
+  },{timeout:12000});
+  await caller.locator("#ezeroBeautyPreset").selectOption("natural");
+  await caller.waitForFunction(()=>window.EZERO_BEAUTY_FILTER?.applied()===false,
+    {timeout:12000});
+  const naturalId=await caller.evaluate(()=>document.getElementById("localVideo")
+    .srcObject.getVideoTracks()[0]?.id);
+  assert.equal(naturalId,rawTrackId,"Natural mode must fully restore original camera");
+  assert.equal(await caller.evaluate(()=>window.EZERO_VOICE_TRANSPORT?.connected()),true);
+  console.log("SENDER_SIDE_HIGH_QUALITY_BEAUTY_LENS_BOTH_PHONES_AND_AUDIO_SAFE: PASS");
+
 
   // Temporary private text message traverses the *existing* data channel.
   const testText="E-ZERO two-phone one-view message - verified";
@@ -298,6 +415,9 @@ try{
   await caller.locator("#sendMessage").click();
   await callee.waitForFunction(()=>document.getElementById("incomingItem")?.hidden===false,
     {timeout:12000});
+  assert.equal(await callee.locator("#ezeroMessageIncomingNotice").isVisible(),true,
+    "Valid private text must show a privacy-safe incoming notification");
+  assert.ok((await callee.locator("#ezeroMessageIncomingNotice").innerText()).includes("پیغام"));
   await callee.locator("#ezeroInCallChat").click();
   assert.equal(await callee.locator("#viewMessage").isVisible(),true);
   await callee.locator("#viewMessage").click();
@@ -326,6 +446,9 @@ try{
     "Recipient can switch from chat to voice within the same drawer");
   await callee.locator("#ezeroInCallVoiceTab").click();
   await callee.locator("#ezeroVoiceReceived").waitFor({state:"visible",timeout:12000});
+  assert.equal(await callee.locator("#ezeroMessageIncomingNotice").isVisible(),true,
+    "Valid remote voice note must generate a separate visible alert");
+  assert.ok((await callee.locator("#ezeroMessageIncomingNotice").innerText()).includes("وائس"));
   assert.equal(await callee.locator("#ezeroVoiceOpenIncoming").isVisible(),true);
   await callee.locator("#ezeroVoiceOpenIncoming").click();
   const incomingAudio=await callee.locator("#ezeroVoiceIncomingAudio").evaluate(el=>({
@@ -377,6 +500,9 @@ try{
     const audioStage=await caller.locator("#ezeroAudioStatus").getAttribute("data-state");
     assert.ok(audioText.includes(expectedAudioNotice[language][audioStage]),
       "Remote-audio "+audioStage+" status must translate to "+language+": "+audioText);
+    assert.equal(await caller.locator("#ezeroBeautyPreset").locator("option[value=smooth]").textContent(),
+      language==="en"?"Smooth":language==="ar"?"بشرة ناعمة":"صاف جلد",
+      "Beauty choices must switch to the active language");
     const voiceText=(await caller.locator("#ezeroVoiceStatus").innerText()).trim();
     assert.ok(voiceText.length>5,"Voice-note status must remain translated "+language);
     voiceStatusLanguages.add(voiceText);

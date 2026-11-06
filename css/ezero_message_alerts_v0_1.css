@@ -1,0 +1,37 @@
+/* E-ZERO private-message alerts. Alerts require a real call and reveal no text. */
+body.communication-page.ezero-one-lab .ezero-message-alerts{
+  display:flex!important;align-items:center!important;gap:6px!important;
+  justify-content:center!important;flex-wrap:wrap!important;
+  padding:8px 2px!important;margin:5px auto!important;
+  border:0!important;background:transparent!important;color:#ddffea!important
+}
+body.communication-page.ezero-one-lab #ezeroMessageChimeEnable{
+  min-height:40px!important;max-width:280px!important;padding:6px 13px!important;
+  border-radius:22px!important;border:1px solid #5cb888!important;
+  background:#174b36!important;color:#e9fff2!important;
+  font-size:12px!important;font-weight:800!important
+}
+body.communication-page.ezero-one-lab #ezeroMessageChimeStatus{
+  display:block!important;color:#c3ead3!important;font-size:11px!important;
+  line-height:1.6!important;max-width:320px!important
+}
+body.communication-page.ezero-one-lab #ezeroMessageIncomingNotice:not([hidden]){
+  display:block!important;background:#086c46!important;color:white!important;
+  border:1px solid #b7ffcc!important;border-radius:15px!important;
+  min-height:46px!important;padding:9px 13px!important;
+  font-size:13px!important;font-weight:900!important;
+  box-shadow:0 9px 20px #00170a80!important;z-index:1000!important
+}
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroMessageAlerts,
+body.communication-page.ezero-one-lab.ezero-video-connected .ezero-message-alerts{
+  position:fixed!important;left:7px!important;right:7px!important;
+  top:calc(88px + env(safe-area-inset-top))!important;z-index:999!important;
+  pointer-events:none!important;margin:0!important;padding:0!important
+}
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroMessageIncomingNotice:not([hidden]){
+  pointer-events:auto!important;max-width:92vw!important;
+}
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroMessageChimeEnable,
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroMessageChimeStatus{
+  display:none!important
+}

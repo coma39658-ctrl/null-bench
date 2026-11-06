@@ -161,8 +161,14 @@
     if(!hasIncoming())return;
     incomingShell.hidden=false;
     const type=new URLSearchParams(location.search).get("mode")==="video"?"video":"audio";
-    $("ezeroOneIncomingHeading").textContent=type==="video"?
-      "📹 آنے والی ویڈیو کال — قبول کریں؟":"📞 آنے والی آڈیو کال — قبول کریں؟";
+    const head={
+      ur:{video:"📹 آنے والی ویڈیو کال — قبول کریں؟",audio:"📞 آنے والی آڈیو کال — قبول کریں؟"},
+      en:{video:"📹 Incoming video call — Answer?",audio:"📞 Incoming audio call — Answer?"},
+      ar:{video:"📹 مكالمة فيديو واردة — الرد؟",audio:"📞 مكالمة صوتية واردة — الرد؟"}
+    };
+    const language=document.documentElement.lang;
+    $("ezeroOneIncomingHeading").textContent=
+      (head[language]||head.ur)[type];
     $("ezeroOneJoinPanel")?.scrollIntoView({block:"start",behavior:"auto"});
   }
   document.addEventListener("ezero:auto-incoming-open",jumpIncoming);
@@ -175,7 +181,10 @@
     if(qr)qr.href="./ezero_secure_connect_one_request_lab_20261106.html";
   }
   unifyNavigation();
-  $("language")?.addEventListener("change",unifyNavigation);
+  $("language")?.addEventListener("change",()=>{
+    unifyNavigation();
+    if(hasIncoming())jumpIncoming();
+  });
   // Accept/reject is a single user action. The answer travels on WebSocket,
   // never through an extra copied invite or a second acceptance tap.
   $("ezeroAutoAccept")?.addEventListener("click",()=>{

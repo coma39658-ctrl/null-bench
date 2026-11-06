@@ -170,6 +170,33 @@
     verifiedCandidate=null;updateEnabled();
     $("friendDisplayName").value="";
   });
+  // One narrow contact-write boundary for a mutually approved request.
+  // Caller must have a real, signed WebRTC peer and the exact signed peer
+  // fingerprint must match; never add somebody from a bare link or label.
+  function saveConnectedFriend(fp,name){
+    const transport=window.EZERO_PEER_PROFILE_TRANSPORT;
+    if(!validFingerprint(fp)||!validName(name) ||
+       transport?.connected()!==true||transport.peerFingerprint()!==fp)
+      return false;
+    const safeName=normalize(name);
+    const prior=contacts.findIndex(x=>x.fp===fp);
+    if(prior<0&&contacts.length>=MAX_CONTACTS){
+      announce("storageFull");return false;
+    }
+    const next=contacts.slice();
+    if(prior>=0)next[prior]={fp,name:safeName};
+    else next.unshift({fp,name:safeName});
+    if(!safeWrite(next)){announce("storageBlocked");return false;}
+    contacts=next;render();announce(prior>=0?"updated":"saved");
+    document.dispatchEvent(new CustomEvent("ezero:friend-saved",{
+      detail:{fingerprint:fp}
+    }));
+    return true;
+  }
+  window.EZERO_LOCAL_CONTACTS=Object.freeze({
+    saveConnectedFriend,
+    saved:(fp)=>validFingerprint(fp)&&contacts.some(c=>c.fp===fp)
+  });
   $("friendSearch").addEventListener("input",render);
   $("language").addEventListener("change",translate);
   translate();

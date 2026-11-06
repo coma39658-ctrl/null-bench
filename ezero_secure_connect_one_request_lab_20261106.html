@@ -6,9 +6,9 @@
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0b3426">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self' wss://ezero-browser-signaling-pilot.coma39658.workers.dev; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
-<title>E-ZERO Secure Connect — One Request Call Pilot</title>
+<title>E-ZERO Secure Connect — Private Audio, Video &amp; Messages</title>
 <meta name="robots" content="index,follow">
-<meta name="description" content="E-ZERO Secure Connect — one green page for QR call invitations, one accept, and experimental WebRTC audio/video.">
+<meta name="description" content="E-ZERO Secure Connect — public live beta for WebRTC calls, private messages, voice notes, and optional beauty lens. Initial QR or remote invite acceptance required.">
 <meta property="og:title" content="E-ZERO Secure Connect — Friends & Calls">
 <meta property="og:description" content="Open E-ZERO Secure Connect and choose Install App or Add to Home Screen. No hidden fees, ads or tracking. Experimental two-phone calls.">
 <meta property="og:type" content="website">
@@ -26,22 +26,29 @@
 <link rel="stylesheet" href="./css/ezero_immersive_video_call_v0_1.css?v=20261106video1">
 <link rel="stylesheet" href="./css/ezero_compact_app_shell_20261106.css?v=20261106exitcontrast1">
 <link rel="stylesheet" href="./css/ezero_incall_messages_v0_1.css?v=20261106audiochat1">
+<link rel="stylesheet" href="./css/ezero_video_beauty_v0_1.css?v=20261106beauty1">
+<link rel="stylesheet" href="./css/ezero_message_alerts_v0_1.css?v=20261106alerts1">
+<link rel="stylesheet" href="./css/ezero_friend_presence_v0_1.css?v=20261106presence1">
+<link rel="stylesheet" href="./css/ezero_mutual_friend_request_v0_1.css?v=20261106friends1">
 <script defer src="./js/vendor/ezero-qrcode-generator-mit.js"></script>
-<script defer src="./js/ezero_secure_connect_live_p2p_v0_1.js?v=20261106audioroute1"></script>
+<script defer src="./js/ezero_video_beauty_v0_1.js?v=20261106beauty1"></script>
+<script defer src="./js/ezero_secure_connect_live_p2p_v0_1.js?v=20261106beautysender1"></script>
 <script defer src="./js/ezero_secure_connect_simple_near_far_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_contacts_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_install_share_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_one_tap_qr_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_modern_communications_v0_3.js?v=20261106voiceclone1"></script>
 <script defer src="./js/ezero_secure_connect_peer_profile_v0_1.js?v=20261105forest1"></script>
-<script defer src="./js/ezero_secure_connect_people_v0_1.js?v=20261105ttl1"></script>
+<script defer src="./js/ezero_secure_connect_people_v0_1.js?v=20261106presence1"></script>
 <script defer src="./js/ezero_auto_signaling_lab_config_20261106.js"></script>
-<script defer src="./js/ezero_secure_connect_auto_signaling_pilot_v0_1.js?v=20261106qrrepair1"></script>
-<script defer src="./js/ezero_one_request_lab_20261106.js?v=20261106qrrepair1"></script>
+<script defer src="./js/ezero_secure_connect_auto_signaling_pilot_v0_1.js?v=20261106answer3lang1"></script>
+<script defer src="./js/ezero_one_request_lab_20261106.js?v=20261106incoming3lang1"></script>
 <script defer src="./js/ezero_secure_connect_quick_nav_v0_1.js"></script>
 <script defer src="./js/ezero_unified_nav_v0_1.js?v=20261106exitcontrast1"></script>
 <script defer src="./js/ezero_immersive_video_call_v0_1.js?v=20261106remotehangup2"></script>
 <script defer src="./js/ezero_incall_messages_v0_1.js?v=20261106audiochat1"></script>
+<script defer src="./js/ezero_message_alerts_v0_1.js?v=20261106alerts1"></script>
+<script defer src="./js/ezero_mutual_friend_request_v0_1.js?v=20261106friends1"></script>
 </head>
 <body class="communication-page ezero-one-lab">
 <div class="shell">
@@ -79,8 +86,8 @@
   <div id="ezeroAutoIncoming" hidden>
     <p data-auto="incoming">دوست کی درخواست آئی ہے۔ صرف واضح منظوری کے بعد مائیک/کیمرہ چل سکتا ہے۔</p>
     <div class="ezero-auto-actions">
-      <button type="button" id="ezeroAutoAccept" class="primary" data-auto="join">✓ درخواست قبول کریں</button>
-      <button type="button" id="ezeroAutoDecline" class="danger" data-auto="decline">✕ درخواست مسترد کریں</button>
+      <button type="button" id="ezeroAutoAccept" class="primary" data-auto="join">✓ کال قبول کریں</button>
+      <button type="button" id="ezeroAutoDecline" class="danger" data-auto="decline">✕ کال رد کریں</button>
     </div>
   </div>
   </div>

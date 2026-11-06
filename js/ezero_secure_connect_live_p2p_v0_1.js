@@ -590,6 +590,10 @@
     if(peer!==p){localStream.getTracks().forEach(x=>x.stop());return;}
     $("localVideo").srcObject=localStream;
     localStream.getTracks().forEach(track=>p.addTrack(track,localStream));
+    // Optional sender-side canvas lens: it changes only the outgoing video
+    // sender and local preview. Original media and audio remain authoritative.
+    // A failing or unsupported lens must never abort a verified call.
+    try{window.EZERO_BEAUTY_FILTER?.attach(localStream,p,$("localVideo"));}catch(_){}
     micMuted=false;cameraMuted=false;
     $("muteMic").disabled=false;$("toggleCamera").disabled=localStream.getVideoTracks().length===0;
     role="peer";
@@ -625,6 +629,23 @@
           }));
           return;
         }
+        // Friend request/reply is a separate explicit mutual-consent handshake
+        // on the existing *authenticated* encrypted WebRTC DataChannel. A call
+        // invitation alone NEVER saves a contact; no server-side friend list.
+        if(m?.v===4 && ["friend-request","friend-response"].includes(m.kind) &&
+           /^[a-f0-9]{32}$/.test(m.id||"") &&
+           typeof m.name==="string" && m.name.trim().length>=1 &&
+           m.name.trim().length<=40 &&
+           (m.kind!=="friend-response"||typeof m.accepted==="boolean") &&
+           /^[a-f0-9]{64}$/.test(peer?.__ezeroPeerFP||"") &&
+           peer?.connectionState==="connected" && c.readyState==="open"){
+          document.dispatchEvent(new CustomEvent("ezero:friend-control",{
+            detail:{kind:m.kind,id:m.id,name:m.name.trim().replace(/\s+/g," "),
+              accepted:m.kind==="friend-response"?m.accepted:null,
+              peerFingerprint:peer.__ezeroPeerFP}
+          }));
+          return;
+        }
         // The opt-in voice-note add-on receives bounded audio through the existing
         // encrypted WebRTC DataChannel. Never start playback without a user click.
         if(m.v===2 && m.kind==="voice-once" &&
@@ -646,6 +667,9 @@
           $("messageTimer").textContent="";
           $("messageStatus").textContent=t("arrived");
           unreadExpiry=setTimeout(discardIncoming,600000);
+          // Fire only for a syntactically validated message received over a
+          // real DataChannel; never include private text in notification data.
+          document.dispatchEvent(new CustomEvent("ezero:private-text-received"));
         }
       }catch(_){}
     };
@@ -813,12 +837,16 @@
     stopScanner();
     document.dispatchEvent(new CustomEvent("ezero:channel-state",{detail:{connected:false}}));
     if(channel){channel.onmessage=channel.onopen=channel.onclose=null;try{channel.close();}catch(_){}channel=null;}
+    try{window.EZERO_BEAUTY_FILTER?.detach();}catch(_){}
     if(peer){peer.ontrack=peer.ondatachannel=peer.onconnectionstatechange=null;try{peer.close();}catch(_){}peer=null;}
     if(localStream){localStream.getTracks().forEach(x=>x.stop());localStream=null;}
     remoteStream=null;
     resetAudioOutput();
     ["localVideo","remoteVideo"].forEach(id=>{const el=$(id);el.pause();el.srcObject=null;});
     $("localSignal").value="";$("remoteSignal").value="";role=null;
+    // Saved-friend targeting applies only to one authenticated call attempt.
+    // Prevent a stale contact pin blocking the next explicit unknown caller.
+    expectedPeerFingerprint=null;
     $("sendMessage").disabled=true;$("muteMic").disabled=true;$("toggleCamera").disabled=true;
     discardIncoming();$("sendText").value="";
     $("messageStatus").textContent=t("notConnected");
@@ -830,6 +858,15 @@
   // The peer's fingerprint comes from the cryptographically signed call
   // envelope, NEVER from an untrusted name/photo or incoming profile object.
   window.EZERO_PEER_PROFILE_TRANSPORT=Object.freeze({
+    // Only the saved-contacts UI invokes this after checking its local list.
+    // Core WebRTC has no persistent storage or saved-friend state. Pinning a
+    // fingerprint restricts (never broadens) which signed peer can answer.
+    // A forwarded invitation to the wrong peer fails closed.
+    targetSavedContact:(fp)=>{
+      if(peer||typeof fp!=="string"||!/^[a-f0-9]{64}$/.test(fp))return false;
+      expectedPeerFingerprint=fp;
+      return true;
+    },
     connected:()=>!!channel&&channel.readyState==="open" &&
       peer?.connectionState==="connected" &&
       /^[a-f0-9]{64}$/.test(peer?.__ezeroPeerFP||""),
@@ -845,6 +882,26 @@
         name:name.trim(),avatar});
       if(encoded.length>14000)return false;
       channel.send(encoded);return true;
+    }
+  });
+  window.EZERO_FRIEND_TRANSPORT=Object.freeze({
+    connected:()=>window.EZERO_PEER_PROFILE_TRANSPORT.connected(),
+    peerFingerprint:()=>window.EZERO_PEER_PROFILE_TRANSPORT.peerFingerprint(),
+    send:(kind,id,name,accepted)=>{
+      if(!window.EZERO_PEER_PROFILE_TRANSPORT.connected() ||
+         !["friend-request","friend-response"].includes(kind) ||
+         typeof id!=="string"||!/^[a-f0-9]{32}$/.test(id) ||
+         typeof name!=="string"||name.trim().length<1||name.trim().length>40 ||
+         (kind==="friend-response"&&typeof accepted!=="boolean"))
+        return false;
+      try{
+        const m={v:4,kind,id,name:name.trim().replace(/\s+/g," ")};
+        if(kind==="friend-response")m.accepted=accepted;
+        const raw=JSON.stringify(m);
+        if(raw.length>300||channel?.readyState!=="open")return false;
+        channel.send(raw);
+        return true;
+      }catch(_){return false;}
     }
   });
   window.EZERO_VOICE_TRANSPORT=Object.freeze({

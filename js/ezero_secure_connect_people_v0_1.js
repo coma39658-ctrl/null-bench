@@ -26,7 +26,8 @@
       noMissed:"پس منظر میں آنے والی کال کی اطلاع موجود نہیں، اس لیے کوئی مس کال فرض نہیں کی جائے گی۔",
       saved:"محفوظ شناخت · نئے سیشن میں دوبارہ تصدیق کریں",current:"ابھی WebRTC پر کنیکٹ",
       incoming:"آنے والی",outgoing:"کی گئی",audio:"آڈیو",video:"ویڈیو",temporary:"عارضی تصدیق شدہ رابطہ",
-      unknown:"کنیکٹ شدہ رابطہ",recent:"10 منٹ کی ہسٹری",notOnline:"مستقل آن لائن حالت دستیاب نہیں"},
+      unknown:"کنیکٹ شدہ رابطہ",recent:"10 منٹ کی ہسٹری",notOnline:"مستقل آن لائن حالت دستیاب نہیں",
+      online:"● آن لائن — کال جاری",offline:"○ آف لائن — کال منقطع",presenceUnknown:"○ آن لائن حالت نامعلوم",friendCall:"📞 نئی کال",friendCallHelp:"کال کا دعوتی لنک شیئر کریں؛ محفوظ شناخت کو دوبارہ QR اسکین کرنا ضروری نہیں"},
     en:{verifyFriend:"+ Add friend via signed QR",hubTitle:"👥 Friends & call history",hubDescription:"Saved friends and genuinely connected calls; never fake online or missed-call status.",
       friends:"Friends",calls:"Calls",missed:"Missed",searchLabel:"Search friends or calls",
       historyConsent:"Keep minimal metadata about genuinely connected and completed audio/video calls on this phone for 10 minutes. Never save audio, video, photos or chat.",
@@ -38,7 +39,8 @@
       noMissed:"Background incoming-call notifications are not available, so missed calls cannot be determined.",
       saved:"Saved ID · verify in each new session",current:"Connected via WebRTC now",
       incoming:"Incoming",outgoing:"Outgoing",audio:"Audio",video:"Video",temporary:"Temporary verified peer",
-      unknown:"Connected peer",recent:"10-minute history",notOnline:"Permanent online status unavailable"},
+      unknown:"Connected peer",recent:"10-minute history",notOnline:"Permanent online status unavailable",
+      online:"● Online — in call",offline:"○ Offline — call ended",presenceUnknown:"○ Online status unknown",friendCall:"📞 New call",friendCallHelp:"Share a fresh call link; do not rescan the saved identity QR"},
     ar:{verifyFriend:"+ إضافة صديق عبر QR موقّع",hubTitle:"👥 الأصدقاء وسجل المكالمات",hubDescription:"جهات الاتصال المحفوظة والمكالمات المتصلة فعليًا، دون حالة مزيفة.",
       friends:"الأصدقاء",calls:"المكالمات",missed:"الفائتة",searchLabel:"البحث عن صديق أو مكالمة",
       historyConsent:"احفظ البيانات المختصرة للمكالمات الصوتية/المرئية المتصلة والمكتملة على هذا الهاتف لمدة 10 دقائق؛ دون تسجيل الصوت أو الفيديو أو الصور أو الرسائل.",
@@ -50,7 +52,8 @@
       noMissed:"لا تتوفر إشعارات مكالمات واردة في الخلفية، لذا لا يمكن تحديد الفائتة بعد.",
       saved:"هوية محفوظة · أعد التحقق في كل جلسة",current:"متصل الآن عبر WebRTC",
       incoming:"واردة",outgoing:"صادرة",audio:"صوتية",video:"مرئية",temporary:"طرف مؤقت متحقّق منه",
-      unknown:"طرف متصل",recent:"سجل لمدة 10 دقائق",notOnline:"حالة الاتصال الدائمة غير متاحة"}
+      unknown:"طرف متصل",recent:"سجل لمدة 10 دقائق",notOnline:"حالة الاتصال الدائمة غير متاحة",
+      online:"● متصل الآن — في مكالمة",offline:"○ غير متصل — انتهت المكالمة",presenceUnknown:"○ حالة الاتصال غير معروفة",friendCall:"📞 مكالمة جديدة",friendCallHelp:"شارك رابط مكالمة جديداً؛ لا حاجة لمسح هوية QR المحفوظة مجدداً"}
   };
   const t=k=>(dict[document.documentElement.lang]||dict.ur)[k]||k;
   const el=(tag,cls,txt)=>{const n=document.createElement(tag);
@@ -87,6 +90,8 @@
     }catch(_){return[];}
   }
   let records=decodeHistory(),active=null,intent=null,tab="friends",timer=null,note=null;
+  // Session-only disconnected states are not claims about global availability.
+  const sessionEndedPeers=new Set();
   function persist(){
     try{
       if(!consent())localStorage.removeItem(HISTORY);
@@ -128,12 +133,42 @@
     let entries=[];
     if(tab==="friends"){
       entries=friends().filter(x=>x.name.toLocaleLowerCase().includes(search)||
-        x.fp.includes(search)).map(x=>card(x.name,
-        t("saved")+" · "+x.fp.slice(0,10)+"…",t("friends"),""));
+        x.fp.includes(search)).map(x=>{
+        const online=active?.fp===x.fp&&
+          window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true;
+        const status=online?"online":sessionEndedPeers.has(x.fp)?"offline":"presenceUnknown";
+        const row=card(x.name,t("saved")+" · "+x.fp.slice(0,10)+"…",
+          t(status),"");
+        row.dataset.presence=status;
+        row.dataset.fingerprint=x.fp;
+        if(!online){
+          const callButton=el("button","ezero-saved-friend-call",t("friendCall"));
+          callButton.type="button";
+          callButton.setAttribute("aria-label",t("friendCall")+" — "+x.name);
+          callButton.addEventListener("click",()=>{
+            // A saved fingerprint is NOT an addressable online account.
+            // Start a genuine fresh signed invite. Delivery still requires
+            // explicit link sharing by the caller, without new QR identity scan.
+            const call=document.querySelector('[data-modern-select="audio"]');
+            if(!call)return;
+            if(window.EZERO_PEER_PROFILE_TRANSPORT?.targetSavedContact(x.fp)!==true){
+              $("ezeroPeopleStatus").textContent=t("presenceUnknown");
+              return;
+            }
+            $("ezeroPeopleHub").open=false;
+            call.click();
+            $("ezeroAutoPilot")?.scrollIntoView({block:"center"});
+          });
+          row.append(callButton);
+        }
+        return row;
+      });
       if(active&&active.name.toLocaleLowerCase().includes(search)){
         const img=$("ezeroPeerAvatar");
-        entries.unshift(card(active.name,t("current"),t("temporary"),
-          img&&!img.hidden?img.getAttribute("src"):""));
+        const current=card(active.name,t("current"),t("online"),
+          img&&!img.hidden?img.getAttribute("src"):"");
+        current.dataset.presence="online";
+        entries.unshift(current);
       }
     }else if(tab==="calls"){
       entries=records.filter(x=>x.name.toLocaleLowerCase().includes(search)).map(x=>{
@@ -166,11 +201,13 @@
       "لم يشارك الصديق ملفه بعد"];
     active={fp,name:saved?.name||(!empty.includes(visible)?visible:"")||t("unknown"),
       direction:intent?.direction||null,kind:intent?.kind||null};
+    sessionEndedPeers.delete(fp);
     render();
   }
   function ended(){
     if(!active)return;
     const old=active;active=null;intent=null;
+    sessionEndedPeers.add(old.fp);
     // Only a real connected session with explicit direction/type is eligible.
     if(consent()&&["incoming","outgoing"].includes(old.direction)&&
        ["audio","video"].includes(old.kind)){
@@ -218,6 +255,9 @@
       active.name=nameOf(p.name);render();
     }
   });
+  // Update the visible Friends tab immediately after BOTH users approve
+  // a real in-call friend request; do not require a page reload.
+  document.addEventListener("ezero:friend-saved",render);
   $("language").addEventListener("change",localize);
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)render();});
   window.addEventListener("focus",render);

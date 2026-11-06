@@ -57,7 +57,9 @@ jobs:
         run: |
           set -euo pipefail
           npm install --no-save --ignore-scripts playwright@1.57.0 ws@8.18.3
-          npx playwright install --with-deps chromium
+          # Ubuntu hosted runners already provide the Chromium shared libraries.
+          # Download only the headless shell; avoid apt transaction/network stalls.
+          npx playwright install chromium --only-shell
       - name: Start candidate website on loopback only
         shell: bash
         run: |
