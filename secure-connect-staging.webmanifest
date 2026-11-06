@@ -1,7 +1,7 @@
 {
-  "name": "E-ZERO Secure Connect — Private Test Preview",
-  "short_name": "E-ZERO Test",
-  "description": "Separate pre-release Trusted Friends physical-phone test. Not a public launch; media requires explicit consent.",
+  "name": "E-ZERO Secure Connect — Unified Beta",
+  "short_name": "E-ZERO Connect",
+  "description": "Public beta for two-phone E-ZERO Secure Connect testing. First call requires QR and mutual acceptance; consent is required for recording and evidence exports.",
   "id": "./ezero_trusted_friends_staging_20261106.html",
   "start_url": "./ezero_trusted_friends_staging_20261106.html",
   "scope": "./",
@@ -29,10 +29,10 @@
   },
   "shortcuts": [
     {
-      "name": "E-ZERO Trusted Friends — Test",
-      "short_name": "Friends Test",
+      "name": "E-ZERO Friends & Calls",
+      "short_name": "Friends & Calls",
       "url": "./ezero_trusted_friends_staging_20261106.html",
-      "description": "Staging only: opt-in friend cards, audio/video, real Cloudflare inbox"
+      "description": "One unified beta page for QR calls, saved friends, audio/video and optional evidence"
     }
   ]
 }

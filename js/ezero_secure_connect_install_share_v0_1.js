@@ -91,7 +91,7 @@
   const t=key=>(labels[lang()]||labels.ur)[key]||labels.ur[key]||key;
   // Share only the stable public URL. No query strings, fingerprints, QR,
   // invite text, friend lists or network addresses may enter the share payload.
-  const PUBLIC_URL=new URL("./ezero_secure_connect_one_request_lab_20261106.html",location.href).href;
+  const PUBLIC_URL=new URL("./ezero_trusted_friends_staging_20261106.html",location.href).href;
   let promptEvent=null,installed=false,statusKey="initial",showHelp=false;
   const appLink=$("publicConnectLink");
   appLink.href=PUBLIC_URL;

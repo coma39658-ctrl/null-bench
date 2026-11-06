@@ -25,7 +25,7 @@ try {
   assert.equal(manifest.short_name,"E-ZERO Connect");
   assert.equal(manifest.display,"standalone");
   const sharedURL=await page.locator("#publicConnectLink").getAttribute("href");
-  assert.match(sharedURL,/ezero_secure_connect_one_request_lab_20261106\.html$/);
+  assert.match(sharedURL,/ezero_trusted_friends_staging_20261106\.html$/);
   assert.ok(!sharedURL.includes("EZERO1.")&&!sharedURL.includes("fingerprint"));
   assert.equal(await page.evaluate(()=>document.querySelector("#installHelp").hidden),true);
   console.log("PUBLIC_LINK_AND_VISIBLE_INSTALL_BUTTON_ON_FIRST_VISIT: PASS");

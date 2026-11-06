@@ -45,7 +45,7 @@ assert.doesNotMatch(core+invites,/\bfetch\(|\bWebSocket\b|\bRTCPeerConnection\b|
 assert.match(redirect,/js\/ezero_secure_connect_short_link_v0_2\.js/);
 assert.match(short,/destination\.hash=location\.hash/);
 assert.match(short,/location\.replace\(destination\.href\)/);
-assert.equal(manifest.start_url,"./ezero_secure_connect_one_request_lab_20261106.html");
+assert.equal(manifest.start_url,"./ezero_trusted_friends_staging_20261106.html");
 assert.equal(manifest.id,"./ezero_secure_connect_live_p2p_v0_1.html","Stable installed-app identity retained after single-page public upgrade");
 assert.equal(manifest.scope,"./");
 assert.deepEqual(manifest.launch_handler,{client_mode:"navigate-existing"});

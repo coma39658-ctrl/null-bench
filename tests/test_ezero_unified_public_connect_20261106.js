@@ -6,6 +6,7 @@ const vm=require("node:vm");
 const read=p=>fs.readFileSync(p,"utf8");
 const page=read("ezero_secure_connect_one_request_lab_20261106.html");
 const css=read("css/ezero_one_request_lab_20261106.css");
+const updatedPage=read("ezero_trusted_friends_staging_20261106.html");
 const router=read("js/ezero_secure_connect_short_link_v0_2.js");
 const legacy=read("js/ezero_secure_connect_public_entry_redirect_v0_1.js");
 const callJs=read("js/ezero_one_request_lab_20261106.js");
@@ -19,6 +20,16 @@ const unique=["ezeroUnifiedCard","ezeroOneJoinPanel","ezeroOneScanInvite",
 for(const id of unique){
  assert.equal(page.split('id="'+id+'"').length,2,"Missing or duplicate #"+id);
 }
+for(const id of ["ezeroUnifiedCard","ezeroOneJoinPanel","ezeroOneScanInvite",
+ "ezeroAutoAccept","ezeroTrustedFriendsLab","ezeroQuickProfile",
+ "ezeroHeaderAvatar","ezeroEvidencePanel","ezeroEvidenceList"]){
+ assert.equal(updatedPage.split('id="'+id+'"').length,2,
+  "Missing or duplicate new unified public beta #"+id);
+}
+assert.ok(updatedPage.indexOf('id="ezeroQuickProfile"')<updatedPage.indexOf("<main>"),
+ "Public beta profile DP must be at top of the screen");
+assert.match(updatedPage,/<meta name="robots" content="noindex,nofollow">/,
+ "Public beta remains an opt-in test; physical two-phone success not assumed");
 assert.ok(page.indexOf('id="ezeroUnifiedCard"')<page.indexOf('id="ezeroOneJoinPanel"'));
 assert.ok(page.indexOf('id="ezeroUnifiedCard"')<page.indexOf('id="ezeroAutoPilot"'));
 assert.ok(page.indexOf('id="ezeroUnifiedCard"')<page.indexOf('id="modernCallPanel"'));
@@ -29,12 +40,15 @@ assert.match(css,/#ezeroOneIncomingShell\[hidden\]\{\s*display:none!important/);
 assert.match(css,/#ezeroOneQrBox/);
 assert.match(page,/<meta name="robots" content="index,follow">/);
 assert.match(page,/src="\.\/js\/ezero_one_request_lab_20261106\.js\?v=20261106qrrepair1"/);
-assert.equal(manifest.start_url,"./ezero_secure_connect_one_request_lab_20261106.html");
+assert.equal(manifest.start_url,"./ezero_trusted_friends_staging_20261106.html");
 assert.equal(manifest.shortcuts[0].url,manifest.start_url);
-assert.notEqual(manifest.id,"", "Installed-app identity must be non-empty");
+assert.equal(manifest.id,"./ezero_secure_connect_live_p2p_v0_1.html",
+ "Previous installed app identity must remain stable");
 assert.match(router,/identity\?/);
 assert.match(router,/ezero_secure_connect_one_request_lab_20261106\.html/);
+assert.match(router,/ezero_trusted_friends_staging_20261106\.html/);
 assert.match(legacy,/ezero_secure_connect_one_request_lab_20261106\.html/);
+assert.match(legacy,/ezero_trusted_friends_staging_20261106\.html/);
 
 function routeCode(source,pathname,hash,search=""){
  const original="https://coma39658-ctrl.github.io/null-bench/"+pathname+search+hash;
@@ -47,8 +61,8 @@ for(const route of ["c.html","ezero_secure_connect_live_p2p_v0_1.html",
  "ezero_secure_connect_communications_v0_3.html"]){
  const code=route==="c.html"?router:legacy;
  const result=routeCode(code,route,"");
- assert.ok(result.includes("/ezero_secure_connect_one_request_lab_20261106.html"),
- "All old regular entries must converge on public green page: "+route);
+ assert.ok(result.includes("/ezero_trusted_friends_staging_20261106.html"),
+ "All ordinary entries must converge on ONE updated public beta page: "+route);
 }
 const room="#room="+"a".repeat(32)+"."+"b".repeat(43);
 const result=routeCode(router,"c.html",room,"?mode=audio");
@@ -73,7 +87,7 @@ for(const name of ["ezero_secure_connect_live_p2p_v0_1.html",
 const index=read("index.html");
 for(const name of ["ezeroSecureConnectVideoEntry","ezeroSecureConnectAudioEntry",
  "ezeroSecureConnectVoiceEntry","ezeroSecureConnectQrEntry"]){
- assert.match(index,new RegExp('id="'+name+'" href="\\./ezero_secure_connect_one_request_lab_20261106\\.html"'));
+ assert.match(index,new RegExp('id="'+name+'" href="\\./ezero_trusted_friends_staging_20261106\\.html"'));
 }
 assert.match(callJs,/if\(back\)\{back\.href="\.\/index\.html"/);
 assert.match(callJs,/const auto=\$\("ezeroAutoPilot"\)/);

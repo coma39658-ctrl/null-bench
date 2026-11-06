@@ -16,7 +16,13 @@
     if(/^#(?:e2|e)=[A-Za-z0-9_-]+$/.test(h) ||
        /^#s=[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43}$/.test(h))return;
   }else return;
-  const target=new URL("./ezero_secure_connect_one_request_lab_20261106.html",location.href);
+  // Ordinary old bookmarks enter the new single public-beta call page.
+  // Preserve pre-existing #room call invitations on their original page:
+  // migrating a live signed session can break the protocol/peer identity.
+  const oldRoom=/^#room=[A-Za-z0-9_-]{32}\.[A-Za-z0-9_-]{43}$/.test(h);
+  const target=new URL(oldRoom
+    ?"./ezero_secure_connect_one_request_lab_20261106.html"
+    :"./ezero_trusted_friends_staging_20261106.html",location.href);
   target.search=location.search;
   // Preserve short room invitation ONLY in fragment; it is never sent to server.
   if(/^#room=[A-Za-z0-9_-]{32}\.[A-Za-z0-9_-]{43}$/.test(h))target.hash=h;

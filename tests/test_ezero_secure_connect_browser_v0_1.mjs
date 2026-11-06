@@ -40,7 +40,7 @@ try {
   assert.ok(box&&box.x>=0&&box.y>=0&&box.x+box.width<=393+1&&box.y+box.height<=852+1,
     "Secure Connect popup fits mobile viewport");
   await page.locator("#ezeroSecureConnectVideoEntry").click();
-  await page.waitForURL(/ezero_secure_connect_one_request_lab_20261106\.html$/);
+  await page.waitForURL(/ezero_trusted_friends_staging_20261106\.html$/);
   assert.equal(await page.locator("#ezeroUnifiedCard").isVisible(),true,
     "The public entry must open the single unified green call card");
   assert.equal(await page.locator("#ezeroOneScanInvite").isVisible(),true);
