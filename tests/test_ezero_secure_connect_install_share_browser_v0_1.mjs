@@ -22,7 +22,7 @@ try {
   assert.equal(await page.locator("#copyConnectLink").isVisible(),true);
   assert.equal(await page.locator("#installSecureConnect").isVisible(),true);
   const manifest=await page.evaluate(async()=>await (await fetch("./secure-connect.webmanifest")).json());
-  assert.equal(manifest.short_name,"E-ZERO Connect");
+  assert.equal(manifest.short_name,"E-ZERO Secure App");
   assert.equal(manifest.display,"standalone");
   const sharedURL=await page.locator("#publicConnectLink").getAttribute("href");
   assert.match(sharedURL,/ezero_trusted_friends_staging_20261106\.html$/);
@@ -38,7 +38,7 @@ try {
   });
   await page.locator("#shareConnectLink").click();
   const payload=await page.evaluate(()=>window.__sharePayload);
-  assert.equal(payload.title,"E-ZERO Secure Connect");
+  assert.equal(payload.title,"E-ZERO Secure App");
   assert.equal(payload.url,sharedURL);
   assert.equal(Object.keys(payload).sort().join(","),"text,title,url");
   assert.ok(!JSON.stringify(payload).includes("EZERO1.")&&!JSON.stringify(payload).includes("SHA256:"));
