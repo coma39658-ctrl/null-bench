@@ -12,6 +12,7 @@ const friendFp="a".repeat(64),original="https://coma39658-ctrl.github.io/null-be
   "A".repeat(32)+"."+"B".repeat(43);
 const elements=new Map(),listeners=new Map(),apiListeners=new Map();
 let openCount=0,trustCount=0,callCount=0,featureClicks=0,navigations=0,visibleReceipts=[];
+let deliverDuringSend=false,failDuringSend=false;
 function emit(map,type,payload){
   for(const cb of map.get(type)||[])cb(payload);
 }
@@ -50,7 +51,12 @@ const lab={
   },
   callSavedFriend:async(fp,mode,link)=>{
     assert.equal(fp,friendFp);assert.equal(mode,"audio");
-    assert.equal(link,original);callCount++;return "b".repeat(32);
+    assert.equal(link,original);callCount++;
+    if(deliverDuringSend)emit(apiListeners,"outgoing-delivered",{
+      detail:{callId:"b".repeat(32)}});
+    if(failDuringSend)emit(apiListeners,"outgoing-error",{
+      detail:{code:"DELIVERY_FAILED"}});
+    return "b".repeat(32);
   },
   safeInvite:(value,kind)=>value===original&&kind==="audio",
   confirmIncomingVisible:(fp,id)=>{
@@ -94,6 +100,28 @@ async function test(){
   await new Promise(resolve=>setTimeout(resolve,5));
   assert.equal(callCount,1);
   assert.equal(navigations,0);
+  assert.equal(document.getElementById("ezeroTrustedStatus").textContent,
+    "درخواست سرور کو بھیجی؛ دوست کے فون پر پہنچنے کی تصدیق باقی ہے.");
+  emit(apiListeners,"outgoing-delivered",{
+    detail:{callId:"b".repeat(32)}});
+  assert.match(document.getElementById("ezeroTrustedStatus").textContent,
+    /دعوت پہنچی/,"Only a real receipt may show delivery");
+  deliverDuringSend=true;
+  byText("📞 کال").click();
+  emit(listeners,"ezero:auto-invite-ready",{detail:{link:original}});
+  await new Promise(resolve=>setTimeout(resolve,5));
+  assert.equal(callCount,2,"Second call is allowed after first delivery");
+  assert.match(document.getElementById("ezeroTrustedStatus").textContent,
+    /دعوت پہنچی/,"Fast incoming ACK must not be overwritten by Sent");
+  deliverDuringSend=false;
+  failDuringSend=true;
+  byText("📞 کال").click();
+  emit(listeners,"ezero:auto-invite-ready",{detail:{link:original}});
+  await new Promise(resolve=>setTimeout(resolve,5));
+  assert.equal(callCount,3);
+  assert.match(document.getElementById("ezeroTrustedStatus").textContent,
+    /نہیں پہنچی/,"Fast error must not be overwritten by Sent");
+  failDuringSend=false;
   emit(apiListeners,"incoming",{detail:{
     from:friendFp,name:"Phone 2",kind:"audio",invite:original,callId:"c".repeat(32)}});
   assert.equal(navigations,0,
