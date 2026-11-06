@@ -175,6 +175,11 @@ try{
   assert.ok(invite.length<190,"One-request URL should not contain an entire SDP");
   assert.equal(await caller.locator("#ezeroOneQrBox").isVisible(),true);
   assert.equal(await caller.locator("#ezeroOneCopyInvite").isEnabled(),true);
+  assert.equal(await caller.locator("#ezeroAutoShare").isEnabled(),true);
+  assert.equal(await caller.locator("#ezeroOneManualInvite").isVisible(),true,
+    "Manual copyable invite fallback must be shown with call QR");
+  assert.equal(await caller.locator("#ezeroOneManualInvite").getAttribute("href"),invite,
+    "The fallback must contain the expiring call invite, not only the public site URL");
   assert.equal(await caller.locator('[data-modern-select="audio"]').getAttribute("aria-pressed"),"false",
     "Call pending is not a connected state");
   console.log("SINGLE_CLICK_CREATES_COMPACT_QR_INVITE_NO_FAKE_CONNECTION: PASS");
@@ -192,6 +197,8 @@ try{
     "Opening a friend request must NOT activate camera or microphone");
   assert.equal(await callee.locator("#ezeroAutoAccept").isVisible(),true);
   assert.equal(await callee.locator("#ezeroAutoDecline").isVisible(),true);
+  assert.equal(await callee.locator("#ezeroIncomingRingToggle").isVisible(),true,
+    "Incoming QR invitation must expose a tappable ringtone control");
   // Only recipient approval. No second link, pasted code or caller approval.
   await callee.locator("#ezeroAutoAccept").click();
   assert.equal(await callee.locator("#ezeroOneCallProgress").getAttribute("data-state"),
@@ -207,6 +214,20 @@ try{
     {timeout:10000});
   assert.equal(await callee.locator("#ezeroOneCallProgress").getAttribute("data-state"),"connected");
   assert.equal(await caller.locator('[data-modern-select="audio"]').getAttribute("aria-pressed"),"true");
+  await caller.locator("#ezeroInCallChat").waitFor({state:"visible",timeout:10000});
+  await caller.locator("#ezeroInCallChat").click();
+  assert.equal(await caller.locator("#ezeroInCallMessageDrawer").isVisible(),true,
+    "Authenticated call chat must be reachable without navigating away");
+  await caller.locator("#sendText").fill("E-ZERO private text stage test");
+  await caller.locator("#sendMessage").click();
+  await callee.locator("#incomingItem").waitFor({state:"visible",timeout:10000});
+  await callee.locator("#ezeroInCallChat").click();
+  await callee.locator("#viewMessage").click();
+  assert.equal(await callee.locator("#seenMessage").innerText(),
+    "E-ZERO private text stage test");
+  await caller.locator("#ezeroInCallClose").click();
+  await callee.locator("#ezeroInCallClose").click();
+  console.log("IN_CALL_PRIVATE_CHAT_VERIFIED_BOTH_BROWSERS: PASS");
   console.log("ONE_REQUEST_ONE_ACCEPT_AUTOMATIC_SIGNED_ANSWER_REAL_BROWSER_WEBRTC: PASS");
   console.log("NO_SECOND_MANUAL_LINK_NO_AUTO_MIC_BEFORE_ACCEPT: PASS");
 
@@ -333,6 +354,8 @@ try{
       {timeout:12000});
     assert.equal(await callee.locator("#ezeroAutoIncoming").isVisible(),false,
       "An unaccepted inbox invite must not auto-start media");
+    assert.equal(await callee.locator('#ezeroTrustedIncoming button[aria-label="Play incoming-call alert"]').isVisible(),true,
+      "Foreground saved-friend call must offer an audible alert fallback");
     console.log("REAL_CLOUDFLARE_INBOX_DELIVERY_BROWSER_VISIBLE_ACK_NO_QR_SCAN: PASS");
 
     // Revoke synthetic test identities on the staging worker before
