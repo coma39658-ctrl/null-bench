@@ -11,7 +11,7 @@ assert.doesNotMatch(source,/getUserMedia\s*\(|MediaRecorder\s*\(|new\s+WebSocket
 const friendFp="a".repeat(64),original="https://coma39658-ctrl.github.io/null-bench/ezero_trusted_friends_staging_20261106.html?mode=audio#room="+
   "A".repeat(32)+"."+"B".repeat(43);
 const elements=new Map(),listeners=new Map(),apiListeners=new Map();
-let openCount=0,trustCount=0,callCount=0,featureClicks=0,navigations=0;
+let openCount=0,trustCount=0,callCount=0,featureClicks=0,navigations=0,visibleReceipts=[];
 function emit(map,type,payload){
   for(const cb of map.get(type)||[])cb(payload);
 }
@@ -53,6 +53,10 @@ const lab={
     assert.equal(link,original);callCount++;return "b".repeat(32);
   },
   safeInvite:(value,kind)=>value===original&&kind==="audio",
+  confirmIncomingVisible:(fp,id)=>{
+    assert.equal(fp,friendFp);assert.match(id,/^[a-f0-9]{32}$/);
+    visibleReceipts.push(id);return true;
+  },
   closeOwnerInbox:()=>{},
   on:(k,cb)=>{if(!apiListeners.has(k))apiListeners.set(k,[]);apiListeners.get(k).push(cb);}
 };
@@ -95,6 +99,20 @@ async function test(){
   assert.equal(navigations,0,
     "incoming invite cannot navigate or request mic without a user click");
   assert.equal(document.getElementById("ezeroTrustedIncoming").hidden,false);
+  assert.deepEqual(visibleReceipts,["c".repeat(32)],
+    "Only a visible incoming call panel may authorize an app receipt");
+  document.hidden=true;
+  emit(apiListeners,"incoming",{detail:{
+    from:friendFp,name:"Phone 2",kind:"audio",invite:original,
+    callId:"d".repeat(32)}});
+  document.hidden=false;
+  assert.deepEqual(visibleReceipts,["c".repeat(32)],
+    "Background tab must never claim incoming call was shown");
+  emit(apiListeners,"incoming",{detail:{
+    from:"f".repeat(64),name:"Unknown",kind:"audio",invite:original,
+    callId:"e".repeat(32)}});
+  assert.deepEqual(visibleReceipts,["c".repeat(32)],
+    "Unknown fingerprint must not be acknowledged");
   const incoming=document.getElementById("ezeroTrustedIncoming");
   const review=incoming.children.find(x=>x.textContent.includes("دعوت کھولیں"));
   assert.ok(review);
@@ -102,6 +120,6 @@ async function test(){
   assert.equal(navigations,1,
     "only explicit user action can open accepted invitation page");
   assert.ok(source.includes("The next page still requires Accept"));
-  console.log("PASS: lab cards, opted-in inbox, trust, fresh invite relay, manual review, no auto navigation/media");
+  console.log("PASS: lab cards, opted-in inbox, trust, visible-only receipt, hidden/unknown rejection, manual review, no auto navigation/media");
 }
 test().catch(e=>{console.error(e);process.exitCode=1;});
