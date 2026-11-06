@@ -159,6 +159,22 @@ body.communication-page.ezero-one-lab .ezero-in-call-message-dock
   #ezeroInCallEvidence{
   font-size:11px!important;white-space:normal!important;overflow-wrap:anywhere
 }
+/* The bottom sheet is the only scroll container.  Making the evidence
+ * panel another scroll layer caused Android Chromium to hit the panel/text
+ * instead of the consent button after opening it from a long voice inbox. */
 body.communication-page.ezero-one-lab .ezero-in-call-message-drawer #ezeroEvidencePanel{
-  max-width:100%!important;overflow-y:auto!important;padding:5px 0!important
+  max-width:100%!important;max-height:none!important;
+  overflow:visible!important;overflow-anchor:none!important;
+  padding:5px 0!important;position:relative!important;isolation:isolate
+}
+body.communication-page.ezero-one-lab .ezero-in-call-message-drawer
+  #ezeroEvidencePanel .ezero-evidence-actions{
+  position:relative!important;z-index:1!important;
+  display:flex!important;flex-wrap:wrap!important;gap:9px!important
+}
+body.communication-page.ezero-one-lab .ezero-in-call-message-drawer
+  #ezeroEvidencePanel .ezero-evidence-actions button{
+  position:relative!important;z-index:2!important;
+  min-height:44px!important;touch-action:manipulation!important;
+  scroll-margin-block:72px!important
 }
