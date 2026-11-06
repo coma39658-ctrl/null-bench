@@ -60,6 +60,10 @@ async function run(){
   assert.equal(proof.clockStatus,"UNTRUSTED_DEVICE_CLOCK");
   assert.equal(proof.identityStatus,"SELF_SIGNED_DEVICE_KEY_NOT_HUMAN_ID");
   assert.equal(proof.thirdPartyTimestamp,null);
+  assert.match(proof.custody.eventId,/^[a-f0-9]{32}$/);
+  assert.equal(proof.custody.actor,"UNVERIFIED_DEVICE_SIGNING_KEY");
+  assert.equal(proof.custody.transferHistory,"NONE_ATTESTED");
+  assert.equal(proof.custody.fileSha256,proof.file.sha256);
   assert.equal(persistent.size,1);
   const key=persistent.get("local");
   assert.equal(key.pair.privateKey.extractable,false);
@@ -79,6 +83,10 @@ async function run(){
   assert.equal((await api.verify(binary,changedTime)).ok,false,"signed time metadata tamper must fail");
   const changedKey=structuredClone(proof);changedKey.signature.keyFingerprintSha256="f".repeat(64);
   assert.equal((await api.verify(binary,changedKey)).ok,false,"key fingerprint tamper must fail");
+  const changedCustody=structuredClone(proof);
+  changedCustody.custody.eventId="0".repeat(32);
+  assert.equal((await api.verify(binary,changedCustody)).ok,false,
+    "signed custody event tampering must fail");
   const changedSig=structuredClone(proof);changedSig.signature.value="a".repeat(86);
   assert.equal((await api.verify(binary,changedSig)).ok,false,"signature tamper must fail");
   const unsigned=structuredClone(proof);unsigned.fakeOfficialCertificate="CERTIFIED";
@@ -99,6 +107,7 @@ async function run(){
   assert.doesNotMatch(script,/\bfetch\s*\(|XMLHttpRequest|MediaRecorder|getUserMedia|sendBeacon/);
   console.log("PASS: original + SHA-256 + self-signed ECDSA P-256 detached ZIP proof");
   console.log("PASS: independent offline verification and signed metadata integrity");
+  console.log("PASS: signed initial chain-of-custody event and tamper rejection");
   console.log("PASS: tampered media, signature, key, timestamp and unsigned fields rejected");
   console.log("PASS: 10-minute transient window, explicit export consent, key never extractable");
   console.log("PASS: no background recording, media upload, network or false legal certification");
