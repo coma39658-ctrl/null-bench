@@ -547,8 +547,17 @@ $("ezeroVoiceSend").addEventListener("click",async()=>{
  try{
    const bytes=new Uint8Array(await draft.blob.arrayBuffer());
    if(bytes.length>MAX_NOTE_BYTES)throw Error("TOO_LARGE");
-   let binary="";for(let i=0;i<bytes.length;i++)binary+=String.fromCharCode(bytes[i]);
-   const encoded=btoa(binary);
+   // Native data-URL encoding avoids a multi-million character JS append loop
+   // on inexpensive Android phones; nothing is uploaded to any server.
+   const dataUrl=await new Promise((resolve,reject)=>{
+     const reader=new FileReader();
+     reader.onload=()=>resolve(String(reader.result||""));
+     reader.onerror=()=>reject(Error("VOICE_ENCODING_FAILED"));
+     reader.readAsDataURL(draft.blob);
+   });
+   const prefix="data:"+draft.mime+";base64,";
+   if(!dataUrl.startsWith(prefix))throw Error("VOICE_ENCODING_FAILED");
+   const encoded=dataUrl.slice(prefix.length);
    if(encoded.length>MAX_NOTE_BASE64)throw Error("TOO_LARGE");
    voiceStatus("sending");
    const good=await Promise.resolve(window.EZERO_VOICE_TRANSPORT.send(
