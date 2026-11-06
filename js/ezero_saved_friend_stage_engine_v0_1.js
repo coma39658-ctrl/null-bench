@@ -586,11 +586,26 @@
            typeof m.audio==="string" && m.audio.length>0 &&
            m.audio.length<=32000 && /^[A-Za-z0-9+/=]+$/.test(m.audio)){
           document.dispatchEvent(new CustomEvent("ezero:voice-note-received",{
-            detail:{id:m.id,mime:m.mime,audio:m.audio}
+            detail:{id:m.id,mime:m.mime,audio:m.audio,
+               exportAllowed:m.exportAllowed===true}
           }));
           return;
         }
-        if (m.v===1 && m.kind==="once" && typeof m.text==="string" && m.text.length<=2000 &&
+        // Explicit per-call recording permission on an encrypted peer channel.
+         // A peer-UI consent indication is NOT a government-certified signature.
+         if(m?.v===5&&m.kind==="record-consent"&&
+            ["request","allow","deny","start","stop"].includes(m.action)&&
+            /^[a-f0-9]{32}$/.test(m.id||"")&&
+            peer?.connectionState==="connected"&&
+            /^[a-f0-9]{64}$/.test(peer?.__ezeroPeerFP||"")){
+           document.dispatchEvent(new CustomEvent("ezero:record-consent",{
+             detail:{action:m.action,id:m.id,
+               peerFingerprint:peer.__ezeroPeerFP,
+               verifiedChannel:true}
+           }));
+           return;
+         }
+         if (m.v===1 && m.kind==="once" && typeof m.text==="string" && m.text.length<=2000 &&
             /^[a-f0-9]{32}$/.test(m.id)) {
           discardIncoming();
           incoming={id:m.id,text:m.text,opened:false};
@@ -792,15 +807,30 @@
       channel.send(encoded);return true;
     }
   });
-  window.EZERO_VOICE_TRANSPORT=Object.freeze({
+  // Staging only. No camera/mic access, recording, or local storage here.
+   // Any recording must be started by the separately consent-gated UI.
+   window.EZERO_RECORD_CONSENT_TRANSPORT=Object.freeze({
+     connected:()=>window.EZERO_PEER_PROFILE_TRANSPORT.connected(),
+     peerFingerprint:()=>window.EZERO_PEER_PROFILE_TRANSPORT.peerFingerprint(),
+     send:(action,id)=>{
+       if(!["request","allow","deny","start","stop"].includes(action)||
+          !/^[a-f0-9]{32}$/.test(id)||!channel||
+          channel.readyState!=="open"||
+          !window.EZERO_PEER_PROFILE_TRANSPORT.connected())return false;
+       channel.send(JSON.stringify({v:5,kind:"record-consent",action,id}));
+       return true;
+     }
+   });
+   window.EZERO_VOICE_TRANSPORT=Object.freeze({
     connected:()=>!!channel&&channel.readyState==="open",
-    send:(mime,encoded)=>{
+    send:(mime,encoded,exportAllowed=false)=>{
       if(!channel||channel.readyState!=="open")return false;
       if(!["audio/webm","audio/mp4","audio/ogg"].includes(mime) ||
          typeof encoded!=="string" || encoded.length<1 || encoded.length>32000 ||
          !/^[A-Za-z0-9+/=]+$/.test(encoded))return false;
       channel.send(JSON.stringify({v:2,kind:"voice-once",
-        id:hex(randomBytes(16)),mime,audio:encoded}));
+        id:hex(randomBytes(16)),mime,audio:encoded,
+         exportAllowed:exportAllowed===true}));
       return true;
     }
   });
