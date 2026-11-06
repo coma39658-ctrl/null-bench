@@ -255,6 +255,50 @@ try{
   console.log("ONE_IMMERSIVE_VIDEO_REMOTE_LARGE_LOCAL_PIP_REAL_TRACKS: PASS");
   console.log("ONE_REQUEST_ONE_ACCEPT_AUTOMATIC_SIGNED_ANSWER_REAL_BROWSER_WEBRTC: PASS");
   console.log("NO_SECOND_MANUAL_LINK_NO_AUTO_MIC_BEFORE_ACCEPT: PASS");
+  // A real call does not automatically create a friend. Friendship is a
+  // second explicit, mutually accepted decision, visible in local Contacts
+  // on both handsets. Only signed WebRTC peer fingerprints are stored.
+  const CONTACTS="ezero_secure_connect_local_fingerprints_v0_1";
+  const readContacts=page=>page.evaluate(key=>
+    JSON.parse(localStorage.getItem(key)||"[]"),CONTACTS);
+  assert.equal((await readContacts(caller)).length,0,
+    "Caller answering/making a call must not auto-save friend");
+  assert.equal((await readContacts(callee)).length,0,
+    "Receiver accepting a call must not auto-save friend");
+  await caller.locator("#ezeroSendFriendRequest").click();
+  assert.equal(await caller.locator("#ezeroMutualFriendStatus").innerText(),
+    "پہلے اپنا نام لکھیں۔");
+  await caller.locator("#ezeroMyFriendName").fill("Test Caller A");
+  await caller.locator("#ezeroSendFriendRequest").click();
+  await callee.locator("#ezeroFriendRequestPrompt").waitFor({state:"visible",timeout:10000});
+  assert.match(await callee.locator("#ezeroFriendRequestDescription").innerText(),
+    /Test Caller A/);
+  assert.equal((await readContacts(caller)).length,0,
+    "Unapproved friend request may not save caller's contact");
+  assert.equal((await readContacts(callee)).length,0,
+    "Receiving an unanswered friend request may not save recipient's contact");
+  await callee.locator("#ezeroMyFriendName").fill("Test Receiver B");
+  await callee.locator("#ezeroAcceptFriendRequest").click();
+  await caller.waitForFunction(key=>{
+    const entries=JSON.parse(localStorage.getItem(key)||"[]");
+    return entries.length===1;
+  },CONTACTS,{timeout:12000});
+  const callerSaved=await readContacts(caller);
+  const calleeSaved=await readContacts(callee);
+  assert.equal(callerSaved.length,1);
+  assert.equal(calleeSaved.length,1);
+  assert.equal(callerSaved[0].name,"Test Receiver B");
+  assert.equal(calleeSaved[0].name,"Test Caller A");
+  assert.equal(callerSaved[0].fp,await callee.locator("#myFingerprint").innerText());
+  assert.equal(calleeSaved[0].fp,await caller.locator("#myFingerprint").innerText());
+  assert.equal(await caller.locator("#friendsList .friend-entry").count(),1);
+  assert.equal(await callee.locator("#friendsList .friend-entry").count(),1);
+  assert.equal(await caller.locator("#ezeroPeopleList .ezero-person-card").count()>=1,true,
+    "Mutual friend must appear in the primary Friends tab without a reload");
+  assert.equal(await caller.evaluate(()=>window.EZERO_VOICE_TRANSPORT.connected()),true,
+    "Friend acceptance may not interrupt the established call");
+  console.log("MUTUAL_FRIEND_REQUEST_ACCEPT_BOTH_CONTACTS_NO_AUTO_SAVE: PASS");
+
   // Additional two-phone browser test: video still works; incoming audio
   // really arrives as one live WebRTC track routed to an independent player.
   // A successful play() does not prove that a human heard the sound.
