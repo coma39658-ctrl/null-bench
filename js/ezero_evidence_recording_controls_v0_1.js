@@ -306,13 +306,35 @@
         consent:"SENDER_EXPORT_ALLOWED_P2P_UNATTESTED"});
     }catch(_){}
   });
+  // Text messages remain view-once unless the original sender explicitly
+  // permitted export, AND the recipient has opened the message. Even then,
+  // SHA-256 evidence is created only at the subsequent evidence-download tap.
+  document.addEventListener("ezero:evidence-text-opened",e=>{
+    const d=e.detail;
+    if(d?.exportAllowed!==true||typeof d.text!=="string"||
+       d.text.length<1||d.text.length>2000)return;
+    try{
+      proof.offer({blob:new Blob([d.text],{type:"text/plain"}),
+        kind:"shared_text",source:"PEER_WEBRTC_TEXT_OPT_IN",
+        consent:"SENDER_EXPORT_ALLOWED_P2P_UNATTESTED"});
+    }catch(_){}
+  });
   $("ezeroEvidenceImport").addEventListener("change",e=>{
     const file=e.target.files?.[0];e.target.value="";
     if(!file)return;
-    if(file.size>MAX_BYTES||file.size<=0||
-       !/^(audio|video)\//.test(file.type))return msg("failed");
+    if(file.size>MAX_BYTES||file.size<=0)return msg("failed");
+    // Only files intentionally selected by the device user; a local import
+    // cannot claim to be an independently verified peer transmission.
+    const accepted=/^(audio|video|image|text)\//.test(file.type)||
+      ["application/pdf","application/zip","application/json",
+       "application/octet-stream",
+       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+       "application/vnd.openxmlformats-officedocument.presentationml.presentation"]
+        .includes(file.type)||file.type==="";
+    if(!accepted)return msg("failed");
     try{
-      proof.offer({blob:file,kind:"media_file",source:"USER_IMPORTED_UNVERIFIED",
+      proof.offer({blob:file,kind:"shared_file",source:"USER_IMPORTED_UNVERIFIED",
         consent:"USER_SELECTED_OWN_FILE_NOT_PEER_ATTESTED"});
       msg("imported");
     }catch(_){msg("failed");}
