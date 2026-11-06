@@ -127,6 +127,12 @@
     const connected=window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true;
     const mode=document.querySelector('input[name="mode"]:checked')?.value;
     const video=connected&&mode==="video";
+    // Strong visible-state guard: initial HTML is hidden and this is the only
+    // feature that reveals the original media surface after verified WebRTC.
+    // The basic call selector may reveal it early; CSS also blocks pre-call.
+    panel.hidden=!connected;
+    const compactHangup=$("modernHangup");
+    if(compactHangup)compactHangup.hidden=!connected||video;
     body.classList.toggle("ezero-call-connected",connected);
     body.classList.toggle("ezero-video-connected",video);
     header.hidden=!video;
