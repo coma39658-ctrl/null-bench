@@ -87,7 +87,7 @@
       yourCode:"Your offer/answer — send to other phone",copy:"📋 Copy code",share:"↗ Share code",codeWarning:"Signaling includes network/IP details. Share only with a trusted person. This is not a permanent account ID or automatic friend QR.",
       idle:"No call has started.",liveCall:"Live call",myMedia:"My camera",peerMedia:"Friend's voice / video",playRemote:"🔊 Play incoming audio",mute:"🎙️ Mute microphone",cameraOff:"📷 Turn camera off",hangup:"📴 Hang up",
       callTruth:"Only a WebRTC Connected state confirms a network path. The device shows its own mic/camera permission indicator. No call recording.",
-      oneView:"One-view message",messageHelp:"Send only through the direct DataChannel while connected. No server chat archive. After the first view, it expires within five minutes. No in-app save button.",
+      oneView:"One-view message",messageHelp:"Send only through the direct DataChannel while connected. No server chat archive. After the first view, it expires within five minutes. Export is available only if the sender explicitly opts in; it remains optional for the receiver.",
       compose:"Write a message",send:"Send private message",notConnected:"Connect two phones before sending.",privatePending:"A temporary message has arrived.",viewOnce:"Open once",
       nextPhase:"Future phases: persistent accounts, QR friends, groups",nextHelp:"Persistent identity, registered SHA-256 QR friends, automatic signaling, voice notes, private groups and TURN relay are not yet enabled or independently audited.",
       identityLink:"Try local SHA-256 identity",footer:"E-ZERO · Community service, no ads, no hidden recording.",policyTitle:"E-ZERO: simple privacy policy",close:"Close",
@@ -162,7 +162,7 @@
       yourCode:"رمزك لإرساله إلى الهاتف الآخر",copy:"📋 نسخ الرمز",share:"↗ مشاركة الرمز",codeWarning:"قد يحتوي الرمز على معلومات IP والشبكة. شاركه مع شخص موثوق فقط. ليس حساباً دائماً ولا دعوة صداقة آلية.",
       idle:"لم تبدأ مكالمة.",liveCall:"مكالمة مباشرة",myMedia:"كاميرتي",peerMedia:"صوت / فيديو الطرف الآخر",playRemote:"🔊 تشغيل صوت الطرف الآخر",mute:"🎙️ كتم الميكروفون",cameraOff:"📷 إغلاق الكاميرا",hangup:"📴 إنهاء المكالمة",
       callTruth:"لا نعتبر الاتصال ناجحاً إلا عند حالة Connected في WebRTC. لا نسجل المكالمات.",oneView:"رسالة تظهر مرة واحدة",
-      messageHelp:"إرسال مباشر عبر DataChannel عند الاتصال. لا أرشيف رسائل على الخادم. تنتهي الرسالة خلال خمس دقائق من أول فتح. لا زر حفظ داخل التطبيق.",
+      messageHelp:"إرسال مباشر عبر DataChannel عند الاتصال. لا أرشيف رسائل على الخادم. تنتهي الرسالة خلال خمس دقائق من أول فتح. لا يتاح التنزيل إلا بإذن صريح من المرسل، ويظل اختيارياً للمستلم.",
       compose:"اكتب رسالة",send:"إرسال رسالة خاصة",notConnected:"صل الهاتفين أولاً.",privatePending:"وصلت رسالة مؤقتة.",viewOnce:"فتح مرة واحدة",
       nextPhase:"المراحل القادمة: حسابات دائمة وأصدقاء QR ومجموعات",nextHelp:"هوية دائمة وإضافة أصدقاء برمز SHA-256 واتصال تلقائي وملاحظات صوتية ومجموعات وخادم TURN ليست مفعلة أو مدققة بعد.",
       identityLink:"اختبار هوية SHA-256 محلية",footer:"E-ZERO · خدمة عامة بلا إعلانات ولا تسجيل خفي.",policyTitle:"سياسة الخصوصية المبسطة",close:"إغلاق",
@@ -608,7 +608,7 @@
          if (m.v===1 && m.kind==="once" && typeof m.text==="string" && m.text.length<=2000 &&
             /^[a-f0-9]{32}$/.test(m.id)) {
           discardIncoming();
-          incoming={id:m.id,text:m.text,opened:false};
+          incoming={id:m.id,text:m.text,opened:false,exportAllowed:m.exportAllowed===true};
           $("incomingItem").hidden=false;$("viewMessage").hidden=false;
           $("seenMessage").hidden=true;$("seenMessage").textContent="";
           $("messageTimer").textContent="";
@@ -751,13 +751,21 @@
     const textValue=$("sendText").value.trim();
     if(!channel || channel.readyState!=="open")return $("messageStatus").textContent=t("needConnected");
     if(!textValue || textValue.length>2000)return;
-    channel.send(JSON.stringify({v:1,kind:"once",id:hex(randomBytes(16)),text:textValue}));
+    channel.send(JSON.stringify({v:1,kind:"once",id:hex(randomBytes(16)),
+      text:textValue,exportAllowed:$("ezeroTextAllowDownload")?.checked===true}));
     $("sendText").value="";$("messageStatus").textContent=t("sent");
   });
   $("viewMessage").addEventListener("click",()=>{
     if(!incoming||incoming.opened)return;
     incoming.opened=true;if(unreadExpiry){clearTimeout(unreadExpiry);unreadExpiry=null;}
     $("seenMessage").textContent=incoming.text;$("seenMessage").hidden=false;$("viewMessage").hidden=true;
+    // Preserve one-view default. Export only after sender specifically
+    // allows it and the recipient explicitly opens the ephemeral message.
+    if(incoming.exportAllowed===true){
+      document.dispatchEvent(new CustomEvent("ezero:evidence-text-opened",{
+        detail:{text:incoming.text,exportAllowed:true,consentSource:"P2P_SENDER_EXPORT_ALLOWED"}
+      }));
+    }
     incoming.text="";
     $("messageStatus").textContent=t("opened");
     let deadline=Date.now()+300000;
