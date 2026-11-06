@@ -58,6 +58,24 @@ async function createPhone(name){
   await context.addInitScript(()=>{
     window.__mediaCalls=[];
     window.__oneInvite="";
+    // Synthetic Web Audio test: verifies a ringtone starts for genuine
+    // incoming calls and stops before the camera is opened by Accept.
+    window.__ringCounts={contexts:0,resume:0,tones:0,suspend:0};
+    class TestAudioContext {
+      constructor(){window.__ringCounts.contexts++;this.state="suspended";this.currentTime=0;this.destination={};}
+      async resume(){this.state="running";window.__ringCounts.resume++;}
+      async suspend(){this.state="suspended";window.__ringCounts.suspend++;}
+      async close(){this.state="closed";}
+      createOscillator(){
+        return {type:"",frequency:{setValueAtTime(){}},connect(){},disconnect(){},
+          start(){window.__ringCounts.tones++;},stop(){},onended:null};
+      }
+      createGain(){
+        return {gain:{setValueAtTime(){},linearRampToValueAtTime(){}},
+          connect(){},disconnect(){}};
+      }
+    }
+    window.AudioContext=TestAudioContext;
     document.addEventListener("ezero:auto-invite-ready",e=>{
       window.__oneInvite=e.detail?.link||"";
     });
@@ -121,10 +139,16 @@ try{
   assert.equal(await callee.locator("#ezeroAutoDecline").isVisible(),true);
   assert.equal(await callee.locator("#ezeroIncomingRingToggle").isVisible(),true,
     "An incoming call must show a usable ringtone control");
+  await callee.waitForFunction(()=>window.__ringCounts.tones>=2,{timeout:5000});
+  assert.equal(await callee.evaluate(()=>window.__ringCounts.tones>=2),true,
+    "Incoming invitation should attempt the original two-tone ringtone");
   assert.equal(await callee.locator("#modernCallPanel").isVisible(),false,
     "Video panels must not open or request camera before explicit accept");
   // Only recipient approval. No second link, pasted code or caller approval.
   await callee.locator("#ezeroAutoAccept").click();
+  await callee.waitForFunction(()=>window.__ringCounts.suspend>=1,{timeout:5000});
+  assert.equal(await callee.evaluate(()=>window.__ringCounts.suspend>=1),true,
+    "Accept must immediately stop incoming ringtone");
   assert.equal(await callee.locator("#ezeroOneCallProgress").getAttribute("data-state"),
     "connecting","Accept should trigger connection without second link");
   await Promise.all([caller,callee].map(page=>page.waitForFunction(()=>
