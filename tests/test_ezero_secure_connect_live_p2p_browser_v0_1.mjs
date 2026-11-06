@@ -43,14 +43,39 @@ async function connect(a,b,mode){
   assert.match(offer,/"type":"offer"/,"A produced a signed SDP offer");
   assert.match(await a.locator("#callDiagnostic").innerText(),/دعوت تیار|Invitation ready|الدعوة جاهزة/,
     "Offer readiness is shown as a measured stage, not a completed call");
+
   assert.equal(await a.locator("#guidedShare").isEnabled(),true,"Simple share button enables only on signed offer");
+  // Reproduce actual manual WhatsApp/PWA errors without posting any private SDP.
+  await b.locator("#guidedIncoming").fill(offer.slice(0,-50));
+  await b.locator("#guidedContinue").click();
+  assert.match(await b.locator("#guidedStatus").innerText(),/مبتورة|ناقص|truncated|مفقودة/,
+    "A pasted incomplete message must state that it is truncated");
+  const expiredOffer=JSON.parse(offer);
+  expiredOffer.issued=Date.now()-31*60000;
+  await b.locator("#guidedIncoming").fill(JSON.stringify(expiredOffer));
+  await b.locator("#guidedContinue").click();
+  await b.waitForFunction(()=>document.querySelector("#connectionStatus")?.textContent.includes("30"),
+    {timeout:8000});
+  assert.match(await b.locator("#connectionStatus").innerText(),/30/,
+    "Expired signed call must show the 30-minute reason, not generic Error");
+  assert.doesNotMatch(await b.locator("#connectionStatus").innerText(),/ · Error\b/,
+    "Exception class Error is not a meaningful diagnostic");
   await b.locator("#guidedIncoming").fill(offer);
   await b.locator("#guidedContinue").click();
   const answer=await getSignal(b);
   assert.match(answer,/"type":"answer"/,"B generated a signed answer from one paste button");
   assert.match(await b.locator("#callDiagnostic").innerText(),/جواب تیار|Answer ready|الرد جاهز/,
     "Answer readiness clearly means the reply still must be sent to phone A");
+
   assert.equal(await b.locator("#guidedShare").isEnabled(),true,"Simple answer share enabled");
+  const expiredAnswer=JSON.parse(answer);
+  expiredAnswer.issued=Date.now()-31*60000;
+  await a.locator("#guidedIncoming").fill(JSON.stringify(expiredAnswer));
+  await a.locator("#guidedContinue").click();
+  await a.waitForFunction(()=>document.querySelector("#connectionStatus")?.textContent.includes("30"),
+    {timeout:8000});
+  assert.equal(await a.locator("#localSignal").inputValue(),offer,
+    "A bad incoming answer must not discard the valid Phone A offer");
   await a.locator("#guidedIncoming").fill(answer);
   await a.locator("#guidedContinue").click();
   await Promise.all([a,b].map(p=>p.waitForFunction(()=>

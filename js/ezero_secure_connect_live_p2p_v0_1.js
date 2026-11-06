@@ -595,7 +595,10 @@
         s.sdp.length>120000 || s.sdp.length<100 ||
         !s.sdp.startsWith("v=0") || !s.sdp.includes("a=fingerprint:") ||
         !/^[0-9a-f]{64}$/.test(s.fp||"") || !/^[0-9a-f]{32}$/.test(s.nonce||"") ||
-        !Number.isSafeInteger(s.issued) || Math.abs(Date.now()-s.issued)>1800000)throw Error("INVALID_ENVELOPE");
+        !Number.isSafeInteger(s.issued))throw Error("INVALID_ENVELOPE");
+    // An expired, otherwise well-shaped offer is distinct from a malformed one.
+    // Never silently relax the 30-minute signed-session replay window.
+    if(Math.abs(Date.now()-s.issued)>1800000)throw Error("SIGNAL_EXPIRED");
     const spki=fromB64(s.pub),fp=await sha256(spki);
     if(spki.length>140||fp!==s.fp)throw Error("FINGERPRINT_ERROR");
     const pub=await crypto.subtle.importKey("spki",spki,{name:"ECDSA",namedCurve:"P-256"},false,["verify"]);
@@ -606,18 +609,82 @@
     $("identityPeerStatus").textContent=expectedPeerFingerprint?t("verifiedSelf"):t("confirmPeer");
     return {type,sdp:s.sdp,fp:s.fp};
   }
+  // Only display whitelisted diagnostics. Never echo SDP, IP addresses, signatures,
+  // ICE passwords, network details or arbitrary exception messages to the UI.
+  const signalErrorHelp={
+    ur:{
+      INVALID_CODE:"کوڈ خالی یا مقررہ حد سے بڑا ہے؛ مکمل دعوت/جواب نجی میسج سے پیسٹ کریں۔",
+      INVALID_JSON:"کال کوڈ نامکمل یا کٹا ہوا ہے؛ پورا JSON پیغام کاپی کریں، صرف شناختی کوڈ نہیں۔",
+      INVALID_ENVELOPE:"دعوت/جواب کے ضروری حصے مکمل نہیں؛ دوسرے فون کا پورا تازہ کال کوڈ لیں۔",
+      SIGNAL_EXPIRED:"یہ کال دعوت 30 منٹ سے پرانی یا فون کا وقت مختلف ہے؛ دونوں فونوں کا وقت چیک کرکے نئی دعوت بنائیں۔",
+      BAD_SIGNATURE:"کال دعوت کا ڈیجیٹل دستخط غلط ہے؛ اصل پیغام مکمل اور بغیر تبدیلی کاپی کریں۔",
+      FINGERPRINT_ERROR:"دعوت کی عوامی چابی اور SHA-256 فنگرپرنٹ آپس میں نہیں ملتے۔",
+      FRIEND_ID_MISMATCH:"کال والے فون کی عارضی شناخت پہلے اسکین کیے QR سے مختلف ہے؛ اسی کھلے سیشن کا نیا QR دوبارہ تصدیق کریں۔",
+      OFFER_REQUIRED:"اس فون پر اصل کال دعوت کھلی نہیں؛ جواب اسی فون A پر پیسٹ کریں جس نے دعوت بنائی تھی۔",
+      HANGUP_FIRST:"پچھلا کال سیشن ابھی موجود ہے؛ نئی کال شروع کرنے سے پہلے اسی فون پر کال ختم کریں۔",
+      WEBRTC_UNAVAILABLE:"اس براؤزر میں WebRTC یا مائیکروفون دستیاب نہیں؛ Chrome میں HTTPS سے کھولیں۔",
+      HTTPS_REQUIRED:"HTTPS اور Web Crypto درکار ہیں؛ اصل محفوظ ویب صفحہ کھولیں۔"
+    },
+    en:{
+      INVALID_CODE:"The call code is empty or too large. Paste the full private offer/answer message.",
+      INVALID_JSON:"The call code is incomplete or truncated. Copy the entire JSON message, not the friend ID.",
+      INVALID_ENVELOPE:"Required offer/answer fields are missing. Obtain the complete fresh call code.",
+      SIGNAL_EXPIRED:"This invite is over 30 minutes old or phone clocks differ. Check both clocks and create a fresh invite.",
+      BAD_SIGNATURE:"The invitation signature does not verify. Copy the original complete message without editing.",
+      FINGERPRINT_ERROR:"The invite public key and SHA-256 fingerprint do not match.",
+      FRIEND_ID_MISMATCH:"The current call identity differs from the previously verified QR. Verify the new QR from this open session.",
+      OFFER_REQUIRED:"No pending offer on this phone. Paste the answer into the same Phone A session that made the invitation.",
+      HANGUP_FIRST:"An older session is active. End it on this phone before creating another invite.",
+      WEBRTC_UNAVAILABLE:"WebRTC or microphone is unavailable. Open the HTTPS page in Chrome.",
+      HTTPS_REQUIRED:"HTTPS and Web Crypto are required. Open the secure website."
+    },
+    ar:{
+      INVALID_CODE:"رمز المكالمة فارغ أو كبير جداً؛ الصق الرسالة كاملة.",
+      INVALID_JSON:"رمز المكالمة ناقص أو مبتور؛ انسخ رسالة JSON كاملة، لا هوية الصديق.",
+      INVALID_ENVELOPE:"بيانات الدعوة أو الرد غير مكتملة؛ احصل على رمز جديد كامل.",
+      SIGNAL_EXPIRED:"الدعوة أقدم من 30 دقيقة أو ساعة الهاتف مختلفة؛ تحقق من الوقت وأعد الدعوة.",
+      BAD_SIGNATURE:"توقيع الدعوة غير صحيح؛ انسخ النص الأصلي كاملاً دون تغيير.",
+      FINGERPRINT_ERROR:"لا تتطابق البصمة الرقمية مع المفتاح العام.",
+      FRIEND_ID_MISMATCH:"هوية هذه المكالمة تختلف عن QR السابق؛ أعد التحقق من رمز QR للجلسة الحالية.",
+      OFFER_REQUIRED:"لا توجد دعوة مفتوحة على هذا الهاتف؛ الصق الرد في الهاتف أ الذي أنشأ الدعوة.",
+      HANGUP_FIRST:"هناك جلسة قديمة؛ أنهها على هذا الهاتف قبل البدء من جديد.",
+      WEBRTC_UNAVAILABLE:"WebRTC أو الميكروفون غير متاح؛ افتح صفحة HTTPS في Chrome.",
+      HTTPS_REQUIRED:"يلزم HTTPS وWeb Crypto؛ افتح الموقع الآمن."
+    }
+  };
+  function safeCallFailure(error){
+    const code=String(error?.message||"");
+    const type=String(error?.name||"");
+    const known=signalErrorHelp[currentLang]?.[code];
+    if(known)return {
+      stage:code==="FRIEND_ID_MISMATCH"?"fingerprintMismatch":
+        code==="OFFER_REQUIRED"?"missingOffer":"signalInvalid",
+      detail:known,code
+    };
+    if(["NotAllowedError","NotFoundError","NotReadableError","OverconstrainedError"].includes(type))
+      return {stage:"micDenied",detail:t("micDenied"),code:"MEDIA_PERMISSION"};
+    return {stage:"signalInvalid",detail:currentLang==="en"?
+      "The invite could not be accepted. Check the message and current session.":
+      currentLang==="ar"?"تعذر قبول الدعوة؛ تحقق من الرسالة والجلسة الحالية.":
+      "کال دعوت قبول نہیں ہوئی؛ مکمل پیغام اور موجودہ سیشن کی تصدیق کریں۔",code:"OTHER"};
+  }
   let busy=false;
   async function withBusy(fn) {
     if(busy)return;
     busy=true;
     ["createOffer","acceptOffer","applyAnswer"].forEach(id=>$(id).disabled=true);
     try{await fn();}catch(error) {
-      const msg=String(error?.name||error?.message||"ERROR").slice(0,85);
-      const stage=/NotAllowedError|NotFoundError|NotReadableError|OverconstrainedError/.test(msg)
-        ? "micDenied" : msg.includes("OFFER_REQUIRED") ? "missingOffer" :
-          msg.includes("FRIEND_ID_MISMATCH") ? "fingerprintMismatch" : "signalInvalid";
-      status(stage,msg);
-      if(peer && peer.connectionState!=="connected") hardHangup(false);
+      const issue=safeCallFailure(error);
+      status(issue.stage,issue.detail);
+      document.dispatchEvent(new CustomEvent("ezero:signal-failure",{
+        detail:{code:issue.code}
+      }));
+      // A wrong/stale answer must NOT silently destroy the valid pending offer
+      // on Phone A. Keep it available for a corrected, newly signed answer.
+      const keepOffer=role==="offerer" && peer?.signalingState==="have-local-offer" &&
+        ["INVALID_CODE","INVALID_JSON","INVALID_ENVELOPE","SIGNAL_EXPIRED",
+         "BAD_SIGNATURE","FINGERPRINT_ERROR","FRIEND_ID_MISMATCH"].includes(issue.code);
+      if(peer && peer.connectionState!=="connected" && !keepOffer)hardHangup(false);
     }finally{busy=false;["createOffer","acceptOffer","applyAnswer"].forEach(id=>$(id).disabled=false);}
   }
   $("createOffer").addEventListener("click",()=>withBusy(async()=>{
