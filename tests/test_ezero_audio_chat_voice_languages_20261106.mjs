@@ -307,8 +307,11 @@ try{
 
   // Voice-note sample uses a clone of the already-consented live microphone,
   // never an additional getUserMedia call that can steal Android call audio.
-  await caller.locator("#ezeroInCallVoice").click();
+  assert.equal(await caller.locator("#ezeroInCallVoiceTab").isVisible(),true,
+    "Voice-note tab must remain clickable while chat drawer is open");
+  await caller.locator("#ezeroInCallVoiceTab").click();
   assert.equal(await caller.locator("#modernVoicePanel").isVisible(),true);
+  assert.equal(await caller.locator("#modernChatPanel").isVisible(),false);
   const mediaCountBefore=await caller.evaluate(()=>window.__mediaCalls.length);
   await caller.locator("#ezeroVoiceRecord").click();
   await caller.locator("#ezeroVoiceStop").waitFor({state:"visible",timeout:7000});
@@ -319,7 +322,9 @@ try{
     "Recording a voice note must not reopen the physical microphone during a call");
   assert.equal(await caller.locator("#ezeroVoiceSend").isEnabled(),true);
   await caller.locator("#ezeroVoiceSend").click();
-  await callee.locator("#ezeroInCallVoice").click();
+  assert.equal(await callee.locator("#ezeroInCallVoiceTab").isVisible(),true,
+    "Recipient can switch from chat to voice within the same drawer");
+  await callee.locator("#ezeroInCallVoiceTab").click();
   await callee.locator("#ezeroVoiceReceived").waitFor({state:"visible",timeout:12000});
   assert.equal(await callee.locator("#ezeroVoiceOpenIncoming").isVisible(),true);
   await callee.locator("#ezeroVoiceOpenIncoming").click();
