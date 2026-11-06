@@ -112,6 +112,8 @@ try{
     "No camera or video boxes appear before the video call begins");
   assert.equal(await caller.locator("#localVideo").isVisible(),false);
   assert.equal(await caller.locator("#remoteVideo").isVisible(),false);
+  assert.equal(await caller.locator("#modernHangup").isVisible(),false,
+    "No giant red end-call box on landing page: user has not started a call");
   // One click initiates offer; the share URL is short and has an ephemeral capability.
   await caller.locator('[data-modern-select="video"]').click();
   await caller.waitForFunction(()=>!!window.__oneInvite,{timeout:30000});
@@ -120,6 +122,11 @@ try{
   assert.ok(invite.length<190,"One-request URL should not contain an entire SDP");
   assert.equal(await caller.locator("#ezeroOneQrBox").isVisible(),true);
   assert.equal(await caller.locator("#ezeroOneCopyInvite").isEnabled(),true);
+  assert.equal(await caller.locator("#modernCallPanel").isVisible(),false,
+    "Pending QR is not a connected call: hide both blank video previews");
+  assert.equal(await caller.locator("#modernHangup").isVisible(),false,
+    "Pending QR must not display an oversized red end-call card");
+  console.log("QR_PENDING_NO_RED_ENDCALL_NO_EMPTY_VIDEO_BOXES: PASS");
   assert.equal(await caller.locator('[data-modern-select="audio"]').getAttribute("aria-pressed"),"false",
     "Call pending is not a connected state");
   console.log("SINGLE_CLICK_CREATES_COMPACT_QR_INVITE_NO_FAKE_CONNECTION: PASS");
