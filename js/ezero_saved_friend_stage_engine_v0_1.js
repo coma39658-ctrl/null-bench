@@ -654,6 +654,12 @@
     if(expectedPeerFingerprint&&expectedPeerFingerprint!==s.fp)throw Error("FRIEND_ID_MISMATCH");
     $("peerFingerprint").textContent=s.fp;
     $("identityPeerStatus").textContent=expectedPeerFingerprint?t("verifiedSelf"):t("confirmPeer");
+    // Separate evidence: a correctly signed, freshness-bounded RTC peer key
+    // is verified BEFORE media routing. This is NOT a claim of connected
+    // media or real-world identity; it may finish a user-accepted friend link.
+    document.dispatchEvent(new CustomEvent("ezero:peer-signed-verified",{
+      detail:{peerFingerprint:s.fp,signalType:type,signatureVerified:true}
+    }));
     return {type,sdp:s.sdp,fp:s.fp};
   }
   let busy=false;
