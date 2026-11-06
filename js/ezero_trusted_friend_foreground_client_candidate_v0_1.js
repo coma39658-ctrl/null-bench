@@ -158,9 +158,11 @@
     return true;
   }
   async function setFriendTrust(fp,allowed){
-    if(!FP.test(fp)||!friend(fp))throw Error("FRIEND_NOT_VERIFIED_LOCALLY");
-    if(state.owner?.readyState!==WebSocket.OPEN)throw Error("OWNER_INBOX_OFFLINE");
+    if(!FP.test(fp))throw Error("INVALID_FINGERPRINT");
     if(typeof allowed!=="boolean")throw Error("EXPLICIT_TRUST_CHOICE_REQUIRED");
+    // Revocation must remain possible even after a local contact was deleted.
+    if(allowed&&!friend(fp))throw Error("FRIEND_NOT_VERIFIED_LOCALLY");
+    if(state.owner?.readyState!==WebSocket.OPEN)throw Error("OWNER_INBOX_OFFLINE");
     // Call only from an explicit user gesture after peer verification.
     state.owner.send(JSON.stringify({t:allowed?"trust":"untrust",fp}));
   }
