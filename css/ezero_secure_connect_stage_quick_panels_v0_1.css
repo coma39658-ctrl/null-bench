@@ -149,3 +149,15 @@ body.communication-page.ezero-one-lab #ezeroQuickFunctionHost #ezeroAutoPilot[hi
 body.communication-page.ezero-one-lab #ezeroQuickFunctionHost #modernCallPanel[hidden]{
   display:none!important
 }
+
+/* Safety: a user must be able to end a real audio call even while the
+ * recording/consent bottom sheet (z-index 1100) is open. Keep the single
+ * red end-call control above that sheet, without duplicating call actions. */
+body.communication-page.ezero-one-lab:not(.ezero-video-connected)
+  #ezeroQuickHangup:not([hidden]){
+  position:fixed!important;top:calc(78px + env(safe-area-inset-top))!important;
+  right:12px!important;z-index:1400!important;
+  max-width:min(48vw,190px)!important;min-height:48px!important;
+  padding:10px 12px!important;box-shadow:0 4px 16px #001f1488!important;
+  touch-action:manipulation!important
+}
