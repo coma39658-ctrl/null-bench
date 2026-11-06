@@ -590,7 +590,21 @@
           }));
           return;
         }
-        if (m.v===1 && m.kind==="once" && typeof m.text==="string" && m.text.length<=2000 &&
+        // Explicit per-call recording permission on an encrypted peer channel.
+         // A peer-UI consent indication is NOT a government-certified signature.
+         if(m?.v===5&&m.kind==="record-consent"&&
+            ["request","allow","deny","stop"].includes(m.action)&&
+            /^[a-f0-9]{32}$/.test(m.id||"")&&
+            peer?.connectionState==="connected"&&
+            /^[a-f0-9]{64}$/.test(peer?.__ezeroPeerFP||"")){
+           document.dispatchEvent(new CustomEvent("ezero:record-consent",{
+             detail:{action:m.action,id:m.id,
+               peerFingerprint:peer.__ezeroPeerFP,
+               verifiedChannel:true}
+           }));
+           return;
+         }
+         if (m.v===1 && m.kind==="once" && typeof m.text==="string" && m.text.length<=2000 &&
             /^[a-f0-9]{32}$/.test(m.id)) {
           discardIncoming();
           incoming={id:m.id,text:m.text,opened:false};
@@ -792,7 +806,21 @@
       channel.send(encoded);return true;
     }
   });
-  window.EZERO_VOICE_TRANSPORT=Object.freeze({
+  // Staging only. No camera/mic access, recording, or local storage here.
+   // Any recording must be started by the separately consent-gated UI.
+   window.EZERO_RECORD_CONSENT_TRANSPORT=Object.freeze({
+     connected:()=>window.EZERO_PEER_PROFILE_TRANSPORT.connected(),
+     peerFingerprint:()=>window.EZERO_PEER_PROFILE_TRANSPORT.peerFingerprint(),
+     send:(action,id)=>{
+       if(!["request","allow","deny","stop"].includes(action)||
+          !/^[a-f0-9]{32}$/.test(id)||!channel||
+          channel.readyState!=="open"||
+          !window.EZERO_PEER_PROFILE_TRANSPORT.connected())return false;
+       channel.send(JSON.stringify({v:5,kind:"record-consent",action,id}));
+       return true;
+     }
+   });
+   window.EZERO_VOICE_TRANSPORT=Object.freeze({
     connected:()=>!!channel&&channel.readyState==="open",
     send:(mime,encoded)=>{
       if(!channel||channel.readyState!=="open")return false;
