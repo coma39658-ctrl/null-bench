@@ -8,6 +8,8 @@ const path=filename=>fs.readFileSync(filename,"utf8");
 const primary=path("ezero_trusted_friends_staging_20261106.html");
 const home=path("index.html");
 const share=path("js/ezero_secure_connect_install_share_staging_v0_1.js");
+const modernCallShare=path("js/ezero_secure_connect_modern_evidence_stage_v0_1.js");
+const legacyCallShare=path("js/ezero_secure_connect_modern_communications_v0_3.js");
 const staging=JSON.parse(path("secure-connect-staging.webmanifest"));
 const existing=JSON.parse(path("secure-connect.webmanifest"));
 for(const m of [staging,existing]){
@@ -28,6 +30,10 @@ assert.match(primary,/href="\.\/secure-connect-staging\.webmanifest"/);
 assert.match(primary,/href="https:\/\/coma39658-ctrl\.github\.io\/null-bench\/ezero_trusted_friends_staging_20261106\.html"/);
 assert.match(home,/>📞 Secure App<\/a>/);
 assert.match(share,/title:"E-ZERO Secure App"/);
+for(const source of [modernCallShare,legacyCallShare]){
+  assert.match(source,/navigator\\.share\\(\\{title:"E-ZERO Secure App — private call",url:preparedShare\\}\\)/,
+    "Native call invitation keeps its link, changes display name only");
+}
 assert.match(share,/E-ZERO Secure App کا عوامی لنک/);
 assert.match(share,/E-ZERO Secure App public link/);
 assert.match(share,/الرابط العام لـ E-ZERO Secure App/);
