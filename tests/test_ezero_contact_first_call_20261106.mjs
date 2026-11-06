@@ -3,6 +3,8 @@ import {chromium} from "playwright";
 
 const base="http://127.0.0.1:8769/";
 const pagePath="ezero_trusted_friends_staging_20261106.html";
+const publicOrigin="https://coma39658-ctrl.github.io/null-bench/";
+const trustedInbox="wss://ezero-trusted-friends-inbox-staging.coma39658.workers.dev";
 const service="wss://ezero-browser-signaling-pilot.coma39658.workers.dev/v1/rooms/";
 const browser=await chromium.launch({headless:true,
   args:["--no-sandbox","--use-fake-device-for-media-stream",
@@ -53,8 +55,23 @@ async function createPhone(name){
   });
   contexts.push(context);
   await context.routeWebSocket(service+"**",mockSocket);
-  await context.route("**/*",route=>route.request().url().startsWith(base)?
-    route.continue():route.abort("blockedbyclient"));
+  // Never touch the live Cloudflare trusted inbox in this test.
+  // First QR and second selected-contact video use isolated WebRTC signaling.
+  await context.routeWebSocket(trustedInbox+"**",socket=>{
+    socket.onMessage(()=>socket.send(JSON.stringify({
+      t:"error",code:"TEST_NETWORK_DELIVERY_DISABLED"
+    })));
+  });
+  // Preserve the exact allowed public HTTPS Origin while reading candidate
+  // files ONLY from the local CI server; public Pages is never modified.
+  await context.route("**/*",async route=>{
+    const url=route.request().url();
+    if(!url.startsWith(publicOrigin))return route.abort("blockedbyclient");
+    const u=new URL(url);
+    const relative=u.pathname.slice("/null-bench/".length);
+    const response=await context.request.get(base+relative+u.search);
+    return route.fulfill({response});
+  });
   await context.addInitScript(()=>{
     window.__mediaCalls=[];
     window.__oneInvite="";
@@ -87,7 +104,7 @@ async function createPhone(name){
   });
   const page=await context.newPage();
   page.on("pageerror",e=>console.error(name+"_PAGE_ERROR",e.message));
-  await page.goto(base+pagePath,{waitUntil:"domcontentloaded"});
+  await page.goto(publicOrigin+pagePath,{waitUntil:"domcontentloaded"});
   await page.waitForFunction(()=>document.getElementById("myFingerprint")?.textContent.length===64);
   return page;
 }
