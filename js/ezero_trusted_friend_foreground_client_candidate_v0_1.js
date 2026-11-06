@@ -15,7 +15,7 @@
   const FP=/^[a-f0-9]{64}$/;
   const ROOM=/^#room=[A-Za-z0-9_-]{32}\.[A-Za-z0-9_-]{43}$/;
   const CONFIG=window.EZERO_TRUSTED_INBOX_CONFIG;
-  const CONTACTS="ezero_secure_connect_local_fingerprints_v0_1";
+  const CONTACTS="ezero_secure_connect_staging_fingerprints_v0_1";
   const encoder=new TextEncoder();
   const MAX_WAIT=15000;
   const state={owner:null,identity:null,waiting:new Set(),pendingReceipts:new Map()};
