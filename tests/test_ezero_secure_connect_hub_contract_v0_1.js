@@ -16,7 +16,7 @@ assert.match(home,/id="ezeroAssistFutureDock"/);
 assert.match(home,/id="ezeroLegacyVoiceGuide" hidden/);
 assert.match(home,/id="ezeroVoiceGuideClose"/);
 for (const mode of ["video","audio","voice","qr"]) {
-  assert.match(home,new RegExp('href="\\./ezero_secure_connect_one_request_lab_20261106\\.html"'));
+  assert.match(home,new RegExp('href="\\./ezero_trusted_friends_staging_20261106\\.html"'));
   assert.match(page,new RegExp('data-mode="'+mode+'"'));
   assert.match(page,new RegExp('data-panel="'+mode+'"'));
 }
