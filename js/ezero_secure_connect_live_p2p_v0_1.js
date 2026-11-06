@@ -841,18 +841,14 @@
   // The peer's fingerprint comes from the cryptographically signed call
   // envelope, NEVER from an untrusted name/photo or incoming profile object.
   window.EZERO_PEER_PROFILE_TRANSPORT=Object.freeze({
-    // One-tap saved friend calling: pin the recipient's previously signed,
-    // explicitly saved public-key fingerprint before creating a fresh call.
-    // A stolen or forwarded invite link cannot substitute a different peer.
-    // This is not online presence or automatic notification delivery.
+    // Only the saved-contacts UI invokes this after checking its local list.
+    // Core WebRTC has no persistent storage or saved-friend state. Pinning a
+    // fingerprint restricts (never broadens) which signed peer can answer.
+    // A forwarded invitation to the wrong peer fails closed.
     targetSavedContact:(fp)=>{
       if(peer||typeof fp!=="string"||!/^[a-f0-9]{64}$/.test(fp))return false;
-      try{
-        const list=JSON.parse(localStorage.getItem("ezero_secure_connect_local_fingerprints_v0_1")||"[]");
-        if(!Array.isArray(list)||!list.some(item=>item?.fp===fp&&typeof item.name==="string"&&item.name.trim()))return false;
-        expectedPeerFingerprint=fp;
-        return true;
-      }catch(_){return false;}
+      expectedPeerFingerprint=fp;
+      return true;
     },
     connected:()=>!!channel&&channel.readyState==="open" &&
       peer?.connectionState==="connected" &&
