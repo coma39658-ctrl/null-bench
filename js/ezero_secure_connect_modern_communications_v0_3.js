@@ -330,6 +330,9 @@ $("ezeroVoiceRecord").addEventListener("click",async()=>{
   // usual getUserMedia permission. Stopping the clone never stops the call.
   const callMic=$("localVideo")?.srcObject?.getAudioTracks?.()
     .find(track=>track.readyState==="live"&&track.enabled);
+  // A muted connected call must not silently open a second microphone.
+  const liveCall=window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true;
+  if(liveCall&&!callMic){voiceStatus("permission");return;}
   const s=callMic?new MediaStream([callMic.clone()]):
     await navigator.mediaDevices.getUserMedia({audio:true,video:false});
   if(generation!==recId||document.hidden){s.getTracks().forEach(x=>x.stop());return;}
@@ -362,6 +365,13 @@ $("ezeroVoiceRecord").addEventListener("click",async()=>{
  }catch(_){stopMic();voiceStatus("permission");}
 });
 $("ezeroVoiceStop").addEventListener("click",stopMic);
+// Explicit live-call mute also cancels any in-progress voice-note clone;
+// a mute action must never leave a second audio capture running.
+$("muteMic")?.addEventListener("click",()=>{
+  if(micStream||recorder?.state==="recording"){
+    ++recId;stopMic();clearDraft();voiceStatus("expired");
+  }
+});
 $("ezeroVoiceClear").addEventListener("click",()=>{++recId;stopMic();clearDraft();voiceStatus("expired");});
 $("ezeroVoiceSend").addEventListener("click",async()=>{
  if(!draft||!window.EZERO_VOICE_TRANSPORT?.connected()){voiceStatus("sendFail");return;}
