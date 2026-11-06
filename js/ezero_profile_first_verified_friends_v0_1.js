@@ -161,19 +161,27 @@ function persistFriend(fp,peer){
    if(Array.isArray(v))items=v.filter(row=>row&&FP.test(row.fp)&&validFriendName(row.name));
  }catch(_){return false;}
  const existing=items.find(row=>row.fp===fp);
- const verifiedName=cleanName(peer?.name);
- // Never replace an existing user-written nickname with a peer-controlled
- // display name. Only upgrade our clearly marked fingerprint placeholder.
+ const receivedName=cleanName(peer?.name);
+ const profileName=receivedName||cleanName(existing?.profileName)||"";
+ // Local aliases are private to this browser. Never overwrite a nickname
+ // that was deliberately entered by its owner when a peer edits their name.
+ const explicitAlias=existing?.nickname===true||
+   (!!existing&&!existing.name.startsWith("دوست · ")&&
+    (!existing.profileName||existing.name!==existing.profileName)&&
+    existing.nickname!==false);
  const placeholder="دوست · "+fp.slice(0,10);
- const newName=existing?.name&&!existing.name.startsWith("دوست · ")?
-   existing.name:verifiedName||existing?.name||placeholder;
+ const newName=explicitAlias?existing.name:
+   profileName||existing?.name||placeholder;
  const avatar=typeof peer?.avatar==="string"&&peer.avatar.length<=12000&&
    (peer.avatar===""||PHOTO.test(peer.avatar))?peer.avatar:
    (typeof existing?.avatar==="string"?existing.avatar:"");
  if(lastAutoPeer===fp&&existing?.name===newName&&
+    (existing?.profileName||"")===profileName&&
+    existing?.nickname===explicitAlias&&
     (existing?.avatar||"")===(avatar||""))return true;
  const next=items.filter(row=>row.fp!==fp);
- next.unshift({fp,name:newName,...(avatar?{avatar}:{})});
+ next.unshift({fp,name:newName,profileName,nickname:explicitAlias,
+   ...(avatar?{avatar}:{})});
  if(next.length>50)next.length=50;
  try{localStorage.setItem(FRIENDS,JSON.stringify(next));}
  catch(_){friendStatus.textContent=t("friendError");return false;}
