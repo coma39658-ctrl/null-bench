@@ -334,10 +334,19 @@ try{
 
   // All new live-call functions and audio notices support language switching:
   // Urdu RTL, Arabic RTL, English LTR, with the same main selector synchronized.
-  for(const [language,chatName,voiceName,dir,statusWord] of [
-    ["en","Chat","Voice note","ltr","Playback"],
-    ["ar","رسالة","رسالة صوتية","rtl","تم"],
-    ["ur","میسج","وائس میسج","rtl","آواز"]
+  const expectedAudioNotice={
+    en:{incoming:"Remote audio track",playing:"Playback request succeeded",
+      blocked:"Browser blocked",failed:"Audio output could not play"},
+    ar:{incoming:"وصل مسار صوت",playing:"تم قبول تشغيل الصوت",
+      blocked:"حظر المتصفح",failed:"تعذر تشغيل الصوت"},
+    ur:{incoming:"دوست کی آڈیو ٹریک",playing:"آواز چلانے کی درخواست قبول ہوئی",
+      blocked:"براؤزر نے آواز",failed:"آڈیو نہیں چل سکی"}
+  };
+  const voiceStatusLanguages=new Set();
+  for(const [language,chatName,voiceName,dir] of [
+    ["en","Chat","Voice note","ltr"],
+    ["ar","رسالة","رسالة صوتية","rtl"],
+    ["ur","میسج","وائس میسج","rtl"]
   ]){
     await caller.locator("#ezeroInCallLanguage").selectOption(language);
     assert.equal(await caller.locator("#language").inputValue(),language);
@@ -346,11 +355,15 @@ try{
     assert.ok((await caller.locator("#ezeroInCallChat").innerText()).includes(chatName));
     assert.ok((await caller.locator("#ezeroInCallVoice").innerText()).includes(voiceName));
     const audioText=await caller.locator("#ezeroAudioStatus").innerText();
-    assert.ok(audioText.includes(statusWord),
-      "Remote-audio hints must translate to "+language+": "+audioText);
-    const voiceText=await caller.locator("#ezeroVoiceStatus").innerText();
+    const audioStage=await caller.locator("#ezeroAudioStatus").getAttribute("data-state");
+    assert.ok(audioText.includes(expectedAudioNotice[language][audioStage]),
+      "Remote-audio "+audioStage+" status must translate to "+language+": "+audioText);
+    const voiceText=(await caller.locator("#ezeroVoiceStatus").innerText()).trim();
     assert.ok(voiceText.length>5,"Voice-note status must remain translated "+language);
+    voiceStatusLanguages.add(voiceText);
   }
+  assert.equal(voiceStatusLanguages.size,3,
+    "Voice note sent/received statuses must be translated, not one-language fallback");
   await callee.locator("#ezeroInCallLanguage").selectOption("ar");
   assert.equal(await callee.locator("html").getAttribute("lang"),"ar");
   await callee.locator("#ezeroInCallLanguage").selectOption("en");
