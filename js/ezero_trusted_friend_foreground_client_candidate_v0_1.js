@@ -125,10 +125,18 @@
              !validUrl(m.invite,m.kind))return;
           const known=friend(m.from);
           if(!known){emit("unrecognized",{from:m.from});return;}
-          // Show an incoming notification. Do not navigate, ring through
-          // system push, activate camera, or silently accept a call.
-          onData?.({type:"incoming",from:m.from,name:known.name,
-            kind:m.kind,invite:m.invite,callId:m.callId});
+          // Validate and expose the invitation before confirming receipt.
+          // This is NOT user acceptance and never enables mic or camera.
+          try{
+            onData?.({type:"incoming",from:m.from,name:known.name,
+              kind:m.kind,invite:m.invite,callId:m.callId});
+            if(ws.readyState===WebSocket.OPEN){
+              ws.send(JSON.stringify({t:"received",from:m.from,callId:m.callId}));
+            }
+          }catch(_){
+            // Fail closed: do not acknowledge an invite the app could not handle.
+            emit("incoming-error",{code:"INCOMING_DISPLAY_FAILED"});
+          }
         }else if(m.t==="trust-updated"&&role==="owner"){
           onData?.({type:"trust-updated",fp:m.fp,trusted:m.trusted===true});
         }else if(m.t==="delivered-to-active-tab"&&role==="caller"){
@@ -190,14 +198,23 @@
       // the WebRTC call uses a separate 10-minute signaling room.
       if(ws){
         const ref=ws;
+        let completed=false;
         const close=()=>{try{ref.close();}catch(_){}};
         ws.addEventListener("message",e=>{
           try{
             const data=JSON.parse(e.data);
-            if(data?.t==="delivered-to-active-tab"||data?.t==="error")close();
+            if(data?.t==="delivered-to-active-tab"||data?.t==="error"){
+              completed=true;
+              close();
+            }
           }catch(_){}
         });
-        setTimeout(close,MAX_WAIT);
+        setTimeout(()=>{
+          if(completed||ref.readyState!==WebSocket.OPEN)return;
+          // Distinguish a sent request from a verified application receipt.
+          emit("outgoing-error",{code:"DELIVERY_RECEIPT_TIMEOUT"});
+          close();
+        },MAX_WAIT);
       }
     }
   }
