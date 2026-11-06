@@ -92,7 +92,15 @@ async function tests(){
           ownerSocket.emit("message",{data:JSON.stringify({
             t:"incoming",from:other.fingerprint,kind:data.kind,
             invite:data.invite,callId:data.callId})});
-          this.emit("message",{data:JSON.stringify({
+          // No delivery ACK until the recipient's app validates and responds.
+        }else if(data.t==="received"){
+          assert.equal(this.role,"owner");
+          assert.equal(data.from,other.fingerprint);
+          const sender=sockets.find(s=>s.role==="caller"&&
+            s.target===this.target&&s.seen.some(c=>
+              c.t==="call"&&c.callId===data.callId));
+          assert.ok(sender,"Receipt must match an actual pending call");
+          sender.emit("message",{data:JSON.stringify({
             t:"delivered-to-active-tab",callId:data.callId})});
         }
       });
@@ -156,9 +164,27 @@ async function tests(){
     "https://evil.test/invalid"),/FRESH_SIGNED_QR_INVITE_REQUIRED/);
   await assert.rejects(caller.callSavedFriend(other.fingerprint,"audio",invalid),
     /FRIEND_NOT_VERIFIED_LOCALLY|SELF_CALL/);
+  const confirmed=[];
+  caller.on("outgoing-delivered",e=>confirmed.push(e.detail.callId));
   const first=await caller.callSavedFriend(self.fingerprint,"audio",invalid);
   assert.match(first,/^[a-f0-9]{32}$/);
   await new Promise(resolve=>setTimeout(resolve,30));
+  assert.deepEqual(confirmed,[first],
+    "Caller delivery status must await authenticated recipient client receipt");
+  assert.equal(sockets[0].seen.filter(m=>m.t==="received").length,1);
+  const previousReceipts=sockets[0].seen.filter(m=>m.t==="received").length;
+  sockets[0].emit("message",{data:JSON.stringify({
+    t:"incoming",from:"f".repeat(64),kind:"audio",invite:invalid,
+    callId:"e".repeat(32)
+  })});
+  sockets[0].emit("message",{data:JSON.stringify({
+    t:"incoming",from:other.fingerprint,kind:"audio",
+    invite:"https://evil.test/invalid",callId:"f".repeat(32)
+  })});
+  await new Promise(resolve=>setTimeout(resolve,10));
+  assert.equal(sockets[0].seen.filter(m=>m.t==="received").length,
+    previousReceipts,
+    "Unknown sender or invalid invite must never receive app acknowledgment");
   assert.equal(eventLog.includes("incoming"),true);
   assert.equal(incoming.from,other.fingerprint);
   assert.equal(incoming.name,"Trusted Test Friend");
@@ -172,5 +198,6 @@ async function tests(){
   assert.equal(sockets[0].readyState,3);
   assert.doesNotMatch(code,/getUserMedia\s*\(|window\.location\.assign\s*\(|eval\s*\(/);
   console.log("PASS: no background calls; signed saved-key challenge; trust opt-in; valid invite routing; revoke; no automatic media");
+  console.log("PASS: app receipt acknowledgment sent only for known valid incoming invite");
 }
 tests().catch(e=>{console.error(e);process.exitCode=1;});
