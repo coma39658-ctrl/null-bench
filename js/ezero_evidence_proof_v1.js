@@ -71,7 +71,18 @@ async function getSigner(){
   check(await hash(unbase64(row.spki))===row.keyId,"KEY_FINGERPRINT_MISMATCH");
   return row;
 }
+function exactKeys(value,keys){
+  check(value&&typeof value==="object"&&!Array.isArray(value)&&
+    Object.keys(value).length===keys.length&&
+    keys.every(k=>Object.prototype.hasOwnProperty.call(value,k)),
+    "UNSIGNED_OR_MISSING_MANIFEST_FIELDS");
+}
 function statement(p){
+  exactKeys(p,["version","file","source","localTime","clockStatus",
+    "identityStatus","recordingStatus","thirdPartyTimestamp","retention","signature"]);
+  exactKeys(p.file,["name","type","size","sha256"]);
+  exactKeys(p.signature,["algorithm","publicKeySpki",
+    "keyFingerprintSha256","value"]);
   check(p&&p.version===VERSION&&p.file&&
     typeof p.file.name==="string"&&p.file.name===safeName(p.file.name)&&
     typeof p.file.type==="string"&&p.file.type.length<=100&&
@@ -102,7 +113,9 @@ async function createProof(blob,name,opts={}){
     identityStatus:"SELF_SIGNED_DEVICE_KEY_NOT_HUMAN_ID",
     recordingStatus:"NOT_VERIFIED_BY_EXPORTER",
     thirdPartyTimestamp:null,
-    retention:"E_ZERO_SERVER_STORES_NO_MEDIA_BY_THIS_EXPORTER"
+    retention:"E_ZERO_SERVER_STORES_NO_MEDIA_BY_THIS_EXPORTER",
+    signature:{algorithm:"ECDSA_P256_SHA256",publicKeySpki:"",
+      keyFingerprintSha256:"",value:""}
   };
   const signer=await getSigner();
   const payload=encoder.encode(statement(p));
