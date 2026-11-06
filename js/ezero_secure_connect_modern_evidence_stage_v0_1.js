@@ -17,6 +17,50 @@ let current="audio", recorder=null, micStream=null, limitTimer=null, draft=null,
   incoming=null,incomingUrl=null,recId=0,lastVoiceStatus="voiceIdle";
 const voiceInbox=[],MAX_VOICE_INBOX=8,MAX_VOICE_QUEUE_BASE64=12000000;
 let activeVoiceId=null,sendingVoice=false;
+const sentVoice=[],SENT_MAX_ITEMS=8,SENT_MAX_BYTES=12000000;
+let sentSerial=0;
+const sentVoicePanel=document.createElement("section");
+sentVoicePanel.id="ezeroSentVoiceNotes";sentVoicePanel.hidden=true;
+sentVoicePanel.setAttribute("aria-live","polite");
+$("ezeroVoiceDraft").after(sentVoicePanel);
+function eraseSentVoice(id){
+ const idx=sentVoice.findIndex(n=>n.id===id);
+ if(idx<0)return;
+ const n=sentVoice.splice(idx,1)[0];
+ clearTimeout(n.timer);URL.revokeObjectURL(n.url);drawSentVoice();
+}
+function drawSentVoice(){
+ sentVoicePanel.replaceChildren();sentVoicePanel.hidden=!sentVoice.length;
+ if(!sentVoice.length)return;
+ const lang=document.documentElement.lang;
+ const title=document.createElement("strong");
+ title.textContent=lang==="en"?"Sent voice messages":lang==="ar"?"الرسائل الصوتية المرسلة":"بھیجے گئے وائس میسجز";
+ sentVoicePanel.append(title);
+ for(const n of sentVoice){
+  const row=document.createElement("div");row.className="ezero-voice-sent-row";
+  const name=document.createElement("span");
+  name.textContent=(lang==="en"?"Note":lang==="ar"?"رسالة":"وائس میسج")+" #"+n.id;
+  const player=document.createElement("audio");player.controls=true;player.preload="none";
+  player.src=n.url;player.setAttribute("aria-label",name.textContent);
+  const del=document.createElement("button");del.type="button";
+  del.textContent=lang==="en"?"✕ Remove":lang==="ar"?"✕ حذف":"✕ حذف کریں";
+  del.addEventListener("click",()=>eraseSentVoice(n.id));
+  row.append(name,player,del);sentVoicePanel.append(row);
+ }
+}
+function keepSentVoice(blob){
+ if(!(blob instanceof Blob)||blob.size<100||blob.size>MAX_NOTE_BYTES)return;
+ const bytes=()=>sentVoice.reduce((total,n)=>total+n.size,0);
+ while(sentVoice.length&&(sentVoice.length>=SENT_MAX_ITEMS||bytes()+blob.size>SENT_MAX_BYTES))
+   eraseSentVoice(sentVoice[0].id);
+ const id=++sentSerial,entry={id,size:blob.size,url:URL.createObjectURL(blob),timer:null};
+ entry.timer=setTimeout(()=>eraseSentVoice(id),600000);
+ sentVoice.push(entry);drawSentVoice();
+}
+function clearSentVoice(){
+ for(const n of sentVoice){clearTimeout(n.timer);URL.revokeObjectURL(n.url);}
+ sentVoice.length=0;drawSentVoice();
+}
 const voiceQueue=document.createElement("section");
 voiceQueue.id="ezeroVoiceQueue";
 voiceQueue.setAttribute("aria-label","Received voice messages · موصولہ وائس پیغامات");
@@ -383,7 +427,12 @@ function renderVoiceInbox(){
    play.textContent=voiceQueueLabel(item.id===activeVoiceId?"playing":"play");
    play.disabled=item.id===activeVoiceId;
    play.addEventListener("click",()=>listenVoice(item.id));
-   row.append(number,play);voiceQueue.append(row);
+   const del=document.createElement("button");del.type="button";
+   del.textContent=document.documentElement.lang==="en"?"✕ Remove":
+     document.documentElement.lang==="ar"?"✕ حذف":"✕ حذف کریں";
+   del.className="ezero-voice-inbox-delete";
+   del.addEventListener("click",()=>removeVoiceMessage(item.id));
+   row.append(number,play,del);voiceQueue.append(row);
  }
 }
 function listenVoice(id){
@@ -504,6 +553,7 @@ $("ezeroVoiceSend").addEventListener("click",async()=>{
    const good=await Promise.resolve(window.EZERO_VOICE_TRANSPORT.send(
        draft.mime,encoded,$("ezeroVoiceAllowDownload")?.checked===true));
    if(!good){voiceStatus("sendFail");$("ezeroVoiceSend").disabled=false;return;}
+   keepSentVoice(draft.blob);
    clearDraft();
     if($("ezeroVoiceAllowDownload"))$("ezeroVoiceAllowDownload").checked=false;
     voiceStatus("sent");
@@ -523,9 +573,13 @@ document.addEventListener("ezero:voice-note-received",e=>{
  const id=/^[a-f0-9]{32}$/.test(d.id||"")?d.id:"legacy-"+Date.now()+"-"+voiceInbox.length;
  if(voiceInbox.some(item=>item.id===id))return;
  const size=voiceInbox.reduce((sum,item)=>sum+item.audio.length,0);
- if(voiceInbox.length>=MAX_VOICE_INBOX||size+d.audio.length>MAX_VOICE_QUEUE_BASE64){
-   voiceStatus("inboxFull");return;
- }
+ if(d.audio.length>MAX_VOICE_QUEUE_BASE64){voiceStatus("inboxFull");return;}
+  let used=size;
+  while(voiceInbox.length&&(voiceInbox.length>=MAX_VOICE_INBOX||
+    used+d.audio.length>MAX_VOICE_QUEUE_BASE64)){
+    used-=voiceInbox[0].audio.length;
+    removeVoiceMessage(voiceInbox[0].id);
+  }
  const item={id,mime:d.mime,audio:d.audio,timer:null};
  item.timer=setTimeout(()=>removeVoiceMessage(id),600000);
  voiceInbox.push(item);
@@ -546,5 +600,8 @@ document.addEventListener("ezero:voice-send-progress",event=>{
     ?"Sending encrypted voice note":document.documentElement.lang==="ar"
     ?"جارٍ إرسال الرسالة الصوتية":"محفوظ وائس میسج بھیجا جا رہا ہے")+" — "+pct+"%";
 });
-window.addEventListener("pagehide",()=>{++recId;stopMic();clearDraft();clearIncoming();});
+$("language").addEventListener("change",()=>{renderVoiceInbox();drawSentVoice();});
+window.addEventListener("pagehide",()=>{
+ ++recId;stopMic();clearDraft();clearIncoming();clearSentVoice();
+});
 })();
