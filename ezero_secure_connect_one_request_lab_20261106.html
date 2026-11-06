@@ -23,6 +23,7 @@
 <link rel="stylesheet" href="./css/ezero_secure_connect_modern_communications_v0_3.css?v=20261105forest1">
 <link rel="stylesheet" href="./css/ezero_secure_connect_quick_nav_v0_1.css">
 <link rel="stylesheet" href="./css/ezero_one_request_lab_20261106.css?v=20261106onepage1">
+<link rel="stylesheet" href="./css/ezero_immersive_video_call_v0_1.css?v=20261106video1">
 <script defer src="./js/vendor/ezero-qrcode-generator-mit.js"></script>
 <script defer src="./js/ezero_secure_connect_live_p2p_v0_1.js?v=20261105profile1"></script>
 <script defer src="./js/ezero_secure_connect_simple_near_far_v0_1.js"></script>
@@ -37,6 +38,7 @@
 <script defer src="./js/ezero_one_request_lab_20261106.js?v=20261106qrrepair1"></script>
 <script defer src="./js/ezero_secure_connect_quick_nav_v0_1.js"></script>
 <script defer src="./js/ezero_unified_nav_v0_1.js"></script>
+<script defer src="./js/ezero_immersive_video_call_v0_1.js?v=20261106video1"></script>
 </head>
 <body class="communication-page ezero-one-lab">
 <div class="shell">
@@ -59,6 +61,7 @@
   <button type="button" class="modern-feature-button" data-step="04" data-modern-select="chat" aria-pressed="false"><span class="modern-feature-icon">💬</span><span class="modern-feature-name" data-modern="chat">نجی چیٹ</span><span class="modern-feature-note" data-modern="chatHint">ایک بار کھلنے والا نجی پیغام</span></button>
 </div>
 
+<div id="ezeroQuickConnectionSurface" class="ezero-connection-surface" aria-label="Unified call pairing and QR">
 <section id="ezeroOneJoinPanel" class="modern-workspace ezero-one-join-panel" aria-labelledby="ezeroOneJoinHeading">
   <h2 id="ezeroOneJoinHeading">📷 ایک QR سے کال کی درخواست</h2>
   <p class="ezero-one-join-help">دوسرے فون کا کال والا QR اسکین کریں۔ درخواست نظر آئے گی؛ «قبول کریں» دبانے پر جواب خود واپس جائے گا۔ شناختی QR کال نہیں ہے۔</p>
@@ -101,6 +104,7 @@
 
   <p id="ezeroAutoStatus" role="status" aria-live="polite" data-state="idle" class="modern-status">فی الحال کوئی حقیقی فون کنکشن قائم نہیں۔</p>
 </section>
+</div><!-- Unified pairing surface: scanner and call invitation share one visual space. -->
 
 <section class="modern-workspace" aria-label="Current feature">
   <h2 id="modernFeatureTitle" class="modern-panel-title" aria-live="polite">آڈیو کال</h2>

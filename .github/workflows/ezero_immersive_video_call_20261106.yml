@@ -1,0 +1,51 @@
+name: E-ZERO Immersive Video Call and Incoming Ring Lab QA
+on:
+  push:
+    branches:
+      - ezero-public-video-call-verification-20261106
+  pull_request:
+    branches: [main]
+    paths:
+      - 'css/ezero_immersive_video_call_v0_1.css'
+      - 'js/ezero_immersive_video_call_v0_1.js'
+      - 'ezero_secure_connect_one_request_lab_20261106.html'
+      - 'tests/test_ezero_immersive_video_call_20261106.mjs'
+      - '.github/workflows/ezero_immersive_video_call_20261106.yml'
+permissions:
+  contents: read
+jobs:
+  real-web-rtc-video:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check new UI and camera-consent scripts
+        run: |
+          set -euo pipefail
+          node --check js/ezero_immersive_video_call_v0_1.js
+          node --check tests/test_ezero_immersive_video_call_20261106.mjs
+          grep -Fq 'ezero_immersive_video_call_v0_1.css' ezero_secure_connect_one_request_lab_20261106.html
+          grep -Fq 'ezero_immersive_video_call_v0_1.js' ezero_secure_connect_one_request_lab_20261106.html
+          ! grep -Fq 'getUserMedia(' js/ezero_immersive_video_call_v0_1.js
+          ! grep -Fq 'new RTCPeerConnection' js/ezero_immersive_video_call_v0_1.js
+      - name: Install isolated Chromium test dependencies
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts playwright@1.57.0 ws@8.18.3
+          npx playwright install --with-deps chromium
+      - name: Test QR video, two real browser video tracks, one PiP and incoming accept
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8769 --bind 127.0.0.1 >/tmp/ezero-video-browser-test.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8769/ezero_secure_connect_one_request_lab_20261106.html >/dev/null && break
+            sleep 1
+          done
+          node tests/test_ezero_immersive_video_call_20261106.mjs
