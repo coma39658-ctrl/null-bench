@@ -88,7 +88,7 @@ function statement(p){
     typeof p.file.type==="string"&&p.file.type.length<=100&&
     Number.isSafeInteger(p.file.size)&&p.file.size>=0&&p.file.size<=LIMIT&&
     /^[a-f0-9]{64}$/.test(p.file.sha256||"")&&
-    p.source==="USER_SELECTED_OR_CONSENT_EXPORTED_FILE"&&
+    ["USER_SELECTED_OR_CONSENT_EXPORTED_FILE","CLAIMED_EZERO_RECEIVED_VOICE_NOTE_UNATTESTED"].includes(p.source)&&
     typeof p.localTime==="string"&&p.localTime.length<=40&&
     p.clockStatus==="UNTRUSTED_DEVICE_CLOCK"&&
     p.identityStatus==="SELF_SIGNED_DEVICE_KEY_NOT_HUMAN_ID"&&
@@ -107,7 +107,8 @@ async function createProof(blob,name,opts={}){
     version:VERSION,
     file:{name:safeName(name),type:String(blob.type||"application/octet-stream").slice(0,100),
       size:blob.size,sha256:await hash(data)},
-    source:"USER_SELECTED_OR_CONSENT_EXPORTED_FILE",
+    source:opts.source==="CLAIMED_EZERO_RECEIVED_VOICE_NOTE_UNATTESTED"?
+      opts.source:"USER_SELECTED_OR_CONSENT_EXPORTED_FILE",
     localTime:new Date().toISOString(),
     clockStatus:"UNTRUSTED_DEVICE_CLOCK",
     identityStatus:"SELF_SIGNED_DEVICE_KEY_NOT_HUMAN_ID",
@@ -262,7 +263,8 @@ function temporary(blob,name,receivedAt=Date.now()){
     discard(){drop();clearTimeout(clock);},
     async saveWithProof(){
       if(!held||Date.now()>=deadline){drop();throw error("TEN_MINUTE_WINDOW_EXPIRED");}
-      const result=await packageBlob(held,name,{userConsent:true});
+      const result=await packageBlob(held,name,{userConsent:true,
+        source:"CLAIMED_EZERO_RECEIVED_VOICE_NOTE_UNATTESTED"});
       // Check again: a slow device must never export after the deadline.
       if(!held||Date.now()>=deadline){drop();throw error("TEN_MINUTE_WINDOW_EXPIRED");}
       return result;
