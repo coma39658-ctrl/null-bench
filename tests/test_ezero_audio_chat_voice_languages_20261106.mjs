@@ -299,6 +299,29 @@ try{
     "Friend acceptance may not interrupt the established call");
   console.log("MUTUAL_FRIEND_REQUEST_ACCEPT_BOTH_CONTACTS_NO_AUTO_SAVE: PASS");
 
+  // Browser UI regression only: inject control events as a bounded unit test.
+  // This does NOT claim that a synthetic event proves remote authentication.
+  // A timed-out incoming request must not keep blocking fresh requests.
+  await callee.evaluate(()=>{
+    const fp=window.EZERO_FRIEND_TRANSPORT.peerFingerprint();
+    const now=Date.now;
+    const dispatch=(id,name)=>document.dispatchEvent(
+      new CustomEvent("ezero:friend-control",{detail:{
+        kind:"friend-request",id,name,peerFingerprint:fp
+      }})
+    );
+    dispatch("a".repeat(32),"Old request");
+    Date.now=()=>now()+120001;
+    try{dispatch("b".repeat(32),"Fresh request");}
+    finally{Date.now=now;}
+  });
+  assert.match(await callee.locator("#ezeroFriendRequestDescription").innerText(),
+    /Fresh request/,"Expired request must not block a fresh request");
+  await callee.locator("#ezeroDeclineFriendRequest").click();
+  assert.equal(await callee.locator("#ezeroFriendRequestPrompt").isVisible(),false);
+  console.log("EXPIRED_FRIEND_REQUEST_CAN_BE_REPLACED_WITHOUT_RELOAD: PASS");
+
+
   // Additional two-phone browser test: video still works; incoming audio
   // really arrives as one live WebRTC track routed to an independent player.
   // A successful play() does not prove that a human heard the sound.
