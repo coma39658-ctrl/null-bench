@@ -8,7 +8,7 @@ const vm=require("node:vm");
 const source=fs.readFileSync("js/ezero_trusted_friends_controls_candidate_v0_1.js","utf8");
 new vm.Script(source);
 assert.doesNotMatch(source,/getUserMedia\s*\(|MediaRecorder\s*\(|new\s+WebSocket\s*\(/);
-const friendFp="a".repeat(64),original="https://coma39658-ctrl.github.io/null-bench/c.html?mode=audio#room="+
+const friendFp="a".repeat(64),original="https://coma39658-ctrl.github.io/null-bench/ezero_trusted_friends_staging_20261106.html?mode=audio#room="+
   "A".repeat(32)+"."+"B".repeat(43);
 const elements=new Map(),listeners=new Map(),apiListeners=new Map();
 let openCount=0,trustCount=0,callCount=0,featureClicks=0,navigations=0;
