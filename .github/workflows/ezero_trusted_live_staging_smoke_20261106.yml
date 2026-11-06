@@ -1,0 +1,34 @@
+name: E-ZERO Trusted Friends Live Staging Smoke (No Deploy)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - tests/ezero_trusted_inbox_live_staging_smoke_20261106.mjs
+      - .github/workflows/ezero_trusted_live_staging_smoke_20261106.yml
+permissions:
+  contents: read
+concurrency:
+  group: ezero-trusted-stage-smoke-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  staging-connection-proof:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and isolated scope
+        run: |
+          set -euo pipefail
+          node --check tests/ezero_trusted_inbox_live_staging_smoke_20261106.mjs
+          grep -Fq 'ezero-trusted-friends-inbox-staging.coma39658.workers.dev' tests/ezero_trusted_inbox_live_staging_smoke_20261106.mjs
+          ! grep -Eq 'CLOUDFLARE_API_TOKEN|wrangler deploy|github-pages|production' .github/workflows/ezero_trusted_live_staging_smoke_20261106.yml
+      - name: Install ephemeral WebSocket test client
+        run: npm install --no-save --ignore-scripts --no-audit --no-fund ws@8
+      - name: Probe deployed staging Worker only (no writes or secrets)
+        run: node tests/ezero_trusted_inbox_live_staging_smoke_20261106.mjs
