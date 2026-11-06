@@ -1,0 +1,326 @@
+/* E-ZERO Secure Connect · compact app shell · 2026-11-06
+ * One accessible mobile workspace, not poster-like nested cards.
+ * Scoped to the unified one-request page only.
+ * All existing WebRTC, consent, QR, chat and profile DOM IDs stay unchanged.
+ */
+body.communication-page.ezero-one-lab{
+  --ez-bg:#061d17;--ez-dark:#082a20;--ez-deep:#031811;
+  --ez-surface:#10422f;--ez-mint:#94edb5;--ez-ink:#f3fff7;
+  --ez-muted:#bedfcd;--ez-accent:#21a76a;--ez-red:#bb3340;
+  background:#051b15!important;color:var(--ez-ink)!important;
+  font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif
+}
+body.communication-page.ezero-one-lab .shell{
+  width:100%!important;max-width:640px!important;box-sizing:border-box!important;
+  min-height:100vh!important;color:var(--ez-ink)!important;
+  background:radial-gradient(ellipse at 70% -12%,#185b3b 0%,#0a3225 38%,#061c17 80%)!important;
+  padding:0 14px calc(26px + env(safe-area-inset-bottom))!important
+}
+body.communication-page.ezero-one-lab header.top{
+  position:relative!important;background:transparent!important;
+  border:0!important;border-bottom:1px solid #8fdeac37!important;
+  border-radius:0!important;box-shadow:none!important;
+  padding:15px 2px 13px!important;color:#f6fff8!important
+}
+body.communication-page.ezero-one-lab header.top .logo{font-size:15px!important;font-weight:900!important;color:#f5fff9!important}
+body.communication-page.ezero-one-lab header.top .back{color:#e2ffeb!important;border-color:#82c99a55!important}
+body.communication-page.ezero-one-lab header.top label{color:#d3f3df!important}
+body.communication-page.ezero-one-lab header.top select{
+  color:#fff!important;background:#134b35!important;border:1px solid #82dba35b!important;
+  border-radius:999px!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card{
+  display:flex!important;flex-direction:column!important;gap:7px!important;
+  width:100%!important;max-width:none!important;
+  margin:0!important;padding:7px 0 16px!important;
+  border:0!important;border-radius:0!important;
+  box-shadow:none!important;background:transparent!important;
+  overflow:visible!important;color:var(--ez-ink)!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-heading{
+  text-align:start!important;border:0!important;background:transparent!important;
+  border-radius:0!important;padding:14px 3px 12px!important;
+  color:var(--ez-ink)!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-heading .ezero-unified-label{
+  font-size:10px!important;letter-spacing:.13em!important;color:#9af1b7!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-heading h1{
+  font-size:clamp(21px,5.4vw,28px)!important;line-height:1.5!important;
+  color:#f6fff9!important;font-weight:900!important;margin:4px 0!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-heading p{
+  font-size:12px!important;line-height:1.75!important;
+  color:#c8e7d5!important;margin:5px 0!important
+}
+/* A calm four-action rail, not four separate advertisement blocks. */
+body.communication-page.ezero-one-lab .ezero-unified-card .modern-feature-grid{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:4px!important;margin:4px 0 12px!important;
+  padding:5px!important;background:#02150fa8!important;
+  border:1px solid #78cd9b44!important;border-radius:18px!important;
+  box-shadow:inset 0 2px 7px #0004!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card .modern-feature-button{
+  min-height:68px!important;min-width:0!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;
+  justify-content:center!important;gap:4px!important;padding:8px 2px!important;
+  border:0!important;border-radius:13px!important;
+  background:transparent!important;box-shadow:none!important;
+  color:#e8fff1!important;font-weight:850!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card .modern-feature-button[aria-pressed="true"]{
+  border:1px solid #71dca155!important;background:#155e41!important;
+  box-shadow:0 1px 7px #051d1555!important
+}
+body.communication-page.ezero-one-lab .modern-feature-icon{font-size:24px!important;line-height:1.2!important}
+body.communication-page.ezero-one-lab .modern-feature-name{
+  font-size:11px!important;color:inherit!important;line-height:1.35!important;
+  white-space:normal!important;overflow-wrap:anywhere!important
+}
+body.communication-page.ezero-one-lab .modern-feature-note{display:none!important}
+/* Scanner and offer use ONE dark service panel, with no nested white cards. */
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroQuickConnectionSurface{
+  display:flex!important;flex-direction:column!important;gap:7px!important;
+  margin:0!important;padding:14px 12px!important;
+  background:#0d3829dd!important;color:#f0fff6!important;
+  border:1px solid #67b78b5c!important;border-radius:19px!important;
+  box-shadow:0 7px 25px #0002!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card
+  #ezeroQuickConnectionSurface #ezeroOneJoinPanel,
+body.communication-page.ezero-one-lab .ezero-unified-card
+  #ezeroQuickConnectionSurface #ezeroAutoPilot{
+  margin:0!important;padding:0!important;background:transparent!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  color:#effff5!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneJoinHeading{
+  font-size:15px!important;line-height:1.55!important;
+  font-weight:900!important;margin:0 0 5px!important;color:#e8ffef!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card .ezero-one-join-help{
+  color:#c1e4ce!important;font-size:12px!important;line-height:1.65!important;
+  margin:0 0 10px!important
+}
+body.communication-page.ezero-one-lab .ezero-one-qr-receive{
+  border:0!important;margin:0!important;padding:0!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneScanInvite{
+  display:block!important;width:100%!important;min-height:49px!important;
+  padding:10px!important;margin:0!important;
+  background:#166646!important;color:#f8fff9!important;
+  font-size:15px!important;font-weight:850!important;
+  border:1px solid #79d89e72!important;border-radius:13px!important;
+  box-shadow:none!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneScanStatus{
+  font-size:11px!important;color:#a4d9b8!important;line-height:1.7!important;
+  margin:6px 0 2px!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroAutoPilot{
+  border-top:1px solid #8aca9d3d!important;padding-top:9px!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroNetworkSettings{
+  margin:3px 0 8px!important;border:0!important;padding:0!important;
+  background:transparent!important;color:#cdebd8!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroNetworkSettings summary{
+  cursor:pointer!important;font-size:12px!important;font-weight:800!important;
+  color:#b0e3c4!important;padding:8px 3px!important;list-style-position:inside
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroNetworkSettings .ezero-auto-consent{
+  display:flex!important;align-items:flex-start!important;gap:10px!important;
+  padding:11px!important;margin:4px 0 10px!important;background:#0b3024!important;
+  border:1px solid #65af8866!important;border-radius:12px!important;
+  color:#e2ffee!important;font-size:12px!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroAutoPilot .ezero-auto-actions{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:7px!important;align-items:stretch!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroAutoShare,
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneCopyInvite{
+  min-width:0!important;min-height:45px!important;width:100%!important;
+  margin:0!important;padding:8px 6px!important;border-radius:12px!important;
+  background:#155e40!important;border:1px solid #70c89067!important;
+  box-shadow:none!important;color:#f0fff7!important;
+  font-size:12px!important;font-weight:850!important;line-height:1.5!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneCopyInvite{
+  background:#103a2b!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroAutoShare:disabled,
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneCopyInvite:disabled{
+  opacity:.54!important;cursor:not-allowed!important
+}
+/* QR alone receives a white scan-safe plate; all other panels stay low-chrome. */
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneQrBox:not([hidden]){
+  margin:9px 0!important;padding:11px 9px!important;
+  background:#ecfbf1!important;color:#114830!important;
+  border:0!important;border-radius:15px!important;box-shadow:0 3px 14px #001f132b!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneQrBox strong{
+  display:block!important;font-size:14px!important;color:#155436!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneQr{
+  background:white!important;border:0!important;border-radius:11px!important;
+  width:min(100%,260px)!important;margin:9px auto!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneQrBox p{
+  color:#29563d!important;font-size:12px!important;margin:6px 0!important
+}
+/* Inline call state, no pastel rectangles stacked below each other. */
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroAutoStatus,
+body.communication-page.ezero-one-lab .ezero-unified-card #modernConnectionStatus,
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneCallProgress{
+  margin:5px 0!important;padding:7px 0!important;border:0!important;
+  box-shadow:none!important;border-radius:0!important;
+  background:transparent!important;color:#c4e9d3!important;
+  min-height:0!important;font-size:12px!important;line-height:1.7!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroAutoStatus[data-state=error],
+body.communication-page.ezero-one-lab .ezero-unified-card #modernConnectionStatus[data-state=error],
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneCallProgress[data-state=failed]{
+  color:#ff9c9c!important;font-weight:850!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #modernConnectionStatus[data-state=connected],
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneCallProgress[data-state=connected]{
+  color:#a5f7bd!important;font-weight:900!important
+}
+/* A single continuous workspace for profiles, voice, chat, and friend directory. */
+body.communication-page.ezero-one-lab .ezero-unified-card .modern-workspace:not(#modernCallPanel),
+body.communication-page.ezero-one-lab .ezero-unified-card .ezero-unified-options,
+body.communication-page.ezero-one-lab .ezero-unified-card .ezero-quick-actions{
+  color:#edfff5!important;background:transparent!important;
+  border:0!important;box-shadow:none!important;border-radius:0!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card .modern-workspace:not(#modernCallPanel){
+  padding:9px 1px!important;margin:0!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroQuickConnectionSurface .modern-workspace{
+  padding:0!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #modernFeatureTitle,
+body.communication-page.ezero-one-lab .ezero-unified-card #modernFeatureHelp{
+  display:none!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card .modern-panel-title{
+  color:#eefff5!important;font-size:17px!important;font-weight:900!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card .modern-panel-help{
+  color:#c7e6d2!important;font-size:12px!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card .ezero-quick-actions{
+  padding:5px 0!important;margin:0!important;gap:5px!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroQuickProfile{
+  width:100%!important;min-height:44px!important;padding:9px 12px!important;
+  color:#dafbe7!important;background:transparent!important;
+  border:1px solid #70b78c56!important;border-radius:12px!important;
+  box-shadow:none!important;font-size:13px!important
+}
+body.communication-page.ezero-one-lab #modernChatPanel #sendText,
+body.communication-page.ezero-one-lab .ezero-unified-card input:not([type="checkbox"]),
+body.communication-page.ezero-one-lab .ezero-unified-card textarea{
+  background:#f8fff9!important;color:#153e2c!important;border:1px solid #8cb9a2!important;
+  border-radius:12px!important;box-shadow:none!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card button:focus-visible,
+body.communication-page.ezero-one-lab .ezero-unified-card input:focus-visible,
+body.communication-page.ezero-one-lab .ezero-unified-card summary:focus-visible{
+  outline:3px solid #9df5b4!important;outline-offset:3px!important
+}
+/* Keep all calling controls correct: no empty camera boxes on initial screen. */
+body.communication-page.ezero-one-lab:not(.ezero-call-connected) #modernCallPanel,
+body.communication-page.ezero-one-lab:not(.ezero-call-connected) #ezeroCallMediaSlot .videos{
+  display:none!important
+}
+body.communication-page.ezero-one-lab:not(.ezero-call-connected) #modernHangup{
+  display:none!important
+}
+/* Pending QR call can always be cancelled, but never show giant red banner. */
+body.communication-page.ezero-one-lab:not(.ezero-call-connected):has(#ezeroOneQrBox:not([hidden])) .ezero-unified-card #modernHangup{
+  display:block!important;
+  width:100%!important;min-height:42px!important;max-height:54px!important;
+  padding:8px 10px!important;margin:5px 0!important;
+  background:#722b34!important;color:#fff!important;
+  border:1px solid #d77c8170!important;border-radius:11px!important;
+  box-shadow:none!important;font-size:12px!important;font-weight:850!important
+}
+body.communication-page.ezero-one-lab.ezero-video-connected #modernHangup{
+  display:none!important
+}
+/* Inbound accept/decline: tight single in-app call sheet, not an ad card. */
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneIncomingShell:not([hidden]){
+  background:#0b3928!important;color:#f2fff6!important;
+  border:1px solid #7edba173!important;border-radius:17px!important;
+  box-shadow:0 6px 20px #0003!important;padding:16px 12px!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneIncomingHeading{
+  color:#effff5!important;font-size:19px!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroAutoIncoming p{
+  color:#cbead6!important;font-size:12px!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroAutoAccept{
+  border-radius:12px!important;background:#138851!important;min-height:54px!important;
+  font-size:16px!important;box-shadow:none!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroAutoDecline{
+  border-radius:12px!important;background:#802b35!important;color:#fff!important;
+  min-height:50px!important;box-shadow:none!important
+}
+/* Current app must not show a ringtone/status outside an actual invitation. */
+body.communication-page.ezero-one-lab #ezeroIncomingRingToggle[hidden]{display:none!important}
+@media(max-width:370px){
+  body.communication-page.ezero-one-lab .ezero-unified-card .modern-feature-name{font-size:10px!important}
+  body.communication-page.ezero-one-lab .ezero-unified-card #ezeroAutoPilot .ezero-auto-actions{gap:5px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  body.communication-page.ezero-one-lab .ezero-unified-card *,
+  body.communication-page.ezero-one-lab .ezero-unified-card *::before,
+  body.communication-page.ezero-one-lab .ezero-unified-card *::after{
+    animation:none!important;transition:none!important;scroll-behavior:auto!important
+  }
+}
+
+/* Connected peer and contact area stays visually part of the app, not a
+   stack of separate advertisement flyers. Preserve visible identities. */
+body.communication-page.ezero-one-lab .ezero-unified-card .ezero-peer-profile,
+body.communication-page.ezero-one-lab .ezero-unified-card .ezero-person-card,
+body.communication-page.ezero-one-lab .ezero-unified-card .incomingItem,
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroVoiceDraft,
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroVoiceReceived{
+  background:#113d2e!important;color:#e9fff1!important;
+  border:1px solid #7ecb9c48!important;box-shadow:none!important;
+  border-radius:14px!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroPeerDisplayName,
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroPeopleHub>summary,
+body.communication-page.ezero-one-lab .ezero-unified-card .ezero-photo-heading{
+  color:#e9fff4!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroPeerTrustNote,
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroPeerSessionId{
+  color:#b7d9c6!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card .ezero-people-tabs{
+  border:1px solid #7cc99a47!important;background:#09291f!important;
+  box-shadow:none!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card .ezero-people-tabs button{
+  color:#d6f7e2!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card .ezero-people-tabs button[aria-pressed=true]{
+  color:white!important;background:#187e51!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #modernChatPanel::before{
+  opacity:.11!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #modernChatPanel .modern-voice-actions button,
+body.communication-page.ezero-one-lab .ezero-unified-card .modern-voice-actions button,
+body.communication-page.ezero-one-lab .ezero-unified-card #sendMessage{
+  border:1px solid #4fb37c!important;background:#157548!important;color:white!important;
+  border-radius:12px!important;box-shadow:none!important
+}

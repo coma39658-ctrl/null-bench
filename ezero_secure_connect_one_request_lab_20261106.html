@@ -22,8 +22,9 @@
 <link rel="stylesheet" href="./css/ezero_secure_connect_one_tap_qr_v0_1.css">
 <link rel="stylesheet" href="./css/ezero_secure_connect_modern_communications_v0_3.css?v=20261105forest1">
 <link rel="stylesheet" href="./css/ezero_secure_connect_quick_nav_v0_1.css">
-<link rel="stylesheet" href="./css/ezero_one_request_lab_20261106.css?v=20261106onepage1">
+<link rel="stylesheet" href="./css/ezero_one_request_lab_20261106.css?v=20261106precall2">
 <link rel="stylesheet" href="./css/ezero_immersive_video_call_v0_1.css?v=20261106video1">
+<link rel="stylesheet" href="./css/ezero_compact_app_shell_20261106.css?v=20261106compact1">
 <script defer src="./js/vendor/ezero-qrcode-generator-mit.js"></script>
 <script defer src="./js/ezero_secure_connect_live_p2p_v0_1.js?v=20261105profile1"></script>
 <script defer src="./js/ezero_secure_connect_simple_near_far_v0_1.js"></script>
@@ -87,9 +88,12 @@
 <section id="ezeroAutoPilot" class="modern-workspace ezero-auto-pilot" hidden aria-label="Experimental automatic call signaling">
   <h2 class="modern-panel-title" data-auto="title">محفوظ خودکار رابطہ — تجرباتی</h2>
   <p class="modern-panel-help">📞 آڈیو یا 📹 ویڈیو دبانے پر ایک مختصر کال QR تیار ہوگا۔ دوسرے فون پر اوپر دیا گیا «دوست کی کال QR اسکین کریں» بٹن استعمال کریں، پھر درخواست قبول کریں۔ جواب خودکار طور پر واپس جائے گا۔</p>
-  <label class="ezero-auto-consent"><input id="ezeroAutoStun" type="checkbox">
-    <span data-auto="stun">مختلف نیٹ ورکس کے لیے اختیاری STUN — اس سے IP/نیٹ ورک معلومات ظاہر ہوسکتی ہیں</span>
-  </label>
+<details id="ezeroNetworkSettings" class="ezero-network-settings">
+    <summary>⚙️ نیٹ ورک کی اختیاری ترتیبات</summary>
+    <label class="ezero-auto-consent"><input id="ezeroAutoStun" type="checkbox">
+      <span data-auto="stun">مختلف نیٹ ورکس کے لیے اختیاری STUN — اس سے IP/نیٹ ورک معلومات ظاہر ہوسکتی ہیں</span>
+    </label>
+  </details>
   <div class="ezero-auto-actions">
     <button type="button" id="ezeroAutoStart" class="primary" data-auto="start">📞 محفوظ دعوت بنائیں</button>
     <button type="button" id="ezeroAutoShare" class="primary" data-auto="share" disabled>↗ دعوت شیئر کریں</button>
