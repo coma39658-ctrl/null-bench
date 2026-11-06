@@ -15,7 +15,7 @@
   const FRIENDS_KEY="ezero_secure_connect_local_fingerprints_v0_1";
   const FP=/^[a-f0-9]{64}$/;
   const $=tag=>document.createElement(tag);
-  let active=false,pending=null,incoming=null;
+  let active=false,pending=null,incoming=null,pendingTimer=null;
   const copy={
     ur:{head:"🔐 محفوظ دوست — تجرباتی رابطہ",start:"✓ کال وصول کرنا فعال کریں",
       note:"صرف اس وقت کال وصول ہوگی جب یہ صفحہ کھلا اور آپ نے اجازت دی ہو۔ پہلے QR سے تصدیق کے بعد دوست محفوظ کریں۔",
@@ -81,6 +81,10 @@
     node.type="button";node.textContent=text;
     node.addEventListener("click",click);return node;
   }
+  function clearPending(){
+    pending=null;
+    if(pendingTimer!==null){clearTimeout(pendingTimer);pendingTimer=null;}
+  }
   function paintIncoming(){
     const view=document.getElementById("ezeroTrustedIncoming");
     if(!view)return;
@@ -124,9 +128,12 @@
         return ()=>{
           if(pending)return;
           pending={fp:item.fp,kind};
+          pendingTimer=setTimeout(()=>{
+            if(pending){clearPending();status("failed",true);}
+          },30000);
           status("preparing");
           const feature=document.querySelector('[data-modern-select="'+kind+'"]');
-          if(!feature){pending=null;return status("failed",true);}
+          if(!feature){clearPending();return status("failed",true);}
           feature.click(); // explicit user's gesture; no automatic media access
         };
       }
@@ -161,7 +168,7 @@
   api.on("offline",()=>{active=false;status("offline",true);});
   document.addEventListener("ezero:auto-invite-ready",async e=>{
     if(!pending)return;
-    const {fp,kind}=pending;pending=null;
+    const {fp,kind}=pending;clearPending();
     const link=e.detail?.link;
     if(!api.safeInvite(link,kind))return status("failed",true);
     try{
@@ -172,5 +179,10 @@
   document.getElementById("language")?.addEventListener("change",()=>{
     paint();paintIncoming();
   });
-  window.addEventListener("pagehide",()=>api.closeOwnerInbox());
+  document.addEventListener("ezero:call-status",e=>{
+    if(!pending)return;
+    if(["micDenied","iceNoRoute","signalInvalid","fingerprintMismatch","idle"]
+      .includes(e.detail?.stage)){clearPending();status("failed",true);}
+  });
+  window.addEventListener("pagehide",()=>{clearPending();api.closeOwnerInbox();});
 })();
