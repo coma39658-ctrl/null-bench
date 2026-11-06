@@ -1,0 +1,26 @@
+/* Presence labels reflect only verified active call, confirmed hangup, or unknown.
+   They do not claim cloud-wide availability or hidden surveillance. */
+body.communication-page.ezero-one-lab .ezero-person-card[data-presence=online] .ezero-person-label{
+ color:#aaffbd!important;background:#0b6a3e!important;
+ border-radius:14px!important;font-weight:900!important;padding:5px 8px!important
+}
+body.communication-page.ezero-one-lab .ezero-person-card[data-presence=offline] .ezero-person-label{
+ color:#e8e8e8!important;background:#39443c!important;
+ border-radius:14px!important;padding:5px 8px!important
+}
+body.communication-page.ezero-one-lab .ezero-person-card[data-presence=presenceUnknown] .ezero-person-label{
+ color:#e5dfb9!important;background:#66592d!important;
+ border-radius:14px!important;padding:5px 8px!important
+}
+body.communication-page.ezero-one-lab .ezero-saved-friend-call{
+ min-height:41px!important;padding:7px 12px!important;
+ border:1px solid #b4f5be!important;border-radius:13px!important;
+ background:#14734a!important;color:#fff!important;
+ font-size:12px!important;font-weight:850!important;
+ white-space:nowrap!important;flex-shrink:0!important
+}
+@media(max-width:370px){
+ body.communication-page.ezero-one-lab .ezero-person-card{
+   flex-wrap:wrap!important
+ }
+}
