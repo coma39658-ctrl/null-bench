@@ -446,8 +446,10 @@
     <div class="videos">
       <div class="videoBox"><video id="localVideo" autoplay muted playsinline aria-label="Local camera"></video><span data-i18n="myMedia">میرا کیمرہ</span></div>
       <div class="videoBox"><video id="remoteVideo" autoplay playsinline aria-label="Remote peer"></video><span data-i18n="peerMedia">دوست کی آواز / تصویر</span></div>
-      <audio id="ezeroRemoteAudio" preload="none" hidden aria-label="Friend incoming audio — browser output"></audio>
     </div>
+    <!-- Keep remote-audio playback outside the .videos layout: the verified
+         fullscreen/PiP CSS intentionally relies on two .videoBox children. -->
+    <audio id="ezeroRemoteAudio" preload="none" hidden aria-label="Friend incoming audio — browser output"></audio>
     <div class="buttonrow">
       <button id="playRemote" type="button" class="outline" data-i18n="playRemote">🔊 آنے والی آواز چلائیں</button>
       <button id="muteMic" type="button" class="outline" disabled data-i18n="mute">🎙️ مائک بند کریں</button>
