@@ -152,7 +152,8 @@ window.addEventListener("storage",e=>{
 });
 const validFriendName=v=>cleanName(v).length>0;
 function persistFriend(fp,peer){
- if(!pairApproved()||!FP.test(fp))return false;
+ if(!pairApproved()||!FP.test(fp)||
+    window.EZERO_FRIEND_ACCESS?.isBlocked?.(fp)===true)return false;
  const transport=window.EZERO_PEER_PROFILE_TRANSPORT;
  const verifiedLive=transport?.connected()===true&&transport.peerFingerprint()===fp;
  if(!verifiedLive&&proofFingerprint!==fp)return false;
