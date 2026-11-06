@@ -111,6 +111,9 @@
     if(!node)return;
     drawer.append(node);
     drawer.hidden=false;node.hidden=false;
+    // Each mode opens at its own heading.  Preserve a single scroll surface
+    // and do not inherit a voice inbox's deep scroll offset in the proof tab.
+    drawer.scrollTop=0;
     translate();
     if(type==="chat")$("sendText")?.focus();
   }
