@@ -79,6 +79,16 @@ async function main(){
   assert.equal(ev.list().length,0);
   assert.ok(changed>=2);
   console.log("PASS: ten-minute browser retention enforced when clock advances");
+  const peerNote=ev.offer({blob:original,kind:"voice_note",
+    source:"PEER_WEBRTC_VOICE_NOTE_OPT_IN",
+    consent:"SENDER_EXPORT_ALLOWED_P2P_UNATTESTED"});
+  const note=await ev.packageEvidence(peerNote);
+  const noteContents=await unzipLocalStored(note.archive);
+  const peerManifest=JSON.parse(decoder.decode(noteContents.get("evidence.json")));
+  assert.equal(peerManifest.payload.capture.consent,"SENDER_EXPORT_ALLOWED_P2P_UNATTESTED");
+  assert.equal(await ev.verify(noteContents.get("media.webm"),peerManifest),true);
+  ev.expire(peerNote);
+  console.log("PASS: explicit P2P sender export permission and SHA-256 signed voice archive");
   const another=ev.offer({blob:original,kind:"media_file",
     source:"USER_IMPORTED_UNVERIFIED",
     consent:"USER_SELECTED_FILE_NOT_PEER_ATTESTED"});
