@@ -31,7 +31,8 @@
 <script defer src="./js/ezero_secure_connect_contacts_staging_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_install_share_staging_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_one_tap_qr_v0_1.js"></script>
-<script defer src="./js/ezero_secure_connect_modern_communications_v0_3.js?v=20261105forest1"></script>
+<script defer src="./js/ezero_evidence_proof_v1.js?v=20261106evidence1"></script>
+<script defer src="./js/ezero_secure_connect_modern_communications_evidence_stage_v0_3.js?v=20261106evidence1"></script>
 <script defer src="./js/ezero_secure_connect_peer_profile_staging_v0_1.js?v=20261106stage2"></script>
 <script defer src="./js/ezero_saved_friend_stage_people_v0_1.js?v=20261106stage1"></script>
 <script defer src="./js/ezero_auto_signaling_lab_config_20261106.js"></script>
@@ -158,6 +159,17 @@
   <div id="ezeroVoiceDraft" hidden><p data-modern="preview">یہ آواز ابھی صرف اس فون پر ہے؛ خودکار شیئر نہیں ہوئی۔</p><audio id="ezeroVoicePreview" class="modern-voice-audio" controls preload="none" aria-label="Local voice note preview"></audio></div>
   <div id="ezeroVoiceReceived" hidden><p data-modern="incomingVoice">دوست کا عارضی وائس میسج موصول ہوا۔</p><button type="button" id="ezeroVoiceOpenIncoming" class="primary" data-modern="playVoice">🎧 ایک بار سنیں</button><audio id="ezeroVoiceIncomingAudio" class="modern-voice-audio" controls preload="none" hidden aria-label="Received voice note"></audio></div>
   <p id="ezeroVoiceStatus" class="modern-status" role="status" aria-live="polite">وائس میسج بھیجنے کے لیے دو فون جوڑیں۔</p>
+  <p id="ezeroVoiceSenderSaveNotice" class="modern-panel-help">اہم: موصول کنندہ یہ وائس میسج 10 منٹ کے اندر اپنی اجازت سے محفوظ کر سکتا ہے۔ ایویڈنس ZIP میں SHA-256 اور خودساختہ ڈیجیٹل دستخط ہوگا۔</p>
+  <div id="ezeroVoiceEvidencePanel" class="modern-workspace" hidden>
+    <h3 id="ezeroVoiceProofHeading">🔏 موصولہ وائس نوٹ کا ثبوت</h3>
+    <p id="ezeroVoiceProofHelp">اس فون میں موصولہ وائس نوٹ کو صرف 10 منٹ کے اندر اصل فائل اور دستخط شدہ ثبوت سمیت محفوظ کریں۔ E-ZERO سرور پر میڈیا محفوظ نہیں ہوگا۔</p>
+    <label><input id="ezeroVoiceProofConsent" type="checkbox">
+      <span id="ezeroVoiceProofConsentText">میرے پاس اس فائل کو محفوظ کرنے کی اجازت ہے؛ میں سمجھتا/سمجھتی ہوں کہ یہ عدالتی سرٹیفکیٹ نہیں۔</span>
+    </label>
+    <button type="button" id="ezeroVoiceProofSave" disabled>⬇ وائس نوٹ + SHA-256 ثبوت ZIP</button>
+    <p id="ezeroVoiceProofStatus" class="modern-status" role="status" aria-live="polite">بغیر اجازت یا 10 منٹ بعد ڈاؤن لوڈ نہیں ہوگا۔</p>
+    <div id="ezeroVoiceProofLinkSlot"></div>
+  </div>
   <button id="ezeroVoiceConnect" class="modern-voice-connect" type="button" data-modern="voiceConnect">📱 وائس میسج بھیجنے کے لیے فون جوڑیں</button>
 </section>
 <details class="ezero-unified-options"><summary>👤 پروفائل اور دوست (اختیاری)</summary>
