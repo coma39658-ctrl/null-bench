@@ -201,14 +201,7 @@
   <label for="ezeroPeopleSearch" class="ezero-photo-heading" data-people="searchLabel">دوست یا کال تلاش کریں</label>
   <input id="ezeroPeopleSearch" type="search" autocomplete="off" maxlength="40" placeholder="نام تلاش کریں" aria-label="دوست یا کال تلاش کریں">
   <div id="ezeroPeopleList" class="ezero-people-list" aria-live="polite"></div>
-<div id="ezeroFriendSavePanel" class="ezero-friend-save-panel" hidden>
-  <label for="ezeroFriendSaveName">👤 پہلی کامیاب کال کے بعد دوست کا نام محفوظ کریں</label>
-  <input id="ezeroFriendSaveName" type="text" maxlength="40" autocomplete="off" placeholder="دوست کا نام">
-  <button id="ezeroSaveConnectedFriend" type="button" disabled>✓ اس دوست کو محفوظ کریں</button>
-  <p id="ezeroFriendSaveHelp">حقیقی WebRTC رابطے اور آپ کی اجازت کے بعد ہی اس فون کی غیر قابلِ برآمد نجی شناخت اور دوست کا تصدیق شدہ فنگرپرنٹ مقامی طور پر محفوظ ہوگا۔</p>
-</div>
-<p id="ezeroFriendSaveStatus" role="status" aria-live="polite">پہلے QR سے محفوظ رابطہ کریں، پھر دونوں طرف دوست محفوظ کریں۔ بغیر QR دوبارہ کال ابھی صرف تجرباتی تیاری میں ہے۔</p>
-<section id="ezeroTrustedFriendsLab" aria-label="Experimental Trusted Friends Calls" hidden></section>
+
   <label class="ezero-history-consent">
     <input type="checkbox" id="ezeroHistoryConsent">
     <span data-people="historyConsent">واقعی کنیکٹ ہو کر ختم ہونے والی آڈیو/ویڈیو کال کی مختصر ہسٹری 10 منٹ تک صرف اسی فون پر رکھیں۔ آواز، ویڈیو، تصویر یا چیٹ محفوظ نہیں ہوگی۔</span>
@@ -221,6 +214,15 @@
 </details>
 
 </details>
+<!-- A verified call exposes Save Friend here without opening nested settings. -->
+<div id="ezeroFriendSavePanel" class="ezero-friend-save-panel" hidden>
+  <label for="ezeroFriendSaveName">👤 پہلی کامیاب کال کے بعد دوست کا نام محفوظ کریں</label>
+  <input id="ezeroFriendSaveName" type="text" maxlength="40" autocomplete="off" placeholder="دوست کا نام">
+  <button id="ezeroSaveConnectedFriend" type="button" disabled>✓ اس دوست کو محفوظ کریں</button>
+  <p id="ezeroFriendSaveHelp">حقیقی WebRTC رابطے اور آپ کی اجازت کے بعد ہی اس فون کی غیر قابلِ برآمد نجی شناخت اور دوست کا تصدیق شدہ فنگرپرنٹ مقامی طور پر محفوظ ہوگا۔</p>
+</div>
+<p id="ezeroFriendSaveStatus" role="status" aria-live="polite">پہلے QR سے محفوظ رابطہ کریں، پھر دونوں طرف دوست محفوظ کریں۔ بغیر QR دوبارہ کال ابھی صرف تجرباتی تیاری میں ہے۔</p>
+<section id="ezeroTrustedFriendsLab" aria-label="Experimental Trusted Friends Calls" hidden></section>
 <p class="ezero-unified-disclaimer">تجرباتی WebRTC رابطہ: دونوں فونوں پر «Connected» اور آواز/ویڈیو کی تصدیق ضروری ہے۔ بعض نیٹ ورکس میں TURN کے بغیر رابطہ ناکام ہوسکتا ہے۔</p>
 </section>
 <section class="ezero-pilot-banner" role="note">
