@@ -593,7 +593,7 @@
         // Explicit per-call recording permission on an encrypted peer channel.
          // A peer-UI consent indication is NOT a government-certified signature.
          if(m?.v===5&&m.kind==="record-consent"&&
-            ["request","allow","deny","stop"].includes(m.action)&&
+            ["request","allow","deny","start","stop"].includes(m.action)&&
             /^[a-f0-9]{32}$/.test(m.id||"")&&
             peer?.connectionState==="connected"&&
             /^[a-f0-9]{64}$/.test(peer?.__ezeroPeerFP||"")){
@@ -812,7 +812,7 @@
      connected:()=>window.EZERO_PEER_PROFILE_TRANSPORT.connected(),
      peerFingerprint:()=>window.EZERO_PEER_PROFILE_TRANSPORT.peerFingerprint(),
      send:(action,id)=>{
-       if(!["request","allow","deny","stop"].includes(action)||
+       if(!["request","allow","deny","start","stop"].includes(action)||
           !/^[a-f0-9]{32}$/.test(id)||!channel||
           channel.readyState!=="open"||
           !window.EZERO_PEER_PROFILE_TRANSPORT.connected())return false;
