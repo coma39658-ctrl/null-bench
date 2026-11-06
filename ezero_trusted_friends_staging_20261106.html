@@ -6,7 +6,7 @@
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0b3426">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self' wss://ezero-browser-signaling-pilot.coma39658.workers.dev wss://ezero-trusted-friends-inbox-staging.coma39658.workers.dev; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
-<title>E-ZERO Secure Connect — Trusted Friends — Private Testing Preview</title>
+<title>E-ZERO Secure Connect — Unified Public Beta</title>
 <meta name="robots" content="noindex,nofollow">
 <meta name="description" content="E-ZERO Secure Connect — one green page for QR call invitations, one accept, and experimental WebRTC audio/video.">
 <meta property="og:title" content="E-ZERO Secure Connect — Friends & Calls">
@@ -65,8 +65,8 @@
 <main>
 <section id="ezeroUnifiedCard" class="ezero-unified-card" aria-labelledby="ezeroUnifiedHeading">
   <div class="ezero-unified-heading"><span class="ezero-unified-label">E-ZERO · SECURE CONNECT</span>
-  <h1 id="ezeroUnifiedHeading">E-ZERO محفوظ دوست — صرف تجرباتی آزمائش</h1>
-  <p>پہلی محفوظ کال کے بعد دونوں فونوں پر دوست محفوظ کیا جا سکے گا۔ بغیر QR دوبارہ کال ابھی تجرباتی ہے؛ موجودہ عوامی QR صفحہ بدستور دستیاب ہے۔</p></div>
+  <h1 id="ezeroUnifiedHeading">E-ZERO محفوظ دوست — مشترکہ عوامی آزمائشی صفحہ</h1>
+  <p>دونوں موبائلوں پر یہی صفحہ کھولیں۔ پہلی کال QR اور واضح منظوری سے جوڑیں؛ اس کے بعد دونوں طرف دوست محفوظ کریں۔ بغیر QR دوبارہ کال ابھی تجرباتی ہے اور صفحہ کھلا ہونا ضروری ہے۔</p></div>
 <div class="modern-feature-grid" aria-label="Communication features">
   <button type="button" class="modern-feature-button" data-step="01" data-modern-select="audio" aria-pressed="false"><span class="modern-feature-icon">📞</span><span class="modern-feature-name" data-modern="audio">آڈیو کال</span><span class="modern-feature-note" data-modern="audioHint">دو فونوں کے درمیان براہِ راست آواز</span></button>
   <button type="button" class="modern-feature-button" data-step="02" data-modern-select="video" aria-pressed="false"><span class="modern-feature-icon">📹</span><span class="modern-feature-name" data-modern="video">ویڈیو کال</span><span class="modern-feature-note" data-modern="videoHint">اجازت سے تصویر اور آواز</span></button>
@@ -147,7 +147,7 @@
 
 <nav class="ezero-quick-actions" aria-label="E-ZERO profile, digital identity and received invitation">
     <button type="button" id="ezeroQuickPaste">📋 دوست کا لنک پیسٹ کریں</button>
-  <a id="ezeroQuickIdentity" href="./ezero_secure_connect_one_request_lab_20261106.html">🔐 E-ZERO رابطہ</a>
+  <a id="ezeroQuickIdentity" href="#ezeroOneJoinPanel">🔐 E-ZERO رابطہ</a>
 </nav>
 
 <section id="modernChatPanel" class="modern-workspace" hidden>
@@ -220,7 +220,7 @@
     <input type="checkbox" id="ezeroHistoryConsent">
     <span data-people="historyConsent">واقعی کنیکٹ ہو کر ختم ہونے والی آڈیو/ویڈیو کال کی مختصر ہسٹری 10 منٹ تک صرف اسی فون پر رکھیں۔ آواز، ویڈیو، تصویر یا چیٹ محفوظ نہیں ہوگی۔</span>
   </label>
-  <a class="ezero-add-verified-friend" href="./ezero_secure_connect_live_p2p_v0_1.html" data-people="verifyFriend">+ QR شناخت سے دوست محفوظ کریں</a>
+  <a class="ezero-add-verified-friend" href="#ezeroOneJoinPanel" data-people="verifyFriend">+ QR شناخت سے دوست محفوظ کریں</a>
   <div class="ezero-journal-actions">
     <button id="ezeroHistoryClear" type="button" data-people="clearHistory">تاریخ صاف کریں</button>
   </div>
@@ -283,7 +283,7 @@
 <section class="ezero-pilot-banner" role="note">
   <strong>🧪 E-ZERO کال کی حقیقی آزمائش</strong>
   <p>دوست کو ایک مختصر دعوتی لنک یا QR بھیجیں۔ دوسرے فون پر «قبول کریں» دبانے سے WebRTC جواب خود Cloudflare کے ذریعے واپس جائے گا۔ دوسری بار لنک بھیجنے کی ضرورت نہیں۔ STUN/TURN کی عدم دستیابی کی صورت میں اصل کال ناکام ہو سکتی ہے۔</p>
-  <p>یہی E-ZERO Secure Connect کا مشترک عوامی صفحہ ہے۔ کالنگ کی عملی آزمائش جاری ہے؛ خودکار پس منظر کی اطلاع ابھی نہیں۔</p>
+  <p>یہی E-ZERO Secure Connect کا مشترک عوامی آزمائشی صفحہ ہے۔ دونوں فونوں پر اسی لنک سے QR کال شروع کریں۔ حقیقی فون ٹیسٹ ابھی جاری ہیں؛ پس منظر میں خودکار اطلاع نہیں۔</p>
 </section>
 <section class="modern-hero">
   <span class="modern-kicker">E-ZERO · COMMUNICATIONS</span>
@@ -329,7 +329,7 @@
   <p class="modern-call-note" data-modern="offlineTruth">براؤزر یا PWA خود سے ہاٹ اسپاٹ/موبائل ڈیٹا فعال نہیں کر سکتی۔ فون اور OS کی سپورٹ ضروری ہوگی۔ اس وقت کوئی خودکار انٹرنیٹ شیئرنگ شروع نہیں ہوتی۔</p>
 </section>
 <nav class="modern-secondary-links" aria-label="E-ZERO navigation">
-  <a id="modernQrLink" href="./ezero_secure_connect_live_p2p_v0_1.html" data-modern="qrLink">▦ QR اور دوست</a>
+  <a id="modernQrLink" href="#ezeroOneJoinPanel" data-modern="qrLink">▦ QR اور دوست</a>
   <a id="modernPolicyLink" href="./ezero_secure_connect_privacy_v0_2.html" data-modern="privacyLink">🔒 پرائیویسی پالیسی</a>
 </nav>
   <div id="ezeroLegacyCompatibility" hidden inert aria-hidden="true">
@@ -363,7 +363,7 @@
       <button type="button" class="outline" id="copyConnectLink" data-share-i18n="copy">📋 ویب سائٹ لنک کاپی</button>
       <button type="button" class="primary install-action" id="installSecureConnect" data-share-i18n="install">📲 ہوم اسکرین پر انسٹال کریں</button>
     </div>
-    <a id="publicConnectLink" class="public-connect-url" href="https://coma39658-ctrl.github.io/null-bench/ezero_secure_connect_live_p2p_v0_1.html" rel="noopener noreferrer">E-ZERO Secure Connect · Shareable Link</a>
+    <a id="publicConnectLink" class="public-connect-url" href="https://coma39658-ctrl.github.io/null-bench/ezero_trusted_friends_staging_20261106.html" rel="noopener noreferrer">E-ZERO Secure Connect · Shareable Link</a>
     <p id="shareInstallStatus" class="scan-result" role="status" aria-live="polite" data-share-i18n="initial">انسٹالیشن آپ کی منظوری سے ہوگی؛ میسج کے اندر خودکار انسٹالیشن ممکن نہیں۔</p>
     <div id="installHelp" class="install-help" hidden>
       <strong data-share-i18n="helpTitle">اگر انسٹال ڈائیلاگ نہ کھلے</strong>
