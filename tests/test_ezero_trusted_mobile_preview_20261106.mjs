@@ -167,6 +167,25 @@ try{
   assert.equal(await caller.locator("#ezeroHeaderAvatar").getAttribute("src"),dpData,
     "DP must restore in the top bar after reload without an upload");
   console.log("TOP_HEADER_DP_PERSISTS_LOCALLY_WITHOUT_PROFILE_UPLOAD: PASS");
+  // The relevant controls must appear near the main feature buttons.
+  await caller.locator('[data-modern-select="voice"]').click();
+  assert.equal(await caller.locator("#modernVoicePanel").isVisible(),true);
+  assert.equal(await caller.locator("#modernVoicePanel").evaluate(el=>
+    el.parentElement?.id==="ezeroQuickFunctionHost"),true);
+  assert.ok(await caller.evaluate(()=>{
+    const top=document.querySelector(".modern-feature-grid").getBoundingClientRect();
+    const action=document.getElementById("modernVoicePanel").getBoundingClientRect();
+    return action.top-top.bottom<200;
+  }),"Voice recorder must appear just below its button");
+  await caller.locator('[data-modern-select="chat"]').click();
+  assert.equal(await caller.locator("#modernChatPanel").isVisible(),true);
+  assert.equal(await caller.locator("#modernVoicePanel").isHidden(),true);
+  await caller.locator("#ezeroQuickEvidence").click();
+  assert.equal(await caller.locator("#ezeroEvidencePanel").isVisible(),true);
+  assert.equal(await caller.locator("#ezeroQuickEvidence").getAttribute("aria-expanded"),"true");
+  await caller.locator("#ezeroQuickEvidence").click();
+  assert.equal(await caller.locator("#ezeroEvidencePanel").isHidden(),true);
+  console.log("ONE_TAP_NEARBY_VOICE_CHAT_RECORDING_SHA256: PASS");
   // One click initiates offer; the share URL is short and has an ephemeral capability.
   await caller.locator('[data-modern-select="audio"]').click();
   await caller.waitForFunction(()=>!!window.__oneInvite,{timeout:30000});
@@ -227,6 +246,11 @@ try{
     "E-ZERO private text stage test");
   await caller.locator("#ezeroInCallClose").click();
   await callee.locator("#ezeroInCallClose").click();
+  await caller.locator("#ezeroInCallEvidence").click();
+  assert.equal(await caller.locator("#ezeroEvidencePanel").isVisible(),true);
+  assert.equal(await caller.locator("#ezeroInCallMessageDrawer").isVisible(),true);
+  await caller.locator("#ezeroInCallClose").click();
+  console.log("IN_CALL_RECORDING_AND_SHA256_CONTROLS_REACHABLE: PASS");
   console.log("IN_CALL_PRIVATE_CHAT_VERIFIED_BOTH_BROWSERS: PASS");
   console.log("ONE_REQUEST_ONE_ACCEPT_AUTOMATIC_SIGNED_ANSWER_REAL_BROWSER_WEBRTC: PASS");
   console.log("NO_SECOND_MANUAL_LINK_NO_AUTO_MIC_BEFORE_ACCEPT: PASS");
@@ -440,6 +464,26 @@ try{
     assert.equal(receivedProof.consent,"SENDER_EXPORT_ALLOWED_P2P_UNATTESTED");
     assert.match(receivedProof.sha256,/^[0-9a-f]{64}$/);
     console.log("VOICE_NOTE_EXPORT_DEFAULT_DENY_EXPLICIT_SENDER_OPT_IN_SIGNED_ZIP: PASS");
+    // A note larger than the previous five-second cap must go over WebRTC
+    // in bounded frames and require the receiving browser's ACK.
+    await callee.evaluate(()=>{
+      window.__longVoiceReceived=[];
+      document.addEventListener("ezero:voice-note-received",e=>{
+        if(e.detail?.audio?.length>32000)
+          window.__longVoiceReceived.push({
+            length:e.detail.audio.length,exportAllowed:e.detail.exportAllowed});
+      });
+    });
+    const longEncoded=Buffer.alloc(100000,0x32).toString("base64");
+    assert.ok(longEncoded.length>32000);
+    assert.equal(await caller.evaluate(async encoded=>
+      await window.EZERO_VOICE_TRANSPORT.send("audio/webm",encoded,false),
+      longEncoded),true);
+    await callee.waitForFunction(()=>window.__longVoiceReceived.length===1,{timeout:15000});
+    const voiceAck=await callee.evaluate(()=>window.__longVoiceReceived[0]);
+    assert.equal(voiceAck.length,longEncoded.length);
+    assert.equal(voiceAck.exportAllowed,false);
+    console.log("CHUNKED_LONG_VOICE_RECEIVED_AND_PEER_ACK_CONFIRMED: PASS");
 
     // Both users must explicitly authorize recording. There is no
     // recording on initial connection or on a one-sided request.
