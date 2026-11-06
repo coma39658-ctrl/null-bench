@@ -129,7 +129,23 @@ async function run(){
   assert.equal(received[0].from,friend.fp);
   assert.equal(received[0].callId,first);
   assert.equal(received[0].invite,url);
-  assert.ok(alice.sent.some(x=>x.t==="delivered-to-active-tab"));
+  assert.ok(!alice.sent.some(x=>x.t==="delivered-to-active-tab"),
+    "Sending a WebSocket frame is NOT an application receipt");
+  await inbox.webSocketMessage(socketOwner,JSON.stringify({
+    t:"received",from:stranger.fp,callId:first
+  }));
+  assert.ok(!alice.sent.some(x=>x.t==="delivered-to-active-tab"),
+    "An owner's ACK with a mismatched sender fingerprint must not pass");
+  await inbox.webSocketMessage(socketOwner,JSON.stringify({
+    t:"received",from:friend.fp,callId:first
+  }));
+  assert.equal(alice.sent.filter(x=>x.t==="delivered-to-active-tab").length,1,
+    "A verified owner-browser receipt allows one positive delivery ACK");
+  await inbox.webSocketMessage(socketOwner,JSON.stringify({
+    t:"received",from:friend.fp,callId:first
+  }));
+  assert.equal(alice.sent.filter(x=>x.t==="delivered-to-active-tab").length,1,
+    "Duplicate receipt must never acknowledge twice");
   assert.ok(!JSON.stringify([...data.values()]).includes(url),
     "Do not store call invites server-side");
   assert.ok(!JSON.stringify([...data.values()]).includes("v=0"),
@@ -155,6 +171,12 @@ async function run(){
     t:"call",callId:next,kind:"audio",invite:url
   }));
   assert.equal(socketOwner.sent.filter(x=>x.t==="incoming").length,2);
+  assert.ok(!aliceAgain.sent.some(x=>x.t==="delivered-to-active-tab"),
+    "Second invitation is not received until the owner browser ACKs");
+  await inbox.webSocketMessage(socketOwner,JSON.stringify({
+    t:"received",from:friend.fp,callId:next
+  }));
+  assert.equal(aliceAgain.sent.filter(x=>x.t==="delivered-to-active-tab").length,1);
   // Regression: readyState may still look OPEN even when the recipient's
   // socket rejects send(). No false "delivered-to-active-tab" acknowledgement.
   data.set("recent:"+friend.fp,{callId:next,nextAt:Date.now()-1,
@@ -198,5 +220,6 @@ async function run(){
   console.log("PASS: signed P-256 challenge, owner-only trust, privacy, one-call delivery, cooldown, replay, revocation");
   console.log("PASS: stale pending WebSockets cannot exhaust all slots forever");
   console.log("PASS: failed recipient socket send never produces false delivery ACK");
+  console.log("PASS: authenticated application receipt, mismatch/duplicate protection and one-time ACK");
 }
 run().catch(err=>{console.error(err);process.exitCode=1;});
