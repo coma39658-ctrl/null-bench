@@ -139,6 +139,14 @@
     if(["connecting","connected","idle","failed","micDenied",
         "iceNoRoute","signalInvalid","fingerprintMismatch"].includes(stage)){
       if(stage!=="connected")stopRing();
+      // The immersive hangup uses the original core button rather than the
+      // former top-card modernHangup wrapper. Hide its expired QR too.
+      if(stage==="idle"){
+        const qrBox=$("ezeroOneQrBox"),qr=$("ezeroOneQr"),copy=$("ezeroOneCopyInvite");
+        if(qrBox)qrBox.hidden=true;
+        qr?.replaceChildren();
+        if(copy)copy.disabled=true;
+      }
       updateScene();
     }
   });
