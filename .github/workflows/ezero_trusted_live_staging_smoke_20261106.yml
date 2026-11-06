@@ -1,0 +1,33 @@
+name: E-ZERO Live Trusted Friends STAGING Connection QA (No Deploy)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/ezero_trusted_inbox_live_staging_smoke_20261106.mjs'
+      - '.github/workflows/ezero_trusted_live_staging_smoke_20261106.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ezero-trusted-live-stage-smoke
+  cancel-in-progress: true
+jobs:
+  staging-wss-smoke:
+    if: github.ref_name == 'main'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify test script syntax
+        run: |
+          set -euo pipefail
+          node --check tests/ezero_trusted_inbox_live_staging_smoke_20261106.mjs
+      - name: Install ephemeral WebSocket test client
+        run: npm install --no-save --ignore-scripts --no-audit --no-fund ws@8
+      - name: Probe existing isolated Cloudflare Worker (no credentials, no deploy)
+        run: node tests/ezero_trusted_inbox_live_staging_smoke_20261106.mjs
