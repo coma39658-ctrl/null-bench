@@ -159,9 +159,18 @@
   status("idle");paint();
   api.on("incoming",e=>{
     const packet=e.detail;
-    if(!packet||!contacts().some(x=>x.fp===packet.from)||
+    // A hidden/background tab must not claim the user saw a call prompt.
+    if(document.hidden||!active||!packet||
+       !contacts().some(x=>x.fp===packet.from)||
        !api.safeInvite(packet.invite,packet.kind))return;
     incoming=packet;paintIncoming();
+    const visible=document.getElementById("ezeroTrustedIncoming");
+    if(!visible||visible.hidden||incoming?.callId!==packet.callId)return;
+    try{
+      api.confirmIncomingVisible(packet.from,packet.callId);
+    }catch(_){
+      incoming=null;paintIncoming();status("failed",true);
+    }
   });
   api.on("outgoing-delivered",()=>status("delivered"));
   api.on("outgoing-error",()=>status("failed",true));
