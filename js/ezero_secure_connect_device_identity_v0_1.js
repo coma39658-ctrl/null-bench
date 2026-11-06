@@ -7,7 +7,7 @@
  */
 (() => {
   "use strict";
-  const DB_NAME="ezero_secure_connect_device_identity_v0_1";
+  const DB_NAME="ezero_secure_connect_device_identity_staging_v0_1";
   const STORE_NAME="device";
   const KEY="current";
   function openDb(){
