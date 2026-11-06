@@ -289,6 +289,107 @@ try{
     assert.equal(offers,3,"One more fresh signed offer after inbox call");
     assert.equal(answers,3,"One signed answer on the fresh inbox call");
     console.log("REAL_INBOX_REDIAL_ONE_RECIPIENT_ACCEPT_REAL_CHROMIUM_WEBRTC: PASS");
+
+    // Both users must explicitly authorize recording. There is no
+    // recording on initial connection or on a one-sided request.
+    assert.equal(await caller.evaluate(()=>
+      window.EZERO_SIGNED_MEDIA_EVIDENCE.list().length),0);
+    assert.equal(await caller.locator("#ezeroEvidenceRecBadge").isHidden(),true);
+    await caller.locator("#ezeroEvidenceAsk").click();
+    await callee.locator("#ezeroEvidenceIncoming").waitFor({state:"visible",
+      timeout:10000});
+    assert.equal(await caller.locator("#ezeroEvidenceStart").isHidden(),true);
+    await callee.locator("#ezeroEvidenceDeny").click();
+    await caller.waitForFunction(()=>
+      document.getElementById("ezeroEvidenceStatus")?.textContent.includes("اجازت نہیں ملی"),
+      {timeout:10000});
+    assert.equal(await caller.locator("#ezeroEvidenceRecBadge").isHidden(),true);
+    assert.equal(await caller.evaluate(()=>
+      window.EZERO_SIGNED_MEDIA_EVIDENCE.list().length),0);
+    console.log("RECORDING_WITHOUT_TWO_PERSON_CONSENT_NEVER_STARTS: PASS");
+
+    await caller.locator("#ezeroEvidenceAsk").click();
+    await callee.locator("#ezeroEvidenceIncoming").waitFor({state:"visible",
+      timeout:10000});
+    await callee.locator("#ezeroEvidenceApprove").click();
+    await caller.locator("#ezeroEvidenceStart").waitFor({state:"visible",
+      timeout:10000});
+    await caller.locator("#ezeroEvidenceStart").click();
+    await caller.locator("#ezeroEvidenceRecBadge").waitFor({state:"visible",
+      timeout:15000});
+    await callee.locator("#ezeroEvidenceRecBadge").waitFor({state:"visible",
+      timeout:10000});
+    await caller.waitForTimeout(1400);
+    // A recipient can revoke consent at any time; stops the local recorder.
+    await callee.locator("#ezeroEvidenceRevoke").click();
+    await caller.locator("#ezeroEvidenceRecBadge").waitFor({state:"hidden",
+      timeout:15000});
+    await caller.waitForFunction(()=>
+      window.EZERO_SIGNED_MEDIA_EVIDENCE.list().length===1,
+      {timeout:15000});
+    console.log("MUTUAL_CONSENT_VISIBLE_REC_AND_RECIPIENT_REVOCATION: PASS");
+    const signedProof=await caller.evaluate(async()=>{
+      const api=window.EZERO_SIGNED_MEDIA_EVIDENCE;
+      const id=api.list()[0].id;
+      const file=await api.packageEvidence(id);
+      const bytes=new Uint8Array(await file.archive.arrayBuffer());
+      const view=new DataView(bytes.buffer);
+      const files={};
+      let pos=0;
+      while(pos+30<=bytes.length&&view.getUint32(pos,true)===0x04034b50){
+        const n=view.getUint16(pos+26,true);
+        const extra=view.getUint16(pos+28,true);
+        const size=view.getUint32(pos+18,true);
+        const name=new TextDecoder().decode(bytes.slice(pos+30,pos+30+n));
+        const dataStart=pos+30+n+extra;
+        files[name]=bytes.slice(dataStart,dataStart+size);
+        pos=dataStart+size;
+      }
+      const json=JSON.parse(new TextDecoder().decode(files["evidence.json"]));
+      const media=files[json.payload.media.filename];
+      const valid=await api.verify(media,json);
+      const corrupted=media.slice();corrupted[0]^=1;
+      const invalid=await api.verify(corrupted,json);
+      return {valid,invalid,sha256:file.sha256,
+        signerFingerprint:file.signerFingerprint,
+        signerClass:json.payload.signerClass,
+        consent:json.payload.capture.consent,
+        source:json.payload.capture.source,
+        clockTrust:json.payload.export.clockTrust,
+        thirdPartyTimestamp:json.payload.export.thirdPartyTimestamp};
+    });
+    assert.equal(signedProof.valid,true);
+    assert.equal(signedProof.invalid,false);
+    assert.equal(signedProof.signerFingerprint,persistentFingerprint[0]);
+    assert.equal(signedProof.signerClass,"CONSENT_SAVED_DEVICE_IDENTITY");
+    assert.equal(signedProof.consent,"LOCAL_AND_PEER_UI_APPROVAL_REPORTED");
+    assert.equal(signedProof.source,"LOCAL_CONSENTED_WEBRTC_CAPTURE");
+    assert.equal(signedProof.clockTrust,"UNVERIFIED");
+    assert.equal(signedProof.thirdPartyTimestamp,false);
+    assert.match(signedProof.sha256,/^[a-f0-9]{64}$/);
+    const [download]=await Promise.all([
+      caller.waitForEvent("download",{timeout:20000}),
+      caller.locator("#ezeroEvidenceList button").click()
+    ]);
+    assert.match(download.suggestedFilename(),/^E-ZERO-call_audio-[a-f0-9]{16}\.zip$/);
+    console.log("SIGNED_AUDIO_EVIDENCE_ZIP_SHA256_ECDSA_TAMPER_DETECTION: PASS");
+
+    // Local buffer cannot be exported after 10 minutes, even if suspended
+    // browser timers did not wake to remove its list entry.
+    const expired=await caller.evaluate(async()=>{
+      const original=Date.now;
+      try{
+        const edge=window.EZERO_SIGNED_MEDIA_EVIDENCE.list()[0].expiresAt+1;
+        Date.now=()=>edge;
+        await window.EZERO_SIGNED_MEDIA_EVIDENCE.packageEvidence(
+          window.EZERO_SIGNED_MEDIA_EVIDENCE.list()[0].id);
+        return false;
+      }catch(error){return String(error).includes("EVIDENCE_EXPIRED");}
+      finally{Date.now=original;}
+    });
+    assert.equal(expired,true);
+    console.log("EVIDENCE_LOCAL_MEMORY_EXPIRES_AFTER_TEN_MINUTES: PASS");
+
     await caller.locator("#modernHangup").click();
     await callee.locator("#modernHangup").click();
   }finally{
