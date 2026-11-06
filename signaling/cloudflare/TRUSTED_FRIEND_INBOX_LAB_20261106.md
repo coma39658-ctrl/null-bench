@@ -2,6 +2,16 @@
 
 Status: **LAB ONLY, NOT DEPLOYED OR LINKED TO PUBLIC QR CALLING.**
 
+## Phase B1 completed on isolated branch
+
+- Added `js/ezero_trusted_friend_foreground_client_candidate_v0_1.js`: browser companion to the proposed authenticated Cloudflare inbox.
+- Uses the existing opted-in IndexedDB device identity API from draft PR #87. Validates locally persisted public key/fingerprint and signs the server's fresh challenge; no private key is exported.
+- User-action methods: `openOwnerInbox()` (foreground socket), `setFriendTrust(fp,allowed)` (explicit reciprocal trust control), `callSavedFriend(fp,kind,invite)` (send an already-created QR call invitation to a saved friend). Incoming messages are event callbacks only, **not automatically accepted, opened or recorded**.
+- Added `tests/test_ezero_trusted_friend_foreground_client_20261106.cjs` with mocked WebSocket routing and real P-256 WebCrypto signatures; test checks opt-in trust, signed challenge, valid short invitation, revocation, and no implicit sockets on page load. Its GitHub CI completed successfully.
+- **Not yet wired to the public front-end or the active Cloudflare Worker**. Saved-contact call buttons and incoming-call approval UI still need integration. The recipient must still explicitly accept in the existing QR WebRTC page; no background ringing is implemented.
+
+
+
 Goal confirmed by the owner: a friend is saved after the first real QR call; on later visits their saved card can initiate audio/video ringing without another QR scan. The recipient explicitly accepts. The current public QR call remains the known working fallback.
 
 ## Existing prerequisites
