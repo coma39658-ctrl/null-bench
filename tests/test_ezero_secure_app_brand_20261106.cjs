@@ -21,13 +21,17 @@ for(const m of [staging,existing]){
 }
 assert.equal(staging.id,"./ezero_trusted_friends_staging_20261106.html");
 assert.equal(existing.id,"./ezero_secure_connect_live_p2p_v0_1.html");
-assert.match(primary,/<title>E-ZERO Secure App — Unified Public Beta<\/title>/);
+assert.match(primary,/<title>E-ZERO Secure App — Audio, Video & Friends<\/title>/);
 assert.match(primary,/<strong class="logo">E-ZERO <span>Secure App<\/span><\/strong>/);
 assert.match(primary,/content="E-ZERO Secure App"/);
 assert.match(primary,/href="\.\/secure-connect-staging\.webmanifest"/);
 assert.match(primary,/href="https:\/\/coma39658-ctrl\.github\.io\/null-bench\/ezero_trusted_friends_staging_20261106\.html"/);
 assert.match(home,/>📞 Secure App<\/a>/);
 assert.match(share,/title:"E-ZERO Secure App"/);
+assert.match(share,/E-ZERO Secure App کا عوامی لنک/);
+assert.match(share,/E-ZERO Secure App public link/);
+assert.match(share,/الرابط العام لـ E-ZERO Secure App/);
+assert.match(primary,/E-ZERO Secure App — محفوظ دوست اور کالز/);
 for(const required of [
   "js/ezero_saved_friend_stage_engine_v0_1.js",
   "js/ezero_secure_connect_device_identity_v0_1.js",
