@@ -125,10 +125,18 @@
              !validUrl(m.invite,m.kind))return;
           const known=friend(m.from);
           if(!known){emit("unrecognized",{from:m.from});return;}
-          // Show an incoming notification. Do not navigate, ring through
-          // system push, activate camera, or silently accept a call.
-          onData?.({type:"incoming",from:m.from,name:known.name,
-            kind:m.kind,invite:m.invite,callId:m.callId});
+          // Validate and expose the invitation before confirming receipt.
+          // This is NOT user acceptance and never enables mic or camera.
+          try{
+            onData?.({type:"incoming",from:m.from,name:known.name,
+              kind:m.kind,invite:m.invite,callId:m.callId});
+            if(ws.readyState===WebSocket.OPEN){
+              ws.send(JSON.stringify({t:"received",from:m.from,callId:m.callId}));
+            }
+          }catch(_){
+            // Fail closed: do not acknowledge an invite the app could not handle.
+            emit("incoming-error",{code:"INCOMING_DISPLAY_FAILED"});
+          }
         }else if(m.t==="trust-updated"&&role==="owner"){
           onData?.({type:"trust-updated",fp:m.fp,trusted:m.trusted===true});
         }else if(m.t==="delivered-to-active-tab"&&role==="caller"){
