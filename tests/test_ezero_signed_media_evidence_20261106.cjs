@@ -92,7 +92,7 @@ async function main(){
   wnd.EZERO_DEVICE_IDENTITY_STORE.read=async()=>null;
   listeners.get("pagehide")?.();
   assert.equal(ev.list().length,0);
-  assert.rejects(()=>ev.packageEvidence(another),/EVIDENCE_EXPIRED/);
+  await assert.rejects(()=>ev.packageEvidence(another),/EVIDENCE_EXPIRED/);
   console.log("PASS: imported file provenance openly UNVERIFIED; pagehide erases transient clips");
   console.log("PASS: no network/export without user action, no media persistence, downloaded ZIP remains user's responsibility");
 }
