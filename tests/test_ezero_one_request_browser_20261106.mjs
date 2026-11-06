@@ -135,9 +135,16 @@ try{
   // A verified first call must not strand the caller without the next QR.
   // Neither phone reloads before the caller starts another new room.
   await caller.locator("#modernHangup").click();
-  await callee.locator("#modernHangup").click();
   await caller.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===false,{timeout:15000});
+  // A remote hangup must stop the recipient's microphone without an
+  // extra tap on a vanished/hidden end-call control.
+  await callee.waitForFunction(()=>{
+    const stream=document.getElementById("localVideo")?.srcObject;
+    return window.EZERO_VOICE_TRANSPORT?.connected()===false &&
+      (!stream||stream.getTracks().every(t=>t.readyState==="ended"));
+  },{timeout:15000});
+  console.log("REMOTE_AUDIO_HANGUP_RELEASES_RECIPIENT_MIC: PASS");
   await caller.locator('[data-modern-select="audio"]').click();
   await caller.waitForFunction(old=>
     !!window.__oneInvite&&window.__oneInvite!==old,invite,{timeout:30000});
