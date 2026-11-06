@@ -264,11 +264,12 @@
     دونوں صورتوں میں ڈاؤن لوڈ کی مہلت زیادہ سے زیادہ 10 منٹ ہے۔</p>
   <div id="ezeroEvidenceList" aria-live="polite"></div>
   <label for="ezeroEvidenceImport" id="ezeroEvidenceImportInfo">
-    اختیاری: اپنی مقامی آڈیو یا ویڈیو فائل منتخب کریں۔ درآمد شدہ فائل کو
-    اصل E-ZERO کال ریکارڈنگ کا تصدیق شدہ ثبوت نہیں کہا جائے گا۔
+    اختیاری: اپنے فون سے کوئی آڈیو میسج، تصویر، ویڈیو، PDF، ٹیکسٹ یا دستاویز منتخب کریں۔
+    درآمد شدہ مواد کو E-ZERO کی اصل کال یا موصولہ پیغام کا تصدیق شدہ ثبوت نہیں کہا جائے گا۔
   </label>
-  <input id="ezeroEvidenceImport" type="file" accept="audio/*,video/*"
-    aria-label="Local media for SHA-256 signed export">
+  <input id="ezeroEvidenceImport" type="file"
+    accept="audio/*,video/*,image/*,text/*,.pdf,.docx,.xlsx,.pptx,.json,.zip"
+    aria-label="Local audio message image document or video for optional SHA-256 signed export">
 </section>
 <p class="ezero-unified-disclaimer">تجرباتی WebRTC رابطہ: دونوں فونوں پر «Connected» اور آواز/ویڈیو کی تصدیق ضروری ہے۔ بعض نیٹ ورکس میں TURN کے بغیر رابطہ ناکام ہوسکتا ہے۔</p>
 </section>
@@ -509,8 +510,12 @@
   </section>
   <section class="card" aria-labelledby="messageTitle">
     <div class="heading"><span class="number">4</span><h2 id="messageTitle" data-i18n="oneView">ایک بار کھلنے والا پیغام</h2></div>
-    <p class="muted" data-i18n="messageHelp">صرف کال کے دوران براہِ راست DataChannel سے پیغام جائے گا۔ سرور پر میسج نہیں رکھا جاتا۔ کھولنے کے بعد زیادہ سے زیادہ 5 منٹ میں ختم ہوگا؛ پیغام محفوظ کرنے کا کوئی بٹن نہیں۔</p>
+    <p class="muted" data-i18n="messageHelp">صرف کال کے دوران براہِ راست DataChannel سے پیغام جائے گا۔ سرور پر آرکائیو نہیں ہوگا۔ عام پیغام ایک بار کھلنے کے بعد 5 منٹ میں ختم ہوگا۔ صرف بھیجنے والے کی اجازت سے وصول کنندہ عارضی پیغام کو ڈاؤن لوڈ کر سکے گا؛ اختیاری SHA-256 ثبوت صرف واضح انتخاب پر بنے گا۔</p>
     <label class="field"><span data-i18n="compose">پیغام لکھیں</span><textarea id="sendText" rows="2" maxlength="2000" spellcheck="false"></textarea></label>
+    <label class="ezero-evidence-voice-consent" for="ezeroTextAllowDownload">
+      <input id="ezeroTextAllowDownload" type="checkbox">
+      وصول کرنے والا اس پیغام کو اپنے فون میں محفوظ کر سکے؟ / Allow text export / السماح بحفظ النص
+    </label>
     <button id="sendMessage" class="primary" type="button" disabled data-i18n="send">محفوظ پیغام بھیجیں</button>
     <p id="messageStatus" class="status" role="status" data-i18n="notConnected">میسج کے لیے دو فونوں کا کنکشن ضروری ہے۔</p>
     <div class="incomingItem" id="incomingItem" hidden>
