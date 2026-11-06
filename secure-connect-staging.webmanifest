@@ -1,7 +1,7 @@
 {
-  "name": "E-ZERO Secure Connect — Unified Beta",
-  "short_name": "E-ZERO Connect",
-  "description": "Public beta for two-phone E-ZERO Secure Connect testing. First call requires QR and mutual acceptance; consent is required for recording and evidence exports.",
+  "name": "E-ZERO Secure App",
+  "short_name": "E-ZERO Secure App",
+  "description": "E-ZERO Secure App — Secure Connect for saved friends and consented audio/video calls. Experimental release.",
   "id": "./ezero_trusted_friends_staging_20261106.html",
   "start_url": "./ezero_trusted_friends_staging_20261106.html",
   "scope": "./",
@@ -29,7 +29,7 @@
   },
   "shortcuts": [
     {
-      "name": "E-ZERO Friends & Calls",
+      "name": "E-ZERO Secure App — Friends & Calls",
       "short_name": "Friends & Calls",
       "url": "./ezero_trusted_friends_staging_20261106.html",
       "description": "One unified beta page for QR calls, saved friends, audio/video and optional evidence"
