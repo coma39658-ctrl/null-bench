@@ -89,7 +89,7 @@ jobs:
           node tests/test_ezero_immersive_video_call_20261106.mjs
           echo "EZERO_FROZEN_AND_CURRENT_TWO_PHONE_REGRESSIONS: PASS"
       - name: Verify isolated media evidence cryptography, consent controls and ten-minute TTL
-        if: github.event_name == 'pull_request' && (github.head_ref == 'ezero-physical-two-phone-stage-preview-20261106' || github.head_ref == 'ezero-independent-evidence-verifier-20261106')
+        if: github.event_name == 'pull_request' && (github.head_ref == 'ezero-physical-two-phone-stage-preview-20261106' || github.head_ref == 'ezero-independent-evidence-verifier-20261106' || github.head_ref == 'ezero-stage-first-call-guidance-20261106')
         shell: bash
         run: |
           set -euo pipefail
