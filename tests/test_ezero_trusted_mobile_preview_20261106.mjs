@@ -290,6 +290,49 @@ try{
     assert.equal(answers,3,"One signed answer on the fresh inbox call");
     console.log("REAL_INBOX_REDIAL_ONE_RECIPIENT_ACCEPT_REAL_CHROMIUM_WEBRTC: PASS");
 
+    // Voice-note export is forbidden by default unless the sender explicitly
+    // opts in on the private encrypted DataChannel. The real call is connected.
+    assert.equal(await caller.locator("#ezeroVoiceAllowDownload").isChecked(),false);
+    assert.equal(await callee.evaluate(()=>
+      window.EZERO_SIGNED_MEDIA_EVIDENCE.list().length),0);
+    const sample=Buffer.from("E-ZERO-SYNTHETIC-VOICE-NOTE-FOR-CI");
+    for(const allowed of [false,true]){
+      const sent=await caller.evaluate(({encoded,allowed})=>
+        window.EZERO_VOICE_TRANSPORT.send("audio/webm",encoded,allowed),
+        {encoded:sample.toString("base64"),allowed});
+      assert.equal(sent,true);
+      await callee.waitForTimeout(120);
+      const count=await callee.evaluate(()=>
+        window.EZERO_SIGNED_MEDIA_EVIDENCE.list().length);
+      assert.equal(count,allowed?1:0,
+        "Without explicit sender export opt-in a voice message must not become downloadable");
+    }
+    const receivedProof=await callee.evaluate(async()=>{
+      const api=window.EZERO_SIGNED_MEDIA_EVIDENCE;
+      const file=await api.packageEvidence(api.list()[0].id);
+      const raw=new Uint8Array(await file.archive.arrayBuffer());
+      const view=new DataView(raw.buffer),dec=new TextDecoder();
+      let offset=0,record=null,media=null;
+      while(offset+30<=raw.length&&view.getUint32(offset,true)===0x04034b50){
+        const size=view.getUint32(offset+18,true);
+        const n=view.getUint16(offset+26,true),extra=view.getUint16(offset+28,true);
+        const name=dec.decode(raw.slice(offset+30,offset+30+n));
+        const start=offset+30+n+extra;
+        if(name==="evidence.json")record=JSON.parse(dec.decode(raw.slice(start,start+size)));
+        if(name==="media.webm")media=raw.slice(start,start+size);
+        offset=start+size;
+      }
+      return {valid:await api.verify(media,record),
+        source:record?.payload.capture.source,
+        consent:record?.payload.capture.consent,
+        sha256:file.sha256};
+    });
+    assert.equal(receivedProof.valid,true);
+    assert.equal(receivedProof.source,"PEER_WEBRTC_VOICE_NOTE_OPT_IN");
+    assert.equal(receivedProof.consent,"SENDER_EXPORT_ALLOWED_P2P_UNATTESTED");
+    assert.match(receivedProof.sha256,/^[0-9a-f]{64}$/);
+    console.log("VOICE_NOTE_EXPORT_DEFAULT_DENY_EXPLICIT_SENDER_OPT_IN_SIGNED_ZIP: PASS");
+
     // Both users must explicitly authorize recording. There is no
     // recording on initial connection or on a one-sided request.
     assert.equal(await caller.evaluate(()=>
