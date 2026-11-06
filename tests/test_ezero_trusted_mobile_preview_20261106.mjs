@@ -454,7 +454,14 @@ try{
     }
   }
 
+}catch(error){
+  console.error("TRUSTED_EVIDENCE_BROWSER_ASSERTION_FAILED",error?.stack||String(error));
+  throw error;
 }finally{
-  await Promise.all(contexts.map(ctx=>ctx.close().catch(()=>{})));
+  // Do not let a pending local asset route mask the *first* test error.
+  await Promise.all(contexts.map(async ctx=>{
+    try{await ctx.unrouteAll({behavior:"ignoreErrors"});}catch(_){}
+    try{await ctx.close();}catch(_){}
+  }));
   await browser.close();
 }
