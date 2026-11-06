@@ -38,7 +38,10 @@ function hex(bytes){
   return Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("");
 }
 function send(ws,thing){
-  try{if(ws?.readyState===1)ws.send(JSON.stringify(thing));}catch(_){}
+  // An accepted frame is not proof of recipient application handling, but a
+  // failed socket.send() must never produce a positive transport delivery ACK.
+  if(ws?.readyState!==1)return false;
+  try{ws.send(JSON.stringify(thing));return true;}catch(_){return false;}
 }
 function attach(ws){
   try{return ws.deserializeAttachment()||null;}catch(_){return null;}
@@ -192,8 +195,14 @@ export class TrustedInbox extends DurableObject {
     });
     ws.serializeAttachment({...a,called:true});
     // No offline storage: only deliver to a connected, consenting owner's tab.
-    send(owner,{t:"incoming",from:a.fp,callId:msg.callId,
+    const forwarded=send(owner,{t:"incoming",from:a.fp,callId:msg.callId,
       kind:msg.kind,invite:msg.invite});
+    if(!forwarded){
+      // The fresh attempt is still consumed by the existing abuse cooldown.
+      // Do not claim delivery if the owner's live socket rejects the send.
+      send(ws,{t:"error",code:"DELIVERY_FAILED"});
+      return;
+    }
     send(ws,{t:"delivered-to-active-tab",callId:msg.callId});
   }
   async webSocketClose(){}
