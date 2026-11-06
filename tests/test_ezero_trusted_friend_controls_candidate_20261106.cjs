@@ -64,7 +64,7 @@ const window={
 const localStorage={getItem:k=>
   k==="ezero_secure_connect_local_fingerprints_v0_1"?
     JSON.stringify([{fp:friendFp,name:"Phone 2"}]):null};
-vm.runInNewContext(source,{window,document,localStorage,console});
+vm.runInNewContext(source,{window,document,localStorage,console,setTimeout,clearTimeout});
 assert.equal(root.hidden,false);
 assert.equal(openCount,0);
 assert.equal(callCount,0);
