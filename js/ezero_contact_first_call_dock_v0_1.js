@@ -52,7 +52,10 @@ function contacts(){
       if(!x||!FP.test(x.fp)||typeof x.name!=="string"||
          !x.name.trim()||x.name.length>40||seen.has(x.fp))return false;
       seen.add(x.fp);return true;
-    }).map(x=>({fp:x.fp,name:x.name.trim()}));
+    }).map(x=>({fp:x.fp,name:x.name.trim(),
+      avatar:typeof x.avatar==="string"&&x.avatar.length<=12000&&
+        /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(x.avatar)?
+          x.avatar:""}));
   }catch(_){return[];}
 }
 let selected=null,open=false;
@@ -127,6 +130,14 @@ toggle.addEventListener("click",()=>showSide(!open));
 close.addEventListener("click",()=>showSide(false));
 backdrop.addEventListener("click",()=>showSide(false));
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&open)showSide(false);});
+function friendAvatar(holder,friend){
+  holder.replaceChildren();
+  if(friend?.avatar){
+    const pic=document.createElement("img");
+    pic.src=friend.avatar;pic.alt="";pic.loading="lazy";
+    holder.append(pic);
+  }else holder.textContent=friend?.name?.charAt(0).toLocaleUpperCase()||"?";
+}
 const pickFriend=fp=>{
   const person=contacts().find(x=>x.fp===fp);
   if(!person)return;
@@ -139,7 +150,7 @@ function paint(){
   heading.textContent=tr("head");toggle.textContent=tr("select");
   sideTitle.textContent=tr("select");close.textContent="✕";
   search.placeholder=tr("search");search.setAttribute("aria-label",tr("search"));
-  initial.textContent=person?.name.charAt(0).toLocaleUpperCase()||"?";
+  friendAvatar(initial,person);
   selectedName.textContent=person?.name||tr("unnamed");
   selectedNote.textContent=person?tr("saved"):tr("hint");
   audio.textContent=tr("audio");video.textContent=tr("video");
@@ -162,7 +173,7 @@ function paint(){
     button.setAttribute("aria-selected",String(friend.fp===selected));
     button.dataset.friendFp=friend.fp;
     const avatar=el("span",null,"ezero-friend-monogram");
-    avatar.textContent=friend.name.charAt(0).toLocaleUpperCase();
+    friendAvatar(avatar,friend);
     const name=el("span");name.textContent=friend.name;
     button.append(avatar,name);button.addEventListener("click",()=>pickFriend(friend.fp));
     list.append(button);
