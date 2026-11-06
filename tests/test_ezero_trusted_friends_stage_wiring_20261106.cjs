@@ -58,4 +58,15 @@ assert.ok(!publicPage.includes("ezero_secure_connect_device_identity_v0_1.js"));
 assert.match(publicPage,/ezero_one_request_lab_20261106\.js\?v=20261106qrrepair1/);
 assert.match(read("js/ezero_auto_signaling_config_v0_1.js"),/enabled:false/);
 assert.ok(!read("signaling/cloudflare/wrangler.jsonc").includes("TrustedInbox"));
+// Staging can reuse the existing account identifier, but never reuses the
+// general Cloudflare API token instead of its dedicated scoped staging token.
+const deploy=read(".github/workflows/ezero_trusted_inbox_staging_manual_20261106.yml");
+assert.equal(deploy.split("secrets.EZERO_TRUSTED_CF_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID").length-1,2,
+  "both isolated staging steps must support the existing account ID");
+assert.equal(deploy.split("secrets.EZERO_TRUSTED_CF_API_TOKEN").length-1,2,
+  "dedicated Trusted Friends API token is always required");
+assert.ok(!deploy.includes("secrets.CLOUDFLARE_API_TOKEN"),
+  "never fall back to a shared Cloudflare deployment token");
+assert.ok(deploy.includes("github.ref_name == 'ezero-trusted-friend-inbox-lab-20261106'"),
+  "manual deployment must remain restricted to the isolated staging branch");
 console.log("PASS: staging-only consented identity, QR same-page invite, client/server alignment, production isolation");
