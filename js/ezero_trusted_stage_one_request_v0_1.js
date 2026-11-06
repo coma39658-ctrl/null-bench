@@ -10,6 +10,7 @@
   const status=$("ezeroOneScanStatus");
   const qrBox=$("ezeroOneQrBox"), qrTarget=$("ezeroOneQr");
   const copyBtn=$("ezeroOneCopyInvite");
+  const manual=$("ezeroOneManualInvite");
   const scanner=$("ezeroOneScannerVideo");
   const stopBtn=$("ezeroOneStopScan");
   let link="",stream=null,scanTimer=null,scanSerial=0,callIntent=null;
@@ -98,6 +99,7 @@
   // Reset stale QR only when a genuinely fresh one-shot call begins.
   document.addEventListener("ezero:auto-call-starting",()=>{
     link="";copyBtn.disabled=true;qrBox.hidden=true;qrTarget.replaceChildren();
+    if(manual){manual.hidden=true;manual.removeAttribute("href");}
     info("starting");
   });
   document.addEventListener("ezero:auto-invite-ready",e=>{
@@ -106,6 +108,7 @@
       info("inviteFail",true);return;
     }
     link=candidate;qrBox.hidden=false;copyBtn.disabled=false;
+    if(manual){manual.href=candidate;manual.hidden=false;}
     qrTarget.replaceChildren();
     let rendered=false;
     if(typeof window.qrcode==="function"){
@@ -127,8 +130,18 @@
   });
   copyBtn?.addEventListener("click",async()=>{
     if(!link)return;
-    try{await navigator.clipboard.writeText(link);info("copied");}
-    catch(_){info("copyFail",true);}
+    let copied=false;
+    try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(link);copied=true;}}
+    catch(_){}
+    if(!copied){
+      const field=document.createElement("textarea");
+      field.value=link;field.setAttribute("readonly","");
+      field.style.cssText="position:fixed;left:0;top:0;width:1px;height:1px;opacity:0";
+      document.body.append(field);
+      try{field.focus();field.select();copied=document.execCommand?.("copy")===true;}catch(_){}
+      field.remove();
+    }
+    info(copied?"copied":"copyFail",!copied);
   });
   function hasIncoming(){
     const incoming=$("ezeroAutoIncoming");
@@ -245,6 +258,7 @@
   window.addEventListener("pagehide",stopScan);
   $("modernHangup")?.addEventListener("click",()=>{
     resetSelection();callIntent=null;link="";copyBtn.disabled=true;
+    if(manual){manual.hidden=true;manual.removeAttribute("href");}
     qrBox.hidden=true;qrTarget.replaceChildren();
   });
 })();
