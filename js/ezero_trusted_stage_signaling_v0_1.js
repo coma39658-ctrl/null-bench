@@ -23,7 +23,9 @@
       received:"دوست کی درخواست آئی ہے؛ قبول کرنے سے پہلے فرد کی شناخت چیک کریں۔",
       finished:"✓ حقیقی WebRTC رابطے کی تصدیق ہوئی۔",
       noRoute:"رابطہ قائم نہیں ہوا۔ دونوں فونوں کا انٹرنیٹ اور STUN/TURN چیک کریں۔",
-      noShare:"شیئرنگ کی اجازت نہیں ملی؛ پہلے دعوت پھر سے بنائیں۔",
+      noShare:"شیئر یا کاپی ممکن نہیں؛ دعوتی QR استعمال کریں یا دکھایا ہوا لنک لمبا دبا کر کاپی کریں۔",
+      copied:"✓ دعوتی لنک کاپی ہوگیا؛ اسے WhatsApp یا IMO میں دوست کو بھیجیں۔",
+      shareCancelled:"شیئرنگ منسوخ ہوئی؛ ابھی دوست کو دعوت نہیں گئی۔",
       bad:"دعوت نامکمل یا پرانی ہے؛ نئی محفوظ دعوت منگوائیں۔",
       server:"خودکار رابطہ سرور دستیاب نہیں۔ دستی دعوت والا موجودہ نظام برقرار ہے۔",
       expired:"دعوت کی مدت ختم ہوگئی، نئی دعوت بنائیں۔",
@@ -41,7 +43,9 @@
       received:"Incoming request. Verify the person before accepting.",
       finished:"✓ Actual WebRTC connection confirmed.",
       noRoute:"No connection. Check both phones' internet and STUN/TURN availability.",
-      noShare:"Could not share the link. Create a fresh invitation.",
+      noShare:"Could not share or copy. Use the call QR or long-press the visible invite link.",
+      copied:"✓ Invite link copied. Paste it into a message to your friend.",
+      shareCancelled:"Sharing cancelled. Invitation not sent.",
       bad:"Incomplete or expired invitation. Request a new secure link.",
       server:"Automatic signaling service unavailable. Existing manual calls remain available.",
       expired:"Invitation expired. Create a new one.",
@@ -59,7 +63,9 @@
       received:"وصل طلب. تحقق من هوية الشخص قبل القبول.",
       finished:"✓ تم التأكد من اتصال WebRTC حقيقي.",
       noRoute:"تعذر الاتصال. تحقق من إنترنت الهاتفين وتوافر STUN/TURN.",
-      noShare:"تعذرت مشاركة الرابط. أنشئ دعوة جديدة.",
+      noShare:"تعذرت المشاركة والنسخ؛ امسح QR أو اضغط مطولاً على رابط الدعوة الظاهر.",
+      copied:"✓ نُسخ رابط الدعوة. أرسله عبر الرسائل إلى صديقك.",
+      shareCancelled:"أُلغيت المشاركة؛ لم تُرسل الدعوة.",
       bad:"الدعوة غير مكتملة أو منتهية؛ اطلب رابطًا جديدًا.",
       server:"خدمة الإشارة التلقائية غير متاحة. ما زالت الطريقة اليدوية موجودة.",
       expired:"انتهت صلاحية الدعوة؛ أنشئ دعوة جديدة.",
@@ -331,19 +337,35 @@
     closeRoom();
     $("ezeroAutoIncoming").hidden=true;set("rejected");
   });
+  async function copyInvite(link){
+    try{
+      if(navigator.clipboard?.writeText){
+        await navigator.clipboard.writeText(link);return true;
+      }
+    }catch(_){}
+    const field=document.createElement("textarea");
+    field.value=link;field.readOnly=true;
+    field.style.cssText="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0";
+    document.body.append(field);
+    let copied=false;
+    try{field.focus();field.select();copied=document.execCommand?.("copy")===true;}catch(_){}
+    field.remove();return copied;
+  }
   $("ezeroAutoShare").addEventListener("click",async()=>{
     const link=shareLink();
     if(!link||!localOffer)return set("bad","error");
     try{
       if(typeof navigator.share==="function"){
+        // Keep the signed #room capability intact: this is a call invite,
+        // not the general public website/share-install URL.
         await navigator.share({title:"E-ZERO Secure Connect",url:link});
-      }else if(navigator.clipboard?.writeText){
-        await navigator.clipboard.writeText(link);
-      }else throw Error("NO_SHARE");
-      set("waiting");
+        set("waiting");return;
+      }
     }catch(error){
-      if(error?.name!=="AbortError")set("noShare","error");
+      if(error?.name==="AbortError"){set("shareCancelled");return;}
     }
+    const copied=await copyInvite(link);
+    set(copied?"copied":"noShare",copied?"ready":"error");
   });
   window.addEventListener("pagehide",()=>closeRoom());
   $("language").addEventListener("change",updateLanguage);
