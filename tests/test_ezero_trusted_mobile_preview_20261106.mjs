@@ -294,7 +294,13 @@ try{
         document.getElementById("ezeroVoiceQueue")).pointerEvents};
   });
   console.log("VOICE_DELETE_HIT_GEOMETRY",JSON.stringify(hit));
-  await callee.locator("#ezeroVoiceQueue .ezero-voice-inbox-delete").first().click();
+  // Playwright locator auto-scroll can reposition the fixed in-call sheet a
+  // second time; test an actual browser pointer at the verified button center
+  // after its real-user scroll instead of bypassing UI with DOM .click().
+  assert.match(hit.atPoint,/^BUTTON#\.ezero-voice-inbox-delete$/,
+    "Delete touch target must actually be the topmost browser hit-test element");
+  await callee.mouse.click(hit.button.x+hit.button.w/2,
+    hit.button.y+hit.button.h/2);
   assert.equal(await callee.locator("#ezeroVoiceQueue .ezero-voice-inbox-row").count(),1);
   await caller.locator("#ezeroInCallClose").click();
   await callee.locator("#ezeroInCallClose").click();
