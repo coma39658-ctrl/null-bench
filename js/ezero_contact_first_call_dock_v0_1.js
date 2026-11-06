@@ -19,7 +19,8 @@ const copy={
     selected:"منتخب دوست",pick:"پہلے فہرست سے دوست منتخب کریں۔",
     pending:"درخواست شروع ہو گئی؛ دوسرا فون قبول کرے گا تو رابطہ بنے گا۔",
     busy:"پچھلی کال یا درخواست ختم کریں۔",
-    noService:"محفوظ دوستوں کی کال سروس دستیاب نہیں؛ QR استعمال کریں۔"},
+    noService:"محفوظ دوستوں کی کال سروس دستیاب نہیں؛ QR استعمال کریں۔",
+    fresh:"🔁 نئی کال کا QR بنائیں",freshChoose:"آڈیو یا ویڈیو QR منتخب کریں",freshAudio:"📞 نیا آڈیو QR",freshVideo:"📹 نیا ویڈیو QR",freshBusy:"جاری کال ختم کرنے کے بعد نیا QR بنائیں۔"},
   en:{head:"👥 Choose a friend",hint:"Select a friend first; then call that friend by audio or video.",
     select:"Friends list",hide:"Close list",search:"Search friends",
     empty:"No saved friends yet. Pair the first friend using QR.",
@@ -28,7 +29,8 @@ const copy={
     selected:"Selected friend",pick:"Choose a friend from the list first.",
     pending:"Calling request started; your friend still needs to accept.",
     busy:"Finish the existing call or request first.",
-    noService:"Saved-friend service unavailable; use QR instead."},
+    noService:"Saved-friend service unavailable; use QR instead.",
+    fresh:"🔁 Create new call QR",freshChoose:"Choose an audio or video invitation",freshAudio:"📞 New audio QR",freshVideo:"📹 New video QR",freshBusy:"Hang up the current call before creating a new QR."},
   ar:{head:"👥 اختر صديقًا",hint:"اختر صديقًا أولاً، ثم اضغط الاتصال الصوتي أو المرئي بجواره.",
     select:"قائمة الأصدقاء",hide:"إغلاق القائمة",search:"ابحث عن صديق",
     empty:"لا يوجد أصدقاء محفوظون. استخدم QR للاتصال الأول.",
@@ -37,7 +39,8 @@ const copy={
     selected:"الصديق المختار",pick:"اختر صديقًا من القائمة أولاً.",
     pending:"بدأ طلب المكالمة؛ يلزم قبول الطرف الآخر.",
     busy:"أنهِ المكالمة أو الطلب الجاري أولاً.",
-    noService:"خدمة الأصدقاء غير متاحة؛ استخدم QR."}
+    noService:"خدمة الأصدقاء غير متاحة؛ استخدم QR.",
+    fresh:"🔁 إنشاء QR لمكالمة جديدة",freshChoose:"اختر دعوة صوتية أو فيديو",freshAudio:"📞 QR صوتي جديد",freshVideo:"📹 QR فيديو جديد",freshBusy:"أنهِ المكالمة الحالية قبل إنشاء QR جديد."}
 };
 const tr=k=>(copy[document.documentElement.lang]||copy.ur)[k];
 function contacts(){
@@ -77,6 +80,15 @@ const audio=el("button","ezeroContactAudio"),video=el("button","ezeroContactVide
 audio.type=video.type="button";
 audio.dataset.contactCall="audio";video.dataset.contactCall="video";
 actions.append(audio,video);
+const fresh=el("button","ezeroFreshQrToggle","ezero-fresh-qr-toggle");
+fresh.type="button";fresh.setAttribute("aria-controls","ezeroFreshQrModes");
+fresh.setAttribute("aria-expanded","false");
+const freshModes=el("div","ezeroFreshQrModes","ezero-fresh-qr-modes");
+freshModes.hidden=true;
+const freshAudio=el("button","ezeroFreshQrAudio");
+const freshVideo=el("button","ezeroFreshQrVideo");
+freshAudio.type=freshVideo.type="button";
+freshModes.append(freshAudio,freshVideo);
 const notice=el("p","ezeroContactFirstStatus","ezero-contact-first-status");
 notice.setAttribute("role","status");notice.setAttribute("aria-live","polite");
 const backdrop=el("button","ezeroFriendBackdrop","ezero-friend-backdrop");
@@ -98,7 +110,13 @@ receive.type="button";
 const qr=el("button","ezeroFriendNewQr");
 qr.type="button";
 side.append(sideHead,search,list,receive,qr);
-root.append(bar,selectedCard,actions,notice,backdrop,side);
+root.append(bar,selectedCard,actions,fresh,freshModes,notice,backdrop,side);
+// Keep the actual invitation QR beside the friend's actions, not under the
+// scanner and not halfway down a long settings page. All existing listeners
+// refer to these nodes by id; only their visual parent changes.
+const callInvitation=$("ezeroAutoPilot");
+if(callInvitation)root.append(callInvitation);
+let explicitQrIntent=null;
 function message(key){notice.textContent=tr(key);}
 function showSide(yes){
   open=Boolean(yes);side.hidden=!open;backdrop.hidden=!open;
@@ -126,6 +144,9 @@ function paint(){
   selectedNote.textContent=person?tr("saved"):tr("hint");
   audio.textContent=tr("audio");video.textContent=tr("video");
   receive.textContent=tr("receive");qr.textContent=tr("qr");
+  fresh.textContent=tr("fresh");
+  freshAudio.textContent=tr("freshAudio");
+  freshVideo.textContent=tr("freshVideo");
   audio.disabled=video.disabled=!person;
   toggle.setAttribute("aria-label",tr("select"));
   const query=search.value.trim().toLocaleLowerCase();
@@ -160,6 +181,37 @@ function contactCall(kind){
 }
 audio.addEventListener("click",()=>contactCall("audio"));
 video.addEventListener("click",()=>contactCall("video"));
+fresh.addEventListener("click",()=>{
+  const expanded=freshModes.hidden;
+  freshModes.hidden=!expanded;
+  fresh.setAttribute("aria-expanded",String(expanded));
+  if(expanded)message("freshChoose");
+});
+function startFreshQr(kind){
+  const feature=featureGrid.querySelector('[data-modern-select="'+kind+'"]');
+  if(!feature||!["audio","video"].includes(kind))return;
+  if(window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true)
+    return message("freshBusy");
+  showSide(false);
+  // A fresh QR is an explicit alternative to calling a saved friend. It
+  // must never route through the old selected-contact preparation/receipt.
+  window.EZERO_TRUSTED_SAVED_CALL?.cancelForQr?.();
+  document.dispatchEvent(new CustomEvent("ezero:explicit-fresh-call-qr",{
+    detail:{kind}
+  }));
+  explicitQrIntent=kind;
+  if(callInvitation)callInvitation.hidden=false;
+  // Dispatch one synchronous deliberate click to the existing guarded
+  // camera/microphone + signed WebRTC signaling engine.
+  try{feature.click();}
+  finally{explicitQrIntent=null;}
+  freshModes.hidden=true;
+  fresh.setAttribute("aria-expanded","false");
+  message("");
+  callInvitation?.scrollIntoView({block:"nearest",behavior:"auto"});
+}
+freshAudio.addEventListener("click",()=>startFreshQr("audio"));
+freshVideo.addEventListener("click",()=>startFreshQr("video"));
 search.addEventListener("input",paint);
 receive.addEventListener("click",()=>{
   showSide(false);
@@ -168,11 +220,11 @@ receive.addEventListener("click",()=>{
   else message("noService");
 });
 qr.addEventListener("click",()=>{
-  showSide(false);selected=null;paint();
-  // This is a safe fallback for first-time friends; scanning still
-  // requires the other phone's QR and explicit permission.
-  $("ezeroOneJoinPanel")?.scrollIntoView({block:"start",behavior:"auto"});
-  $("ezeroOneScanInvite")?.focus();
+  showSide(false);
+  freshModes.hidden=false;
+  fresh.setAttribute("aria-expanded","true");
+  message("freshChoose");
+  fresh.scrollIntoView({block:"nearest",behavior:"auto"});
 });
 // A top Audio/Video tile is routed to the SELECTED saved friend.
 // With saved friends but no selection, show the list instead of
@@ -181,6 +233,9 @@ qr.addEventListener("click",()=>{
 featureGrid.addEventListener("click",e=>{
   const target=e.target.closest?.('[data-modern-select="audio"],[data-modern-select="video"]');
   if(!target||!featureGrid.contains(target))return;
+  // A deliberate fresh QR must bypass selected-contact routing even when
+  // several trusted friends are already saved. It is still user-initiated.
+  if(explicitQrIntent===target.dataset.modernSelect)return;
   const api=window.EZERO_TRUSTED_SAVED_CALL;
   if(api?.isPending?.())return; // already prepared by nearby contact button
   if(!contacts().length)return; // first QR pairing still works
