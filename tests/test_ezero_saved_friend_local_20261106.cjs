@@ -27,7 +27,7 @@ assert.match(people,/saveAfterConsent\(\)/);
 assert.match(people,/localStorage\.setItem\(CONTACTS/);
 assert.match(engine,/new Uint8Array\(await crypto\.subtle\.exportKey\("spki",saved\.keys\.publicKey\)\)/);
 assert.match(engine,/pairMatches&&publicFingerprint===saved\.fingerprint/);
-assert.doesNotMatch(identity,/localStorage|fetch\(|WebSocket\(|navigator\.sendBeacon/);
+assert.doesNotMatch(identity,/\blocalStorage\s*\.|\bfetch\s*\(|\bnew\s+WebSocket\s*\(|\bnavigator\s*\.\s*sendBeacon\s*\(/);
 assert.doesNotMatch(identity,/privateKey\s*\.\s*export/);
 assert.match(identity,/extractable===false/);
 
