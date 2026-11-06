@@ -58,7 +58,7 @@ friendStatus.setAttribute("role","status");friendStatus.setAttribute("aria-live"
 box.append(h,help,reminder,id,open,legend,status,friendStatus);
 dock.prepend(box);
 let ready=false,verifiedKey=null,checking=false,lastAutoPeer="",pairIntent=null,
-    proofFingerprint=null;
+    proofFingerprint=null,pendingPeerProfile=null;
 const cleanName=v=>typeof v==="string"?v.trim().replace(/\s+/g," ").slice(0,40):"";
 const userProfile=()=>{
  try{const p=JSON.parse(localStorage.getItem(PROFILE)||"null");
@@ -116,16 +116,19 @@ document.addEventListener("ezero:auto-incoming-open",()=>{
 document.addEventListener("ezero:call-intent",e=>{
  if(e.detail?.direction==="outgoing"&&
    ["audio","video"].includes(e.detail?.kind))
-   {pairIntent={role:"sender",at:Date.now()};proofFingerprint=null;}
+   {pairIntent={role:"sender",at:Date.now()};
+    proofFingerprint=null;pendingPeerProfile=null;}
 });
 // The receiver must physically Accept the invitation. Opening a link alone
-// cannot add anyone. Signing and peer fingerprint verification remain required.
+// cannot add anyone. The inbound room token is consumed and intentionally
+// removed from location.hash at page load, so do NOT recheck the stripped
+// hash here; rely on the real visible inbound request and signed SDP proof.
 document.addEventListener("click",e=>{
  const button=e.target?.closest?.("button");
  if(button?.id==="ezeroAutoAccept"&&
-    $("ezeroAutoIncoming")?.hidden===false&&
-    /^#room=[A-Za-z0-9_-]{32}\.[A-Za-z0-9_-]{43}$/.test(location.hash))
-   {pairIntent={role:"recipient",at:Date.now()};proofFingerprint=null;}
+    $("ezeroAutoIncoming")?.hidden===false)
+   {pairIntent={role:"recipient",at:Date.now()};
+    proofFingerprint=null;pendingPeerProfile=null;}
 },true);
 // Call setup must never silently proceed under an ephemeral identity.
 // Allow opening a friend drawer, reading a QR and editing a profile without
@@ -207,24 +210,35 @@ function afterConnected(){
  const transport=window.EZERO_PEER_PROFILE_TRANSPORT;
  if(transport?.connected()!==true)return;
  const fp=transport.peerFingerprint();
- if(FP.test(fp))persistFriend(fp,null);
+ if(FP.test(fp))persistFriend(fp,
+   pendingPeerProfile?.peerFingerprint===fp?pendingPeerProfile:null);
 }
 document.addEventListener("ezero:channel-state",e=>{
  if(e.detail?.connected)afterConnected();
- else{lastAutoPeer="";pairIntent=null;proofFingerprint=null;}
+ else{lastAutoPeer="";pairIntent=null;
+   proofFingerprint=null;pendingPeerProfile=null;}
 });
 document.addEventListener("ezero:call-status",e=>{
  if(e.detail?.stage==="connected")afterConnected();
  else if(["idle","micDenied","iceNoRoute","signalInvalid",
           "fingerprintMismatch","failed"].includes(e.detail?.stage))
-   {pairIntent=null;proofFingerprint=null;}
+   {pairIntent=null;proofFingerprint=null;pendingPeerProfile=null;}
 });
 document.addEventListener("ezero:profile-received",e=>{
  const d=e.detail||{},transport=window.EZERO_PEER_PROFILE_TRANSPORT;
  // Peer identity is obtained from the signed call engine, not from photo.
- if(d.connected===true&&FP.test(d.peerFingerprint||"")&&
-    transport?.connected()===true&&transport.peerFingerprint()===d.peerFingerprint)
-   persistFriend(d.peerFingerprint,d);
+ if(d.connected!==true||!FP.test(d.peerFingerprint||"")||
+    !cleanName(d.name)||typeof d.avatar!=="string"||
+    d.avatar.length>12000||(!PHOTO.test(d.avatar)&&d.avatar!==""))
+   return;
+ // A verified DataChannel may deliver the profile before the RTCPeerConnection
+ // fires "connected". Retain only a small profile bound to the signed
+ // fingerprint, and apply it after both transport proofs become true.
+ pendingPeerProfile={peerFingerprint:d.peerFingerprint,
+   name:cleanName(d.name),avatar:d.avatar};
+ if(transport?.connected()===true&&
+    transport.peerFingerprint()===d.peerFingerprint)
+   persistFriend(d.peerFingerprint,pendingPeerProfile);
 });
 $("language")?.addEventListener("change",paint);
 paint();void verifyProfile();
