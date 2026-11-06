@@ -229,9 +229,15 @@
             }
           }catch(_){}
         });
+        ws.addEventListener("close",()=>{
+          if(completed)return;
+          completed=true;
+          emit("outgoing-error",{code:"INBOX_CLOSED_BEFORE_RECEIPT"});
+        });
         setTimeout(()=>{
-          if(completed||ref.readyState!==WebSocket.OPEN)return;
-          // Distinguish a sent request from a verified application receipt.
+          if(completed)return;
+          completed=true;
+          // A disconnected socket is also a failure, not indefinite "sent".
           emit("outgoing-error",{code:"DELIVERY_RECEIPT_TIMEOUT"});
           close();
         },MAX_WAIT);
