@@ -1,0 +1,34 @@
+name: E-ZERO Public Video Mode Preservation Gate
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'js/ezero_secure_connect_modern_evidence_stage_v0_1.js'
+      - 'tests/test_ezero_public_video_mode_preservation_20261106.cjs'
+      - '.github/workflows/ezero_public_video_mode_hotfix_20261106.yml'
+  push:
+    branches: [ezero-video-mode-preserve-public-20261106]
+permissions:
+  contents: read
+jobs:
+  video-selection-never-downgrades:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify public mode sync and preserve call engine contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check js/ezero_secure_connect_modern_evidence_stage_v0_1.js
+          node --check tests/test_ezero_public_video_mode_preservation_20261106.cjs
+          node tests/test_ezero_public_video_mode_preservation_20261106.cjs
+          grep -Fq 'js/ezero_secure_connect_modern_evidence_stage_v0_1.js' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'window.EZERO_SIGNED_MEDIA_EVIDENCE' js/ezero_signed_media_evidence_v0_1.js
+          grep -Fq 'const useVideo = document.querySelector' js/ezero_saved_friend_stage_engine_v0_1.js
+          echo 'PUBLIC_HOTFIX_NO_CORE_WEBRTC_OR_SHA256_REPLACEMENT: PASS'

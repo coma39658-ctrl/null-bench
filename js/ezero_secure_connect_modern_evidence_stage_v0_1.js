@@ -275,8 +275,13 @@ function select(type){
  $("modernCallPanel").hidden=!call;
  $("modernChatPanel").hidden=type!=="chat";
  $("modernVoicePanel").hidden=type!=="voice";
- const radio=pick('input[name="mode"][value="'+(type==="video"?"video":"audio")+'"]');
- if(radio)radio.checked=true;
+ // Chat and voice notes are companion features, never a request to
+ // downgrade an already-selected VIDEO call to audio. Only call buttons
+ // change the authoritative mode used for getUserMedia and signed SDP.
+ if(call){
+   const radio=pick('input[name="mode"][value="'+type+'"]');
+   if(radio)radio.checked=true;
+ }
  explain();
 }
 for(const b of document.querySelectorAll("[data-modern-select]"))b.addEventListener("click",()=>select(b.dataset.modernSelect));
