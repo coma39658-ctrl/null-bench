@@ -20,6 +20,7 @@ const copy={
     pending:"درخواست شروع ہو گئی؛ دوسرا فون قبول کرے گا تو رابطہ بنے گا۔",
     busy:"پچھلی کال یا درخواست ختم کریں۔",
     noService:"محفوظ دوستوں کی کال سروس دستیاب نہیں؛ QR استعمال کریں۔",
+    peerName:"دوست کا اپنا پروفائل نام",rename:"✎ اپنا رکھا نام",nickname:"اپنا نام رکھیں",saveName:"✓ نام محفوظ کریں",cancelName:"منسوخ",
     fresh:"🔁 نئی کال کا QR بنائیں",freshChoose:"آڈیو یا ویڈیو QR منتخب کریں",freshAudio:"📞 نیا آڈیو QR",freshVideo:"📹 نیا ویڈیو QR",freshBusy:"جاری کال ختم کرنے کے بعد نیا QR بنائیں۔"},
   en:{head:"👥 Choose a friend",hint:"Select a friend first; then call that friend by audio or video.",
     select:"Friends list",hide:"Close list",search:"Search friends",
@@ -30,6 +31,7 @@ const copy={
     pending:"Calling request started; your friend still needs to accept.",
     busy:"Finish the existing call or request first.",
     noService:"Saved-friend service unavailable; use QR instead.",
+    peerName:"Friend's shared profile name",rename:"✎ My nickname",nickname:"Choose nickname",saveName:"✓ Save nickname",cancelName:"Cancel",
     fresh:"🔁 Create new call QR",freshChoose:"Choose an audio or video invitation",freshAudio:"📞 New audio QR",freshVideo:"📹 New video QR",freshBusy:"Hang up the current call before creating a new QR."},
   ar:{head:"👥 اختر صديقًا",hint:"اختر صديقًا أولاً، ثم اضغط الاتصال الصوتي أو المرئي بجواره.",
     select:"قائمة الأصدقاء",hide:"إغلاق القائمة",search:"ابحث عن صديق",
@@ -40,6 +42,7 @@ const copy={
     pending:"بدأ طلب المكالمة؛ يلزم قبول الطرف الآخر.",
     busy:"أنهِ المكالمة أو الطلب الجاري أولاً.",
     noService:"خدمة الأصدقاء غير متاحة؛ استخدم QR.",
+    peerName:"اسم ملف الصديق",rename:"✎ الاسم لدي",nickname:"لقب محلي",saveName:"✓ حفظ الاسم",cancelName:"إلغاء",
     fresh:"🔁 إنشاء QR لمكالمة جديدة",freshChoose:"اختر دعوة صوتية أو فيديو",freshAudio:"📞 QR صوتي جديد",freshVideo:"📹 QR فيديو جديد",freshBusy:"أنهِ المكالمة الحالية قبل إنشاء QR جديد."}
 };
 const tr=k=>(copy[document.documentElement.lang]||copy.ur)[k];
@@ -53,6 +56,8 @@ function contacts(){
          !x.name.trim()||x.name.length>40||seen.has(x.fp))return false;
       seen.add(x.fp);return true;
     }).map(x=>({fp:x.fp,name:x.name.trim(),
+      profileName:typeof x.profileName==="string"?x.profileName.trim().slice(0,40):"",
+      nickname:x.nickname===true,
       avatar:typeof x.avatar==="string"&&x.avatar.length<=12000&&
         /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(x.avatar)?
           x.avatar:""}));
@@ -78,6 +83,17 @@ const selectedName=el("strong","ezeroSelectedFriendName");
 const selectedNote=el("small","ezeroSelectedFriendNote");
 identity.append(selectedName,selectedNote);
 selectedCard.append(initial,identity);
+const editName=el("button","ezeroSelectedFriendRename","ezero-contact-name-edit");
+editName.type="button";editName.hidden=true;
+const nameEditPanel=el("div","ezeroContactNameEdit","ezero-contact-name-edit-panel");
+nameEditPanel.hidden=true;
+const nameInput=el("input","ezeroContactNickname");
+nameInput.type="text";nameInput.maxLength=40;nameInput.autocomplete="off";
+const saveNickname=el("button","ezeroContactNicknameSave");
+saveNickname.type="button";
+const cancelNickname=el("button","ezeroContactNicknameCancel");
+cancelNickname.type="button";
+nameEditPanel.append(nameInput,saveNickname,cancelNickname);
 const actions=el("div","ezeroContactCallActions","ezero-contact-call-actions");
 const audio=el("button","ezeroContactAudio"),video=el("button","ezeroContactVideo");
 audio.type=video.type="button";
@@ -113,7 +129,7 @@ receive.type="button";
 const qr=el("button","ezeroFriendNewQr");
 qr.type="button";
 side.append(sideHead,search,list,receive,qr);
-root.append(bar,selectedCard,actions,fresh,freshModes,notice,backdrop,side);
+root.append(bar,selectedCard,editName,nameEditPanel,actions,fresh,freshModes,notice,backdrop,side);
 // Keep the actual invitation QR beside the friend's actions, not under the
 // scanner and not halfway down a long settings page. All existing listeners
 // refer to these nodes by id; only their visual parent changes.
@@ -141,7 +157,7 @@ function friendAvatar(holder,friend){
 const pickFriend=fp=>{
   const person=contacts().find(x=>x.fp===fp);
   if(!person)return;
-  selected=fp;message("");paint();showSide(false);
+  selected=fp;message("");nameEditPanel.hidden=true;paint();showSide(false);
 };
 function paint(){
   const people=contacts();
@@ -152,7 +168,15 @@ function paint(){
   search.placeholder=tr("search");search.setAttribute("aria-label",tr("search"));
   friendAvatar(initial,person);
   selectedName.textContent=person?.name||tr("unnamed");
-  selectedNote.textContent=person?tr("saved"):tr("hint");
+  selectedNote.textContent=person?
+    (person.profileName&&person.profileName!==person.name?
+      tr("peerName")+": "+person.profileName+" · ":"")+tr("saved"):
+    tr("hint");
+  editName.hidden=!person;
+  editName.textContent=tr("rename");
+  nameInput.placeholder=tr("nickname");
+  saveNickname.textContent=tr("saveName");
+  cancelNickname.textContent=tr("cancelName");
   audio.textContent=tr("audio");video.textContent=tr("video");
   receive.textContent=tr("receive");qr.textContent=tr("qr");
   fresh.textContent=tr("fresh");
@@ -161,7 +185,9 @@ function paint(){
   audio.disabled=video.disabled=!person;
   toggle.setAttribute("aria-label",tr("select"));
   const query=search.value.trim().toLocaleLowerCase();
-  const found=people.filter(x=>x.name.toLocaleLowerCase().includes(query));
+  const found=people.filter(x=>
+    x.name.toLocaleLowerCase().includes(query)||
+    x.profileName.toLocaleLowerCase().includes(query));
   list.replaceChildren();
   if(!found.length){
     const p=el("p");p.className="ezero-contact-empty";
@@ -174,8 +200,15 @@ function paint(){
     button.dataset.friendFp=friend.fp;
     const avatar=el("span",null,"ezero-friend-monogram");
     friendAvatar(avatar,friend);
-    const name=el("span");name.textContent=friend.name;
-    button.append(avatar,name);button.addEventListener("click",()=>pickFriend(friend.fp));
+    const names=el("span");names.className="ezero-friend-names";
+    const name=el("strong");name.textContent=friend.name;
+    names.append(name);
+    if(friend.profileName&&friend.profileName!==friend.name){
+      const own=el("small");own.textContent=tr("peerName")+": "+friend.profileName;
+      names.append(own);
+    }
+    button.append(avatar,names);
+    button.addEventListener("click",()=>pickFriend(friend.fp));
     list.append(button);
   }
 }
@@ -190,6 +223,23 @@ function contactCall(kind){
   const feature=featureGrid.querySelector('[data-modern-select="'+kind+'"]');
   if(feature)feature.click();
 }
+editName.addEventListener("click",()=>{
+  const friend=contacts().find(x=>x.fp===selected);if(!friend)return;
+  nameInput.value=friend.name;nameEditPanel.hidden=false;
+  nameInput.focus();
+});
+cancelNickname.addEventListener("click",()=>{nameEditPanel.hidden=true;});
+saveNickname.addEventListener("click",()=>{
+  const nick=nameInput.value.trim().replace(/\s+/g," ").slice(0,40);
+  if(!nick||!selected)return;
+  try{
+    const list=JSON.parse(localStorage.getItem(KEY)||"[]");
+    if(!Array.isArray(list)||!list.some(x=>x.fp===selected))return;
+    const next=list.map(x=>x.fp===selected?{...x,name:nick,nickname:true}:x);
+    localStorage.setItem(KEY,JSON.stringify(next));
+    nameEditPanel.hidden=true;paint();
+  }catch(_){message("noService");}
+});
 audio.addEventListener("click",()=>contactCall("audio"));
 video.addEventListener("click",()=>contactCall("video"));
 fresh.addEventListener("click",()=>{
