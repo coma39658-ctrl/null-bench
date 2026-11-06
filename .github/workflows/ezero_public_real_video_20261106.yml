@@ -1,0 +1,54 @@
+name: E-ZERO Public Real Video - Two Mobile Browser Gate
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ezero_trusted_friends_staging_20261106.html'
+      - 'js/ezero_immersive_video_call_v0_1.js'
+      - 'css/ezero_immersive_video_call_v0_1.css'
+      - 'tests/test_ezero_public_video_visible_20261106.mjs'
+      - '.github/workflows/ezero_public_real_video_20261106.yml'
+  push:
+    branches: [ezero-public-true-video-path-20261106]
+permissions:
+  contents: read
+jobs:
+  two-phone-public-video:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify reused video module and public inclusion
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check js/ezero_immersive_video_call_v0_1.js
+          node --check tests/test_ezero_public_video_visible_20261106.mjs
+          grep -Fq 'ezero_immersive_video_call_v0_1.css' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'ezero_immersive_video_call_v0_1.js' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'ezero_signed_media_evidence_v0_1.js' ezero_trusted_friends_staging_20261106.html
+          ! grep -Fq 'getUserMedia(' js/ezero_immersive_video_call_v0_1.js
+          ! grep -Fq 'new RTCPeerConnection' js/ezero_immersive_video_call_v0_1.js
+      - name: Install isolated Chromium fake-camera browser dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts playwright@1.57.0 ws@8.18.3
+          npx playwright install --with-deps chromium --only-shell
+      - name: Confirm public video on both real Chromium media stacks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8769 --bind 127.0.0.1 > /tmp/ezero-public-real-video.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8769/ezero_trusted_friends_staging_20261106.html >/dev/null; then break; fi
+            sleep 1
+          done
+          node tests/test_ezero_public_video_visible_20261106.mjs
