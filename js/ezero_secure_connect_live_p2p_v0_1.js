@@ -329,6 +329,12 @@
     if(lastCallStatus) status(lastCallStatus.key,lastCallStatus.detail);
   }
   $("language").addEventListener("change", e => langChange(e.target.value));
+  // Re-translate the last audio-status fact when the in-call language changes.
+  $("language").addEventListener("change",()=>{
+    const el=$("ezeroAudioStatus");
+    if(el&&!el.hidden&&["incoming","blocked","playing","missing","failed"].includes(el.dataset.state))
+      audioNotice(el.dataset.state);
+  });
   langChange(new URLSearchParams(location.search).get("lang") || "ur");
 
   function randomBytes(n) { const b = new Uint8Array(n); crypto.getRandomValues(b); return b; }
