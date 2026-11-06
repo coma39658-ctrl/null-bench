@@ -19,7 +19,7 @@ const MAX_FRIENDS=50, MAX_CLIENTS=8;
 const HELLO_MS=20000, COOLDOWN_MS=30000, REPLAY_MS=600000;
 const ROUTE=/^\/v1\/trusted\/([a-f0-9]{64})$/;
 const ORIGIN="https://coma39658-ctrl.github.io";
-const INVITE_PATH="/null-bench/c.html";
+const INVITE_PATH="/null-bench/ezero_trusted_friends_staging_20261106.html";
 const encoder=new TextEncoder();
 
 function base64url(bytes){
