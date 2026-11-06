@@ -115,7 +115,7 @@ function offer({blob,kind,source="LOCAL_DEVICE",consent="NOT_ATTESTED",
                 consentDetails=null}={}){
   if(!(blob instanceof Blob)||!KINDS.has(kind)||blob.size<=0||blob.size>MAX)
     throw Error("UNSUPPORTED_OR_OVERSIZE_MEDIA");
-  if(!/^[A-Z_]{3,50}$/.test(source)||!/^[A-Z_]{3,50}$/.test(consent))
+  if(!/^[A-Z0-9_]{3,50}$/.test(source)||!/^[A-Z0-9_]{3,50}$/.test(consent))
     throw Error("INVALID_EVIDENCE_PROVENANCE");
   if(consentDetails!==null){
     if(typeof consentDetails!=="object"||Array.isArray(consentDetails)||
