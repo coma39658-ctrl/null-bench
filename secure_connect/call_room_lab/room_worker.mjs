@@ -20,6 +20,43 @@ function json(code,status=200){
       "x-content-type-options":"nosniff"}
   });
 }
+
+function inviteJson(value,status=200){
+ return new Response(JSON.stringify(value),{status,headers:{
+  "content-type":"application/json;charset=utf-8","cache-control":"no-store",
+  "x-content-type-options":"nosniff","access-control-allow-origin":PAGE_ORIGIN,"vary":"Origin"
+ }});
+}
+async function signOwnerProof(env,id,token,issued){
+ const secret=env.PILOT_OWNER_SECRET;
+ if(typeof secret!=="string"||!/^[a-f0-9]{64}$/.test(secret))return null;
+ const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(secret),
+  {name:"HMAC",hash:"SHA-256"},false,["sign"]);
+ const bytes=await crypto.subtle.sign("HMAC",key,
+  new TextEncoder().encode(id+"."+token+"."+issued));
+ return [...new Uint8Array(bytes)].map(x=>x.toString(16).padStart(2,"0")).join("");
+}
+async function reserveRoom(env,id,expires){
+ if(!env.ROOM_ADMISSION?.getByName)return "ROOM_ADMISSION_MISSING";
+ try{
+  const admission=env.ROOM_ADMISSION.getByName("global-pilot-v1");
+  const r=await admission.fetch(new Request("https://ezero.internal/admit",{
+   method:"POST",headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({id,expires})
+  }));
+  if(r?.status===429)return "PILOT_ROOM_CAP_REACHED";
+  return r?.ok?null:"ROOM_ADMISSION_REJECTED";
+ }catch(_){return "ROOM_ADMISSION_UNAVAILABLE";}
+}
+async function rateLimit(env,request){
+ if(!env.ROOM_RATE_LIMIT?.limit)return "RATE_LIMIT_NOT_CONFIGURED";
+ try{
+  const r=await env.ROOM_RATE_LIMIT.limit({
+   key:"call-room:"+String(request.headers.get("CF-Connecting-IP")||"unknown")
+  });
+  return r?.success===true?null:"RATE_LIMITED";
+ }catch(_){return "RATE_LIMIT_UNAVAILABLE";}
+}
 function tokenFrom(request){
   const parts=(request.headers.get("Sec-WebSocket-Protocol")||"").split(",").map(s=>s.trim());
   if(!parts.includes("ezero-room-v1"))return null;
@@ -39,18 +76,13 @@ async function ownerProofValid(request,env,id,token,issued){
   // Only an operator knowing Cloudflare's private PILOT_OWNER_SECRET can create
   // a capability for a new room ID. Friends receive ONLY a proof specific to
   // that one ID and token; nobody receives the operator's actual secret.
-  const secret=env.PILOT_OWNER_SECRET;
-  if(typeof secret!=="string" || !/^[a-f0-9]{64}$/.test(secret))
-    return false;
   const protocols=(request.headers.get("Sec-WebSocket-Protocol")||"")
     .split(",").map(s=>s.trim());
   const proofs=protocols.filter(p=>ROOM_PROOF.test(p));
   if(proofs.length!==1)return false;
   const actual=proofs[0].match(ROOM_PROOF)[1];
-  const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(secret),
-    {name:"HMAC",hash:"SHA-256"},false,["sign"]);
-  const bytes=await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(id+"."+token+"."+issued));
-  const expected=[...new Uint8Array(bytes)].map(x=>x.toString(16).padStart(2,"0")).join("");
+  const expected=await signOwnerProof(env,id,token,issued);
+  if(!expected)return false;
   // Constant-time comparison; do not log the proof or the secret.
   let diff=0;for(let i=0;i<64;i++)diff|=expected.charCodeAt(i)^actual.charCodeAt(i);
   return diff===0;
@@ -77,6 +109,36 @@ export default {
     const url=new URL(request.url);
     if(request.method==="GET"&&url.pathname==="/health")
       return json(env.ROOMS_ENABLED==="true"?"STAGING_ENABLED":"STAGING_DISABLED");
+    if(url.pathname==="/v1/invite"){
+      if(env.ROOMS_ENABLED!=="true")
+        return inviteJson({ok:false,code:"ROOMS_DISABLED"},503);
+      if(request.headers.get("Origin")!==PAGE_ORIGIN)
+        return json("ORIGIN_NOT_ALLOWED",403);
+      if(request.method!=="POST"||url.search)
+        return inviteJson({ok:false,code:"METHOD_NOT_ALLOWED"},405);
+      if(request.headers.get("Content-Type")?.split(";")[0].trim()!=="text/plain")
+        return inviteJson({ok:false,code:"CONTENT_TYPE_REQUIRED"},415);
+      const limited=await rateLimit(env,request);
+      if(limited)return inviteJson({ok:false,code:limited},
+        limited==="RATE_LIMITED"?429:503);
+      const body=await request.text();
+      if(body.length>240)return inviteJson({ok:false,code:"INVITE_TOO_LARGE"},413);
+      let info;try{info=JSON.parse(body);}catch(_){
+        return inviteJson({ok:false,code:"INVITE_INVALID"},400);
+      }
+      const id=info?.id,token=info?.auth,issued=info?.issued;
+      const now=Date.now();
+      if(!ROOM_ID.test(id||"")||!/^[a-f0-9]{64}$/.test(token||"")||
+         !Number.isSafeInteger(issued)||issued>now+30000||issued<now-30000)
+        return inviteJson({ok:false,code:"INVITE_INVALID"},400);
+      const proof=await signOwnerProof(env,id,token,issued);
+      if(!proof)return inviteJson({ok:false,code:"OWNER_SECRET_NOT_CONFIGURED"},503);
+      const denied=await reserveRoom(env,id,issued+ROOM_LIFETIME_MS);
+      if(denied)return inviteJson({ok:false,code:denied},
+        denied==="PILOT_ROOM_CAP_REACHED"?429:503);
+      return inviteJson({ok:true,code:"INVITE_CREATED",
+        proof,expires:issued+ROOM_LIFETIME_MS});
+    }
     if(!/^\/v1\/room\/[a-f0-9]{32}$/.test(url.pathname))return json("NOT_FOUND",404);
     if(env.ROOMS_ENABLED!=="true")return json("ROOMS_DISABLED",503);
     if(url.search)return json("QUERY_NOT_ALLOWED",400);
@@ -95,31 +157,14 @@ export default {
     const id=url.pathname.split("/").pop();
     if(!ROOM_ID.test(id))return json("ROOM_INVALID",400);
     if(!env.CALL_ROOMS?.getByName)return json("BINDING_UNAVAILABLE",503);
-    if(!env.ROOM_RATE_LIMIT?.limit)return json("RATE_LIMIT_NOT_CONFIGURED",503);
-    try {
-      const quota=await env.ROOM_RATE_LIMIT.limit({
-        key:"call-room:"+String(request.headers.get("CF-Connecting-IP")||"unknown")
-      });
-      if(quota?.success!==true)return json("RATE_LIMITED",429);
-    }catch(_){return json("RATE_LIMIT_UNAVAILABLE",503);}
+    const limited=await rateLimit(env,request);
+    if(limited)return json(limited,limited==="RATE_LIMITED"?429:503);
     if(!/^[a-f0-9]{64}$/.test(env.PILOT_OWNER_SECRET||""))
       return json("OWNER_SECRET_NOT_CONFIGURED",503);
     if(!await ownerProofValid(request,env,id,token,issued))
       return json("ROOM_OWNER_PROOF_REQUIRED",403);
-    // Strict globally serialized pilot admission: unlike per-PoP rate limits,
-    // one singleton Durable Object keeps at most 8 concurrent room reservations.
-    // Fail closed before allocating the room if the admission gate is absent.
-    if(!env.ROOM_ADMISSION?.getByName)return json("ROOM_ADMISSION_MISSING",503);
-    const admission=env.ROOM_ADMISSION.getByName("global-pilot-v1");
-    let reserved;
-    try {
-      reserved=await admission.fetch(new Request("https://ezero.internal/admit",{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({id,expires:issued+ROOM_LIFETIME_MS})
-      }));
-    }catch(_){return json("ROOM_ADMISSION_UNAVAILABLE",503);}
-    if(reserved?.status===429)return json("PILOT_ROOM_CAP_REACHED",429);
-    if(!reserved?.ok)return json("ROOM_ADMISSION_REJECTED",503);
+    const denied=await reserveRoom(env,id,issued+ROOM_LIFETIME_MS);
+    if(denied)return json(denied,denied==="PILOT_ROOM_CAP_REACHED"?429:503);
     const stub=env.CALL_ROOMS.getByName("room-"+id);
     return stub.fetch(request);
   }
@@ -188,7 +233,9 @@ export class CallRoom {
     const others=activeSockets(this.ctx).filter(x=>x!==ws && metadata(x)?.hash===meta.hash);
     const remote=others[0];
     if(frame.type==="decline"||frame.type==="hangup"){
-      if(frame.type==="decline"&&meta.slot!=="callee")return invalid("ROLE_NOT_ALLOWED",ws);
+      if(frame.type==="decline"&&meta.slot!=="callee"&&
+         !(meta.slot==="caller"&&meta.qrPending===true))
+        return invalid("ROLE_NOT_ALLOWED",ws);
       const record=await this.ctx.storage.get("room:meta");
       if(record)await this.ctx.storage.put("room:meta",{...record,closed:true});
       if(remote)safeSend(remote,{v:1,type:frame.type});
@@ -197,22 +244,43 @@ export class CallRoom {
       return;
     }
     if(!remote)return invalid("PEER_NOT_JOINED",ws);
+    if(frame.type==="host_accept"){
+      if(meta.slot!=="caller"||meta.qrPending!==true||meta.hostApproved===true)
+        return invalid("ROLE_NOT_ALLOWED",ws);
+      meta.hostApproved=true;ws.serializeAttachment(meta);
+      safeSend(remote,{v:1,type:"host_accepted"});return;
+    }
     if(frame.type==="accept"){
       if(meta.slot!=="callee")return invalid("ROLE_NOT_ALLOWED",ws);
+      if(meta.qrGuest===true&&metadata(remote)?.hostApproved!==true)
+        return invalid("HOST_APPROVAL_REQUIRED",ws);
+      if(meta.approved===true)return invalid("ALREADY_APPROVED",ws);
       meta.approved=true;ws.serializeAttachment(meta);
       safeSend(remote,{v:1,type:"accepted"});return;
     }
     // The full signed SDP/ICE offer is AES-GCM encrypted in the browsers.
     // Cloudflare only passes the opaque ciphertext and never reads the SDP/IPs.
     // The receiver still verifies the independent ECDSA/peer fingerprint.
-    if(frame.type!=="offer"&&frame.type!=="answer")return invalid("TYPE_NOT_ALLOWED",ws);
+    if(!["offer","answer","guest_hello"].includes(frame.type))
+      return invalid("TYPE_NOT_ALLOWED",ws);
     const blob=frame.blob;
     if(typeof blob!=="string" || blob.length<128 || blob.length>170000 ||
        !/^[A-Za-z0-9_-]+$/.test(blob))
        return invalid("ENCRYPTED_FRAME_REQUIRED",ws);
     const remoteMeta=metadata(remote);
+    if(frame.type==="guest_hello"){
+      // A QR scanner shares its signed ephemeral identity only inside the
+      // encrypted envelope. Cloudflare relays ciphertext, never raw identity.
+      if(meta.slot!=="callee"||meta.qrGuest===true||remoteMeta?.offered)
+        return invalid("HELLO_NOT_ALLOWED",ws);
+      meta.qrGuest=true;ws.serializeAttachment(meta);
+      remoteMeta.qrPending=true;remote.serializeAttachment(remoteMeta);
+      safeSend(remote,{v:1,type:"guest_hello",blob});
+      return;
+    }
     if(frame.type==="offer"){
-      if(meta.slot!=="caller"||remoteMeta?.approved!==true||meta.offered)
+      if(meta.slot!=="caller"||remoteMeta?.approved!==true||meta.offered||
+         (meta.qrPending===true&&meta.hostApproved!==true))
         return invalid("OFFER_NOT_READY",ws);
       meta.offered=true;
     }else{

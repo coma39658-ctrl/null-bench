@@ -6,7 +6,7 @@ const html=fs.readFileSync("ezero_secure_connect_live_p2p_v0_1.html","utf8");
 const js=fs.readFileSync("js/ezero_secure_connect_android_preflight_v0_1.js","utf8");
 const sw=fs.readFileSync("service-worker.js","utf8");
 const stamp=html.match(/<meta name="ezero-connect-build" content="([^"]+)">/)?.[1];
-assert.equal(stamp,"ezero-connect-20261105-trust-copilot-preflight-v1");
+assert.equal(stamp,"ezero-connect-oneqr-easy-first-20261105-lab-v1");
 assert.match(js,/X-EZERO-Readiness-Probe/);
 assert.match(sw,/X-EZERO-Readiness-Probe/);
 assert.ok(!/getUserMedia\s*\(|window\.location\.reload|location\.reload|caches\.delete|serviceWorker\.unregister|new WebSocket|new RTCPeerConnection/.test(js),
@@ -39,6 +39,7 @@ try{
  await page.waitForFunction(()=>document.querySelector("#androidReadinessRun")&&!document.querySelector("#androidReadinessRun").disabled);
  assert.equal(probeCount,0,"No probe before user click");
  assert.equal(await page.evaluate(()=>window.__micRequests),0);
+ await page.locator("#oneQrAdvanced").evaluate(el=>el.open=true);
  await page.locator("#androidReadiness").evaluate(el=>el.open=true);
  await page.locator("#androidReadinessRun").click();
  await page.waitForFunction(()=>document.querySelector("#androidReadinessDetail")?.dataset.networkVersion==="current");

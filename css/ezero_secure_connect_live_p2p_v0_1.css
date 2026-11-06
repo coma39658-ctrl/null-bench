@@ -141,3 +141,49 @@ button.outline{color:#07546b;background:#ebf9fc;border-color:#b3d5de}button.dang
 .android-preflight #androidReadinessStatus[data-state="unsupported"]{
  background:#fff4ed;border-color:#e7b99e;color:#82431c
 }
+
+/* One-QR calling v0.1: foreground invitation, no JSON, no user cloud secret. */
+.oneqr-card{border:2px solid #8bc9d1;background:linear-gradient(135deg,#f1fbfb,#fff);
+ padding:clamp(16px,4vw,24px);box-shadow:0 7px 24px #063b4b11}
+.oneqr-card h2{margin:0;color:#084c60;font-size:clamp(18px,4.7vw,24px)}
+.oneqr-lead{font-size:15px;line-height:1.85;color:#315665;margin:8px 0 16px}
+.oneqr-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0}
+.oneqr-actions button{min-height:54px;white-space:normal;font-weight:800;line-height:1.6;font-size:14px;overflow-wrap:anywhere}
+.oneqr-visual{margin:15px auto;padding:14px;border:1px solid #a9d1d8;border-radius:16px;
+ background:white;text-align:center;max-width:440px}
+.oneqr-code{display:flex;justify-content:center;align-items:center;padding:5px;max-width:100%}
+.oneqr-code svg{display:block;width:min(100%,380px);height:auto;max-height:390px;image-rendering:pixelated}
+.oneqr-request{background:#eaf8f0;border:2px solid #6aba91;border-radius:14px;padding:12px;margin:12px 0}
+.oneqr-caller{font-weight:750;color:#144d38;line-height:1.7}
+.oneqr-card #oneQrEnd{width:100%;min-height:46px}
+.oneqr-card #oneQrStatus{overflow-wrap:anywhere;line-height:1.7}
+.oneqr-card #oneQrStatus[data-state="unavailable"],
+.oneqr-card #oneQrStatus[data-state="invalid"]{background:#fff2e8;color:#713b20;border-color:#e6c2aa}
+@media(max-width:390px){.oneqr-actions{grid-template-columns:1fr}.oneqr-actions button{min-height:49px}}
+
+/* November 2026 one-QR easy-first layout: technical controls are optional.
+   The existing verified camera/identity nodes are reused, not forked. */
+.oneqr-card{order:0;margin-top:12px}
+.oneqr-advanced{border:1px solid #afccd2;background:#fbfefe;padding:12px 12px 5px}
+.oneqr-advanced>summary{cursor:pointer;list-style:revert;font-weight:750;
+ line-height:1.65;font-size:14px;padding:10px;color:#1e5866}
+.oneqr-advanced[open]>summary{margin-bottom:14px;border-bottom:1px solid #d4e7eb}
+.oneqr-camera{border:1px solid #a4ced8;background:#f1f8fb;border-radius:14px;
+ padding:12px;margin:12px auto;max-width:480px}
+.oneqr-camera-live{display:flex;flex-direction:column;align-items:center;gap:8px}
+.oneqr-camera-live video{display:block;max-width:100%;width:100%;max-height:310px;
+ border-radius:10px;object-fit:contain;background:#0b1a23}
+.oneqr-camera-live video[hidden]{display:none}
+.oneqr-camera-live .scan-result{max-width:100%;width:100%;overflow-wrap:anywhere}
+.oneqr-camera #oneQrCancelScan{width:100%;margin:8px 0}
+.oneqr-card #oneQrPrivacy{display:block;min-height:38px;margin:8px auto 4px;
+ border:0;background:transparent;box-shadow:none;font-size:13px}
+.oneqr-card [hidden],.oneqr-camera [hidden]{display:none!important}
+@media(max-width:520px){
+ .oneqr-advanced{padding:10px}
+ .oneqr-advanced>summary{padding:10px 4px}
+ .oneqr-card .oneqr-actions button{font-size:14px}
+}
+
+.oneqr-share{width:100%;min-height:48px;margin:10px auto;
+ font-size:14px;font-weight:750;line-height:1.6;white-space:normal}

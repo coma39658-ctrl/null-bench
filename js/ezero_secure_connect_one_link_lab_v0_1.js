@@ -10,6 +10,7 @@
 "use strict";
 const $=id=>document.getElementById(id);
 const endpoint="wss://ezero-secure-connect-call-lab-disabled.coma39658.workers.dev";
+const inviteEndpoint=endpoint.replace(/^wss:/,"https:")+"/v1/invite";
 const text={
  ur:{
    title:"نجی ایک لنک کال — تجرباتی محفوظ طریقہ",
@@ -97,15 +98,61 @@ const text={
 };
 let roomId=null,secret=null,auth=null,issued=null,proof=null,secretKey=null,ws=null,role=null,joined=false,approved=false;
 let ready=false, link="",closing=false,connecting=false,creating=false;
+let qrMode="",qrPending=false,hostAccepted=false,guestHelloSent=false,qrRequestVerified=false;
+const oneQrText={
+ ur:{advanced:"⚙ مزید اختیارات اور تکنیکی آزمائشیں (اختیاری)",privacy:"🔒 رازداری اور اجازت",cameraHelp:"دوسرے فون کا کال QR کیمرے کے سامنے رکھیں؛ کیمرہ صرف آپ کے اسکین دبانے پر کھلے گا۔",cancelScan:"✕ اسکین بند کریں",shareLink:"↗ نجی لنک بھیجیں (اگر کیمرہ خراب ہو)",linkShared:"نجی دعوت صرف آپ کی منتخب ایپ سے شیئر ہوئی؛ دوسرے فون کی منظوری ضروری ہے۔",linkCopied:"نجی لنک کاپی ہوا؛ اسے صرف قابلِ اعتماد فرد کو بھیجیں۔",shareUnavailable:"شیئر یا کاپی دستیاب نہیں؛ QR دوسرے فون کو دکھائیں۔",title:"📞 آسان کال — صرف ایک QR",explain:"ایک فون QR دکھائے، دوسرا اسے اسکین کرے، پھر کال قبول کریں۔ کوئی لمبا کوڈ نہیں۔",
+ show:"📱 میرا کال QR دکھائیں",scan:"📷 دوسرے فون کا QR اسکین کریں",accept:"✅ کال قبول کریں",
+ decline:"✕ کال مسترد کریں",end:"📴 کال ختم کریں",
+ ready:"دوسرا فون QR اسکین کرے؛ کال درخواست اسی کھلے صفحے پر آئے گی۔",
+ join:"QR مل گیا؛ دوست کی دستخط شدہ شناخت چیک ہو رہی ہے۔",
+ request:"✓ دستخط شدہ شناخت ملی۔ یہ حقیقی انسان کی شناخت کی ضمانت نہیں۔ قبول یا مسترد کریں۔",
+ rejected:"کال مسترد کر دی گئی۔",waiting:"دوسرے فون کی منظوری کا انتظار ہے۔",
+ unavailable:"محفوظ کال روم ابھی بند ہے یا انٹرنیٹ دستیاب نہیں؛ کوئی کال شروع نہیں ہوئی۔",
+ invalid:"QR غلط، پرانا یا مختلف ویب سائٹ کا ہے۔ نیا QR اسکین کریں۔",
+ connecting:"محفوظ کال روم سے رابطہ ہو رہا ہے۔",
+ connected:"✓ اصل WebRTC کنکشن قائم ہوا۔",limit:"پائلٹ کے آٹھ کال روم بھر گئے ہیں؛ بعد میں نیا QR بنائیں۔",
+ warning:"یہ QR نجی دعوت ہے۔ صرف قابل اعتماد شخص کو دکھائیں، دوسروں سے یا عوامی گروپ میں شیئر نہ کریں۔"
+ },
+ en:{advanced:"⚙ More options and manual tests (optional)",privacy:"🔒 Privacy and permissions",cameraHelp:"Point this camera at the other phone's CALL QR. Camera opens only when you tap Scan.",cancelScan:"✕ Stop scanning",shareLink:"↗ Share a private link (if camera unavailable)",linkShared:"You shared the invitation through your chosen app; phone approval is still required.",linkCopied:"Private link copied. Send only to the intended person.",shareUnavailable:"Sharing and clipboard are unavailable; use the on-screen QR.",title:"📞 Easy call — one QR",explain:"One phone shows QR, the other scans, then the recipient accepts. No long codes.",
+ show:"📱 Show my call QR",scan:"📷 Scan the other phone's QR",accept:"✅ Accept call",decline:"✕ Decline",end:"📴 End call",
+ ready:"Show the QR to the other phone; a call request will appear here while this page is open.",
+ join:"QR received; verifying signed digital identity.",request:"✓ Signed key checked. This does not prove the person's real-world identity. Accept or decline.",
+ rejected:"Call declined.",waiting:"Waiting for receiver's consent.",unavailable:"The private call room is disabled or unreachable. No call started.",
+ invalid:"QR invalid, expired or for another website. Ask for a fresh QR.",connecting:"Connecting to the private room.",
+ connected:"✓ Actual WebRTC connection established.",limit:"All eight restricted pilot rooms are occupied.",warning:"This QR is a private invitation. Show only to the intended person."
+ },
+ ar:{advanced:"⚙ خيارات إضافية واختبارات تقنية (اختياري)",privacy:"🔒 الخصوصية والأذونات",cameraHelp:"وجه الكاميرا إلى رمز QR للمكالمة على الهاتف الآخر. تعمل الكاميرا عند الضغط على المسح فقط.",cancelScan:"✕ إيقاف المسح",shareLink:"↗ أرسل الرابط الخاص (إذا تعذرت الكاميرا)",linkShared:"تمت مشاركة الدعوة عبر التطبيق الذي اخترته؛ الموافقة لا تزال مطلوبة.",linkCopied:"تم نسخ الرابط الخاص؛ أرسله للشخص المقصود فقط.",shareUnavailable:"المشاركة والنسخ غير متاحين؛ اعرض رمز QR للهاتف الآخر.",title:"📞 مكالمة سهلة — QR واحد",explain:"يعرض هاتف QR، ويمسحه الآخر ثم يقبل المستلم. لا رموز طويلة.",
+ show:"📱 اعرض QR للمكالمة",scan:"📷 امسح QR الهاتف الآخر",accept:"✅ قبول",decline:"✕ رفض",end:"📴 إنهاء المكالمة",
+ ready:"اعرض QR للهاتف الآخر؛ سيظهر طلب الاتصال هنا والصفحة مفتوحة.",join:"تم استلام QR؛ يجري فحص الهوية الموقعة.",
+ request:"✓ تم التحقق من المفتاح الرقمي، لا من هوية الشخص الحقيقية. اقبل أو ارفض.",
+ rejected:"رُفض الاتصال.",waiting:"انتظار موافقة الهاتف الآخر.",unavailable:"غرفة الاتصال مغلقة أو الشبكة غير متاحة.",invalid:"QR غير صحيح أو منتهي أو لموقع آخر.",
+ connecting:"جار الاتصال بالغرفة الخاصة.",connected:"✓ تم اتصال WebRTC الحقيقي.",limit:"غرف الاختبار الثماني مشغولة.",warning:"هذا QR دعوة خاصة؛ اعرضه للشخص المقصود فقط."
+ }
+};
+const qtext=k=>(oneQrText[lang()]||oneQrText.ur)[k]||k;
+function qStatus(k){
+ const el=$("oneQrStatus");if(!el)return;
+ el.textContent=qtext(k);el.dataset.state=k;
+}
 const lang=()=>["ur","en","ar"].includes($("language")?.value)?$("language").value:"ur";
 const t=k=>(text[lang()]||text.ur)[k]||text.ur[k]||k;
 const st=k=>{const e=$("roomStatus");e.textContent=t(k);e.dataset.state=k;};
 function draw(){
  for(const el of document.querySelectorAll("[data-room-i18n]"))
    el.textContent=t(el.dataset.roomI18n);
- $("roomStart").disabled=!(ready&&role==="caller"&&approved);
- $("roomAccept").disabled=!(ready&&role==="callee"&&!approved);
- $("roomDecline").disabled=!(ready&&role==="callee"&&!approved);
+ for(const el of document.querySelectorAll("[data-oneqr-i18n]"))
+   el.textContent=qtext(el.dataset.oneqrI18n);
+ $("oneQrShow").disabled=ready||connecting||creating;
+ $("oneQrRequest").hidden=!(qrMode==="host"&&qrRequestVerified&&ready&&!hostAccepted);
+ $("oneQrEnd").hidden=!(ready||connecting);
+ $("oneQrCaller").textContent=qtext("request");
+ $("roomStart").disabled=!(ready&&role==="caller"&&approved&&qrMode!=="host");
+ $("roomAccept").disabled=!(ready&&
+   ((role==="callee"&&!approved&&qrMode!=="guest")||
+    (role==="caller"&&qrMode==="host"&&qrRequestVerified&&!hostAccepted)));
+ $("roomDecline").disabled=!(ready&&
+   ((role==="callee"&&!approved&&qrMode!=="guest")||
+    (role==="caller"&&qrMode==="host"&&qrRequestVerified&&!hostAccepted)));
  $("roomCreate").disabled=ready||connecting||creating;
  $("roomJoin").disabled=ready||connecting||!roomId||!auth;
  $("roomLink").value=ready&&role==="caller"?link:"";
@@ -144,25 +191,103 @@ async function decrypt(blob){
  const raw=await crypto.subtle.decrypt({name:"AES-GCM",iv:packed.slice(0,12)},secretKey,packed.slice(12));
  const plain=new TextDecoder("utf-8",{fatal:true}).decode(raw);
  const envelope=JSON.parse(plain);
- if(envelope?.v!==1||!["offer","answer"].includes(envelope.type)||typeof envelope.sdp!=="string")
-   throw Error("SIGNAL_INVALID");
+ if(envelope?.v!==1)throw Error("SIGNAL_INVALID");
+ if(envelope.type==="hello"){
+   if(typeof envelope.identity!=="string"||!/^EZERO1\./.test(envelope.identity)||
+      envelope.identity.length>1300)throw Error("IDENTITY_INVALID");
+ }else if(!["offer","answer"].includes(envelope.type)||
+          typeof envelope.sdp!=="string")throw Error("SIGNAL_INVALID");
  return plain;
+}
+function localSignedIdentity(){
+ const token=$("myDigitalId")?.value||"";
+ return /^EZERO1\.[A-Za-z0-9._-]{100,1000}$/.test(token)?token:null;
+}
+async function waitLocalIdentity(){
+ const ready=localSignedIdentity();if(ready)return ready;
+ return new Promise((resolve,reject)=>{
+  const timer=setTimeout(()=>{document.removeEventListener("ezero:identity-ready",done);
+   reject(Error("IDENTITY_NOT_READY"));},7000);
+  function done(){const token=localSignedIdentity();if(!token)return;
+   clearTimeout(timer);document.removeEventListener("ezero:identity-ready",done);resolve(token);}
+  document.addEventListener("ezero:identity-ready",done);
+  done();
+ });
+}
+async function verifySignedIdentity(token){
+ if(!/^EZERO1\.[A-Za-z0-9._-]{100,1000}$/.test(token))return false;
+ return new Promise(resolve=>{
+  const requestId=hex(crypto.getRandomValues(new Uint8Array(16)));
+  let finished=false;
+  const finish=ok=>{if(finished)return;finished=true;clearTimeout(timer);
+   document.removeEventListener("ezero:oneqr-identity-result",got);resolve(ok);};
+  const timer=setTimeout(()=>finish(false),6500);
+  const got=e=>{if(e.detail?.requestId===requestId)finish(e.detail.ok===true);};
+  document.addEventListener("ezero:oneqr-identity-result",got);
+  document.dispatchEvent(new CustomEvent("ezero:oneqr-verify-identity",{
+   detail:{requestId,token}
+  }));
+ });
+}
+function parseOneQr(raw){
+ let url;try{url=new URL(raw);}catch(_){throw Error("INVALID_QR");}
+ if(url.origin!==location.origin||url.pathname!==location.pathname||
+    url.search!==location.search)throw Error("INVALID_QR");
+ const m=url.hash.slice(1).match(
+  /^callroom=([a-f0-9]{32})\.([a-f0-9]{64})\.([0-9]{13})\.([a-f0-9]{64})(?:&identity=(EZERO1\.[A-Za-z0-9._-]{100,1000}))?$/);
+ if(!m)throw Error("INVALID_QR");
+ const timestamp=Number(m[3]);
+ if(!Number.isSafeInteger(timestamp)||timestamp+600000<Date.now()||
+    timestamp>Date.now()+30000)throw Error("EXPIRED_QR");
+ return {id:m[1],aes:m[2],issued:timestamp,proof:m[4],identity:m[5]||null};
+}
+function clearQr(){
+ $("oneQrVisual").hidden=true;
+ $("oneQrCode").replaceChildren();
+}
+function drawQr(){
+ if(qrMode!=="host"||!ready||role!=="caller"||!link)return;
+ try{
+  const qr=window.qrcode(0,"L");
+  qr.addData(link);qr.make();
+  const el=$("oneQrCode");
+  el.innerHTML=qr.createSvgTag(3,4);
+  el.querySelector("svg")?.setAttribute("aria-label","One-time private E-ZERO call QR");
+  $("oneQrVisual").hidden=false;
+  qStatus("ready");
+ }catch(_){qStatus("invalid");clearQr();}
+}
+async function applyInvite(inv,scanned){
+ if(ready||connecting||creating||qrMode)throw Error("ROOM_BUSY");
+ creating=true;draw();
+ try{
+  const token=inv.identity;
+  if(!token||!await verifySignedIdentity(token))throw Error("SIGNATURE_REQUIRED");
+  await waitLocalIdentity();
+  roomId=inv.id;issued=inv.issued;proof=inv.proof;
+  await useSecret(inv.aes);secret=null;
+  qrMode="guest";
+  qStatus("join");
+  if(scanned)connect(); // Scan is the user's explicit one-tap join.
+  else draw();
+ }catch(error){
+  qrMode="";roomId=null;auth=null;proof=null;issued=null;
+  secret=null;secretKey=null;qStatus("invalid");
+ }finally{creating=false;draw();}
 }
 function readLink(){
  const raw=location.hash.slice(1);
- // Parsing only; a fragment is never sent to the origin server.
- const m=raw.match(/^callroom=([a-f0-9]{32})\.([a-f0-9]{64})\.([0-9]{13})\.([a-f0-9]{64})$/);
- if(!m)return false;
- roomId=m[1];issued=Number(m[3]);proof=m[4];
- creating=true; // Disable conflicting room creation during async key derivation.
- // Strip the fragment before any asynchronous operation; incoming participants
- // must not expose their bearer link in the UI or browser history.
+ if(!raw.startsWith("callroom="))return false;
+ const full=location.href;
+ // Never persist private URL fragments in browser history or analytics.
  history.replaceState(null,"",location.pathname+location.search);
- $("roomLink").value="";link="";
- st("incoming");draw();
- void useSecret(m[2]).then(()=>{secret=null;}).catch(()=>{
-   roomId=null;auth=null;proof=null;issued=null;secretKey=null;secret=null;st("invalid");
- }).finally(()=>{creating=false;draw();});
+ try{
+  const inv=parseOneQr(full);
+  // Opening the intended private link is an explicit navigation gesture.
+  // Automatically request a room (not microphone/camera). The receiving
+  // phone still has to approve before any audio permission can be asked.
+  void applyInvite(inv,true);
+ }catch(_){qStatus("invalid");st("invalid");}
  return true;
 }
 function send(type,body={}){
@@ -174,6 +299,8 @@ function closeRoom(sendHangup=false){
  closing=true;
  try{ws?.close(1000,"Done");}catch(_){}
  ws=null;ready=false;approved=false;joined=false;connecting=false;creating=false;
+ qrMode="";qrPending=false;hostAccepted=false;guestHelloSent=false;qrRequestVerified=false;
+ clearQr();
  secret=null;secretKey=null;auth=null;proof=null;issued=null;link="";roomId=null;
  $("roomLink").value="";
  $("hangup")?.click();
@@ -181,13 +308,55 @@ function closeRoom(sendHangup=false){
 }
 async function receive(frame){
  if(frame?.v!==1||typeof frame.type!=="string")return;
- if(frame.type==="ready"){role=frame.role;ready=true;st("joined");draw();return;}
- if(frame.type==="peer_joined"){joined=true;st("peer");draw();return;}
- if(frame.type==="accepted"){if(role!=="caller")return;approved=true;st("accepted");draw();return;}
- if(frame.type==="decline"){closeRoom();st("declined");return;}
+ if(frame.type==="ready"){
+   role=frame.role;ready=true;st("joined");
+   if(qrMode==="host"){
+     if(role!=="caller"){closeRoom(true);qStatus("invalid");return;}
+     drawQr();
+   }else if(qrMode==="guest"){
+     if(role!=="callee"){closeRoom(true);qStatus("invalid");return;}
+     try{
+       const identity=await waitLocalIdentity();
+       const blob=await encrypt(JSON.stringify({v:1,type:"hello",identity}));
+       if(!send("guest_hello",{blob}))throw Error("HELLO_NOT_SENT");
+       guestHelloSent=true;
+       qStatus("waiting");
+     }catch(_){closeRoom(true);qStatus("unavailable");return;}
+   }
+   draw();return;
+ }
+ if(frame.type==="peer_joined"){joined=true;st("peer");
+   if(qrMode==="host")qStatus("connecting");draw();return;}
+ if(frame.type==="guest_hello"){
+   if(qrMode!=="host"||role!=="caller"||qrPending)return;
+   try{
+     const hello=JSON.parse(await decrypt(frame.blob));
+     if(hello.type!=="hello"||!await verifySignedIdentity(hello.identity))
+       throw Error("INVALID_SIGNED_GUEST");
+     qrPending=true;qrRequestVerified=true;st("peer");qStatus("request");
+     clearQr();draw();return;
+   }catch(_){closeRoom(true);qStatus("invalid");return;}
+ }
+ if(frame.type==="host_accepted"){
+   if(qrMode!=="guest"||role!=="callee"||!guestHelloSent||approved)return;
+   approved=send("accept");if(!approved){closeRoom();qStatus("unavailable");return;}
+   st("receiving");qStatus("connecting");draw();return;
+ }
+ if(frame.type==="accepted"){
+   if(role!=="caller")return;
+   approved=true;st("accepted");draw();
+   if(qrMode==="host"&&hostAccepted){
+     // The host explicitly tapped Accept; only now does WebRTC request
+     // microphone permission (which the browser must separately grant).
+     $("guidedOffer").click();
+     qStatus("connecting");
+   }
+   return;
+ }
+ if(frame.type==="decline"){closeRoom();st("declined");qStatus("rejected");return;}
  if(frame.type==="hangup"){closeRoom();return;}
  if(frame.type==="peer_left"){closeRoom();return;}
- if(frame.type==="error"){closeRoom();st("failed");return;}
+ if(frame.type==="error"){closeRoom();st("failed");qStatus("invalid");return;}
  if(frame.type==="offer"||frame.type==="answer"){
    if(frame.type==="offer"&&(role!=="callee"||!approved))return;
    if(frame.type==="answer"&&role!=="caller")return;
@@ -224,33 +393,60 @@ function connect(){
 }
 $("roomCreate").addEventListener("click",async()=>{
  if(ready||connecting||creating)return;
- if(!window.isSecureContext||!crypto?.subtle){st("failed");return;}
- creating=true;draw();
+ if(!window.isSecureContext||!crypto?.subtle){st("failed");qStatus("unavailable");return;}
+ creating=true;qrMode="host";draw();qStatus("connecting");
  try{
-  const owner=$("roomOwnerSecret").value.trim();
-  if(!/^[a-f0-9]{64}$/.test(owner)){st("ownerRequired");return;}
+  // Server mints a one-room owner HMAC. Its actual secret NEVER enters
+  // the browser, the QR, or any per-user UI.
+  const identity=await waitLocalIdentity();
   roomId=hex(crypto.getRandomValues(new Uint8Array(16)));
   issued=Date.now();
   await useSecret(hex(crypto.getRandomValues(new Uint8Array(32))));
-  const hmacKey=await crypto.subtle.importKey("raw",new TextEncoder().encode(owner),
-    {name:"HMAC",hash:"SHA-256"},false,["sign"]);
-  const signed=new Uint8Array(await crypto.subtle.sign("HMAC",hmacKey,
-    new TextEncoder().encode(roomId+"."+auth+"."+issued)));
-  proof=hex(signed);
-  $("roomOwnerSecret").value=""; // never store or forward the operator's passcode
-  link=new URL(location.pathname+location.search+"#callroom="+roomId+"."+secret+"."+issued+"."+proof,location.origin).href;
-  secret=null; // Raw link key remains only in approved share field and CryptoKey.
+  const res=await fetch(inviteEndpoint,{
+   method:"POST",mode:"cors",cache:"no-store",credentials:"omit",
+   redirect:"error",headers:{"Content-Type":"text/plain"},
+   body:JSON.stringify({id:roomId,auth,issued}),
+   signal:AbortSignal.timeout(8500)
+  });
+  if(res.status===503)throw Error("ROOMS_DISABLED");
+  if(res.status===429)throw Error("PILOT_LIMIT");
+  if(!res.ok)throw Error("INVITE_NOT_CREATED");
+  const issuedProof=await res.json();
+  if(issuedProof?.code!=="INVITE_CREATED"||
+     !/^[a-f0-9]{64}$/.test(issuedProof.proof||"")||
+     issuedProof.expires!==issued+600000)
+    throw Error("INVITE_INVALID");
+  proof=issuedProof.proof;
+  link=new URL(location.pathname+location.search+"#callroom="+roomId+"."+
+   secret+"."+issued+"."+proof+"&identity="+identity,location.origin).href;
+  secret=null;
+  $("roomOwnerSecret").value="";
   st("linkReady");draw();connect();
- }catch(_){st("failed");}finally{creating=false;draw();}
+ }catch(error){
+  const limit=error?.message==="PILOT_LIMIT";
+  closeRoom(false);qStatus(limit?"limit":"unavailable");
+  st("serverOff");
+ }finally{creating=false;draw();}
 });
 $("roomJoin").addEventListener("click",()=>connect());
 $("roomAccept").addEventListener("click",()=>{
- if(role!=="callee"||!ready)return;
+ if(!ready)return;
+ if(role==="caller"&&qrMode==="host"&&qrRequestVerified&&!hostAccepted){
+   hostAccepted=send("host_accept");
+   if(hostAccepted){st("receiving");qStatus("connecting");}
+   else qStatus("unavailable");
+   draw();return;
+ }
+ if(role!=="callee"||qrMode==="guest")return;
  approved=send("accept");if(approved)st("receiving");draw();
 });
 $("roomDecline").addEventListener("click",()=>{
- if(role!=="callee"||!ready)return;
- send("decline");closeRoom();
+ if(!ready)return;
+ if(role==="caller"&&qrMode==="host"&&qrRequestVerified&&!hostAccepted){
+   send("decline");closeRoom();qStatus("rejected");return;
+ }
+ if(role!=="callee"||qrMode==="guest")return;
+ send("decline");closeRoom();qStatus("rejected");
 });
 $("roomStart").addEventListener("click",()=>{
  if(role!=="caller"||!approved||!ready)return;
@@ -280,11 +476,72 @@ document.addEventListener("ezero:signal-ready",async event=>{
  }catch(_){st("encryptionError");closeRoom(true);}
 });
 document.addEventListener("ezero:call-status",e=>{
- if(e.detail?.stage==="connected"&&ready)st("connected");
- if(["signalInvalid","fingerprintMismatch","iceNoRoute","micDenied"].includes(e.detail?.stage)&&ready)
-   st("failed");
+ if(e.detail?.stage==="connected"&&ready){st("connected");qStatus("connected");clearQr();}
+ if(["signalInvalid","fingerprintMismatch","iceNoRoute","micDenied"].includes(e.detail?.stage)&&ready){
+   st("failed");qStatus("unavailable");
+ }
 });
-window.addEventListener("pagehide",()=>{try{ws?.close(1000,"Page closed");}catch(_){}});
+// A scanner click is the only action required on Phone A. It validates the
+// peer's signed ephemeral identity before joining the encrypted room.
+document.addEventListener("ezero:oneqr-scanned",event=>{
+ // The user does not need to locate any of the old manual testing screens.
+ $("oneQrCameraSlot").hidden=true;
+ const raw=event.detail?.code;
+ try{
+  if(typeof raw!=="string"||raw.length>1600)throw Error("BAD_QR_SIZE");
+  const invite=parseOneQr(raw);
+  if(!invite.identity)throw Error("SIGNED_IDENTITY_REQUIRED");
+  void applyInvite(invite,true);
+ }catch(_){qStatus("invalid");}
+});
+$("oneQrShow").addEventListener("click",()=>{if(!ready&&!creating)$("roomCreate").click();});
+// Reuse the existing camera-only QR scanner without duplicating parser,
+// camera permissions, timeout or identity verification logic. Moving an
+// existing DOM video node preserves its event listeners and security guards.
+const cameraSlot=$("oneQrCameraSlot");
+const cameraBody=$("oneQrCameraLive");
+cameraBody.append($("scanVideo"),$("qrScanStatus"));
+$("oneQrPrivacy").addEventListener("click",()=>$("openPolicy").click());
+$("oneQrShareLink").addEventListener("click",async()=>{
+ if(!ready||qrMode!=="host"||!link)return;
+ // A private room URL contains an ephemeral bearer key. Never append it to
+ // analytics, put it in browser logs or auto-share it without a user click.
+ try{
+  if(typeof navigator.share==="function"){
+   await navigator.share({title:"E-ZERO private call",url:link});
+   qStatus("linkShared");return;
+  }
+ }catch(error){if(error?.name==="AbortError")return;}
+ try{
+  if(typeof navigator.clipboard?.writeText!=="function")
+   throw Error("CLIPBOARD_UNAVAILABLE");
+  await navigator.clipboard.writeText(link);
+  qStatus("linkCopied");
+ }catch(_){qStatus("shareUnavailable");}
+});
+$("oneQrCancelScan").addEventListener("click",()=>{
+ $("stopScan").click();
+ cameraSlot.hidden=true;
+});
+$("scanQR").addEventListener("click",()=>{cameraSlot.hidden=false;});
+$("oneQrScan").addEventListener("click",()=>{
+ if(ready||creating||connecting){qStatus("invalid");return;}
+ $("chooseNearby")?.click();
+ cameraSlot.hidden=false;
+ $("scanQR").click();
+ cameraSlot.scrollIntoView?.({block:"center",behavior:"smooth"});
+});
+$("oneQrAccept").addEventListener("click",()=>{if(!$("roomAccept").disabled)$("roomAccept").click();});
+$("oneQrDecline").addEventListener("click",()=>{if(!$("roomDecline").disabled)$("roomDecline").click();});
+$("oneQrEnd").addEventListener("click",()=>{if(!$("roomEnd").disabled)$("roomEnd").click();});
+window.addEventListener("pagehide",()=>{try{ws?.close(1000,"Page closed");}catch(_){}clearQr();});
 $("language").addEventListener("change",draw);
+// An invitation can arrive while the app is ALREADY OPEN on the same page.
+// Browsers use a same-document hash navigation in this case: the scripts
+// do not reload. Handle that navigation and immediately strip bearer data
+// from the visible address/history before verifying or joining the room.
+window.addEventListener("hashchange",()=>{
+ if(location.hash.startsWith("#callroom="))readLink();
+});
 readLink();draw();
 })();

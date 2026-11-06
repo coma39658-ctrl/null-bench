@@ -1,0 +1,157 @@
+name: E-ZERO ONE QR One Accept - Safe Two Phone Lab
+on:
+  push:
+    branches: [ezero-one-qr-incoming-call-consent-lab-20261105]
+permissions:
+  contents: read
+jobs:
+  browser-two-phones:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Install pinned WebAuthn verification library in isolated CI lab
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts --no-audit --no-fund @simplewebauthn/server@14.0.3
+      - name: Safety gate - no real Cloudflare public calls
+        run: |
+          set -euo pipefail
+          grep -q '"ROOMS_ENABLED": "false"' secure_connect/call_room_lab/wrangler.jsonc
+          grep -q '"name": "ezero-secure-connect-call-lab-disabled"' secure_connect/call_room_lab/wrangler.jsonc
+          node --check js/ezero_secure_connect_one_link_lab_v0_1.js
+          node --check js/ezero_secure_connect_live_p2p_v0_1.js
+          node --check secure_connect/call_room_lab/room_worker.mjs
+          node --check tests/test_ezero_secure_connect_one_link_browser_v0_1.mjs
+          node tests/test_ezero_secure_connect_live_p2p_contract_v0_1.js
+          node secure_connect/call_room_lab/test_room_worker.mjs
+          node tests/test_ezero_secure_pair_v1_security_v0_1.mjs
+          node --check secure_connect/pair_v1/trusted_reconnect_proof_v0_1.mjs
+          node --check tests/test_ezero_secure_pair_v1_trusted_reconnect_v0_1.mjs
+          node tests/test_ezero_secure_pair_v1_trusted_reconnect_v0_1.mjs
+          node --check secure_connect/pair_v1/webauthn_assertion_verify_lab_v0_1.mjs
+          node --check tests/test_ezero_secure_pair_v1_webauthn_assertion_v0_1.mjs
+          node tests/test_ezero_secure_pair_v1_webauthn_assertion_v0_1.mjs
+          node --check secure_connect/pair_v1/pair_challenge_sqlite_lab_v0_1.mjs
+          node --check tests/test_ezero_secure_pair_v1_sqlite_challenge_v0_1.mjs
+          node tests/test_ezero_secure_pair_v1_sqlite_challenge_v0_1.mjs
+          node --check secure_connect/pair_v1/trusted_device_sqlite_lab_v0_1.mjs
+          node --check tests/test_ezero_secure_pair_v1_sqlite_devices_v0_1.mjs
+          node tests/test_ezero_secure_pair_v1_sqlite_devices_v0_1.mjs
+          node --check secure_connect/pair_v1/mutual_approval_sqlite_lab_v0_1.mjs
+          node --check tests/test_ezero_secure_pair_v1_mutual_approvals_v0_1.mjs
+          node tests/test_ezero_secure_pair_v1_mutual_approvals_v0_1.mjs
+          node --check tests/test_ezero_secure_pair_v1_server_bound_device_approval_v0_1.mjs
+          node tests/test_ezero_secure_pair_v1_server_bound_device_approval_v0_1.mjs
+          node --check secure_connect/pair_v1/webauthn_registration_library_lab_v0_1.mjs
+          node --check tests/test_ezero_secure_pair_v1_webauthn_registration_library_v0_1.mjs
+          node tests/test_ezero_secure_pair_v1_webauthn_registration_library_v0_1.mjs
+          node --check secure_connect/pair_v1/webauthn_authentication_library_lab_v0_1.mjs
+          node --check tests/test_ezero_secure_pair_v1_webauthn_reg_to_login_v0_1.mjs
+          node --check secure_connect/pair_v1/passkey_atomic_finish_sqlite_lab_v0_1.mjs
+          node --check secure_connect/pair_v1/passkey_registration_atomic_sqlite_lab_v0_1.mjs
+          node --check secure_connect/pair_v1/trust_candidate_sqlite_lab_v0_1.mjs
+          node --check secure_connect/pair_v1/account_session_guard_sqlite_lab_v0_1.mjs
+          node --check tests/test_ezero_pair_v1_session_guard_sqlite_v0_1.mjs
+          node tests/test_ezero_pair_v1_session_guard_sqlite_v0_1.mjs
+          node --check secure_connect/pair_v1/same_origin_session_http_lab_v0_1.mjs
+          node --check tests/test_ezero_pair_v1_same_origin_http_lab_v0_1.mjs
+          node tests/test_ezero_pair_v1_same_origin_http_lab_v0_1.mjs
+          node --check secure_connect/pair_v1/preview_worker_lab/worker.mjs
+          node --check tests/test_ezero_secure_pair_v1_preview_worker_contract_v0_1.mjs
+          node tests/test_ezero_secure_pair_v1_preview_worker_contract_v0_1.mjs
+          node --check scripts/ezero_expert_ai_review_gate_v0_1.mjs
+          node scripts/ezero_expert_ai_review_gate_v0_1.mjs
+          node --check scripts/ezero_secure_pair_public_release_gate_v0_1.mjs
+          node scripts/ezero_secure_pair_public_release_gate_v0_1.mjs --status
+          if node scripts/ezero_secure_pair_public_release_gate_v0_1.mjs --verify-release; then
+            echo "UNEXPECTED_PUBLIC_LAUNCH_ALLOWED_WITH_UNVERIFIED_PHYSICAL_GATES"
+            exit 1
+          else
+            test "$?" -eq 2
+          fi
+          echo "UNVERIFIED_PUBLIC_LAUNCH_BLOCKED_BUT_LOCAL_TESTS_ALLOWED: PASS"
+          node tests/test_ezero_secure_pair_v1_webauthn_reg_to_login_v0_1.mjs
+          echo "PUBLIC_ROOMS_STAY_DISABLED_SOURCE_AND_STATIC_CONTRACT: PASS"
+      - name: Install headless Chromium test environment
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts playwright@1.57.0
+          npx playwright install --with-deps chromium
+      - name: Foreground QR, signed reciprocal IDs, receiver acceptance and WebRTC audio
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8769 --bind 127.0.0.1 >/tmp/ezero-oneqr-http.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8769/ezero_secure_connect_live_p2p_v0_1.html >/dev/null; then break; fi
+            sleep 1
+          done
+          node tests/test_ezero_secure_connect_one_link_browser_v0_1.mjs
+          node tests/test_ezero_secure_connect_android_preflight_browser_v0_1.mjs
+          node tests/test_ezero_secure_connect_live_p2p_browser_v0_1.mjs
+          node tests/test_ezero_secure_connect_privacy_copilot_browser_v0_1.mjs
+
+  actual-worker-local:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: No remote deployment; local two WebSocket runtime only
+        run: |
+          set -euo pipefail
+          grep -q '"ROOMS_ENABLED": "false"' secure_connect/call_room_lab/wrangler.jsonc
+          node --check tests/test_ezero_secure_connect_workerd_real_websocket_v0_1.mjs
+          node secure_connect/call_room_lab/test_room_worker.mjs
+          npm install --no-save --ignore-scripts --no-audit --no-fund ws@8.18.3
+      - name: Real Cloudflare workerd restricted localhost mock-only pilot
+        env: {WRANGLER_SEND_METRICS: 'false'}
+        run: |
+          set -euo pipefail
+          TEST_OWNER="$(printf 'e%.0s' {1..64})"
+          npx --yes wrangler@4 dev --local --config secure_connect/call_room_lab/wrangler.jsonc --ip 127.0.0.1 --port 8790 --var "ROOMS_ENABLED:true" --var "PILOT_OWNER_SECRET:${TEST_OWNER}" >/tmp/ezero-oneqr-workerd.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          ready=0
+          for i in $(seq 1 45); do
+            if curl -fsS --max-time 2 http://127.0.0.1:8790/health 2>/dev/null | grep -q STAGING_ENABLED; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            echo LOCAL_WORKER_STARTUP_FAILED
+            tail -n 25 /tmp/ezero-oneqr-workerd.log | sed -E 's/[a-f0-9]{64}/[REDACTED]/g'
+            exit 1
+          fi
+          EZERO_LOCAL_WORKER_ORIGIN=http://127.0.0.1:8790 node tests/test_ezero_secure_connect_workerd_real_websocket_v0_1.mjs
+          echo "REAL_WORKER_ONE_QR_SERVER_MINTED_INVITE_AND_ROLE_CONSENT: PASS"
+      - name: Safe same-origin Secure Pair Preview on real local Cloudflare workerd
+        env: {WRANGLER_SEND_METRICS: 'false'}
+        run: |
+          set -euo pipefail
+          grep -q '"workers_dev": false' secure_connect/pair_v1/preview_worker_lab/wrangler.jsonc
+          grep -q '"run_worker_first": true' secure_connect/pair_v1/preview_worker_lab/wrangler.jsonc
+          node --check tests/test_ezero_secure_pair_preview_workerd_local_v0_1.mjs
+          npx --yes wrangler@4 dev --local --config secure_connect/pair_v1/preview_worker_lab/wrangler.jsonc --ip 127.0.0.1 --port 8791 >/tmp/ezero-secure-pair-preview.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          ready=0
+          for i in $(seq 1 45); do
+            if curl -fsS --max-time 2 http://127.0.0.1:8791/health 2>/dev/null | grep -q PREVIEW_ONLY_NO_AUTH; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            echo PREVIEW_LOCAL_WORKER_STARTUP_FAILED
+            tail -n 30 /tmp/ezero-secure-pair-preview.log
+            exit 1
+          fi
+          EZERO_PREVIEW_LOCAL_ORIGIN=http://127.0.0.1:8791 node tests/test_ezero_secure_pair_preview_workerd_local_v0_1.mjs
+          echo "SAFE_SAME_ORIGIN_WORKER_STATIC_PREVIEW_WITH_AUTH_CALLS_DISABLED: PASS"
