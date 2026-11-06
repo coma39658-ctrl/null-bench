@@ -323,7 +323,15 @@ $("ezeroVoiceRecord").addEventListener("click",async()=>{
  if(typeof MediaRecorder!=="function"||!navigator.mediaDevices?.getUserMedia){voiceStatus("permission");return;}
  const generation=++recId;
  try{
-  const s=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+  // During an active, already-authorized call reuse its live microphone
+  // through a CLONED track. This avoids opening a second physical mic on
+  // mobile browsers (which can interrupt the successful WebRTC call).
+  // Outside a connected call, recording still requires a user tap and the
+  // usual getUserMedia permission. Stopping the clone never stops the call.
+  const callMic=$("localVideo")?.srcObject?.getAudioTracks?.()
+    .find(track=>track.readyState==="live"&&track.enabled);
+  const s=callMic?new MediaStream([callMic.clone()]):
+    await navigator.mediaDevices.getUserMedia({audio:true,video:false});
   if(generation!==recId||document.hidden){s.getTracks().forEach(x=>x.stop());return;}
   micStream=s;
   const mime=["audio/webm;codecs=opus","audio/mp4","audio/ogg","audio/webm"]
