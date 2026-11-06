@@ -331,6 +331,20 @@ try{
   assert.equal(await caller.evaluate(()=>window.EZERO_VOICE_TRANSPORT?.connected()),true,
     "Voice message must not close the existing authenticated call");
   console.log("TWO_PHONE_VOICE_NOTE_RECORD_CLONE_SEND_RECEIVE_USER_OPENS: PASS");
+  // A privacy boundary: muting during a connected call must never cause a
+  // new microphone permission request or background recording for a note.
+  await caller.locator("#ezeroInCallClose").click();
+  await caller.locator("#muteMic").click();
+  const mutedMediaCount=await caller.evaluate(()=>window.__mediaCalls.length);
+  await caller.locator("#ezeroInCallVoice").click();
+  await caller.locator("#ezeroVoiceRecord").click();
+  assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),mutedMediaCount,
+    "Voice-note button must not recapture a muted in-call microphone");
+  assert.equal(await caller.locator("#ezeroVoiceDraft").isVisible(),false);
+  assert.equal(await caller.locator("#ezeroVoiceStop").isVisible(),false);
+  console.log("MUTED_CALL_NEVER_OPENS_SECOND_MICROPHONE: PASS");
+  await caller.locator("#ezeroInCallClose").click();
+  await caller.locator("#muteMic").click();
 
   // All new live-call functions and audio notices support language switching:
   // Urdu RTL, Arabic RTL, English LTR, with the same main selector synchronized.
