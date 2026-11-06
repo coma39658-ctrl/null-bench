@@ -224,3 +224,29 @@ body.ezero-one-lab main>.ezero-pilot-banner,body.ezero-one-lab main>.modern-hero
 body.ezero-one-lab .ezero-unified-card #ezeroOneJoinHeading{font-size:20px}
 body.ezero-one-lab .ezero-unified-card #modernCallPanel[hidden],body.ezero-one-lab .ezero-unified-card #modernChatPanel[hidden],body.ezero-one-lab .ezero-unified-card #modernVoicePanel[hidden]{display:none!important}
 @media(max-width:460px){body.ezero-one-lab .ezero-unified-card{padding:10px;border-radius:17px}body.ezero-one-lab .ezero-unified-card .modern-feature-button{min-height:77px}}
+
+
+/* Saved friends: opt-in only after an authenticated, connected WebRTC session. */
+.communication-page.ezero-one-lab #ezeroFriendSavePanel{
+  display:grid;gap:8px;padding:12px;margin:12px 0;border-radius:13px;
+  background:#e8fff1;border:1px solid #73be93;color:#16452e
+}
+.communication-page.ezero-one-lab #ezeroFriendSavePanel[hidden]{display:none!important}
+.communication-page.ezero-one-lab #ezeroFriendSavePanel label{font-weight:850;font-size:14px}
+.communication-page.ezero-one-lab #ezeroFriendSavePanel input{
+  width:100%;min-height:46px;border-radius:10px;border:1px solid #76b996;
+  padding:10px;color:#143b2b;background:#fff;box-sizing:border-box
+}
+.communication-page.ezero-one-lab #ezeroSaveConnectedFriend{
+  min-height:48px;border:1px solid #36b981;border-radius:12px;color:#fff;
+  background:linear-gradient(120deg,#08653d,#0b9b62);font-weight:850
+}
+.communication-page.ezero-one-lab #ezeroSaveConnectedFriend:disabled{opacity:.55}
+.communication-page.ezero-one-lab #ezeroFriendSaveHelp,
+.communication-page.ezero-one-lab #ezeroFriendSaveStatus{
+  font-size:12px;line-height:1.75;color:#285a42;margin:4px 0
+}
+.communication-page.ezero-one-lab .ezero-friend-remove{
+  border-radius:9px;background:#fff6f4;border:1px solid #e0b5ae;
+  color:#9b3737;padding:7px 12px;font-weight:750;min-height:38px
+}

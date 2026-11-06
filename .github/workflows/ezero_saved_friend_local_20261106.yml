@@ -1,0 +1,40 @@
+name: E-ZERO Saved Friend Local Identity Gate
+on:
+  push:
+    branches:
+      - ezero-saved-friends-redial-20261106
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'js/ezero_secure_connect_device_identity_v0_1.js'
+      - 'js/ezero_secure_connect_live_p2p_v0_1.js'
+      - 'js/ezero_secure_connect_people_v0_1.js'
+      - 'ezero_secure_connect_one_request_lab_20261106.html'
+      - 'css/ezero_one_request_lab_20261106.css'
+      - 'tests/test_ezero_saved_friend_local_20261106.cjs'
+permissions:
+  contents: read
+jobs:
+  verify-local-identity:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and crypto store regression
+        run: |
+          set -euo pipefail
+          node --check js/ezero_secure_connect_device_identity_v0_1.js
+          node --check js/ezero_secure_connect_live_p2p_v0_1.js
+          node --check js/ezero_secure_connect_people_v0_1.js
+          node tests/test_ezero_saved_friend_local_20261106.cjs
+      - name: Confirm production signaling stays disabled
+        run: |
+          set -euo pipefail
+          grep -Fq 'enabled:false' js/ezero_auto_signaling_config_v0_1.js
+          grep -Fq 'websocketOrigin:""' js/ezero_auto_signaling_config_v0_1.js

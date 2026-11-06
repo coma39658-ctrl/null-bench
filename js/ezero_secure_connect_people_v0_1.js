@@ -53,6 +53,33 @@
       unknown:"طرف متصل",recent:"سجل لمدة 10 دقائق",notOnline:"حالة الاتصال الدائمة غير متاحة"}
   };
   const t=k=>(dict[document.documentElement.lang]||dict.ur)[k]||k;
+  const saveWords={
+    ur:{label:"👤 پہلی کامیاب کال کے بعد دوست کا نام محفوظ کریں",button:"✓ اس دوست کو محفوظ کریں",
+      placeholder:"دوست کا نام",help:"صرف حقیقی کنکشن اور آپ کی منظوری کے بعد نام، کال میں تصدیق شدہ ڈیجیٹل فنگرپرنٹ اور آپ کے فون کی غیر قابلِ برآمد نجی کلید اسی براؤزر میں محفوظ ہوں گے۔ انسانی شناخت کی ضمانت نہیں۔",
+      idle:"دوست محفوظ کرنے کے بعد بھی براہِ راست دوبارہ کال کے لیے مستقل محفوظ رابطہ سرور درکار ہے؛ یہ ابھی فعال نہیں۔",
+      saved:"✓ دوست اس فون پر محفوظ ہوگیا، اور اس فون کی شناخت بھی محفوظ ہے۔ ابھی بغیر QR دوبارہ کال کی سہولت فعال نہیں۔",
+      error:"دوست محفوظ نہیں ہوسکا؛ اس براؤزر میں محفوظ شناخت کی اجازت/اسٹوریج چیک کریں۔",
+      disconnected:"دوست محفوظ کرنے کے لیے حقیقی فعال WebRTC کال ضروری ہے۔",
+      needName:"دوست کا نام درج کریں۔",full:"50 دوست محفوظ ہیں؛ پہلے کوئی نام ہٹائیں۔",
+      remove:"ہٹائیں",confirmRemove:"کیا یہ دوست اسی فون سے ہٹانا چاہتے ہیں؟"},
+    en:{label:"👤 Save a friend after a successful call",button:"✓ Save this friend",placeholder:"Friend name",
+      help:"Only after a real call and your consent, a nickname, call-verified fingerprint and a non-extractable private device key are saved locally in this browser. No real-world identity guarantee.",
+      idle:"A secure addressable call server is still needed for no-QR redial; this is not active yet.",
+      saved:"✓ Friend and device identity saved locally. No-QR redial is not active yet.",
+      error:"Could not save. Check this browser's local storage permissions.",
+      disconnected:"A genuinely connected WebRTC call is needed to save this friend.",
+      needName:"Enter a friend name.",full:"50 friends saved; remove an old one first.",
+      remove:"Remove",confirmRemove:"Remove this friend from this phone?"},
+    ar:{label:"👤 احفظ صديقاً بعد مكالمة ناجحة",button:"✓ حفظ هذا الصديق",placeholder:"اسم الصديق",
+      help:"فقط بعد الاتصال الحقيقي وبموافقتك، يُحفظ الاسم وبصمة المكالمة ومفتاح الجهاز الخاص غير القابل للتصدير محلياً في هذا المتصفح. لا ضمان للهوية الواقعية.",
+      idle:"الاتصال مرة أخرى دون QR يحتاج لخادم توجيه آمن ودائم، ولم يُفعّل بعد.",
+      saved:"✓ حُفظ الصديق وهوية الجهاز محلياً؛ إعادة الاتصال دون QR غير مفعّلة بعد.",
+      error:"تعذّر الحفظ؛ تحقق من أذونات التخزين المحلي.",
+      disconnected:"يلزم اتصال WebRTC حقيقي لحفظ هذا الصديق.",
+      needName:"أدخل اسم الصديق.",full:"تم حفظ 50 صديقاً؛ احذف أحدهم أولاً.",
+      remove:"إزالة",confirmRemove:"هل تريد إزالة هذا الصديق من هذا الهاتف؟"}
+  };
+  const sw=k=>(saveWords[document.documentElement.lang]||saveWords.ur)[k];
   const el=(tag,cls,txt)=>{const n=document.createElement(tag);
     if(cls)n.className=cls;if(txt!==undefined)n.textContent=txt;return n;};
   function friends(){
@@ -87,6 +114,7 @@
     }catch(_){return[];}
   }
   let records=decodeHistory(),active=null,intent=null,tab="friends",timer=null,note=null;
+  let savingFriend=false,saveNotice=null;
   function persist(){
     try{
       if(!consent())localStorage.removeItem(HISTORY);
@@ -114,6 +142,17 @@
     }else a.textContent=(Array.from(name||"E")[0]||"E").toLocaleUpperCase();
     a.setAttribute("aria-hidden","true");return a;
   }
+  function renderSavePanel(){
+    const panel=$("ezeroFriendSavePanel"),btn=$("ezeroSaveConnectedFriend");
+    if(!panel||!btn)return;
+    const transport=window.EZERO_PEER_PROFILE_TRANSPORT;
+    const live=!!active&&transport?.connected()===true&&
+      transport.peerFingerprint()===active.fp;
+    panel.hidden=!live;
+    if(live&&!$("ezeroFriendSaveName").value.trim()&&
+       active.name!==t("unknown"))$("ezeroFriendSaveName").value=active.name;
+    btn.disabled=!live||savingFriend||!nameOf($("ezeroFriendSaveName").value);
+  }
   function card(name,small,tag,image){
     const article=el("article","ezero-person-card");
     article.append(avatar(name,image));
@@ -128,9 +167,21 @@
     let entries=[];
     if(tab==="friends"){
       entries=friends().filter(x=>x.name.toLocaleLowerCase().includes(search)||
-        x.fp.includes(search)).map(x=>card(x.name,
-        t("saved")+" · "+x.fp.slice(0,10)+"…",t("friends"),""));
-      if(active&&active.name.toLocaleLowerCase().includes(search)){
+        x.fp.includes(search)).map(x=>{
+        const item=card(x.name,t("saved")+" · "+x.fp.slice(0,10)+"…",t("friends"),"");
+        const remove=el("button","ezero-friend-remove",sw("remove"));
+        remove.type="button";
+        remove.addEventListener("click",()=>{
+          if(!window.confirm(sw("confirmRemove")))return;
+          try{localStorage.setItem(CONTACTS,JSON.stringify(friends().filter(v=>v.fp!==x.fp)));}
+          catch(_){saveNotice="error";render();return;}
+          render();
+        });
+        item.append(remove);
+        return item;
+      });
+      if(active&&!friends().some(x=>x.fp===active.fp)&&
+         active.name.toLocaleLowerCase().includes(search)){
         const img=$("ezeroPeerAvatar");
         entries.unshift(card(active.name,t("current"),t("temporary"),
           img&&!img.hidden?img.getAttribute("src"):""));
@@ -153,6 +204,7 @@
     $("ezeroHistoryClear").disabled=!records.length;
     $("ezeroPeopleStatus").textContent=t(note||(consent()?"historyOn":"historyOff"));
     schedule();
+    renderSavePanel();
   }
   function connected(){
     if(active)return;
@@ -171,6 +223,7 @@
   function ended(){
     if(!active)return;
     const old=active;active=null;intent=null;
+    $("ezeroFriendSaveName").value="";
     // Only a real connected session with explicit direction/type is eligible.
     if(consent()&&["incoming","outgoing"].includes(old.direction)&&
        ["audio","video"].includes(old.kind)){
@@ -184,8 +237,45 @@
   }
   function localize(){
     for(const n of document.querySelectorAll("[data-people]"))n.textContent=t(n.dataset.people);
-    $("ezeroPeopleSearch").placeholder=t("searchLabel");render();
+    $("ezeroPeopleSearch").placeholder=t("searchLabel");
+    const panel=$("ezeroFriendSavePanel");
+    if(panel){
+      panel.querySelector('label[for="ezeroFriendSaveName"]').textContent=sw("label");
+      $("ezeroFriendSaveName").placeholder=sw("placeholder");
+      $("ezeroSaveConnectedFriend").textContent=sw("button");
+      $("ezeroFriendSaveHelp").textContent=sw("help");
+      $("ezeroFriendSaveStatus").textContent=sw(saveNotice||"idle");
+    }
+    render();
   }
+  $("ezeroFriendSaveName")?.addEventListener("input",renderSavePanel);
+  $("ezeroSaveConnectedFriend")?.addEventListener("click",async()=>{
+    if(savingFriend)return;
+    const transport=window.EZERO_PEER_PROFILE_TRANSPORT;
+    const fp=active?.fp;
+    if(!validFP(fp)||!transport?.connected()||transport.peerFingerprint()!==fp){
+      saveNotice="disconnected";localize();return;
+    }
+    const name=nameOf($("ezeroFriendSaveName").value);
+    if(!name){saveNotice="needName";localize();return;}
+    const items=friends(),old=items.findIndex(x=>x.fp===fp);
+    if(old<0&&items.length>=50){saveNotice="full";localize();return;}
+    savingFriend=true;renderSavePanel();
+    try{
+      // The actual click is consent to persist this device's private CryptoKey.
+      const durable=await window.EZERO_DEVICE_IDENTITY_CONTROL?.saveAfterConsent();
+      if(durable!==true)throw Error("DEVICE_KEY_NOT_SAVED");
+      if(!transport.connected()||transport.peerFingerprint()!==fp)
+        throw Error("CALL_ENDED_BEFORE_SAVE");
+      const next=items.filter(x=>x.fp!==fp);
+      next.unshift({fp,name});
+      localStorage.setItem(CONTACTS,JSON.stringify(next));
+      active.name=name;
+      saveNotice="saved";
+      document.dispatchEvent(new CustomEvent("ezero:friend-local-saved",{detail:{fp}}));
+    }catch(_){saveNotice="error";}
+    finally{savingFriend=false;localize();}
+  });
   $("ezeroHistoryConsent").addEventListener("change",()=>{
     try{
       if($("ezeroHistoryConsent").checked)localStorage.setItem(CONSENT,"yes");
