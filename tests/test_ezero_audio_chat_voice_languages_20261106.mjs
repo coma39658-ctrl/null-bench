@@ -289,6 +289,40 @@ try{
   assert.notEqual(await caller.locator("#ezeroAudioStatus").getAttribute("data-state"),"missing",
     "Real remote audio exists and should be offered to the speaker");
   console.log("DEDICATED_LIVE_REMOTE_AUDIO_AND_MANUAL_SPEAKER_ROUTE: PASS");
+  // The public lens must replace the actual outgoing WebRTC video sender
+  // (NOT simply CSS on the local selfie) and leave real call audio intact.
+  const rawTrackId=await caller.evaluate(()=>document.getElementById("localVideo")
+    .srcObject.getVideoTracks()[0]?.id);
+  await caller.locator("#ezeroBeautyPreset").selectOption("smooth");
+  await caller.waitForFunction(()=>window.EZERO_BEAUTY_FILTER?.applied()===true,
+    {timeout:15000});
+  const lens=await caller.evaluate(()=>({
+    preset:window.EZERO_BEAUTY_FILTER.preset(),
+    previewVideoTrack:document.getElementById("localVideo").srcObject.getVideoTracks()[0].id,
+    processedSender:window.EZERO_BEAUTY_FILTER.applied(),
+    audioTrackLive:document.getElementById("localVideo").srcObject.getAudioTracks()
+      .some(t=>t.readyState==="live")
+  }));
+  assert.equal(lens.preset,"smooth");
+  assert.equal(lens.processedSender,true);
+  assert.notEqual(lens.previewVideoTrack,rawTrackId,
+    "Self-preview must show same outgoing processed video track, not merely CSS");
+  assert.equal(lens.audioTrackLive,true);
+  await callee.waitForFunction(()=>{
+    const v=document.getElementById("remoteVideo");
+    const a=document.getElementById("ezeroRemoteAudio");
+    return v?.srcObject?.getVideoTracks().some(t=>t.readyState==="live")&&
+      a?.srcObject?.getAudioTracks().some(t=>t.readyState==="live");
+  },{timeout:12000});
+  await caller.locator("#ezeroBeautyPreset").selectOption("natural");
+  await caller.waitForFunction(()=>window.EZERO_BEAUTY_FILTER?.applied()===false,
+    {timeout:12000});
+  const naturalId=await caller.evaluate(()=>document.getElementById("localVideo")
+    .srcObject.getVideoTracks()[0]?.id);
+  assert.equal(naturalId,rawTrackId,"Natural mode must fully restore original camera");
+  assert.equal(await caller.evaluate(()=>window.EZERO_VOICE_TRANSPORT?.connected()),true);
+  console.log("SENDER_SIDE_HIGH_QUALITY_BEAUTY_LENS_BOTH_PHONES_AND_AUDIO_SAFE: PASS");
+
 
   // Temporary private text message traverses the *existing* data channel.
   const testText="E-ZERO two-phone one-view message - verified";
@@ -298,6 +332,9 @@ try{
   await caller.locator("#sendMessage").click();
   await callee.waitForFunction(()=>document.getElementById("incomingItem")?.hidden===false,
     {timeout:12000});
+  assert.equal(await callee.locator("#ezeroMessageIncomingNotice").isVisible(),true,
+    "Valid private text must show a privacy-safe incoming notification");
+  assert.ok((await callee.locator("#ezeroMessageIncomingNotice").innerText()).includes("پیغام"));
   await callee.locator("#ezeroInCallChat").click();
   assert.equal(await callee.locator("#viewMessage").isVisible(),true);
   await callee.locator("#viewMessage").click();
@@ -326,6 +363,9 @@ try{
     "Recipient can switch from chat to voice within the same drawer");
   await callee.locator("#ezeroInCallVoiceTab").click();
   await callee.locator("#ezeroVoiceReceived").waitFor({state:"visible",timeout:12000});
+  assert.equal(await callee.locator("#ezeroMessageIncomingNotice").isVisible(),true,
+    "Valid remote voice note must generate a separate visible alert");
+  assert.ok((await callee.locator("#ezeroMessageIncomingNotice").innerText()).includes("وائس"));
   assert.equal(await callee.locator("#ezeroVoiceOpenIncoming").isVisible(),true);
   await callee.locator("#ezeroVoiceOpenIncoming").click();
   const incomingAudio=await callee.locator("#ezeroVoiceIncomingAudio").evaluate(el=>({
@@ -377,6 +417,9 @@ try{
     const audioStage=await caller.locator("#ezeroAudioStatus").getAttribute("data-state");
     assert.ok(audioText.includes(expectedAudioNotice[language][audioStage]),
       "Remote-audio "+audioStage+" status must translate to "+language+": "+audioText);
+    assert.equal(await caller.locator("#ezeroBeautyPreset").locator("option[value=smooth]").textContent(),
+      language==="en"?"Smooth":language==="ar"?"بشرة ناعمة":"صاف جلد",
+      "Beauty choices must switch to the active language");
     const voiceText=(await caller.locator("#ezeroVoiceStatus").innerText()).trim();
     assert.ok(voiceText.length>5,"Voice-note status must remain translated "+language);
     voiceStatusLanguages.add(voiceText);
