@@ -13,8 +13,8 @@
   const ttl=10*60*1000;
   const copy={
     ur:{title:"محفوظ خودکار رابطہ — تجرباتی",start:"📞 محفوظ دعوت بنائیں",
-      share:"↗ دعوت شیئر کریں",join:"✓ درخواست قبول کریں",
-      decline:"✕ درخواست مسترد کریں",idle:"فون ملانے کے لیے دعوت تیار کریں۔",
+      share:"↗ دعوت شیئر کریں",join:"✓ کال قبول کریں",
+      decline:"✕ کال رد کریں",idle:"فون ملانے کے لیے دعوت تیار کریں۔",
       incoming:"دوست کی کال کی دعوت ہے۔ قبول کریں تو مائیک/کیمرے کی اجازت مانگی جا سکتی ہے۔",
       connecting:"محفوظ رابطے کی کوشش جاری ہے۔",
       inviteReady:"دعوت تیار ہے؛ قابلِ اعتماد دوست کو بھیجیں۔",
@@ -31,7 +31,7 @@
       remoteLeft:"دوسرا فون رابطے سے نکل گیا؛ کال کی حالت WebRTC سے الگ دیکھی جائے گی۔",
       stun:"دوسرے نیٹ ورک کے لیے اختیاری STUN (IP/نیٹ ورک میٹاڈیٹا ظاہر ہو سکتا ہے)"},
     en:{title:"Secure auto-connect — pilot",start:"📞 Create secure invite",
-      share:"↗ Share invite",join:"✓ Accept request",decline:"✕ Decline",
+      share:"↗ Share invite",join:"✓ Answer call",decline:"✕ Decline call",
       idle:"Create an invitation to connect phones.",
       incoming:"A friend has invited you. Camera/microphone permission may be requested after you accept.",
       connecting:"Secure connection in progress.",
@@ -49,7 +49,7 @@
       remoteLeft:"The other phone left signaling. WebRTC call state is checked separately.",
       stun:"Optional STUN for different networks (may expose IP/network metadata)"},
     ar:{title:"اتصال تلقائي آمن — تجريبي",start:"📞 إنشاء دعوة آمنة",
-      share:"↗ مشاركة الدعوة",join:"✓ قبول الطلب",decline:"✕ رفض الطلب",
+      share:"↗ مشاركة الدعوة",join:"✓ الرد على المكالمة",decline:"✕ رفض المكالمة",
       idle:"أنشئ دعوة لربط الهاتفين.",
       incoming:"وصلتك دعوة. قد يُطلب إذن الكاميرا أو الميكروفون بعد قبولها.",
       connecting:"جارٍ إنشاء الاتصال الآمن.",
