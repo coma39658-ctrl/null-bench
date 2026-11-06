@@ -239,8 +239,10 @@ try{
     "Authenticated call chat must be reachable without navigating away");
   await caller.locator("#sendText").fill("E-ZERO private text stage test");
   await caller.locator("#sendMessage").click();
-  await callee.locator("#incomingItem").waitFor({state:"visible",timeout:10000});
+  // The hidden parent keeps private messages concealed until the recipient
+  // explicitly opens their in-call drawer; test that real user action first.
   await callee.locator("#ezeroInCallChat").click();
+  await callee.locator("#incomingItem").waitFor({state:"visible",timeout:10000});
   await callee.locator("#viewMessage").click();
   assert.equal(await callee.locator("#seenMessage").innerText(),
     "E-ZERO private text stage test");
