@@ -22,6 +22,7 @@ on:
       - 'css/ezero_trusted_friends_stage_v0_1.css'
       - 'tests/test_ezero_trusted_friends_stage_wiring_20261106.cjs'
       - 'tests/test_ezero_trusted_friends_stage_browser_20261106.mjs'
+      - 'tests/test_ezero_trusted_live_friends_redial_20261106.mjs'
       - 'tests/ezero_trusted_inbox_live_staging_smoke_20261106.mjs'
       - '.github/workflows/ezero_trusted_live_staging_smoke_20261106.yml'
       - '.github/workflows/ezero_trusted_inbox_candidate_20261106.yml'
@@ -87,6 +88,17 @@ jobs:
             sleep 1
           done
           node tests/test_ezero_trusted_friends_stage_browser_20261106.mjs
+      - name: Test real deployed Trusted Friends WSS, synthetic two-phone opt-in and one-accept WebRTC redial
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8769 --bind 127.0.0.1 >/tmp/ezero-trusted-live-qa.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8769/ezero_trusted_friends_staging_20261106.html >/dev/null; then break; fi
+            sleep 1
+          done
+          node tests/test_ezero_trusted_live_friends_redial_20261106.mjs
 
   verify-deployed-staging-wss:
     # Independent real-network check: no deploy, secrets, trust writes or media.
