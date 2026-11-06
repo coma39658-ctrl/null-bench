@@ -29,7 +29,7 @@
  const hint=document.createElement("small");hint.id="ezeroBeautyInfo";
  hint.setAttribute("role","status");hint.setAttribute("aria-live","polite");
  panel.append(ui,hint);
- let preset="natural",bound=null,processor=null,raf=0,busy=false,serial=0,notice="status";
+ let preset="natural",bound=null,processor=null,raf=0,busy=false,serial=0,notice="status",lastFrame=0;
  const lng=()=>["ur","ar","en"].includes(document.documentElement.lang)?document.documentElement.lang:"ur";
  function translate(){
    name.textContent=words[lng()].title;
@@ -46,8 +46,12 @@
      processor.canvas.width=0;processor.canvas.height=0;processor=null;
    }
  }
- function draw(){
+ function draw(now=0){
    if(!processor||!bound)return;
+   // Limit continuous canvas work to approximately 20 FPS on mobile.
+   // The capture stream also maxes at 20; never run a 60 FPS blur loop.
+   if(now&&now-lastFrame<48){raf=requestAnimationFrame(draw);return;}
+   lastFrame=now;
    const p=processor,source=p.video,ctx=p.ctx,canvas=p.canvas;
    if(source.readyState>=2&&!source.paused&&source.videoWidth){
      const w=canvas.width,h=canvas.height,s=styles[preset];
@@ -105,7 +109,7 @@
      const canvas=document.createElement("canvas");canvas.width=width;canvas.height=height;
      const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
      if(!ctx){video.pause();video.srcObject=null;say("unsupported");return;}
-     const stream=canvas.captureStream(24),track=stream.getVideoTracks()[0];
+     const stream=canvas.captureStream(20),track=stream.getVideoTracks()[0];
      if(!track){video.pause();video.srcObject=null;say("unsupported");return;}
      processor={video,canvas,ctx,track,display:new MediaStream([track,...target.stream.getAudioTracks()])};
      draw();
@@ -141,6 +145,10 @@
  });
  $("language")?.addEventListener("change",translate);
  window.addEventListener("pagehide",detach);
- window.EZERO_BEAUTY_FILTER=Object.freeze({attach,detach});
+ window.EZERO_BEAUTY_FILTER=Object.freeze({attach,detach,
+   // A bounded observation for test diagnostics, not physical viewing proof.
+   applied:()=>!!processor&&!!bound&&sender()?.track===processor.track,
+   preset:()=>preset
+ });
  translate();
 })();
