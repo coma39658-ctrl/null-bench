@@ -1,9 +1,9 @@
 {
   "name": "E-ZERO Secure Connect",
   "short_name": "E-ZERO Connect",
-  "description": "One E-ZERO green page: explicit one-request, one-accept experimental QR audio/video; no background call notifications yet",
+  "description": "Unified E-ZERO Secure Connect public beta: consensual QR audio/video, saved friends, local profile and optional SHA-256 evidence. No background call notification.",
   "id": "./ezero_secure_connect_live_p2p_v0_1.html",
-  "start_url": "./ezero_secure_connect_one_request_lab_20261106.html",
+  "start_url": "./ezero_trusted_friends_staging_20261106.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#ecf9f1",
@@ -31,8 +31,8 @@
     {
       "name": "E-ZERO Secure Connect",
       "short_name": "Connect",
-      "url": "./ezero_secure_connect_one_request_lab_20261106.html",
-      "description": "One green public page for QR call invitations and accept/decline"
+      "url": "./ezero_trusted_friends_staging_20261106.html",
+      "description": "Unified audio/video, one-QR pairing and saved friends — public beta"
     }
   ]
 }
