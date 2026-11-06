@@ -101,6 +101,7 @@
    const id=Array.from(bytes,v=>v.toString(16).padStart(2,"0")).join("");
    if(!transport().send("friend-request",id,name)){report("failed");return;}
    pending={id,fp,created:Date.now()};
+   delete root.dataset.expanded;
    report("waiting");
    timeout=setTimeout(()=>{clearPending();report("expired");},120000);
  });
