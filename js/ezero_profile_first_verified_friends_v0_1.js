@@ -53,7 +53,8 @@ const friendStatus=node("p","ezeroFriendAutoSaveStatus");
 friendStatus.setAttribute("role","status");friendStatus.setAttribute("aria-live","polite");
 box.append(h,help,id,open,legend,status,friendStatus);
 dock.prepend(box);
-let ready=false,verifiedKey=null,checking=false,lastAutoPeer="",pairIntent=null;
+let ready=false,verifiedKey=null,checking=false,lastAutoPeer="",pairIntent=null,
+    proofFingerprint=null;
 const cleanName=v=>typeof v==="string"?v.trim().replace(/\s+/g," ").slice(0,40):"";
 const userProfile=()=>{
  try{const p=JSON.parse(localStorage.getItem(PROFILE)||"null");
@@ -102,7 +103,7 @@ document.addEventListener("ezero:profile-local-saved",()=>{void verifyProfile();
 document.addEventListener("ezero:call-intent",e=>{
  if(e.detail?.direction==="outgoing"&&
    ["audio","video"].includes(e.detail?.kind))
-   pairIntent={role:"sender",at:Date.now()};
+   {pairIntent={role:"sender",at:Date.now()};proofFingerprint=null;}
 });
 // The receiver must physically Accept the invitation. Opening a link alone
 // cannot add anyone. Signing and peer fingerprint verification remain required.
@@ -111,7 +112,7 @@ document.addEventListener("click",e=>{
  if(button?.id==="ezeroAutoAccept"&&
     $("ezeroAutoIncoming")?.hidden===false&&
     /^#room=[A-Za-z0-9_-]{32}\.[A-Za-z0-9_-]{43}$/.test(location.hash))
-   pairIntent={role:"recipient",at:Date.now()};
+   {pairIntent={role:"recipient",at:Date.now()};proofFingerprint=null;}
 },true);
 // Call setup must never silently proceed under an ephemeral identity.
 // Allow opening a friend drawer, reading a QR and editing a profile without
@@ -139,7 +140,8 @@ const validFriendName=v=>cleanName(v).length>0;
 function persistFriend(fp,peer){
  if(!pairApproved()||!FP.test(fp))return false;
  const transport=window.EZERO_PEER_PROFILE_TRANSPORT;
- if(transport?.connected()!==true||transport.peerFingerprint()!==fp)return false;
+ const verifiedLive=transport?.connected()===true&&transport.peerFingerprint()===fp;
+ if(!verifiedLive&&proofFingerprint!==fp)return false;
  let items=[];
  try{const v=JSON.parse(localStorage.getItem(FRIENDS)||"[]");
    if(Array.isArray(v))items=v.filter(row=>row&&FP.test(row.fp)&&validFriendName(row.name));
@@ -166,6 +168,17 @@ function persistFriend(fp,peer){
  document.dispatchEvent(new CustomEvent("ezero:friend-local-saved",{detail:{fp,automatic:true}}));
  return true;
 }
+document.addEventListener("ezero:peer-signed-verified",e=>{
+ const d=e.detail||{};
+ if(!pairApproved()||d.signatureVerified!==true||
+    !FP.test(d.peerFingerprint||""))return;
+ // Sender may save ONLY after verifying the recipient's signed ANSWER.
+ // Recipient may save ONLY after Accept and verifying sender's OFFER.
+ if((pairIntent.role==="sender"&&d.signalType!=="answer")||
+    (pairIntent.role==="recipient"&&d.signalType!=="offer"))return;
+ proofFingerprint=d.peerFingerprint;
+ persistFriend(d.peerFingerprint,null);
+});
 function afterConnected(){
  if(!pairApproved())return;
  const transport=window.EZERO_PEER_PROFILE_TRANSPORT;
@@ -175,13 +188,13 @@ function afterConnected(){
 }
 document.addEventListener("ezero:channel-state",e=>{
  if(e.detail?.connected)afterConnected();
- else{lastAutoPeer="";pairIntent=null;}
+ else{lastAutoPeer="";pairIntent=null;proofFingerprint=null;}
 });
 document.addEventListener("ezero:call-status",e=>{
  if(e.detail?.stage==="connected")afterConnected();
  else if(["idle","micDenied","iceNoRoute","signalInvalid",
           "fingerprintMismatch","failed"].includes(e.detail?.stage))
-   pairIntent=null;
+   {pairIntent=null;proofFingerprint=null;}
 });
 document.addEventListener("ezero:profile-received",e=>{
  const d=e.detail||{},transport=window.EZERO_PEER_PROFILE_TRANSPORT;
