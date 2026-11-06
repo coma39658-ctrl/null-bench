@@ -279,8 +279,12 @@ function select(type){
  $("modernCallPanel").hidden=!call;
  $("modernChatPanel").hidden=type!=="chat";
  $("modernVoicePanel").hidden=type!=="voice";
- const radio=pick('input[name="mode"][value="'+(type==="video"?"video":"audio")+'"]');
- if(radio)radio.checked=true;
+ // Chat and voice panels do not alter an already-established video call.
+ // Preserve the active media mode while opening in-call messaging/recording.
+ if(call){
+   const radio=pick('input[name="mode"][value="'+type+'"]');
+   if(radio)radio.checked=true;
+ }
  explain();
 }
 for(const b of document.querySelectorAll("[data-modern-select]"))b.addEventListener("click",()=>select(b.dataset.modernSelect));
