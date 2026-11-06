@@ -152,6 +152,22 @@ export class TrustedInbox extends DurableObject {
       return;
     }
     if(a.role==="owner"){
+      if(msg?.t==="received"){
+        // Delivery is acknowledged only after the authenticated owner's
+        // browser parses, validates and surfaces this exact invitation.
+        if(!CALL_ID.test(msg.callId||"")||!FP.test(msg.from||""))
+          return send(ws,{t:"error",code:"BAD_RECEIPT"});
+        const caller=this.members().find(client=>{
+          const c=attach(client);
+          return c?.role==="caller"&&c.fp===msg.from&&
+            c.target===a.fp&&c.pendingAck===msg.callId;
+        });
+        if(!caller)return send(ws,{t:"error",code:"UNKNOWN_RECEIPT"});
+        const callerState=attach(caller);
+        caller.serializeAttachment({...callerState,pendingAck:null});
+        send(caller,{t:"delivered-to-active-tab",callId:msg.callId});
+        return;
+      }
       if(["trust","untrust"].includes(msg?.t)){
         if(!FP.test(msg.fp||"")||msg.fp===a.fp)
           return send(ws,{t:"error",code:"BAD_FRIEND"});
@@ -193,17 +209,20 @@ export class TrustedInbox extends DurableObject {
     await this.ctx.storage.put(id,{
       callId:msg.callId,nextAt:now+COOLDOWN_MS,expires:now+REPLAY_MS
     });
-    ws.serializeAttachment({...a,called:true});
+    ws.serializeAttachment({...a,called:true,pendingAck:msg.callId});
     // No offline storage: only deliver to a connected, consenting owner's tab.
     const forwarded=send(owner,{t:"incoming",from:a.fp,callId:msg.callId,
       kind:msg.kind,invite:msg.invite});
     if(!forwarded){
       // The fresh attempt is still consumed by the existing abuse cooldown.
       // Do not claim delivery if the owner's live socket rejects the send.
+      ws.serializeAttachment({...attach(ws),pendingAck:null});
       send(ws,{t:"error",code:"DELIVERY_FAILED"});
       return;
     }
-    send(ws,{t:"delivered-to-active-tab",callId:msg.callId});
+    // A WebSocket frame being queued is not an application receipt.
+    // Await one owner-browser 'received' message for this exact callId.
+
   }
   async webSocketClose(){}
   async webSocketError(ws){
