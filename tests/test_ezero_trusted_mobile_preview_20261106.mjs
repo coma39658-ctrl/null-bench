@@ -278,6 +278,22 @@ try{
   assert.equal(await caller.locator("#ezeroSentVoiceNotes audio").count(),2,
     "Both sent voice notes must have separate temporary playback controls");
   assert.equal(await callee.locator("#ezeroVoiceQueue .ezero-voice-inbox-play").count(),2);
+  // Browser pointer diagnosis for the nested in-call drawer on mobile.
+  const hit=await callee.evaluate(()=>{
+    const el=document.querySelector("#ezeroVoiceQueue .ezero-voice-inbox-delete");
+    el?.scrollIntoView({block:"center",inline:"center"});
+    const rect=(node)=>{const r=node?.getBoundingClientRect();
+      return r?{x:r.x,y:r.y,w:r.width,h:r.height}:null;};
+    const r=el.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2;
+    const top=document.elementFromPoint(x,y);
+    return {button:rect(el),row:rect(el.parentElement),
+      queue:rect(document.getElementById("ezeroVoiceQueue")),
+      drawer:rect(document.getElementById("ezeroInCallMessageDrawer")),
+      atPoint:top?.tagName+"#"+(top?.id||"")+"."+(top?.className||""),
+      pointer:getComputedStyle(el).pointerEvents,queuePointer:getComputedStyle(
+        document.getElementById("ezeroVoiceQueue")).pointerEvents};
+  });
+  console.log("VOICE_DELETE_HIT_GEOMETRY",JSON.stringify(hit));
   await callee.locator("#ezeroVoiceQueue .ezero-voice-inbox-delete").first().click();
   assert.equal(await callee.locator("#ezeroVoiceQueue .ezero-voice-inbox-row").count(),1);
   await caller.locator("#ezeroInCallClose").click();
