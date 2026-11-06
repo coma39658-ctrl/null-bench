@@ -59,21 +59,21 @@ body.communication-page.ezero-one-lab.ezero-video-connected
  padding:5px 8px!important;background:#032b1fdc!important;
 }
 body.communication-page.ezero-one-lab.ezero-video-connected
- #modernCallPanel .ezero-mutual-friends:not(:has(.ezero-friend-request-prompt:not([hidden]))){
+ #modernCallPanel .ezero-mutual-friends:not(:has(.ezero-friend-request-prompt:not([hidden]))):not([data-expanded="true"]){
  position:absolute!important;right:8px!important;left:auto!important;
  bottom:calc(105px + env(safe-area-inset-bottom))!important;
  width:min(40vw,158px)!important;max-height:75px!important;
  overflow:hidden!important;padding:2px 4px!important;
 }
 body.communication-page.ezero-one-lab.ezero-video-connected
- #modernCallPanel .ezero-mutual-friends:not(:has(.ezero-friend-request-prompt:not([hidden]))) strong,
+ #modernCallPanel .ezero-mutual-friends:not(:has(.ezero-friend-request-prompt:not([hidden]))):not([data-expanded="true"]) strong,
 body.communication-page.ezero-one-lab.ezero-video-connected
- #modernCallPanel .ezero-mutual-friends:not(:has(.ezero-friend-request-prompt:not([hidden]))) label,
+ #modernCallPanel .ezero-mutual-friends:not(:has(.ezero-friend-request-prompt:not([hidden]))):not([data-expanded="true"]) label,
 body.communication-page.ezero-one-lab.ezero-video-connected
- #modernCallPanel .ezero-mutual-friends:not(:has(.ezero-friend-request-prompt:not([hidden]))) small{
+ #modernCallPanel .ezero-mutual-friends:not(:has(.ezero-friend-request-prompt:not([hidden]))):not([data-expanded="true"]) small{
  display:none!important
 }
 body.communication-page.ezero-one-lab.ezero-video-connected
- #modernCallPanel .ezero-mutual-friends:not(:has(.ezero-friend-request-prompt:not([hidden]))) button{
+ #modernCallPanel .ezero-mutual-friends:not(:has(.ezero-friend-request-prompt:not([hidden]))):not([data-expanded="true"]) button{
  min-height:36px!important;font-size:10px!important;padding:3px!important
 }
