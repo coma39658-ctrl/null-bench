@@ -59,7 +59,7 @@
  const status=document.createElement("small");status.id="ezeroMutualFriendStatus";
  status.setAttribute("role","status");status.setAttribute("aria-live","polite");
  root.append(title,row,request,status);panel.append(root);
- let pending=null,incoming=null,timeout=null,statusKey="idle";
+ let pending=null,incoming=null,timeout=null,incomingTimeout=null,statusKey="idle";
  const transport=()=>window.EZERO_FRIEND_TRANSPORT;
  const contacts=()=>window.EZERO_LOCAL_CONTACTS;
  const validName=v=>typeof v==="string"&&v.trim().length>0&&v.trim().length<=40;
@@ -69,8 +69,12 @@
  function connected(){return transport()?.connected()===true&&validFP(transport()?.peerFingerprint());}
  function report(k){statusKey=k;status.textContent=tr(k);}
  function clearPending(){pending=null;if(timeout){clearTimeout(timeout);timeout=null;}}
+ function clearIncoming(){
+   incoming=null;request.hidden=true;
+   if(incomingTimeout){clearTimeout(incomingTimeout);incomingTimeout=null;}
+ }
  function clearState(){
-   clearPending();incoming=null;request.hidden=true;
+   clearPending();clearIncoming();
    delete root.dataset.expanded;
    root.hidden=true;report("idle");
  }
@@ -110,9 +114,18 @@
    const d=event.detail||{},fp=transport().peerFingerprint();
    if(d.peerFingerprint!==fp||!validFP(fp)||!validName(d.name))return;
    if(d.kind==="friend-request"){
-     if(incoming)return;
+     // An expired incoming request may not block a new authenticated request.
+     if(incoming){
+       if(Date.now()-incoming.created<120000)return;
+       clearIncoming();
+     }
      incoming={id:d.id,fp,name:safeName(d.name),created:Date.now()};
      request.hidden=false;redraw();report("requested");
+     incomingTimeout=setTimeout(()=>{
+       if(incoming&&Date.now()-incoming.created>=120000){
+         clearIncoming();report("expired");
+       }
+     },120000);
    }else if(d.kind==="friend-response"&&pending &&
       pending.fp===fp&&pending.id===d.id&&Date.now()-pending.created<=120000){
      const accepted=d.accepted===true;
@@ -127,12 +140,12 @@
    const response=incoming,own=myName(),fp=transport().peerFingerprint();
    if(!validName(own)){root.dataset.expanded="true";report("name");nameInput.focus();return;}
    if(response.fp!==fp || Date.now()-response.created>120000){
-     incoming=null;request.hidden=true;report("expired");return;
+     clearIncoming();report("expired");return;
    }
    if(!transport().send("friend-response",response.id,own,true)){
      report("failed");return;
    }
-   incoming=null;request.hidden=true;
+   clearIncoming();
    report(contacts()?.saveConnectedFriend(fp,response.name)?"saved":"failed");
  });
  decline.addEventListener("click",()=>{
@@ -140,7 +153,7 @@
    const response=incoming;
    const own=validName(myName())?myName():"E-ZERO";
    transport().send("friend-response",response.id,own,false);
-   incoming=null;request.hidden=true;report("decline");
+   clearIncoming();report("decline");
  });
  document.addEventListener("ezero:channel-state",e=>{
    if(e.detail?.connected)queueMicrotask(refresh);else clearState();
