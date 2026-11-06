@@ -1,0 +1,57 @@
+name: E-ZERO Contact-First Audio/Video Sidebar QA
+on:
+  push:
+    branches: [ezero-contact-first-video-sidebar-20261106]
+  pull_request:
+    branches: [main,ezero-public-true-video-path-20261106]
+    paths:
+      - 'ezero_trusted_friends_staging_20261106.html'
+      - 'js/ezero_contact_first_call_dock_v0_1.js'
+      - 'css/ezero_contact_first_call_dock_v0_1.css'
+      - 'js/ezero_trusted_friends_controls_candidate_v0_1.js'
+      - 'tests/test_ezero_contact_first_call_20261106.mjs'
+      - '.github/workflows/ezero_contact_first_sidebar_20261106.yml'
+permissions:
+  contents: read
+jobs:
+  contacts-then-video:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check contact selector and core safety boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check js/ezero_contact_first_call_dock_v0_1.js
+          node --check js/ezero_trusted_friends_controls_candidate_v0_1.js
+          node --check tests/test_ezero_contact_first_call_20261106.mjs
+          grep -Fq 'ezero_contact_first_call_dock_v0_1.js' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'ezero_immersive_video_call_v0_1.js' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'ezero_signed_media_evidence_v0_1.js' ezero_trusted_friends_staging_20261106.html
+          ! grep -Fq 'getUserMedia(' js/ezero_contact_first_call_dock_v0_1.js
+          ! grep -Fq 'new RTCPeerConnection' js/ezero_contact_first_call_dock_v0_1.js
+          echo 'CONTACT_SELECTION_READ_ONLY_NO_MEDIA_BEFORE_USER_ACTION: PASS'
+      - name: Install isolated two-mobile Chromium QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts playwright@1.57.0 ws@8.18.3
+          npx playwright install --with-deps chromium --only-shell
+      - name: Test contacts first, video mode, real peer camera and hangup
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8769 --bind 127.0.0.1 > /tmp/ezero-contact-first-qa.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8769/ezero_trusted_friends_staging_20261106.html >/dev/null && break
+            sleep 1
+          done
+          node tests/test_ezero_contact_first_call_20261106.mjs
