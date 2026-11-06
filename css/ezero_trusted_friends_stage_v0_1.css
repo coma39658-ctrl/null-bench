@@ -56,3 +56,26 @@
 .communication-page.ezero-one-lab #ezeroTrustedStatus[data-status="error"]{
   color:#a6292c
 }
+
+
+/* Staging-only, opt-in signed media evidence controls. */
+.ezero-evidence-panel{border:1px solid rgba(56,189,128,.4);
+  border-radius:16px;background:linear-gradient(145deg,#092b21,#11392c);
+  padding:16px;box-shadow:0 0 0 1px rgba(100,200,146,.11)}
+.ezero-evidence-panel h2,.ezero-evidence-panel h3{color:#ccf4d7}
+.ezero-evidence-panel p,.ezero-evidence-panel label{line-height:1.65}
+.ezero-evidence-actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+.ezero-evidence-panel button{min-height:44px;max-width:100%;white-space:normal}
+#ezeroEvidenceIncoming{border:2px solid #bb3b38;padding:12px;margin:10px 0;
+  border-radius:12px;background:rgba(100,0,0,.16)}
+#ezeroEvidenceRecBadge{display:inline-block;padding:8px 12px;
+  border:1px solid #e85656;border-radius:24px;color:#fff;background:#8a1423;
+  font-weight:800;letter-spacing:.07em}
+#ezeroEvidenceRecBadge[hidden]{display:none}
+.ezero-evidence-entry{display:flex;gap:8px;align-items:center;
+  justify-content:space-between;flex-wrap:wrap;
+  border:1px solid rgba(156,205,158,.28);border-radius:12px;padding:8px;
+  margin:8px 0;overflow-wrap:anywhere}
+#ezeroEvidenceImport{display:block;margin-top:10px;max-width:100%}
+@media(max-width:430px){.ezero-evidence-panel{padding:12px}
+  .ezero-evidence-panel button{width:100%}}
