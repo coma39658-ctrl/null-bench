@@ -108,3 +108,13 @@ body.communication-page.ezero-one-lab #ezeroVoiceQueue .ezero-voice-inbox-delete
   background:#632b35!important;border:1px solid #f2aab2!important;
   border-radius:10px!important;color:#fff!important
 }
+
+/* Avoid two nested scrolling surfaces trapping Android pointer hit testing.
+ * The in-call drawer already owns scrolling; queue cards stay in normal flow. */
+body.communication-page.ezero-one-lab #ezeroVoiceQueue:not([hidden]){
+  max-height:none!important;overflow:visible!important;overflow-anchor:none!important;
+  isolation:isolate;position:relative
+}
+body.communication-page.ezero-one-lab #ezeroVoiceQueue .ezero-voice-inbox-row{
+  overflow:visible!important;isolation:isolate
+}
