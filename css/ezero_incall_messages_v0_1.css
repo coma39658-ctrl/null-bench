@@ -93,3 +93,32 @@ body.communication-page.ezero-one-lab.ezero-video-connected
     font-size:11px!important;padding-inline:7px!important
   }
 }
+
+body.communication-page.ezero-one-lab #ezeroInCallLocaleControl[hidden]{
+  display:none!important
+}
+body.communication-page.ezero-one-lab .ezero-in-call-locale{
+  display:flex!important;align-items:center!important;gap:7px!important;
+  z-index:10!important;max-width:210px!important;
+  color:#e7fff1!important;font-size:11px!important;font-weight:800!important;
+  margin:8px 9px!important
+}
+body.communication-page.ezero-one-lab .ezero-in-call-locale select{
+  font:inherit!important;min-width:0!important;max-width:125px!important;
+  background:#104632!important;color:white!important;
+  border:1px solid #9bedbc!important;border-radius:14px!important;
+  padding:6px 7px!important;min-height:37px!important;
+  color-scheme:dark!important
+}
+body.communication-page.ezero-one-lab.ezero-video-connected
+  #modernCallPanel .ezero-in-call-locale{
+  position:absolute!important;top:calc(46px + env(safe-area-inset-top))!important;
+  left:10px!important;right:auto!important;
+  margin:0!important;z-index:10!important;
+  padding:4px 8px!important;border-radius:15px!important;
+  background:#031d17ae!important;backdrop-filter:blur(7px)
+}
+body.communication-page.ezero-one-lab.ezero-video-connected
+  #modernCallPanel .ezero-in-call-locale select{
+  font-size:12px!important
+}
