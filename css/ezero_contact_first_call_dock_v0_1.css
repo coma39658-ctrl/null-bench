@@ -120,3 +120,31 @@ body.ezero-one-lab #ezeroFriendNewQr{background:#193c2d}
   body.ezero-one-lab #ezeroContactFirstHeading{font-size:14px}
   body.ezero-one-lab .ezero-contact-call-actions button{font-size:12px}
 }
+
+/* Explicit NEW QR is independent of the scanner and saved-friend inbox.
+   The short-lived invitation now opens directly below these call actions. */
+body.ezero-one-lab #ezeroFreshQrToggle{
+  display:flex;align-items:center;justify-content:center;
+  box-sizing:border-box;width:100%;min-height:48px;
+  border-radius:13px;border:1px solid #97e7b7;
+  background:#0e7452;color:#fff;
+  font-size:15px;font-weight:850;padding:9px 12px
+}
+body.ezero-one-lab #ezeroFreshQrModes:not([hidden]){
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
+}
+body.ezero-one-lab #ezeroFreshQrModes[hidden]{display:none!important}
+body.ezero-one-lab #ezeroFreshQrModes button{
+  box-sizing:border-box;min-width:0;min-height:45px;
+  border:1px solid #8bdfaa;border-radius:12px;
+  color:#fff;background:#105e41;font-weight:800;font-size:13px;
+}
+body.ezero-one-lab #ezeroContactFirstDock #ezeroAutoPilot{
+  margin:4px 0 0!important;border-radius:14px!important;
+}
+body.ezero-one-lab #ezeroContactFirstDock #ezeroOneQrBox:not([hidden]){
+  display:block!important;max-width:100%;overflow-wrap:anywhere
+}
+body.ezero-one-lab #ezeroContactFirstDock #ezeroOneQr svg{
+  display:block;max-width:100%;height:auto;margin:auto
+}
