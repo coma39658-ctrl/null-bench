@@ -197,6 +197,10 @@ try{
   // Neither phone reloads before the caller starts another new room.
   // Fullscreen video scene owns its on-call hangup, not the hidden top card.
   await caller.locator("#hangup").click();
+  assert.equal(await caller.locator("#ezeroOneQrBox").isVisible(),false,
+    "Expired QR must not remain visible after video hangup");
+  assert.equal(await caller.locator("#ezeroOneCopyInvite").isEnabled(),false,
+    "Copy of an old invitation must be disabled after video hangup");
   // The remote side may return to its main card immediately, hiding the
   // fullscreen video bar. Use whichever existing hangup is now visible.
   await callee.waitForFunction(()=>
