@@ -245,7 +245,7 @@ try{
     assert.equal(await phone.locator("#ezeroQuickCallTimer").isVisible(),true,
       "A verified live call must show its running duration near the buttons");
     assert.match(await phone.locator("#ezeroQuickCallTimer").innerText(),
-      /^\\d{2}:\\d{2}$/);
+      /^\d{2}:\d{2}$/);
     assert.equal(await phone.locator("#modernCallPanel").evaluate(el=>
       el.parentElement?.id==="ezeroQuickFunctionHost"),true);
   }
