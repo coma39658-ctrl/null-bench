@@ -255,6 +255,9 @@
       active.name=nameOf(p.name);render();
     }
   });
+  // Update the visible Friends tab immediately after BOTH users approve
+  // a real in-call friend request; do not require a page reload.
+  document.addEventListener("ezero:friend-saved",render);
   $("language").addEventListener("change",localize);
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)render();});
   window.addEventListener("focus",render);
