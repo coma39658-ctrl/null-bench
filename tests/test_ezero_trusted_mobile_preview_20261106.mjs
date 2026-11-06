@@ -486,6 +486,20 @@ try{
     assert.equal(voiceAck.length,longEncoded.length);
     assert.equal(voiceAck.exportAllowed,false);
     console.log("CHUNKED_LONG_VOICE_RECEIVED_AND_PEER_ACK_CONFIRMED: PASS");
+    // Several notes in one call must have separate inbox entries, instead
+    // of replacing the previous note each time a sender taps Record/Send.
+    assert.equal(await caller.evaluate(async encoded=>
+      await window.EZERO_VOICE_TRANSPORT.send("audio/webm",encoded,false),
+      longEncoded),true);
+    await callee.waitForFunction(()=>window.__longVoiceReceived.length===2,{timeout:15000});
+    assert.equal(await callee.locator("#ezeroVoiceQueue .ezero-voice-inbox-row").count(),4,
+      "Two earlier short notes and two long notes must coexist until listened to");
+    await callee.locator("#ezeroInCallVoice").click();
+    const allNotes=callee.locator("#ezeroVoiceQueue .ezero-voice-inbox-row");
+    assert.equal(await allNotes.count(),4);
+    assert.equal(await callee.locator("#ezeroVoiceQueue .ezero-voice-inbox-play").count(),4);
+    console.log("REPEATED_VOICE_SEND_AND_FOUR_INDEPENDENT_INBOX_ENTRIES: PASS");
+    await callee.locator("#ezeroInCallClose").click();
 
     // Both users must explicitly authorize recording. There is no
     // recording on initial connection or on a one-sided request.
