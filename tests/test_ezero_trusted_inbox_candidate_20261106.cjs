@@ -24,7 +24,10 @@ class FakeResponse{
 }
 class FakeSocket{
   constructor(){this.readyState=1;this.sent=[];this.attached=null;}
-  send(raw){this.sent.push(JSON.parse(raw));}
+  send(raw){
+    if(this.failSend)throw Error("MOCK_OWNER_SOCKET_SEND_FAILED");
+    this.sent.push(JSON.parse(raw));
+  }
   serializeAttachment(v){this.attached=v;}
   deserializeAttachment(){return this.attached;}
   close(code,reason){this.readyState=3;this.closeCode=code;this.reason=reason;}
@@ -152,6 +155,23 @@ async function run(){
     t:"call",callId:next,kind:"audio",invite:url
   }));
   assert.equal(socketOwner.sent.filter(x=>x.t==="incoming").length,2);
+  // Regression: readyState may still look OPEN even when the recipient's
+  // socket rejects send(). No false "delivered-to-active-tab" acknowledgement.
+  data.set("recent:"+friend.fp,{callId:next,nextAt:Date.now()-1,
+    expires:Date.now()+600000});
+  const failingCaller=await connect(owner.fp);
+  await hello(failingCaller,friend,"caller");
+  socketOwner.failSend=true;
+  await inbox.webSocketMessage(failingCaller,JSON.stringify({
+    t:"call",callId:callId(),kind:"audio",invite:url
+  }));
+  socketOwner.failSend=false;
+  assert.ok(failingCaller.sent.some(x=>x.t==="error"&&x.code==="DELIVERY_FAILED"),
+    "Recipient socket send failure must return a clear error");
+  assert.ok(!failingCaller.sent.some(x=>x.t==="delivered-to-active-tab"),
+    "Never claim delivery when the owner socket rejected the frame");
+  assert.equal(socketOwner.sent.filter(x=>x.t==="incoming").length,2,
+    "A failed send must not be counted as an additional received call");
   await inbox.webSocketMessage(socketOwner,
     JSON.stringify({t:"untrust",fp:friend.fp}));
   assert.equal(alice.readyState,3,"revoke closes earlier caller");
@@ -177,5 +197,6 @@ async function run(){
   assert.ok(socketOwner.readyState===1,"authenticated recipient remains connected");
   console.log("PASS: signed P-256 challenge, owner-only trust, privacy, one-call delivery, cooldown, replay, revocation");
   console.log("PASS: stale pending WebSockets cannot exhaust all slots forever");
+  console.log("PASS: failed recipient socket send never produces false delivery ACK");
 }
 run().catch(err=>{console.error(err);process.exitCode=1;});
