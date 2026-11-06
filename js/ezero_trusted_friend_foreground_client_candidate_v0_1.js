@@ -18,7 +18,7 @@
   const CONTACTS="ezero_secure_connect_local_fingerprints_v0_1";
   const encoder=new TextEncoder();
   const MAX_WAIT=15000;
-  const state={owner:null,identity:null,waiting:new Set()};
+  const state={owner:null,identity:null,waiting:new Set(),pendingReceipts:new Map()};
   const events=new EventTarget();
 
   function validUrl(value,mode){
@@ -125,16 +125,20 @@
              !validUrl(m.invite,m.kind))return;
           const known=friend(m.from);
           if(!known){emit("unrecognized",{from:m.from});return;}
-          // Validate and expose the invitation before confirming receipt.
-          // This is NOT user acceptance and never enables mic or camera.
+          // Parsing a valid frame is not evidence that a call card was drawn.
+          // Only the trusted UI may explicitly confirm after rendering.
+          const now=Date.now();
+          for(const [id,p] of state.pendingReceipts){
+            if(now-p.at>MAX_WAIT)state.pendingReceipts.delete(id);
+          }
+          if(state.pendingReceipts.size>=8)
+            state.pendingReceipts.delete(state.pendingReceipts.keys().next().value);
+          state.pendingReceipts.set(m.callId,{from:m.from,at:now});
           try{
             onData?.({type:"incoming",from:m.from,name:known.name,
               kind:m.kind,invite:m.invite,callId:m.callId});
-            if(ws.readyState===WebSocket.OPEN){
-              ws.send(JSON.stringify({t:"received",from:m.from,callId:m.callId}));
-            }
           }catch(_){
-            // Fail closed: do not acknowledge an invite the app could not handle.
+            state.pendingReceipts.delete(m.callId);
             emit("incoming-error",{code:"INCOMING_DISPLAY_FAILED"});
           }
         }else if(m.t==="trust-updated"&&role==="owner"){
@@ -149,7 +153,9 @@
         closed=true;clear();
         if(!settled){settled=true;reject(Error("INBOX_CLOSED"));}
         if(role==="owner"&&state.owner===ws){
-          state.owner=null;emit("offline",{reason:"socket-closed"});
+          state.owner=null;
+          state.pendingReceipts.clear();
+          emit("offline",{reason:"socket-closed"});
         }
       });
       ws.addEventListener("error",()=>{if(!settled)fail("INBOX_NETWORK_ERROR");});
@@ -163,6 +169,20 @@
     });
     state.owner=ws;
     emit("inbox-online",{});
+    return true;
+  }
+  function confirmIncomingVisible(from,callId){
+    if(!FP.test(from)||!/^[a-f0-9]{32}$/.test(callId))
+      throw Error("INVALID_RECEIPT");
+    const pending=state.pendingReceipts.get(callId);
+    if(!pending||pending.from!==from||Date.now()-pending.at>MAX_WAIT)
+      throw Error("NO_PENDING_VISIBLE_INVITE");
+    if(!friend(from))throw Error("FRIEND_NOT_VERIFIED_LOCALLY");
+    if(state.owner?.readyState!==WebSocket.OPEN)
+      throw Error("OWNER_INBOX_OFFLINE");
+    // The caller receives only a delivery receipt, never an auto-accept.
+    state.owner.send(JSON.stringify({t:"received",from,callId}));
+    state.pendingReceipts.delete(callId);
     return true;
   }
   async function setFriendTrust(fp,allowed){
@@ -209,9 +229,15 @@
             }
           }catch(_){}
         });
+        ws.addEventListener("close",()=>{
+          if(completed)return;
+          completed=true;
+          emit("outgoing-error",{code:"INBOX_CLOSED_BEFORE_RECEIPT"});
+        });
         setTimeout(()=>{
-          if(completed||ref.readyState!==WebSocket.OPEN)return;
-          // Distinguish a sent request from a verified application receipt.
+          if(completed)return;
+          completed=true;
+          // A disconnected socket is also a failure, not indefinite "sent".
           emit("outgoing-error",{code:"DELIVERY_RECEIPT_TIMEOUT"});
           close();
         },MAX_WAIT);
@@ -220,6 +246,7 @@
   }
   function closeOwnerInbox(){
     const ws=state.owner;state.owner=null;
+    state.pendingReceipts.clear();
     try{ws?.close();}catch(_){}
   }
   // No WebSocket or persistent identity initialization happens on page load.
@@ -228,6 +255,6 @@
     on:(event,callback)=>events.addEventListener(event,callback),
     off:(event,callback)=>events.removeEventListener(event,callback),
     openOwnerInbox,setFriendTrust,callSavedFriend,closeOwnerInbox,
-    safeInvite:validUrl
+    confirmIncomingVisible,safeInvite:validUrl
   });
 })();

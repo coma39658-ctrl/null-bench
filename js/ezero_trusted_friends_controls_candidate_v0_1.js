@@ -16,6 +16,7 @@
   const FP=/^[a-f0-9]{64}$/;
   const $=tag=>document.createElement(tag);
   let active=false,pending=null,incoming=null,pendingTimer=null;
+  let outgoingInFlight=false,outgoingResult=null;
   const copy={
     ur:{head:"🔐 محفوظ دوست — تجرباتی رابطہ",start:"✓ کال وصول کرنا فعال کریں",
       note:"صرف اس وقت کال وصول ہوگی جب یہ صفحہ کھلا اور آپ نے اجازت دی ہو۔ پہلے QR سے تصدیق کے بعد دوست محفوظ کریں۔",
@@ -126,7 +127,9 @@
       });
       function call(kind){
         return ()=>{
-          if(pending)return;
+          // At most one contact call attempt at a time, including the server
+          // receipt window. Prevent duplicate taps and conflicting statuses.
+          if(pending||outgoingInFlight)return;
           pending={fp:item.fp,kind};
           pendingTimer=setTimeout(()=>{
             if(pending){clearPending();status("failed",true);}
@@ -159,22 +162,44 @@
   status("idle");paint();
   api.on("incoming",e=>{
     const packet=e.detail;
-    if(!packet||!contacts().some(x=>x.fp===packet.from)||
+    // A hidden/background tab must not claim the user saw a call prompt.
+    if(document.hidden||!active||!packet||
+       !contacts().some(x=>x.fp===packet.from)||
        !api.safeInvite(packet.invite,packet.kind))return;
     incoming=packet;paintIncoming();
+    const visible=document.getElementById("ezeroTrustedIncoming");
+    if(!visible||visible.hidden||incoming?.callId!==packet.callId)return;
+    try{
+      api.confirmIncomingVisible(packet.from,packet.callId);
+    }catch(_){
+      incoming=null;paintIncoming();status("failed",true);
+    }
   });
-  api.on("outgoing-delivered",()=>status("delivered"));
-  api.on("outgoing-error",()=>status("failed",true));
+  api.on("outgoing-delivered",()=>{
+    if(!outgoingInFlight)return;
+    outgoingResult="delivered";outgoingInFlight=false;status("delivered");
+  });
+  api.on("outgoing-error",()=>{
+    if(!outgoingInFlight)return;
+    outgoingResult="failed";outgoingInFlight=false;status("failed",true);
+  });
   api.on("offline",()=>{active=false;status("offline",true);});
   document.addEventListener("ezero:auto-invite-ready",async e=>{
     if(!pending)return;
     const {fp,kind}=pending;clearPending();
     const link=e.detail?.link;
     if(!api.safeInvite(link,kind))return status("failed",true);
+    outgoingInFlight=true;outgoingResult=null;
     try{
       await api.callSavedFriend(fp,kind,link);
-      status("sent");
-    }catch(_){status("failed",true);}
+      // A fast ACK/ERROR may arrive before this Promise resolves.
+      // Never replace a verified delivery or failure with a stale "Sent".
+      if(outgoingResult==="delivered")status("delivered");
+      else if(outgoingResult==="failed")status("failed",true);
+      else status("sent");
+    }catch(_){
+      outgoingInFlight=false;outgoingResult="failed";status("failed",true);
+    }
   });
   document.getElementById("language")?.addEventListener("change",()=>{
     paint();paintIncoming();
@@ -184,5 +209,8 @@
     if(["micDenied","iceNoRoute","signalInvalid","fingerprintMismatch","idle"]
       .includes(e.detail?.stage)){clearPending();status("failed",true);}
   });
-  window.addEventListener("pagehide",()=>{clearPending();api.closeOwnerInbox();});
+  window.addEventListener("pagehide",()=>{
+    clearPending();outgoingInFlight=false;outgoingResult=null;
+    api.closeOwnerInbox();
+  });
 })();

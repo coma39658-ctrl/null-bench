@@ -147,10 +147,16 @@ async function tests(){
   assert.equal(recipient.enabled(),true);
   assert.equal(sockets.length,0,"No implicit calls or background socket");
   let incoming=null,trustReply=null;
-  recipient.on("incoming",e=>{incoming=e.detail;eventLog.push("incoming");});
+  recipient.on("incoming",e=>{
+    incoming=e.detail;eventLog.push("incoming");
+    // Simulate a foreground UI successfully displaying the call card.
+    assert.equal(recipient.confirmIncomingVisible(e.detail.from,e.detail.callId),true);
+  });
   recipient.on("trust-updated",e=>{trustReply=e.detail;});
   await recipient.openOwnerInbox();
   assert.equal(sockets.length,1);
+  assert.throws(()=>recipient.confirmIncomingVisible(other.fingerprint,"a".repeat(32)),
+    /NO_PENDING_VISIBLE_INVITE/,"Cannot acknowledge a call that was never displayed");
   await recipient.setFriendTrust(other.fingerprint,true);
   await new Promise(resolve=>setTimeout(resolve,30));
   assert.equal(trustReply.trusted,true);
@@ -172,6 +178,8 @@ async function tests(){
   assert.deepEqual(confirmed,[first],
     "Caller delivery status must await authenticated recipient client receipt");
   assert.equal(sockets[0].seen.filter(m=>m.t==="received").length,1);
+  assert.throws(()=>recipient.confirmIncomingVisible(other.fingerprint,first),
+    /NO_PENDING_VISIBLE_INVITE/,"A displayed call cannot be acknowledged twice");
   const previousReceipts=sockets[0].seen.filter(m=>m.t==="received").length;
   sockets[0].emit("message",{data:JSON.stringify({
     t:"incoming",from:"f".repeat(64),kind:"audio",invite:invalid,
@@ -198,6 +206,6 @@ async function tests(){
   assert.equal(sockets[0].readyState,3);
   assert.doesNotMatch(code,/getUserMedia\s*\(|window\.location\.assign\s*\(|eval\s*\(/);
   console.log("PASS: no background calls; signed saved-key challenge; trust opt-in; valid invite routing; revoke; no automatic media");
-  console.log("PASS: app receipt acknowledgment sent only for known valid incoming invite");
+  console.log("PASS: app receipt only after simulated visible call card; never for unseen, duplicate, unknown or invalid invite");
 }
 tests().catch(e=>{console.error(e);process.exitCode=1;});
