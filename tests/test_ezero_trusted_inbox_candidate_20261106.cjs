@@ -83,7 +83,7 @@ async function hello(ws,id,role,override={}){
 }
 const callId=()=>Buffer.from(webcrypto.getRandomValues(new Uint8Array(16))).toString("hex");
 function link(){
-  return origin+"/null-bench/c.html?mode=audio#room="+
+  return origin+"/null-bench/ezero_trusted_friends_staging_20261106.html?mode=audio#room="+
     "A".repeat(32)+"."+"B".repeat(43);
 }
 async function run(){
@@ -112,7 +112,7 @@ async function run(){
   assert.ok(alice.sent.some(x=>x.t==="ready"&&x.role==="caller"));
   await inbox.webSocketMessage(alice,JSON.stringify({
     t:"call",callId:callId(),kind:"audio",
-    invite:"https://evil.test/null-bench/c.html?mode=audio#room="+
+    invite:"https://evil.test/null-bench/ezero_trusted_friends_staging_20261106.html?mode=audio#room="+
       "A".repeat(32)+"."+"B".repeat(43)
   }));
   assert.ok(alice.sent.some(x=>x.code==="BAD_INVITE"));
