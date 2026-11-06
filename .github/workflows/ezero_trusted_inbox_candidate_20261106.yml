@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - ezero-trusted-friend-inbox-lab-20261106
-      - ezero-trusted-inbox-delivery-ack-guard-20261106
   pull_request:
     branches: [main]
     paths:
