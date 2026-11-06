@@ -1,6 +1,13 @@
 # E-ZERO Secure Connect: Save once, call again without scanning QR
 
-Status: **Design contract / implementation not yet deployed** (2026-11-06).
+Status: **Phase A local opt-in identity + saved-friend UI implemented on development branch; no-QR remote redial NOT implemented or deployed** (2026-11-06).
+
+Phase A branch changes:
+- Opt-in IndexedDB-stored **non-extractable** P-256 device signing CryptoKey, validated against its exported public key and fingerprint on reload. Ephemeral signed QR expiry remains 10 minutes.
+- Saved Friend only after an observed connected WebRTC channel and an explicit button click. A verified call fingerprint and chosen nickname are stored locally; remove friend is available. The human behind a self-declared nickname/photo has not been independently verified.
+- Runtime Node regression + isolated GitHub Action gate added; requires actual CI run and two-phone verification before any release.
+- The saved-friend card is **not yet a callable identity**. Addressable authenticated signaling, mutual registration, replay prevention, incoming-call routing, TURN evaluation, and browser storage recovery still remain.
+
 Scope: the existing one-green-page WebRTC calling experience on two Android/mobile browsers.
 
 ## Confirmed user acceptance goal
