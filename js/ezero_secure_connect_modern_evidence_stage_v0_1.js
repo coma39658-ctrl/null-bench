@@ -360,7 +360,8 @@ $("ezeroVoiceRecord").addEventListener("click",async()=>{
     .find(type=>MediaRecorder.isTypeSupported(type));
   if(!mime){stopMic();voiceStatus("permission");return;}
   const chunks=[];let recordedBytes=0,tooLarge=false;
-  recorder=new MediaRecorder(s,{mimeType:mime,audioBitsPerSecond:20000});
+  // Prefer clear speech on supported Opus encoders; keep an enforced size cap.
+  recorder=new MediaRecorder(s,{mimeType:mime,audioBitsPerSecond:24000});
   const r=recorder;
   r.ondataavailable=e=>{
     if(!e.data?.size||tooLarge)return;
