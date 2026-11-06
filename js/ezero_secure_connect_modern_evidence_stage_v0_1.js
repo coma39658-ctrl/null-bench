@@ -388,7 +388,9 @@ $("ezeroVoiceSend").addEventListener("click",async()=>{
    const good=window.EZERO_VOICE_TRANSPORT.send(draft.mime,btoa(binary),
        $("ezeroVoiceAllowDownload")?.checked===true);
    if(!good){voiceStatus("sendFail");return;}
-   clearDraft();voiceStatus("sent");
+   clearDraft();
+    if($("ezeroVoiceAllowDownload"))$("ezeroVoiceAllowDownload").checked=false;
+    voiceStatus("sent");
  }catch(_){voiceStatus("invalid");}
 });
 document.addEventListener("ezero:voice-note-received",e=>{
