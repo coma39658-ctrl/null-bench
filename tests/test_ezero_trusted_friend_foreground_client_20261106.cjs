@@ -148,7 +148,7 @@ async function tests(){
   assert.equal(trustReply.trusted,true);
   assert.equal(trusted.has(other.fingerprint),true);
   const caller=createClient(other,[{fp:self.fingerprint,name:"Test Recipient"}]);
-  const invalid=ORIGIN+"/null-bench/c.html?mode=audio#room="+
+  const invalid=ORIGIN+"/null-bench/ezero_trusted_friends_staging_20261106.html?mode=audio#room="+
     "A".repeat(32)+"."+"B".repeat(43);
   assert.equal(caller.safeInvite(invalid,"audio"),true);
   assert.equal(caller.safeInvite("https://evil.test"+invalid.slice(ORIGIN.length),"audio"),false);
