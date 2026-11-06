@@ -133,6 +133,17 @@ function offer({blob,kind,source="LOCAL_DEVICE",consent="NOT_ATTESTED",
     source,consent,consentDetails,createdAt,expiresAt,timer});
   notify();return id;
 }
+// Plain download returns exactly the original Blob and does NOT compute
+// SHA-256, create a signing key, sign, create an evidence manifest, or ZIP.
+function downloadOriginal(id){
+  const item=clips.get(id);
+  if(!item||Date.now()>=item.expiresAt){
+    expire(id);throw Error("EVIDENCE_EXPIRED");
+  }
+  const extension=MIME_EXT[item.mime]||"bin";
+  return {blob:item.blob,
+    filename:"E-ZERO-original-"+item.kind+"-"+id.slice(0,12)+"."+extension};
+}
 async function packageEvidence(id){
   const item=clips.get(id);
   if(!item||Date.now()>=item.expiresAt){expire(id);throw Error("EVIDENCE_EXPIRED");}
@@ -210,6 +221,6 @@ async function verify(mediaBuffer,record){
 window.addEventListener("pagehide",clearAll);
 window.EZERO_SIGNED_MEDIA_EVIDENCE=Object.freeze({
   offer,list,onChange:cb=>{watchers.add(cb);cb(list());return()=>watchers.delete(cb);},
-  expire,clearAll,packageEvidence,verify
+  expire,clearAll,downloadOriginal,packageEvidence,verify
 });
 })();
