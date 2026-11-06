@@ -753,7 +753,9 @@
     if(!textValue || textValue.length>2000)return;
     channel.send(JSON.stringify({v:1,kind:"once",id:hex(randomBytes(16)),
       text:textValue,exportAllowed:$("ezeroTextAllowDownload")?.checked===true}));
-    $("sendText").value="";$("messageStatus").textContent=t("sent");
+    $("sendText").value="";
+    if($("ezeroTextAllowDownload"))$("ezeroTextAllowDownload").checked=false;
+    $("messageStatus").textContent=t("sent");
   });
   $("viewMessage").addEventListener("click",()=>{
     if(!incoming||incoming.opened)return;
