@@ -16,7 +16,7 @@ let current="audio", recorder=null, micStream=null, limitTimer=null, draft=null,
   recordClock=null,recordStartedAt=0,
   incoming=null,incomingUrl=null,recId=0,lastVoiceStatus="voiceIdle";
 const voiceInbox=[],MAX_VOICE_INBOX=8,MAX_VOICE_QUEUE_BASE64=12000000;
-let activeVoiceId=null;
+let activeVoiceId=null,sendingVoice=false;
 const voiceQueue=document.createElement("section");
 voiceQueue.id="ezeroVoiceQueue";
 voiceQueue.setAttribute("aria-label","Received voice messages · موصولہ وائس پیغامات");
@@ -414,7 +414,7 @@ function voiceClock(){
    Math.floor(seconds/60)+":"+fmt(seconds%60)+" / 30:00";
 }
 $("ezeroVoiceRecord").addEventListener("click",async()=>{
- if(micStream||recorder?.state==="recording")return;
+ if(sendingVoice||micStream||recorder?.state==="recording")return;
  clearDraft();
  if(typeof MediaRecorder!=="function"||!navigator.mediaDevices?.getUserMedia){voiceStatus("permission");return;}
  const generation=++recId;
@@ -489,8 +489,11 @@ $("muteMic")?.addEventListener("click",()=>{
 });
 $("ezeroVoiceClear").addEventListener("click",()=>{++recId;stopMic();clearDraft();voiceStatus("expired");});
 $("ezeroVoiceSend").addEventListener("click",async()=>{
+ if(sendingVoice)return;
  if(!draft||!window.EZERO_VOICE_TRANSPORT?.connected()){voiceStatus("sendFail");return;}
+ sendingVoice=true;
  $("ezeroVoiceSend").disabled=true;
+ $("ezeroVoiceRecord").disabled=true;
  try{
    const bytes=new Uint8Array(await draft.blob.arrayBuffer());
    if(bytes.length>MAX_NOTE_BYTES)throw Error("TOO_LARGE");
@@ -505,6 +508,12 @@ $("ezeroVoiceSend").addEventListener("click",async()=>{
     if($("ezeroVoiceAllowDownload"))$("ezeroVoiceAllowDownload").checked=false;
     voiceStatus("sent");
  }catch(_){voiceStatus("invalid");}
+ finally{
+   sendingVoice=false;
+   if(!micStream&&recorder?.state!=="recording")$("ezeroVoiceRecord").disabled=false;
+   if(draft&&window.EZERO_VOICE_TRANSPORT?.connected())
+     $("ezeroVoiceSend").disabled=false;
+ }
 });
 document.addEventListener("ezero:voice-note-received",e=>{
  const d=e.detail;
