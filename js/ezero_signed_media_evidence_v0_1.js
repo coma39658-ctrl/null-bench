@@ -7,9 +7,18 @@
 (()=>{"use strict";
 const PREFIX="ezero-evidence-v1", DB="ezero_evidence_signer_v0_1", STORE="keys";
 const ENCODER=new TextEncoder(), MAX=64*1024*1024, TTL=600000;
-const KINDS=new Set(["voice_note","call_audio","call_video","video_message","media_file"]);
+const KINDS=new Set(["voice_note","call_audio","call_video","video_message","media_file","shared_file","shared_text"]);
 const MIME_EXT={"audio/webm":"webm","video/webm":"webm","audio/ogg":"ogg",
-  "audio/mp4":"m4a","video/mp4":"mp4","audio/wav":"wav"};
+  "audio/mp4":"m4a","video/mp4":"mp4","audio/wav":"wav",
+  "audio/mpeg":"mp3","audio/aac":"aac","audio/flac":"flac",
+  "image/jpeg":"jpg","image/png":"png","image/webp":"webp","image/gif":"gif",
+  "image/heic":"heic","image/heif":"heif",
+  "application/pdf":"pdf","text/plain":"txt","text/csv":"csv",
+  "application/json":"json","application/zip":"zip",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document":"docx",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":"xlsx",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation":"pptx",
+  "application/octet-stream":"bin"};
 const hex=bytes=>Array.from(new Uint8Array(bytes),x=>x.toString(16).padStart(2,"0")).join("");
 const b64=bytes=>{let str="";for(const v of new Uint8Array(bytes))str+=String.fromCharCode(v);
   return btoa(str).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");};
