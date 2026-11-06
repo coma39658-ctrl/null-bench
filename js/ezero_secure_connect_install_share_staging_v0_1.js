@@ -13,7 +13,7 @@
     ur:{
       title:"E-ZERO دوستوں کو بھیجیں اور ایپ بنائیں",
       description:"یہ لنک WhatsApp، IMO یا کسی بھی میسج میں بھیجیں۔ لنک کھولنے والے دوست کو اسی صفحے پر انسٹال کا بٹن نظر آئے گا۔",
-      share:"↗ دوست کو لنک بھیجیں",copy:"📋 ویب سائٹ لنک کاپی",install:"📲 ہوم اسکرین پر انسٹال کریں",
+      share:"↗ صرف ویب سائٹ کا لنک بھیجیں",copy:"📋 ویب سائٹ لنک کاپی",install:"📲 ہوم اسکرین پر انسٹال کریں",
       initial:"انسٹالیشن آپ کی منظوری سے ہوگی؛ میسج کے اندر خودکار انسٹالیشن ممکن نہیں۔",
       ready:"اس براؤزر میں انسٹالیشن دستیاب ہے۔ «انسٹال کریں» دبانے سے اجازت والا ڈائیلاگ کھلے گا۔",
       shown:"براؤزر نے انسٹالیشن کی اجازت مانگی ہے؛ قبول یا مسترد کرنا آپ کا اختیار ہے۔",
@@ -38,7 +38,7 @@
     en:{
       title:"Share E-ZERO and install the app",
       description:"Send this link via WhatsApp, IMO or any messaging app. Your friend sees the Install button on the same page when they open it.",
-      share:"↗ Send link to friend",copy:"📋 Copy website link",install:"📲 Install on home screen",
+      share:"↗ Share website link only",copy:"📋 Copy website link",install:"📲 Install on home screen",
       initial:"Installation needs your approval. A link inside a message cannot install an app automatically.",
       ready:"This browser supports the install dialog. Tap Install and approve the browser prompt.",
       shown:"The browser has asked for installation approval. Accept or decline as you choose.",
@@ -63,7 +63,7 @@
     ar:{
       title:"مشاركة E-ZERO وتثبيته كتطبيق",
       description:"أرسل هذا الرابط عبر واتساب أو IMO أو أي تطبيق مراسلة. سيظهر زر التثبيت في الصفحة نفسها عند فتحه.",
-      share:"↗ إرسال الرابط لصديق",copy:"📋 نسخ رابط الموقع",install:"📲 تثبيت على الشاشة الرئيسية",
+      share:"↗ مشاركة رابط الموقع فقط",copy:"📋 نسخ رابط الموقع",install:"📲 تثبيت على الشاشة الرئيسية",
       initial:"يتطلب التثبيت موافقتك. لا يمكن للرابط داخل الرسائل تثبيت التطبيق تلقائياً.",
       ready:"يدعم هذا المتصفح نافذة التثبيت. اضغط تثبيت ووافق على طلب المتصفح.",
       shown:"طلب المتصفح موافقتك على التثبيت. يمكنك القبول أو الرفض.",

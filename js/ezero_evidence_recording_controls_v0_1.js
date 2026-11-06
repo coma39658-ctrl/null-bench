@@ -275,7 +275,7 @@
   let ownVoiceDraftEvidence=null;
   document.addEventListener("ezero:evidence-voice-draft-local",e=>{
     const blob=e.detail?.blob;
-    if(!(blob instanceof Blob)||blob.size<1||blob.size>23000)return;
+    if(!(blob instanceof Blob)||blob.size<1||blob.size>6000000)return;
     if(ownVoiceDraftEvidence)proof.expire(ownVoiceDraftEvidence);
     try{
       ownVoiceDraftEvidence=proof.offer({blob,kind:"voice_note",
@@ -294,11 +294,11 @@
     // A sender who did not opt in to export leaves only the pre-existing
     // listen-once behavior; no E-ZERO download option is added.
     if(d?.exportAllowed!==true||typeof d.audio!=="string"||
-       d.audio.length>32000||
+       d.audio.length>8000000||
        !["audio/webm","audio/mp4","audio/ogg"].includes(d.mime))return;
     try{
       const raw=atob(d.audio);
-      if(raw.length<1||raw.length>24000)return;
+      if(raw.length<1||raw.length>6000000)return;
       const blob=new Blob([Uint8Array.from(raw,c=>c.charCodeAt(0))],
         {type:d.mime});
       proof.offer({blob,kind:"voice_note",

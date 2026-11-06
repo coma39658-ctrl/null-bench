@@ -17,6 +17,47 @@
   const $=tag=>document.createElement(tag);
   let active=false,pending=null,incoming=null,pendingTimer=null;
   let outgoingInFlight=false,outgoingResult=null;
+  // Foreground only: ring after a trusted, locally verified inbox invitation.
+  // Enabling the inbox primes Web Audio from an explicit user gesture.
+  const AudioCtor=window.AudioContext||window.webkitAudioContext;
+  let alertAudio=null,alertTimer=null,alertLimit=null;
+  function stopAlert(){
+    if(alertTimer!==null){clearInterval(alertTimer);alertTimer=null;}
+    if(alertLimit!==null){clearTimeout(alertLimit);alertLimit=null;}
+  }
+  async function unlockAlert(){
+    if(!AudioCtor)return false;
+    try{
+      if(!alertAudio)alertAudio=new AudioCtor();
+      await alertAudio.resume();
+      return alertAudio.state==="running";
+    }catch(_){return false;}
+  }
+  function alertOnce(){
+    if(!incoming||!active||document.hidden||alertAudio?.state!=="running"){
+      stopAlert();return;
+    }
+    const t0=alertAudio.currentTime;
+    for(let i=0;i<2;i++){
+      const osc=alertAudio.createOscillator(),gain=alertAudio.createGain();
+      const start=t0+i*.30;
+      osc.type="sine";osc.frequency.setValueAtTime(i?700:560,start);
+      gain.gain.setValueAtTime(0,start);
+      gain.gain.linearRampToValueAtTime(.055,start+.03);
+      gain.gain.setValueAtTime(.055,start+.19);
+      gain.gain.linearRampToValueAtTime(0,start+.24);
+      osc.connect(gain);gain.connect(alertAudio.destination);
+      osc.start(start);osc.stop(start+.26);
+      osc.onended=()=>{try{osc.disconnect();gain.disconnect();}catch(_){}};
+    }
+  }
+  function startAlert(){
+    stopAlert();
+    if(!incoming||!active||document.hidden||alertAudio?.state!=="running")return;
+    alertOnce();
+    alertTimer=setInterval(alertOnce,2900);
+    alertLimit=setTimeout(stopAlert,30000);
+  }
   const copy={
     ur:{head:"🔐 محفوظ دوست — تجرباتی رابطہ",start:"✓ کال وصول کرنا فعال کریں",
       note:"صرف اس وقت کال وصول ہوگی جب یہ صفحہ کھلا اور آپ نے اجازت دی ہو۔ پہلے QR سے تصدیق کے بعد دوست محفوظ کریں۔",
@@ -101,14 +142,16 @@
     const heading=$("strong");heading.textContent=t("callIncoming")+" · "+incoming.name;
     const review=button(t("review"),()=>{
       const selected=incoming;
-      incoming=null;paintIncoming();
+      incoming=null;stopAlert();paintIncoming();
       // This is an EXPLICIT user click and only opens the existing
       // validated invitation. The next page still requires Accept.
       if(api.safeInvite(selected.invite,selected.kind))
         window.location.assign(selected.invite);
     });
-    const dismiss=button(t("dismiss"),()=>{incoming=null;paintIncoming();});
-    view.append(heading,review,dismiss);
+    const dismiss=button(t("dismiss"),()=>{incoming=null;stopAlert();paintIncoming();});
+    const ring=button("🔔",async()=>{if(await unlockAlert())startAlert();});
+    ring.setAttribute("aria-label","Play incoming-call alert");
+    view.append(heading,review,dismiss,ring);
   }
   function paint(){
     const title=document.getElementById("ezeroTrustedTitle");
@@ -160,7 +203,10 @@
     // A first-time user has no persisted contact or device identity yet.
     // Do not misleadingly label this as a Cloudflare outage.
     if(!contacts().length){active=false;return status("firstQr",true);}
-    try{await api.openOwnerInbox();active=true;status("ownerOn");}
+    // Do not await before this call: Web Audio unlocking requires the tap.
+    const alertPermission=unlockAlert();
+    try{await api.openOwnerInbox();active=true;status("ownerOn");
+      await alertPermission;}
     catch(error){
       active=false;
       const code=String(error?.message||"");
@@ -183,12 +229,13 @@
        !contacts().some(x=>x.fp===packet.from)||
        !api.safeInvite(packet.invite,packet.kind))return;
     incoming=packet;paintIncoming();
+    startAlert();
     const visible=document.getElementById("ezeroTrustedIncoming");
     if(!visible||visible.hidden||incoming?.callId!==packet.callId)return;
     try{
       api.confirmIncomingVisible(packet.from,packet.callId);
     }catch(_){
-      incoming=null;paintIncoming();status("failed",true);
+      incoming=null;stopAlert();paintIncoming();status("failed",true);
     }
   });
   api.on("outgoing-delivered",()=>{
@@ -199,7 +246,7 @@
     if(!outgoingInFlight)return;
     outgoingResult="failed";outgoingInFlight=false;status("failed",true);
   });
-  api.on("offline",()=>{active=false;status("offline",true);});
+  api.on("offline",()=>{active=false;stopAlert();status("offline",true);});
   document.addEventListener("ezero:auto-invite-ready",async e=>{
     if(!pending)return;
     const {fp,kind}=pending;clearPending();
@@ -227,8 +274,13 @@
     if(["micDenied","iceNoRoute","signalInvalid","fingerprintMismatch","idle"]
       .includes(e.detail?.stage)){clearPending();status("failed",true);}
   });
+  document.addEventListener("visibilitychange",()=>{if(document.hidden)stopAlert();});
+  document.addEventListener("ezero:channel-state",e=>{if(e.detail?.connected)stopAlert();});
   window.addEventListener("pagehide",()=>{
+    stopAlert();
     clearPending();outgoingInFlight=false;outgoingResult=null;
     api.closeOwnerInbox();
+    const old=alertAudio;alertAudio=null;
+    try{old?.close().catch(()=>{});}catch(_){}
   });
 })();

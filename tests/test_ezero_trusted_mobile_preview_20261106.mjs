@@ -83,6 +83,8 @@ async function createPhone(name){
   page.on("pageerror",e=>console.error(name+"_PAGE_ERROR",e.message));
   await page.goto(publicOrigin+pagePath,{waitUntil:"domcontentloaded"});
   await page.waitForFunction(()=>document.getElementById("myFingerprint")?.textContent.length===64);
+  await page.waitForFunction(()=>typeof window.EZERO_SIGNED_MEDIA_EVIDENCE?.list==="function",
+    undefined,{timeout:15000});
   return page;
 }
 try{
@@ -92,7 +94,10 @@ try{
   assert.equal(await caller.locator('[data-modern-select="video"]').getAttribute("aria-pressed"),"false");
   assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),0,
     "Opening the call lab should not ask for microphone/camera permission");
-  assert.equal(await caller.locator("#ezeroAutoPilot").isVisible(),true);
+  assert.equal(await caller.locator("#ezeroAutoPilot").isVisible(),false,
+    "Call setup must stay closed until the person presses audio or video");
+  assert.equal(await caller.locator("#modernCallPanel").isVisible(),false,
+    "Neither audio nor video workspace should open before a user action");
   assert.equal(await caller.locator("#ezeroUnifiedCard").isVisible(),true);
   assert.equal(await caller.locator("#ezeroLegacyCompatibility").isHidden(),true,
     "Old second-color duplicate layers must not be displayed");
@@ -167,14 +172,46 @@ try{
   assert.equal(await caller.locator("#ezeroHeaderAvatar").getAttribute("src"),dpData,
     "DP must restore in the top bar after reload without an upload");
   console.log("TOP_HEADER_DP_PERSISTS_LOCALLY_WITHOUT_PROFILE_UPLOAD: PASS");
+  // The relevant controls must appear near the main feature buttons.
+  await caller.locator('[data-modern-select="voice"]').click();
+  assert.equal(await caller.locator("#modernVoicePanel").isVisible(),true);
+  assert.equal(await caller.locator("#modernVoicePanel").evaluate(el=>
+    el.parentElement?.id==="ezeroQuickFunctionHost"),true);
+  assert.equal(await caller.locator("#ezeroAutoPilot").isHidden(),true,
+    "Voice mode must not expose a disconnected call invitation elsewhere");
+  assert.ok(await caller.evaluate(()=>{
+    const top=document.querySelector(".modern-feature-grid").getBoundingClientRect();
+    const action=document.getElementById("modernVoicePanel").getBoundingClientRect();
+    return action.top-top.bottom<200;
+  }),"Voice recorder must appear just below its button");
+  await caller.locator('[data-modern-select="chat"]').click();
+  assert.equal(await caller.locator("#modernChatPanel").isVisible(),true);
+  assert.equal(await caller.locator("#modernVoicePanel").isHidden(),true);
+  assert.equal(await caller.locator("#modernChatPanel").evaluate(el=>
+    el.parentElement?.id==="ezeroQuickFunctionHost"),true);
+  await caller.locator("#ezeroQuickEvidence").click();
+  assert.equal(await caller.locator("#ezeroEvidencePanel").isVisible(),true);
+  assert.equal(await caller.locator("#ezeroQuickEvidence").getAttribute("aria-expanded"),"true");
+  await caller.locator("#ezeroQuickEvidence").click();
+  assert.equal(await caller.locator("#ezeroEvidencePanel").isHidden(),true);
+  console.log("ONE_TAP_NEARBY_VOICE_CHAT_RECORDING_SHA256: PASS");
   // One click initiates offer; the share URL is short and has an ephemeral capability.
   await caller.locator('[data-modern-select="audio"]').click();
   await caller.waitForFunction(()=>!!window.__oneInvite,{timeout:30000});
   const invite=await caller.evaluate(()=>window.__oneInvite);
+  assert.equal(await caller.locator("#ezeroAutoPilot").isVisible(),true);
+  assert.equal(await caller.locator("#ezeroAutoPilot").evaluate(el=>
+    el.parentElement?.id==="ezeroQuickFunctionHost"),true,
+    "Call invitation must appear below the feature buttons, not far down");
   assert.match(invite,/\/ezero_trusted_friends_staging_20261106\.html\?mode=audio#room=[A-Za-z0-9_-]{32}\.[A-Za-z0-9_-]{43}$/);
   assert.ok(invite.length<190,"One-request URL should not contain an entire SDP");
   assert.equal(await caller.locator("#ezeroOneQrBox").isVisible(),true);
   assert.equal(await caller.locator("#ezeroOneCopyInvite").isEnabled(),true);
+  assert.equal(await caller.locator("#ezeroAutoShare").isEnabled(),true);
+  assert.equal(await caller.locator("#ezeroOneManualInvite").isVisible(),true,
+    "Manual copyable invite fallback must be shown with call QR");
+  assert.equal(await caller.locator("#ezeroOneManualInvite").getAttribute("href"),invite,
+    "The fallback must contain the expiring call invite, not only the public site URL");
   assert.equal(await caller.locator('[data-modern-select="audio"]').getAttribute("aria-pressed"),"false",
     "Call pending is not a connected state");
   console.log("SINGLE_CLICK_CREATES_COMPACT_QR_INVITE_NO_FAKE_CONNECTION: PASS");
@@ -192,6 +229,8 @@ try{
     "Opening a friend request must NOT activate camera or microphone");
   assert.equal(await callee.locator("#ezeroAutoAccept").isVisible(),true);
   assert.equal(await callee.locator("#ezeroAutoDecline").isVisible(),true);
+  assert.equal(await callee.locator("#ezeroIncomingRingToggle").isVisible(),true,
+    "Incoming QR invitation must expose a tappable ringtone control");
   // Only recipient approval. No second link, pasted code or caller approval.
   await callee.locator("#ezeroAutoAccept").click();
   assert.equal(await callee.locator("#ezeroOneCallProgress").getAttribute("data-state"),
@@ -202,11 +241,92 @@ try{
   assert.equal(answers,1,"The answer should be sent automatically by WebSocket");
   assert.ok(await caller.evaluate(()=>window.__mediaCalls.length)>0);
   assert.ok(await callee.evaluate(()=>window.__mediaCalls.length)>0);
+  for(const phone of [caller,callee]){
+    assert.equal(await phone.locator("#ezeroQuickCallTimer").isVisible(),true,
+      "A verified live call must show its running duration near the buttons");
+    assert.match(await phone.locator("#ezeroQuickCallTimer").innerText(),
+      /^\\d{2}:\\d{2}$/);
+    assert.equal(await phone.locator("#modernCallPanel").evaluate(el=>
+      el.parentElement?.id==="ezeroQuickFunctionHost"),true);
+  }
+  console.log("VERIFIED_CALL_TIMER_AND_NEAR_BUTTON_MEDIA_SURFACE: PASS");
   assert.equal(await caller.locator("#modernConnectionStatus").getAttribute("data-state"),"connected");
   await callee.waitForFunction(()=>document.getElementById("ezeroOneCallProgress")?.dataset.state==="connected",
     {timeout:10000});
   assert.equal(await callee.locator("#ezeroOneCallProgress").getAttribute("data-state"),"connected");
   assert.equal(await caller.locator('[data-modern-select="audio"]').getAttribute("aria-pressed"),"true");
+  await caller.locator("#ezeroInCallChat").waitFor({state:"visible",timeout:10000});
+  await caller.locator("#ezeroInCallChat").click();
+  assert.equal(await caller.locator("#ezeroInCallMessageDrawer").isVisible(),true,
+    "Authenticated call chat must be reachable without navigating away");
+  await caller.locator("#sendText").fill("E-ZERO private text stage test");
+  await caller.locator("#sendMessage").click();
+  // The hidden parent keeps private messages concealed until the recipient
+  // explicitly opens their in-call drawer; test that real user action first.
+  await callee.locator("#ezeroInCallChat").click();
+  await callee.locator("#incomingItem").waitFor({state:"visible",timeout:10000});
+  await callee.locator("#viewMessage").click();
+  assert.equal(await callee.locator("#seenMessage").innerText(),
+    "E-ZERO private text stage test");
+  await caller.locator("#ezeroInCallClose").click();
+  await callee.locator("#ezeroInCallClose").click();
+  await caller.locator("#ezeroInCallEvidence").click();
+  assert.equal(await caller.locator("#ezeroEvidencePanel").isVisible(),true);
+  assert.equal(await caller.locator("#ezeroInCallMessageDrawer").isVisible(),true);
+  await caller.locator("#ezeroInCallClose").click();
+  console.log("IN_CALL_RECORDING_AND_SHA256_CONTROLS_REACHABLE: PASS");
+  console.log("IN_CALL_PRIVATE_CHAT_VERIFIED_BOTH_BROWSERS: PASS");
+  // No one-shot voice restriction: the same user can record, send and repeat.
+  await caller.locator("#ezeroInCallVoice").click();
+  await callee.locator("#ezeroInCallVoice").click();
+  for(let note=1;note<=2;note++){
+    await caller.locator("#ezeroVoiceRecord").click();
+    await caller.locator("#ezeroVoiceStop").waitFor({state:"visible",timeout:10000});
+    await caller.waitForTimeout(850);
+    await caller.locator("#ezeroVoiceStop").click();
+    await caller.locator("#ezeroVoiceSend").waitFor({state:"visible",timeout:10000});
+    await caller.waitForFunction(()=>document.getElementById("ezeroVoiceSend")?.disabled===false,
+      {timeout:12000});
+    await caller.locator("#ezeroVoiceSend").click();
+    await caller.waitForFunction(n=>
+      document.querySelectorAll("#ezeroSentVoiceNotes .ezero-voice-sent-row").length===n,
+      note,{timeout:15000});
+    await callee.waitForFunction(n=>
+      document.querySelectorAll("#ezeroVoiceQueue .ezero-voice-inbox-row").length===n,
+      note,{timeout:15000});
+    assert.equal(await caller.locator("#ezeroVoiceRecord").isEnabled(),true,
+      "After each sent note, Record must be enabled for the next one");
+  }
+  assert.equal(await caller.locator("#ezeroSentVoiceNotes audio").count(),2,
+    "Both sent voice notes must have separate temporary playback controls");
+  assert.equal(await callee.locator("#ezeroVoiceQueue .ezero-voice-inbox-play").count(),2);
+  // Browser pointer diagnosis for the nested in-call drawer on mobile.
+  const hit=await callee.evaluate(()=>{
+    const el=document.querySelector("#ezeroVoiceQueue .ezero-voice-inbox-delete");
+    el?.scrollIntoView({block:"center",inline:"center"});
+    const rect=(node)=>{const r=node?.getBoundingClientRect();
+      return r?{x:r.x,y:r.y,w:r.width,h:r.height}:null;};
+    const r=el.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2;
+    const top=document.elementFromPoint(x,y);
+    return {button:rect(el),row:rect(el.parentElement),
+      queue:rect(document.getElementById("ezeroVoiceQueue")),
+      drawer:rect(document.getElementById("ezeroInCallMessageDrawer")),
+      atPoint:top?.tagName+"#"+(top?.id||"")+"."+(top?.className||""),
+      pointer:getComputedStyle(el).pointerEvents,queuePointer:getComputedStyle(
+        document.getElementById("ezeroVoiceQueue")).pointerEvents};
+  });
+  console.log("VOICE_DELETE_HIT_GEOMETRY",JSON.stringify(hit));
+  // Playwright locator auto-scroll can reposition the fixed in-call sheet a
+  // second time; test an actual browser pointer at the verified button center
+  // after its real-user scroll instead of bypassing UI with DOM .click().
+  assert.match(hit.atPoint,/^BUTTON#\.ezero-voice-inbox-delete$/,
+    "Delete touch target must actually be the topmost browser hit-test element");
+  await callee.mouse.click(hit.button.x+hit.button.w/2,
+    hit.button.y+hit.button.h/2);
+  assert.equal(await callee.locator("#ezeroVoiceQueue .ezero-voice-inbox-row").count(),1);
+  await caller.locator("#ezeroInCallClose").click();
+  await callee.locator("#ezeroInCallClose").click();
+  console.log("REPEATED_VOICE_RECORD_SEND_TWO_DISTINCT_RECEIVED_NOTES: PASS");
   console.log("ONE_REQUEST_ONE_ACCEPT_AUTOMATIC_SIGNED_ANSWER_REAL_BROWSER_WEBRTC: PASS");
   console.log("NO_SECOND_MANUAL_LINK_NO_AUTO_MIC_BEFORE_ACCEPT: PASS");
 
@@ -238,8 +358,11 @@ try{
 
   // A verified first call must not strand the caller without the next QR.
   // Neither phone reloads before the caller starts another new room.
-  await caller.locator("#modernHangup").click();
-  await callee.locator("#modernHangup").click();
+  await caller.locator("#ezeroQuickHangup").click();
+  await callee.waitForFunction(()=>
+    window.EZERO_VOICE_TRANSPORT?.connected()===false,{timeout:15000});
+  assert.equal(await callee.locator("#ezeroQuickHangup").isHidden(),true,
+    "Remote call-end control must disappear when peer disconnects");
   await caller.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===false,{timeout:15000});
   await caller.locator('[data-modern-select="audio"]').click();
@@ -261,10 +384,16 @@ try{
   assert.equal(answers,2,"Redial must receive another automatically relayed answer");
   console.log("HANGUP_AND_REDIAL_CREATES_NEW_QR_WITHOUT_CALLER_RELOAD: PASS");
 
-  await caller.locator("#modernHangup").click();
-  await callee.locator("#modernHangup").click();
+  await caller.locator("#ezeroQuickHangup").click();
+  await callee.waitForFunction(()=>
+    window.EZERO_VOICE_TRANSPORT?.connected()===false,{timeout:15000});
+  assert.equal(await callee.locator("#ezeroQuickHangup").isHidden(),true,
+    "Remote call-end control must disappear when peer disconnects");
   await Promise.all([caller,callee].map(p=>
     p.goto(publicOrigin+pagePath,{waitUntil:"domcontentloaded"})));
+  await Promise.all([caller,callee].map(p=>p.waitForFunction(() =>
+    typeof window.EZERO_SIGNED_MEDIA_EVIDENCE?.list==="function",
+    undefined,{timeout:15000})));
   for(const [i,phone] of [[0,caller],[1,callee]]){
     await phone.waitForFunction(expected=>
       document.getElementById("myFingerprint")?.textContent===expected,
@@ -333,6 +462,8 @@ try{
       {timeout:12000});
     assert.equal(await callee.locator("#ezeroAutoIncoming").isVisible(),false,
       "An unaccepted inbox invite must not auto-start media");
+    assert.equal(await callee.locator('#ezeroTrustedIncoming button[aria-label="Play incoming-call alert"]').isVisible(),true,
+      "Foreground saved-friend call must offer an audible alert fallback");
     console.log("REAL_CLOUDFLARE_INBOX_DELIVERY_BROWSER_VISIBLE_ACK_NO_QR_SCAN: PASS");
 
     // Revoke synthetic test identities on the staging worker before
@@ -417,12 +548,48 @@ try{
     assert.equal(receivedProof.consent,"SENDER_EXPORT_ALLOWED_P2P_UNATTESTED");
     assert.match(receivedProof.sha256,/^[0-9a-f]{64}$/);
     console.log("VOICE_NOTE_EXPORT_DEFAULT_DENY_EXPLICIT_SENDER_OPT_IN_SIGNED_ZIP: PASS");
+    // A note larger than the previous five-second cap must go over WebRTC
+    // in bounded frames and require the receiving browser's ACK.
+    await callee.evaluate(()=>{
+      window.__longVoiceReceived=[];
+      document.addEventListener("ezero:voice-note-received",e=>{
+        if(e.detail?.audio?.length>32000)
+          window.__longVoiceReceived.push({
+            length:e.detail.audio.length,exportAllowed:e.detail.exportAllowed});
+      });
+    });
+    const longEncoded=Buffer.alloc(100000,0x32).toString("base64");
+    assert.ok(longEncoded.length>32000);
+    assert.equal(await caller.evaluate(async encoded=>
+      await window.EZERO_VOICE_TRANSPORT.send("audio/webm",encoded,false),
+      longEncoded),true);
+    await callee.waitForFunction(()=>window.__longVoiceReceived.length===1,{timeout:15000});
+    const voiceAck=await callee.evaluate(()=>window.__longVoiceReceived[0]);
+    assert.equal(voiceAck.length,longEncoded.length);
+    assert.equal(voiceAck.exportAllowed,false);
+    console.log("CHUNKED_LONG_VOICE_RECEIVED_AND_PEER_ACK_CONFIRMED: PASS");
+    // Several notes in one call must have separate inbox entries, instead
+    // of replacing the previous note each time a sender taps Record/Send.
+    assert.equal(await caller.evaluate(async encoded=>
+      await window.EZERO_VOICE_TRANSPORT.send("audio/webm",encoded,false),
+      longEncoded),true);
+    await callee.waitForFunction(()=>window.__longVoiceReceived.length===2,{timeout:15000});
+    assert.equal(await callee.locator("#ezeroVoiceQueue .ezero-voice-inbox-row").count(),4,
+      "Two earlier short notes and two long notes must coexist until listened to");
+    await callee.locator("#ezeroInCallVoice").click();
+    const allNotes=callee.locator("#ezeroVoiceQueue .ezero-voice-inbox-row");
+    assert.equal(await allNotes.count(),4);
+    assert.equal(await callee.locator("#ezeroVoiceQueue .ezero-voice-inbox-play").count(),4);
+    console.log("REPEATED_VOICE_SEND_AND_FOUR_INDEPENDENT_INBOX_ENTRIES: PASS");
+    await callee.locator("#ezeroInCallClose").click();
 
     // Both users must explicitly authorize recording. There is no
     // recording on initial connection or on a one-sided request.
     assert.equal(await caller.evaluate(()=>
       window.EZERO_SIGNED_MEDIA_EVIDENCE.list().length),0);
     assert.equal(await caller.locator("#ezeroEvidenceRecBadge").isHidden(),true);
+    // In live calls recording is intentionally in the in-call bottom sheet.
+    await caller.locator("#ezeroInCallEvidence").click();
     await caller.locator("#ezeroEvidenceAsk").click();
     await callee.locator("#ezeroEvidenceIncoming").waitFor({state:"visible",
       timeout:10000});
@@ -530,8 +697,10 @@ try{
     assert.equal(expired,true);
     console.log("EVIDENCE_LOCAL_MEMORY_EXPIRES_AFTER_TEN_MINUTES: PASS");
 
-    await caller.locator("#modernHangup").click();
-    await callee.locator("#modernHangup").click();
+    await caller.locator("#ezeroQuickHangup").click();
+    await callee.waitForFunction(()=>
+      window.EZERO_VOICE_TRANSPORT?.connected()===false,{timeout:15000});
+    assert.equal(await callee.locator("#ezeroQuickHangup").isHidden(),true);
   }finally{
     // Best-effort cleanup if the test aborts after granting synthetic trust.
     // This is not used to claim cleanup; confirmed trust-updated above is.

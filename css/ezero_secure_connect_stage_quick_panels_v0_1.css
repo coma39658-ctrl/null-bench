@@ -1,0 +1,151 @@
+/* E-ZERO stage-only compact quick actions. Preserve existing military-green style. */
+body.communication-page.ezero-one-lab #ezeroQuickFunctionHost{
+  display:block;max-width:100%;min-width:0;margin:8px 0 13px
+}
+body.communication-page.ezero-one-lab .ezero-quick-function-tools{
+  display:flex;justify-content:center;gap:8px;flex-wrap:wrap;
+  margin:4px 3px 9px
+}
+body.communication-page.ezero-one-lab #ezeroQuickEvidence{
+  min-height:44px;width:min(100%,390px);border-radius:14px;
+  background:linear-gradient(135deg,#124932,#0b5a3c);
+  border:1px solid #67bf88;color:#eefff5;
+  font-size:14px;font-weight:850;padding:9px 12px;
+  box-shadow:0 2px 10px rgba(0,0,0,.26)
+}
+body.communication-page.ezero-one-lab #ezeroQuickEvidence:focus-visible{
+  outline:3px solid #cbffdc;outline-offset:3px
+}
+body.communication-page.ezero-one-lab #ezeroQuickFunctionHost>.modern-workspace:not([hidden]){
+  display:block;margin:9px 2px!important;padding:12px!important;
+  border:1px solid rgba(121,207,157,.45)!important;
+  border-radius:18px!important;
+  background:linear-gradient(165deg,#0b3f2d,#082c21)!important;
+  color:#effff4!important
+}
+body.communication-page.ezero-one-lab #ezeroQuickFunctionHost>#ezeroEvidencePanel:not([hidden]){
+  max-height:73dvh;overflow-y:auto;overscroll-behavior:contain;
+  scroll-margin-top:12px
+}
+body.communication-page.ezero-one-lab #ezeroQuickFunctionHost>.modern-workspace[hidden]{
+  display:none!important
+}
+body.communication-page.ezero-one-lab #ezeroQuickFunctionHost #ezeroVoiceStatus,
+body.communication-page.ezero-one-lab #ezeroQuickFunctionHost #messageStatus{
+  overflow-wrap:anywhere
+}
+body.communication-page.ezero-one-lab #ezeroQuickFunctionHost
+  #ezeroEvidencePanel button{
+  max-width:100%;white-space:normal;overflow-wrap:anywhere
+}
+body.communication-page.ezero-one-lab #ezeroQuickFunctionHost
+  .modern-voice-actions{display:flex;flex-wrap:wrap;gap:8px}
+body.communication-page.ezero-one-lab #ezeroQuickFunctionHost
+  .modern-voice-actions button{flex:1 1 145px;min-height:44px}
+@media(max-width:430px){
+  body.communication-page.ezero-one-lab #ezeroQuickEvidence{
+    width:100%;font-size:13px
+  }
+}
+/* Multiple received voice messages: independent one-tap listen controls. */
+body.communication-page.ezero-one-lab #ezeroVoiceQueue:not([hidden]){
+  display:flex;flex-direction:column;gap:8px;margin:10px 0;padding:10px;
+  border:1px solid rgba(126,213,162,.4);border-radius:15px;
+  background:rgba(3,33,24,.34);max-height:240px;overflow-y:auto
+}
+body.communication-page.ezero-one-lab #ezeroVoiceQueue[hidden]{
+  display:none!important
+}
+body.communication-page.ezero-one-lab .ezero-voice-inbox-row{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:8px;padding:6px 9px;border:1px solid rgba(166,225,181,.26);
+  border-radius:11px;min-width:0
+}
+body.communication-page.ezero-one-lab .ezero-voice-inbox-play{
+  min-height:44px!important;max-width:100%;padding:8px 12px;
+  border:1px solid #5aa47d!important;border-radius:10px;
+  background:#145238!important;color:#f1fff2!important;font-size:13px!important
+}
+body.communication-page.ezero-one-lab .ezero-voice-inbox-play:disabled{
+  opacity:.7!important
+}
+
+body.communication-page.ezero-one-lab #ezeroQuickHangup:not([hidden]){
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:44px;max-width:100%;padding:9px 14px;
+  border-radius:14px;border:1px solid #faafb8;
+  color:#fff;background:#b72436;font-weight:850
+}
+body.communication-page.ezero-one-lab #ezeroQuickHangup[hidden]{
+  display:none!important
+}
+/* The immersive video scene has its own visible hangup; don't duplicate it. */
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroQuickHangup{
+  display:none!important
+}
+
+/* Keep the heading from intercepting the touch target after scroll in the
+ * Android in-call drawer. Use normal flow, not auto-sized CSS-grid tracks. */
+body.communication-page.ezero-one-lab #ezeroVoiceQueue>strong{
+  position:static!important;flex:0 0 auto;pointer-events:none!important;
+  display:block!important;max-width:100%;height:auto!important
+}
+body.communication-page.ezero-one-lab #ezeroVoiceQueue .ezero-voice-inbox-row{
+  position:relative;z-index:1;flex:0 0 auto;min-height:54px;
+  flex-wrap:wrap;justify-content:flex-start;gap:8px
+}
+body.communication-page.ezero-one-lab #ezeroVoiceQueue .ezero-voice-inbox-row span{
+  flex:0 0 auto
+}
+body.communication-page.ezero-one-lab #ezeroVoiceQueue .ezero-voice-inbox-play,
+body.communication-page.ezero-one-lab #ezeroVoiceQueue .ezero-voice-inbox-delete{
+  position:relative;z-index:2;min-height:44px!important;
+  display:inline-flex!important;align-items:center;justify-content:center;
+  padding:9px 12px!important;min-width:90px;flex:1 1 110px;
+  cursor:pointer!important;touch-action:manipulation
+}
+body.communication-page.ezero-one-lab #ezeroVoiceQueue .ezero-voice-inbox-delete{
+  background:#632b35!important;border:1px solid #f2aab2!important;
+  border-radius:10px!important;color:#fff!important
+}
+
+/* Avoid two nested scrolling surfaces trapping Android pointer hit testing.
+ * The in-call drawer already owns scrolling; queue cards stay in normal flow. */
+body.communication-page.ezero-one-lab #ezeroVoiceQueue:not([hidden]){
+  max-height:none!important;overflow:visible!important;overflow-anchor:none!important;
+  isolation:isolate;position:relative
+}
+body.communication-page.ezero-one-lab #ezeroVoiceQueue .ezero-voice-inbox-row{
+  overflow:visible!important;isolation:isolate
+}
+
+/* Android WebView/Chromium: nested smooth scroll can move a voice-note
+ * target during pointer hit testing inside the fixed in-call sheet.
+ * Keep ordinary page layout but use immediate, predictable sheet scrolling. */
+html:has(body.communication-page.ezero-one-lab){
+  scroll-behavior:auto!important
+}
+body.communication-page.ezero-one-lab .ezero-in-call-message-drawer,
+body.communication-page.ezero-one-lab #ezeroVoiceQueue{
+  scroll-behavior:auto!important
+}
+body.communication-page.ezero-one-lab .ezero-in-call-message-drawer
+  #ezeroVoiceQueue .ezero-voice-inbox-row button{
+  scroll-margin-block:55px!important;
+  pointer-events:auto!important
+}
+
+/* Verified connected call duration, displayed beside the selected feature. */
+body.communication-page.ezero-one-lab #ezeroQuickCallTimer:not([hidden]){
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:44px;min-width:85px;padding:8px 13px;
+  border-radius:13px;border:1px solid #8ad4aa;
+  background:#0e4a34;color:#f2fff4;
+  font:800 17px/1.2 ui-monospace,monospace;
+  font-variant-numeric:tabular-nums;letter-spacing:.08em
+}
+body.communication-page.ezero-one-lab #ezeroQuickCallTimer[hidden]{display:none!important}
+body.communication-page.ezero-one-lab #ezeroQuickFunctionHost #ezeroAutoPilot[hidden],
+body.communication-page.ezero-one-lab #ezeroQuickFunctionHost #modernCallPanel[hidden]{
+  display:none!important
+}

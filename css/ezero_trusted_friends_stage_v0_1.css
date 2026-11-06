@@ -147,3 +147,31 @@
   .communication-page.ezero-one-lab .top .back{grid-area:back;justify-self:start}
   .communication-page.ezero-one-lab .top .language{grid-area:lang;justify-self:end}
 }
+
+/* Multiple short/long voice messages: temporary local browser cards. */
+body.communication-page.ezero-one-lab #ezeroVoiceQueue[hidden],
+body.communication-page.ezero-one-lab #ezeroSentVoiceNotes[hidden]{display:none!important}
+body.communication-page.ezero-one-lab #ezeroVoiceQueue,
+body.communication-page.ezero-one-lab #ezeroSentVoiceNotes{
+  margin:10px 0;padding:10px 8px;border:1px solid rgba(106,195,139,.4);
+  border-radius:14px;background:#0a3225;color:#ecfff2;
+  max-width:100%;overflow-wrap:anywhere
+}
+body.communication-page.ezero-one-lab #ezeroVoiceQueue>strong,
+body.communication-page.ezero-one-lab #ezeroSentVoiceNotes>strong{
+  display:block;margin:2px 0 9px;font-size:14px
+}
+body.communication-page.ezero-one-lab .ezero-voice-inbox-row,
+body.communication-page.ezero-one-lab .ezero-voice-sent-row{
+  display:flex;flex-wrap:wrap;align-items:center;gap:7px;
+  padding:8px 4px;border-top:1px solid #43835b55
+}
+body.communication-page.ezero-one-lab .ezero-voice-inbox-row button,
+body.communication-page.ezero-one-lab .ezero-voice-sent-row button{
+  min-height:43px;max-width:100%;padding:8px 10px;
+  background:#15563d;color:#f0fff3;border:1px solid #61aa7f;
+  border-radius:11px
+}
+body.communication-page.ezero-one-lab .ezero-voice-sent-row audio{
+  flex:1 1 210px;max-width:100%;height:42px
+}

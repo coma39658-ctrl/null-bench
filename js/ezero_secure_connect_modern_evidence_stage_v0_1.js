@@ -4,13 +4,69 @@
 "use strict";
 const $=id=>document.getElementById(id);
 const trans={
-ur:{"inviteEmpty":"دعوت کا اصل لنک ابھی درج نہیں ہوا۔ IMO میں اصل پیغام کا مکمل لنک کاپی کر کے یہاں پیسٹ کریں؛ خانے میں نظر آنے والی مثال حقیقی دعوت نہیں۔","inviteFragmentMissing":"E-ZERO صفحہ کھلا ہے، مگر اس لنک میں کال کی دعوت کا ضروری حصہ نہیں ملا۔ IMO سے پورا اصل دعوتی لنک کاپی کریں، یا دوست سے نئی دعوت منگوائیں۔","inviteBroken":"دعوتی لنک کا محفوظ حصہ نامکمل یا تبدیل ہو گیا ہے۔ IMO میں صرف ویب سائٹ کھلنا کافی نہیں؛ دوست سے نئی مکمل دعوت شیئر کرنے کو کہیں۔","inviteExpiredReason":"یہ دعوت پرانی ہے۔ اصل فون پر نئی دعوت بنائیں اور فوراً مکمل لنک شیئر کریں۔","inviteWrongPage":"یہ E-ZERO کی موجودہ کال والی دعوت کا لنک نہیں ہے۔ صرف اپنے قابلِ اعتماد دوست کا اصل دعوتی لنک استعمال کریں۔","inviteIncomingTip":"اگر IMO میں E-ZERO کھل گیا لیکن درخواست نظر نہیں آئی، تو اصل IMO پیغام کا پورا دعوتی لنک یہاں پیسٹ کریں۔ کوئی نمونہ لنک استعمال نہ کریں۔","prepareInvite":"↗ دوست کے لیے دعوت تیار کریں","shareInvite":"↗ دعوت یا جواب شیئر کریں","incomingTitle":"دوست کی رابطہ درخواست","incomingDescription":"دوست کی عارضی دعوت یا جواب ملا ہے۔ صرف قابلِ اعتماد شخص کی درخواست قبول کریں۔","acceptInvite":"✓ درخواست قبول کریں","declineInvite":"✕ مسترد کریں","linkFallbackTitle":"دوست کا لنک اسی ٹیب میں نہ کھلے تو","linkFallbackHelp":"موجودہ کال والا ٹیب بند نہ کریں۔ دوست سے آیا E-ZERO لنک یہاں درج کریں؛ تکنیکی کوڈ ضروری نہیں۔","pasteLinkLabel":"موصولہ دعوت یا جواب کا لنک","loadLink":"✓ لنک کھولیں","generatedLabel":"دوست کو شیئر کرنے والا محفوظ عارضی لنک","copyLink":"📋 لنک کاپی کریں","signalPrivacy":"لنک میں IP اور نیٹ ورک معلومات ہو سکتی ہیں۔ صرف قابلِ اعتماد دوست کو بھیجیں؛ میسنجر لنک محفوظ کر سکتا ہے۔","inviteIdle":"دوست کو دعوت بھیجیں، یا اس سے موصولہ لنک کھولیں۔","inviteBusy":"محفوظ دعوت تیار ہو رہی ہے؛ مائک/کیمرہ کی اجازت درکار ہو سکتی ہے۔","inviteReady":"دعوت تیار ہے۔ اب لنک دوست کو شیئر کریں۔","answerReadyWizard":"جواب تیار ہے۔ اسی دوست کو لنک واپس بھیجیں۔","inviteReceived":"دوست کی دعوت ملی ہے۔ قبول کرنے سے پہلے فرد کی تصدیق کریں۔","answerReceived":"دوست کا جواب ملا ہے۔ اصل کال والا ٹیب کھلا ہو تو قبول کریں۔","inviteInvalid":"یہ لنک غلط، غیر متعلقہ یا نامکمل ہے۔ دوبارہ حاصل کریں۔","inviteExpired":"لنک کی مدت ختم ہو سکتی ہے؛ نیا لنک لیں۔","inviteRejected":"دعوت مسترد کر دی گئی۔ کوئی کال شروع نہیں ہوئی۔","inviteNeedsTab":"کال شروع کرنے والا اصل ٹیب کھول کر جواب والا لنک اسی میں درج کریں۔","inviteNoShare":"لنک شیئر نہیں ہوسکا۔ نیچے کاپی آپشن سے صرف اپنے دوست کو بھیجیں۔","inviteCopied":"لنک کاپی ہوا؛ اسے اپنے دوست کے میسنجر میں بھیجیں۔","inviteShared":"لنک شیئر کیا گیا؛ دوسرے فون کا جواب ابھی ضروری ہے۔","inviteNotSent":"شیئرنگ منسوخ ہوئی؛ کوئی کنکشن قائم نہیں ہوا۔","inviteAccepted":"درخواست قبول کی؛ تصدیق کے بعد رابطے کی کوشش جاری ہے۔",voiceConnect:"📱 وائس میسج بھیجنے کے لیے فون جوڑیں",endCall:"📴 کال ختم / رابطہ بند کریں",connect:"📱 فون جوڑنے کے مراحل",back:"↩ مرکزی صفحہ",heading:"بات کریں، دیکھیں، پیغام بھیجیں",subheading:"آڈیو کال، ویڈیو کال، وائس نوٹ اور نجی چیٹ — ایک آسان جگہ۔ کنکشن کے لیے دونوں فون درکار ہیں۔",free:"بلا اشتہار",consent:"مائک/کیمرہ آپ کی اجازت سے",noArchive:"سرور پر کال آرکائیو نہیں",audio:"آڈیو کال",video:"ویڈیو کال",voice:"وائس میسج",chat:"نجی چیٹ",audioHint:"براہِ راست آواز",videoHint:"آواز اور تصویر",voiceHint:"مختصر ریکارڈنگ",chatHint:"ایک بار کھلنے والا پیغام",callPanel:"آڈیو / ویڈیو کال",callHelp:"اصل آواز اور تصویر صرف حقیقی WebRTC کنکشن کے بعد۔",chatPanel:"نجی چیٹ",chatHelp:"دو فون جڑنے کے بعد ایک بار کھلنے والا پیغام بھیجا جا سکتا ہے۔",voicePanel:"وائس میسج",voiceHelp:"زیادہ سے زیادہ 6 سیکنڈ ریکارڈ کریں۔ Send دبانے سے پہلے کوئی آواز دوسرے فون کو نہیں جائے گی۔",record:"🎙️ ریکارڈ کریں",stop:"■ ریکارڈنگ بند",sendVoice:"↗ وائس نوٹ بھیجیں",discard:"✕ حذف",preview:"یہ آواز ابھی صرف آپ کے فون کی عارضی میموری میں ہے۔",incomingVoice:"دوست کا عارضی وائس نوٹ ملا ہے۔",playVoice:"🎧 ایک بار سنیں",setupTitle:"رابطہ جوڑیں",setupHelp:"فی الحال تجرباتی کال میں ایک فون کی دعوت اور دوسرے کا جواب شیئر کرنا ضروری ہے۔ خودکار کال سرور نہیں۔",qrLink:"▦ QR اور دوست",privacyLink:"🔒 پرائیویسی پالیسی",offlineTitle:"📶 مستقبل: Nearby / Offline Connect",offlineExplain:"ایک ہی مقامی Wi-Fi یا منظوری یافتہ ہاٹ اسپاٹ پر E-ZERO فون ملانے کا منصوبہ ہے۔ ابھی فعال نہیں۔",offlineConsent:"مستقبل میں انسٹالیشن کے دوران Nearby کی اختیاری، قابلِ واپسی رضامندی مل سکتی ہے۔ اس سے کسی دوسرے فون کا ڈیٹا خودکار استعمال کرنے کی اجازت نہیں ملتی۔",offlineTruth:"PWA خود Wi-Fi یا ہاٹ اسپاٹ نہیں چلا سکتی۔ OS کی اجازت اور الگ مقامی ٹیکنالوجی درکار ہوگی۔",idle:"ابھی حقیقی دو فون کنکشن نہیں۔",connected:"حقیقی WebRTC کنکشن قائم ہے۔",connecting:"رابطہ قائم ہونے کی تصدیق باقی ہے۔",failed:"رابطہ ناکام؛ نیٹ ورک اور دعوت/جواب چیک کریں۔",audioInfo:"آڈیو کال کے لیے دو فونوں کی دعوت/جواب سے WebRTC کنکشن بنائیں۔",videoInfo:"ویڈیو کال کے لیے کنکشن بنائیں اور کیمرے کی اجازت دیں۔",voiceInfo:"وائس نوٹ مقامی ریکارڈ کریں، پھر فعال کنکشن کے ذریعے بھیجیں۔",chatInfo:"کنکشن کے بعد ایک بار کھلنے والا نجی پیغام بھیجیں۔",voiceIdle:"وائس نوٹ بھیجنے کے لیے حقیقی کنکشن ضروری ہے۔",recording:"آپ کی اجازت سے مائک 6 سیکنڈ تک ریکارڈ کر رہا ہے۔",ready:"مقامی وائس نوٹ تیار ہے؛ کنکشن ہو تو Send دبائیں۔",sent:"✓ وائس نوٹ کنکشن پر بھیج دیا گیا؛ سننے کی تصدیق نہیں۔",sendFail:"دو فونوں کا کنکشن موجود نہیں؛ ریکارڈنگ مقامی ہے۔",invalid:"وائس نوٹ غیر معاون یا حد سے بڑا ہے؛ دوبارہ بنائیں۔",permission:"مائک یا ریکارڈنگ کی اجازت/سپورٹ موجود نہیں۔",received:"عارضی وائس نوٹ آیا؛ سننے کے لیے بٹن دبائیں۔",expired:"وائس نوٹ حذف یا زائد المیعاد ہوگیا۔"},
-en:{"inviteEmpty":"No actual invitation link has been entered. Copy the complete original link from the IMO message; the example text is not a real invitation.","inviteFragmentMissing":"The E-ZERO page opened, but the call invitation data is missing from this link. Copy the complete original invite or request a fresh invitation.","inviteBroken":"The signed invitation is incomplete or has changed. Opening the site alone is not enough; ask your friend to share a fresh, complete invitation.","inviteExpiredReason":"This invite has expired. Create a new offer on the original phone and share its complete link promptly.","inviteWrongPage":"This is not a valid invite URL for the current E-ZERO call page. Use the actual invitation from someone you trust.","inviteIncomingTip":"If IMO only opens the E-ZERO page without a request, copy the complete invitation link from the original IMO message and paste it here. Do not use the example.","prepareInvite":"↗ Prepare a friend's invitation","shareInvite":"↗ Share invitation / reply","incomingTitle":"Incoming connection request","incomingDescription":"A temporary friend invitation or reply arrived. Accept only from someone you trust.","acceptInvite":"✓ Accept request","declineInvite":"✕ Decline","linkFallbackTitle":"If your friend's link opens in another tab","linkFallbackHelp":"Keep the original call tab open. Enter the received E-ZERO link here; no technical codes.","pasteLinkLabel":"Received invitation or reply link","loadLink":"✓ Open link","generatedLabel":"Temporary link for your trusted friend","copyLink":"📋 Copy link","signalPrivacy":"The link may contain IP/network details; share only with a trusted friend. Messaging apps can retain it.","inviteIdle":"Send an invitation or open a friend's link.","inviteBusy":"Preparing a signed invitation. Camera/mic permission may be requested.","inviteReady":"Invitation ready. Share the link with your friend.","answerReadyWizard":"Reply ready. Share it back with the same friend.","inviteReceived":"Invitation received. Confirm who sent it before accepting.","answerReceived":"Reply received. Accept it in the original active call tab.","inviteInvalid":"This link is invalid, unrelated or incomplete. Ask for a new one.","inviteExpired":"The link may have expired. Request another.","inviteRejected":"Invitation declined. No call started.","inviteNeedsTab":"Return to the original call tab and enter the reply link there.","inviteNoShare":"Sharing unavailable. Use the optional copy link below and send only to your friend.","inviteCopied":"Link copied; send it privately to your friend.","inviteShared":"Link shared; your friend's reply is still required.","inviteNotSent":"Sharing canceled; no connection established.","inviteAccepted":"Request accepted; connection will be checked.",voiceConnect:"📱 Connect phones to send voice",endCall:"📴 Hang up / disconnect",connect:"📱 Connect both phones",back:"↩ Main page",heading:"Talk, see and send",subheading:"Audio, video, voice notes and private chat in one place. Two phones are required.",free:"No ads",consent:"Mic/camera with permission",noArchive:"No server call archive",audio:"Audio call",video:"Video call",voice:"Voice note",chat:"Private chat",audioHint:"Direct audio",videoHint:"Audio and video",voiceHint:"Short recording",chatHint:"One-view message",callPanel:"Audio / video call",callHelp:"Real media only after an actual WebRTC connection.",chatPanel:"Private chat",chatHelp:"Send a one-view message when both browsers are connected.",voicePanel:"Voice message",voiceHelp:"Record up to 6 seconds. Nothing is sent until you press Send.",record:"🎙️ Record",stop:"■ Stop",sendVoice:"↗ Send voice note",discard:"✕ Discard",preview:"This audio is temporary and local only.",incomingVoice:"A temporary voice note has arrived.",playVoice:"🎧 Listen once",setupTitle:"Connect devices",setupHelp:"Experimental calls still require sharing an offer and an answer. There is no automatic signaling server.",qrLink:"▦ QR & friends",privacyLink:"🔒 Privacy policy",offlineTitle:"📶 Future: Offline Nearby",offlineExplain:"Local Wi-Fi or an approved hotspot might connect nearby E-ZERO phones in a future release. Not active.",offlineConsent:"A future optional, revocable Nearby installation preference cannot authorize automatic use of another phone's mobile data.",offlineTruth:"A PWA cannot turn on Wi-Fi or a hotspot without OS support and permission.",idle:"No real two-phone connection yet.",connected:"Real WebRTC connection established.",connecting:"Connection is not yet confirmed.",failed:"Connection failed. Check network and offer/answer.",audioInfo:"Connect both phones via the offer and answer before an audio call.",videoInfo:"Connect both phones and grant camera permission before video.",voiceInfo:"Record locally, then send over an active connection.",chatInfo:"Send a one-view private message after connection.",voiceIdle:"Connect two phones to send voice.",recording:"Recording with your permission for up to 6 seconds.",ready:"Local voice note ready. Press Send when connected.",sent:"✓ Voice note sent; delivery does not prove listening.",sendFail:"No active connection; recording stays local.",invalid:"Unsupported or oversized note. Record again.",permission:"Microphone or recorder permission/support unavailable.",received:"Temporary voice note received. Tap to listen.",expired:"Voice note expired or discarded."},
-ar:{"inviteEmpty":"لم يتم إدخال رابط دعوة حقيقي. انسخ الرابط الكامل من رسالة IMO الأصلية؛ النص التوضيحي ليس دعوة.","inviteFragmentMissing":"فُتحت صفحة E-ZERO لكن بيانات دعوة المكالمة مفقودة من الرابط. انسخ الرابط الأصلي كاملًا أو اطلب دعوة جديدة.","inviteBroken":"رابط الدعوة الموقّعة ناقص أو تغيّر. فتح الموقع وحده لا يكفي؛ اطلب من صديقك إعادة إرسال دعوة كاملة جديدة.","inviteExpiredReason":"انتهت صلاحية الدعوة. أنشئ دعوة جديدة على الهاتف الأول وشارك الرابط الكامل بسرعة.","inviteWrongPage":"هذا الرابط ليس دعوة صحيحة لصفحة مكالمات E-ZERO الحالية. استخدم الرابط الفعلي من صديق موثوق.","inviteIncomingTip":"إذا فتح IMO موقع E-ZERO فقط دون ظهور طلب، انسخ رابط الدعوة الكامل من الرسالة الأصلية والصقه هنا، وليس النص التوضيحي.","prepareInvite":"↗ إعداد دعوة لصديق","shareInvite":"↗ مشاركة الدعوة أو الرد","incomingTitle":"طلب اتصال من صديق","incomingDescription":"وصلت دعوة أو رد مؤقت. اقبل فقط إذا كنت تثق بالمرسل.","acceptInvite":"✓ قبول الطلب","declineInvite":"✕ رفض","linkFallbackTitle":"إذا فُتح رابط الصديق في تبويب آخر","linkFallbackHelp":"احتفظ بتبويب المكالمة الأصلي مفتوحًا. أدخل رابط E-ZERO المستلم، دون أكواد تقنية.","pasteLinkLabel":"رابط الدعوة أو الرد المستلم","loadLink":"✓ فتح الرابط","generatedLabel":"رابط مؤقت لمشاركته مع صديق موثوق","copyLink":"📋 نسخ الرابط","signalPrivacy":"قد يحتوي الرابط على عنوان IP وبيانات الشبكة؛ شاركه مع صديق موثوق فقط. قد تحفظه تطبيقات المراسلة.","inviteIdle":"شارك دعوة أو افتح رابطًا من صديق.","inviteBusy":"جارٍ إعداد دعوة موقعة. قد يُطلب إذن الميكروفون أو الكاميرا.","inviteReady":"الدعوة جاهزة. شارك الرابط مع صديقك.","answerReadyWizard":"الرد جاهز. شاركه مع الصديق نفسه.","inviteReceived":"وصلت دعوة. تحقق من المرسل قبل القبول.","answerReceived":"وصل الرد. اقبله في تبويب المكالمة الأصلي.","inviteInvalid":"الرابط غير صالح أو غير مكتمل أو من صفحة أخرى. اطلب رابطًا جديدًا.","inviteExpired":"قد تكون صلاحية الرابط انتهت؛ اطلب رابطًا جديدًا.","inviteRejected":"رُفضت الدعوة ولم تبدأ مكالمة.","inviteNeedsTab":"ارجع إلى تبويب المكالمة الأصلي وأدخل رابط الرد هناك.","inviteNoShare":"المشاركة غير متاحة. انسخ الرابط وأرسله إلى صديق موثوق فقط.","inviteCopied":"تم نسخ الرابط. أرسله لصديقك بشكل خاص.","inviteShared":"تمت مشاركة الرابط. ما زال رد الصديق مطلوبًا.","inviteNotSent":"أُلغيت المشاركة ولم يتم الاتصال.","inviteAccepted":"تم قبول الطلب ويجري التحقق من الاتصال.",voiceConnect:"📱 اربط الهاتفين لإرسال الصوت",endCall:"📴 إنهاء المكالمة / قطع الاتصال",connect:"📱 خطوات ربط الهاتفين",back:"↩ الصفحة الرئيسية",heading:"تحدث وشاهد وأرسل",subheading:"مكالمات صوتية ومرئية ورسائل صوتية ومحادثات خاصة، مع اتصال حقيقي بين هاتفين.",free:"بلا إعلانات",consent:"إذن للكاميرا والميكروفون",noArchive:"لا أرشيف للمكالمات على الخادم",audio:"مكالمة صوتية",video:"مكالمة مرئية",voice:"رسالة صوتية",chat:"محادثة خاصة",audioHint:"صوت مباشر",videoHint:"صوت وصورة",voiceHint:"تسجيل قصير",chatHint:"رسالة تُفتح مرة واحدة",callPanel:"مكالمة صوتية / مرئية",callHelp:"تظهر الوسائط بعد اتصال WebRTC حقيقي.",chatPanel:"محادثة خاصة",chatHelp:"أرسل رسالة تُفتح مرة واحدة بعد اتصال الهاتفين.",voicePanel:"رسالة صوتية",voiceHelp:"سجّل حتى 6 ثوانٍ؛ لن تُرسل حتى تضغط إرسال.",record:"🎙️ تسجيل",stop:"■ إيقاف",sendVoice:"↗ إرسال الصوت",discard:"✕ حذف",preview:"الصوت محلي ومؤقت على الهاتف.",incomingVoice:"وصلت رسالة صوتية مؤقتة.",playVoice:"🎧 استمع مرة واحدة",setupTitle:"ربط الأجهزة",setupHelp:"تحتاج المكالمة التجريبية إلى تبادل دعوة ورد؛ لا يوجد خادم اتصال تلقائي.",qrLink:"▦ QR والأصدقاء",privacyLink:"🔒 سياسة الخصوصية",offlineTitle:"📶 مستقبلًا: Nearby دون إنترنت",offlineExplain:"نخطط لاتصال هواتف E-ZERO القريبة عبر Wi-Fi محلي أو نقطة اتصال بموافقة. غير مفعّل.",offlineConsent:"تفضيل Nearby اختياري وقابل للإلغاء مستقبلًا، ولا يسمح باستخدام بيانات هاتف آخر تلقائيًا.",offlineTruth:"لا يستطيع PWA تشغيل Wi-Fi أو نقطة الاتصال بلا دعم وأذونات النظام.",idle:"لا يوجد اتصال حقيقي بين الهاتفين.",connected:"تم إنشاء اتصال WebRTC حقيقي.",connecting:"لم يتأكد الاتصال بعد.",failed:"فشل الاتصال؛ تحقق من الشبكة والدعوة والرد.",audioInfo:"اربط الهاتفين بالدعوة والرد للمكالمة الصوتية.",videoInfo:"اربط الهاتفين واسمح بالكاميرا للمكالمة المرئية.",voiceInfo:"سجّل محليًا ثم أرسل بعد الاتصال.",chatInfo:"أرسل رسالة خاصة تُفتح مرة واحدة بعد الاتصال.",voiceIdle:"يجب ربط الهاتفين لإرسال الصوت.",recording:"يجري التسجيل بإذنك لمدة 6 ثوانٍ كحد أقصى.",ready:"الرسالة جاهزة؛ اضغط إرسال بعد الاتصال.",sent:"✓ تم إرسال الصوت، ولا يعني ذلك أن الطرف الآخر استمع.",sendFail:"لا يوجد اتصال؛ يبقى التسجيل محليًا.",invalid:"الصوت كبير أو غير مدعوم. أعد التسجيل.",permission:"الميكروفون أو التسجيل غير متاح.",received:"وصلت رسالة مؤقتة؛ اضغط للاستماع.",expired:"انتهت صلاحية الرسالة أو حُذفت."}
+ur:{"inviteEmpty":"دعوت کا اصل لنک ابھی درج نہیں ہوا۔ IMO میں اصل پیغام کا مکمل لنک کاپی کر کے یہاں پیسٹ کریں؛ خانے میں نظر آنے والی مثال حقیقی دعوت نہیں۔","inviteFragmentMissing":"E-ZERO صفحہ کھلا ہے، مگر اس لنک میں کال کی دعوت کا ضروری حصہ نہیں ملا۔ IMO سے پورا اصل دعوتی لنک کاپی کریں، یا دوست سے نئی دعوت منگوائیں۔","inviteBroken":"دعوتی لنک کا محفوظ حصہ نامکمل یا تبدیل ہو گیا ہے۔ IMO میں صرف ویب سائٹ کھلنا کافی نہیں؛ دوست سے نئی مکمل دعوت شیئر کرنے کو کہیں۔","inviteExpiredReason":"یہ دعوت پرانی ہے۔ اصل فون پر نئی دعوت بنائیں اور فوراً مکمل لنک شیئر کریں۔","inviteWrongPage":"یہ E-ZERO کی موجودہ کال والی دعوت کا لنک نہیں ہے۔ صرف اپنے قابلِ اعتماد دوست کا اصل دعوتی لنک استعمال کریں۔","inviteIncomingTip":"اگر IMO میں E-ZERO کھل گیا لیکن درخواست نظر نہیں آئی، تو اصل IMO پیغام کا پورا دعوتی لنک یہاں پیسٹ کریں۔ کوئی نمونہ لنک استعمال نہ کریں۔","prepareInvite":"↗ دوست کے لیے دعوت تیار کریں","shareInvite":"↗ دعوت یا جواب شیئر کریں","incomingTitle":"دوست کی رابطہ درخواست","incomingDescription":"دوست کی عارضی دعوت یا جواب ملا ہے۔ صرف قابلِ اعتماد شخص کی درخواست قبول کریں۔","acceptInvite":"✓ درخواست قبول کریں","declineInvite":"✕ مسترد کریں","linkFallbackTitle":"دوست کا لنک اسی ٹیب میں نہ کھلے تو","linkFallbackHelp":"موجودہ کال والا ٹیب بند نہ کریں۔ دوست سے آیا E-ZERO لنک یہاں درج کریں؛ تکنیکی کوڈ ضروری نہیں۔","pasteLinkLabel":"موصولہ دعوت یا جواب کا لنک","loadLink":"✓ لنک کھولیں","generatedLabel":"دوست کو شیئر کرنے والا محفوظ عارضی لنک","copyLink":"📋 لنک کاپی کریں","signalPrivacy":"لنک میں IP اور نیٹ ورک معلومات ہو سکتی ہیں۔ صرف قابلِ اعتماد دوست کو بھیجیں؛ میسنجر لنک محفوظ کر سکتا ہے۔","inviteIdle":"دوست کو دعوت بھیجیں، یا اس سے موصولہ لنک کھولیں۔","inviteBusy":"محفوظ دعوت تیار ہو رہی ہے؛ مائک/کیمرہ کی اجازت درکار ہو سکتی ہے۔","inviteReady":"دعوت تیار ہے۔ اب لنک دوست کو شیئر کریں۔","answerReadyWizard":"جواب تیار ہے۔ اسی دوست کو لنک واپس بھیجیں۔","inviteReceived":"دوست کی دعوت ملی ہے۔ قبول کرنے سے پہلے فرد کی تصدیق کریں۔","answerReceived":"دوست کا جواب ملا ہے۔ اصل کال والا ٹیب کھلا ہو تو قبول کریں۔","inviteInvalid":"یہ لنک غلط، غیر متعلقہ یا نامکمل ہے۔ دوبارہ حاصل کریں۔","inviteExpired":"لنک کی مدت ختم ہو سکتی ہے؛ نیا لنک لیں۔","inviteRejected":"دعوت مسترد کر دی گئی۔ کوئی کال شروع نہیں ہوئی۔","inviteNeedsTab":"کال شروع کرنے والا اصل ٹیب کھول کر جواب والا لنک اسی میں درج کریں۔","inviteNoShare":"لنک شیئر نہیں ہوسکا۔ نیچے کاپی آپشن سے صرف اپنے دوست کو بھیجیں۔","inviteCopied":"لنک کاپی ہوا؛ اسے اپنے دوست کے میسنجر میں بھیجیں۔","inviteShared":"لنک شیئر کیا گیا؛ دوسرے فون کا جواب ابھی ضروری ہے۔","inviteNotSent":"شیئرنگ منسوخ ہوئی؛ کوئی کنکشن قائم نہیں ہوا۔","inviteAccepted":"درخواست قبول کی؛ تصدیق کے بعد رابطے کی کوشش جاری ہے۔",voiceConnect:"📱 وائس میسج بھیجنے کے لیے فون جوڑیں",endCall:"📴 کال ختم / رابطہ بند کریں",connect:"📱 فون جوڑنے کے مراحل",back:"↩ مرکزی صفحہ",heading:"بات کریں، دیکھیں، پیغام بھیجیں",subheading:"آڈیو کال، ویڈیو کال، وائس نوٹ اور نجی چیٹ — ایک آسان جگہ۔ کنکشن کے لیے دونوں فون درکار ہیں۔",free:"بلا اشتہار",consent:"مائک/کیمرہ آپ کی اجازت سے",noArchive:"سرور پر کال آرکائیو نہیں",audio:"آڈیو کال",video:"ویڈیو کال",voice:"وائس میسج",chat:"نجی چیٹ",audioHint:"براہِ راست آواز",videoHint:"آواز اور تصویر",voiceHint:"مختصر ریکارڈنگ",chatHint:"ایک بار کھلنے والا پیغام",callPanel:"آڈیو / ویڈیو کال",callHelp:"اصل آواز اور تصویر صرف حقیقی WebRTC کنکشن کے بعد۔",chatPanel:"نجی چیٹ",chatHelp:"دو فون جڑنے کے بعد ایک بار کھلنے والا پیغام بھیجا جا سکتا ہے۔",voicePanel:"وائس میسج",voiceHelp:"زیادہ سے زیادہ 30 منٹ تک ریکارڈ کریں۔ Send دبانے سے پہلے کوئی آواز دوسرے فون کو نہیں جائے گی۔",record:"🎙️ ریکارڈ کریں",stop:"■ ریکارڈنگ بند",sendVoice:"↗ وائس نوٹ بھیجیں",discard:"✕ حذف",preview:"یہ آواز ابھی صرف آپ کے فون کی عارضی میموری میں ہے۔",incomingVoice:"دوست کا عارضی وائس نوٹ ملا ہے۔",playVoice:"🎧 ایک بار سنیں",setupTitle:"رابطہ جوڑیں",setupHelp:"فی الحال تجرباتی کال میں ایک فون کی دعوت اور دوسرے کا جواب شیئر کرنا ضروری ہے۔ خودکار کال سرور نہیں۔",qrLink:"▦ QR اور دوست",privacyLink:"🔒 پرائیویسی پالیسی",offlineTitle:"📶 مستقبل: Nearby / Offline Connect",offlineExplain:"ایک ہی مقامی Wi-Fi یا منظوری یافتہ ہاٹ اسپاٹ پر E-ZERO فون ملانے کا منصوبہ ہے۔ ابھی فعال نہیں۔",offlineConsent:"مستقبل میں انسٹالیشن کے دوران Nearby کی اختیاری، قابلِ واپسی رضامندی مل سکتی ہے۔ اس سے کسی دوسرے فون کا ڈیٹا خودکار استعمال کرنے کی اجازت نہیں ملتی۔",offlineTruth:"PWA خود Wi-Fi یا ہاٹ اسپاٹ نہیں چلا سکتی۔ OS کی اجازت اور الگ مقامی ٹیکنالوجی درکار ہوگی۔",idle:"ابھی حقیقی دو فون کنکشن نہیں۔",connected:"حقیقی WebRTC کنکشن قائم ہے۔",connecting:"رابطہ قائم ہونے کی تصدیق باقی ہے۔",failed:"رابطہ ناکام؛ نیٹ ورک اور دعوت/جواب چیک کریں۔",audioInfo:"آڈیو کال کے لیے دو فونوں کی دعوت/جواب سے WebRTC کنکشن بنائیں۔",videoInfo:"ویڈیو کال کے لیے کنکشن بنائیں اور کیمرے کی اجازت دیں۔",voiceInfo:"وائس نوٹ مقامی ریکارڈ کریں، پھر فعال کنکشن کے ذریعے بھیجیں۔",chatInfo:"کنکشن کے بعد ایک بار کھلنے والا نجی پیغام بھیجیں۔",voiceIdle:"وائس نوٹ بھیجنے کے لیے حقیقی کنکشن ضروری ہے۔",recording:"آپ کی اجازت سے مائک زیادہ سے زیادہ 30 منٹ ریکارڈ کرے گا۔",ready:"مقامی وائس نوٹ تیار ہے؛ کنکشن ہو تو Send دبائیں۔",sending:"محفوظ وائس میسج منتقل ہو رہا ہے؛ وصولی کی تصدیق ضروری ہے۔",sent:"✓ وائس نوٹ کنکشن پر بھیج دیا گیا؛ سننے کی تصدیق نہیں۔",sendFail:"دو فونوں کا کنکشن موجود نہیں؛ ریکارڈنگ مقامی ہے۔",invalid:"وائس نوٹ غیر معاون یا حد سے بڑا ہے؛ دوبارہ بنائیں۔",permission:"مائک یا ریکارڈنگ کی اجازت/سپورٹ موجود نہیں۔",sizeLimit:"وائس میسج 6 MB کی حفاظتی حد تک پہنچ گیا؛ ریکارڈنگ رک گئی۔ چھوٹا پیغام آزمائیں۔",inboxFull:"وائس میسج ان باکس بھرا ہوا ہے؛ پہلے پرانے وائس پیغامات سنیں۔",received:"عارضی وائس نوٹ آیا؛ سننے کے لیے بٹن دبائیں۔",expired:"وائس نوٹ حذف یا زائد المیعاد ہوگیا۔"},
+en:{"inviteEmpty":"No actual invitation link has been entered. Copy the complete original link from the IMO message; the example text is not a real invitation.","inviteFragmentMissing":"The E-ZERO page opened, but the call invitation data is missing from this link. Copy the complete original invite or request a fresh invitation.","inviteBroken":"The signed invitation is incomplete or has changed. Opening the site alone is not enough; ask your friend to share a fresh, complete invitation.","inviteExpiredReason":"This invite has expired. Create a new offer on the original phone and share its complete link promptly.","inviteWrongPage":"This is not a valid invite URL for the current E-ZERO call page. Use the actual invitation from someone you trust.","inviteIncomingTip":"If IMO only opens the E-ZERO page without a request, copy the complete invitation link from the original IMO message and paste it here. Do not use the example.","prepareInvite":"↗ Prepare a friend's invitation","shareInvite":"↗ Share invitation / reply","incomingTitle":"Incoming connection request","incomingDescription":"A temporary friend invitation or reply arrived. Accept only from someone you trust.","acceptInvite":"✓ Accept request","declineInvite":"✕ Decline","linkFallbackTitle":"If your friend's link opens in another tab","linkFallbackHelp":"Keep the original call tab open. Enter the received E-ZERO link here; no technical codes.","pasteLinkLabel":"Received invitation or reply link","loadLink":"✓ Open link","generatedLabel":"Temporary link for your trusted friend","copyLink":"📋 Copy link","signalPrivacy":"The link may contain IP/network details; share only with a trusted friend. Messaging apps can retain it.","inviteIdle":"Send an invitation or open a friend's link.","inviteBusy":"Preparing a signed invitation. Camera/mic permission may be requested.","inviteReady":"Invitation ready. Share the link with your friend.","answerReadyWizard":"Reply ready. Share it back with the same friend.","inviteReceived":"Invitation received. Confirm who sent it before accepting.","answerReceived":"Reply received. Accept it in the original active call tab.","inviteInvalid":"This link is invalid, unrelated or incomplete. Ask for a new one.","inviteExpired":"The link may have expired. Request another.","inviteRejected":"Invitation declined. No call started.","inviteNeedsTab":"Return to the original call tab and enter the reply link there.","inviteNoShare":"Sharing unavailable. Use the optional copy link below and send only to your friend.","inviteCopied":"Link copied; send it privately to your friend.","inviteShared":"Link shared; your friend's reply is still required.","inviteNotSent":"Sharing canceled; no connection established.","inviteAccepted":"Request accepted; connection will be checked.",voiceConnect:"📱 Connect phones to send voice",endCall:"📴 Hang up / disconnect",connect:"📱 Connect both phones",back:"↩ Main page",heading:"Talk, see and send",subheading:"Audio, video, voice notes and private chat in one place. Two phones are required.",free:"No ads",consent:"Mic/camera with permission",noArchive:"No server call archive",audio:"Audio call",video:"Video call",voice:"Voice note",chat:"Private chat",audioHint:"Direct audio",videoHint:"Audio and video",voiceHint:"Short recording",chatHint:"One-view message",callPanel:"Audio / video call",callHelp:"Real media only after an actual WebRTC connection.",chatPanel:"Private chat",chatHelp:"Send a one-view message when both browsers are connected.",voicePanel:"Voice message",voiceHelp:"Record up to 30 minutes. Nothing is sent until you press Send.",record:"🎙️ Record",stop:"■ Stop",sendVoice:"↗ Send voice note",discard:"✕ Discard",preview:"This audio is temporary and local only.",incomingVoice:"A temporary voice note has arrived.",playVoice:"🎧 Listen once",setupTitle:"Connect devices",setupHelp:"Experimental calls still require sharing an offer and an answer. There is no automatic signaling server.",qrLink:"▦ QR & friends",privacyLink:"🔒 Privacy policy",offlineTitle:"📶 Future: Offline Nearby",offlineExplain:"Local Wi-Fi or an approved hotspot might connect nearby E-ZERO phones in a future release. Not active.",offlineConsent:"A future optional, revocable Nearby installation preference cannot authorize automatic use of another phone's mobile data.",offlineTruth:"A PWA cannot turn on Wi-Fi or a hotspot without OS support and permission.",idle:"No real two-phone connection yet.",connected:"Real WebRTC connection established.",connecting:"Connection is not yet confirmed.",failed:"Connection failed. Check network and offer/answer.",audioInfo:"Connect both phones via the offer and answer before an audio call.",videoInfo:"Connect both phones and grant camera permission before video.",voiceInfo:"Record locally, then send over an active connection.",chatInfo:"Send a one-view private message after connection.",voiceIdle:"Connect two phones to send voice.",recording:"Recording with your permission for up to 30 minutes.",ready:"Local voice note ready. Press Send when connected.",sending:"Transferring encrypted voice note; awaiting peer receipt.",sent:"✓ Voice note sent; delivery does not prove listening.",sendFail:"No active connection; recording stays local.",invalid:"Unsupported or oversized note. Record again.",permission:"Microphone or recorder permission/support unavailable.",sizeLimit:"Voice note reached the 6 MB safety limit and stopped. Try a shorter note.",inboxFull:"Voice inbox is full. Listen to earlier messages first.",received:"Temporary voice note received. Tap to listen.",expired:"Voice note expired or discarded."},
+ar:{"inviteEmpty":"لم يتم إدخال رابط دعوة حقيقي. انسخ الرابط الكامل من رسالة IMO الأصلية؛ النص التوضيحي ليس دعوة.","inviteFragmentMissing":"فُتحت صفحة E-ZERO لكن بيانات دعوة المكالمة مفقودة من الرابط. انسخ الرابط الأصلي كاملًا أو اطلب دعوة جديدة.","inviteBroken":"رابط الدعوة الموقّعة ناقص أو تغيّر. فتح الموقع وحده لا يكفي؛ اطلب من صديقك إعادة إرسال دعوة كاملة جديدة.","inviteExpiredReason":"انتهت صلاحية الدعوة. أنشئ دعوة جديدة على الهاتف الأول وشارك الرابط الكامل بسرعة.","inviteWrongPage":"هذا الرابط ليس دعوة صحيحة لصفحة مكالمات E-ZERO الحالية. استخدم الرابط الفعلي من صديق موثوق.","inviteIncomingTip":"إذا فتح IMO موقع E-ZERO فقط دون ظهور طلب، انسخ رابط الدعوة الكامل من الرسالة الأصلية والصقه هنا، وليس النص التوضيحي.","prepareInvite":"↗ إعداد دعوة لصديق","shareInvite":"↗ مشاركة الدعوة أو الرد","incomingTitle":"طلب اتصال من صديق","incomingDescription":"وصلت دعوة أو رد مؤقت. اقبل فقط إذا كنت تثق بالمرسل.","acceptInvite":"✓ قبول الطلب","declineInvite":"✕ رفض","linkFallbackTitle":"إذا فُتح رابط الصديق في تبويب آخر","linkFallbackHelp":"احتفظ بتبويب المكالمة الأصلي مفتوحًا. أدخل رابط E-ZERO المستلم، دون أكواد تقنية.","pasteLinkLabel":"رابط الدعوة أو الرد المستلم","loadLink":"✓ فتح الرابط","generatedLabel":"رابط مؤقت لمشاركته مع صديق موثوق","copyLink":"📋 نسخ الرابط","signalPrivacy":"قد يحتوي الرابط على عنوان IP وبيانات الشبكة؛ شاركه مع صديق موثوق فقط. قد تحفظه تطبيقات المراسلة.","inviteIdle":"شارك دعوة أو افتح رابطًا من صديق.","inviteBusy":"جارٍ إعداد دعوة موقعة. قد يُطلب إذن الميكروفون أو الكاميرا.","inviteReady":"الدعوة جاهزة. شارك الرابط مع صديقك.","answerReadyWizard":"الرد جاهز. شاركه مع الصديق نفسه.","inviteReceived":"وصلت دعوة. تحقق من المرسل قبل القبول.","answerReceived":"وصل الرد. اقبله في تبويب المكالمة الأصلي.","inviteInvalid":"الرابط غير صالح أو غير مكتمل أو من صفحة أخرى. اطلب رابطًا جديدًا.","inviteExpired":"قد تكون صلاحية الرابط انتهت؛ اطلب رابطًا جديدًا.","inviteRejected":"رُفضت الدعوة ولم تبدأ مكالمة.","inviteNeedsTab":"ارجع إلى تبويب المكالمة الأصلي وأدخل رابط الرد هناك.","inviteNoShare":"المشاركة غير متاحة. انسخ الرابط وأرسله إلى صديق موثوق فقط.","inviteCopied":"تم نسخ الرابط. أرسله لصديقك بشكل خاص.","inviteShared":"تمت مشاركة الرابط. ما زال رد الصديق مطلوبًا.","inviteNotSent":"أُلغيت المشاركة ولم يتم الاتصال.","inviteAccepted":"تم قبول الطلب ويجري التحقق من الاتصال.",voiceConnect:"📱 اربط الهاتفين لإرسال الصوت",endCall:"📴 إنهاء المكالمة / قطع الاتصال",connect:"📱 خطوات ربط الهاتفين",back:"↩ الصفحة الرئيسية",heading:"تحدث وشاهد وأرسل",subheading:"مكالمات صوتية ومرئية ورسائل صوتية ومحادثات خاصة، مع اتصال حقيقي بين هاتفين.",free:"بلا إعلانات",consent:"إذن للكاميرا والميكروفون",noArchive:"لا أرشيف للمكالمات على الخادم",audio:"مكالمة صوتية",video:"مكالمة مرئية",voice:"رسالة صوتية",chat:"محادثة خاصة",audioHint:"صوت مباشر",videoHint:"صوت وصورة",voiceHint:"تسجيل قصير",chatHint:"رسالة تُفتح مرة واحدة",callPanel:"مكالمة صوتية / مرئية",callHelp:"تظهر الوسائط بعد اتصال WebRTC حقيقي.",chatPanel:"محادثة خاصة",chatHelp:"أرسل رسالة تُفتح مرة واحدة بعد اتصال الهاتفين.",voicePanel:"رسالة صوتية",voiceHelp:"سجّل لمدة تصل إلى 30 دقيقة؛ لن تُرسل حتى تضغط إرسال.",record:"🎙️ تسجيل",stop:"■ إيقاف",sendVoice:"↗ إرسال الصوت",discard:"✕ حذف",preview:"الصوت محلي ومؤقت على الهاتف.",incomingVoice:"وصلت رسالة صوتية مؤقتة.",playVoice:"🎧 استمع مرة واحدة",setupTitle:"ربط الأجهزة",setupHelp:"تحتاج المكالمة التجريبية إلى تبادل دعوة ورد؛ لا يوجد خادم اتصال تلقائي.",qrLink:"▦ QR والأصدقاء",privacyLink:"🔒 سياسة الخصوصية",offlineTitle:"📶 مستقبلًا: Nearby دون إنترنت",offlineExplain:"نخطط لاتصال هواتف E-ZERO القريبة عبر Wi-Fi محلي أو نقطة اتصال بموافقة. غير مفعّل.",offlineConsent:"تفضيل Nearby اختياري وقابل للإلغاء مستقبلًا، ولا يسمح باستخدام بيانات هاتف آخر تلقائيًا.",offlineTruth:"لا يستطيع PWA تشغيل Wi-Fi أو نقطة الاتصال بلا دعم وأذونات النظام.",idle:"لا يوجد اتصال حقيقي بين الهاتفين.",connected:"تم إنشاء اتصال WebRTC حقيقي.",connecting:"لم يتأكد الاتصال بعد.",failed:"فشل الاتصال؛ تحقق من الشبكة والدعوة والرد.",audioInfo:"اربط الهاتفين بالدعوة والرد للمكالمة الصوتية.",videoInfo:"اربط الهاتفين واسمح بالكاميرا للمكالمة المرئية.",voiceInfo:"سجّل محليًا ثم أرسل بعد الاتصال.",chatInfo:"أرسل رسالة خاصة تُفتح مرة واحدة بعد الاتصال.",voiceIdle:"يجب ربط الهاتفين لإرسال الصوت.",recording:"يجري التسجيل بإذنك لمدة تصل إلى 30 دقيقة.",ready:"الرسالة جاهزة؛ اضغط إرسال بعد الاتصال.",sending:"جارٍ إرسال الرسالة المشفرة؛ ننتظر تأكيد الاستلام.",sent:"✓ تم إرسال الصوت، ولا يعني ذلك أن الطرف الآخر استمع.",sendFail:"لا يوجد اتصال؛ يبقى التسجيل محليًا.",invalid:"الصوت كبير أو غير مدعوم. أعد التسجيل.",permission:"الميكروفون أو التسجيل غير متاح.",sizeLimit:"وصلت الرسالة الصوتية إلى حد الأمان 6 ميغابايت؛ جرّب رسالة أقصر.",inboxFull:"صندوق الصوت ممتلئ؛ استمع أولاً إلى الرسائل السابقة.",received:"وصلت رسالة مؤقتة؛ اضغط للاستماع.",expired:"انتهت صلاحية الرسالة أو حُذفت."}
 };
 const t=k=>(trans[document.documentElement.lang]||trans.ur)[k]||k;
+// Mobile-friendly long notes: up to 30 minutes, bounded at 6 MiB per recording.
+// The encrypted peer transport sends <=12k base64 characters per DataChannel frame.
+const MAX_NOTE_MS=30*60*1000,MAX_NOTE_BYTES=6000000,MAX_NOTE_BASE64=8000000;
 let current="audio", recorder=null, micStream=null, limitTimer=null, draft=null, draftUrl=null,
-  incoming=null, incomingUrl=null, incomingTimeout=null, recId=0, lastVoiceStatus="voiceIdle";
+  recordClock=null,recordStartedAt=0,
+  incoming=null,incomingUrl=null,recId=0,lastVoiceStatus="voiceIdle";
+const voiceInbox=[],MAX_VOICE_INBOX=8,MAX_VOICE_QUEUE_BASE64=12000000;
+let activeVoiceId=null,sendingVoice=false;
+const sentVoice=[],SENT_MAX_ITEMS=8,SENT_MAX_BYTES=12000000;
+let sentSerial=0;
+const sentVoicePanel=document.createElement("section");
+sentVoicePanel.id="ezeroSentVoiceNotes";sentVoicePanel.hidden=true;
+sentVoicePanel.setAttribute("aria-live","polite");
+$("ezeroVoiceDraft").after(sentVoicePanel);
+function eraseSentVoice(id){
+ const idx=sentVoice.findIndex(n=>n.id===id);
+ if(idx<0)return;
+ const n=sentVoice.splice(idx,1)[0];
+ clearTimeout(n.timer);URL.revokeObjectURL(n.url);drawSentVoice();
+}
+function drawSentVoice(){
+ sentVoicePanel.replaceChildren();sentVoicePanel.hidden=!sentVoice.length;
+ if(!sentVoice.length)return;
+ const lang=document.documentElement.lang;
+ const title=document.createElement("strong");
+ title.textContent=lang==="en"?"Sent voice messages":lang==="ar"?"الرسائل الصوتية المرسلة":"بھیجے گئے وائس میسجز";
+ sentVoicePanel.append(title);
+ for(const n of sentVoice){
+  const row=document.createElement("div");row.className="ezero-voice-sent-row";
+  const name=document.createElement("span");
+  name.textContent=(lang==="en"?"Note":lang==="ar"?"رسالة":"وائس میسج")+" #"+n.id;
+  const player=document.createElement("audio");player.controls=true;player.preload="none";
+  player.src=n.url;player.setAttribute("aria-label",name.textContent);
+  const del=document.createElement("button");del.type="button";
+  del.textContent=lang==="en"?"✕ Remove":lang==="ar"?"✕ حذف":"✕ حذف کریں";
+  del.addEventListener("click",()=>eraseSentVoice(n.id));
+  row.append(name,player,del);sentVoicePanel.append(row);
+ }
+}
+function keepSentVoice(blob){
+ if(!(blob instanceof Blob)||blob.size<100||blob.size>MAX_NOTE_BYTES)return;
+ const bytes=()=>sentVoice.reduce((total,n)=>total+n.size,0);
+ while(sentVoice.length&&(sentVoice.length>=SENT_MAX_ITEMS||bytes()+blob.size>SENT_MAX_BYTES))
+   eraseSentVoice(sentVoice[0].id);
+ const id=++sentSerial,entry={id,size:blob.size,url:URL.createObjectURL(blob),timer:null};
+ entry.timer=setTimeout(()=>eraseSentVoice(id),600000);
+ sentVoice.push(entry);drawSentVoice();
+}
+function clearSentVoice(){
+ for(const n of sentVoice){clearTimeout(n.timer);URL.revokeObjectURL(n.url);}
+ sentVoice.length=0;drawSentVoice();
+}
+const voiceQueue=document.createElement("section");
+voiceQueue.id="ezeroVoiceQueue";
+voiceQueue.setAttribute("aria-label","Received voice messages · موصولہ وائس پیغامات");
+voiceQueue.setAttribute("aria-live","polite");
+voiceQueue.hidden=true;
+$("ezeroVoiceReceived").before(voiceQueue);
 const pick=(selector)=>document.querySelector(selector);
 function moveOriginal(){
   const media=$("mediaTitle")?.closest("section.card");
@@ -275,8 +331,12 @@ function select(type){
  $("modernCallPanel").hidden=!call;
  $("modernChatPanel").hidden=type!=="chat";
  $("modernVoicePanel").hidden=type!=="voice";
- const radio=pick('input[name="mode"][value="'+(type==="video"?"video":"audio")+'"]');
- if(radio)radio.checked=true;
+ // Chat and voice panels do not alter an already-established video call.
+ // Preserve the active media mode while opening in-call messaging/recording.
+ if(call){
+   const radio=pick('input[name="mode"][value="'+type+'"]');
+   if(radio)radio.checked=true;
+ }
  explain();
 }
 for(const b of document.querySelectorAll("[data-modern-select]"))b.addEventListener("click",()=>select(b.dataset.modernSelect));
@@ -300,6 +360,8 @@ document.addEventListener("ezero:channel-state",e=>{
   else{$("ezeroVoiceSend").disabled=true;$("ezeroVoiceConnect").hidden=false;clearIncoming();}
 });
 function stopMic(){
+ if(recordClock!==null){clearInterval(recordClock);recordClock=null;}
+ recordStartedAt=0;
  if(limitTimer){clearTimeout(limitTimer);limitTimer=null;}
  if(recorder?.state==="recording"){try{recorder.stop();}catch(_){}}
  if(micStream){micStream.getTracks().forEach(tr=>tr.stop());micStream=null;}
@@ -311,14 +373,98 @@ function clearDraft(){
  $("ezeroVoiceDraft").hidden=true;$("ezeroVoiceSend").disabled=true;$("ezeroVoiceClear").disabled=true;
 }
 function clearIncoming(){
- if(incomingTimeout){clearTimeout(incomingTimeout);incomingTimeout=null;}
+ for(const item of voiceInbox)clearTimeout(item.timer);
+ voiceInbox.length=0;incoming=null;activeVoiceId=null;
+ const audio=$("ezeroVoiceIncomingAudio");
+ audio.pause();audio.removeAttribute("src");
  if(incomingUrl){URL.revokeObjectURL(incomingUrl);incomingUrl=null;}
- incoming=null;$("ezeroVoiceIncomingAudio").pause();$("ezeroVoiceIncomingAudio").removeAttribute("src");
- $("ezeroVoiceIncomingAudio").hidden=true;$("ezeroVoiceOpenIncoming").hidden=false;$("ezeroVoiceReceived").hidden=true;
+ audio.hidden=true;
+ $("ezeroVoiceOpenIncoming").hidden=false;
+ $("ezeroVoiceReceived").hidden=true;
+ voiceQueue.replaceChildren();voiceQueue.hidden=true;
+}
+function removeVoiceMessage(id){
+ const idx=voiceInbox.findIndex(x=>x.id===id);
+ if(idx<0)return;
+ const item=voiceInbox[idx];clearTimeout(item.timer);voiceInbox.splice(idx,1);
+ if(activeVoiceId===id){
+   activeVoiceId=null;
+   const audio=$("ezeroVoiceIncomingAudio");
+   audio.pause();audio.removeAttribute("src");audio.hidden=true;
+   if(incomingUrl){URL.revokeObjectURL(incomingUrl);incomingUrl=null;}
+ }
+ renderVoiceInbox();
+}
+function voiceQueueLabel(label){
+ const lang=document.documentElement.lang;
+ const copy={
+   ur:{heading:"موصولہ وائس میسجز",play:"🎧 پیغام سنیں",playing:"🔊 سن رہے ہیں",
+      full:"وائس ان باکس بھرا ہوا ہے؛ پرانے پیغامات سنیں یا ختم ہونے دیں۔"},
+   en:{heading:"Received voice notes",play:"🎧 Listen",playing:"🔊 Playing",
+      full:"Voice inbox full. Listen to earlier notes or let them expire."},
+   ar:{heading:"الرسائل الصوتية الواردة",play:"🎧 استمع",playing:"🔊 يتم التشغيل",
+      full:"صندوق الرسائل الصوتية ممتلئ؛ استمع إلى الرسائل أو انتظر انتهاءها."}
+ };
+ return(copy[lang]||copy.ur)[label];
+}
+function renderVoiceInbox(){
+ incoming=voiceInbox.find(x=>x.id!==activeVoiceId)||null;
+ voiceQueue.replaceChildren();
+ voiceQueue.hidden=voiceInbox.length===0;
+ $("ezeroVoiceReceived").hidden=voiceInbox.length===0;
+ $("ezeroVoiceOpenIncoming").hidden=!incoming;
+ if(!voiceInbox.length)return;
+ const heading=document.createElement("strong");
+ heading.textContent=voiceQueueLabel("heading")+" ("+voiceInbox.length+")";
+ voiceQueue.append(heading);
+ for(const [i,item] of voiceInbox.entries()){
+   const row=document.createElement("div");
+   row.className="ezero-voice-inbox-row";
+   const number=document.createElement("span");
+   number.textContent="#"+(i+1)+" · ";
+   const play=document.createElement("button");
+   play.type="button";play.className="ezero-voice-inbox-play";
+   play.textContent=voiceQueueLabel(item.id===activeVoiceId?"playing":"play");
+   play.disabled=item.id===activeVoiceId;
+   play.addEventListener("click",()=>listenVoice(item.id));
+   const del=document.createElement("button");del.type="button";
+   del.textContent=document.documentElement.lang==="en"?"✕ Remove":
+     document.documentElement.lang==="ar"?"✕ حذف":"✕ حذف کریں";
+   del.className="ezero-voice-inbox-delete";
+   del.addEventListener("click",()=>removeVoiceMessage(item.id));
+   row.append(number,play,del);voiceQueue.append(row);
+ }
+}
+function listenVoice(id){
+ const item=voiceInbox.find(x=>x.id===id);
+ if(!item)return;
+ try{
+   const binary=atob(item.audio);
+   if(binary.length<100||binary.length>MAX_NOTE_BYTES)throw Error("TOO_LARGE");
+   const raw=Uint8Array.from(binary,c=>c.charCodeAt(0));
+   const audio=$("ezeroVoiceIncomingAudio");
+   audio.pause();audio.removeAttribute("src");
+   if(incomingUrl){URL.revokeObjectURL(incomingUrl);incomingUrl=null;}
+   incomingUrl=URL.createObjectURL(new Blob([raw],{type:item.mime}));
+   audio.src=incomingUrl;audio.hidden=false;
+   activeVoiceId=id;clearTimeout(item.timer);
+   // A listened-once note expires no later than five minutes after opening.
+   item.timer=setTimeout(()=>removeVoiceMessage(id),
+      Math.max(0,Math.min(300000,item.expiresAt-Date.now())));
+   renderVoiceInbox();
+   audio.play().catch(()=>{});
+ }catch(_){removeVoiceMessage(id);voiceStatus("invalid");}
 }
 function voiceStatus(key){lastVoiceStatus=key;$("ezeroVoiceStatus").textContent=t(key);}
+function voiceClock(){
+ if(!recordStartedAt)return;
+ const seconds=Math.max(0,Math.floor((Date.now()-recordStartedAt)/1000));
+ const fmt=n=>String(n).padStart(2,"0");
+ $("ezeroVoiceStatus").textContent=t("recording")+" — "+
+   Math.floor(seconds/60)+":"+fmt(seconds%60)+" / 30:00";
+}
 $("ezeroVoiceRecord").addEventListener("click",async()=>{
- if(micStream||recorder?.state==="recording")return;
+ if(sendingVoice||micStream||recorder?.state==="recording")return;
  clearDraft();
  if(typeof MediaRecorder!=="function"||!navigator.mediaDevices?.getUserMedia){voiceStatus("permission");return;}
  const generation=++recId;
@@ -334,22 +480,33 @@ $("ezeroVoiceRecord").addEventListener("click",async()=>{
   const liveCall=window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true;
   if(liveCall&&!callMic){voiceStatus("permission");return;}
   const s=callMic?new MediaStream([callMic.clone()]):
-    await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    await navigator.mediaDevices.getUserMedia({audio:{
+      echoCancellation:true,noiseSuppression:true,autoGainControl:true,
+      channelCount:{ideal:1}},video:false});
   if(generation!==recId||document.hidden){s.getTracks().forEach(x=>x.stop());return;}
   micStream=s;
   const mime=["audio/webm;codecs=opus","audio/mp4","audio/ogg","audio/webm"]
     .find(type=>MediaRecorder.isTypeSupported(type));
   if(!mime){stopMic();voiceStatus("permission");return;}
-  const chunks=[];
-  recorder=new MediaRecorder(s,{mimeType:mime,audioBitsPerSecond:20000});
+  const chunks=[];let recordedBytes=0,tooLarge=false;
+  // Prefer clear speech on supported Opus encoders; keep an enforced size cap.
+  recorder=new MediaRecorder(s,{mimeType:mime,audioBitsPerSecond:24000});
   const r=recorder;
-  r.ondataavailable=e=>{if(e.data?.size)chunks.push(e.data);};
+  r.ondataavailable=e=>{
+    if(!e.data?.size||tooLarge)return;
+    recordedBytes+=e.data.size;
+    if(recordedBytes>MAX_NOTE_BYTES){
+      tooLarge=true;stopMic();return;
+    }
+    chunks.push(e.data);
+  };
   r.onstop=()=>{
     stopMic();
     if(generation!==recId)return;
     const blob=new Blob(chunks,{type:r.mimeType});
     const type=blob.type.split(";")[0].toLowerCase();
-    if(blob.size<100||blob.size>23000||!["audio/webm","audio/mp4","audio/ogg"].includes(type)){
+    if(tooLarge||blob.size>MAX_NOTE_BYTES){voiceStatus("sizeLimit");return;}
+    if(blob.size<100||!["audio/webm","audio/mp4","audio/ogg"].includes(type)){
       voiceStatus("invalid");return;
     }
     draft={blob,mime:type};draftUrl=URL.createObjectURL(blob);
@@ -363,10 +520,13 @@ $("ezeroVoiceRecord").addEventListener("click",async()=>{
     $("ezeroVoiceSend").disabled=!window.EZERO_VOICE_TRANSPORT?.connected();
     voiceStatus("ready");
   };
-  recorder.start();
+  recorder.start(500);
   $("ezeroVoiceRecord").disabled=true;$("ezeroVoiceStop").hidden=false;
   voiceStatus("recording");
-  limitTimer=setTimeout(stopMic,6000);
+  recordStartedAt=Date.now();
+  voiceClock();
+  recordClock=setInterval(voiceClock,1000);
+  limitTimer=setTimeout(stopMic,MAX_NOTE_MS);
  }catch(_){stopMic();voiceStatus("permission");}
 });
 $("ezeroVoiceStop").addEventListener("click",stopMic);
@@ -379,46 +539,83 @@ $("muteMic")?.addEventListener("click",()=>{
 });
 $("ezeroVoiceClear").addEventListener("click",()=>{++recId;stopMic();clearDraft();voiceStatus("expired");});
 $("ezeroVoiceSend").addEventListener("click",async()=>{
+ if(sendingVoice)return;
  if(!draft||!window.EZERO_VOICE_TRANSPORT?.connected()){voiceStatus("sendFail");return;}
+ sendingVoice=true;
  $("ezeroVoiceSend").disabled=true;
+ $("ezeroVoiceRecord").disabled=true;
  try{
    const bytes=new Uint8Array(await draft.blob.arrayBuffer());
-   if(bytes.length>23000)throw Error("TOO_LARGE");
-   let binary="";for(let i=0;i<bytes.length;i++)binary+=String.fromCharCode(bytes[i]);
-   const good=window.EZERO_VOICE_TRANSPORT.send(draft.mime,btoa(binary),
-       $("ezeroVoiceAllowDownload")?.checked===true);
-   if(!good){voiceStatus("sendFail");return;}
+   if(bytes.length>MAX_NOTE_BYTES)throw Error("TOO_LARGE");
+   // Native data-URL encoding avoids a multi-million character JS append loop
+   // on inexpensive Android phones; nothing is uploaded to any server.
+   const dataUrl=await new Promise((resolve,reject)=>{
+     const reader=new FileReader();
+     reader.onload=()=>resolve(String(reader.result||""));
+     reader.onerror=()=>reject(Error("VOICE_ENCODING_FAILED"));
+     reader.readAsDataURL(draft.blob);
+   });
+   // MediaRecorder may keep a codecs parameter in the Blob MIME string.
+   const marker=";base64,",offset=dataUrl.indexOf(marker);
+   if(!dataUrl.startsWith("data:"+draft.mime)||offset<0||offset>100)
+     throw Error("VOICE_ENCODING_FAILED");
+   const encoded=dataUrl.slice(offset+marker.length);
+   if(encoded.length>MAX_NOTE_BASE64)throw Error("TOO_LARGE");
+   voiceStatus("sending");
+   const good=await Promise.resolve(window.EZERO_VOICE_TRANSPORT.send(
+       draft.mime,encoded,$("ezeroVoiceAllowDownload")?.checked===true));
+   if(!good){voiceStatus("sendFail");$("ezeroVoiceSend").disabled=false;return;}
+   keepSentVoice(draft.blob);
    clearDraft();
     if($("ezeroVoiceAllowDownload"))$("ezeroVoiceAllowDownload").checked=false;
     voiceStatus("sent");
  }catch(_){voiceStatus("invalid");}
+ finally{
+   sendingVoice=false;
+   if(!micStream&&recorder?.state!=="recording")$("ezeroVoiceRecord").disabled=false;
+   if(draft&&window.EZERO_VOICE_TRANSPORT?.connected())
+     $("ezeroVoiceSend").disabled=false;
+ }
 });
 document.addEventListener("ezero:voice-note-received",e=>{
  const d=e.detail;
- if(!d||typeof d.audio!=="string"||d.audio.length>32000||!["audio/webm","audio/mp4","audio/ogg"].includes(d.mime))return;
- clearIncoming();
- incoming={audio:d.audio,mime:d.mime};
- $("ezeroVoiceReceived").hidden=false;voiceStatus("received");
- incomingTimeout=setTimeout(clearIncoming,600000);
+ if(!d||typeof d.audio!=="string"||d.audio.length>MAX_NOTE_BASE64||
+    d.audio.length%4!==0||!/^[A-Za-z0-9+/]+={0,2}$/.test(d.audio)||
+    !["audio/webm","audio/mp4","audio/ogg"].includes(d.mime))return;
+ const id=/^[a-f0-9]{32}$/.test(d.id||"")?d.id:"legacy-"+Date.now()+"-"+voiceInbox.length;
+ if(voiceInbox.some(item=>item.id===id))return;
+ const size=voiceInbox.reduce((sum,item)=>sum+item.audio.length,0);
+ if(d.audio.length>MAX_VOICE_QUEUE_BASE64){voiceStatus("inboxFull");return;}
+  let used=size;
+  while(voiceInbox.length&&(voiceInbox.length>=MAX_VOICE_INBOX||
+    used+d.audio.length>MAX_VOICE_QUEUE_BASE64)){
+    used-=voiceInbox[0].audio.length;
+    removeVoiceMessage(voiceInbox[0].id);
+  }
+ const item={id,mime:d.mime,audio:d.audio,timer:null,
+   expiresAt:Date.now()+600000};
+ item.timer=setTimeout(()=>removeVoiceMessage(id),
+   Math.max(0,item.expiresAt-Date.now()));
+ voiceInbox.push(item);
+ renderVoiceInbox();voiceStatus("received");
 });
 $("ezeroVoiceOpenIncoming").addEventListener("click",()=>{
- if(!incoming)return;
- try{
-   const b=atob(incoming.audio);
-   if(b.length>24000)throw Error("TOO_LARGE");
-   const raw=Uint8Array.from(b,c=>c.charCodeAt(0));
-   const blob=new Blob([raw],{type:incoming.mime});
-   incomingUrl=URL.createObjectURL(blob);
-   $("ezeroVoiceIncomingAudio").src=incomingUrl;
-   $("ezeroVoiceIncomingAudio").hidden=false;
-   $("ezeroVoiceOpenIncoming").hidden=true;
-   incoming=null;
-   $("ezeroVoiceIncomingAudio").play().catch(()=>{});
-   if(incomingTimeout)clearTimeout(incomingTimeout);
-   incomingTimeout=setTimeout(clearIncoming,300000);
- }catch(_){clearIncoming();voiceStatus("invalid");}
+ if(incoming)listenVoice(incoming.id);
 });
-$("ezeroVoiceIncomingAudio").addEventListener("ended",()=>{clearIncoming();voiceStatus("expired");});
+$("ezeroVoiceIncomingAudio").addEventListener("ended",()=>{
+ if(activeVoiceId)removeVoiceMessage(activeVoiceId);
+ voiceStatus("expired");
+});
 document.addEventListener("visibilitychange",()=>{if(document.hidden){++recId;stopMic();}});
-window.addEventListener("pagehide",()=>{++recId;stopMic();clearDraft();clearIncoming();});
+document.addEventListener("ezero:voice-send-progress",event=>{
+  const pct=event.detail?.percent;
+  if(!Number.isInteger(pct)||pct<0||pct>100)return;
+  $("ezeroVoiceStatus").textContent=(document.documentElement.lang==="en"
+    ?"Sending encrypted voice note":document.documentElement.lang==="ar"
+    ?"جارٍ إرسال الرسالة الصوتية":"محفوظ وائس میسج بھیجا جا رہا ہے")+" — "+pct+"%";
+});
+$("language").addEventListener("change",()=>{renderVoiceInbox();drawSentVoice();});
+window.addEventListener("pagehide",()=>{
+ ++recId;stopMic();clearDraft();clearIncoming();clearSentVoice();
+});
 })();
