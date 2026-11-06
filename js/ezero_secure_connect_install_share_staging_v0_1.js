@@ -11,7 +11,7 @@
   const $=id=>document.getElementById(id);
   const labels={
     ur:{
-      title:"E-ZERO دوستوں کو بھیجیں اور ایپ بنائیں",
+      title:"E-ZERO Secure App دوستوں کو بھیجیں",
       description:"یہ لنک WhatsApp، IMO یا کسی بھی میسج میں بھیجیں۔ لنک کھولنے والے دوست کو اسی صفحے پر انسٹال کا بٹن نظر آئے گا۔",
       share:"↗ دوست کو لنک بھیجیں",copy:"📋 ویب سائٹ لنک کاپی",install:"📲 ہوم اسکرین پر انسٹال کریں",
       initial:"انسٹالیشن آپ کی منظوری سے ہوگی؛ میسج کے اندر خودکار انسٹالیشن ممکن نہیں۔",
@@ -36,7 +36,7 @@
       shareText:"E-ZERO Secure App کھولیں۔ اسی صفحے پر «Install app / Add to Home Screen» موجود ہے۔ یہ ابھی تجرباتی دو فون کالنگ سروس ہے۔"
     },
     en:{
-      title:"Share E-ZERO and install the app",
+      title:"Share E-ZERO Secure App and install",
       description:"Send this link via WhatsApp, IMO or any messaging app. Your friend sees the Install button on the same page when they open it.",
       share:"↗ Send link to friend",copy:"📋 Copy website link",install:"📲 Install on home screen",
       initial:"Installation needs your approval. A link inside a message cannot install an app automatically.",
@@ -61,7 +61,7 @@
       shareText:"Open E-ZERO Secure App. Install App / Add to Home Screen is on the page. Two-phone calling is experimental."
     },
     ar:{
-      title:"مشاركة E-ZERO وتثبيته كتطبيق",
+      title:"مشاركة E-ZERO Secure App وتثبيته",
       description:"أرسل هذا الرابط عبر واتساب أو IMO أو أي تطبيق مراسلة. سيظهر زر التثبيت في الصفحة نفسها عند فتحه.",
       share:"↗ إرسال الرابط لصديق",copy:"📋 نسخ رابط الموقع",install:"📲 تثبيت على الشاشة الرئيسية",
       initial:"يتطلب التثبيت موافقتك. لا يمكن للرابط داخل الرسائل تثبيت التطبيق تلقائياً.",
