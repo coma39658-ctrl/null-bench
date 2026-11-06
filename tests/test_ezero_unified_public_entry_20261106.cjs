@@ -76,7 +76,9 @@ assert.ok(file("js/ezero_secure_connect_install_share_v0_1.js")
   .includes('PUBLIC_URL=new URL("./'+current+'"'));
 function execute(path,url){
   const redirectScript=file(path),redirects=[];
-  const location={href:url,replace:v=>redirects.push(v)};
+  const parsed=new URL(url);
+  const location={href:url,hash:parsed.hash,search:parsed.search,
+    pathname:parsed.pathname,replace:v=>redirects.push(v)};
   vm.runInNewContext(redirectScript,{location,URL},{
     timeout:1000,filename:path});
   return redirects;
@@ -94,6 +96,15 @@ assert.deepEqual(execute(direct,"https://example.com/null-bench/"+old),[],
  "No redirect on non-owner websites");
 assert.deepEqual(execute(direct,"http://127.0.0.1:8769/"+old),[],
  "Do not alter local browser regression tests");
+const shortEntry="js/ezero_secure_connect_short_link_v0_2.js";
+const signedRoom="#room="+"A".repeat(32)+"."+"B".repeat(43);
+assert.deepEqual(execute(shortEntry,root+"c.html"),[root+current]);
+assert.deepEqual(execute(shortEntry,root+"c.html?mode=audio"+signedRoom),
+ [root+old+"?mode=audio"+signedRoom],
+ "Old c.html signed room must retain its ORIGINAL compatible call engine");
+assert.deepEqual(execute(shortEntry,root+"c.html#i=abc"),
+ [root+"ezero_secure_connect_live_p2p_v0_1.html#i=abc"],
+ "Legacy identity QR must still be verified by its old identity screen");
 const oldEntry="js/ezero_secure_connect_public_entry_redirect_v0_1.js";
 const qrOld="ezero_secure_connect_live_p2p_v0_1.html";
 const oldRoom="#room="+"A".repeat(32)+"."+"B".repeat(43);
