@@ -629,6 +629,23 @@
           }));
           return;
         }
+        // Friend request/reply is a separate explicit mutual-consent handshake
+        // on the existing *authenticated* encrypted WebRTC DataChannel. A call
+        // invitation alone NEVER saves a contact; no server-side friend list.
+        if(m?.v===4 && ["friend-request","friend-response"].includes(m.kind) &&
+           /^[a-f0-9]{32}$/.test(m.id||"") &&
+           typeof m.name==="string" && m.name.trim().length>=1 &&
+           m.name.trim().length<=40 &&
+           (m.kind!=="friend-response"||typeof m.accepted==="boolean") &&
+           /^[a-f0-9]{64}$/.test(peer?.__ezeroPeerFP||"") &&
+           peer?.connectionState==="connected" && c.readyState==="open"){
+          document.dispatchEvent(new CustomEvent("ezero:friend-control",{
+            detail:{kind:m.kind,id:m.id,name:m.name.trim().replace(/\s+/g," "),
+              accepted:m.kind==="friend-response"?m.accepted:null,
+              peerFingerprint:peer.__ezeroPeerFP}
+          }));
+          return;
+        }
         // The opt-in voice-note add-on receives bounded audio through the existing
         // encrypted WebRTC DataChannel. Never start playback without a user click.
         if(m.v===2 && m.kind==="voice-once" &&
@@ -865,6 +882,26 @@
         name:name.trim(),avatar});
       if(encoded.length>14000)return false;
       channel.send(encoded);return true;
+    }
+  });
+  window.EZERO_FRIEND_TRANSPORT=Object.freeze({
+    connected:()=>window.EZERO_PEER_PROFILE_TRANSPORT.connected(),
+    peerFingerprint:()=>window.EZERO_PEER_PROFILE_TRANSPORT.peerFingerprint(),
+    send:(kind,id,name,accepted)=>{
+      if(!window.EZERO_PEER_PROFILE_TRANSPORT.connected() ||
+         !["friend-request","friend-response"].includes(kind) ||
+         typeof id!=="string"||!/^[a-f0-9]{32}$/.test(id) ||
+         typeof name!=="string"||name.trim().length<1||name.trim().length>40 ||
+         (kind==="friend-response"&&typeof accepted!=="boolean"))
+        return false;
+      try{
+        const m={v:4,kind,id,name:name.trim().replace(/\s+/g," ")};
+        if(kind==="friend-response")m.accepted=accepted;
+        const raw=JSON.stringify(m);
+        if(raw.length>300||channel?.readyState!=="open")return false;
+        channel.send(raw);
+        return true;
+      }catch(_){return false;}
     }
   });
   window.EZERO_VOICE_TRANSPORT=Object.freeze({
