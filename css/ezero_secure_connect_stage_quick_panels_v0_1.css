@@ -49,7 +49,7 @@ body.communication-page.ezero-one-lab #ezeroQuickFunctionHost
 }
 /* Multiple received voice messages: independent one-tap listen controls. */
 body.communication-page.ezero-one-lab #ezeroVoiceQueue:not([hidden]){
-  display:grid;gap:8px;margin:10px 0;padding:10px;
+  display:flex;flex-direction:column;gap:8px;margin:10px 0;padding:10px;
   border:1px solid rgba(126,213,162,.4);border-radius:15px;
   background:rgba(3,33,24,.34);max-height:240px;overflow-y:auto
 }
@@ -82,4 +82,29 @@ body.communication-page.ezero-one-lab #ezeroQuickHangup[hidden]{
 /* The immersive video scene has its own visible hangup; don't duplicate it. */
 body.communication-page.ezero-one-lab.ezero-video-connected #ezeroQuickHangup{
   display:none!important
+}
+
+/* Keep the heading from intercepting the touch target after scroll in the
+ * Android in-call drawer. Use normal flow, not auto-sized CSS-grid tracks. */
+body.communication-page.ezero-one-lab #ezeroVoiceQueue>strong{
+  position:static!important;flex:0 0 auto;pointer-events:none!important;
+  display:block!important;max-width:100%;height:auto!important
+}
+body.communication-page.ezero-one-lab #ezeroVoiceQueue .ezero-voice-inbox-row{
+  position:relative;z-index:1;flex:0 0 auto;min-height:54px;
+  flex-wrap:wrap;justify-content:flex-start;gap:8px
+}
+body.communication-page.ezero-one-lab #ezeroVoiceQueue .ezero-voice-inbox-row span{
+  flex:0 0 auto
+}
+body.communication-page.ezero-one-lab #ezeroVoiceQueue .ezero-voice-inbox-play,
+body.communication-page.ezero-one-lab #ezeroVoiceQueue .ezero-voice-inbox-delete{
+  position:relative;z-index:2;min-height:44px!important;
+  display:inline-flex!important;align-items:center;justify-content:center;
+  padding:9px 12px!important;min-width:90px;flex:1 1 110px;
+  cursor:pointer!important;touch-action:manipulation
+}
+body.communication-page.ezero-one-lab #ezeroVoiceQueue .ezero-voice-inbox-delete{
+  background:#632b35!important;border:1px solid #f2aab2!important;
+  border-radius:10px!important;color:#fff!important
 }
