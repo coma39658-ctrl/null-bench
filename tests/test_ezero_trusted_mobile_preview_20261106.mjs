@@ -94,7 +94,10 @@ try{
   assert.equal(await caller.locator('[data-modern-select="video"]').getAttribute("aria-pressed"),"false");
   assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),0,
     "Opening the call lab should not ask for microphone/camera permission");
-  assert.equal(await caller.locator("#ezeroAutoPilot").isVisible(),true);
+  assert.equal(await caller.locator("#ezeroAutoPilot").isVisible(),false,
+    "Call setup must stay closed until the person presses audio or video");
+  assert.equal(await caller.locator("#modernCallPanel").isVisible(),false,
+    "Neither audio nor video workspace should open before a user action");
   assert.equal(await caller.locator("#ezeroUnifiedCard").isVisible(),true);
   assert.equal(await caller.locator("#ezeroLegacyCompatibility").isHidden(),true,
     "Old second-color duplicate layers must not be displayed");
@@ -174,6 +177,8 @@ try{
   assert.equal(await caller.locator("#modernVoicePanel").isVisible(),true);
   assert.equal(await caller.locator("#modernVoicePanel").evaluate(el=>
     el.parentElement?.id==="ezeroQuickFunctionHost"),true);
+  assert.equal(await caller.locator("#ezeroAutoPilot").isHidden(),true,
+    "Voice mode must not expose a disconnected call invitation elsewhere");
   assert.ok(await caller.evaluate(()=>{
     const top=document.querySelector(".modern-feature-grid").getBoundingClientRect();
     const action=document.getElementById("modernVoicePanel").getBoundingClientRect();
@@ -182,6 +187,8 @@ try{
   await caller.locator('[data-modern-select="chat"]').click();
   assert.equal(await caller.locator("#modernChatPanel").isVisible(),true);
   assert.equal(await caller.locator("#modernVoicePanel").isHidden(),true);
+  assert.equal(await caller.locator("#modernChatPanel").evaluate(el=>
+    el.parentElement?.id==="ezeroQuickFunctionHost"),true);
   await caller.locator("#ezeroQuickEvidence").click();
   assert.equal(await caller.locator("#ezeroEvidencePanel").isVisible(),true);
   assert.equal(await caller.locator("#ezeroQuickEvidence").getAttribute("aria-expanded"),"true");
@@ -192,6 +199,10 @@ try{
   await caller.locator('[data-modern-select="audio"]').click();
   await caller.waitForFunction(()=>!!window.__oneInvite,{timeout:30000});
   const invite=await caller.evaluate(()=>window.__oneInvite);
+  assert.equal(await caller.locator("#ezeroAutoPilot").isVisible(),true);
+  assert.equal(await caller.locator("#ezeroAutoPilot").evaluate(el=>
+    el.parentElement?.id==="ezeroQuickFunctionHost"),true,
+    "Call invitation must appear below the feature buttons, not far down");
   assert.match(invite,/\/ezero_trusted_friends_staging_20261106\.html\?mode=audio#room=[A-Za-z0-9_-]{32}\.[A-Za-z0-9_-]{43}$/);
   assert.ok(invite.length<190,"One-request URL should not contain an entire SDP");
   assert.equal(await caller.locator("#ezeroOneQrBox").isVisible(),true);
@@ -230,6 +241,15 @@ try{
   assert.equal(answers,1,"The answer should be sent automatically by WebSocket");
   assert.ok(await caller.evaluate(()=>window.__mediaCalls.length)>0);
   assert.ok(await callee.evaluate(()=>window.__mediaCalls.length)>0);
+  for(const phone of [caller,callee]){
+    assert.equal(await phone.locator("#ezeroQuickCallTimer").isVisible(),true,
+      "A verified live call must show its running duration near the buttons");
+    assert.match(await phone.locator("#ezeroQuickCallTimer").innerText(),
+      /^\\d{2}:\\d{2}$/);
+    assert.equal(await phone.locator("#modernCallPanel").evaluate(el=>
+      el.parentElement?.id==="ezeroQuickFunctionHost"),true);
+  }
+  console.log("VERIFIED_CALL_TIMER_AND_NEAR_BUTTON_MEDIA_SURFACE: PASS");
   assert.equal(await caller.locator("#modernConnectionStatus").getAttribute("data-state"),"connected");
   await callee.waitForFunction(()=>document.getElementById("ezeroOneCallProgress")?.dataset.state==="connected",
     {timeout:10000});
