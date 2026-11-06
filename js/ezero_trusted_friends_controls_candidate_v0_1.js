@@ -23,7 +23,9 @@
       empty:"ابھی کوئی تصدیق شدہ دوست محفوظ نہیں۔",
       allow:"✓ اجازت دیں",deny:"✕ اجازت ہٹائیں",audio:"📞 کال",video:"📹 ویڈیو",
       idle:"براہِ راست رابطہ سرور ابھی آزمائشی ہے؛ کال بننے کی تصدیق کے بغیر کامیابی ظاہر نہیں ہوگی۔",
-      offline:"رابطہ سرور دستیاب نہیں، موجودہ QR دعوت استعمال کریں۔",
+      offline:"رابطہ سرور سے رابطہ نہیں ہوا؛ انٹرنیٹ چیک کریں یا موجودہ QR دعوت استعمال کریں۔",
+       firstQr:"پہلے دو موبائلوں پر QR سے ایک کامیاب کال کریں اور دونوں طرف دوست محفوظ کریں؛ پھر یہ بٹن دبائیں۔",
+       missingIdentity:"اس فون کی محفوظ شناخت دستیاب نہیں۔ QR سے دوبارہ تصدیق کرکے دوست محفوظ کریں۔",
       ownerOn:"✓ یہ صفحہ محفوظ دوستوں کی کال وصول کرنے کے لیے تیار ہے (پس منظر میں نہیں)۔",
       trusted:"دوست کی کال کی اجازت محفوظ کرنے کی درخواست بھیجی گئی۔",
       untrusted:"دوست کی کال کی اجازت واپس لینے کی درخواست بھیجی گئی۔",
@@ -38,7 +40,9 @@
       empty:"No verified saved friends yet.",allow:"✓ Allow",deny:"✕ Revoke",
       audio:"📞 Call",video:"📹 Video",
       idle:"This addressable calling service is experimental; no success without evidence.",
-      offline:"Inbox service unavailable; use the existing QR invitation.",
+      offline:"Unable to reach the calling server. Check internet or use the QR invitation.",
+       firstQr:"First complete one QR call on both phones and save each other as friends; then enable incoming calls.",
+       missingIdentity:"Saved device identity unavailable. Verify again with QR and save the friend.",
       ownerOn:"✓ This foreground page can receive trusted invitations.",
       trusted:"Trust registration request sent.",untrusted:"Revocation request sent.",
       preparing:"Preparing a fresh signed invitation.",
@@ -51,7 +55,10 @@
       note:"تصل المكالمات فقط والصفحة مفتوحة وبعد موافقتك. احفظ الصديق بعد تحقق QR.",
       empty:"لا يوجد أصدقاء محفوظون متحقق منهم.",allow:"✓ السماح",deny:"✕ إلغاء السماح",
       audio:"📞 اتصال",video:"📹 فيديو",idle:"خدمة الاتصال التجريبية لا تعرض نجاحاً وهمياً.",
-      offline:"الخادم غير متاح؛ استخدم دعوة QR.",ownerOn:"✓ يمكن لهذه الصفحة المفتوحة استقبال دعوات موثوقة.",
+      offline:"تعذر الاتصال بالخادم؛ تحقق من الإنترنت أو استخدم QR.",
+       firstQr:"أجرِ مكالمة QR ناجحة أولاً واحفظ الصديق على الجهازين، ثم فعّل استقبال المكالمات.",
+       missingIdentity:"هوية الجهاز المحفوظة غير متاحة؛ أعد التحقق عبر QR واحفظ الصديق.",
+       ownerOn:"✓ يمكن لهذه الصفحة المفتوحة استقبال دعوات موثوقة.",
       trusted:"أُرسل طلب تسجيل الثقة.",untrusted:"أُرسل طلب الإلغاء.",
       preparing:"تجهيز دعوة آمنة جديدة.",sent:"أُرسل الطلب دون إثبات الاستلام.",
       delivered:"✓ وصلت الدعوة للصفحة المفتوحة، ولم يتم قبولها بعد.",
@@ -150,8 +157,17 @@
   const head=$("h2");head.id="ezeroTrustedTitle";
   const note=$("p");note.id="ezeroTrustedHelp";
   const enable=button(t("start"),async()=>{
+    // A first-time user has no persisted contact or device identity yet.
+    // Do not misleadingly label this as a Cloudflare outage.
+    if(!contacts().length){active=false;return status("firstQr",true);}
     try{await api.openOwnerInbox();active=true;status("ownerOn");}
-    catch(_){active=false;status("offline",true);}
+    catch(error){
+      active=false;
+      const code=String(error?.message||"");
+      if(/^(DEVICE_IDENTITY_NOT_SAVED|DEVICE_IDENTITY_MISMATCH|DEVICE_IDENTITY_STORE_NOT_LOADED|LAB_DISABLED_OR_INSECURE)$/.test(code))
+        status("missingIdentity",true);
+      else status("offline",true);
+    }
   });
   enable.id="ezeroTrustedEnable";
   const list=$("div");list.id="ezeroTrustedList";
@@ -201,6 +217,8 @@
       outgoingInFlight=false;outgoingResult="failed";status("failed",true);
     }
   });
+  // The first connected call can save a friend without reloading the page.
+  document.addEventListener("ezero:friend-local-saved",paint);
   document.getElementById("language")?.addEventListener("change",()=>{
     paint();paintIncoming();
   });
