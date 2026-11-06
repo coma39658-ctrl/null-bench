@@ -134,3 +134,18 @@ body.communication-page.ezero-one-lab .ezero-in-call-message-drawer
   scroll-margin-block:55px!important;
   pointer-events:auto!important
 }
+
+/* Verified connected call duration, displayed beside the selected feature. */
+body.communication-page.ezero-one-lab #ezeroQuickCallTimer:not([hidden]){
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:44px;min-width:85px;padding:8px 13px;
+  border-radius:13px;border:1px solid #8ad4aa;
+  background:#0e4a34;color:#f2fff4;
+  font:800 17px/1.2 ui-monospace,monospace;
+  font-variant-numeric:tabular-nums;letter-spacing:.08em
+}
+body.communication-page.ezero-one-lab #ezeroQuickCallTimer[hidden]{display:none!important}
+body.communication-page.ezero-one-lab #ezeroQuickFunctionHost #ezeroAutoPilot[hidden],
+body.communication-page.ezero-one-lab #ezeroQuickFunctionHost #modernCallPanel[hidden]{
+  display:none!important
+}
