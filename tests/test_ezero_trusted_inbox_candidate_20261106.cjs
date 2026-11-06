@@ -160,6 +160,22 @@ async function run(){
   assert.equal(socketOwner.sent.at(-1).trusted,false);
   assert.ok(!JSON.stringify([...data.values()]).includes("privateKey"));
   assert.ok(source.includes("RECIPIENT_OFFLINE"));
+  // Seven abandoned unauthenticated clients + the real owner reach capacity.
+  // Expired challenges must not hold the recipient offline indefinitely.
+  const abandoned=[];
+  for(let i=0;i<7;i++)abandoned.push(await connect(owner.fp));
+  assert.equal((await worker.fetch(req(owner.fp),env)).status,429,
+    "unexpired pending socket limit must be enforced");
+  for(const sock of abandoned){
+    const a=sock.deserializeAttachment();
+    sock.serializeAttachment({...a,opened:Date.now()-21000});
+  }
+  const restored=await worker.fetch(req(owner.fp),env);
+  assert.equal(restored.status,101,
+    "expired unauthenticated challenges must release connection slots");
+  assert.ok(abandoned.every(ws=>ws.readyState===3));
+  assert.ok(socketOwner.readyState===1,"authenticated recipient remains connected");
   console.log("PASS: signed P-256 challenge, owner-only trust, privacy, one-call delivery, cooldown, replay, revocation");
+  console.log("PASS: stale pending WebSockets cannot exhaust all slots forever");
 }
 run().catch(err=>{console.error(err);process.exitCode=1;});
