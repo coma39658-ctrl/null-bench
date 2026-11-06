@@ -71,6 +71,7 @@
  function clearPending(){pending=null;if(timeout){clearTimeout(timeout);timeout=null;}}
  function clearState(){
    clearPending();incoming=null;request.hidden=true;
+   delete root.dataset.expanded;
    root.hidden=true;report("idle");
  }
  function redraw(){
@@ -93,7 +94,7 @@
  add.addEventListener("click",()=>{
    if(!connected()||pending)return;
    const name=myName();
-   if(!validName(name)){report("name");nameInput.focus();return;}
+   if(!validName(name)){root.dataset.expanded="true";report("name");nameInput.focus();return;}
    const fp=transport().peerFingerprint();
    if(contacts()?.saved(fp)){report("already");return;}
    const bytes=crypto.getRandomValues(new Uint8Array(16));
@@ -123,7 +124,7 @@
  accept.addEventListener("click",()=>{
    if(!connected()||!incoming)return;
    const response=incoming,own=myName(),fp=transport().peerFingerprint();
-   if(!validName(own)){report("name");nameInput.focus();return;}
+   if(!validName(own)){root.dataset.expanded="true";report("name");nameInput.focus();return;}
    if(response.fp!==fp || Date.now()-response.created>120000){
      incoming=null;request.hidden=true;report("expired");return;
    }
