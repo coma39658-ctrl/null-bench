@@ -7,10 +7,12 @@
   "use strict";
   const $=id=>document.getElementById(id);
   if(!document.body.classList.contains("ezero-one-lab"))return;
-  const panel=$("modernCallPanel"),chat=$("modernChatPanel"),voice=$("modernVoicePanel");
+  const panel=$("modernCallPanel"),chat=$("modernChatPanel"),voice=$("modernVoicePanel"),
+        evidence=$("ezeroEvidencePanel");
   if(!panel||!chat||!voice)return;
   const anchors=new Map([[chat,document.createComment("E-ZERO chat origin")],
                          [voice,document.createComment("E-ZERO voice origin")]]);
+  if(evidence)anchors.set(evidence,document.createComment("E-ZERO recording origin"));
   for(const [p,marker] of anchors)p.parentNode.insertBefore(marker,p);
 
   const dock=document.createElement("div");dock.id="ezeroInCallMessageDock";
@@ -19,7 +21,10 @@
   const chatBtn=document.createElement("button"),voiceBtn=document.createElement("button");
   chatBtn.type=voiceBtn.type="button";
   chatBtn.id="ezeroInCallChat";voiceBtn.id="ezeroInCallVoice";
+  const evidenceBtn=evidence?document.createElement("button"):null;
+  if(evidenceBtn){evidenceBtn.id="ezeroInCallEvidence";evidenceBtn.type="button";}
   dock.append(chatBtn,voiceBtn);
+  if(evidenceBtn)dock.append(evidenceBtn);
 
   const drawer=document.createElement("section");drawer.id="ezeroInCallMessageDrawer";
   drawer.className="ezero-in-call-message-drawer";drawer.hidden=true;
@@ -36,9 +41,11 @@
   drawerTabs.setAttribute("aria-label","Message type · پیغام کی قسم · نوع الرسالة");
   const chatTab=document.createElement("button");
   const voiceTab=document.createElement("button");
+  const evidenceTab=evidence?document.createElement("button"):null;
   chatTab.id="ezeroInCallChatTab";voiceTab.id="ezeroInCallVoiceTab";
   chatTab.type=voiceTab.type="button";
   drawerTabs.append(chatTab,voiceTab);
+  if(evidenceTab){evidenceTab.id="ezeroInCallEvidenceTab";evidenceTab.type="button";drawerTabs.append(evidenceTab);}
   drawer.append(header,drawerTabs);
   panel.append(dock,drawer);
   // A live video call covers the page's normal language selector. Offer the
@@ -66,9 +73,9 @@
   });
 
   const translations={
-    ur:{chat:"💬 میسج",voice:"🎙️ وائس میسج",close:"✕ بند کریں",chatTitle:"نجی تحریری پیغام",voiceTitle:"عارضی وائس میسج",language:"زبان"},
-    en:{chat:"💬 Chat",voice:"🎙️ Voice note",close:"✕ Close",chatTitle:"Private message",voiceTitle:"Temporary voice note",language:"Language"},
-    ar:{chat:"💬 رسالة",voice:"🎙️ رسالة صوتية",close:"✕ إغلاق",chatTitle:"رسالة خاصة",voiceTitle:"رسالة صوتية مؤقتة",language:"اللغة"}
+    ur:{chat:"💬 میسج",voice:"🎙️ وائس میسج",proof:"🔴 ریکارڈ/SHA",close:"✕ بند کریں",chatTitle:"نجی تحریری پیغام",voiceTitle:"عارضی وائس میسج",proofTitle:"محفوظ ریکارڈنگ · SHA-256",language:"زبان"},
+    en:{chat:"💬 Chat",voice:"🎙️ Voice note",proof:"🔴 Record/SHA",close:"✕ Close",chatTitle:"Private message",voiceTitle:"Temporary voice note",proofTitle:"Recording & SHA-256 evidence",language:"Language"},
+    ar:{chat:"💬 رسالة",voice:"🎙️ رسالة صوتية",proof:"🔴 تسجيل/SHA",close:"✕ إغلاق",chatTitle:"رسالة خاصة",voiceTitle:"رسالة صوتية مؤقتة",proofTitle:"التسجيل و SHA-256",language:"اللغة"}
   };
   const tr=k=>(translations[document.documentElement.lang]||translations.ur)[k];
   const verified=()=>window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true;
@@ -76,10 +83,14 @@
   function translate(){
     chatBtn.textContent=chatTab.textContent=tr("chat");
     voiceBtn.textContent=voiceTab.textContent=tr("voice");
+    if(evidenceBtn&&evidenceTab){
+      evidenceBtn.textContent=evidenceTab.textContent=tr("proof");
+      evidenceTab.setAttribute("aria-pressed",String(opened==="proof"));
+    }
     chatTab.setAttribute("aria-pressed",String(opened==="chat"));
     voiceTab.setAttribute("aria-pressed",String(opened==="voice"));
     close.textContent=tr("close");
-    title.textContent=tr(opened==="voice"?"voiceTitle":"chatTitle");
+    title.textContent=tr(opened==="voice"?"voiceTitle":opened==="proof"?"proofTitle":"chatTitle");
     localeLabel.textContent=tr("language");
     locale.value=document.documentElement.lang==="en"?"en":document.documentElement.lang==="ar"?"ar":"ur";
   }
@@ -96,7 +107,8 @@
     if(opened===type){closeDrawer();return;}
     closeDrawer();
     opened=type;
-    const node=type==="chat"?chat:voice;
+    const node=type==="chat"?chat:type==="proof"?evidence:voice;
+    if(!node)return;
     drawer.append(node);
     drawer.hidden=false;node.hidden=false;
     translate();
@@ -110,8 +122,10 @@
   }
   chatBtn.addEventListener("click",()=>openDrawer("chat"));
   voiceBtn.addEventListener("click",()=>openDrawer("voice"));
+  evidenceBtn?.addEventListener("click",()=>openDrawer("proof"));
   chatTab.addEventListener("click",()=>{if(opened!=="chat")openDrawer("chat");});
   voiceTab.addEventListener("click",()=>{if(opened!=="voice")openDrawer("voice");});
+  evidenceTab?.addEventListener("click",()=>{if(opened!=="proof")openDrawer("proof");});
   close.addEventListener("click",closeDrawer);
   document.addEventListener("keydown",e=>{
     if(e.key==="Escape"&&!drawer.hidden)closeDrawer();
