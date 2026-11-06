@@ -30,7 +30,14 @@
  hint.setAttribute("role","status");hint.setAttribute("aria-live","polite");
  panel.append(ui,hint);
  let preset="natural",bound=null,processor=null,raf=0,busy=false,serial=0,notice="status",lastFrame=0;
- const lng=()=>["ur","ar","en"].includes(document.documentElement.lang)?document.documentElement.lang:"ur";
+ // The main language <select> is authoritative during its change event.
+ // This script loads before the core language handler, so the root HTML lang
+ // may still be the PREVIOUS language when our listener executes.
+ const lng=()=>{
+   const selected=$("language")?.value;
+   return ["ur","ar","en"].includes(selected)?selected:
+     (["ur","ar","en"].includes(document.documentElement.lang)?document.documentElement.lang:"ur");
+ };
  function translate(){
    name.textContent=words[lng()].title;
    for(const o of choice.options)o.textContent=styles[o.value].label[lng()];
