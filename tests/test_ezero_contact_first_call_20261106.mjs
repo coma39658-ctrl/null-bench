@@ -105,7 +105,19 @@ try{
   console.log("CONTACT_FIRST_EMPTY_LIST_NO_MEDIA_OR_FAKE_FRIEND: PASS");
   // The first ever call still uses real explicit QR/accept, no saved friend.
   await caller.locator('[data-modern-select="audio"]').click();
-  await caller.waitForFunction(()=>!!window.__oneInvite,{timeout:30000});
+  await caller.waitForTimeout(1000);
+  console.log("CONTACT_QR_DIAGNOSTIC",JSON.stringify(await caller.evaluate(()=>({
+    autoHidden:document.getElementById("ezeroAutoPilot")?.hidden,
+    autoStartDisabled:document.getElementById("ezeroAutoStart")?.disabled,
+    selectedMode:document.querySelector('input[name="mode"]:checked')?.value,
+    contacts:localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1"),
+    oneInvite:window.__oneInvite,
+    autoStatus:document.getElementById("ezeroAutoStatus")?.textContent,
+    firstStatus:document.getElementById("ezeroContactFirstStatus")?.textContent,
+    mediaCalls:window.__mediaCalls?.length,
+    featureButtons:[...document.querySelectorAll("[data-modern-select]")].map(x=>[x.dataset.modernSelect,x.getAttribute("aria-pressed")])
+  }))));
+  await caller.waitForFunction(()=>!!window.__oneInvite,{timeout:12000});
   const first=await caller.evaluate(()=>window.__oneInvite);
   assert.match(first,/mode=audio#room=/);
   const callee=await createPhone("CONTACT_CALLEE");
