@@ -74,6 +74,26 @@
     const target=$("ezeroOneQrBox");
     if(target&&!target.hidden)bringIntoView(target);
   });
+  // An authenticated recording-consent request must be visible without
+  // hunting through the page; never approve it automatically.
+  document.addEventListener("ezero:record-consent",event=>{
+    if(event.detail?.action!=="request"||event.detail?.verifiedChannel!==true)return;
+    queueMicrotask(()=>{
+      if(document.hidden||$("ezeroEvidenceIncoming")?.hidden!==false)return;
+      const live=window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true;
+      const drawer=$("ezeroInCallMessageDrawer");
+      if(live&&$("ezeroInCallEvidence")){
+        if(!drawer||drawer.hidden||!drawer.contains(evidence)){
+          call.hidden=false;
+          $("ezeroInCallEvidence").click();
+        }
+      }else{
+        evidence.hidden=false;
+        proof.setAttribute("aria-expanded","true");paint();
+        bringIntoView(evidence);
+      }
+    });
+  });
   document.getElementById("language")?.addEventListener("change",paint);
   document.addEventListener("ezero:call-status",e=>{
     if(e.detail?.stage==="idle"){evidence.hidden=true;proof.setAttribute("aria-expanded","false");paint();}
