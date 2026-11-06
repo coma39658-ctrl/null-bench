@@ -69,3 +69,17 @@ body.communication-page.ezero-one-lab .ezero-voice-inbox-play{
 body.communication-page.ezero-one-lab .ezero-voice-inbox-play:disabled{
   opacity:.7!important
 }
+
+body.communication-page.ezero-one-lab #ezeroQuickHangup:not([hidden]){
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:44px;max-width:100%;padding:9px 14px;
+  border-radius:14px;border:1px solid #faafb8;
+  color:#fff;background:#b72436;font-weight:850
+}
+body.communication-page.ezero-one-lab #ezeroQuickHangup[hidden]{
+  display:none!important
+}
+/* The immersive video scene has its own visible hangup; don't duplicate it. */
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroQuickHangup{
+  display:none!important
+}
