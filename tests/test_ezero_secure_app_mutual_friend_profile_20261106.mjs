@@ -75,18 +75,6 @@ async function createPhone(name){
   await context.addInitScript(()=>{
     window.__mediaCalls=[];
     window.__oneInvite="";
-    window.__profileEvents=[];
-    for(const key of ["ezero:call-intent","ezero:peer-signed-verified",
-      "ezero:channel-state","ezero:call-status","ezero:profile-received",
-      "ezero:friend-local-saved"]){
-      document.addEventListener(key,e=>{
-        const d=e.detail||{};
-        window.__profileEvents.push([key,
-          d.direction||d.signalType||d.stage||
-          (d.connected===true?"connected":d.connected===false?"disconnected":"event"),
-          d.name||""]);
-      });
-    }
     // Synthetic Web Audio test: verifies a ringtone starts for genuine
     // incoming calls and stops before the camera is opened by Accept.
     window.__ringCounts={contexts:0,resume:0,tones:0,suspend:0};
@@ -186,17 +174,6 @@ try{
   await bob.locator("#ezeroAutoAccept").click();
   await Promise.all([alice,bob].map(p=>p.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===true,{timeout:45000})));
-  await alice.waitForTimeout(1500);
-  for(const [phone,label] of [[alice,"ALICE"],[bob,"BOB"]]){
-    const diagnostic=await phone.evaluate(()=>{
-      const store=JSON.parse(localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1")||"[]");
-      return {friends:store.map(f=>({name:f.name,profileName:f.profileName,
-        nickname:f.nickname,hasAvatar:!!f.avatar,fpSuffix:f.fp?.slice(-6)})),
-        events:window.__profileEvents,profileStatus:document.getElementById("ezeroProfileStatus")?.textContent,
-        connection:window.EZERO_PEER_PROFILE_TRANSPORT?.connected()};
-    });
-    console.log("PROFILE_SYNC_DIAGNOSTIC_"+label+" "+JSON.stringify(diagnostic));
-  }
   await Promise.all([waitForProfileFriend(alice,"Bob"),waitForProfileFriend(bob,"Alice")]);
   const aliceFriend=(await readFriends(alice)).find(x=>x.profileName==="Bob");
   const bobFriend=(await readFriends(bob)).find(x=>x.profileName==="Alice");
