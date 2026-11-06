@@ -5,6 +5,7 @@ const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const vm=require("node:vm");
 const {webcrypto,createHash}=require("node:crypto");
+const {verifyArchive}=require("../tools/verify_ezero_evidence_v1.cjs");
 const source=fs.readFileSync("js/ezero_signed_media_evidence_v0_1.js","utf8");
 new vm.Script(source);
 assert.doesNotMatch(source,/\bfetch\s*\(|new\s+WebSocket\s*\(|XMLHttpRequest|sendBeacon|localStorage\.setItem/);
@@ -80,6 +81,14 @@ async function main(){
   assert.match(signed.sha256,/^[0-9a-f]{64}$/);
   assert.equal(signed.sha256,createHash("sha256").update(media).digest("hex"));
   assert.equal(signed.signerFingerprint,fp);
+  const standalone=verifyArchive(Buffer.from(await signed.archive.arrayBuffer()));
+  assert.equal(standalone.status,"INTEGRITY_VERIFIED");
+  assert.equal(standalone.mediaSha256,signed.sha256);
+  assert.equal(standalone.signerFingerprint,fp);
+  const alteredZip=Buffer.from(await signed.archive.arrayBuffer());
+  alteredZip[60]^=1;
+  assert.throws(()=>verifyArchive(alteredZip),/ZIP_CRC_FAILED|ZIP_CENTRAL_MISMATCH/);
+  console.log("PASS: independent Node offline verifier checks ECDSA, SHA-256, ZIP CRC and modified ZIP rejection");
   const entries=await unzipLocalStored(signed.archive);
   const manifest=JSON.parse(decoder.decode(entries.get("evidence.json")));
   assert.equal(manifest.payload.signerClass,"CONSENT_SAVED_DEVICE_IDENTITY");
@@ -124,6 +133,8 @@ async function main(){
     const signedManifest=JSON.parse(decoder.decode(extracted.get("evidence.json")));
     assert.equal(signedManifest.payload.media.filename,"media."+extension);
     assert.equal(await ev.verify(extracted.get("media."+extension),signedManifest),true);
+    assert.equal(verifyArchive(Buffer.from(await manifestResult.archive.arrayBuffer())).status,
+      "INTEGRITY_VERIFIED");
     ev.expire(fileId);
   }
   console.log("PASS: audio notes, images, documents, videos and text use common optional signed proof");
