@@ -107,6 +107,16 @@ export class TrustedInbox extends DurableObject {
       return new Response("Forbidden",{status:403});
     if(request.headers.get("Upgrade")?.toLowerCase()!=="websocket")
       return new Response("WebSocket required",{status:426});
+    // Pending unauthenticated sockets cannot occupy every slot forever.
+    // Reap challenges that have expired before evaluating connection limits.
+    // No repeating timers: this is compatible with DO WebSocket hibernation.
+    const now=Date.now();
+    for(const socket of this.members()){
+      const session=attach(socket);
+      if(session?.role==="pending"&&now-session.opened>HELLO_MS){
+        try{socket.close(1008,"challenge-expired");}catch(_){}
+      }
+    }
     if(this.members().length>=MAX_CLIENTS)return new Response("Busy",{status:429});
     const [client,server]=Object.values(new WebSocketPair());
     const nonce=base64url(crypto.getRandomValues(new Uint8Array(24)));
