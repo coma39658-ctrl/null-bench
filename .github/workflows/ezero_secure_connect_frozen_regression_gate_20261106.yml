@@ -95,3 +95,27 @@ jobs:
           set -euo pipefail
           node --check tests/test_ezero_trusted_mobile_preview_20261106.mjs
           node tests/test_ezero_trusted_mobile_preview_20261106.mjs
+
+  evidence-cryptographic-integrity-stage:
+    if: github.event_name == 'pull_request' && github.head_ref == 'ezero-evidence-cryptographic-export-v1-20261106'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax, offline consent and SHA-256/ECDSA evidence integrity test
+        run: |
+          set -euo pipefail
+          node --check js/ezero_evidence_proof_v1.js
+          node --check js/ezero_evidence_export_ui_v1.js
+          node --check tests/test_ezero_evidence_proof_v1.cjs
+          node tests/test_ezero_evidence_proof_v1.cjs
+          grep -Fq "connect-src 'none'" ezero_evidence_verify_lab_20261106.html
+          grep -Fq "noindex,nofollow" ezero_evidence_verify_lab_20261106.html
+          ! grep -Eq 'src="https?://|href="https?://' ezero_evidence_verify_lab_20261106.html
