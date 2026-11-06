@@ -231,6 +231,7 @@
   const $all = selector => Array.from(document.querySelectorAll(selector));
   let currentLang = "ur", identityPromise = null, identity = null, expectedPeerFingerprint = null;
   let peer = null, channel = null, localStream = null, remoteStream = null, role = null;
+  let pendingVoice=null;
   let incoming = null, unreadExpiry = null, viewedExpiry = null, scanStream = null, scanTimeout = null, scanGeneration = 0;
   let micMuted = false, cameraMuted = false;
   const me = key => (langs[currentLang] || {})[key] || $("fallbackNever") || null;
@@ -553,6 +554,11 @@
     // One bounded, authenticated WebRTC DataChannel note assembly at a time.
     // No server storage, parallel fanout or unbounded/reusable buffers.
     let noteParts=null,noteTimer=null;
+    const MAX_NOTE_BASE64=8000000,NOTE_STEP=12000,MAX_NOTE_FRAMES=Math.ceil(MAX_NOTE_BASE64/NOTE_STEP);
+    const noteTimeout=()=>{
+      if(noteTimer!==null)clearTimeout(noteTimer);
+      noteTimer=setTimeout(clearNoteParts,60000);
+    };
     function clearNoteParts(){
       if(noteTimer!==null){clearTimeout(noteTimer);noteTimer=null;}
       noteParts=null;
@@ -563,6 +569,7 @@
     };
     c.onclose=()=>{
       clearNoteParts();
+      if(pendingVoice?.dc===c)pendingVoice.finish(false);
       $("sendMessage").disabled=true;$("messageStatus").textContent=t("notConnected");
       document.dispatchEvent(new CustomEvent("ezero:channel-state",{detail:{connected:false}}));
     };
@@ -586,21 +593,27 @@
           }));
           return;
         }
-        // v4: bounded, ordered chunks keep 30-second notes below practical
-        // per-message SCTP limits; incomplete/duplicate/expired notes are discarded.
+        // v4 long voice: bounded ordered chunks, sender backpressure & ACK.
+        // Never write received notes to a server or automatically play them.
+        if(m?.v===4&&m.kind==="voice-ack"){
+          if(pendingVoice?.dc===c&&m.id===pendingVoice.id &&
+             m.total===pendingVoice.total&&m.received===true)
+            pendingVoice.finish(true);
+          return;
+        }
         if(m?.v===4 && m.kind==="voice-start"){
           clearNoteParts();
           if(c.readyState!=="open"||peer?.connectionState!=="connected"||
              !/^[a-f0-9]{64}$/.test(peer?.__ezeroPeerFP||"")||
              !/^[a-f0-9]{32}$/.test(m.id||"")||
              !["audio/webm","audio/mp4","audio/ogg"].includes(m.mime)||
-             !Number.isSafeInteger(m.count)||m.count<3||m.count>11||
-             !Number.isSafeInteger(m.total)||m.total<32001||m.total>128000||
-             m.count!==Math.ceil(m.total/12000))return;
+             !Number.isSafeInteger(m.count)||m.count<3||m.count>MAX_NOTE_FRAMES||
+             !Number.isSafeInteger(m.total)||m.total<32001||m.total>MAX_NOTE_BASE64||
+             m.total%4!==0||m.count!==Math.ceil(m.total/NOTE_STEP))return;
           noteParts={id:m.id,mime:m.mime,count:m.count,total:m.total,
             items:new Array(m.count),next:0,size:0,
             exportAllowed:m.exportAllowed===true};
-          noteTimer=setTimeout(clearNoteParts,30000);
+          noteTimeout();
           return;
         }
         if(m?.v===4 && m.kind==="voice-part"){
@@ -608,12 +621,14 @@
           if(!n||c.readyState!=="open"||m.id!==n.id||
              !Number.isSafeInteger(m.index)||m.index!==n.next||
              typeof m.data!=="string"||m.data.length<1||
-             m.data.length>12000||!/^[A-Za-z0-9+/=]+$/.test(m.data)){
+             m.data.length>NOTE_STEP||!/^[A-Za-z0-9+/=]+$/.test(m.data)||
+             (n.next<n.count-1&&m.data.length!==NOTE_STEP)){
             clearNoteParts();return;
           }
           n.size+=m.data.length;
           if(n.size>n.total){clearNoteParts();return;}
           n.items[n.next++]=m.data;
+          noteTimeout();
           if(n.next===n.count){
             const audio=n.items.join("");
             if(n.size===n.total && audio.length===n.total &&
@@ -622,6 +637,8 @@
                 detail:{id:n.id,mime:n.mime,audio,
                   exportAllowed:n.exportAllowed}
               }));
+              try{c.send(JSON.stringify({v:4,kind:"voice-ack",id:n.id,
+                total:n.total,received:true}));}catch(_){}
             }
             clearNoteParts();
           }
@@ -832,6 +849,7 @@
   function hardHangup(show=true) {
     stopScanner();
     document.dispatchEvent(new CustomEvent("ezero:channel-state",{detail:{connected:false}}));
+    pendingVoice?.finish(false);
     if(channel){channel.onmessage=channel.onopen=channel.onclose=null;try{channel.close();}catch(_){}channel=null;}
     if(peer){peer.ontrack=peer.ondatachannel=peer.onconnectionstatechange=null;try{peer.close();}catch(_){}peer=null;}
     if(localStream){localStream.getTracks().forEach(x=>x.stop());localStream=null;}
@@ -883,30 +901,70 @@
    window.EZERO_VOICE_TRANSPORT=Object.freeze({
     connected:()=>!!channel&&channel.readyState==="open",
     send:(mime,encoded,exportAllowed=false)=>{
-      if(!channel||channel.readyState!=="open")return false;
+      const dc=channel;
+      if(!dc||dc.readyState!=="open"||pendingVoice||
+         peer?.connectionState!=="connected")return false;
       if(!["audio/webm","audio/mp4","audio/ogg"].includes(mime) ||
-         typeof encoded!=="string" || encoded.length<1 || encoded.length>128000 ||
-         !/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)||
-         encoded.length%4!==0)return false;
-      if(channel.bufferedAmount>256000)return false;
+         typeof encoded!=="string" || encoded.length<1 || encoded.length>8000000 ||
+         !/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)||encoded.length%4!==0)
+        return false;
+      if(dc.bufferedAmount>256000)return false;
       try{
         if(encoded.length<=32000){
-          channel.send(JSON.stringify({v:2,kind:"voice-once",
+          dc.send(JSON.stringify({v:2,kind:"voice-once",
             id:hex(randomBytes(16)),mime,audio:encoded,
             exportAllowed:exportAllowed===true}));
           return true;
         }
-        const id=hex(randomBytes(16)),step=12000,count=Math.ceil(encoded.length/step);
-        if(count>11)return false;
-        channel.send(JSON.stringify({v:4,kind:"voice-start",id,mime,
-          count,total:encoded.length,exportAllowed:exportAllowed===true}));
-        for(let i=0;i<count;i++){
-          if(channel.readyState!=="open"||channel.bufferedAmount>256000)return false;
-          channel.send(JSON.stringify({v:4,kind:"voice-part",id,index:i,
-            data:encoded.slice(i*step,(i+1)*step)}));
-        }
-        return true;
       }catch(_){return false;}
+      const id=hex(randomBytes(16)),step=12000,count=Math.ceil(encoded.length/step);
+      if(count>667)return false;
+      return new Promise(resolve=>{
+        let next=0,done=false,timeout=null,pumpTimer=null;
+        const finish=ok=>{
+          if(done)return;
+          done=true;
+          if(timeout!==null)clearTimeout(timeout);
+          if(pumpTimer!==null)clearTimeout(pumpTimer);
+          dc.removeEventListener("bufferedamountlow",pump);
+          if(pendingVoice?.id===id)pendingVoice=null;
+          resolve(ok);
+        };
+        pendingVoice={id,dc,total:encoded.length,finish};
+        // A stuck or disconnected channel must never hold a permanent spinner.
+        timeout=setTimeout(()=>finish(false),600000);
+        try{dc.bufferedAmountLowThreshold=65536;
+          dc.addEventListener("bufferedamountlow",pump);
+          dc.send(JSON.stringify({v:4,kind:"voice-start",id,mime,
+            count,total:encoded.length,exportAllowed:exportAllowed===true}));
+          pump();
+        }catch(_){finish(false);}
+        function pump(){
+          if(done)return;
+          if(dc.readyState!=="open"||peer?.connectionState!=="connected"){
+            finish(false);return;
+          }
+          try{
+            let batch=0;
+            while(next<count&&dc.bufferedAmount<131072&&batch<8){
+              const index=next;
+              dc.send(JSON.stringify({v:4,kind:"voice-part",id,index,
+                data:encoded.slice(index*step,(index+1)*step)}));
+              next++;batch++;
+            }
+            document.dispatchEvent(new CustomEvent("ezero:voice-send-progress",{
+              detail:{percent:Math.floor(100*next/count),transferredParts:next,totalParts:count}
+            }));
+            if(next<count){
+              // bufferedamountlow drives normal flow; bounded timeout also
+              // advances in browsers with unreliable event delivery.
+              pumpTimer=setTimeout(pump,90);
+            }
+            // Once queued, wait for authenticated peer's complete-note ACK;
+            // bufferedAmount alone cannot prove remote delivery.
+          }catch(_){finish(false);}
+        }
+      });
     }
   });
   $("hangup").addEventListener("click",()=>hardHangup());
