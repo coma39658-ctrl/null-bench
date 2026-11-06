@@ -89,6 +89,19 @@
     return {room:h[1],guestToken:h[2]};
   };
   const incoming=invitation();
+  // A second QR link can arrive on the *same page* as a new #room fragment.
+  // Browsers do not rerun deferred scripts on same-document hash navigation.
+  // Re-enter once only after the previous call is fully ended; on reload
+  // invitation() consumes the new fragment and strips it from the address.
+  window.addEventListener("hashchange",()=>{
+    if(!/^#room=[A-Za-z0-9_-]{32}\.[A-Za-z0-9_-]{43}$/.test(location.hash))return;
+    if(window.EZERO_PEER_PROFILE_TRANSPORT?.connected()){
+      const notice=$("ezeroAutoStatus");
+      if(notice){notice.textContent="پہلی کال ختم کریں، پھر نئی دعوت کھولیں۔";notice.dataset.state="error";}
+      return;
+    }
+    location.reload();
+  });
   let session=null;
   let localOffer="",answerSent=false;
   const active=()=>session&&session.ws?.readyState===WebSocket.OPEN;
