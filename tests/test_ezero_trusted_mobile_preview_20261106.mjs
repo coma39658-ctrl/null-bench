@@ -101,6 +101,13 @@ try{
   assert.equal(await caller.locator("#ezeroOneScanInvite").isVisible(),true);
   assert.equal(await caller.locator("#oneTapPanel").isHidden(),true,
     "Identity-only scanner must not appear as a competing call scanner");
+  // No saved friend/identity yet: NEVER mislabel the precondition as a
+  // Cloudflare server outage. Must not silently start media.
+  await caller.locator("#ezeroTrustedEnable").click();
+  assert.match(await caller.locator("#ezeroTrustedStatus").innerText(),
+    /پہلے دو موبائلوں پر QR سے ایک کامیاب کال/);
+  assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),0);
+  console.log("FIRST_TIME_NO_SAVED_FRIEND_SHOWS_QR_PREREQUISITE_NOT_SERVER_ERROR: PASS");
   // One click initiates offer; the share URL is short and has an ephemeral capability.
   await caller.locator('[data-modern-select="audio"]').click();
   await caller.waitForFunction(()=>!!window.__oneInvite,{timeout:30000});
@@ -163,7 +170,10 @@ try{
     });
     assert.equal(record.extractable,false);
     assert.equal(record.fingerprint,await phone.locator("#myFingerprint").innerText());
+    await phone.locator("#ezeroTrustedList .ezero-trusted-friend-row").waitFor({
+      state:"visible",timeout:10000});
   }
+  console.log("FRIEND_CARDS_REFRESH_IMMEDIATELY_AFTER_SAVE_WITHOUT_PAGE_RELOAD: PASS");
   console.log("BOTH_PHONES_EXPLICIT_SAVE_FRIEND_AND_NONEXTRACTABLE_IDENTITY: PASS");
 
 
