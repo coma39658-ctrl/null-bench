@@ -1,0 +1,55 @@
+name: E-ZERO Two-Phone Audio Chat Voice and Trilingual Lab QA
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'js/ezero_secure_connect_live_p2p_v0_1.js'
+      - 'js/ezero_secure_connect_modern_communications_v0_3.js'
+      - 'js/ezero_incall_messages_v0_1.js'
+      - 'css/ezero_incall_messages_v0_1.css'
+      - 'ezero_secure_connect_one_request_lab_20261106.html'
+      - 'tests/test_ezero_audio_chat_voice_languages_20261106.mjs'
+      - '.github/workflows/ezero_audio_chat_voice_trilingual_lab_20261106.yml'
+  push:
+    branches: [ezero-audio-chat-voice-recovery-20261106]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audio-chat-voice-3languages:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate media and chat scripts before browser run
+        run: |
+          set -euo pipefail
+          node --check js/ezero_secure_connect_live_p2p_v0_1.js
+          node --check js/ezero_secure_connect_modern_communications_v0_3.js
+          node --check js/ezero_incall_messages_v0_1.js
+          node --check tests/test_ezero_audio_chat_voice_languages_20261106.mjs
+          grep -Fq 'id="ezeroRemoteAudio"' ezero_secure_connect_one_request_lab_20261106.html
+          grep -Fq 'ezero_incall_messages_v0_1.js' ezero_secure_connect_one_request_lab_20261106.html
+          ! grep -Fq 'new RTCPeerConnection' js/ezero_incall_messages_v0_1.js
+          ! grep -Fq 'navigator.mediaDevices.getUserMedia' js/ezero_incall_messages_v0_1.js
+      - name: Install browser test runner
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts playwright@1.57.0 ws@8.18.3
+          npx playwright install --with-deps chromium
+      - name: Test actual two-browser WebRTC audio routes, text, voice, and languages
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8769 --bind 127.0.0.1 >/tmp/ezero-audiochat-browser.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8769/ezero_secure_connect_one_request_lab_20261106.html >/dev/null; then break; fi
+            sleep 1
+          done
+          node tests/test_ezero_audio_chat_voice_languages_20261106.mjs
