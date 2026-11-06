@@ -122,8 +122,8 @@ function offer({blob,kind,source="LOCAL_DEVICE",consent="NOT_ATTESTED",
        JSON.stringify(consentDetails).length>1200||
        (consentDetails.peerFingerprint!==undefined&&
         !/^[a-f0-9]{64}$/.test(consentDetails.peerFingerprint))||
-       (consentDetails.callId!==undefined&&
-        !/^[a-f0-9]{32}$/.test(consentDetails.callId)))
+       (consentDetails.recordingConsentId!==undefined&&
+        !/^[a-f0-9]{32}$/.test(consentDetails.recordingConsentId)))
       throw Error("INVALID_CONSENT_DETAILS");
   }
   const id=hex(crypto.getRandomValues(new Uint8Array(16)));
