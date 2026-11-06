@@ -28,7 +28,18 @@
   const title=document.createElement("strong");title.id="ezeroInCallMessageTitle";
   const close=document.createElement("button");close.type="button";close.id="ezeroInCallClose";
   close.setAttribute("aria-label","Close in-call messages");
-  header.append(title,close);drawer.append(header);
+  header.append(title,close);
+  // Switching from Chat to Voice must remain reachable while the drawer is
+  // open; the floating call buttons are intentionally behind the bottom sheet.
+  const drawerTabs=document.createElement("nav");
+  drawerTabs.className="ezero-in-call-message-tabs";
+  drawerTabs.setAttribute("aria-label","Message type · پیغام کی قسم · نوع الرسالة");
+  const chatTab=document.createElement("button");
+  const voiceTab=document.createElement("button");
+  chatTab.id="ezeroInCallChatTab";voiceTab.id="ezeroInCallVoiceTab";
+  chatTab.type=voiceTab.type="button";
+  drawerTabs.append(chatTab,voiceTab);
+  drawer.append(header,drawerTabs);
   panel.append(dock,drawer);
   // A live video call covers the page's normal language selector. Offer the
   // SAME tri-language setting within the call, not a duplicated language state.
@@ -63,7 +74,10 @@
   const verified=()=>window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true;
   let opened=null;
   function translate(){
-    chatBtn.textContent=tr("chat");voiceBtn.textContent=tr("voice");
+    chatBtn.textContent=chatTab.textContent=tr("chat");
+    voiceBtn.textContent=voiceTab.textContent=tr("voice");
+    chatTab.setAttribute("aria-pressed",String(opened==="chat"));
+    voiceTab.setAttribute("aria-pressed",String(opened==="voice"));
     close.textContent=tr("close");
     title.textContent=tr(opened==="voice"?"voiceTitle":"chatTitle");
     localeLabel.textContent=tr("language");
@@ -96,6 +110,8 @@
   }
   chatBtn.addEventListener("click",()=>openDrawer("chat"));
   voiceBtn.addEventListener("click",()=>openDrawer("voice"));
+  chatTab.addEventListener("click",()=>{if(opened!=="chat")openDrawer("chat");});
+  voiceTab.addEventListener("click",()=>{if(opened!=="voice")openDrawer("voice");});
   close.addEventListener("click",closeDrawer);
   document.addEventListener("keydown",e=>{
     if(e.key==="Escape"&&!drawer.hidden)closeDrawer();
