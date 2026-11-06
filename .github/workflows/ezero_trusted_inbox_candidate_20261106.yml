@@ -8,6 +8,8 @@ on:
     paths:
       - 'signaling/cloudflare/src/trusted_inbox_candidate_v0_1.js'
       - 'tests/test_ezero_trusted_inbox_candidate_20261106.cjs'
+      - 'js/ezero_trusted_friend_foreground_client_candidate_v0_1.js'
+      - 'tests/test_ezero_trusted_friend_foreground_client_20261106.cjs'
       - '.github/workflows/ezero_trusted_inbox_candidate_20261106.yml'
 permissions:
   contents: read
@@ -28,6 +30,9 @@ jobs:
           node --check signaling/cloudflare/src/trusted_inbox_candidate_v0_1.js
           node --check tests/test_ezero_trusted_inbox_candidate_20261106.cjs
           node tests/test_ezero_trusted_inbox_candidate_20261106.cjs
+          node --check js/ezero_trusted_friend_foreground_client_candidate_v0_1.js
+          node --check tests/test_ezero_trusted_friend_foreground_client_20261106.cjs
+          node tests/test_ezero_trusted_friend_foreground_client_20261106.cjs
       - name: Keep successful QR production separate
         run: |
           set -euo pipefail
