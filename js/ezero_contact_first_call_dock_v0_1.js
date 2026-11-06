@@ -103,7 +103,7 @@ function message(key){notice.textContent=tr(key);}
 function showSide(yes){
   open=Boolean(yes);side.hidden=!open;backdrop.hidden=!open;
   toggle.setAttribute("aria-expanded",String(open));
-  if(open)search.focus();
+  // Do not auto-open the Android keyboard over the friend list.
 }
 toggle.addEventListener("click",()=>showSide(!open));
 close.addEventListener("click",()=>showSide(false));
@@ -120,7 +120,7 @@ function paint(){
   const person=people.find(x=>x.fp===selected);
   heading.textContent=tr("head");toggle.textContent=tr("select");
   sideTitle.textContent=tr("select");close.textContent="✕";
-  search.placeholder=tr("search");
+  search.placeholder=tr("search");search.setAttribute("aria-label",tr("search"));
   initial.textContent=person?.name.charAt(0).toLocaleUpperCase()||"?";
   selectedName.textContent=person?.name||tr("unnamed");
   selectedNote.textContent=person?tr("saved"):tr("hint");
@@ -192,7 +192,8 @@ featureGrid.addEventListener("click",e=>{
   }
   message("pending");
 },true);
-document.addEventListener("ezero:friend-local-saved",()=>{paint();});
+document.addEventListener("ezero:friend-local-saved",paint);
+document.addEventListener("ezero:friend-local-removed",paint);
 window.addEventListener("storage",e=>{if(e.key===KEY)paint();});
 $("language")?.addEventListener("change",paint);
 document.addEventListener("ezero:call-status",e=>{
