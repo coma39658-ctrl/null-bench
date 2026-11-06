@@ -198,14 +198,23 @@
       // the WebRTC call uses a separate 10-minute signaling room.
       if(ws){
         const ref=ws;
+        let completed=false;
         const close=()=>{try{ref.close();}catch(_){}};
         ws.addEventListener("message",e=>{
           try{
             const data=JSON.parse(e.data);
-            if(data?.t==="delivered-to-active-tab"||data?.t==="error")close();
+            if(data?.t==="delivered-to-active-tab"||data?.t==="error"){
+              completed=true;
+              close();
+            }
           }catch(_){}
         });
-        setTimeout(close,MAX_WAIT);
+        setTimeout(()=>{
+          if(completed||ref.readyState!==WebSocket.OPEN)return;
+          // Distinguish a sent request from a verified application receipt.
+          emit("outgoing-error",{code:"DELIVERY_RECEIPT_TIMEOUT"});
+          close();
+        },MAX_WAIT);
       }
     }
   }
