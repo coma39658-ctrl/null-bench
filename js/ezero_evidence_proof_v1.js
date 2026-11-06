@@ -195,11 +195,41 @@ function extract(zipData){
       (name===PROOF_NAME||name.startsWith("original/")),"ZIP_ENTRY_INVALID");
     const data=zipData.slice(dataStart,dataEnd);
     check(crc32(data)===crc,"ZIP_CRC_MISMATCH");
-    found.set(name,data);pos=dataEnd;
+    found.set(name,{data,offset:pos,crc,size:plain});pos=dataEnd;
   }
-  check(pos+4<=zipData.length&&view.getUint32(pos,true)===0x02014b50&&
-    found.size===2&&found.has(PROOF_NAME),"ZIP_ENTRIES_INVALID");
-  return found;
+  // Prevent ZIP parser differential attacks: a standard unzip tool must
+  // see exactly the same two entries, in the same order/offsets, as our
+  // verifier. Reject extra entries, comments, trailing bytes and ZIP64.
+  const centralOffset=pos, endAt=zipData.length-22;
+  check(endAt>centralOffset&&view.getUint32(endAt,true)===0x06054b50,
+    "ZIP_END_MISSING");
+  check(view.getUint16(endAt+4,true)===0&&view.getUint16(endAt+6,true)===0&&
+    view.getUint16(endAt+8,true)===2&&view.getUint16(endAt+10,true)===2&&
+    view.getUint16(endAt+20,true)===0&&
+    view.getUint32(endAt+16,true)===centralOffset&&
+    view.getUint32(endAt+12,true)===endAt-centralOffset,"ZIP_CENTRAL_MISMATCH");
+  let cursor=centralOffset;
+  for(const [expected,entry] of found){
+    check(cursor+46<=endAt&&view.getUint32(cursor,true)===0x02014b50,
+      "ZIP_CENTRAL_HEADER_BAD");
+    const sizeName=view.getUint16(cursor+28,true);
+    const extra=view.getUint16(cursor+30,true),comment=view.getUint16(cursor+32,true);
+    check(view.getUint16(cursor+8,true)===0x0800&&
+      view.getUint16(cursor+10,true)===0&&
+      view.getUint32(cursor+16,true)===entry.crc&&
+      view.getUint32(cursor+20,true)===entry.size&&
+      view.getUint32(cursor+24,true)===entry.size&&
+      view.getUint32(cursor+42,true)===entry.offset&&
+      view.getUint16(cursor+34,true)===0&&
+      sizeName>0&&sizeName<=256&&extra===0&&comment===0&&
+      cursor+46+sizeName<=endAt,"ZIP_CENTRAL_METADATA_MISMATCH");
+    check(decoder.decode(zipData.slice(cursor+46,cursor+46+sizeName))===expected,
+      "ZIP_CENTRAL_FILENAME_MISMATCH");
+    cursor+=46+sizeName;
+  }
+  check(cursor===endAt&&found.size===2&&found.has(PROOF_NAME),
+    "ZIP_ENTRIES_INVALID");
+  return new Map([...found].map(([name,entry])=>[name,entry.data]));
 }
 async function packageBlob(blob,name,opts={}){
   const {media,manifest}=await createProof(blob,name,opts);
