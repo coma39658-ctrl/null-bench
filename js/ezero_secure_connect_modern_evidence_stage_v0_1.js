@@ -555,9 +555,11 @@ $("ezeroVoiceSend").addEventListener("click",async()=>{
      reader.onerror=()=>reject(Error("VOICE_ENCODING_FAILED"));
      reader.readAsDataURL(draft.blob);
    });
-   const prefix="data:"+draft.mime+";base64,";
-   if(!dataUrl.startsWith(prefix))throw Error("VOICE_ENCODING_FAILED");
-   const encoded=dataUrl.slice(prefix.length);
+   // MediaRecorder may keep a codecs parameter in the Blob MIME string.
+   const marker=";base64,",offset=dataUrl.indexOf(marker);
+   if(!dataUrl.startsWith("data:"+draft.mime)||offset<0||offset>100)
+     throw Error("VOICE_ENCODING_FAILED");
+   const encoded=dataUrl.slice(offset+marker.length);
    if(encoded.length>MAX_NOTE_BASE64)throw Error("TOO_LARGE");
    voiceStatus("sending");
    const good=await Promise.resolve(window.EZERO_VOICE_TRANSPORT.send(
