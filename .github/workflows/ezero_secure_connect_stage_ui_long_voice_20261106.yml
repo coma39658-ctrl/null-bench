@@ -1,0 +1,68 @@
+name: E-ZERO Trusted Two-Phone Voice/UI STAGING Gate (No Deploy)
+on:
+  push:
+    branches:
+      - ezero-receive-chat-share-staging-20261106
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'js/ezero_saved_friend_stage_engine_v0_1.js'
+      - 'js/ezero_secure_connect_modern_evidence_stage_v0_1.js'
+      - 'js/ezero_evidence_recording_controls_v0_1.js'
+      - 'js/ezero_incall_messages_v0_1.js'
+      - 'js/ezero_secure_connect_stage_quick_panels_v0_1.js'
+      - 'css/ezero_secure_connect_stage_quick_panels_v0_1.css'
+      - 'ezero_trusted_friends_staging_20261106.html'
+      - 'tests/test_ezero_trusted_mobile_preview_20261106.mjs'
+      - '.github/workflows/ezero_secure_connect_stage_ui_long_voice_20261106.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ezero-trusted-stage-ui-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  trusted-two-browser-long-voice:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Inspect scripts for syntax and assert frozen operational dependencies
+        run: |
+          set -euo pipefail
+          for p in \
+            js/ezero_saved_friend_stage_engine_v0_1.js \
+            js/ezero_secure_connect_modern_evidence_stage_v0_1.js \
+            js/ezero_secure_connect_stage_quick_panels_v0_1.js \
+            js/ezero_incall_messages_v0_1.js \
+            js/ezero_evidence_recording_controls_v0_1.js \
+            tests/test_ezero_trusted_mobile_preview_20261106.mjs; do
+            node --check "$p"
+          done
+          grep -Fq 'ezero_secure_connect_stage_quick_panels_v0_1.js' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'ezero_incall_messages_v0_1.js' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'const MAX_NOTE_MS=30*60*1000' js/ezero_secure_connect_modern_evidence_stage_v0_1.js
+          ! grep -Fq 'new RTCPeerConnection' js/ezero_secure_connect_stage_quick_panels_v0_1.js
+          ! grep -Fq 'getUserMedia(' js/ezero_secure_connect_stage_quick_panels_v0_1.js
+      - name: Prepare isolated two-phone Chromium + WebSocket test
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.57.0 ws@8.18.3
+          npx playwright install --with-deps chromium --only-shell
+      - name: Run two-browser WebRTC, trusted call inbox, voice, and SHA-256 evidence
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8769 --bind 127.0.0.1 >/tmp/ezero-trusted-stage-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8769/ezero_trusted_friends_staging_20261106.html >/dev/null; then break; fi
+            sleep 1
+          done
+          node tests/test_ezero_trusted_mobile_preview_20261106.mjs
