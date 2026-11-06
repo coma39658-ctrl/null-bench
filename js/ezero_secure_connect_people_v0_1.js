@@ -151,6 +151,10 @@
             // explicit link sharing by the caller, without new QR identity scan.
             const call=document.querySelector('[data-modern-select="audio"]');
             if(!call)return;
+            if(window.EZERO_PEER_PROFILE_TRANSPORT?.targetSavedContact(x.fp)!==true){
+              $("ezeroPeopleStatus").textContent=t("presenceUnknown");
+              return;
+            }
             $("ezeroPeopleHub").open=false;
             call.click();
             $("ezeroAutoPilot")?.scrollIntoView({block:"center"});
@@ -161,8 +165,10 @@
       });
       if(active&&active.name.toLocaleLowerCase().includes(search)){
         const img=$("ezeroPeerAvatar");
-        entries.unshift(card(active.name,t("current"),t("temporary"),
-          img&&!img.hidden?img.getAttribute("src"):""));
+        const current=card(active.name,t("current"),t("online"),
+          img&&!img.hidden?img.getAttribute("src"):"");
+        current.dataset.presence="online";
+        entries.unshift(current);
       }
     }else if(tab==="calls"){
       entries=records.filter(x=>x.name.toLocaleLowerCase().includes(search)).map(x=>{
