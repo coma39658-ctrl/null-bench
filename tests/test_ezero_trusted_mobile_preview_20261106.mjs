@@ -204,6 +204,25 @@ try{
       JSON.parse(localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1")||"[]").length),1);
   }
   console.log("BOTH_PHONES_PERSIST_SAVED_IDENTITY_AND_FRIENDS_ON_REOPEN: PASS");
+  for(const phone of [caller,callee]){
+    const proof=await phone.evaluate(async()=>({
+      publicContacts:localStorage.getItem("ezero_secure_connect_local_fingerprints_v0_1"),
+      publicProfile:localStorage.getItem("ezero_secure_connect_local_profile_v0_1"),
+      publicCallHistory:localStorage.getItem("ezero_local_completed_call_history_v0_1"),
+      stagingContacts:localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1"),
+      databases:(await indexedDB.databases()).map(item=>item.name)
+    }));
+    assert.equal(proof.publicContacts,null,"Preview must not modify public saved friends");
+    assert.equal(proof.publicProfile,null,"Preview must not modify public profile");
+    assert.equal(proof.publicCallHistory,null,"Preview must not modify public call history");
+    assert.ok(proof.stagingContacts,"Preview must save only staged friend contacts");
+    assert.ok(proof.databases.includes("ezero_secure_connect_device_identity_staging_v0_1"),
+      "Staging key must live in dedicated IndexedDB database");
+    assert.ok(!proof.databases.includes("ezero_secure_connect_device_identity_v0_1"),
+      "Preview must not create production device identity database");
+  }
+  console.log("STAGING_STORAGE_ISOLATED_FROM_PUBLIC_FRIENDS_PROFILE_HISTORY_AND_IDENTITY: PASS");
+
   // The first and second QR calls above used local mocked signaling.
   // Now test actual live Cloudflare Trusted Inbox with the two real browser
   // device keys explicitly saved after the first verified WebRTC connection.
