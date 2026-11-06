@@ -550,11 +550,19 @@
   }
   function attachChannel(c) {
     channel=c;
+    // One bounded, authenticated WebRTC DataChannel note assembly at a time.
+    // No server storage, parallel fanout or unbounded/reusable buffers.
+    let noteParts=null,noteTimer=null;
+    function clearNoteParts(){
+      if(noteTimer!==null){clearTimeout(noteTimer);noteTimer=null;}
+      noteParts=null;
+    }
     c.onopen=()=>{
       $("sendMessage").disabled=false;$("messageStatus").textContent=t("connected");
       document.dispatchEvent(new CustomEvent("ezero:channel-state",{detail:{connected:true}}));
     };
     c.onclose=()=>{
+      clearNoteParts();
       $("sendMessage").disabled=true;$("messageStatus").textContent=t("notConnected");
       document.dispatchEvent(new CustomEvent("ezero:channel-state",{detail:{connected:false}}));
     };
@@ -578,8 +586,49 @@
           }));
           return;
         }
-        // The opt-in voice-note add-on receives bounded audio through the existing
-        // encrypted WebRTC DataChannel. Never start playback without a user click.
+        // v4: bounded, ordered chunks keep 30-second notes below practical
+        // per-message SCTP limits; incomplete/duplicate/expired notes are discarded.
+        if(m?.v===4 && m.kind==="voice-start"){
+          clearNoteParts();
+          if(c.readyState!=="open"||peer?.connectionState!=="connected"||
+             !/^[a-f0-9]{64}$/.test(peer?.__ezeroPeerFP||"")||
+             !/^[a-f0-9]{32}$/.test(m.id||"")||
+             !["audio/webm","audio/mp4","audio/ogg"].includes(m.mime)||
+             !Number.isSafeInteger(m.count)||m.count<3||m.count>11||
+             !Number.isSafeInteger(m.total)||m.total<32001||m.total>128000||
+             m.count!==Math.ceil(m.total/12000))return;
+          noteParts={id:m.id,mime:m.mime,count:m.count,total:m.total,
+            items:new Array(m.count),next:0,size:0,
+            exportAllowed:m.exportAllowed===true};
+          noteTimer=setTimeout(clearNoteParts,30000);
+          return;
+        }
+        if(m?.v===4 && m.kind==="voice-part"){
+          const n=noteParts;
+          if(!n||c.readyState!=="open"||m.id!==n.id||
+             !Number.isSafeInteger(m.index)||m.index!==n.next||
+             typeof m.data!=="string"||m.data.length<1||
+             m.data.length>12000||!/^[A-Za-z0-9+/=]+$/.test(m.data)){
+            clearNoteParts();return;
+          }
+          n.size+=m.data.length;
+          if(n.size>n.total){clearNoteParts();return;}
+          n.items[n.next++]=m.data;
+          if(n.next===n.count){
+            const audio=n.items.join("");
+            if(n.size===n.total && audio.length===n.total &&
+               /^[A-Za-z0-9+/]+={0,2}$/.test(audio)){
+              document.dispatchEvent(new CustomEvent("ezero:voice-note-received",{
+                detail:{id:n.id,mime:n.mime,audio,
+                  exportAllowed:n.exportAllowed}
+              }));
+            }
+            clearNoteParts();
+          }
+          return;
+        }
+        // v2 backward compatibility: original short, encrypted DataChannel note.
+        // The receiver never automatically plays an incoming voice message.
         if(m.v===2 && m.kind==="voice-once" &&
            /^[a-f0-9]{32}$/.test(m.id) &&
            ["audio/webm","audio/mp4","audio/ogg"].includes(m.mime) &&
@@ -836,12 +885,28 @@
     send:(mime,encoded,exportAllowed=false)=>{
       if(!channel||channel.readyState!=="open")return false;
       if(!["audio/webm","audio/mp4","audio/ogg"].includes(mime) ||
-         typeof encoded!=="string" || encoded.length<1 || encoded.length>32000 ||
-         !/^[A-Za-z0-9+/=]+$/.test(encoded))return false;
-      channel.send(JSON.stringify({v:2,kind:"voice-once",
-        id:hex(randomBytes(16)),mime,audio:encoded,
-         exportAllowed:exportAllowed===true}));
-      return true;
+         typeof encoded!=="string" || encoded.length<1 || encoded.length>128000 ||
+         !/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)||
+         encoded.length%4!==0)return false;
+      if(channel.bufferedAmount>256000)return false;
+      try{
+        if(encoded.length<=32000){
+          channel.send(JSON.stringify({v:2,kind:"voice-once",
+            id:hex(randomBytes(16)),mime,audio:encoded,
+            exportAllowed:exportAllowed===true}));
+          return true;
+        }
+        const id=hex(randomBytes(16)),step=12000,count=Math.ceil(encoded.length/step);
+        if(count>11)return false;
+        channel.send(JSON.stringify({v:4,kind:"voice-start",id,mime,
+          count,total:encoded.length,exportAllowed:exportAllowed===true}));
+        for(let i=0;i<count;i++){
+          if(channel.readyState!=="open"||channel.bufferedAmount>256000)return false;
+          channel.send(JSON.stringify({v:4,kind:"voice-part",id,index:i,
+            data:encoded.slice(i*step,(i+1)*step)}));
+        }
+        return true;
+      }catch(_){return false;}
     }
   });
   $("hangup").addEventListener("click",()=>hardHangup());
