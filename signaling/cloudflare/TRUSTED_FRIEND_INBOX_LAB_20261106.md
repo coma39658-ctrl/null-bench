@@ -21,6 +21,18 @@ Goal confirmed by the owner: a friend is saved after the first real QR call; on 
 - The actual one-request/one-accept QR WebRTC implementation is publicly released on `main` and has had a successful real two-phone call.
 - Today's server-side candidate is `src/trusted_inbox_candidate_v0_1.js` on this branch. It is **not** imported by `worker.js`, not in Wrangler deployment config and not referenced in public HTML.
 
+## Phase B2 staging integration — 2026-11-06
+
+- Created isolated `ezero_trusted_friends_staging_20261106.html` with its own staged copies of the QR/WebRTC engine and saved-contacts UI. The existing working public page and production QR scripts remain unchanged.
+- Staged page loads the opt-in IndexedDB ECDSA device identity store, shows **Save Friend** after a verified actual WebRTC connection, and preserves the identity/friend list across browser reloads. Both phones must explicitly save each other during the first call; changing phones or clearing storage requires new pairing.
+- Staging QR invitations route directly back to the same staging path, so both parties retain the same stable device keys instead of redirecting one side to the production page.
+- Fixed a second-call failure on same-document `#room` navigation: after hangup a fresh QR link forces a safe explicit page re-entry rather than remaining on the old page and hiding **Accept**.
+- Added a staged Trusted Friends foreground panel and client. **Trusted Inbox remains disabled** (`js/ezero_trusted_inbox_stage_config_20261106.js` has `enabled:false`, blank WSS); the new secure direct-call backend is **not live**.
+- GitHub's dedicated staging CI verified actual two Chromium browser WebRTC connections (first QR and redial), both phones' explicit Save Friend, non-extractable key storage, and reload preserving saved friend identity. These are browser/locally mocked signaling tests, not two physical Android devices or real QR-free calling.
+- Added `wrangler.trusted-staging.jsonc` and a separately permissioned, **manual-only** Cloudflare deployment workflow for `ezero-trusted-friends-inbox-staging`. This is **deployment preparation only**. No Worker was deployed, no Cloudflare secrets were changed, and this branch's workflow is not dispatchable as a standard workflow until registered on the default branch. Never merge/deploy automatically.
+
+**Remaining gates:** audit exact recipient authorization and cross-call fingerprint binding; deploy separate trusted staging Worker with least-privilege credentials; verify WSS URL and exact CSP; enable the staging client only after verification; test no-QR contact redial with both physical phones in the foreground and explicit Accept, 5 consecutive cycles and reload. Test network/TURN fallback, revocation and stale/missing contacts. Do not claim production-ready push or background ringing.
+
 ## Candidate protocol (not production-ready)
 
 - Per-recipient SHA-256 public-key fingerprint Cloudflare Durable Object, reached at `/v1/trusted/<recipient_fp>`. Exact browser Origin and WSS upgrade required.
