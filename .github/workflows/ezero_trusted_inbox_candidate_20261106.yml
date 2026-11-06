@@ -22,6 +22,8 @@ on:
       - 'css/ezero_trusted_friends_stage_v0_1.css'
       - 'tests/test_ezero_trusted_friends_stage_wiring_20261106.cjs'
       - 'tests/test_ezero_trusted_friends_stage_browser_20261106.mjs'
+      - 'tests/ezero_trusted_inbox_live_staging_smoke_20261106.mjs'
+      - '.github/workflows/ezero_trusted_live_staging_smoke_20261106.yml'
       - '.github/workflows/ezero_trusted_inbox_candidate_20261106.yml'
 permissions:
   contents: read
@@ -85,3 +87,21 @@ jobs:
             sleep 1
           done
           node tests/test_ezero_trusted_friends_stage_browser_20261106.mjs
+
+  verify-deployed-staging-wss:
+    # Independent real-network check: no deploy, secrets, trust writes or media.
+    needs: verify-trusted-inbox
+    # Also run on the protected staging-branch push after review/merge.
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install ephemeral WSS testing client
+        run: npm install --no-save --ignore-scripts --no-audit --no-fund ws@8
+      - name: Verify live isolated Cloudflare staging handshake
+        run: node tests/ezero_trusted_inbox_live_staging_smoke_20261106.mjs
