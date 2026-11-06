@@ -61,7 +61,7 @@ body.communication-page.ezero-one-lab.ezero-video-connected
 body.communication-page.ezero-one-lab.ezero-video-connected
  #modernCallPanel .ezero-mutual-friends:not(:has(.ezero-friend-request-prompt:not([hidden]))):not([data-expanded="true"]){
  position:absolute!important;right:8px!important;left:auto!important;
- bottom:calc(105px + env(safe-area-inset-bottom))!important;
+ top:calc(173px + env(safe-area-inset-top))!important;bottom:auto!important;
  width:min(40vw,158px)!important;max-height:75px!important;
  overflow:hidden!important;padding:2px 4px!important;
 }
