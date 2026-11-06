@@ -14,7 +14,7 @@ new vm.Script(vendor,{filename:"ezero_qrcode_generator_mit.js"});
 new vm.Script(simple,{filename:"ezero_secure_connect_simple_near_far_v0_1.js"});
 new vm.Script(contacts,{filename:"ezero_secure_connect_contacts_v0_1.js"});
 assert.match(vendor,/Licensed under the MIT license/);
-assert.match(preview,/id="ezeroRealTwoPhoneTest"[^>]*href|href="\.\/ezero_secure_connect_live_p2p_v0_1\.html" id="ezeroRealTwoPhoneTest"/);
+assert.match(preview,/href="\.\/ezero_trusted_friends_staging_20261106\.html" id="ezeroRealTwoPhoneTest"/);
 assert.match(html,/content="default-src 'none'; script-src 'self'/);
 assert.match(html,/connect-src 'self'/);
 // A public same-origin SHARE link and social preview metadata are intentional.
