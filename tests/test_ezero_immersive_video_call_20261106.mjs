@@ -185,6 +185,8 @@ try{
   });
   assert.equal(videoGeometry.connected,true);
   assert.equal(videoGeometry.panelVisible,true);
+  assert.equal(await caller.locator("#modernHangup").isVisible(),false,
+    "Fullscreen video must show one genuine hangup control, not the old red block");
   assert.equal(videoGeometry.localTracks,1,"Call must capture local video only after consent");
   assert.equal(videoGeometry.remoteTracks,1,"Call must receive one real WebRTC remote video track");
   assert.ok(videoGeometry.remoteW>videoGeometry.localW*2,
