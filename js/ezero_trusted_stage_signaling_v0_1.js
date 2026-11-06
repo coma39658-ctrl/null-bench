@@ -115,6 +115,16 @@
     session=null;localOffer="";answerSent=false;
     $("ezeroAutoShare").disabled=true;
   }
+  // When the user explicitly requests a NEW QR after a completed call,
+  // never replay a stale room or the previous recipient's invitation.
+  // This does not run automatically and cannot interrupt a connected call.
+  document.addEventListener("ezero:explicit-fresh-call-qr",()=>{
+    if(window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true)return;
+    closeRoom(true);
+    // Release a stale, disconnected peer before a new offer. Keep the
+    // original core media cleanup authoritative.
+    $("hangup")?.click();
+  });
   const signalError=key=>{
     set(key,"error");
     if(!window.EZERO_PEER_PROFILE_TRANSPORT?.connected())closeRoom();
