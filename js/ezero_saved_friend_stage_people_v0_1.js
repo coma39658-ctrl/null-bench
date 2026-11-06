@@ -90,6 +90,7 @@
     for(const v of parsed.slice(0,50)){
       if(!v||!validFP(v.fp)||!nameOf(v.name)||seen.has(v.fp))continue;
       seen.add(v.fp);out.push({fp:v.fp,name:nameOf(v.name),
+        profileName:nameOf(v.profileName),nickname:v.nickname===true,
         avatar:typeof v.avatar==="string"&&v.avatar.length<=12000&&
           /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(v.avatar)?v.avatar:""});
     }
@@ -170,7 +171,10 @@
     if(tab==="friends"){
       entries=friends().filter(x=>x.name.toLocaleLowerCase().includes(search)||
         x.fp.includes(search)).map(x=>{
-        const item=card(x.name,t("saved")+" · "+x.fp.slice(0,10)+"…",t("friends"),x.avatar||"");
+        const item=card(x.name,
+          (x.profileName&&x.profileName!==x.name?
+            "پروفائل نام: "+x.profileName+" · ":"")+
+          t("saved")+" · "+x.fp.slice(0,10)+"…",t("friends"),x.avatar||"");
         const remove=el("button","ezero-friend-remove",sw("remove"));
         remove.type="button";
         remove.addEventListener("click",()=>{
@@ -273,7 +277,8 @@
       if(!transport.connected()||transport.peerFingerprint()!==fp)
         throw Error("CALL_ENDED_BEFORE_SAVE");
       const next=items.filter(x=>x.fp!==fp);
-      next.unshift({fp,name,...(items[old]?.avatar?{avatar:items[old].avatar}:{})});
+      next.unshift({fp,name,nickname:true,profileName:items[old]?.profileName||"",
+        ...(items[old]?.avatar?{avatar:items[old].avatar}:{})});
       localStorage.setItem(CONTACTS,JSON.stringify(next));
       active.name=name;
       saveNotice="saved";
