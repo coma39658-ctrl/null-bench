@@ -449,7 +449,8 @@ function listenVoice(id){
    audio.src=incomingUrl;audio.hidden=false;
    activeVoiceId=id;clearTimeout(item.timer);
    // A listened-once note expires no later than five minutes after opening.
-   item.timer=setTimeout(()=>removeVoiceMessage(id),300000);
+   item.timer=setTimeout(()=>removeVoiceMessage(id),
+      Math.max(0,Math.min(300000,item.expiresAt-Date.now())));
    renderVoiceInbox();
    audio.play().catch(()=>{});
  }catch(_){removeVoiceMessage(id);voiceStatus("invalid");}
@@ -580,8 +581,10 @@ document.addEventListener("ezero:voice-note-received",e=>{
     used-=voiceInbox[0].audio.length;
     removeVoiceMessage(voiceInbox[0].id);
   }
- const item={id,mime:d.mime,audio:d.audio,timer:null};
- item.timer=setTimeout(()=>removeVoiceMessage(id),600000);
+ const item={id,mime:d.mime,audio:d.audio,timer:null,
+   expiresAt:Date.now()+600000};
+ item.timer=setTimeout(()=>removeVoiceMessage(id),
+   Math.max(0,item.expiresAt-Date.now()));
  voiceInbox.push(item);
  renderVoiceInbox();voiceStatus("received");
 });
