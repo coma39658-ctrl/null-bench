@@ -30,11 +30,34 @@
   close.setAttribute("aria-label","Close in-call messages");
   header.append(title,close);drawer.append(header);
   panel.append(dock,drawer);
+  // A live video call covers the page's normal language selector. Offer the
+  // SAME tri-language setting within the call, not a duplicated language state.
+  const localeControl=document.createElement("label");
+  localeControl.className="ezero-in-call-locale";
+  localeControl.id="ezeroInCallLocaleControl";
+  localeControl.hidden=true;
+  const localeLabel=document.createElement("span");
+  const locale=document.createElement("select");
+  locale.id="ezeroInCallLanguage";
+  locale.setAttribute("aria-label","Call language · زبان · لغة المكالمة");
+  for(const [value,label] of [["ur","اردو"],["ar","العربية"],["en","English"]]){
+    const opt=document.createElement("option");opt.value=value;opt.textContent=label;
+    locale.append(opt);
+  }
+  localeControl.append(localeLabel,locale);
+  panel.append(localeControl);
+  locale.addEventListener("change",()=>{
+    const globalLanguage=$("language");
+    if(globalLanguage){
+      globalLanguage.value=locale.value;
+      globalLanguage.dispatchEvent(new Event("change",{bubbles:true}));
+    }
+  });
 
   const translations={
-    ur:{chat:"💬 میسج",voice:"🎙️ وائس میسج",close:"✕ بند کریں",chatTitle:"نجی تحریری پیغام",voiceTitle:"عارضی وائس میسج"},
-    en:{chat:"💬 Chat",voice:"🎙️ Voice note",close:"✕ Close",chatTitle:"Private message",voiceTitle:"Temporary voice note"},
-    ar:{chat:"💬 رسالة",voice:"🎙️ رسالة صوتية",close:"✕ إغلاق",chatTitle:"رسالة خاصة",voiceTitle:"رسالة صوتية مؤقتة"}
+    ur:{chat:"💬 میسج",voice:"🎙️ وائس میسج",close:"✕ بند کریں",chatTitle:"نجی تحریری پیغام",voiceTitle:"عارضی وائس میسج",language:"زبان"},
+    en:{chat:"💬 Chat",voice:"🎙️ Voice note",close:"✕ Close",chatTitle:"Private message",voiceTitle:"Temporary voice note",language:"Language"},
+    ar:{chat:"💬 رسالة",voice:"🎙️ رسالة صوتية",close:"✕ إغلاق",chatTitle:"رسالة خاصة",voiceTitle:"رسالة صوتية مؤقتة",language:"اللغة"}
   };
   const tr=k=>(translations[document.documentElement.lang]||translations.ur)[k];
   const verified=()=>window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true;
@@ -43,6 +66,8 @@
     chatBtn.textContent=tr("chat");voiceBtn.textContent=tr("voice");
     close.textContent=tr("close");
     title.textContent=tr(opened==="voice"?"voiceTitle":"chatTitle");
+    localeLabel.textContent=tr("language");
+    locale.value=document.documentElement.lang==="en"?"en":document.documentElement.lang==="ar"?"ar":"ur";
   }
   function closeDrawer(){
     drawer.hidden=true;
@@ -66,6 +91,7 @@
   function refresh(){
     const active=verified();
     dock.hidden=!active;
+    localeControl.hidden=!active;
     if(!active&&opened)closeDrawer();
   }
   chatBtn.addEventListener("click",()=>openDrawer("chat"));
