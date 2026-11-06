@@ -20,7 +20,8 @@ for(const [suffix,path] of [
   ["#e=Abc_xyz-123","ezero_secure_connect_communications_v0_3.html"],
   ["#i=identity","ezero_secure_connect_live_p2p_v0_1.html"],
   ["#r=reply","ezero_secure_connect_live_p2p_v0_1.html"],
-  ["","ezero_secure_connect_one_request_lab_20261106.html"]
+  ["","ezero_trusted_friends_staging_20261106.html"],
+  ["#room="+"a".repeat(32)+"."+"b".repeat(43),"ezero_secure_connect_one_request_lab_20261106.html"]
 ]){
   const location={href:base+suffix,hash:suffix,search:"",replace(x){this.out=x;}};
   vm.runInNewContext(short,{location,URL},{timeout:1000});
