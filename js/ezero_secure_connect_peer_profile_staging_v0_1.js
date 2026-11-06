@@ -73,11 +73,22 @@
       initial.textContent=Array.from(name.trim())[0]?.toUpperCase()||"E";
     }
   }
+  function updateLocalHeaderLabel(){
+    const chip=$("ezeroQuickProfile");
+    if(!chip)return;
+    const note=profile.name||t("editProfile");
+    chip.setAttribute("aria-label",note+" — "+t("editProfile"));
+    chip.title=note;
+  }
   function updateLocal(){
     $("ezeroMyName").value=profile.name;
     $("ezeroShareProfile").checked=profile.share;
     draftAvatar=profile.avatar;
     showAvatar("ezeroMyAvatar","ezeroMyInitial",profile.name,profile.avatar);
+    // Same LOCAL profile DP in the main header. Never fetch/upload a picture.
+    if($("ezeroHeaderAvatar")&&$("ezeroHeaderInitial"))
+      showAvatar("ezeroHeaderAvatar","ezeroHeaderInitial",profile.name,profile.avatar);
+    updateLocalHeaderLabel();
   }
   function resetRemote(){
     connected=false;lastRemote=null;lastFingerprint="";pendingRemote=null;sentThisSession=false;
@@ -179,6 +190,7 @@
     for(const el of document.querySelectorAll("[data-profile-i18n]")){
       el.textContent=t(el.dataset.profileI18n);
     }
+    updateLocalHeaderLabel();
     if(connected){
       $("ezeroVerifiedConnection").textContent=t("verifiedConnection");
       $("ezeroPeerTrustNote").textContent=t("selfDeclared");

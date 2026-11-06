@@ -101,6 +101,72 @@ try{
   assert.equal(await caller.locator("#ezeroOneScanInvite").isVisible(),true);
   assert.equal(await caller.locator("#oneTapPanel").isHidden(),true,
     "Identity-only scanner must not appear as a competing call scanner");
+  // No saved friend/identity yet: NEVER mislabel the precondition as a
+  // Cloudflare server outage. Must not silently start media.
+  await caller.locator("#ezeroTrustedEnable").click();
+  assert.match(await caller.locator("#ezeroTrustedStatus").innerText(),
+    /پہلے دو موبائلوں پر QR سے ایک کامیاب کال/);
+  assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),0);
+  console.log("FIRST_TIME_NO_SAVED_FRIEND_SHOWS_QR_PREREQUISITE_NOT_SERVER_ERROR: PASS");
+  // WhatsApp-like profile DP must be at the very top of the single page.
+  // It must open the real editor, including the enclosing collapsed options.
+  assert.equal(await caller.locator("#ezeroQuickProfile").count(),1,
+    "Profile control must not be duplicated");
+  assert.equal(await caller.locator("#ezeroHeaderInitial").innerText(),"E");
+  assert.equal(await caller.locator("#ezeroHeaderAvatar").isHidden(),true);
+  const headerPosition=await caller.evaluate(()=>{
+    const logo=document.querySelector(".top .logo").getBoundingClientRect();
+    const dp=document.getElementById("ezeroQuickProfile").getBoundingClientRect();
+    const header=document.querySelector(".top").getBoundingClientRect();
+    return {logoY:logo.y,dpY:dp.y,headerBottom:header.bottom,
+      dpCenter:dp.y+dp.height/2,logoCenter:logo.y+logo.height/2};
+  });
+  assert.ok(headerPosition.dpY<headerPosition.headerBottom&&
+    Math.abs(headerPosition.dpCenter-headerPosition.logoCenter)<34,
+    "DP should be visibly beside the Secure Connect brand at the top");
+  await caller.locator("#ezeroQuickProfile").click();
+  assert.equal(await caller.locator("#ezeroProfileEditor").evaluate(el=>el.open),true);
+  assert.equal(await caller.locator(".ezero-unified-options").evaluate(el=>el.open),true,
+    "Single DP tap must reveal profile editor, not just an invisible nested panel");
+  await caller.locator("#ezeroMyName").fill("Phone One");
+  await caller.locator("#ezeroSaveProfile").click();
+  assert.equal(await caller.locator("#ezeroHeaderInitial").innerText(),"P");
+  const savedProfile=await caller.evaluate(()=>
+    JSON.parse(localStorage.getItem("ezero_secure_connect_staging_local_profile_v0_1")||"null"));
+  assert.equal(savedProfile.name,"Phone One");
+  assert.equal(savedProfile.share,false,
+    "Profile stays private unless the user explicitly checks peer sharing");
+  // Test the SAME gallery-selection and save flow as a person uses.
+  await caller.evaluate(()=>{
+    const canvas=document.createElement("canvas");
+    canvas.width=32;canvas.height=32;
+    const ctx=canvas.getContext("2d");
+    ctx.fillStyle="#0c7146";ctx.fillRect(0,0,32,32);
+    canvas.toBlob(blob=>{
+      const selected=new File([blob],"local-dp.png",{type:"image/png"});
+      const dt=new DataTransfer();dt.items.add(selected);
+      const input=document.getElementById("ezeroMyPhoto");
+      input.files=dt.files;input.dispatchEvent(new Event("change",{bubbles:true}));
+    },"image/png");
+  });
+  await caller.waitForFunction(()=>
+    document.getElementById("ezeroMyAvatar")?.hidden===false,
+    {timeout:15000});
+  await caller.locator("#ezeroSaveProfile").click();
+  await caller.waitForFunction(()=>
+    document.getElementById("ezeroHeaderAvatar")?.hidden===false,
+    {timeout:10000});
+  const dpData=await caller.locator("#ezeroHeaderAvatar").getAttribute("src");
+  assert.match(dpData,/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/);
+  assert.ok(dpData.length<=12000);
+  assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),0,
+    "Setting a DP must not request microphone or camera permissions");
+  console.log("TOP_HEADER_DP_SINGLE_BUTTON_SAVED_LOCAL_PHOTO_ONE_TAP_PROFILE: PASS");
+  await caller.reload({waitUntil:"domcontentloaded"});
+  await caller.waitForFunction(()=>document.getElementById("myFingerprint")?.textContent.length===64);
+  assert.equal(await caller.locator("#ezeroHeaderAvatar").getAttribute("src"),dpData,
+    "DP must restore in the top bar after reload without an upload");
+  console.log("TOP_HEADER_DP_PERSISTS_LOCALLY_WITHOUT_PROFILE_UPLOAD: PASS");
   // One click initiates offer; the share URL is short and has an ephemeral capability.
   await caller.locator('[data-modern-select="audio"]').click();
   await caller.waitForFunction(()=>!!window.__oneInvite,{timeout:30000});
@@ -163,7 +229,10 @@ try{
     });
     assert.equal(record.extractable,false);
     assert.equal(record.fingerprint,await phone.locator("#myFingerprint").innerText());
+    await phone.locator("#ezeroTrustedList .ezero-trusted-friend-row").waitFor({
+      state:"visible",timeout:10000});
   }
+  console.log("FRIEND_CARDS_REFRESH_IMMEDIATELY_AFTER_SAVE_WITHOUT_PAGE_RELOAD: PASS");
   console.log("BOTH_PHONES_EXPLICIT_SAVE_FRIEND_AND_NONEXTRACTABLE_IDENTITY: PASS");
 
 

@@ -23,7 +23,7 @@
 <link rel="stylesheet" href="./css/ezero_secure_connect_modern_communications_v0_3.css?v=20261105forest1">
 <link rel="stylesheet" href="./css/ezero_secure_connect_quick_nav_v0_1.css">
 <link rel="stylesheet" href="./css/ezero_one_request_lab_20261106.css?v=20261106onepage1">
-<link rel="stylesheet" href="./css/ezero_trusted_friends_stage_v0_1.css?v=20261106stage1">
+<link rel="stylesheet" href="./css/ezero_trusted_friends_stage_v0_1.css?v=20261106profile3">
 <script defer src="./js/vendor/ezero-qrcode-generator-mit.js"></script>
 <script defer src="./js/ezero_secure_connect_device_identity_v0_1.js?v=20261106stage1"></script>
 <script defer src="./js/ezero_saved_friend_stage_engine_v0_1.js?v=20261106stage1"></script>
@@ -32,7 +32,7 @@
 <script defer src="./js/ezero_secure_connect_install_share_staging_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_one_tap_qr_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_modern_evidence_stage_v0_1.js?v=20261106evidence1"></script>
-<script defer src="./js/ezero_secure_connect_peer_profile_staging_v0_1.js?v=20261106stage2"></script>
+<script defer src="./js/ezero_secure_connect_peer_profile_staging_v0_1.js?v=20261106profile3"></script>
 <script defer src="./js/ezero_saved_friend_stage_people_v0_1.js?v=20261106stage1"></script>
 <script defer src="./js/ezero_auto_signaling_lab_config_20261106.js"></script>
 <script defer src="./js/ezero_trusted_stage_signaling_v0_1.js?v=20261106stage1"></script>
@@ -42,14 +42,22 @@
 <script defer src="./js/ezero_trusted_friends_controls_candidate_v0_1.js?v=20261106stage1"></script>
 <script defer src="./js/ezero_signed_media_evidence_v0_1.js?v=20261106proof1"></script>
 <script defer src="./js/ezero_evidence_recording_controls_v0_1.js?v=20261106proof1"></script>
-<script defer src="./js/ezero_secure_connect_quick_nav_v0_1.js"></script>
+<script defer src="./js/ezero_secure_connect_quick_nav_stage_v0_1.js?v=20261106profile3"></script>
 <script defer src="./js/ezero_unified_nav_v0_1.js"></script>
 </head>
 <body class="communication-page ezero-one-lab">
 <div class="shell">
 <header class="top">
   <a class="back" id="modernBack" href="./index.html" data-modern="back">↩ E-ZERO مرکزی صفحہ</a>
-  <strong class="logo">E-ZERO <span>Secure Connect</span></strong>
+  <div class="ezero-header-identity">
+    <strong class="logo">E-ZERO <span>Secure Connect</span></strong>
+    <button type="button" id="ezeroQuickProfile" class="ezero-header-profile"
+      aria-label="میری پروفائل اور تصویر کھولیں" aria-controls="ezeroProfileEditor"
+      title="میری پروفائل / تصویر">
+      <img id="ezeroHeaderAvatar" alt="" hidden>
+      <span id="ezeroHeaderInitial" aria-hidden="true">E</span>
+    </button>
+  </div>
   <label class="language"><span data-i18n="language">زبان</span><select id="language" aria-label="Language · زبان · اللغة">
     <option value="ur">اردو</option><option value="en">English</option><option value="ar">العربية</option>
   </select></label>
@@ -138,8 +146,7 @@
 </section>
 
 <nav class="ezero-quick-actions" aria-label="E-ZERO profile, digital identity and received invitation">
-  <button type="button" id="ezeroQuickProfile">👤 میری پروفائل / تصویر</button>
-  <button type="button" id="ezeroQuickPaste">📋 دوست کا لنک پیسٹ کریں</button>
+    <button type="button" id="ezeroQuickPaste">📋 دوست کا لنک پیسٹ کریں</button>
   <a id="ezeroQuickIdentity" href="./ezero_secure_connect_one_request_lab_20261106.html">🔐 E-ZERO رابطہ</a>
 </nav>
 
