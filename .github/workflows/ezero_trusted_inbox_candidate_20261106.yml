@@ -1,0 +1,87 @@
+name: E-ZERO Trusted Friends Inbox Prototype Security Tests
+on:
+  push:
+    branches:
+      - ezero-trusted-friend-inbox-lab-20261106
+  pull_request:
+    branches: [main]
+    paths:
+      - 'signaling/cloudflare/src/trusted_inbox_candidate_v0_1.js'
+      - 'tests/test_ezero_trusted_inbox_candidate_20261106.cjs'
+      - 'js/ezero_trusted_friend_foreground_client_candidate_v0_1.js'
+      - 'tests/test_ezero_trusted_friend_foreground_client_20261106.cjs'
+      - 'js/ezero_trusted_friends_controls_candidate_v0_1.js'
+      - 'tests/test_ezero_trusted_friend_controls_candidate_20261106.cjs'
+      - 'ezero_trusted_friends_staging_20261106.html'
+      - 'js/ezero_secure_connect_device_identity_v0_1.js'
+      - 'js/ezero_saved_friend_stage_engine_v0_1.js'
+      - 'js/ezero_saved_friend_stage_people_v0_1.js'
+      - 'js/ezero_trusted_stage_signaling_v0_1.js'
+      - 'js/ezero_trusted_stage_one_request_v0_1.js'
+      - 'js/ezero_trusted_inbox_stage_config_20261106.js'
+      - 'css/ezero_trusted_friends_stage_v0_1.css'
+      - 'tests/test_ezero_trusted_friends_stage_wiring_20261106.cjs'
+      - 'tests/test_ezero_trusted_friends_stage_browser_20261106.mjs'
+      - '.github/workflows/ezero_trusted_inbox_candidate_20261106.yml'
+permissions:
+  contents: read
+jobs:
+  verify-trusted-inbox:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Signed inbox and trust/revoke integration tests
+        run: |
+          set -euo pipefail
+          node --check signaling/cloudflare/src/trusted_inbox_candidate_v0_1.js
+          node --check tests/test_ezero_trusted_inbox_candidate_20261106.cjs
+          node tests/test_ezero_trusted_inbox_candidate_20261106.cjs
+          node --check js/ezero_trusted_friend_foreground_client_candidate_v0_1.js
+          node --check tests/test_ezero_trusted_friend_foreground_client_20261106.cjs
+          node tests/test_ezero_trusted_friend_foreground_client_20261106.cjs
+          node --check js/ezero_trusted_friends_controls_candidate_v0_1.js
+          node --check tests/test_ezero_trusted_friend_controls_candidate_20261106.cjs
+          node tests/test_ezero_trusted_friend_controls_candidate_20261106.cjs
+          node --check tests/test_ezero_trusted_friends_stage_wiring_20261106.cjs
+          node tests/test_ezero_trusted_friends_stage_wiring_20261106.cjs
+      - name: Keep successful QR production separate
+        run: |
+          set -euo pipefail
+          ! grep -Fq 'trusted_inbox_candidate_v0_1.js' ezero_secure_connect_one_request_lab_20261106.html
+          ! grep -Fq 'TrustedInbox' signaling/cloudflare/wrangler.jsonc
+          ! grep -Fq 'TrustedInbox' signaling/cloudflare/src/worker.js
+          grep -Fq 'ezero_secure_connect_auto_signaling_pilot_v0_1.js' ezero_secure_connect_one_request_lab_20261106.html
+
+  test-two-phones-staging:
+    needs: verify-trusted-inbox
+    runs-on: ubuntu-22.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated headless browser
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts playwright@1.57.0 ws@8.18.3
+          npx playwright install --with-deps chromium
+      - name: Run real WebRTC staged first-pair/save/reopen regression
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8769 --bind 127.0.0.1 >/tmp/ezero-trusted-stage.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8769/ezero_trusted_friends_staging_20261106.html >/dev/null; then break; fi
+            sleep 1
+          done
+          node tests/test_ezero_trusted_friends_stage_browser_20261106.mjs

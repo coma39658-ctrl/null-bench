@@ -1,0 +1,58 @@
+/* Saved friends: opt-in only after an authenticated, connected WebRTC session. */
+.communication-page.ezero-one-lab #ezeroFriendSavePanel{
+  display:grid;gap:8px;padding:12px;margin:12px 0;border-radius:13px;
+  background:#e8fff1;border:1px solid #73be93;color:#16452e
+}
+.communication-page.ezero-one-lab #ezeroFriendSavePanel[hidden]{display:none!important}
+.communication-page.ezero-one-lab #ezeroFriendSavePanel label{font-weight:850;font-size:14px}
+.communication-page.ezero-one-lab #ezeroFriendSavePanel input{
+  width:100%;min-height:46px;border-radius:10px;border:1px solid #76b996;
+  padding:10px;color:#143b2b;background:#fff;box-sizing:border-box
+}
+.communication-page.ezero-one-lab #ezeroSaveConnectedFriend{
+  min-height:48px;border:1px solid #36b981;border-radius:12px;color:#fff;
+  background:linear-gradient(120deg,#08653d,#0b9b62);font-weight:850
+}
+.communication-page.ezero-one-lab #ezeroSaveConnectedFriend:disabled{opacity:.55}
+.communication-page.ezero-one-lab #ezeroFriendSaveHelp,
+.communication-page.ezero-one-lab #ezeroFriendSaveStatus{
+  font-size:12px;line-height:1.75;color:#285a42;margin:4px 0
+}
+.communication-page.ezero-one-lab .ezero-friend-remove{
+  border-radius:9px;background:#fff6f4;border:1px solid #e0b5ae;
+  color:#9b3737;padding:7px 12px;font-weight:750;min-height:38px
+}
+
+/* Private staging panel; no controls appear before server feature is enabled. */
+.communication-page.ezero-one-lab #ezeroTrustedFriendsLab{
+  background:linear-gradient(145deg,#f4fff9,#dff7e9);
+  border:1px solid #52a47a;border-radius:14px;
+  padding:13px;margin:14px 0;color:#073b26
+}
+.communication-page.ezero-one-lab #ezeroTrustedFriendsLab[hidden]{display:none!important}
+.communication-page.ezero-one-lab #ezeroTrustedFriendsLab h2{
+  font-size:19px;line-height:1.4;color:#06462e;margin:0 0 8px
+}
+.communication-page.ezero-one-lab #ezeroTrustedFriendsLab p{
+  color:#23523b;font-size:13px;line-height:1.7
+}
+.communication-page.ezero-one-lab #ezeroTrustedFriendsLab button{
+  border:1px solid #367c59;border-radius:11px;
+  min-height:42px;padding:9px 12px;background:#116744;
+  color:#fff;font-size:14px;font-weight:750
+}
+.communication-page.ezero-one-lab .ezero-trusted-friend-row{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;padding:12px 0;border-bottom:1px solid #93d5aa
+}
+.communication-page.ezero-one-lab .ezero-trusted-friend-row strong{
+  grid-column:1 / -1;color:#173f2f;font-size:16px
+}
+.communication-page.ezero-one-lab #ezeroTrustedIncoming{
+  display:grid;gap:8px;border:2px solid #39855b;
+  padding:12px;margin:10px 0;border-radius:12px;background:#f6fff7
+}
+.communication-page.ezero-one-lab #ezeroTrustedIncoming[hidden]{display:none!important}
+.communication-page.ezero-one-lab #ezeroTrustedStatus[data-status="error"]{
+  color:#a6292c
+}
