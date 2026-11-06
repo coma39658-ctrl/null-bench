@@ -1,0 +1,38 @@
+{
+  "name": "E-ZERO Secure Connect — Private Test Preview",
+  "short_name": "E-ZERO Test",
+  "description": "Separate pre-release Trusted Friends physical-phone test. Not a public launch; media requires explicit consent.",
+  "id": "./ezero_trusted_friends_staging_20261106.html",
+  "start_url": "./ezero_trusted_friends_staging_20261106.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b3426",
+  "theme_color": "#0b4b35",
+  "lang": "ur",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "shortcuts": [
+    {
+      "name": "E-ZERO Trusted Friends — Test",
+      "short_name": "Friends Test",
+      "url": "./ezero_trusted_friends_staging_20261106.html",
+      "description": "Staging only: opt-in friend cards, audio/video, real Cloudflare inbox"
+    }
+  ]
+}
