@@ -156,7 +156,26 @@
       updateScene();
     }
   });
-  document.addEventListener("ezero:channel-state",updateScene);
+  // After a real connected call, the remote hangup closes the DataChannel.
+  // Stop this phone's camera/mic as well, even if the old UI has already
+  // hidden the in-call Hang Up control. Never start/retry a call here.
+  let hadVerifiedCall=false;
+  document.addEventListener("ezero:channel-state",event=>{
+    if(event.detail?.connected===true &&
+       window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true){
+      hadVerifiedCall=true;
+    }else if(event.detail?.connected===false&&hadVerifiedCall){
+      hadVerifiedCall=false;
+      queueMicrotask(()=>{
+        if(window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true)return;
+        const stream=$("localVideo")?.srcObject;
+        const live=stream?.getTracks?.().some(track=>track.readyState==="live");
+        if(live)$("hangup")?.click();
+        updateScene();
+      });
+    }
+    updateScene();
+  });
   $("remoteVideo")?.addEventListener("loadedmetadata",updateScene);
   $("remoteVideo")?.addEventListener("playing",updateScene);
   $("localVideo")?.addEventListener("playing",updateScene);
