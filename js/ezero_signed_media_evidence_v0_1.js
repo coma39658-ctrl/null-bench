@@ -63,6 +63,22 @@ async function store(){
   });
 }
 async function keyForExplicitExport(){
+  // When the user opted in to Save Friend, reuse their existing non-exportable
+  // verified device identity, so public fingerprints remain comparable.
+  try{
+    const row=await window.EZERO_DEVICE_IDENTITY_STORE?.read?.();
+    if(row?.keys?.privateKey?.extractable===false&&
+       row.keys.privateKey.algorithm?.name==="ECDSA"&&
+       row.keys.privateKey.algorithm?.namedCurve==="P-256"&&
+       /^[a-f0-9]{64}$/.test(row.fingerprint||"")){
+      const pub=new Uint8Array(await crypto.subtle.exportKey("spki",
+        row.keys.publicKey));
+      const digest=hex(await crypto.subtle.digest("SHA-256",pub));
+      if(digest===row.fingerprint){
+        return {keypair:row.keys,signerClass:"CONSENT_SAVED_DEVICE_IDENTITY"};
+      }
+    }
+  }catch(_){/* No silent trust of broken device storage. */}
   const db=await store();
   try{
     let keypair=await new Promise((resolve,reject)=>{
@@ -71,7 +87,8 @@ async function keyForExplicitExport(){
       req.onsuccess=()=>resolve(req.result||null);
       req.onerror=()=>reject(Error("EVIDENCE_KEY_READ_FAILED"));
     });
-    if(keypair?.privateKey?.extractable===false&&keypair?.publicKey)return keypair;
+    if(keypair?.privateKey?.extractable===false&&keypair?.publicKey)
+      return {keypair,signerClass:"SELF_ISSUED_EVIDENCE_ONLY"};
     keypair=await crypto.subtle.generateKey({name:"ECDSA",namedCurve:"P-256"},
       false,["sign","verify"]);
     await new Promise((resolve,reject)=>{
@@ -81,7 +98,7 @@ async function keyForExplicitExport(){
       tx.onerror=()=>reject(Error("EVIDENCE_KEY_WRITE_FAILED"));
       tx.onabort=()=>reject(Error("EVIDENCE_KEY_WRITE_ABORTED"));
     });
-    return keypair;
+    return {keypair,signerClass:"SELF_ISSUED_EVIDENCE_ONLY"};
   }finally{db.close();}
 }
 const clips=new Map();
@@ -94,16 +111,26 @@ function expire(id){
 function clearAll(){for(const id of [...clips.keys()])expire(id);}
 function list(){return [...clips.entries()].map(([id,v])=>({id,kind:v.kind,
   createdAt:v.createdAt,expiresAt:v.expiresAt,size:v.blob.size,mime:v.mime}));}
-function offer({blob,kind,source="LOCAL_DEVICE",consent="NOT_ATTESTED"}={}){
+function offer({blob,kind,source="LOCAL_DEVICE",consent="NOT_ATTESTED",
+                consentDetails=null}={}){
   if(!(blob instanceof Blob)||!KINDS.has(kind)||blob.size<=0||blob.size>MAX)
     throw Error("UNSUPPORTED_OR_OVERSIZE_MEDIA");
   if(!/^[A-Z_]{3,50}$/.test(source)||!/^[A-Z_]{3,50}$/.test(consent))
     throw Error("INVALID_EVIDENCE_PROVENANCE");
+  if(consentDetails!==null){
+    if(typeof consentDetails!=="object"||Array.isArray(consentDetails)||
+       JSON.stringify(consentDetails).length>1200||
+       (consentDetails.peerFingerprint!==undefined&&
+        !/^[a-f0-9]{64}$/.test(consentDetails.peerFingerprint))||
+       (consentDetails.callId!==undefined&&
+        !/^[a-f0-9]{32}$/.test(consentDetails.callId)))
+      throw Error("INVALID_CONSENT_DETAILS");
+  }
   const id=hex(crypto.getRandomValues(new Uint8Array(16)));
   const createdAt=new Date().toISOString(),expiresAt=Date.now()+TTL;
   const timer=setTimeout(()=>expire(id),TTL);
   clips.set(id,{blob,kind,mime:blob.type.split(";")[0].toLowerCase(),
-    source,consent,createdAt,expiresAt,timer});
+    source,consent,consentDetails,createdAt,expiresAt,timer});
   notify();return id;
 }
 async function packageEvidence(id){
@@ -113,7 +140,8 @@ async function packageEvidence(id){
   const media=new Uint8Array(await item.blob.arrayBuffer());
   if(!clips.has(id)||Date.now()>=item.expiresAt)throw Error("EVIDENCE_EXPIRED");
   const digest=hex(await crypto.subtle.digest("SHA-256",media));
-  const keys=await keyForExplicitExport(); // never generated in background
+  const signer=await keyForExplicitExport(); // only an explicit export tap
+  const keys=signer.keypair;
   const pub=new Uint8Array(await crypto.subtle.exportKey("spki",keys.publicKey));
   const pubfp=hex(await crypto.subtle.digest("SHA-256",pub));
   const ext=MIME_EXT[item.mime]||"bin";
@@ -124,14 +152,15 @@ async function packageEvidence(id){
     media:{filename,mime:item.mime||"application/octet-stream",
       sizeBytes:media.length,sha256:digest},
     capture:{kind:item.kind,source:item.source,consent:item.consent,
-      capturedAtDevice:item.createdAt},
+      consentDetails:item.consentDetails,capturedAtDevice:item.createdAt},
     export:{deviceClockTime:new Date().toISOString(),clockTrust:"UNVERIFIED",
       retention:"LOCAL_BUFFER_MAX_10_MINUTES",keyBinding:"BROWSER_DEVICE_ONLY",
       thirdPartyTimestamp:false,legalIdentityVerified:false,
       externalChainOfCustody:false},
     signatureScheme:"ECDSA_P256_SHA256",
     signerPublicKeySpkiBase64url:b64(pub),
-    signerKeySha256:pubfp
+    signerKeySha256:pubfp,
+    signerClass:signer.signerClass
   };
   const signed=JSON.stringify(payload);
   const sig=new Uint8Array(await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},
@@ -152,6 +181,9 @@ async function packageEvidence(id){
   ].join("\n");
   const archive=zip([[filename,media],["evidence.json",ENCODER.encode(record)],
     ["READ_ME.txt",ENCODER.encode(notes)]]);
+  if(!clips.has(id)||Date.now()>=item.expiresAt){
+    expire(id);throw Error("EVIDENCE_EXPIRED");
+  }
   return {archive,filename:"E-ZERO-"+item.kind+"-"+digest.slice(0,16)+".zip",
     sha256:digest,signerFingerprint:pubfp};
 }
@@ -173,6 +205,9 @@ async function verify(mediaBuffer,record){
       unb64(item.signatureBase64url),ENCODER.encode(item.signedPayloadUtf8));
   }catch(_){return false;}
 }
+// Tab close discards the transient media buffers. Only an explicitly
+// downloaded ZIP can outlive the 10-minute browser memory window.
+window.addEventListener("pagehide",clearAll);
 window.EZERO_SIGNED_MEDIA_EVIDENCE=Object.freeze({
   offer,list,onChange:cb=>{watchers.add(cb);cb(list());return()=>watchers.delete(cb);},
   expire,clearAll,packageEvidence,verify
