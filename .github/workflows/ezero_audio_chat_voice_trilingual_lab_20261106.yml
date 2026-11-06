@@ -50,7 +50,7 @@ jobs:
           npm install --no-save --ignore-scripts playwright@1.57.0 ws@8.18.3
           # This regression uses headless Chromium exclusively. Do not fetch
           # the redundant full headed browser (smaller, faster CI download).
-          npx playwright install --with-deps chromium --only-shell
+          npx playwright install chromium --only-shell
       - name: Test actual two-browser WebRTC audio routes, text, voice, and languages
         run: |
           set -euo pipefail
