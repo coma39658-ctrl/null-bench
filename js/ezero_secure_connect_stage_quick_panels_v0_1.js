@@ -57,11 +57,11 @@
   }
   proof.addEventListener("click",showProof);
   endCall.addEventListener("click",()=>{
-    if(window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true)
+    if(window.EZERO_VOICE_TRANSPORT?.connected()===true)
       $("hangup")?.click();
   });
   function showHangup(){
-    endCall.hidden=window.EZERO_PEER_PROFILE_TRANSPORT?.connected()!==true;
+    endCall.hidden=window.EZERO_VOICE_TRANSPORT?.connected()!==true;
     const lang=document.documentElement.lang;
     endCall.textContent=lang==="en"?"📴 End call":lang==="ar"?"📴 إنهاء المكالمة":"📴 کال ختم کریں";
   }
