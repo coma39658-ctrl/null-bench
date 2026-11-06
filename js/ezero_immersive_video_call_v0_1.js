@@ -123,8 +123,10 @@
     return stream && typeof stream.getVideoTracks==="function" &&
       stream.getVideoTracks().some(track=>track.readyState==="live");
   }
+  let hadVerifiedCall=false;
   function updateScene(){
     const connected=window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true;
+    if(connected)hadVerifiedCall=true;
     const mode=document.querySelector('input[name="mode"]:checked')?.value;
     const video=connected&&mode==="video";
     body.classList.toggle("ezero-call-connected",connected);
@@ -150,7 +152,22 @@
       updateScene();
     }
   });
-  document.addEventListener("ezero:channel-state",updateScene);
+  // A remote hangup closes the authenticated DataChannel. Release this
+  // device's camera/microphone too, even if the UI has already collapsed
+  // the video scene. Never auto-retry or capture media in this handler.
+  document.addEventListener("ezero:channel-state",event=>{
+    if(event.detail?.connected===false&&hadVerifiedCall){
+      hadVerifiedCall=false;
+      queueMicrotask(()=>{
+        if(window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true)return;
+        const stream=$("localVideo")?.srcObject;
+        if(stream?.getTracks?.().some(t=>t.readyState==="live"))
+          $("hangup")?.click(); // Original core releases tracks and resets peer.
+        updateScene();
+      });
+    }
+    updateScene();
+  });
   $("remoteVideo")?.addEventListener("loadedmetadata",updateScene);
   $("remoteVideo")?.addEventListener("playing",updateScene);
   $("localVideo")?.addEventListener("playing",updateScene);
