@@ -40,6 +40,8 @@
 <script defer src="./js/ezero_trusted_inbox_stage_config_20261106.js?v=20261106stage1"></script>
 <script defer src="./js/ezero_trusted_friend_foreground_client_candidate_v0_1.js?v=20261106stage1"></script>
 <script defer src="./js/ezero_trusted_friends_controls_candidate_v0_1.js?v=20261106stage1"></script>
+<script defer src="./js/ezero_signed_media_evidence_v0_1.js?v=20261106proof1"></script>
+<script defer src="./js/ezero_evidence_recording_controls_v0_1.js?v=20261106proof1"></script>
 <script defer src="./js/ezero_secure_connect_quick_nav_v0_1.js"></script>
 <script defer src="./js/ezero_unified_nav_v0_1.js"></script>
 </head>
@@ -223,6 +225,41 @@
 </div>
 <p id="ezeroFriendSaveStatus" role="status" aria-live="polite">پہلے QR سے محفوظ رابطہ کریں، پھر دونوں طرف دوست محفوظ کریں۔ بغیر QR دوبارہ کال ابھی صرف تجرباتی تیاری میں ہے۔</p>
 <section id="ezeroTrustedFriendsLab" aria-label="Experimental Trusted Friends Calls" hidden></section>
+
+<section id="ezeroEvidencePanel" class="modern-workspace ezero-evidence-panel"
+  aria-labelledby="ezeroEvidenceTitle">
+  <h2 id="ezeroEvidenceTitle">🔐 E-ZERO Signed Evidence · SHA-256</h2>
+  <p>صرف تجرباتی سہولت۔ کال ریکارڈنگ دونوں افراد کی واضح منظوری کے بغیر شروع نہیں ہوگی۔
+    ریکارڈنگ ختم ہونے کے بعد زیادہ سے زیادہ 10 منٹ تک اسی براؤزر کی عارضی میموری میں رہے گی؛
+    پھر خودکار طور پر ختم ہوگی۔ اس دوران صارف اپنی مرضی سے اصل میڈیا، SHA-256 اور
+    ECDSA ڈیجیٹل دستخط کے ساتھ ZIP ڈاؤن لوڈ کر سکتا ہے۔
+    ایپ سرور پر ریکارڈنگ محفوظ نہیں کرتی؛ پہلے سے ڈاؤن لوڈ فائل فون سے خودکار حذف نہیں ہوتی۔</p>
+  <p>Digital fingerprint proves the exported file's integrity, not legal identity,
+    independent timestamps, or automatic court admissibility.</p>
+  <div class="ezero-evidence-actions">
+    <button id="ezeroEvidenceAsk" type="button" class="secondary">🔒 ریکارڈنگ کی اجازت مانگیں</button>
+    <button id="ezeroEvidenceStart" type="button" class="primary" hidden>🔴 ریکارڈنگ شروع کریں</button>
+    <button id="ezeroEvidenceStop" type="button" class="danger" hidden>■ ریکارڈنگ بند کریں</button>
+    <strong id="ezeroEvidenceRecBadge" role="status" aria-live="assertive" hidden>🔴 REC</strong>
+  </div>
+  <div id="ezeroEvidenceIncoming" hidden>
+    <p>دوست ریکارڈنگ کی اجازت مانگ رہا ہے۔ انکار کرنے پر کوئی ریکارڈنگ شروع نہیں ہوگی۔</p>
+    <button id="ezeroEvidenceApprove" type="button" class="primary">✓ اجازت دیں</button>
+    <button id="ezeroEvidenceDeny" type="button" class="danger">✕ انکار کریں</button>
+  </div>
+  <p id="ezeroEvidenceStatus" role="status" aria-live="polite">
+    ریکارڈنگ ابھی بند ہے۔</p>
+  <h3>⬇ مقامی، دستخط شدہ ثبوت ڈاؤن لوڈ</h3>
+  <p>ہر محفوظ فائل میں اصل میڈیا، SHA-256 ہیش، غیر قابلِ برآمد نجی کلید کا
+    ECDSA-P256 دستخط اور شناخت/وقت کی تصدیقی حدود شامل ہوں گی۔</p>
+  <div id="ezeroEvidenceList" aria-live="polite"></div>
+  <label for="ezeroEvidenceImport" id="ezeroEvidenceImportInfo">
+    اختیاری: اپنی مقامی آڈیو یا ویڈیو فائل منتخب کریں۔ درآمد شدہ فائل کو
+    اصل E-ZERO کال ریکارڈنگ کا تصدیق شدہ ثبوت نہیں کہا جائے گا۔
+  </label>
+  <input id="ezeroEvidenceImport" type="file" accept="audio/*,video/*"
+    aria-label="Local media for SHA-256 signed export">
+</section>
 <p class="ezero-unified-disclaimer">تجرباتی WebRTC رابطہ: دونوں فونوں پر «Connected» اور آواز/ویڈیو کی تصدیق ضروری ہے۔ بعض نیٹ ورکس میں TURN کے بغیر رابطہ ناکام ہوسکتا ہے۔</p>
 </section>
 <section class="ezero-pilot-banner" role="note">
