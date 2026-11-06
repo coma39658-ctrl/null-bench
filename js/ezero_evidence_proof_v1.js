@@ -79,10 +79,18 @@ function exactKeys(value,keys){
 }
 function statement(p){
   exactKeys(p,["version","file","source","localTime","clockStatus",
-    "identityStatus","recordingStatus","thirdPartyTimestamp","retention","signature"]);
+    "identityStatus","recordingStatus","thirdPartyTimestamp","retention","custody","signature"]);
   exactKeys(p.file,["name","type","size","sha256"]);
   exactKeys(p.signature,["algorithm","publicKeySpki",
     "keyFingerprintSha256","value"]);
+  exactKeys(p.custody,["eventId","event","actor","transferHistory",
+    "recordedAtLocal","fileSha256"]);
+  check(/^[a-f0-9]{32}$/.test(p.custody.eventId||"")&&
+    p.custody.event==="LOCAL_USER_CONSENT_EXPORT"&&
+    p.custody.actor==="UNVERIFIED_DEVICE_SIGNING_KEY"&&
+    p.custody.transferHistory==="NONE_ATTESTED"&&
+    p.custody.recordedAtLocal===p.localTime&&
+    p.custody.fileSha256===p.file.sha256,"CUSTODY_EVENT_INVALID");
   check(p&&p.version===VERSION&&p.file&&
     typeof p.file.name==="string"&&p.file.name===safeName(p.file.name)&&
     typeof p.file.type==="string"&&p.file.type.length<=100&&
@@ -97,7 +105,9 @@ function statement(p){
     p.retention==="E_ZERO_SERVER_STORES_NO_MEDIA_BY_THIS_EXPORTER","BAD_MANIFEST");
   return [VERSION,p.file.name,p.file.type,String(p.file.size),p.file.sha256,
     p.source,p.localTime,p.clockStatus,p.identityStatus,p.recordingStatus,
-    p.retention].join("\n");
+    p.retention,p.custody.eventId,p.custody.event,p.custody.actor,
+    p.custody.transferHistory,p.custody.recordedAtLocal,
+    p.custody.fileSha256].join("\n");
 }
 async function createProof(blob,name,opts={}){
   validBlob(blob);
@@ -115,9 +125,15 @@ async function createProof(blob,name,opts={}){
     recordingStatus:"NOT_VERIFIED_BY_EXPORTER",
     thirdPartyTimestamp:null,
     retention:"E_ZERO_SERVER_STORES_NO_MEDIA_BY_THIS_EXPORTER",
+    custody:{eventId:hex(crypto.getRandomValues(new Uint8Array(16))),
+      event:"LOCAL_USER_CONSENT_EXPORT",actor:"UNVERIFIED_DEVICE_SIGNING_KEY",
+      transferHistory:"NONE_ATTESTED",recordedAtLocal:"",
+      fileSha256:""},
     signature:{algorithm:"ECDSA_P256_SHA256",publicKeySpki:"",
       keyFingerprintSha256:"",value:""}
   };
+  p.custody.recordedAtLocal=p.localTime;
+  p.custody.fileSha256=p.file.sha256;
   const signer=await getSigner();
   const payload=encoder.encode(statement(p));
   const signature=new Uint8Array(await crypto.subtle.sign(
