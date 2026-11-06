@@ -278,7 +278,8 @@ try{
   const before=await a.evaluate(()=>window.__mediaCalls.length);
   await a.locator("#ezeroVoiceRecord").click();
   await a.waitForFunction(()=>document.querySelector("#ezeroVoiceStop")?.hidden===false);
-  assert.equal(await a.evaluate(()=>window.__mediaCalls.length),before+1);
+  assert.equal(await a.evaluate(()=>window.__mediaCalls.length),before,
+    "Recording during a verified call must clone the authorized microphone; never open a second physical mic");
   await a.waitForTimeout(1400);
   await a.locator("#ezeroVoiceStop").click();
   await a.waitForFunction(()=>document.querySelector("#ezeroVoiceDraft")?.hidden===false,{timeout:15000});

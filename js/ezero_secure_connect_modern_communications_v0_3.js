@@ -10,7 +10,7 @@ ar:{"inviteEmpty":"لم يتم إدخال رابط دعوة حقيقي. انسخ
 };
 const t=k=>(trans[document.documentElement.lang]||trans.ur)[k]||k;
 let current="audio", recorder=null, micStream=null, limitTimer=null, draft=null, draftUrl=null,
-  incoming=null, incomingUrl=null, incomingTimeout=null, recId=0;
+  incoming=null, incomingUrl=null, incomingTimeout=null, recId=0, lastVoiceStatus="voiceIdle";
 const pick=(selector)=>document.querySelector(selector);
 function moveOriginal(){
   const media=$("mediaTitle")?.closest("section.card");
@@ -289,7 +289,7 @@ function translate(){
  }
  explain();
  if($("modernConnectionStatus").dataset.state!=="connected")$("modernConnectionStatus").textContent=t("idle");
- if(!draft)$("ezeroVoiceStatus").textContent=t("voiceIdle");
+ $("ezeroVoiceStatus").textContent=t(lastVoiceStatus);
 }
 $("language").addEventListener("change",translate);
 translate();
@@ -316,14 +316,25 @@ function clearIncoming(){
  incoming=null;$("ezeroVoiceIncomingAudio").pause();$("ezeroVoiceIncomingAudio").removeAttribute("src");
  $("ezeroVoiceIncomingAudio").hidden=true;$("ezeroVoiceOpenIncoming").hidden=false;$("ezeroVoiceReceived").hidden=true;
 }
-function voiceStatus(key){$("ezeroVoiceStatus").textContent=t(key);}
+function voiceStatus(key){lastVoiceStatus=key;$("ezeroVoiceStatus").textContent=t(key);}
 $("ezeroVoiceRecord").addEventListener("click",async()=>{
  if(micStream||recorder?.state==="recording")return;
  clearDraft();
  if(typeof MediaRecorder!=="function"||!navigator.mediaDevices?.getUserMedia){voiceStatus("permission");return;}
  const generation=++recId;
  try{
-  const s=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+  // During an active, already-authorized call reuse its live microphone
+  // through a CLONED track. This avoids opening a second physical mic on
+  // mobile browsers (which can interrupt the successful WebRTC call).
+  // Outside a connected call, recording still requires a user tap and the
+  // usual getUserMedia permission. Stopping the clone never stops the call.
+  const callMic=$("localVideo")?.srcObject?.getAudioTracks?.()
+    .find(track=>track.readyState==="live"&&track.enabled);
+  // A muted connected call must not silently open a second microphone.
+  const liveCall=window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true;
+  if(liveCall&&!callMic){voiceStatus("permission");return;}
+  const s=callMic?new MediaStream([callMic.clone()]):
+    await navigator.mediaDevices.getUserMedia({audio:true,video:false});
   if(generation!==recId||document.hidden){s.getTracks().forEach(x=>x.stop());return;}
   micStream=s;
   const mime=["audio/webm;codecs=opus","audio/mp4","audio/ogg","audio/webm"]
@@ -354,6 +365,13 @@ $("ezeroVoiceRecord").addEventListener("click",async()=>{
  }catch(_){stopMic();voiceStatus("permission");}
 });
 $("ezeroVoiceStop").addEventListener("click",stopMic);
+// Explicit live-call mute also cancels any in-progress voice-note clone;
+// a mute action must never leave a second audio capture running.
+$("muteMic")?.addEventListener("click",()=>{
+  if(micStream||recorder?.state==="recording"){
+    ++recId;stopMic();clearDraft();voiceStatus("expired");
+  }
+});
 $("ezeroVoiceClear").addEventListener("click",()=>{++recId;stopMic();clearDraft();voiceStatus("expired");});
 $("ezeroVoiceSend").addEventListener("click",async()=>{
  if(!draft||!window.EZERO_VOICE_TRANSPORT?.connected()){voiceStatus("sendFail");return;}

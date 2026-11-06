@@ -37,7 +37,9 @@ jobs:
         run: |
           set -euo pipefail
           npm install --no-save --ignore-scripts playwright@1.57.0 ws@8.18.3
-          npx playwright install --with-deps chromium
+          # This suite launches Chromium headless; use the smaller supported
+          # headless shell, matching the already-passing audio/chat lab runner.
+          npx playwright install --with-deps chromium --only-shell
       - name: Test QR video, two real browser video tracks, one PiP and incoming accept
         run: |
           set -euo pipefail
