@@ -827,6 +827,9 @@
     resetAudioOutput();
     ["localVideo","remoteVideo"].forEach(id=>{const el=$(id);el.pause();el.srcObject=null;});
     $("localSignal").value="";$("remoteSignal").value="";role=null;
+    // Saved-friend targeting applies only to one authenticated call attempt.
+    // Prevent a stale contact pin blocking the next explicit unknown caller.
+    expectedPeerFingerprint=null;
     $("sendMessage").disabled=true;$("muteMic").disabled=true;$("toggleCamera").disabled=true;
     discardIncoming();$("sendText").value="";
     $("messageStatus").textContent=t("notConnected");
