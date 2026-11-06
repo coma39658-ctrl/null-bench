@@ -38,7 +38,11 @@
       stopButton:"■ ریکارڈنگ بند کریں",save:"⬇ SHA-256 + دستخط شدہ ثبوت ZIP",
       importNote:"اختیاری: اپنے فون سے فائل منتخب کریں؛ اسے اصل E-ZERO کال کا ثبوت نہیں کہا جائے گا۔",
       imported:"منتخب فائل صرف اس فون کی عارضی میموری میں ہے۔",
-      downloadFail:"ثبوت نہیں بن سکا یا 10 منٹ ختم ہو گئے۔"},
+      downloadFail:"ثبوت نہیں بن سکا یا 10 منٹ ختم ہو گئے۔",
+      original:"⬇ اصل فائل ڈاؤن لوڈ",originalSaved:"اصل فائل ڈاؤن لوڈ کے لیے فراہم کی گئی؛ کوئی SHA-256 یا دستخط نہیں بنائے گئے۔",
+      evidenceChoice:"🔐 اسے ثبوت کے طور پر محفوظ کریں (SHA-256)",
+      evidenceDetails:"صرف آپ کے اگلے بٹن دبانے پر SHA-256 اور ڈیجیٹل دستخط بنیں گے؛ وقت اور قانونی شناخت کی آزاد تصدیق نہیں۔",
+      evidenceCreate:"⬇ SHA-256 + دستخط شدہ ثبوت تیار کرکے ڈاؤن لوڈ کریں"},
     en:{idle:"No automatic recording. Both participants must explicitly consent.",
       offline:"Connect a verified call first.",request:"Recording permission requested.",
       incoming:"The other person requests permission to record.",
@@ -56,7 +60,11 @@
       stopButton:"■ Stop recording",save:"⬇ SHA-256 + signed evidence ZIP",
       importNote:"Optional imported files are not certified as original E-ZERO call media.",
       imported:"Selected file is temporarily held only in this browser.",
-      downloadFail:"Evidence failed or the 10-minute window expired."},
+      downloadFail:"Evidence failed or the 10-minute window expired.",
+      original:"⬇ Download original file",originalSaved:"Original media download started. No SHA-256 evidence or digital signature generated.",
+      evidenceChoice:"🔐 Save as evidence (SHA-256)",
+      evidenceDetails:"SHA-256 and device signature are only generated when you press the evidence download button. Device time and identity are unverified.",
+      evidenceCreate:"⬇ Generate and download signed SHA-256 evidence"},
     ar:{idle:"لا يبدأ التسجيل تلقائياً. موافقة الطرفين مطلوبة.",
       offline:"اتصل بمكالمة موثقة أولاً.",request:"أُرسل طلب الموافقة على التسجيل.",
       incoming:"الطرف الآخر يطلب الإذن بالتسجيل.",
@@ -74,7 +82,11 @@
       save:"⬇ ملف الدليل مع SHA-256 والتوقيع",
       importNote:"ملفك المستورد لا يُعتمد تلقائياً كتسجيل مكالمة E-ZERO أصلي.",
       imported:"الملف مؤقت في متصفحك فقط.",
-      downloadFail:"فشل إنشاء الدليل أو انتهت المهلة."}
+      downloadFail:"فشل إنشاء الدليل أو انتهت المهلة.",
+      original:"⬇ تنزيل الملف الأصلي",originalSaved:"بدأ تنزيل الملف الأصلي دون إنشاء بصمة SHA-256 أو توقيع.",
+      evidenceChoice:"🔐 الاحتفاظ كدليل (SHA-256)",
+      evidenceDetails:"لا تُنشأ البصمة أو التوقيع إلا عند الضغط على تنزيل الدليل. الوقت والهوية غير موثقين مستقلاً.",
+      evidenceCreate:"⬇ إنشاء وتنزيل الدليل الموقّع SHA-256"}
   };
   const t=k=>(dictionary[document.documentElement.lang]||dictionary.ur)[k]||k;
   const msg=(k)=>{$("ezeroEvidenceStatus").textContent=t(k);};
@@ -357,33 +369,83 @@
     if(recording)recording.chunks=[];
     stopCapture("stopped",false);clearPermits();proof.clearAll();
   });
+  // Selection changes the UI only. Hash/signing are deliberately delayed
+  // until the user explicitly clicks "Generate signed evidence".
+  const selectedEvidence=new Set();
+  const busyExports=new Set();
+  function download(blob,filename){
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement("a");
+    link.href=url;link.download=filename;link.rel="noopener";
+    link.click();
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+  }
   function render(entries){
     const list=$("ezeroEvidenceList");
     list.replaceChildren();
+    const ids=new Set(entries.map(x=>x.id));
+    for(const id of [...selectedEvidence])if(!ids.has(id))selectedEvidence.delete(id);
     if(!entries.length){const p=document.createElement("p");p.textContent=t("none");
       list.append(p);return;}
     for(const entry of entries){
       const box=document.createElement("div");box.className="ezero-evidence-entry";
-      const label=document.createElement("span");
+      const label=document.createElement("span");label.className="ezero-evidence-entry-meta";
       const seconds=Math.max(0,Math.ceil((entry.expiresAt-Date.now())/1000));
+      const available=seconds>0;
       label.textContent=entry.kind+" · "+seconds+"s · "+
         Math.ceil(entry.size/1024)+" KiB";
-      const button=document.createElement("button");button.type="button";
-      button.textContent=t("save");button.disabled=seconds===0;
-      button.addEventListener("click",async()=>{
-        if(button.disabled)return;button.disabled=true;
+      const original=document.createElement("button");
+      original.type="button";original.textContent=t("original");
+      original.disabled=!available||busyExports.has(entry.id);
+      original.addEventListener("click",()=>{
+        if(original.disabled||busyExports.has(entry.id))return;
         try{
+          // This path returns the exact same media Blob without hashing,
+          // signing or creating a ZIP. A sender must already have allowed
+          // recipient export before a received voice note can appear here.
+          const result=proof.downloadOriginal(entry.id);
+          download(result.blob,result.filename);msg("originalSaved");
+        }catch(_){msg("downloadFail");}
+      });
+      const toggleLabel=document.createElement("label");
+      toggleLabel.className="ezero-evidence-choice";
+      const toggle=document.createElement("input");
+      toggle.type="checkbox";toggle.className="ezero-evidence-select";
+      toggle.checked=selectedEvidence.has(entry.id);
+      toggle.disabled=!available;
+      const choiceText=document.createElement("span");choiceText.textContent=t("evidenceChoice");
+      toggleLabel.append(toggle,choiceText);
+      const details=document.createElement("div");
+      details.className="ezero-evidence-proof-actions";
+      details.hidden=!toggle.checked||!available;
+      const note=document.createElement("small");note.textContent=t("evidenceDetails");
+      const create=document.createElement("button");create.type="button";
+      create.className="ezero-evidence-generate";
+      create.textContent=t("evidenceCreate");
+      create.disabled=!available||busyExports.has(entry.id);
+      toggle.addEventListener("change",()=>{
+        // Selecting alone MUST NOT invoke packageEvidence or digest/sign.
+        if(toggle.checked)selectedEvidence.add(entry.id);
+        else selectedEvidence.delete(entry.id);
+        details.hidden=!toggle.checked||!available;
+      });
+      create.addEventListener("click",async()=>{
+        if(!toggle.checked||!selectedEvidence.has(entry.id)||
+           create.disabled||busyExports.has(entry.id))return;
+        busyExports.add(entry.id);create.disabled=true;original.disabled=true;
+        try{
+          // This call alone generates SHA-256, ECDSA, and the evidence ZIP.
           const result=await proof.packageEvidence(entry.id);
-          const url=URL.createObjectURL(result.archive);
-          const link=document.createElement("a");
-          link.href=url;link.download=result.filename;
-          link.rel="noopener";link.click();
-          setTimeout(()=>URL.revokeObjectURL(url),60000);
+          download(result.archive,result.filename);
           msg("saved");
         }catch(_){msg("downloadFail");}
-        finally{button.disabled=false;}
+        finally{
+          busyExports.delete(entry.id);
+          create.disabled=!available;original.disabled=!available;
+        }
       });
-      box.append(label,button);list.append(box);
+      details.append(note,create);
+      box.append(label,original,toggleLabel,details);list.append(box);
     }
   }
   proof.onChange(render);
