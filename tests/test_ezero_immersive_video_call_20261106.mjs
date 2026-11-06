@@ -208,14 +208,16 @@ try{
     "Expired QR must not remain visible after video hangup");
   assert.equal(await caller.locator("#ezeroOneCopyInvite").isEnabled(),false,
     "Copy of an old invitation must be disabled after video hangup");
-  // The remote side may return to its main card immediately, hiding the
-  // fullscreen video bar. Use whichever existing hangup is now visible.
-  await callee.waitForFunction(()=>
-    document.body.classList.contains("ezero-video-connected")===false ||
-    window.EZERO_VOICE_TRANSPORT?.connected()===false,{timeout:15000});
-  if(await callee.locator("#hangup").isVisible())
-    await callee.locator("#hangup").click();
-  else await callee.locator("#modernHangup").click();
+  // A remote end-of-call must automatically release the other phone's
+  // microphone and camera, without relying on a now-hidden red button.
+  await callee.waitForFunction(()=>{
+    const s=document.getElementById("localVideo")?.srcObject;
+    return window.EZERO_VOICE_TRANSPORT?.connected()===false &&
+      (!s || s.getTracks().every(t=>t.readyState==="ended")) &&
+      !document.body.classList.contains("ezero-video-connected");
+  },{timeout:15000});
+  assert.equal(await callee.locator("#modernHangup").isVisible(),false);
+  console.log("REMOTE_HANGUP_STOPS_RECIPIENT_CAMERA_AND_MIC_AUTOMATICALLY: PASS");
   await caller.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===false,{timeout:15000});
   await caller.locator('[data-modern-select="video"]').click();
