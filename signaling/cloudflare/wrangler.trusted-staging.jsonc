@@ -1,0 +1,18 @@
+{
+  "$schema": "https://unpkg.com/wrangler@4/config-schema.json",
+  "name": "ezero-trusted-friends-inbox-staging",
+  "main": "src/trusted_inbox_candidate_v0_1.js",
+  "compatibility_date": "2026-11-06",
+  "workers_dev": true,
+  "vars": {
+    "PUBLIC_ORIGIN": "https://coma39658-ctrl.github.io"
+  },
+  "durable_objects": {
+    "bindings": [
+      {"name": "TRUSTED_INBOXES", "class_name": "TrustedInbox"}
+    ]
+  },
+  "migrations": [
+    {"tag": "v1", "new_sqlite_classes": ["TrustedInbox"]}
+  ]
+}
