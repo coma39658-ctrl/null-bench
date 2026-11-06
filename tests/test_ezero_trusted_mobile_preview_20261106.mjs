@@ -154,7 +154,7 @@ try{
     await phone.locator("#ezeroFriendSaveName").fill(friendName);
     await phone.locator("#ezeroSaveConnectedFriend").click();
     await phone.waitForFunction(()=>
-      JSON.parse(localStorage.getItem("ezero_secure_connect_local_fingerprints_v0_1")||"[]").length===1,
+      JSON.parse(localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1")||"[]").length===1,
       {timeout:10000});
     const record=await phone.evaluate(async()=>{
       const key=await window.EZERO_DEVICE_IDENTITY_STORE.read();
@@ -201,7 +201,7 @@ try{
       document.getElementById("myFingerprint")?.textContent===expected,
       persistentFingerprint[i],{timeout:12000});
     assert.equal(await phone.evaluate(()=>
-      JSON.parse(localStorage.getItem("ezero_secure_connect_local_fingerprints_v0_1")||"[]").length),1);
+      JSON.parse(localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1")||"[]").length),1);
   }
   console.log("BOTH_PHONES_PERSIST_SAVED_IDENTITY_AND_FRIENDS_ON_REOPEN: PASS");
   // The first and second QR calls above used local mocked signaling.
