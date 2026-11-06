@@ -258,6 +258,42 @@
   });
   $("ezeroEvidenceStart").addEventListener("click",startCapture);
   $("ezeroEvidenceStop").addEventListener("click",()=>stopCapture("stopped"));
+  // Existing consented voice-note drafts can be downloaded with a new
+  // signed evidence ZIP. No silent server upload and no auto file download.
+  let ownVoiceDraftEvidence=null;
+  document.addEventListener("ezero:evidence-voice-draft-local",e=>{
+    const blob=e.detail?.blob;
+    if(!(blob instanceof Blob)||blob.size<1||blob.size>23000)return;
+    if(ownVoiceDraftEvidence)proof.expire(ownVoiceDraftEvidence);
+    try{
+      ownVoiceDraftEvidence=proof.offer({blob,kind:"voice_note",
+        source:"LOCAL_VOICE_NOTE_CAPTURE",
+        consent:"AUTHOR_EXPLICIT_RECORD_BUTTON"});
+    }catch(_){ownVoiceDraftEvidence=null;}
+  });
+  $("ezeroVoiceClear")?.addEventListener("click",()=>{
+    // Discard means discard, not keeping an unnoticed second copy.
+    if(ownVoiceDraftEvidence){
+      proof.expire(ownVoiceDraftEvidence);ownVoiceDraftEvidence=null;
+    }
+  });
+  document.addEventListener("ezero:voice-note-received",e=>{
+    const d=e.detail;
+    // A sender who did not opt in to export leaves only the pre-existing
+    // listen-once behavior; no E-ZERO download option is added.
+    if(d?.exportAllowed!==true||typeof d.audio!=="string"||
+       d.audio.length>32000||
+       !["audio/webm","audio/mp4","audio/ogg"].includes(d.mime))return;
+    try{
+      const raw=atob(d.audio);
+      if(raw.length<1||raw.length>24000)return;
+      const blob=new Blob([Uint8Array.from(raw,c=>c.charCodeAt(0))],
+        {type:d.mime});
+      proof.offer({blob,kind:"voice_note",
+        source:"PEER_WEBRTC_VOICE_NOTE_OPT_IN",
+        consent:"SENDER_EXPORT_ALLOWED_P2P_UNATTESTED"});
+    }catch(_){}
+  });
   $("ezeroEvidenceImport").addEventListener("change",e=>{
     const file=e.target.files?.[0];e.target.value="";
     if(!file)return;
