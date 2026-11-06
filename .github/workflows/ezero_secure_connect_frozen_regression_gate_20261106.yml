@@ -1,0 +1,90 @@
+name: E-ZERO Frozen Secure Connect Regression Gate
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ezero-frozen-connect-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  frozen-two-phone-contracts:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 24
+    steps:
+      - name: Checkout candidate E-ZERO code (read only)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Pin and restore independent, previously passing regression tests
+        shell: bash
+        env:
+          BASELINE_SHA: 43e0579c1587435a74a618b8aeab4bb0864e052d
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin refs/heads/ezero-verified-green-connect-20261106-baseline
+          observed="$(git rev-parse FETCH_HEAD)"
+          if [[ "$observed" != "$BASELINE_SHA" ]]; then
+            echo "::error::The saved baseline branch changed. Stop and investigate; do not silently accept a moving reference."
+            exit 1
+          fi
+          git show "FETCH_HEAD:tests/test_ezero_one_request_browser_20261106.mjs" > tests/.ezero_frozen_one_request_20261106.mjs
+          git show "FETCH_HEAD:tests/test_ezero_immersive_video_call_20261106.mjs" > tests/.ezero_frozen_video_20261106.mjs
+          for required in \
+            ezero_secure_connect_one_request_lab_20261106.html \
+            js/ezero_secure_connect_live_p2p_v0_1.js \
+            js/ezero_immersive_video_call_v0_1.js \
+            tests/test_ezero_one_request_browser_20261106.mjs \
+            tests/test_ezero_immersive_video_call_20261106.mjs; do
+            test -s "$required" || { echo "::error::Missing critical original call file: $required"; exit 1; }
+          done
+          for testfile in tests/.ezero_frozen_one_request_20261106.mjs \
+                          tests/.ezero_frozen_video_20261106.mjs \
+                          tests/test_ezero_one_request_browser_20261106.mjs \
+                          tests/test_ezero_immersive_video_call_20261106.mjs; do
+            node --check "$testfile"
+          done
+          echo "FROZEN_BASELINE_EXACT_COMMIT_VERIFIED: PASS"
+      - name: Install Chromium for isolated 2-browser regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts playwright@1.57.0 ws@8.18.3
+          npx playwright install --with-deps chromium
+      - name: Start candidate website on loopback only
+        shell: bash
+        run: |
+          set -euo pipefail
+          nohup python3 -m http.server 8769 --bind 127.0.0.1 > /tmp/ezero-regression-http.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8769/ezero_secure_connect_one_request_lab_20261106.html >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/ezero-regression-http.log
+          exit 1
+      - name: Enforce unchanged frozen audio/QR one-accept contract on new code
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tests/.ezero_frozen_one_request_20261106.mjs
+      - name: Enforce unchanged frozen video/PiP/ringing/exit contract on new code
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tests/.ezero_frozen_video_20261106.mjs
+      - name: Run new branch's up-to-date audio and video regression tests too
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tests/test_ezero_one_request_browser_20261106.mjs
+          node tests/test_ezero_immersive_video_call_20261106.mjs
+          echo "EZERO_FROZEN_AND_CURRENT_TWO_PHONE_REGRESSIONS: PASS"
