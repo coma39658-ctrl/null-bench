@@ -20,6 +20,7 @@ const copy={
     pending:"درخواست شروع ہو گئی؛ دوسرا فون قبول کرے گا تو رابطہ بنے گا۔",
     busy:"پچھلی کال یا درخواست ختم کریں۔",
     noService:"محفوظ دوستوں کی کال سروس دستیاب نہیں؛ QR استعمال کریں۔",
+    deleteFriend:"🗑️ دوست حذف کریں",blockFriend:"⛔ بلاک کریں",unblockFriend:"بلاک ختم کریں",blockedFriends:"بلاک کردہ شناختیں",blockedEmpty:"کوئی بلاک کردہ دوست نہیں",savedAction:"فہرست اپ ڈیٹ ہوگئی",actionError:"اس فون کی مقامی فہرست اپ ڈیٹ نہیں ہوئی",
     peerName:"دوست کا اپنا پروفائل نام",rename:"✎ اپنا رکھا نام",nickname:"اپنا نام رکھیں",saveName:"✓ نام محفوظ کریں",cancelName:"منسوخ",
     fresh:"🔁 نئی کال کا QR بنائیں",freshChoose:"آڈیو یا ویڈیو QR منتخب کریں",freshAudio:"📞 نیا آڈیو QR",freshVideo:"📹 نیا ویڈیو QR",freshBusy:"جاری کال ختم کرنے کے بعد نیا QR بنائیں۔"},
   en:{head:"👥 Choose a friend",hint:"Select a friend first; then call that friend by audio or video.",
@@ -31,6 +32,7 @@ const copy={
     pending:"Calling request started; your friend still needs to accept.",
     busy:"Finish the existing call or request first.",
     noService:"Saved-friend service unavailable; use QR instead.",
+    deleteFriend:"🗑️ Delete friend",blockFriend:"⛔ Block",unblockFriend:"Unblock",blockedFriends:"Blocked identities",blockedEmpty:"No blocked friends",savedAction:"Friends list updated",actionError:"Unable to update local friends storage",
     peerName:"Friend's shared profile name",rename:"✎ My nickname",nickname:"Choose nickname",saveName:"✓ Save nickname",cancelName:"Cancel",
     fresh:"🔁 Create new call QR",freshChoose:"Choose an audio or video invitation",freshAudio:"📞 New audio QR",freshVideo:"📹 New video QR",freshBusy:"Hang up the current call before creating a new QR."},
   ar:{head:"👥 اختر صديقًا",hint:"اختر صديقًا أولاً، ثم اضغط الاتصال الصوتي أو المرئي بجواره.",
@@ -42,6 +44,7 @@ const copy={
     pending:"بدأ طلب المكالمة؛ يلزم قبول الطرف الآخر.",
     busy:"أنهِ المكالمة أو الطلب الجاري أولاً.",
     noService:"خدمة الأصدقاء غير متاحة؛ استخدم QR.",
+    deleteFriend:"🗑️ حذف الصديق",blockFriend:"⛔ حظر",unblockFriend:"إلغاء الحظر",blockedFriends:"الهويات المحظورة",blockedEmpty:"لا توجد هويات محظورة",savedAction:"تم تحديث القائمة",actionError:"تعذر تحديث قائمة الأصدقاء المحلية",
     peerName:"اسم ملف الصديق",rename:"✎ الاسم لدي",nickname:"لقب محلي",saveName:"✓ حفظ الاسم",cancelName:"إلغاء",
     fresh:"🔁 إنشاء QR لمكالمة جديدة",freshChoose:"اختر دعوة صوتية أو فيديو",freshAudio:"📞 QR صوتي جديد",freshVideo:"📹 QR فيديو جديد",freshBusy:"أنهِ المكالمة الحالية قبل إنشاء QR جديد."}
 };
@@ -94,6 +97,11 @@ saveNickname.type="button";
 const cancelNickname=el("button","ezeroContactNicknameCancel");
 cancelNickname.type="button";
 nameEditPanel.append(nameInput,saveNickname,cancelNickname);
+const contactManagement=el("div","ezeroContactManagement","ezero-contact-management");
+const removeFriend=el("button","ezeroDeleteSelectedFriend");
+const blockFriend=el("button","ezeroBlockSelectedFriend");
+removeFriend.type=blockFriend.type="button";removeFriend.hidden=blockFriend.hidden=true;
+contactManagement.append(removeFriend,blockFriend);
 const actions=el("div","ezeroContactCallActions","ezero-contact-call-actions");
 const audio=el("button","ezeroContactAudio"),video=el("button","ezeroContactVideo");
 audio.type=video.type="button";
@@ -128,8 +136,10 @@ const receive=el("button","ezeroFriendEnableIncoming");
 receive.type="button";
 const qr=el("button","ezeroFriendNewQr");
 qr.type="button";
-side.append(sideHead,search,list,receive,qr);
-root.append(bar,selectedCard,editName,nameEditPanel,actions,fresh,freshModes,notice,backdrop,side);
+const blockedHeading=el("strong","ezeroBlockedHeading");
+const blockedList=el("div","ezeroBlockedIdentities");
+side.append(sideHead,search,list,receive,qr,blockedHeading,blockedList);
+root.append(bar,selectedCard,editName,nameEditPanel,contactManagement,actions,fresh,freshModes,notice,backdrop,side);
 // Keep the actual invitation QR beside the friend's actions, not under the
 // scanner and not halfway down a long settings page. All existing listeners
 // refer to these nodes by id; only their visual parent changes.
@@ -173,7 +183,10 @@ function paint(){
       tr("peerName")+": "+person.profileName+" · ":"")+tr("saved"):
     tr("hint");
   editName.hidden=!person;
+  removeFriend.hidden=blockFriend.hidden=!person;
   editName.textContent=tr("rename");
+  removeFriend.textContent=tr("deleteFriend");
+  blockFriend.textContent=tr("blockFriend");
   nameInput.placeholder=tr("nickname");
   saveNickname.textContent=tr("saveName");
   cancelNickname.textContent=tr("cancelName");
@@ -184,6 +197,20 @@ function paint(){
   freshVideo.textContent=tr("freshVideo");
   audio.disabled=video.disabled=!person;
   toggle.setAttribute("aria-label",tr("select"));
+  blockedHeading.textContent=tr("blockedFriends");
+  blockedList.replaceChildren();
+  const blocked=window.EZERO_FRIEND_ACCESS?.listBlocked?.()||[];
+  if(!blocked.length){const empty=el("small");empty.textContent=tr("blockedEmpty");blockedList.append(empty);}
+  for(const fp of blocked){
+    const row=el("div",null,"ezero-blocked-row");
+    const hint=el("code");hint.textContent=fp.slice(0,10)+"…"+fp.slice(-7);
+    const undo=el("button");undo.type="button";undo.textContent=tr("unblockFriend");
+    undo.addEventListener("click",()=>{
+      if(window.EZERO_FRIEND_ACCESS?.unblock?.(fp))paint();
+      else message("actionError");
+    });
+    row.append(hint,undo);blockedList.append(row);
+  }
   const query=search.value.trim().toLocaleLowerCase();
   const found=people.filter(x=>
     x.name.toLocaleLowerCase().includes(query)||
@@ -240,6 +267,16 @@ saveNickname.addEventListener("click",()=>{
     nameEditPanel.hidden=true;paint();
   }catch(_){message("noService");}
 });
+function updateSelectedAccess(action){
+  if(!selected)return;
+  const fp=selected;
+  const api=window.EZERO_FRIEND_ACCESS;
+  if(!api?.[action]?.(fp)){message("actionError");return;}
+  selected=null;nameEditPanel.hidden=true;
+  paint();message("savedAction");
+}
+removeFriend.addEventListener("click",()=>updateSelectedAccess("remove"));
+blockFriend.addEventListener("click",()=>updateSelectedAccess("block"));
 audio.addEventListener("click",()=>contactCall("audio"));
 video.addEventListener("click",()=>contactCall("video"));
 fresh.addEventListener("click",()=>{
@@ -310,6 +347,7 @@ featureGrid.addEventListener("click",e=>{
 },true);
 document.addEventListener("ezero:friend-local-saved",paint);
 document.addEventListener("ezero:friend-local-removed",paint);
+document.addEventListener("ezero:friend-access-updated",paint);
 window.addEventListener("storage",e=>{if(e.key===KEY)paint();});
 $("language")?.addEventListener("change",paint);
 document.addEventListener("ezero:call-status",e=>{
