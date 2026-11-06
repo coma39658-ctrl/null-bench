@@ -317,6 +317,14 @@ try{
   });
   assert.match(await callee.locator("#ezeroFriendRequestDescription").innerText(),
     /Fresh request/,"Expired request must not block a fresh request");
+  await callee.evaluate(()=>{
+    document.dispatchEvent(new CustomEvent("ezero:friend-control",{detail:{
+      kind:"friend-request",id:"c".repeat(32),name:"Unverified impostor",
+      peerFingerprint:"f".repeat(64)
+    }}));
+  });
+  assert.match(await callee.locator("#ezeroFriendRequestDescription").innerText(),
+    /Fresh request/,"Different unverified fingerprint must never replace the authenticated peer");
   await callee.locator("#ezeroDeclineFriendRequest").click();
   assert.equal(await callee.locator("#ezeroFriendRequestPrompt").isVisible(),false);
   console.log("EXPIRED_FRIEND_REQUEST_CAN_BE_REPLACED_WITHOUT_RELOAD: PASS");
