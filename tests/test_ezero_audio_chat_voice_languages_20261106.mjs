@@ -327,6 +327,14 @@ try{
     /Fresh request/,"Different unverified fingerprint must never replace the authenticated peer");
   await callee.locator("#ezeroDeclineFriendRequest").click();
   assert.equal(await callee.locator("#ezeroFriendRequestPrompt").isVisible(),false);
+  await callee.evaluate(()=>{
+    document.dispatchEvent(new CustomEvent("ezero:friend-control",{detail:{
+      kind:"friend-request",id:"d".repeat(32),name:"Wrong sender",
+      peerFingerprint:"f".repeat(64)
+    }}));
+  });
+  assert.equal(await callee.locator("#ezeroFriendRequestPrompt").isVisible(),false,
+    "A forged fingerprint must not create a new friend request");
   console.log("EXPIRED_FRIEND_REQUEST_CAN_BE_REPLACED_WITHOUT_RELOAD: PASS");
 
 
