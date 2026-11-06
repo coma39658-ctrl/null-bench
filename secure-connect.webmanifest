@@ -1,7 +1,7 @@
 {
-  "name": "E-ZERO Secure Connect",
-  "short_name": "E-ZERO Connect",
-  "description": "Unified E-ZERO Secure Connect public beta: consensual QR audio/video, saved friends, local profile and optional SHA-256 evidence. No background call notification.",
+  "name": "E-ZERO Secure App",
+  "short_name": "E-ZERO Secure App",
+  "description": "Unified E-ZERO Secure App public beta: consensual QR audio/video, saved friends, local profile and optional SHA-256 evidence. No background call notification.",
   "id": "./ezero_secure_connect_live_p2p_v0_1.html",
   "start_url": "./ezero_trusted_friends_staging_20261106.html",
   "scope": "./",
@@ -29,8 +29,8 @@
   },
   "shortcuts": [
     {
-      "name": "E-ZERO Secure Connect",
-      "short_name": "Connect",
+      "name": "E-ZERO Secure App",
+      "short_name": "Secure App",
       "url": "./ezero_trusted_friends_staging_20261106.html",
       "description": "Unified audio/video, one-QR pairing and saved friends — public beta"
     }
