@@ -135,9 +135,19 @@ try{
   // A verified first call must not strand the caller without the next QR.
   // Neither phone reloads before the caller starts another new room.
   await caller.locator("#modernHangup").click();
-  await callee.locator("#modernHangup").click();
   await caller.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===false,{timeout:15000});
+  // After the real peer hangs up, the recipient must automatically release
+  // microphone (and camera in video mode) rather than keeping a hidden
+  // end-call control or a stale media capture alive.
+  await callee.waitForFunction(()=>{
+    const stream=document.getElementById("localVideo")?.srcObject;
+    return window.EZERO_VOICE_TRANSPORT?.connected()===false &&
+      (!stream||stream.getTracks().every(track=>track.readyState==="ended"));
+  },{timeout:15000});
+  assert.equal(await callee.locator("#modernHangup").isVisible(),false,
+    "Post-call idle screen should not show the red end-call advertisement");
+  console.log("AUDIO_REMOTE_HANGUP_AUTOMATICALLY_RELEASES_MIC: PASS");
   await caller.locator('[data-modern-select="audio"]').click();
   await caller.waitForFunction(old=>
     !!window.__oneInvite&&window.__oneInvite!==old,invite,{timeout:30000});
