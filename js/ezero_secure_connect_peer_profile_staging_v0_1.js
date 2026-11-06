@@ -176,15 +176,27 @@
   }
   $("ezeroCameraPhoto").addEventListener("change",()=>onPhotoChosen("ezeroCameraPhoto"));
   $("ezeroMyPhoto").addEventListener("change",()=>onPhotoChosen("ezeroMyPhoto"));
-  $("ezeroSaveProfile").addEventListener("click",()=>{
+  $("ezeroSaveProfile").addEventListener("click",async()=>{
     const name=cleanName($("ezeroMyName").value);
     if(name.length<1||name.length>40){labelStatus("invalid");return;}
     const next={name,avatar:validAvatar(draftAvatar)?draftAvatar:"",share:$("ezeroShareProfile").checked};
-    try{localStorage.setItem(KEY,JSON.stringify(next));}
-    catch(_){labelStatus("storeError");return;}
-    profile=next;updateLocal();
-    labelStatus(profile.share?"saved":"notSharing");
-    sendProfile(true);
+    const save=$("ezeroSaveProfile");
+    save.disabled=true;
+    try{
+      // An explicit Save Profile click also persists the same P-256 key
+      // already used for current-page signed WebRTC/QR. Without this step
+      // a reload could silently generate a NEW identity and break contacts.
+      if(await window.EZERO_DEVICE_IDENTITY_CONTROL?.saveAfterConsent()!==true)
+        throw Error("DURABLE_DEVICE_IDENTITY_UNAVAILABLE");
+      localStorage.setItem(KEY,JSON.stringify(next));
+      profile=next;updateLocal();
+      document.dispatchEvent(new CustomEvent("ezero:profile-local-saved",{
+        detail:{name:profile.name,hasPhoto:!!profile.avatar}
+      }));
+      labelStatus(profile.share?"saved":"notSharing");
+      sendProfile(true);
+    }catch(_){labelStatus("storeError");}
+    finally{save.disabled=false;}
   });
   function localize(){
     for(const el of document.querySelectorAll("[data-profile-i18n]")){
