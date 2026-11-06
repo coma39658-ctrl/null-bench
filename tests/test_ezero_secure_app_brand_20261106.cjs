@@ -31,8 +31,9 @@ assert.match(primary,/href="https:\/\/coma39658-ctrl\.github\.io\/null-bench\/ez
 assert.match(home,/>📞 Secure App<\/a>/);
 assert.match(share,/title:"E-ZERO Secure App"/);
 for(const source of [modernCallShare,legacyCallShare]){
-  assert.match(source,/navigator\\.share\\(\\{title:"E-ZERO Secure App — private call",url:preparedShare\\}\\)/,
-    "Native call invitation keeps its link, changes display name only");
+  assert.ok(source.includes('await navigator.share({title:"E-ZERO Secure App — private call",url:preparedShare});'),
+    "Native call invitation keeps its URL, changes display name only");
+
 }
 assert.match(share,/E-ZERO Secure App کا عوامی لنک/);
 assert.match(share,/E-ZERO Secure App public link/);
