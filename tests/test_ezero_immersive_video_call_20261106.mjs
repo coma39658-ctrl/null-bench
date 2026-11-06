@@ -197,7 +197,14 @@ try{
   // Neither phone reloads before the caller starts another new room.
   // Fullscreen video scene owns its on-call hangup, not the hidden top card.
   await caller.locator("#hangup").click();
-  await callee.locator("#hangup").click();
+  // The remote side may return to its main card immediately, hiding the
+  // fullscreen video bar. Use whichever existing hangup is now visible.
+  await callee.waitForFunction(()=>
+    document.body.classList.contains("ezero-video-connected")===false ||
+    window.EZERO_VOICE_TRANSPORT?.connected()===false,{timeout:15000});
+  if(await callee.locator("#hangup").isVisible())
+    await callee.locator("#hangup").click();
+  else await callee.locator("#modernHangup").click();
   await caller.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===false,{timeout:15000});
   await caller.locator('[data-modern-select="video"]').click();
