@@ -296,12 +296,28 @@ try{
     assert.equal(await callee.evaluate(()=>
       window.EZERO_SIGNED_MEDIA_EVIDENCE.list().length),0);
     const sample=Buffer.from("E-ZERO-SYNTHETIC-VOICE-NOTE-FOR-CI");
+    await callee.evaluate(()=>{
+      window.__evidenceTestVoiceReceived=[];
+      document.addEventListener("ezero:voice-note-received",event=>{
+        window.__evidenceTestVoiceReceived.push(event.detail.exportAllowed);
+      });
+    });
     for(const allowed of [false,true]){
       const sent=await caller.evaluate(({encoded,allowed})=>
         window.EZERO_VOICE_TRANSPORT.send("audio/webm",encoded,allowed),
         {encoded:sample.toString("base64"),allowed});
       assert.equal(sent,true);
-      await callee.waitForTimeout(120);
+      await callee.waitForFunction(count=>
+        window.__evidenceTestVoiceReceived.length===count,
+        allowed?2:1,{timeout:15000});
+      assert.equal(await callee.evaluate(()=>
+        window.__evidenceTestVoiceReceived.at(-1)),allowed,
+        "Receiver must see the sender's explicit download-consent bit");
+      if(allowed){
+        await callee.waitForFunction(()=>
+          window.EZERO_SIGNED_MEDIA_EVIDENCE.list().length===1,
+          {timeout:15000});
+      }
       const count=await callee.evaluate(()=>
         window.EZERO_SIGNED_MEDIA_EVIDENCE.list().length);
       assert.equal(count,allowed?1:0,
