@@ -91,7 +91,7 @@ jobs:
   verify-deployed-staging-wss:
     # Independent real-network check: no deploy, secrets, trust writes or media.
     needs: verify-trusted-inbox
-    if: github.event_name == 'pull_request'
+    # Also run on the protected staging-branch push after review/merge.
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     steps:
