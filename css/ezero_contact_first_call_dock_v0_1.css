@@ -1,0 +1,122 @@
+/* E-ZERO secure contact-first call controls — isolated review branch.
+ * Saved contacts remain private to the current browser. Sidebar never
+ * implies an online friend or turns on the camera before a call tap.
+ */
+body.ezero-one-lab .ezero-contact-first-dock{
+  position:relative;z-index:2;display:grid;gap:8px;
+  border:1px solid #78bd97;border-radius:17px;
+  background:linear-gradient(145deg,#0b4633,#11573c);
+  padding:11px;color:#f1fff5;min-width:0
+}
+body.ezero-one-lab .ezero-contact-first-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  flex-wrap:wrap
+}
+body.ezero-one-lab #ezeroContactFirstHeading{
+  color:#f2fff5;font-size:16px;letter-spacing:.01em
+}
+body.ezero-one-lab #ezeroFriendListToggle{
+  min-height:44px!important;padding:9px 14px!important;
+  background:#1a6846!important;color:#fff!important;
+  border:1px solid #a2ebbe!important;border-radius:12px!important;
+  font-size:13px!important;font-weight:800
+}
+body.ezero-one-lab .ezero-selected-friend-card{
+  display:flex;align-items:center;gap:10px;min-width:0;
+  padding:10px;background:#063b2bcc;
+  border:1px solid #4b9872;border-radius:13px;color:#f2fff4
+}
+body.ezero-one-lab .ezero-friend-monogram{
+  display:inline-grid;place-items:center;flex:0 0 43px;
+  width:43px;height:43px;border-radius:50%;
+  background:linear-gradient(135deg,#20a568,#0b6241);
+  color:white;font-weight:900;font-size:18px;border:2px solid #a5f3c3
+}
+body.ezero-one-lab .ezero-selected-friend-info{
+  min-width:0;display:grid;gap:3px;overflow-wrap:anywhere
+}
+body.ezero-one-lab #ezeroSelectedFriendName{font-size:16px;color:#fff}
+body.ezero-one-lab #ezeroSelectedFriendNote{
+  color:#c1f1d6;font-size:11px;line-height:1.45
+}
+body.ezero-one-lab .ezero-contact-call-actions{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px
+}
+body.ezero-one-lab .ezero-contact-call-actions button{
+  box-sizing:border-box;min-width:0;min-height:48px!important;
+  border:1px solid #9be9b6!important;border-radius:12px!important;
+  background:#14724b!important;color:white!important;
+  font-weight:850;font-size:14px;padding:8px 5px!important
+}
+body.ezero-one-lab .ezero-contact-call-actions button:disabled{
+  opacity:.48!important;cursor:not-allowed!important
+}
+body.ezero-one-lab #ezeroContactVideo:not(:disabled){
+  background:linear-gradient(130deg,#188d55,#056e3a)!important
+}
+body.ezero-one-lab .ezero-contact-first-status{
+  min-height:0;font-size:12px;color:#d8ffdf;margin:0;
+  line-height:1.4;overflow-wrap:anywhere
+}
+body.ezero-one-lab .ezero-contact-first-status:empty{display:none}
+body.ezero-one-lab .ezero-friend-backdrop:not([hidden]){
+  position:fixed;inset:0;background:#041811a6;z-index:1100;
+  border:0;border-radius:0;cursor:pointer
+}
+body.ezero-one-lab #ezeroFriendSidePanel:not([hidden]){
+  display:flex;flex-direction:column;gap:11px;box-sizing:border-box;
+  position:fixed;inset-block:0;inset-inline-start:0;
+  width:min(85vw,355px);max-width:100%;
+  z-index:1110;overflow-y:auto;overscroll-behavior:contain;
+  padding:max(16px,env(safe-area-inset-top)) 13px
+          max(18px,env(safe-area-inset-bottom));
+  background:linear-gradient(160deg,#082e22,#0c5237);
+  border-inline-end:2px solid #88d3a3;
+  color:#f3fff4;box-shadow:0 0 28px #0009
+}
+body.ezero-one-lab #ezeroFriendSidePanel[hidden],
+body.ezero-one-lab #ezeroFriendBackdrop[hidden]{display:none!important}
+body.ezero-one-lab .ezero-friend-side-heading{
+  display:flex;align-items:center;justify-content:space-between;gap:8px
+}
+body.ezero-one-lab #ezeroFriendSideTitle{color:white;font-size:19px}
+body.ezero-one-lab #ezeroFriendSideClose{
+  min-width:44px;min-height:44px;border-radius:12px;
+  background:#a32d36;color:white;border:1px solid #ffd1d1
+}
+body.ezero-one-lab #ezeroFriendSideSearch{
+  box-sizing:border-box;width:100%;min-height:45px;
+  background:#f7fff9;color:#113c29;border:2px solid #82cba0;
+  border-radius:12px;padding:9px 12px;font-size:15px
+}
+body.ezero-one-lab .ezero-friend-side-list{
+  display:flex;flex-direction:column;gap:7px;
+  min-height:100px;max-height:55dvh;overflow-y:auto
+}
+body.ezero-one-lab .ezero-friend-option{
+  display:flex;align-items:center;text-align:start;gap:10px;
+  min-height:55px;width:100%;padding:7px 10px;
+  color:#f9fff9;background:#0b4330;
+  border:1px solid #4a9771;border-radius:13px;
+  font-size:15px;font-weight:750;cursor:pointer
+}
+body.ezero-one-lab .ezero-friend-option[aria-selected=true]{
+  border-color:#b2ffd1;background:#19734b
+}
+body.ezero-one-lab .ezero-contact-empty{font-size:13px;line-height:1.7;color:#e3f7e8}
+body.ezero-one-lab #ezeroFriendEnableIncoming,
+body.ezero-one-lab #ezeroFriendNewQr{
+  flex-shrink:0;min-height:45px;padding:8px 10px;
+  background:#145d3c;border:1px solid #87cfa2;
+  border-radius:12px;color:#f4fff5;font-weight:750;font-size:13px
+}
+body.ezero-one-lab #ezeroFriendNewQr{background:#193c2d}
+@media(min-width:800px){
+  body.ezero-one-lab #ezeroFriendSidePanel:not([hidden]){
+    width:min(330px,30vw)
+  }
+}
+@media(max-width:370px){
+  body.ezero-one-lab #ezeroContactFirstHeading{font-size:14px}
+  body.ezero-one-lab .ezero-contact-call-actions button{font-size:12px}
+}
