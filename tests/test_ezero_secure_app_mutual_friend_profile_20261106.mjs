@@ -210,6 +210,36 @@ try{
   await alice.locator("#hangup").click();
   await Promise.all([alice,bob].map(p=>p.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===false,{timeout:15000})));
+
+  // Regression: after the first verified call, a NEW QR must remain
+  // available even with saved contacts. The scanner is not the QR creator.
+  await alice.locator("#ezeroFreshQrToggle").click();
+  assert.equal(await alice.locator("#ezeroFreshQrVideo").isVisible(),true);
+  await alice.locator("#ezeroFreshQrVideo").click();
+  await alice.waitForFunction(old=>window.__oneInvite&&
+    window.__oneInvite!==old,invite,{timeout:30000});
+  const second=await alice.evaluate(()=>window.__oneInvite);
+  assert.match(second,/mode=video#room=/);
+  assert.notEqual(second,invite);
+  await alice.locator("#ezeroOneQr svg").waitFor({state:"visible",timeout:12000});
+  assert.equal(await alice.locator("#ezeroAutoPilot").evaluate(x=>
+    x.parentElement?.id==="ezeroContactFirstDock"),true);
+  console.log("AFTER_FIRST_CALL_FRESH_VIDEO_QR_NEAR_FRIEND_ACTIONS: PASS");
+  await bob.goto(second,{waitUntil:"domcontentloaded"});
+  await bob.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:12000});
+  await bob.waitForFunction(()=>document.getElementById("ezeroProfileFirstStatus")?.dataset.state==="ready",
+    undefined,{timeout:12000});
+  await bob.locator("#ezeroAutoAccept").click();
+  await Promise.all([alice,bob].map(p=>p.waitForFunction(()=>
+    window.EZERO_VOICE_TRANSPORT?.connected()===true,{timeout:45000})));
+  for(const phone of [alice,bob]){
+    await phone.waitForFunction(()=>document.getElementById("remoteVideo")?.srcObject?.
+      getVideoTracks().some(t=>t.readyState==="live"),undefined,{timeout:15000});
+  }
+  await alice.locator("#hangup").click();
+  await Promise.all([alice,bob].map(p=>p.waitForFunction(()=>
+    window.EZERO_VOICE_TRANSPORT?.connected()===false,{timeout:15000})));
+  console.log("SECOND_QR_VIDEO_CALL_BOTH_DIRECTIONS_NO_NEW_PROFILE_REQUIRED: PASS");
   const aliceId=await alice.evaluate(()=>document.getElementById("myFingerprint").textContent.trim());
   await alice.reload({waitUntil:"domcontentloaded"});
   await alice.waitForFunction(()=>document.getElementById("myFingerprint")?.textContent?.length===64,
