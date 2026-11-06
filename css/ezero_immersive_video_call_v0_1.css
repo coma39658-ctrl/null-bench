@@ -1,0 +1,216 @@
+/*
+ * E-ZERO Secure Connect · Immersive call scene v0.1
+ * Uses the EXISTING signed WebRTC <video> nodes and consented media tracks.
+ * One screen: remote video large, local camera picture-in-picture.
+ * No video frame is visible before a genuine WebRTC connection.
+ * No duplicate video players, third-party media code or recording features.
+ */
+.communication-page.ezero-one-lab{
+  --ez-forest-950:#041912;
+  --ez-forest-900:#08291f;
+  --ez-forest-800:#0d4530;
+  --ez-forest-600:#0c7950;
+  --ez-mint:#92efb5;
+  --ez-red:#cc3945;
+}
+/* Replace advert-like card borders with one coherent compact control surface. */
+body.communication-page.ezero-one-lab .ezero-unified-card{
+  border:1px solid #278756!important;
+  background:linear-gradient(165deg,#052d20 0%,#075038 52%,#083527 100%)!important;
+  box-shadow:0 14px 40px #011a1380,0 1px 0 #ffffff17 inset!important;
+  border-radius:23px!important;
+  gap:10px!important;
+  padding:14px 12px 18px!important;
+  color:#f5fff8!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-heading{
+  padding:11px 9px 14px!important;
+  border:0!important;
+  background:none!important;
+}
+body.communication-page.ezero-one-lab .ezero-unified-card .modern-feature-grid{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:5px!important;
+  padding:7px!important;margin:4px 0 6px!important;
+  border-radius:19px;background:#001c16a6!important;
+  border:1px solid #83dfaf32!important;
+  box-shadow:inset 0 1px 5px #0005!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card .modern-feature-button{
+  box-sizing:border-box;min-width:0!important;min-height:75px!important;
+  border:0!important;border-radius:13px!important;
+  padding:9px 3px!important;
+  background:transparent!important;color:#e9fff4!important;
+  box-shadow:none!important;gap:4px!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card .modern-feature-button[aria-pressed=true]{
+  border:1px solid #67e59d!important;background:#176a48!important;
+  box-shadow:0 0 0 1px #3bc27c40!important
+}
+body.communication-page.ezero-one-lab .modern-feature-icon{
+  font-size:25px!important;line-height:1.2!important
+}
+body.communication-page.ezero-one-lab .modern-feature-name{
+  font-size:12px!important;line-height:1.4!important;
+  font-weight:850!important;white-space:normal
+}
+body.communication-page.ezero-one-lab .modern-feature-note{
+  display:none!important
+}
+body.communication-page.ezero-one-lab #ezeroOneJoinPanel,
+body.communication-page.ezero-one-lab #ezeroAutoPilot{
+  padding:8px 9px!important;background:#f0fff4!important;
+  border-radius:14px!important;
+  color:#103c2a!important;
+  box-shadow:none!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroAutoPilot{
+  border-top:0!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #modernCallPanel{
+  display:none!important; /* no permanent blank video placeholders */
+}
+/* Audio call: show single compact in-call controls, no empty camera tiles. */
+body.communication-page.ezero-one-lab.ezero-call-connected:not(.ezero-video-connected)
+  .ezero-unified-card #modernCallPanel:not([hidden]){
+  display:block!important;
+  background:#e9faef!important;
+  border-radius:15px!important;
+  padding:10px!important;color:#123d2d!important
+}
+body.communication-page.ezero-one-lab.ezero-call-connected:not(.ezero-video-connected)
+  #ezeroCallMediaSlot .videos{display:none!important}
+body.communication-page.ezero-one-lab.ezero-call-connected:not(.ezero-video-connected)
+  #ezeroCallMediaSlot .heading{display:none!important}
+/* Immersive, single-surface on-call video. Only after verified connection.
+ * It is an in-page scene, NOT a second website/card/duplicate call layer. */
+body.communication-page.ezero-one-lab.ezero-video-connected
+  .ezero-unified-card #modernCallPanel:not([hidden]){
+  position:fixed!important;inset:0!important;z-index:1000;
+  display:flex!important;flex-direction:column!important;
+  box-sizing:border-box;overflow:hidden!important;
+  margin:0!important;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)!important;
+  border:0!important;border-radius:0!important;
+  background:#04150f!important;color:white!important;
+  box-shadow:none!important;
+  width:100vw!important;height:100dvh!important
+}
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroCallMediaSlot,
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroCallMediaSlot>.card{
+  min-height:0!important;max-width:none!important;
+  flex:1;display:flex!important;flex-direction:column!important;
+  margin:0!important;padding:0!important;
+  background:transparent!important;border:0!important;box-shadow:none!important;
+}
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroCallMediaSlot .heading{
+  display:none!important
+}
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroCallMediaSlot .videos{
+  display:block!important;position:relative!important;
+  flex:1;min-height:0;height:auto!important;
+  background:linear-gradient(160deg,#092f24,#03140d)!important;
+  border:0!important;margin:0!important;
+  padding:0!important;overflow:hidden!important
+}
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroCallMediaSlot .videoBox{
+  position:absolute!important;overflow:hidden!important;
+  margin:0!important;padding:0!important;border:0!important;
+  background:#0c2a20!important;box-shadow:none!important
+}
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroCallMediaSlot .videoBox:last-child{
+  inset:0!important;width:100%!important;height:100%!important;
+  border-radius:0!important;z-index:1
+}
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroCallMediaSlot .videoBox:first-child{
+  inset:calc(env(safe-area-inset-top) + 75px) 14px auto auto!important;
+  width:clamp(112px,31vw,170px)!important;
+  height:clamp(157px,42vw,245px)!important;
+  border:2px solid #9efac0!important;border-radius:17px!important;
+  box-shadow:0 10px 30px #000a!important;z-index:5;
+}
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroCallMediaSlot video{
+  display:block!important;object-fit:cover!important;
+  width:100%!important;height:100%!important;
+  background:#061c13!important;transform:none!important
+}
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroCallMediaSlot .videoBox>span{
+  position:absolute;bottom:11px;left:9px;right:9px;
+  color:white!important;background:#0009!important;
+  padding:4px 7px!important;border-radius:8px!important;
+  text-shadow:0 1px 2px #000!important;font-size:12px!important;
+  text-align:center;z-index:6
+}
+/* Floating, easy-to-read state over the actual large remote camera. */
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroVideoSceneHeader{
+  position:absolute;top:env(safe-area-inset-top);left:0;right:0;
+  z-index:6;pointer-events:none;
+  padding:16px 18px 12px 19px;
+  display:flex;align-items:center;gap:9px;
+  background:linear-gradient(#03150fbf,transparent);
+  color:#e8fff1;font-size:14px;font-weight:850
+}
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroVideoSceneHeader .ezero-live-dot{
+  width:9px;height:9px;flex:none;border-radius:50%;background:#62ed9c;
+  box-shadow:0 0 0 4px #46ba7950
+}
+body.communication-page.ezero-one-lab.ezero-video-connected
+  #ezeroCallMediaSlot .buttonrow{
+  position:relative;z-index:7;
+  display:flex!important;justify-content:center;align-items:center;
+  flex-wrap:nowrap!important;gap:9px!important;
+  padding:18px 11px calc(15px + env(safe-area-inset-bottom))!important;
+  margin:0!important;flex:none;
+  border:0!important;background:linear-gradient(#061b12,#0c3223)!important;
+}
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroCallMediaSlot .buttonrow button{
+  display:flex;align-items:center;justify-content:center;
+  min-width:0;flex:1;max-width:144px;min-height:52px!important;
+  border:1px solid #8ccea365!important;border-radius:16px!important;
+  background:#18553b!important;color:#f1fff5!important;
+  font-size:12px!important;font-weight:800!important;line-height:1.3;
+  padding:8px 5px!important;box-shadow:0 2px 9px #0003
+}
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroCallMediaSlot .buttonrow #hangup{
+  background:#c93040!important;border-color:#ff8d94!important;color:white!important
+}
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroCallMediaSlot .small{
+  display:none!important
+}
+/* Hide QR and duplicate hangup while the verified video call scene is live. */
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroOneQrBox,
+body.communication-page.ezero-one-lab.ezero-video-connected #ezeroOneJoinPanel,
+body.communication-page.ezero-one-lab.ezero-video-connected #modernHangup{
+  display:none!important
+}
+/* Incoming call prompt is one cohesive call sheet, never a collection of
+ * advertisement-like bordered cards. Respect the existing accept/decline. */
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroOneIncomingShell:not([hidden]){
+  border:1px solid #67d898!important;
+  border-radius:19px!important;
+  box-shadow:0 8px 25px #062b1b35!important;
+  background:linear-gradient(155deg,#e8fff1,#c7efd8)!important;
+  padding:15px!important
+}
+body.communication-page.ezero-one-lab #ezeroIncomingRingToggle{
+  min-height:43px!important;width:100%;
+  background:transparent!important;border:1px solid #539d73!important;
+  border-radius:12px!important;color:#16442e!important;
+  font-size:13px!important;font-weight:850!important;
+  margin:7px 0!important
+}
+@media(max-width:380px){
+ body.communication-page.ezero-one-lab .ezero-unified-card .modern-feature-button{
+   min-height:69px!important;padding:6px 2px!important
+ }
+ body.communication-page.ezero-one-lab .modern-feature-name{font-size:11px!important}
+ body.communication-page.ezero-one-lab.ezero-video-connected #ezeroCallMediaSlot .buttonrow{
+   gap:5px!important;padding-inline:6px!important
+ }
+ body.communication-page.ezero-one-lab.ezero-video-connected #ezeroCallMediaSlot .buttonrow button{
+   font-size:11px!important;min-height:48px!important
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ body.communication-page.ezero-one-lab #ezeroCallMediaSlot *{animation:none!important;transition:none!important}
+}
