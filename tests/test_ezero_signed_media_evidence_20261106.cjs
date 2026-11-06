@@ -15,7 +15,18 @@ class TestDate extends Date{
 }
 const listeners=new Map();
 const wnd={addEventListener:(name,fn)=>listeners.set(name,fn)};
-const context={window:wnd,crypto:webcrypto,TextEncoder,TextDecoder,Blob,
+const operations={digest:0,sign:0,generateKey:0};
+const trackedCrypto={
+  getRandomValues:webcrypto.getRandomValues.bind(webcrypto),
+  subtle:new Proxy(webcrypto.subtle,{
+    get(target,key){const value=Reflect.get(target,key,target);
+      if(typeof value!=="function")return value;
+      return (...args)=>{if(Object.hasOwn(operations,key))operations[key]++;
+        return Reflect.apply(value,target,args);};
+    }
+  })
+};
+const context={window:wnd,crypto:trackedCrypto,TextEncoder,TextDecoder,Blob,
   Uint8Array,Uint32Array,ArrayBuffer,DataView,Date:TestDate,Map,Set,
   atob,btoa,setTimeout:()=>3,clearTimeout:()=>{},console};
 vm.runInNewContext(source,context);
@@ -55,7 +66,17 @@ async function main(){
     consent:"USER_VOLUNTARILY_SAVED"});
   assert.equal(ev.list().length,1);
   assert.equal(ev.list()[0].expiresAt-current,600000);
+  assert.deepEqual(operations,{digest:0,sign:0,generateKey:0},
+    "Merely receiving/holding media must never calculate or sign evidence");
+  const plain=ev.downloadOriginal(id);
+  assert.equal(plain.blob,original,"Plain download returns exact original Blob");
+  assert.equal(plain.blob.type,"audio/webm");
+  assert.deepEqual(operations,{digest:0,sign:0,generateKey:0},
+    "Plain download must avoid ALL SHA-256/signing/identity work");
+  console.log("PASS: audio message plain download does not hash, sign or create a ZIP");
   const signed=await ev.packageEvidence(id);
+  assert.ok(operations.digest>0&&operations.sign>0,
+    "Evidence export click must compute SHA-256 and ECDSA signature");
   assert.match(signed.sha256,/^[0-9a-f]{64}$/);
   assert.equal(signed.sha256,createHash("sha256").update(media).digest("hex"));
   assert.equal(signed.signerFingerprint,fp);
@@ -89,6 +110,23 @@ async function main(){
   assert.equal(await ev.verify(noteContents.get("media.webm"),peerManifest),true);
   ev.expire(peerNote);
   console.log("PASS: explicit P2P sender export permission and SHA-256 signed voice archive");
+  for(const [mime,kind,extension] of [
+    ["image/png","shared_file","png"],["application/pdf","shared_file","pdf"],
+    ["text/plain","shared_text","txt"],["video/mp4","shared_file","mp4"],
+    ["audio/mpeg","shared_file","mp3"]]){
+    const blob=new Blob([media],{type:mime});
+    const fileId=ev.offer({blob,kind,source:"USER_IMPORTED_UNVERIFIED",
+      consent:"USER_SELECTED_OWN_FILE_NOT_PEER_ATTESTED"});
+    assert.equal(ev.downloadOriginal(fileId).blob,blob,
+      "All shared content types must remain byte-identical on plain download");
+    const manifestResult=await ev.packageEvidence(fileId);
+    const extracted=await unzipLocalStored(manifestResult.archive);
+    const signedManifest=JSON.parse(decoder.decode(extracted.get("evidence.json")));
+    assert.equal(signedManifest.payload.media.filename,"media."+extension);
+    assert.equal(await ev.verify(extracted.get("media."+extension),signedManifest),true);
+    ev.expire(fileId);
+  }
+  console.log("PASS: audio notes, images, documents, videos and text use common optional signed proof");
   const another=ev.offer({blob:original,kind:"media_file",
     source:"USER_IMPORTED_UNVERIFIED",
     consent:"USER_SELECTED_FILE_NOT_PEER_ATTESTED"});
