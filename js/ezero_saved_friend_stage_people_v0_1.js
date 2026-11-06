@@ -89,7 +89,9 @@
     const seen=new Set(),out=[];
     for(const v of parsed.slice(0,50)){
       if(!v||!validFP(v.fp)||!nameOf(v.name)||seen.has(v.fp))continue;
-      seen.add(v.fp);out.push({fp:v.fp,name:nameOf(v.name),\n        avatar:typeof v.avatar==="string"&&v.avatar.length<=12000&&\n          /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(v.avatar)?v.avatar:""});
+      seen.add(v.fp);out.push({fp:v.fp,name:nameOf(v.name),
+        avatar:typeof v.avatar==="string"&&v.avatar.length<=12000&&
+          /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(v.avatar)?v.avatar:""});
     }
     return out;
   }
