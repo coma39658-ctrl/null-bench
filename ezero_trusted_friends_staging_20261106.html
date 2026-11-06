@@ -31,7 +31,7 @@
 <script defer src="./js/ezero_secure_connect_contacts_staging_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_install_share_staging_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_one_tap_qr_v0_1.js"></script>
-<script defer src="./js/ezero_secure_connect_modern_communications_v0_3.js?v=20261105forest1"></script>
+<script defer src="./js/ezero_secure_connect_modern_evidence_stage_v0_1.js?v=20261106evidence1"></script>
 <script defer src="./js/ezero_secure_connect_peer_profile_staging_v0_1.js?v=20261106stage2"></script>
 <script defer src="./js/ezero_saved_friend_stage_people_v0_1.js?v=20261106stage1"></script>
 <script defer src="./js/ezero_auto_signaling_lab_config_20261106.js"></script>
@@ -157,7 +157,12 @@
     <button type="button" id="ezeroVoiceSend" disabled data-modern="sendVoice">↗ وائس میسج بھیجیں</button>
     <button type="button" id="ezeroVoiceClear" class="secondary" disabled data-modern="discard">✕ حذف کریں</button>
   </div>
-  <div id="ezeroVoiceDraft" hidden><p data-modern="preview">یہ آواز ابھی صرف اس فون پر ہے؛ خودکار شیئر نہیں ہوئی۔</p><audio id="ezeroVoicePreview" class="modern-voice-audio" controls preload="none" aria-label="Local voice note preview"></audio></div>
+  <label class="ezero-evidence-voice-consent">
+  <input id="ezeroVoiceAllowDownload" type="checkbox">
+  وصول کرنے والا یہ وائس میسج اپنے فون میں ڈاؤن لوڈ کر سکے؟
+  / Allow recipient to download this voice note / السماح للمستلم بتنزيل الرسالة
+</label>
+<div id="ezeroVoiceDraft" hidden><p data-modern="preview">یہ آواز ابھی صرف اس فون پر ہے؛ خودکار شیئر نہیں ہوئی۔</p><audio id="ezeroVoicePreview" class="modern-voice-audio" controls preload="none" aria-label="Local voice note preview"></audio></div>
   <div id="ezeroVoiceReceived" hidden><p data-modern="incomingVoice">دوست کا عارضی وائس میسج موصول ہوا۔</p><button type="button" id="ezeroVoiceOpenIncoming" class="primary" data-modern="playVoice">🎧 ایک بار سنیں</button><audio id="ezeroVoiceIncomingAudio" class="modern-voice-audio" controls preload="none" hidden aria-label="Received voice note"></audio></div>
   <p id="ezeroVoiceStatus" class="modern-status" role="status" aria-live="polite">وائس میسج بھیجنے کے لیے دو فون جوڑیں۔</p>
   <button id="ezeroVoiceConnect" class="modern-voice-connect" type="button" data-modern="voiceConnect">📱 وائس میسج بھیجنے کے لیے فون جوڑیں</button>
