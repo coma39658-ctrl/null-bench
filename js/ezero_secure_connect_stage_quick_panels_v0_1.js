@@ -7,8 +7,9 @@
   const $=id=>document.getElementById(id);
   const grid=document.querySelector("#ezeroUnifiedCard .modern-feature-grid");
   const voice=$("modernVoicePanel"),chat=$("modernChatPanel"),
-        evidence=$("ezeroEvidencePanel"),call=$("modernCallPanel");
-  if(!grid||!voice||!chat||!evidence||!call)return;
+        evidence=$("ezeroEvidencePanel"),call=$("modernCallPanel"),
+        auto=$("ezeroAutoPilot");
+  if(!grid||!voice||!chat||!evidence||!call||!auto)return;
   const host=document.createElement("div");
   host.id="ezeroQuickFunctionHost";
   host.className="ezero-quick-function-host";
@@ -31,9 +32,17 @@
   endCall.textContent="📴 کال ختم کریں";
   endCall.setAttribute("aria-label","End connected call");
   endCall.hidden=true;
-  tools.append(proof,endCall);host.append(tools,voice,chat,evidence);
+  const timer=document.createElement("output");
+  timer.id="ezeroQuickCallTimer";
+  timer.setAttribute("aria-label","Connected call elapsed time");
+  timer.setAttribute("aria-live","off");
+  timer.textContent="00:00";timer.hidden=true;
+  tools.append(proof,endCall,timer);
+  // All four actions now open their actual controls in one adjacent surface.
+  // The receiver's existing QR scanner stays visible immediately below it.
+  host.append(tools,auto,call,voice,chat,evidence);
   grid.after(host);
-  evidence.hidden=true;
+  evidence.hidden=true;auto.hidden=true;call.hidden=true;
   voice.hidden=true;chat.hidden=true;
   paint();
   function bringIntoView(node){
@@ -60,8 +69,23 @@
     if(window.EZERO_VOICE_TRANSPORT?.connected()===true)
       $("hangup")?.click();
   });
+  let startedAt=0,tick=null;
+  function refreshElapsed(){
+    const secs=Math.max(0,Math.floor((Date.now()-startedAt)/1000));
+    const f=x=>String(x).padStart(2,"0");
+    timer.textContent=f(Math.floor(secs/60))+":"+f(secs%60);
+  }
   function showHangup(){
-    endCall.hidden=window.EZERO_VOICE_TRANSPORT?.connected()!==true;
+    const live=window.EZERO_VOICE_TRANSPORT?.connected()===true;
+    endCall.hidden=!live;
+    if(live){
+      if(!startedAt){startedAt=Date.now();tick=setInterval(refreshElapsed,1000);}
+      timer.hidden=false;refreshElapsed();
+      if(voice.hidden&&chat.hidden)call.hidden=false;
+    }else{
+      if(tick!==null){clearInterval(tick);tick=null;}
+      startedAt=0;timer.hidden=true;timer.textContent="00:00";
+    }
     const lang=document.documentElement.lang;
     endCall.textContent=lang==="en"?"📴 End call":lang==="ar"?"📴 إنهاء المكالمة":"📴 کال ختم کریں";
   }
@@ -69,6 +93,13 @@
   document.addEventListener("ezero:call-status",showHangup);
   showHangup();
   for(const feature of document.querySelectorAll("#ezeroUnifiedCard [data-modern-select]")){
+    // Capture runs before older bubble handlers attempt to create the QR.
+    // Make the call pane available for exactly this deliberate user tap.
+    feature.addEventListener("click",()=>{
+      const type=feature.dataset.modernSelect;
+      if(type==="audio"||type==="video")auto.hidden=false;
+      else auto.hidden=true;
+    },{capture:true});
     feature.addEventListener("click",()=>{
       const type=feature.dataset.modernSelect;
       const live=window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true;
@@ -82,8 +113,13 @@
         target.hidden=false;
         bringIntoView(target);
       }else if(type==="audio"||type==="video"){
-        const target=$("ezeroAutoPilot");
-        if(target&&!target.hidden)bringIntoView(target);
+        // Never present a bare audio call as successful video. The original
+        // getUserMedia and remote video track logic remain authoritative.
+        const live=window.EZERO_VOICE_TRANSPORT?.connected()===true;
+        const local=$("localVideo")?.srcObject;
+        const hasLocal=local?.getTracks?.().some(track=>track.readyState==="live");
+        call.hidden=!(live||hasLocal);
+        if(!auto.hidden)bringIntoView(auto);
       }
     });
   }
@@ -113,6 +149,12 @@
   });
   document.getElementById("language")?.addEventListener("change",()=>{paint();showHangup();});
   document.addEventListener("ezero:call-status",e=>{
-    if(e.detail?.stage==="idle"){evidence.hidden=true;proof.setAttribute("aria-expanded","false");paint();}
+    if(e.detail?.stage==="idle"){
+      evidence.hidden=true;call.hidden=true;
+      proof.setAttribute("aria-expanded","false");paint();
+    }
+  });
+  window.addEventListener("pagehide",()=>{
+    if(tick!==null){clearInterval(tick);tick=null;}
   });
 })();
