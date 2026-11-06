@@ -1,0 +1,56 @@
+name: E-ZERO Trusted Friends Inbox STAGING Deploy (Manual Only)
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_target:
+        description: "I authorize deploying ONLY the isolated Trusted Friends staging Worker"
+        type: choice
+        options: ["trusted-friends-staging-only"]
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: ezero-trusted-friends-staging-deploy
+  cancel-in-progress: false
+jobs:
+  deploy-isolated-trusted-inbox:
+    if: >-
+      github.event.inputs.confirm_target == 'trusted-friends-staging-only'
+      && github.ref_name == 'ezero-trusted-friend-inbox-lab-20261106'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    environment: ezero-trusted-inbox-staging
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify origin, cryptographic gate and public isolation
+        run: |
+          set -euo pipefail
+          node --check tests/test_ezero_trusted_inbox_candidate_20261106.cjs
+          node tests/test_ezero_trusted_inbox_candidate_20261106.cjs
+          node tests/test_ezero_trusted_friend_foreground_client_20261106.cjs
+          node tests/test_ezero_trusted_friend_controls_candidate_20261106.cjs
+          node tests/test_ezero_trusted_friends_stage_wiring_20261106.cjs
+          grep -Fq 'enabled:false' js/ezero_trusted_inbox_stage_config_20261106.js
+          grep -Fq 'enabled:false' js/ezero_auto_signaling_config_v0_1.js
+          ! grep -Fq 'TrustedInbox' signaling/cloudflare/wrangler.jsonc
+      - name: Verify separate Cloudflare staging credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.EZERO_TRUSTED_CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.EZERO_TRUSTED_CF_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "Trusted inbox token missing"; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "Trusted inbox account ID missing"; exit 1; }
+      - name: Deploy isolated Worker, never production AI or QR Worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.EZERO_TRUSTED_CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.EZERO_TRUSTED_CF_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts wrangler@4
+          npx wrangler deploy --config signaling/cloudflare/wrangler.trusted-staging.jsonc
