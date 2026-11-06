@@ -175,6 +175,9 @@
           if(!window.confirm(sw("confirmRemove")))return;
           try{localStorage.setItem(CONTACTS,JSON.stringify(friends().filter(v=>v.fp!==x.fp)));}
           catch(_){saveNotice="error";render();return;}
+          document.dispatchEvent(new CustomEvent("ezero:friend-local-removed",{
+            detail:{fp:x.fp}
+          }));
           render();
         });
         item.append(remove);

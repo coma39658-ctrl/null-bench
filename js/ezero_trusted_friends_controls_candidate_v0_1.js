@@ -110,6 +110,27 @@
     const dismiss=button(t("dismiss"),()=>{incoming=null;paintIncoming();});
     view.append(heading,review,dismiss);
   }
+  // One call path for both the saved-friend row and the new adjacent
+  // contact-first controls. The user must explicitly select a saved friend.
+  function prepareSavedCall(fp,kind){
+    if(!["audio","video"].includes(kind)||pending||outgoingInFlight)return false;
+    if(window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true)return false;
+    const item=contacts().find(x=>x.fp===fp);
+    if(!item)return false;
+    pending={fp:item.fp,kind};
+    pendingTimer=setTimeout(()=>{
+      if(pending){clearPending();status("failed",true);}
+    },30000);
+    status("preparing");
+    return true;
+  }
+  // Only prepares a named contact: the original guarded, signed WebRTC
+  // start still runs via the normal, deliberate Audio/Video button tap.
+  window.EZERO_TRUSTED_SAVED_CALL=Object.freeze({
+    prepare:prepareSavedCall,
+    hasContact:fp=>contacts().some(x=>x.fp===fp),
+    isPending:()=>Boolean(pending||outgoingInFlight)
+  });
   function paint(){
     const title=document.getElementById("ezeroTrustedTitle");
     if(title)title.textContent=t("head");
@@ -134,16 +155,11 @@
       });
       function call(kind){
         return ()=>{
-          // At most one contact call attempt at a time, including the server
-          // receipt window. Prevent duplicate taps and conflicting statuses.
-          if(pending||outgoingInFlight)return;
-          pending={fp:item.fp,kind};
-          pendingTimer=setTimeout(()=>{
-            if(pending){clearPending();status("failed",true);}
-          },30000);
-          status("preparing");
           const feature=document.querySelector('[data-modern-select="'+kind+'"]');
-          if(!feature){clearPending();return status("failed",true);}
+          if(!feature)return status("failed",true);
+          // New contact-first dock will route this through the shared
+          // preparation API. Prevent duplicate preparation if the row is used.
+          if(!prepareSavedCall(item.fp,kind))return;
           feature.click(); // explicit user's gesture; no automatic media access
         };
       }
