@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#092a21">
+<meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; media-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+<title>E-ZERO Evidence Integrity — Staging</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#071f19;color:#e9fff3;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top,#164a36,#071f19 72%);line-height:1.6}
+main{max-width:730px;margin:0 auto;padding:18px 16px 55px}
+nav{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:24px}
+a{color:#adf9d3}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #f3ae5e;outline-offset:3px}
+h1{font-size:clamp(1.45rem,5vw,2.2rem);margin:2px 0;color:#d5ffe5}
+small,p{color:#c6dfd0}strong{color:#fbfff9}
+.flag{display:inline-block;font-size:.78rem;letter-spacing:.08em;border:1px solid #6ab88e;border-radius:40px;padding:3px 10px;color:#8fe9b7;font-weight:700}
+.card{border:1px solid #316a50;border-radius:18px;background:#0d3025;padding:18px;margin-top:16px;box-shadow:0 12px 22px #02150e55}
+h2{font-size:1.18rem;margin:0 0 12px}
+label{display:block;font-weight:600;margin:9px 0}
+input[type=file],select{display:block;width:100%;padding:13px;border-radius:10px;border:1px solid #6caa8a;background:#15392b;color:#f1fff4;font:inherit;min-height:49px}
+input[type=checkbox]{width:20px;height:20px;accent-color:#6af39a;vertical-align:middle;margin:0 0 0 8px}
+button{border:1px solid #84e9af;color:#092b1f;background:#87f2ad;font:inherit;font-weight:700;padding:12px 20px;border-radius:10px;cursor:pointer;min-height:48px;width:100%;margin-top:10px}
+button:disabled{opacity:.45;cursor:not-allowed}
+.subtle{background:transparent;color:#bbf5d3}
+.status{padding:12px;border-radius:9px;background:#144634;min-height:44px;white-space:pre-wrap;overflow-wrap:anywhere}
+.status[data-kind=error]{color:#ffe0d9;border:1px solid #d16b68;background:#421e20}
+.status[data-kind=success]{color:#c5ffdc;border:1px solid #74d5a2}
+.tip{font-size:.9rem;border-inline-start:3px solid #ce9b65;padding-inline-start:12px;margin-top:15px}
+.meta{font-size:.83rem;overflow-wrap:anywhere;background:#062219;padding:10px;border-radius:10px}
+footer{font-size:.83rem;margin-top:24px;border-top:1px solid #325742;padding-top:12px}
+</style>
+<script defer src="./js/ezero_evidence_proof_v1.js"></script>
+<script defer src="./js/ezero_evidence_export_ui_v1.js"></script>
+</head>
+<body>
+<main>
+<nav><a href="./index.html" id="backLink">↩ E-ZERO مرکزی صفحہ</a>
+<label for="lang" id="langLabel">زبان<select id="lang" aria-label="Language"><option value="ur">اردو</option><option value="en">English</option><option value="ar">العربية</option></select></label></nav>
+<div class="flag">E-ZERO · EVIDENCE INTEGRITY V1</div>
+<h1 id="headline">SHA-256 اور کرپٹوگرافک ثبوت</h1>
+<p id="lead">فائل اپنے فون پر رہتی ہے؛ آپ کی اجازت سے اس کے اصل بائٹس، SHA-256 اور دستخط شدہ ثبوت کو ایک ZIP میں محفوظ کیا جا سکتا ہے۔ کوئی میڈیا سرور پر اپلوڈ نہیں ہوگا۔</p>
+<section class="card" aria-labelledby="exportHeading">
+<h2 id="exportHeading">1. فائل اور ثبوت ایک ساتھ محفوظ کریں</h2>
+<label for="mediaFile" id="chooseLabel">اپنی مجاز آواز، ویڈیو، تصویر یا دستاویز منتخب کریں</label>
+<input type="file" id="mediaFile" aria-describedby="limit">
+<p id="limit">زیادہ سے زیادہ 32 MB؛ بڑی فائل کے لیے فی الحال تجرباتی حد ہے۔</p>
+<label><input type="checkbox" id="consent"><span id="consentText">میں تصدیق کرتا/کرتی ہوں کہ مجھے اس فائل کو محفوظ کرنے اور شیئر کرنے کی قانونی اجازت ہے، اور جہاں ضروری ہو ریکارڈنگ کی رضامندی موجود ہے۔</span></label>
+<button id="save" type="button" disabled>محفوظ فائل + ثبوت (.zip) ڈاؤن لوڈ کریں</button>
+<p id="saveStatus" class="status" role="status" aria-live="polite">فائل منتخب کریں؛ کوئی خودکار ریکارڈنگ نہیں۔</p>
+<div id="saveMeta" class="meta" hidden></div>
+</section>
+<section class="card" aria-labelledby="verifyHeading">
+<h2 id="verifyHeading">2. اصل ZIP دوبارہ تصدیق کریں</h2>
+<label for="verifyFile" id="verifyLabel">E-ZERO ثبوت والی ZIP فائل منتخب کریں</label>
+<input type="file" id="verifyFile" accept=".zip,application/zip">
+<button id="verify" type="button">SHA-256 اور ڈیجیٹل دستخط چیک کریں</button>
+<p id="verifyStatus" class="status" role="status" aria-live="polite">آف لائن تصدیق کے لیے فائل منتخب کریں۔</p>
+<div id="verifyMeta" class="meta" hidden></div>
+</section>
+<p class="tip" id="deadline">موصولہ عارضی آواز/ویڈیو کو E-ZERO کے اصل چیٹ سیشن میں 10 منٹ کے اندر صارف کی اجازت سے محفوظ کرنا ہوگا۔ پہلے سے محفوظ یا یہاں منتخب کردہ فائل کے اصل موصول ہونے کے وقت کی آزاد تصدیق یہ صفحہ نہیں کرتا۔</p>
+<p class="tip" id="warning">یہ دستخط اس براؤزر کی خودساختہ کلید سے ہے، کسی عدالت یا سرکاری ادارے کا سرٹیفکیٹ نہیں۔ فون کی گھڑی قابلِ اعتماد ٹائم اسٹیمپ نہیں۔ ثبوت کی اصلیت، رضامندی، شناخت اور قانونی قبولیت کی آزاد تصدیق درکار ہو سکتی ہے۔</p>
+<footer id="footer">E-ZERO فائل کا ڈیٹا جمع، فروخت یا سرور پر محفوظ نہیں کرتا۔ صارف نے پہلے ڈاؤن لوڈ کر لیا ہو تو وہ فائل 10 منٹ بعد اس کے فون سے خود حذف نہیں کی جا سکتی۔</footer>
+</main>
+</body>
+</html>
