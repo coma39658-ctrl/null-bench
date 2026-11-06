@@ -20,19 +20,25 @@
       invalid:"یہ E-ZERO کال دعوت کا صحیح QR نہیں۔",identityOnly:"یہ شناختی QR ہے، کال کی دعوت نہیں۔ پہلے فون پر 📞 یا 📹 دبائیں اور اس کا «دوست یہ QR اسکین کرے» والا QR دکھائیں۔",unsupported:"اس براؤزر میں QR اسکیننگ دستیاب نہیں۔ دوست کو لنک بھیجیں۔",
       scanning:"📷 کیمرہ فعال ہے؛ دوست کی E-ZERO کال QR سامنے رکھیں۔",stopped:"کیمرہ بند ہے۔",
       failure:"QR اسکین ناکام؛ لنک کھولنے کا طریقہ استعمال کریں۔",timeout:"20 سیکنڈ میں QR نہیں ملا؛ کیمرہ بند ہے۔",
-      starting:"کال شروع کرنے کی درخواست۔ مائیک/کیمرے کی اجازت آپ سے مانگی جائے گی۔"},
+      starting:"کال شروع کرنے کی درخواست۔ مائیک/کیمرے کی اجازت آپ سے مانگی جائے گی۔",
+      qrFail:"کال کی دعوت بن گئی مگر QR تصویر نہیں بن سکی۔ «دعوت شیئر کریں» یا «مختصر لنک کاپی کریں» استعمال کریں۔",
+      inviteFail:"کال QR نہیں بنا۔ دوبارہ 📞 آڈیو کال دبائیں؛ خرابی برقرار ہو تو رابطہ سرور چیک کریں۔"},
     en:{ready:"✓ One short invite ready. Your friend scans QR or opens link; the answer returns automatically.",
       copied:"✓ Invitation link copied. Share only with someone you trust.",
       copyFail:"Cannot copy link; tap Share Invitation.",invalid:"This is not a valid E-ZERO call invitation QR.",identityOnly:"This QR verifies identity only. On the first phone tap Audio or Video, then scan the call invitation QR.",
       unsupported:"QR scan unavailable in this browser. Share the link instead.",scanning:"📷 Camera ready; scan friend's call QR.",
       stopped:"Camera off.",failure:"QR failed. Open the invitation link instead.",timeout:"No QR in 20 seconds; camera stopped.",
-      starting:"Calling: camera/microphone permission will be requested."},
+      starting:"Calling: camera/microphone permission will be requested.",
+      qrFail:"Invite is ready but the QR image failed. Use Share Invitation or Copy Link.",
+      inviteFail:"Call QR not created. Tap Audio again; check signaling if this persists."},
     ar:{ready:"✓ الدعوة المختصرة جاهزة؛ يفتحها الصديق ويعود الرد تلقائياً.",
       copied:"✓ نُسخ الرابط المؤقت. شاركه مع شخص موثوق فقط.",copyFail:"تعذر النسخ؛ اضغط مشاركة الدعوة.",
       invalid:"هذا ليس رمز QR صالحاً لدعوة مكالمة E-ZERO.",identityOnly:"هذا رمز هوية فقط. اضغط مكالمة صوتية أو فيديو في الهاتف الأول وامسح رمز دعوة الاتصال.",unsupported:"مسح QR غير متاح؛ شارك الرابط بدلاً منه.",
       scanning:"📷 الكاميرا تعمل. امسح رمز دعوة صديقك.",stopped:"تم إيقاف الكاميرا.",
       failure:"فشل المسح؛ افتح الرابط مباشرة.",timeout:"لم يُعثر على QR خلال 20 ثانية.",
-      starting:"بدء المكالمة؛ سيطلب المتصفح إذن الميكروفون أو الكاميرا."}
+      starting:"بدء المكالمة؛ سيطلب المتصفح إذن الميكروفون أو الكاميرا.",
+      qrFail:"الدعوة جاهزة لكن صورة QR لم تظهر. استخدم المشاركة أو نسخ الرابط.",
+      inviteFail:"لم يُنشأ QR للمكالمة. اضغط صوت مرة أخرى وتحقق من الخادم."}
   };
   const t=k=>(words[document.documentElement.lang]||words.ur)[k];
   function info(k,error=false){
@@ -90,19 +96,35 @@
       resetSelection();
     }else if(e.detail?.stage==="connected")updateConnected();
   });
+  // Reset stale QR only when a genuinely fresh one-shot call begins.
+  document.addEventListener("ezero:auto-call-starting",()=>{
+    link="";copyBtn.disabled=true;qrBox.hidden=true;qrTarget.replaceChildren();
+    info("starting");
+  });
   document.addEventListener("ezero:auto-invite-ready",e=>{
     const candidate=e.detail?.link;
-    if(typeof candidate!=="string"||!safeInvite(candidate))return;
+    if(typeof candidate!=="string"||!safeInvite(candidate)){
+      info("inviteFail",true);return;
+    }
     link=candidate;qrBox.hidden=false;copyBtn.disabled=false;
     qrTarget.replaceChildren();
+    let rendered=false;
     if(typeof window.qrcode==="function"){
       try{
         const qr=window.qrcode(0,"L");qr.addData(link);qr.make();
         qrTarget.innerHTML=qr.createSvgTag(4,4);
-        qrTarget.querySelector("svg")?.setAttribute("aria-label","E-ZERO single-request call invite");
-      }catch(_){qrBox.hidden=true;}
-    }else qrBox.hidden=true;
-    info("ready");
+        const svg=qrTarget.querySelector("svg");
+        if(svg){
+          svg.setAttribute("aria-label","E-ZERO single-request call invite");
+          rendered=true;
+        }
+      }catch(_){/* Keep the share/copy fallback visible and report failure. */}
+    }
+    if(!rendered){
+      qrTarget.replaceChildren();
+      qrTarget.textContent=t("qrFail");
+      info("qrFail",true);
+    }else info("ready");
   });
   copyBtn?.addEventListener("click",async()=>{
     if(!link)return;

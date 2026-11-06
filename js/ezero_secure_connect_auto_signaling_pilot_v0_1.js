@@ -100,6 +100,7 @@
     }
     try{ws?.close(1000,"finished");}catch(_){}
     session=null;localOffer="";answerSent=false;
+    $("ezeroAutoShare").disabled=true;
   }
   const signalError=key=>{
     set(key,"error");
@@ -218,8 +219,32 @@
     u.searchParams.set("mode",mode);
     return u.href;
   };
+
   async function start(){
-    if(session)return;
+    if(session){
+      // Never discard a still-valid invitation merely because Audio/Video was
+      // tapped twice. Instead restore the QR for the same active room.
+      if(active()&&session.role==="host"&&localOffer){
+        set("inviteReady","ready");
+        document.dispatchEvent(new CustomEvent("ezero:auto-invite-ready",{detail:{link:shareLink()}}));
+        return;
+      }
+      // Do not interrupt an unfinished, active, user-authorized request.
+      if(active()){
+        set("connecting");
+        return;
+      }
+      // A closed socket must never keep the single-call button locked forever.
+      if(window.EZERO_PEER_PROFILE_TRANSPORT?.connected()){
+        set("finished","connected");
+        return;
+      }
+      closeRoom(false);
+      // Dispose incomplete peer media/SDP before attempting another one-shot
+      // call. This is an explicit new tap, never an automatic retry.
+      $("hangup").click();
+    }
+    document.dispatchEvent(new CustomEvent("ezero:auto-call-starting"));
     const room=random(24),hostToken=random(32),guestToken=random(32);
     if(!ROOM.test(room)||!TOKEN.test(hostToken)||!TOKEN.test(guestToken))return signalError("bad");
     session={role:"host",room,hostToken,guestToken,offerForwarded:false,peerJoined:false};
@@ -275,6 +300,9 @@
       set("finished","connected");
     }else if(["micDenied","iceNoRoute","signalInvalid","fingerprintMismatch"].includes(stage)){
       set(stage==="iceNoRoute"?"noRoute":"bad","error");
+      // Fail closed and release the stale room so the next explicit call tap
+      // can create a fresh request. No background retry or auto capture.
+      if(!window.EZERO_PEER_PROFILE_TRANSPORT?.connected())closeRoom();
     }else if(stage==="idle")closeRoom();
   });
   document.addEventListener("ezero:channel-state",event=>{

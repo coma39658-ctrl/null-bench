@@ -28,7 +28,7 @@ assert.match(css,/#oneTapPanel,\s*\.communication-page\.ezero-one-lab #secureAdv
 assert.match(css,/#ezeroOneIncomingShell\[hidden\]\{\s*display:none!important/);
 assert.match(css,/#ezeroOneQrBox/);
 assert.match(page,/<meta name="robots" content="index,follow">/);
-assert.match(page,/src="\.\/js\/ezero_one_request_lab_20261106\.js\?v=20261106onepage1"/);
+assert.match(page,/src="\.\/js\/ezero_one_request_lab_20261106\.js\?v=20261106qrrepair1"/);
 assert.equal(manifest.start_url,"./ezero_secure_connect_one_request_lab_20261106.html");
 assert.equal(manifest.shortcuts[0].url,manifest.start_url);
 assert.notEqual(manifest.id,"", "Installed-app identity must be non-empty");

@@ -131,6 +131,31 @@ try{
   assert.equal(await caller.locator('[data-modern-select="audio"]').getAttribute("aria-pressed"),"true");
   console.log("ONE_REQUEST_ONE_ACCEPT_AUTOMATIC_SIGNED_ANSWER_REAL_BROWSER_WEBRTC: PASS");
   console.log("NO_SECOND_MANUAL_LINK_NO_AUTO_MIC_BEFORE_ACCEPT: PASS");
+
+  // A verified first call must not strand the caller without the next QR.
+  // Neither phone reloads before the caller starts another new room.
+  await caller.locator("#modernHangup").click();
+  await callee.locator("#modernHangup").click();
+  await caller.waitForFunction(()=>
+    window.EZERO_VOICE_TRANSPORT?.connected()===false,{timeout:15000});
+  await caller.locator('[data-modern-select="audio"]').click();
+  await caller.waitForFunction(old=>
+    !!window.__oneInvite&&window.__oneInvite!==old,invite,{timeout:30000});
+  const newInvite=await caller.evaluate(()=>window.__oneInvite);
+  assert.notEqual(newInvite,invite,"Every new call must have a fresh invite");
+  assert.equal(await caller.locator("#ezeroOneQrBox").isVisible(),true);
+  assert.equal(await caller.locator("#ezeroOneQr svg").count(),1,
+    "The second call must actually render its QR, not merely show a success label");
+  assert.equal(await caller.locator("#ezeroOneCopyInvite").isEnabled(),true);
+  await callee.goto(newInvite,{waitUntil:"domcontentloaded"});
+  await callee.waitForURL(new RegExp("one_request_lab_20261106.html"),{timeout:10000});
+  await callee.locator("#ezeroAutoAccept").waitFor({state:"visible"});
+  await callee.locator("#ezeroAutoAccept").click();
+  await Promise.all([caller,callee].map(page=>page.waitForFunction(()=>
+    window.EZERO_VOICE_TRANSPORT?.connected()===true,{timeout:45000})));
+  assert.equal(offers,2,"Redial must create a new signed offer");
+  assert.equal(answers,2,"Redial must receive another automatically relayed answer");
+  console.log("HANGUP_AND_REDIAL_CREATES_NEW_QR_WITHOUT_CALLER_RELOAD: PASS");
 }finally{
   await Promise.all(contexts.map(ctx=>ctx.close().catch(()=>{})));
   await browser.close();
