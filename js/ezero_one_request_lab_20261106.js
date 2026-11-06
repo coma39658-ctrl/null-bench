@@ -162,7 +162,7 @@
     incomingShell.hidden=false;
     const type=new URLSearchParams(location.search).get("mode")==="video"?"video":"audio";
     const head={
-      ur:{video:"📹 آنے والی ویڈیو کال — جواب دیں؟",audio:"📞 آنے والی آڈیو کال — جواب دیں؟"},
+      ur:{video:"📹 آنے والی ویڈیو کال — قبول کریں؟",audio:"📞 آنے والی آڈیو کال — قبول کریں؟"},
       en:{video:"📹 Incoming video call — Answer?",audio:"📞 Incoming audio call — Answer?"},
       ar:{video:"📹 مكالمة فيديو واردة — الرد؟",audio:"📞 مكالمة صوتية واردة — الرد؟"}
     };
