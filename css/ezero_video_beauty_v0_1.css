@@ -1,0 +1,43 @@
+/* E-ZERO beauty lens: optional in-call local processing, no extra cards. */
+body.communication-page.ezero-one-lab #ezeroBeautyControls{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  gap:6px!important;max-width:95%!important;
+  margin:6px 6px!important;padding:5px 9px!important;
+  border:1px solid #80d9a477!important;border-radius:18px!important;
+  background:#0a3b2dd9!important;color:#effff5!important;
+  font-size:12px!important;font-weight:800!important
+}
+body.communication-page.ezero-one-lab #ezeroBeautyControls select{
+  background:#0b5b40!important;color:#fff!important;border:1px solid #9ef0bc!important;
+  border-radius:11px!important;padding:6px 8px!important;
+  min-height:38px!important;font-size:12px!important;max-width:125px!important
+}
+body.communication-page.ezero-one-lab #ezeroBeautyInfo{
+  display:block!important;max-width:340px!important;
+  color:#c5f2d7!important;background:#0b3227ba!important;border-radius:9px!important;
+  font-size:11px!important;line-height:1.55!important;padding:4px 8px!important;
+  margin:2px 8px!important
+}
+body.communication-page.ezero-one-lab.ezero-video-connected
+ #modernCallPanel #ezeroBeautyControls{
+  position:absolute!important;right:9px!important;left:auto!important;
+  top:calc(51px + env(safe-area-inset-top))!important;
+  z-index:15!important;max-width:min(53vw,205px)!important;margin:0!important;
+  background:#072a20d9!important;box-shadow:0 3px 13px #00140ab5!important
+}
+body.communication-page.ezero-one-lab.ezero-video-connected
+ #modernCallPanel #ezeroBeautyInfo{
+  position:absolute!important;right:10px!important;
+  top:calc(105px + env(safe-area-inset-top))!important;
+  z-index:14!important;max-width:min(55vw,220px)!important;
+  margin:0!important;background:#051d15b4!important;
+  pointer-events:none!important;font-size:10px!important
+}
+@media(max-width:350px){
+ body.communication-page.ezero-one-lab.ezero-video-connected #modernCallPanel #ezeroBeautyControls{
+   top:calc(55px + env(safe-area-inset-top))!important;padding:3px 4px!important;
+ }
+ body.communication-page.ezero-one-lab.ezero-video-connected #modernCallPanel #ezeroBeautyControls span{
+   font-size:10px!important
+ }
+}
