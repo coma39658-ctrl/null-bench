@@ -254,6 +254,35 @@ try{
   await caller.locator("#ezeroInCallClose").click();
   console.log("IN_CALL_RECORDING_AND_SHA256_CONTROLS_REACHABLE: PASS");
   console.log("IN_CALL_PRIVATE_CHAT_VERIFIED_BOTH_BROWSERS: PASS");
+  // No one-shot voice restriction: the same user can record, send and repeat.
+  await caller.locator("#ezeroInCallVoice").click();
+  await callee.locator("#ezeroInCallVoice").click();
+  for(let note=1;note<=2;note++){
+    await caller.locator("#ezeroVoiceRecord").click();
+    await caller.locator("#ezeroVoiceStop").waitFor({state:"visible",timeout:10000});
+    await caller.waitForTimeout(850);
+    await caller.locator("#ezeroVoiceStop").click();
+    await caller.locator("#ezeroVoiceSend").waitFor({state:"visible",timeout:10000});
+    await caller.waitForFunction(()=>document.getElementById("ezeroVoiceSend")?.disabled===false,
+      {timeout:12000});
+    await caller.locator("#ezeroVoiceSend").click();
+    await caller.waitForFunction(n=>
+      document.querySelectorAll("#ezeroSentVoiceNotes .ezero-voice-sent-row").length===n,
+      note,{timeout:15000});
+    await callee.waitForFunction(n=>
+      document.querySelectorAll("#ezeroVoiceQueue .ezero-voice-inbox-row").length===n,
+      note,{timeout:15000});
+    assert.equal(await caller.locator("#ezeroVoiceRecord").isEnabled(),true,
+      "After each sent note, Record must be enabled for the next one");
+  }
+  assert.equal(await caller.locator("#ezeroSentVoiceNotes audio").count(),2,
+    "Both sent voice notes must have separate temporary playback controls");
+  assert.equal(await callee.locator("#ezeroVoiceQueue .ezero-voice-inbox-play").count(),2);
+  await callee.locator("#ezeroVoiceQueue .ezero-voice-inbox-delete").first().click();
+  assert.equal(await callee.locator("#ezeroVoiceQueue .ezero-voice-inbox-row").count(),1);
+  await caller.locator("#ezeroInCallClose").click();
+  await callee.locator("#ezeroInCallClose").click();
+  console.log("REPEATED_VOICE_RECORD_SEND_TWO_DISTINCT_RECEIVED_NOTES: PASS");
   console.log("ONE_REQUEST_ONE_ACCEPT_AUTOMATIC_SIGNED_ANSWER_REAL_BROWSER_WEBRTC: PASS");
   console.log("NO_SECOND_MANUAL_LINK_NO_AUTO_MIC_BEFORE_ACCEPT: PASS");
 
