@@ -285,8 +285,8 @@ try{
 
   // A verified first call must not strand the caller without the next QR.
   // Neither phone reloads before the caller starts another new room.
-  await caller.locator("#modernHangup").click();
-  await callee.locator("#modernHangup").click();
+  await caller.locator("#hangup").click();
+  await callee.locator("#hangup").click();
   await caller.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===false,{timeout:15000});
   await caller.locator('[data-modern-select="audio"]').click();
@@ -308,8 +308,8 @@ try{
   assert.equal(answers,2,"Redial must receive another automatically relayed answer");
   console.log("HANGUP_AND_REDIAL_CREATES_NEW_QR_WITHOUT_CALLER_RELOAD: PASS");
 
-  await caller.locator("#modernHangup").click();
-  await callee.locator("#modernHangup").click();
+  await caller.locator("#hangup").click();
+  await callee.locator("#hangup").click();
   await Promise.all([caller,callee].map(p=>
     p.goto(publicOrigin+pagePath,{waitUntil:"domcontentloaded"})));
   for(const [i,phone] of [[0,caller],[1,callee]]){
@@ -601,8 +601,8 @@ try{
     assert.equal(expired,true);
     console.log("EVIDENCE_LOCAL_MEMORY_EXPIRES_AFTER_TEN_MINUTES: PASS");
 
-    await caller.locator("#modernHangup").click();
-    await callee.locator("#modernHangup").click();
+    await caller.locator("#hangup").click();
+    await callee.locator("#hangup").click();
   }finally{
     // Best-effort cleanup if the test aborts after granting synthetic trust.
     // This is not used to claim cleanup; confirmed trust-updated above is.
