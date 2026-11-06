@@ -38,4 +38,4 @@ Goal confirmed by the owner: a friend is saved after the first real QR call; on 
 
 - https://developers.cloudflare.com/durable-objects/best-practices/websockets/
 - https://developers.cloudflare.com/durable-objects/best-practices/rules-of-durable-objects/
-- https://developers.mozilla.org/en-US/docs/Web/API/SubtleCrypto/verify
+- https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/verify
