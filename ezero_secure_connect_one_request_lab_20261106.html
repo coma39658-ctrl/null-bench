@@ -26,7 +26,7 @@
 <link rel="stylesheet" href="./css/ezero_immersive_video_call_v0_1.css?v=20261106video1">
 <link rel="stylesheet" href="./css/ezero_compact_app_shell_20261106.css?v=20261106exitcontrast1">
 <script defer src="./js/vendor/ezero-qrcode-generator-mit.js"></script>
-<script defer src="./js/ezero_secure_connect_live_p2p_v0_1.js?v=20261105profile1"></script>
+<script defer src="./js/ezero_secure_connect_live_p2p_v0_1.js?v=20261106audioroute1"></script>
 <script defer src="./js/ezero_secure_connect_simple_near_far_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_contacts_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_install_share_v0_1.js"></script>
@@ -444,6 +444,7 @@
     <div class="videos">
       <div class="videoBox"><video id="localVideo" autoplay muted playsinline aria-label="Local camera"></video><span data-i18n="myMedia">میرا کیمرہ</span></div>
       <div class="videoBox"><video id="remoteVideo" autoplay playsinline aria-label="Remote peer"></video><span data-i18n="peerMedia">دوست کی آواز / تصویر</span></div>
+      <audio id="ezeroRemoteAudio" preload="none" hidden aria-label="Friend incoming audio — browser output"></audio>
     </div>
     <div class="buttonrow">
       <button id="playRemote" type="button" class="outline" data-i18n="playRemote">🔊 آنے والی آواز چلائیں</button>
@@ -451,6 +452,7 @@
       <button id="toggleCamera" type="button" class="outline" disabled data-i18n="cameraOff">📷 کیمرہ بند کریں</button>
       <button id="hangup" type="button" class="danger" data-i18n="hangup">📴 کال ختم کریں</button>
     </div>
+    <p id="ezeroAudioStatus" class="ezero-audio-status" role="status" aria-live="polite" hidden></p>
     <p class="small" data-i18n="callTruth">کنکشن صرف تب کامیاب مانا جائے گا جب WebRTC کی حالت Connected ہو۔ مائک اور کیمرہ فعال ہونے پر فون کا اپنا نشان نظر آئے گا۔ کوئی کال ریکارڈنگ نہیں۔</p>
   </section>
   <section class="card" aria-labelledby="messageTitle">
