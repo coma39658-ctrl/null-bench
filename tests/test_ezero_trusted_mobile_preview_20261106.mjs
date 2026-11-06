@@ -83,6 +83,8 @@ async function createPhone(name){
   page.on("pageerror",e=>console.error(name+"_PAGE_ERROR",e.message));
   await page.goto(publicOrigin+pagePath,{waitUntil:"domcontentloaded"});
   await page.waitForFunction(()=>document.getElementById("myFingerprint")?.textContent.length===64);
+  await page.waitForFunction(()=>typeof window.EZERO_SIGNED_MEDIA_EVIDENCE?.list==="function",
+    undefined,{timeout:15000});
   return page;
 }
 try{
@@ -369,6 +371,9 @@ try{
     "Remote call-end control must disappear when peer disconnects");
   await Promise.all([caller,callee].map(p=>
     p.goto(publicOrigin+pagePath,{waitUntil:"domcontentloaded"})));
+  await Promise.all([caller,callee].map(p=>p.waitForFunction(() =>
+    typeof window.EZERO_SIGNED_MEDIA_EVIDENCE?.list==="function",
+    undefined,{timeout:15000})));
   for(const [i,phone] of [[0,caller],[1,callee]]){
     await phone.waitForFunction(expected=>
       document.getElementById("myFingerprint")?.textContent===expected,
