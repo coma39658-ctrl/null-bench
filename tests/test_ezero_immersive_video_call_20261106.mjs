@@ -112,6 +112,38 @@ try{
     "No camera or video boxes appear before the video call begins");
   assert.equal(await caller.locator("#localVideo").isVisible(),false);
   assert.equal(await caller.locator("#remoteVideo").isVisible(),false);
+  assert.equal(await caller.locator("#modernHangup").isVisible(),false,
+    "Red hangup banner must not appear on the idle app landing screen");
+  assert.equal(await caller.locator("#ezeroNetworkSettings").getAttribute("open"),null,
+    "STUN advanced settings should be collapsed by default");
+  const appShell=await caller.evaluate(()=>{
+    const card=document.getElementById("ezeroUnifiedCard");
+    const grid=document.querySelector(".modern-feature-grid");
+    const features=Array.from(grid.querySelectorAll(".modern-feature-button"));
+    const shell=document.getElementById("ezeroQuickConnectionSurface");
+    const status=document.getElementById("modernConnectionStatus");
+    const qrScan=document.getElementById("ezeroOneScanInvite");
+    return {
+      cardBorder:getComputedStyle(card).borderTopWidth,
+      cardBg:getComputedStyle(card).backgroundImage,
+      columns:getComputedStyle(grid).gridTemplateColumns.split(" ").length,
+      heights:features.map(x=>x.getBoundingClientRect().height),
+      widths:features.map(x=>x.getBoundingClientRect().width),
+      hasShell:!!shell&&shell.contains(qrScan),
+      statusBorder:getComputedStyle(status).borderTopWidth,
+      statusBackground:getComputedStyle(status).backgroundColor,
+      qrScanHeight:qrScan.getBoundingClientRect().height
+    };
+  });
+  assert.equal(appShell.cardBorder,"0px","Unified page must not use a poster-card frame");
+  assert.equal(appShell.columns,4,"App controls must use a 4-icon navigation rail");
+  assert.ok(appShell.heights.every(x=>x>=44&&x<=85),
+    "Icon controls must be compact, but large enough for touch");
+  assert.ok(appShell.widths.every(x=>x<115),"No oversized advertisement tile");
+  assert.equal(appShell.hasShell,true,"QR and incoming call must share one surface");
+  assert.equal(appShell.statusBorder,"0px","Statuses must not be stacked bordered boxes");
+  assert.equal(appShell.qrScanHeight>=44,true,"QR action is touch accessible");
+  console.log("COMPACT_2050_APP_STYLE_NO_IDLE_AD_CARDS_OR_EMPTY_MEDIA: PASS");
   // One click initiates offer; the share URL is short and has an ephemeral capability.
   await caller.locator('[data-modern-select="video"]').click();
   await caller.waitForFunction(()=>!!window.__oneInvite,{timeout:30000});
@@ -120,6 +152,11 @@ try{
   assert.ok(invite.length<190,"One-request URL should not contain an entire SDP");
   assert.equal(await caller.locator("#ezeroOneQrBox").isVisible(),true);
   assert.equal(await caller.locator("#ezeroOneCopyInvite").isEnabled(),true);
+  assert.equal(await caller.locator("#modernHangup").isVisible(),true,
+    "A pending call must keep an accessible small Cancel/Hangup control");
+  const pendingHangupHeight=await caller.locator("#modernHangup").evaluate(el=>el.getBoundingClientRect().height);
+  assert.ok(pendingHangupHeight<=54,
+    "Pending call Cancel must be compact, not an enormous red banner");
   assert.equal(await caller.locator('[data-modern-select="audio"]').getAttribute("aria-pressed"),"false",
     "Call pending is not a connected state");
   console.log("SINGLE_CLICK_CREATES_COMPACT_QR_INVITE_NO_FAKE_CONNECTION: PASS");
