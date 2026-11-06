@@ -426,9 +426,21 @@ try{
     assert.equal(signedProof.clockTrust,"UNVERIFIED");
     assert.equal(signedProof.thirdPartyTimestamp,false);
     assert.match(signedProof.sha256,/^[a-f0-9]{64}$/);
-    const [download]=await Promise.all([
+    const chooser=caller.locator("#ezeroEvidenceList .ezero-evidence-select").first();
+    const signedButton=caller.locator("#ezeroEvidenceList .ezero-evidence-generate").first();
+    assert.equal(await chooser.isChecked(),false,"Evidence mode must be OFF initially");
+    assert.equal(await signedButton.isHidden(),true,
+      "No signing UI until explicit evidence selection");
+    const [plainDownload]=await Promise.all([
       caller.waitForEvent("download",{timeout:20000}),
-      caller.locator("#ezeroEvidenceList button").click()
+      caller.locator("#ezeroEvidenceList .ezero-evidence-entry button").first().click()
+    ]);
+    assert.match(plainDownload.suggestedFilename(),/^E-ZERO-original-call_audio-[a-f0-9]{12}\.webm$/);
+    console.log("PLAIN_ORIGINAL_DOWNLOAD_DEFAULT_NO_EVIDENCE_SELECTED: PASS");
+    await chooser.check();
+    assert.equal(await signedButton.isVisible(),true);
+    const [download]=await Promise.all([
+      caller.waitForEvent("download",{timeout:20000}),signedButton.click()
     ]);
     assert.match(download.suggestedFilename(),/^E-ZERO-call_audio-[a-f0-9]{16}\.zip$/);
     console.log("SIGNED_AUDIO_EVIDENCE_ZIP_SHA256_ECDSA_TAMPER_DETECTION: PASS");
