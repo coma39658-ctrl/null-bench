@@ -492,6 +492,8 @@ try{
     assert.equal(await caller.evaluate(()=>
       window.EZERO_SIGNED_MEDIA_EVIDENCE.list().length),0);
     assert.equal(await caller.locator("#ezeroEvidenceRecBadge").isHidden(),true);
+    // In live calls recording is intentionally in the in-call bottom sheet.
+    await caller.locator("#ezeroInCallEvidence").click();
     await caller.locator("#ezeroEvidenceAsk").click();
     await callee.locator("#ezeroEvidenceIncoming").waitFor({state:"visible",
       timeout:10000});
