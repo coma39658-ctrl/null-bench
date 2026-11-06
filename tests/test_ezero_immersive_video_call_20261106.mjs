@@ -114,6 +114,32 @@ try{
   assert.equal(await caller.locator("#remoteVideo").isVisible(),false);
   assert.equal(await caller.locator("#modernHangup").isVisible(),false,
     "Red hangup banner must not appear on the idle app landing screen");
+  // Physical Android feedback: old "Back" was white-on-white, users were stuck.
+  const exitLink=caller.locator("#modernBack");
+  assert.equal(await exitLink.isVisible(),true,"Exit must be visible on arrival");
+  assert.equal(await exitLink.getAttribute("href"),"./index.html");
+  const exitStyle=await exitLink.evaluate(el=>{
+    const c=getComputedStyle(el),r=el.getBoundingClientRect();
+    return {text:el.textContent,bg:c.backgroundColor,color:c.color,height:r.height,
+      border:c.borderTopWidth};
+  });
+  assert.ok(/واپس|Back|رجوع/.test(exitStyle.text),"Visible back/exit text is required");
+  assert.equal(exitStyle.bg,"rgb(20, 90, 60)",
+    "Back exit must have dark green fill, not white-on-white");
+  assert.equal(exitStyle.color,"rgb(255, 255, 255)");
+  assert.ok(exitStyle.height>=44,"Back button must be comfortably touchable");
+  const icons=await caller.evaluate(()=>[...document.querySelectorAll(".modern-feature-button")].map(el=>{
+    const icon=el.querySelector(".modern-feature-icon");
+    const root=el.getBoundingClientRect(),r=icon.getBoundingClientRect();
+    const badge=getComputedStyle(el,"::before");
+    return {badgeTop:parseFloat(badge.top),badgeWidth:parseFloat(badge.width),
+      badgeHeight:parseFloat(badge.height),iconX:r.left-root.left,
+      iconTop:r.top-root.top,iconWidth:r.width,height:root.height};
+  }));
+  assert.equal(icons.length,4);
+  assert.ok(icons.every(x=>x.badgeWidth<=20&&x.badgeHeight<=20&&x.iconTop>=19),
+    "Small 01–04 numbers must sit above, not obscure, the main icons");
+  console.log("VISIBLE_TRILINGUAL_EXIT_AND_4_NONOVERLAPPING_ICONS: PASS");
   assert.equal(await caller.locator("#ezeroNetworkSettings").getAttribute("open"),null,
     "STUN advanced settings should be collapsed by default");
   const appShell=await caller.evaluate(()=>{
