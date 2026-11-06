@@ -16,7 +16,7 @@
   const MAX_BYTES=64*1024*1024;
   const MAX_RECORD_MS=600000;
   const PREPARED_EXPIRES_MS=45000;
-  let requested=null,incoming=null,approved=null,recording=null,remoteActive=null;
+  let requested=null,incoming=null,approved=null,recording=null,remoteActive=null,remoteGranted=null,destroyed=false;
   let countdown=null;
   const dictionary={
     ur:{idle:"ریکارڈنگ خودکار طور پر شروع نہیں ہوتی۔ پہلے دونوں افراد کی اجازت ضروری ہے۔",
@@ -91,8 +91,9 @@
     $("ezeroEvidenceStop").hidden=!recording;
     $("ezeroEvidenceAsk").disabled=!!(incoming||requested||approved||recording);
     $("ezeroEvidenceRecBadge").hidden=!(recording||remoteActive);
+    $("ezeroEvidenceRevoke").hidden=!(remoteGranted||remoteActive);
   }
-  function clearPermits(){requested=null;incoming=null;approved=null;remoteActive=null;hideConsent();}
+  function clearPermits(){requested=null;incoming=null;approved=null;remoteActive=null;remoteGranted=null;hideConsent();}
   function stopCapture(reason="stopped",notifyPeer=true){
     if(!recording)return;
     const job=recording;
@@ -112,21 +113,24 @@
     const local=$("localVideo")?.srcObject;
     const remote=$("remoteVideo")?.srcObject;
     if(!local||!remote)throw Error("LOCAL_OR_REMOTE_MEDIA_MISSING");
-    const audios=[...local.getAudioTracks(),...remote.getAudioTracks()]
-      .filter(track=>track.readyState==="live"&&track.enabled);
-    if(!audios.length)throw Error("NO_LIVE_AUDIO_TRACK");
+    const localAudio=local.getAudioTracks().filter(t=>t.readyState==="live"&&t.enabled);
+    const remoteAudio=remote.getAudioTracks().filter(t=>t.readyState==="live"&&t.enabled);
+    if(!localAudio.length||!remoteAudio.length)
+      throw Error("FULL_TWO_WAY_AUDIO_UNAVAILABLE");
+    const audios=[...localAudio,...remoteAudio];
     const Audio=window.AudioContext||window.webkitAudioContext;
     if(!Audio)throw Error("AUDIO_MIXER_UNSUPPORTED");
     const audioContext=new Audio();
     const destination=audioContext.createMediaStreamDestination();
     const ownedTracks=[];
+    let drawTimer=null;
+    try{
     for(const track of audios){
       const copy=track.clone();ownedTracks.push(copy);
       const source=audioContext.createMediaStreamSource(new MediaStream([copy]));
       source.connect(destination);
     }
     const combined=new MediaStream(destination.stream.getAudioTracks());
-    let drawTimer=null;
     if(withVideo){
       const remoteVideo=$("remoteVideo"),localVideo=$("localVideo");
       if(!remote?.getVideoTracks().length||!remoteVideo||
@@ -149,6 +153,12 @@
       ownedTracks.push(videoTrack);combined.addTrack(videoTrack);
     }
     return {combined,audioContext,ownedTracks,drawTimer};
+    }catch(error){
+      clearInterval(drawTimer);
+      for(const track of ownedTracks){try{track.stop();}catch(_){}}
+      try{audioContext.close();}catch(_){}
+      throw error;
+    }
   }
   async function startCapture(){
     if(!approved||Date.now()>approved.expires||!alive()||
@@ -164,7 +174,7 @@
         startedAt:new Date().toISOString(),chunks:[],bytes:0,
         drawTimer:media.drawTimer,deadline:null,recorder:null};
       await job.audioContext.resume();
-      if(!alive()||!rtc.send("start",id))throw Error("PEER_INFORM_FAILED");
+      if(!alive())throw Error("PEER_DISCONNECTED");
       const accepted=(withVideo?
         ["video/webm;codecs=vp8,opus","video/mp4","video/webm"]:
         ["audio/webm;codecs=opus","audio/mp4","audio/ogg","audio/webm"])
@@ -181,14 +191,14 @@
       job.recorder.onerror=()=>{job.chunks=[];stopCapture("failed");};
       job.recorder.onstop=()=>{
         discardStream(job);
-        if(!job.chunks.length)return;
+        if(destroyed||!job.chunks.length)return;
         try{
           const blob=new Blob(job.chunks,{type:job.recorder.mimeType});
           proof.offer({blob,kind:withVideo?"call_video":"call_audio",
             source:"LOCAL_CONSENTED_WEBRTC_CAPTURE",
             consent:"LOCAL_AND_PEER_UI_APPROVAL_REPORTED",
-            consentDetails:{callId:id,peerFingerprint,requestedAtDevice:requestedAt,
-              peerApprovedAtDevice:approvedAt,startedAtDevice:job.startedAt,
+            consentDetails:{recordingConsentId:id,peerFingerprint,requestedAtDevice:requestedAt,
+              peerApprovalObservedAtDevice:approvedAt,startedAtDevice:job.startedAt,
               stoppedAtDevice:new Date().toISOString(),
               peerConsentVerification:"P2P_DATA_CHANNEL_EVENT_NOT_EXTERNALLY_ATTESTED"}
           });
@@ -197,6 +207,10 @@
       };
       job.recorder.start(1000);
       recording=job;
+      if(!rtc.send("start",id)){
+        job.chunks=[];stopCapture("failed",false);
+        throw Error("PEER_INFORM_FAILED");
+      }
       job.deadline=setTimeout(()=>stopCapture("limit"),MAX_RECORD_MS);
       hideConsent();msg("started");
     }catch(_){
@@ -225,11 +239,22 @@
     if(!incoming||!alive()||incoming.peerFingerprint!==fingerprint())return;
     const id=incoming.id;
     if(!rtc.send("allow",id))return msg("failed");
+    remoteGranted={id,expires:Date.now()+PREPARED_EXPIRES_MS};
     incoming=null;hideConsent();msg("prepared");
+    setTimeout(()=>{
+      if(remoteGranted?.id===id){
+        remoteGranted=null;hideConsent();msg("timeout");
+      }
+    },PREPARED_EXPIRES_MS);
   });
   $("ezeroEvidenceDeny").addEventListener("click",()=>{
     if(incoming&&alive())rtc.send("deny",incoming.id);
     incoming=null;hideConsent();msg("denied");
+  });
+  $("ezeroEvidenceRevoke").addEventListener("click",()=>{
+    const id=remoteActive?.id||remoteGranted?.id;
+    if(id&&alive())rtc.send("stop",id);
+    remoteGranted=null;remoteActive=null;hideConsent();msg("stopped");
   });
   $("ezeroEvidenceStart").addEventListener("click",startCapture);
   $("ezeroEvidenceStop").addEventListener("click",()=>stopCapture("stopped"));
@@ -273,9 +298,12 @@
       if(requested?.id===d.id){requested=null;hideConsent();msg("denied");}
       if(approved?.id===d.id){approved=null;hideConsent();msg("denied");}
     }else if(d.action==="start"){
-      remoteActive={id:d.id};hideConsent();msg("peerStarted");
+      if(!remoteGranted||remoteGranted.id!==d.id||
+         Date.now()>remoteGranted.expires)return;
+      remoteGranted=null;remoteActive={id:d.id};
+      hideConsent();msg("peerStarted");
     }else if(d.action==="stop"){
-      remoteActive=null;
+      remoteActive=null;remoteGranted=null;
       if(recording?.id===d.id)stopCapture("stopped",false);
       hideConsent();
     }
@@ -289,6 +317,8 @@
     if(document.hidden&&recording)stopCapture("stopped");
   });
   window.addEventListener("pagehide",()=>{
+    destroyed=true;
+    if(recording)recording.chunks=[];
     stopCapture("stopped",false);clearPermits();proof.clearAll();
   });
   function render(entries){
