@@ -233,6 +233,70 @@
   let peer = null, channel = null, localStream = null, remoteStream = null, role = null;
   let incoming = null, unreadExpiry = null, viewedExpiry = null, scanStream = null, scanTimeout = null, scanGeneration = 0;
   let micMuted = false, cameraMuted = false;
+  // A dedicated audio element is necessary for audio-only calls and helps
+  // Android browsers route incoming sound independently of video rendering.
+  // This changes no SDP, permission, microphone capture or recording policy.
+  const remoteAudioElement = $("ezeroRemoteAudio");
+  function audioNotice(kind) {
+    const element=$("ezeroAudioStatus");
+    if(!element)return;
+    const messages={
+      ur:{
+        incoming:"دوست کی آڈیو ٹریک موصول ہوئی۔ آواز سنائی نہ دے تو 🔊 دبائیں۔",
+        blocked:"براؤزر نے آواز خودکار چلانے سے روکی۔ کال کے دوران 🔊 دبائیں۔",
+        playing:"آواز چلانے کی درخواست قبول ہوئی؛ یہ حقیقی سنائی دینے کا ثبوت نہیں۔ اگر خاموشی ہے تو کال/میڈیا والیوم اور Bluetooth آڈیو چیک کریں۔",
+        missing:"دوسرے فون کی آڈیو ٹریک نہیں ملی۔ دونوں فون پر مائیک کی اجازت اور مائیک بند نہ ہونے کی تصدیق کریں۔",
+        failed:"آڈیو نہیں چل سکی۔ براہِ راست 🔊 دبائیں، اور موبائل کا آڈیو آؤٹ پٹ چیک کریں۔"
+      },
+      en:{
+        incoming:"Remote audio track received. Tap 🔊 if you cannot hear it.",
+        blocked:"Browser blocked automatic audio. Tap 🔊 during the call.",
+        playing:"Playback request succeeded; audible sound is not verified. Check in-call/media volume and Bluetooth output if still silent.",
+        missing:"No remote audio track. Check microphone permission and mute state on both phones.",
+        failed:"Audio output could not play. Tap 🔊 and check the phone's audio output."
+      },
+      ar:{
+        incoming:"وصل مسار صوت الطرف الآخر. اضغط 🔊 إذا لم تسمع الصوت.",
+        blocked:"حظر المتصفح تشغيل الصوت تلقائياً. اضغط 🔊 أثناء المكالمة.",
+        playing:"تم قبول تشغيل الصوت؛ هذا لا يثبت سماعه. تحقق من مستوى صوت المكالمة/الوسائط والبلوتوث.",
+        missing:"لم يصل مسار صوت. تحقق من إذن الميكروفون وحالة الكتم على الهاتفين.",
+        failed:"تعذر تشغيل الصوت. اضغط 🔊 وتحقق من مخرج صوت الهاتف."
+      }
+    };
+    element.hidden=false;
+    element.dataset.state=kind;
+    element.textContent=(messages[$("language")?.value]||messages.ur)[kind]||kind;
+  }
+  function resetAudioOutput(){
+    if(remoteAudioElement){
+      try{remoteAudioElement.pause();}catch(_){}
+      remoteAudioElement.srcObject=null;
+      remoteAudioElement.muted=false;
+    }
+    const info=$("ezeroAudioStatus");if(info){info.hidden=true;info.textContent="";}
+  }
+  function playDedicatedRemoteAudio(explicit){
+    if(!remoteAudioElement)return Promise.resolve(false);
+    const stream=remoteAudioElement.srcObject;
+    if(!stream?.getAudioTracks().some(tr=>tr.readyState==="live")){
+      if(explicit)audioNotice("missing");
+      return Promise.resolve(false);
+    }
+    remoteAudioElement.muted=false;
+    remoteAudioElement.volume=1;
+    const playback=remoteAudioElement.play();
+    if(!playback?.then){
+      if(explicit)audioNotice("playing");
+      return Promise.resolve(true);
+    }
+    return playback.then(()=>{
+      if(explicit)audioNotice("playing");
+      return true;
+    }).catch(error=>{
+      audioNotice(error?.name==="NotAllowedError"?"blocked":"failed");
+      return false;
+    });
+  }
   const me = key => (langs[currentLang] || {})[key] || $("fallbackNever") || null;
   const t = key => typeof me(key) === "string" ? me(key) : ($all('[data-i18n="' + key + '"]')[0]?.textContent || key);
   let lastCallStatus = null;
@@ -487,7 +551,19 @@
       if (peer !== p) return;
       if (event.streams?.[0]) { $("remoteVideo").srcObject=event.streams[0]; remoteStream=event.streams[0]; }
       else {remoteStream.addTrack(event.track);}
-      $("remoteVideo").play().catch(() => { $("playRemote").disabled=false; });
+      const video=$("remoteVideo");
+      // Do not output audio twice: video only draws pixels, while the dedicated
+      // audio element owns speaker playback for both audio-only and video calls.
+      if(remoteAudioElement)video.muted=true;
+      if(event.track?.kind==="audio" && remoteAudioElement){
+        remoteAudioElement.srcObject=new MediaStream([event.track]);
+        remoteAudioElement.autoplay=true;
+        audioNotice("incoming");
+        // The user explicitly started/accepted a real call; still handle
+        // browser autoplay rejection with visible, click-to-play fallback.
+        void playDedicatedRemoteAudio(false);
+      }
+      video.play().catch(() => { $("playRemote").disabled=false; });
     };
     p.onconnectionstatechange=()=>{
       if(peer!==p)return;
@@ -677,7 +753,14 @@
     }else status("shareUnavailable");
   });
   $("playRemote").addEventListener("click",()=>{
-    const el=$("remoteVideo");el.muted=false;el.play().catch(()=>status("offline","Playback not allowed"));
+    if(remoteAudioElement){
+      // Must happen directly in the trusted tap callback, not in a delayed timer
+      // or background polling loop. No false claim that sound was heard.
+      void playDedicatedRemoteAudio(true);
+    }else{
+      const el=$("remoteVideo");el.muted=false;
+      el.play().catch(()=>audioNotice("blocked"));
+    }
   });
   $("muteMic").addEventListener("click",()=>{
     if(!localStream)return;
@@ -727,6 +810,7 @@
     if(peer){peer.ontrack=peer.ondatachannel=peer.onconnectionstatechange=null;try{peer.close();}catch(_){}peer=null;}
     if(localStream){localStream.getTracks().forEach(x=>x.stop());localStream=null;}
     remoteStream=null;
+    resetAudioOutput();
     ["localVideo","remoteVideo"].forEach(id=>{const el=$(id);el.pause();el.srcObject=null;});
     $("localSignal").value="";$("remoteSignal").value="";role=null;
     $("sendMessage").disabled=true;$("muteMic").disabled=true;$("toggleCamera").disabled=true;
