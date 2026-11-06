@@ -279,15 +279,50 @@
   async function loadIdentity() {
     if (!window.isSecureContext || !crypto?.subtle) throw Error("HTTPS_REQUIRED");
     if (identity) return identity;
-    const keys = await crypto.subtle.generateKey({name:"ECDSA",namedCurve:"P-256"},false,["sign","verify"]);
-    const spki = new Uint8Array(await crypto.subtle.exportKey("spki",keys.publicKey));
-    const fingerprint = await sha256(spki);
-    const result = {keys,spki:toB64(spki),fingerprint,code:hex(randomBytes(12)),expires:Date.now()+600000};
-    identity = result;
+    // A durable device key is ONLY loaded if the user explicitly saved one.
+    // Each fresh page still gets a new, expiring QR challenge and RTC nonce.
+    const store=window.EZERO_DEVICE_IDENTITY_STORE;
+    let keys=null,spki=null,fingerprint=null;
+    try{
+      const saved=await store?.read();
+      if(saved){
+        const publicBytes=new Uint8Array(await crypto.subtle.exportKey("spki",saved.keys.publicKey));
+        const publicFingerprint=await sha256(publicBytes);
+        const challenge=randomBytes(32);
+        const signature=await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},
+          saved.keys.privateKey,challenge);
+        const pairMatches=await crypto.subtle.verify({name:"ECDSA",hash:"SHA-256"},
+          saved.keys.publicKey,signature,challenge);
+        if(pairMatches&&publicFingerprint===saved.fingerprint&&
+           toB64(publicBytes)===saved.spki){
+          keys=saved.keys;spki=saved.spki;fingerprint=saved.fingerprint;
+        }else throw Error("SAVED_DEVICE_IDENTITY_INVALID");
+      }
+    }catch(_){
+      // Never claim a previous identity was restored if storage was blocked.
+      // The caller may still use an ephemeral QR with ordinary verification.
+      const warning=$("ezeroFriendSaveStatus");
+      if(warning)warning.textContent="مستقل شناخت دستیاب نہیں؛ پرانی محفوظ شناخت بحال نہیں ہوئی۔";
+    }
+    if(!keys){
+      keys=await crypto.subtle.generateKey({name:"ECDSA",namedCurve:"P-256"},false,["sign","verify"]);
+      const bytes=new Uint8Array(await crypto.subtle.exportKey("spki",keys.publicKey));
+      spki=toB64(bytes);fingerprint=await sha256(bytes);
+    }
+    const result={keys,spki,fingerprint,code:hex(randomBytes(12)),expires:Date.now()+600000};
+    identity=result;
     await refreshMyQr();
     return result;
   }
   identityPromise = loadIdentity().catch(() => { $("identityStatus").textContent = "HTTPS/Web Crypto required."; return null; });
+  window.EZERO_DEVICE_IDENTITY_CONTROL=Object.freeze({
+    async saveAfterConsent(){
+      const i=await identityPromise;
+      if(!i||!window.EZERO_DEVICE_IDENTITY_STORE)return false;
+      // Caller must require an explicit click and a genuinely connected peer.
+      return (await window.EZERO_DEVICE_IDENTITY_STORE.save(i.keys,i.spki,i.fingerprint))===true;
+    }
+  });
   function identityPayload(i) { return ["EZERO-IDENTITY-1",location.origin,i.spki,i.fingerprint,i.code,i.expires].join("|"); }
   async function signedIdentity() {
     const i = await identityPromise; if (!i) throw Error("NO_IDENTITY");
