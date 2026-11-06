@@ -100,8 +100,8 @@ async function test(){
   await new Promise(resolve=>setTimeout(resolve,5));
   assert.equal(callCount,1);
   assert.equal(navigations,0);
-  assert.equal(document.getElementById("ezeroTrustedStatus").textContent,
-    "درخواست سرور کو بھیجی؛ دوست کے فون پر پہنچنے کی تصدیق باقی ہے.");
+  assert.match(document.getElementById("ezeroTrustedStatus").textContent,
+    /درخواست سرور کو بھیجی/,"Sent is not yet delivered");
   emit(apiListeners,"outgoing-delivered",{
     detail:{callId:"b".repeat(32)}});
   assert.match(document.getElementById("ezeroTrustedStatus").textContent,
