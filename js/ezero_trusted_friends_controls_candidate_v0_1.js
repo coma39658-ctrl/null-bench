@@ -12,7 +12,7 @@
   const root=document.getElementById("ezeroTrustedFriendsLab");
   const api=window.EZERO_TRUSTED_FRIEND_LAB;
   if(!root||!api?.enabled?.())return;
-  const FRIENDS_KEY="ezero_secure_connect_local_fingerprints_v0_1";
+  const FRIENDS_KEY="ezero_secure_connect_staging_fingerprints_v0_1";
   const FP=/^[a-f0-9]{64}$/;
   const $=tag=>document.createElement(tag);
   let active=false,pending=null,incoming=null,pendingTimer=null;
