@@ -26,7 +26,12 @@
   };
   const tr=k=>(words[document.documentElement.lang]||words.ur)[k];
   function paint(){proof.textContent=tr(evidence.hidden?"proof":"close");}
-  tools.append(proof);host.append(tools,voice,chat,evidence);
+  const endCall=document.createElement("button");
+  endCall.type="button";endCall.id="ezeroQuickHangup";
+  endCall.textContent="📴 کال ختم کریں";
+  endCall.setAttribute("aria-label","End connected call");
+  endCall.hidden=true;
+  tools.append(proof,endCall);host.append(tools,voice,chat,evidence);
   grid.after(host);
   evidence.hidden=true;
   voice.hidden=true;chat.hidden=true;
@@ -51,6 +56,18 @@
     if(willShow)bringIntoView(evidence);
   }
   proof.addEventListener("click",showProof);
+  endCall.addEventListener("click",()=>{
+    if(window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true)
+      $("hangup")?.click();
+  });
+  function showHangup(){
+    endCall.hidden=window.EZERO_PEER_PROFILE_TRANSPORT?.connected()!==true;
+    const lang=document.documentElement.lang;
+    endCall.textContent=lang==="en"?"📴 End call":lang==="ar"?"📴 إنهاء المكالمة":"📴 کال ختم کریں";
+  }
+  document.addEventListener("ezero:channel-state",showHangup);
+  document.addEventListener("ezero:call-status",showHangup);
+  showHangup();
   for(const feature of document.querySelectorAll("#ezeroUnifiedCard [data-modern-select]")){
     feature.addEventListener("click",()=>{
       const type=feature.dataset.modernSelect;
@@ -94,7 +111,7 @@
       }
     });
   });
-  document.getElementById("language")?.addEventListener("change",paint);
+  document.getElementById("language")?.addEventListener("change",()=>{paint();showHangup();});
   document.addEventListener("ezero:call-status",e=>{
     if(e.detail?.stage==="idle"){evidence.hidden=true;proof.setAttribute("aria-expanded","false");paint();}
   });
