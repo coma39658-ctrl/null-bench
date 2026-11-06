@@ -118,3 +118,19 @@ body.communication-page.ezero-one-lab #ezeroVoiceQueue:not([hidden]){
 body.communication-page.ezero-one-lab #ezeroVoiceQueue .ezero-voice-inbox-row{
   overflow:visible!important;isolation:isolate
 }
+
+/* Android WebView/Chromium: nested smooth scroll can move a voice-note
+ * target during pointer hit testing inside the fixed in-call sheet.
+ * Keep ordinary page layout but use immediate, predictable sheet scrolling. */
+html:has(body.communication-page.ezero-one-lab){
+  scroll-behavior:auto!important
+}
+body.communication-page.ezero-one-lab .ezero-in-call-message-drawer,
+body.communication-page.ezero-one-lab #ezeroVoiceQueue{
+  scroll-behavior:auto!important
+}
+body.communication-page.ezero-one-lab .ezero-in-call-message-drawer
+  #ezeroVoiceQueue .ezero-voice-inbox-row button{
+  scroll-margin-block:55px!important;
+  pointer-events:auto!important
+}
