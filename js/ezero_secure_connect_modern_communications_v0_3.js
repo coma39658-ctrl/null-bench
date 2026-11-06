@@ -10,7 +10,7 @@ ar:{"inviteEmpty":"لم يتم إدخال رابط دعوة حقيقي. انسخ
 };
 const t=k=>(trans[document.documentElement.lang]||trans.ur)[k]||k;
 let current="audio", recorder=null, micStream=null, limitTimer=null, draft=null, draftUrl=null,
-  incoming=null, incomingUrl=null, incomingTimeout=null, recId=0;
+  incoming=null, incomingUrl=null, incomingTimeout=null, recId=0, lastVoiceStatus="voiceIdle";
 const pick=(selector)=>document.querySelector(selector);
 function moveOriginal(){
   const media=$("mediaTitle")?.closest("section.card");
@@ -289,7 +289,7 @@ function translate(){
  }
  explain();
  if($("modernConnectionStatus").dataset.state!=="connected")$("modernConnectionStatus").textContent=t("idle");
- if(!draft)$("ezeroVoiceStatus").textContent=t("voiceIdle");
+ $("ezeroVoiceStatus").textContent=t(lastVoiceStatus);
 }
 $("language").addEventListener("change",translate);
 translate();
@@ -316,7 +316,7 @@ function clearIncoming(){
  incoming=null;$("ezeroVoiceIncomingAudio").pause();$("ezeroVoiceIncomingAudio").removeAttribute("src");
  $("ezeroVoiceIncomingAudio").hidden=true;$("ezeroVoiceOpenIncoming").hidden=false;$("ezeroVoiceReceived").hidden=true;
 }
-function voiceStatus(key){$("ezeroVoiceStatus").textContent=t(key);}
+function voiceStatus(key){lastVoiceStatus=key;$("ezeroVoiceStatus").textContent=t(key);}
 $("ezeroVoiceRecord").addEventListener("click",async()=>{
  if(micStream||recorder?.state==="recording")return;
  clearDraft();
