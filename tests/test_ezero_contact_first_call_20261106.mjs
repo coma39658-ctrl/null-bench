@@ -122,18 +122,6 @@ try{
   console.log("CONTACT_FIRST_EMPTY_LIST_NO_MEDIA_OR_FAKE_FRIEND: PASS");
   // The first ever call still uses real explicit QR/accept, no saved friend.
   await caller.locator('[data-modern-select="audio"]').click();
-  await caller.waitForTimeout(1000);
-  console.log("CONTACT_QR_DIAGNOSTIC",JSON.stringify(await caller.evaluate(()=>({
-    autoHidden:document.getElementById("ezeroAutoPilot")?.hidden,
-    autoStartDisabled:document.getElementById("ezeroAutoStart")?.disabled,
-    selectedMode:document.querySelector('input[name="mode"]:checked')?.value,
-    contacts:localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1"),
-    oneInvite:window.__oneInvite,
-    autoStatus:document.getElementById("ezeroAutoStatus")?.textContent,
-    firstStatus:document.getElementById("ezeroContactFirstStatus")?.textContent,
-    mediaCalls:window.__mediaCalls?.length,
-    featureButtons:[...document.querySelectorAll("[data-modern-select]")].map(x=>[x.dataset.modernSelect,x.getAttribute("aria-pressed")])
-  }))));
   await caller.waitForFunction(()=>!!window.__oneInvite,{timeout:12000});
   const first=await caller.evaluate(()=>window.__oneInvite);
   assert.match(first,/mode=audio#room=/);
@@ -174,18 +162,6 @@ try{
   assert.equal(await caller.locator("#ezeroContactVideo").isEnabled(),true);
   assert.equal(await caller.locator("#ezeroFriendSidePanel").isHidden(),true);
   await caller.locator("#ezeroContactVideo").click();
-  await caller.waitForTimeout(1100);
-  console.log("CONTACT_SELECTED_VIDEO_DIAGNOSTIC",JSON.stringify(await caller.evaluate(()=>({
-    invite:window.__oneInvite,mode:document.querySelector('input[name="mode"]:checked')?.value,
-    pending:window.EZERO_TRUSTED_SAVED_CALL?.isPending(),
-    selected:document.getElementById("ezeroSelectedFriendName")?.textContent,
-    status:document.getElementById("ezeroAutoStatus")?.textContent,
-    callStatus:document.getElementById("connectionStatus")?.textContent,
-    dockStatus:document.getElementById("ezeroContactFirstStatus")?.textContent,
-    mediaCalls:window.__mediaCalls.map(x=>({audio:!!x.audio,video:!!x.video})),
-    startDisabled:document.getElementById("ezeroAutoStart")?.disabled,
-    shareDisabled:document.getElementById("ezeroAutoShare")?.disabled
-  }))));
   await caller.waitForFunction(old=>
     !!window.__oneInvite&&window.__oneInvite!==old,lastInvite,{timeout:30000});
   const videoInvite=await caller.evaluate(()=>window.__oneInvite);
