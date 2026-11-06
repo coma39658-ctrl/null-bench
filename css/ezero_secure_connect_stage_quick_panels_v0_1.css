@@ -47,3 +47,25 @@ body.communication-page.ezero-one-lab #ezeroQuickFunctionHost
     width:100%;font-size:13px
   }
 }
+/* Multiple received voice messages: independent one-tap listen controls. */
+body.communication-page.ezero-one-lab #ezeroVoiceQueue:not([hidden]){
+  display:grid;gap:8px;margin:10px 0;padding:10px;
+  border:1px solid rgba(126,213,162,.4);border-radius:15px;
+  background:rgba(3,33,24,.34);max-height:240px;overflow-y:auto
+}
+body.communication-page.ezero-one-lab #ezeroVoiceQueue[hidden]{
+  display:none!important
+}
+body.communication-page.ezero-one-lab .ezero-voice-inbox-row{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:8px;padding:6px 9px;border:1px solid rgba(166,225,181,.26);
+  border-radius:11px;min-width:0
+}
+body.communication-page.ezero-one-lab .ezero-voice-inbox-play{
+  min-height:44px!important;max-width:100%;padding:8px 12px;
+  border:1px solid #5aa47d!important;border-radius:10px;
+  background:#145238!important;color:#f1fff2!important;font-size:13px!important
+}
+body.communication-page.ezero-one-lab .ezero-voice-inbox-play:disabled{
+  opacity:.7!important
+}
