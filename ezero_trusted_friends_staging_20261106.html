@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0b3426">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self' wss://ezero-browser-signaling-pilot.coma39658.workers.dev wss://ezero-trusted-friends-inbox-staging.coma39658.workers.dev; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<title>E-ZERO Secure Connect — Trusted Friends — Private Testing Preview</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="E-ZERO Secure Connect — one green page for QR call invitations, one accept, and experimental WebRTC audio/video.">
+<meta property="og:title" content="E-ZERO Secure Connect — Friends & Calls">
+<meta property="og:description" content="Open E-ZERO Secure Connect and choose Install App or Add to Home Screen. No hidden fees, ads or tracking. Experimental two-phone calls.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://coma39658-ctrl.github.io/null-bench/ezero_trusted_friends_staging_20261106.html">
+<meta property="og:image" content="https://coma39658-ctrl.github.io/null-bench/icon-512.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="E-ZERO Test">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="manifest" href="./secure-connect-staging.webmanifest">
+<link rel="stylesheet" href="./css/ezero_secure_connect_live_p2p_v0_1.css">
+<link rel="stylesheet" href="./css/ezero_secure_connect_one_tap_qr_v0_1.css">
+<link rel="stylesheet" href="./css/ezero_secure_connect_modern_communications_v0_3.css?v=20261105forest1">
+<link rel="stylesheet" href="./css/ezero_secure_connect_quick_nav_v0_1.css">
+<link rel="stylesheet" href="./css/ezero_one_request_lab_20261106.css?v=20261106onepage1">
+<link rel="stylesheet" href="./css/ezero_trusted_friends_stage_v0_1.css?v=20261106stage1">
+<script defer src="./js/vendor/ezero-qrcode-generator-mit.js"></script>
+<script defer src="./js/ezero_secure_connect_device_identity_v0_1.js?v=20261106stage1"></script>
+<script defer src="./js/ezero_saved_friend_stage_engine_v0_1.js?v=20261106stage1"></script>
+<script defer src="./js/ezero_secure_connect_simple_near_far_v0_1.js"></script>
+<script defer src="./js/ezero_secure_connect_contacts_staging_v0_1.js"></script>
+<script defer src="./js/ezero_secure_connect_install_share_staging_v0_1.js"></script>
+<script defer src="./js/ezero_secure_connect_one_tap_qr_v0_1.js"></script>
+<script defer src="./js/ezero_secure_connect_modern_evidence_stage_v0_1.js?v=20261106evidence1"></script>
+<script defer src="./js/ezero_secure_connect_peer_profile_staging_v0_1.js?v=20261106stage2"></script>
+<script defer src="./js/ezero_saved_friend_stage_people_v0_1.js?v=20261106stage1"></script>
+<script defer src="./js/ezero_auto_signaling_lab_config_20261106.js"></script>
+<script defer src="./js/ezero_trusted_stage_signaling_v0_1.js?v=20261106stage1"></script>
+<script defer src="./js/ezero_trusted_stage_one_request_v0_1.js?v=20261106stage1"></script>
+<script defer src="./js/ezero_trusted_inbox_stage_config_20261106.js?v=20261106stage1"></script>
+<script defer src="./js/ezero_trusted_friend_foreground_client_candidate_v0_1.js?v=20261106stage1"></script>
+<script defer src="./js/ezero_trusted_friends_controls_candidate_v0_1.js?v=20261106stage1"></script>
+<script defer src="./js/ezero_signed_media_evidence_v0_1.js?v=20261106proof1"></script>
+<script defer src="./js/ezero_evidence_recording_controls_v0_1.js?v=20261106proof1"></script>
+<script defer src="./js/ezero_secure_connect_quick_nav_v0_1.js"></script>
+<script defer src="./js/ezero_unified_nav_v0_1.js"></script>
+</head>
+<body class="communication-page ezero-one-lab">
+<div class="shell">
+<header class="top">
+  <a class="back" id="modernBack" href="./index.html" data-modern="back">↩ E-ZERO مرکزی صفحہ</a>
+  <strong class="logo">E-ZERO <span>Secure Connect</span></strong>
+  <label class="language"><span data-i18n="language">زبان</span><select id="language" aria-label="Language · زبان · اللغة">
+    <option value="ur">اردو</option><option value="en">English</option><option value="ar">العربية</option>
+  </select></label>
+</header>
+<main>
+<section id="ezeroUnifiedCard" class="ezero-unified-card" aria-labelledby="ezeroUnifiedHeading">
+  <div class="ezero-unified-heading"><span class="ezero-unified-label">E-ZERO · SECURE CONNECT</span>
+  <h1 id="ezeroUnifiedHeading">E-ZERO محفوظ دوست — صرف تجرباتی آزمائش</h1>
+  <p>پہلی محفوظ کال کے بعد دونوں فونوں پر دوست محفوظ کیا جا سکے گا۔ بغیر QR دوبارہ کال ابھی تجرباتی ہے؛ موجودہ عوامی QR صفحہ بدستور دستیاب ہے۔</p></div>
+<div class="modern-feature-grid" aria-label="Communication features">
+  <button type="button" class="modern-feature-button" data-step="01" data-modern-select="audio" aria-pressed="false"><span class="modern-feature-icon">📞</span><span class="modern-feature-name" data-modern="audio">آڈیو کال</span><span class="modern-feature-note" data-modern="audioHint">دو فونوں کے درمیان براہِ راست آواز</span></button>
+  <button type="button" class="modern-feature-button" data-step="02" data-modern-select="video" aria-pressed="false"><span class="modern-feature-icon">📹</span><span class="modern-feature-name" data-modern="video">ویڈیو کال</span><span class="modern-feature-note" data-modern="videoHint">اجازت سے تصویر اور آواز</span></button>
+  <button type="button" class="modern-feature-button" data-step="03" data-modern-select="voice" aria-pressed="false"><span class="modern-feature-icon">🎙️</span><span class="modern-feature-name" data-modern="voice">وائس میسج</span><span class="modern-feature-note" data-modern="voiceHint">مختصر ریکارڈ کریں، پھر بھیجیں</span></button>
+  <button type="button" class="modern-feature-button" data-step="04" data-modern-select="chat" aria-pressed="false"><span class="modern-feature-icon">💬</span><span class="modern-feature-name" data-modern="chat">نجی چیٹ</span><span class="modern-feature-note" data-modern="chatHint">ایک بار کھلنے والا نجی پیغام</span></button>
+</div>
+
+<section id="ezeroOneJoinPanel" class="modern-workspace ezero-one-join-panel" aria-labelledby="ezeroOneJoinHeading">
+  <h2 id="ezeroOneJoinHeading">📷 ایک QR سے کال کی درخواست</h2>
+  <p class="ezero-one-join-help">دوسرے فون کا کال والا QR اسکین کریں۔ درخواست نظر آئے گی؛ «قبول کریں» دبانے پر جواب خود واپس جائے گا۔ شناختی QR کال نہیں ہے۔</p>
+  <div class="ezero-one-qr-receive">
+    <button type="button" id="ezeroOneScanInvite" class="secondary">📷 دوست کی کال QR اسکین کریں</button>
+    <video id="ezeroOneScannerVideo" hidden muted playsinline aria-label="Call invite QR camera"></video>
+    <button type="button" id="ezeroOneStopScan" class="secondary" hidden>■ اسکین بند کریں</button>
+    <p id="ezeroOneScanStatus" role="status" aria-live="polite">QR اسکین صرف آپ کے بٹن دبانے سے کیمرہ کھولے گا۔</p>
+  </div>
+  <div id="ezeroOneIncomingShell" class="ezero-one-incoming-shell" hidden>
+    <h3 id="ezeroOneIncomingHeading">📞 آنے والی کال — درخواست قبول کریں؟</h3>
+  <div id="ezeroAutoIncoming" hidden>
+    <p data-auto="incoming">دوست کی درخواست آئی ہے۔ صرف واضح منظوری کے بعد مائیک/کیمرہ چل سکتا ہے۔</p>
+    <div class="ezero-auto-actions">
+      <button type="button" id="ezeroAutoAccept" class="primary" data-auto="join">✓ درخواست قبول کریں</button>
+      <button type="button" id="ezeroAutoDecline" class="danger" data-auto="decline">✕ درخواست مسترد کریں</button>
+    </div>
+  </div>
+  </div>
+  <p id="ezeroOneCallProgress" role="status" aria-live="polite" hidden></p>
+</section>
+
+<section id="ezeroAutoPilot" class="modern-workspace ezero-auto-pilot" hidden aria-label="Experimental automatic call signaling">
+  <h2 class="modern-panel-title" data-auto="title">محفوظ خودکار رابطہ — تجرباتی</h2>
+  <p class="modern-panel-help">📞 آڈیو یا 📹 ویڈیو دبانے پر ایک مختصر کال QR تیار ہوگا۔ دوسرے فون پر اوپر دیا گیا «دوست کی کال QR اسکین کریں» بٹن استعمال کریں، پھر درخواست قبول کریں۔ جواب خودکار طور پر واپس جائے گا۔</p>
+  <label class="ezero-auto-consent"><input id="ezeroAutoStun" type="checkbox">
+    <span data-auto="stun">مختلف نیٹ ورکس کے لیے اختیاری STUN — اس سے IP/نیٹ ورک معلومات ظاہر ہوسکتی ہیں</span>
+  </label>
+  <div class="ezero-auto-actions">
+    <button type="button" id="ezeroAutoStart" class="primary" data-auto="start">📞 محفوظ دعوت بنائیں</button>
+    <button type="button" id="ezeroAutoShare" class="primary" data-auto="share" disabled>↗ دعوت شیئر کریں</button>
+    <button type="button" id="ezeroOneCopyInvite" class="secondary" disabled>📋 مختصر لنک کاپی کریں</button>
+  </div>
+  <div id="ezeroOneQrBox" hidden>
+    <strong>📱 دوست یہ QR اسکین کرے</strong>
+    <div id="ezeroOneQr" role="img" aria-label="E-ZERO temporary call invitation QR"></div>
+    <p>دوست کے فون پر صرف «قبول کریں» ہوگا؛ واپس لنک بھیجنا ضروری نہیں۔</p>
+  </div>
+
+
+  <p id="ezeroAutoStatus" role="status" aria-live="polite" data-state="idle" class="modern-status">فی الحال کوئی حقیقی فون کنکشن قائم نہیں۔</p>
+</section>
+
+<section class="modern-workspace" aria-label="Current feature">
+  <h2 id="modernFeatureTitle" class="modern-panel-title" aria-live="polite">آڈیو کال</h2>
+  <p id="modernFeatureHelp" class="modern-panel-help">دو فون جوڑنے کے لیے ایک دعوت اور جواب درکار ہیں۔ خودکار کال ابھی فعال نہیں۔</p>
+  <p id="modernConnectionStatus" class="modern-status" role="status" aria-live="polite">ابھی کوئی حقیقی کال یا چیٹ کنکشن قائم نہیں۔</p>
+<div id="ezeroPeerProfileCard" class="ezero-peer-profile" hidden>
+  <div class="ezero-profile-image-frame ezero-peer-avatar">
+    <img id="ezeroPeerAvatar" alt="دوست کی شیئر کردہ تصویر" hidden>
+    <span id="ezeroPeerInitial" aria-hidden="true">?</span>
+  </div>
+  <div class="ezero-peer-profile-text">
+    <strong id="ezeroPeerDisplayName" data-profile-i18n="noProfile">دوست نے ابھی پروفائل شیئر نہیں کی</strong>
+    <p id="ezeroVerifiedConnection" class="ezero-peer-connection-status" data-profile-i18n="verifiedConnection">دونوں فون WebRTC پر کنیکٹ ہیں</p>
+    <small id="ezeroPeerSessionId"></small>
+    <small id="ezeroPeerTrustNote" data-profile-i18n="selfDeclared">نام اور تصویر خود فراہم کی گئی ہیں؛ حقیقی شخص کی شناخت کی تصدیق نہیں۔</small>
+  </div>
+</div>
+  <div class="modern-connection-actions">
+      <button id="modernConnect" class="primary" type="button" data-modern="connect">📱 فون جوڑنے کے مراحل</button>
+      <button id="modernHangup" class="danger" type="button" data-modern="endCall">📴 کال ختم / رابطہ بند کریں</button>
+    </div>
+</section>
+
+<section id="modernCallPanel" class="modern-workspace">
+  <h2 class="modern-panel-title" data-modern="callPanel">آڈیو / ویڈیو کال</h2>
+  <p class="modern-panel-help" data-modern="callHelp">کنکشن بننے پر اصل آواز اور تصویر ظاہر ہوں گی۔ کیمرہ اور مائک صرف آپ کی اجازت سے چلیں گے۔</p>
+  <div id="ezeroCallMediaSlot"></div>
+</section>
+
+<nav class="ezero-quick-actions" aria-label="E-ZERO profile, digital identity and received invitation">
+  <button type="button" id="ezeroQuickProfile">👤 میری پروفائل / تصویر</button>
+  <button type="button" id="ezeroQuickPaste">📋 دوست کا لنک پیسٹ کریں</button>
+  <a id="ezeroQuickIdentity" href="./ezero_secure_connect_one_request_lab_20261106.html">🔐 E-ZERO رابطہ</a>
+</nav>
+
+<section id="modernChatPanel" class="modern-workspace" hidden>
+  <h2 class="modern-panel-title" data-modern="chatPanel">نجی چیٹ میسج</h2>
+  <p class="modern-panel-help" data-modern="chatHelp">دو فون WebRTC سے جڑنے کے بعد ایک بار کھلنے والا پیغام بھیجیں۔ مستقل چیٹ ہسٹری نہیں۔</p>
+  <div id="ezeroChatSlot"></div>
+</section>
+<section id="modernVoicePanel" class="modern-workspace" hidden>
+  <h2 class="modern-panel-title" data-modern="voicePanel">وائس میسج</h2>
+  <p class="modern-panel-help" data-modern="voiceHelp">6 سیکنڈ تک اپنی آواز ریکارڈ کریں۔ Send دبانے سے پہلے دوسرے فون کو نہیں جائے گی؛ کال ریکارڈ نہیں ہوگی۔</p>
+  <div class="modern-voice-actions">
+    <button type="button" id="ezeroVoiceRecord" data-modern="record">🎙️ ریکارڈ کریں</button>
+    <button type="button" id="ezeroVoiceStop" class="secondary" hidden data-modern="stop">■ ریکارڈنگ بند</button>
+    <button type="button" id="ezeroVoiceSend" disabled data-modern="sendVoice">↗ وائس میسج بھیجیں</button>
+    <button type="button" id="ezeroVoiceClear" class="secondary" disabled data-modern="discard">✕ حذف کریں</button>
+  </div>
+  <label class="ezero-evidence-voice-consent">
+  <input id="ezeroVoiceAllowDownload" type="checkbox">
+  وصول کرنے والا یہ وائس میسج اپنے فون میں ڈاؤن لوڈ کر سکے؟
+  / Allow recipient to download this voice note / السماح للمستلم بتنزيل الرسالة
+</label>
+<div id="ezeroVoiceDraft" hidden><p data-modern="preview">یہ آواز ابھی صرف اس فون پر ہے؛ خودکار شیئر نہیں ہوئی۔</p><audio id="ezeroVoicePreview" class="modern-voice-audio" controls preload="none" aria-label="Local voice note preview"></audio></div>
+  <div id="ezeroVoiceReceived" hidden><p data-modern="incomingVoice">دوست کا عارضی وائس میسج موصول ہوا۔</p><button type="button" id="ezeroVoiceOpenIncoming" class="primary" data-modern="playVoice">🎧 ایک بار سنیں</button><audio id="ezeroVoiceIncomingAudio" class="modern-voice-audio" controls preload="none" hidden aria-label="Received voice note"></audio></div>
+  <p id="ezeroVoiceStatus" class="modern-status" role="status" aria-live="polite">وائس میسج بھیجنے کے لیے دو فون جوڑیں۔</p>
+  <button id="ezeroVoiceConnect" class="modern-voice-connect" type="button" data-modern="voiceConnect">📱 وائس میسج بھیجنے کے لیے فون جوڑیں</button>
+</section>
+<details class="ezero-unified-options"><summary>👤 پروفائل اور دوست (اختیاری)</summary>
+<details class="modern-workspace ezero-profile-editor" id="ezeroProfileEditor">
+  <summary id="ezeroProfileSummary" data-profile-i18n="editProfile">👤 میری E-ZERO پروفائل — نام اور تصویر</summary>
+  <p class="modern-panel-help" data-profile-i18n="profilePrivacy">پروفائل صرف اس براؤزر میں رہے گی۔ دوسرے فون کو تصویر/نام صرف آپ کی اجازت سے، حقیقی محفوظ کال کنکشن کے بعد بھیجے جائیں گے۔</p>
+  <div class="ezero-profile-editor-row">
+    <div class="ezero-profile-image-frame">
+      <img id="ezeroMyAvatar" alt="میری اختیاری تصویر" hidden>
+      <span id="ezeroMyInitial" aria-hidden="true">E</span>
+    </div>
+    <div class="ezero-profile-fields">
+      <label for="ezeroMyName" data-profile-i18n="yourName">آپ کا نام</label>
+      <input id="ezeroMyName" type="text" maxlength="40" autocomplete="nickname" placeholder="اپنا نام لکھیں">
+      <span class="ezero-photo-heading" data-profile-i18n="yourPhoto">پروفائل تصویر (اختیاری)</span>
+      <div class="ezero-photo-actions" role="group" aria-label="پروفائل تصویر لینے یا منتخب کرنے کے طریقے">
+        <button id="ezeroCameraButton" class="ezero-photo-action ezero-photo-camera" type="button" aria-controls="ezeroCameraPhoto" data-profile-i18n="cameraPhoto">📷 کیمرے سے تصویر لیں</button>
+        <button id="ezeroGalleryButton" class="ezero-photo-action ezero-photo-gallery" type="button" aria-controls="ezeroMyPhoto" data-profile-i18n="galleryPhoto">🖼️ گیلری سے تصویر منتخب کریں</button>
+      </div>
+      <input id="ezeroCameraPhoto" class="ezero-native-photo-input" type="file" accept="image/*" capture="user" tabindex="-1" aria-label="کیمرے سے پروفائل تصویر">
+      <input id="ezeroMyPhoto" class="ezero-native-photo-input" type="file" accept="image/jpeg,image/png,image/webp" tabindex="-1" aria-label="گیلری سے پروفائل تصویر">
+      <small class="ezero-photo-hint" data-profile-i18n="photoHint">تصویر صرف آپ کی اجازت سے منتخب ہوگی؛ فون کا کیمرہ خودکار نہیں کھلے گا۔</small>
+    </div>
+  </div>
+  <label class="ezero-profile-consent">
+    <input id="ezeroShareProfile" type="checkbox">
+    <span data-profile-i18n="shareConsent">میرا نام اور منتخب تصویر صرف حقیقی کنکشن بننے پر دوست کو بھیجنے کی اجازت ہے؛ اسے بعد میں بند کر سکتا ہوں۔</span>
+  </label>
+  <button id="ezeroSaveProfile" type="button" class="ezero-wizard-primary" data-profile-i18n="saveProfile">✓ پروفائل محفوظ کریں</button>
+  <p id="ezeroProfileStatus" class="modern-status" role="status" aria-live="polite" data-profile-i18n="profileLocal">پروفائل ابھی صرف اس فون پر ہے۔</p>
+</details>
+
+<details id="ezeroPeopleHub" class="modern-workspace ezero-people-hub">
+  <summary id="ezeroPeopleHeading" data-people="hubTitle">👥 دوست اور کال ہسٹری</summary>
+  <p class="modern-panel-help" data-people="hubDescription">محفوظ دوستوں کے کارڈ، کامیاب رابطے اور رضامندی سے محفوظ کی گئی کالز؛ آن لائن حالت کا دعویٰ نہیں۔</p>
+  <div class="ezero-people-tabs" role="group" aria-label="دوست، کالز اور مس کالز">
+    <button id="ezeroTabFriends" type="button" aria-pressed="true" data-people="friends">دوست</button>
+    <button id="ezeroTabCalls" type="button" aria-pressed="false" data-people="calls">کالز</button>
+    <button id="ezeroTabMissed" type="button" aria-pressed="false" data-people="missed">مس کالز</button>
+  </div>
+  <label for="ezeroPeopleSearch" class="ezero-photo-heading" data-people="searchLabel">دوست یا کال تلاش کریں</label>
+  <input id="ezeroPeopleSearch" type="search" autocomplete="off" maxlength="40" placeholder="نام تلاش کریں" aria-label="دوست یا کال تلاش کریں">
+  <div id="ezeroPeopleList" class="ezero-people-list" aria-live="polite"></div>
+
+  <label class="ezero-history-consent">
+    <input type="checkbox" id="ezeroHistoryConsent">
+    <span data-people="historyConsent">واقعی کنیکٹ ہو کر ختم ہونے والی آڈیو/ویڈیو کال کی مختصر ہسٹری 10 منٹ تک صرف اسی فون پر رکھیں۔ آواز، ویڈیو، تصویر یا چیٹ محفوظ نہیں ہوگی۔</span>
+  </label>
+  <a class="ezero-add-verified-friend" href="./ezero_secure_connect_live_p2p_v0_1.html" data-people="verifyFriend">+ QR شناخت سے دوست محفوظ کریں</a>
+  <div class="ezero-journal-actions">
+    <button id="ezeroHistoryClear" type="button" data-people="clearHistory">تاریخ صاف کریں</button>
+  </div>
+  <p id="ezeroPeopleStatus" class="ezero-people-meta" role="status" aria-live="polite" data-people="historyOff">کال ہسٹری بند ہے۔ حقیقی آنے والی کال کی اطلاع کے بغیر مس کال درج نہیں کی جاتی۔</p>
+</details>
+
+</details>
+<!-- A verified call exposes Save Friend here without opening nested settings. -->
+<div id="ezeroFriendSavePanel" class="ezero-friend-save-panel" hidden>
+  <label for="ezeroFriendSaveName">👤 پہلی کامیاب کال کے بعد دوست کا نام محفوظ کریں</label>
+  <input id="ezeroFriendSaveName" type="text" maxlength="40" autocomplete="off" placeholder="دوست کا نام">
+  <button id="ezeroSaveConnectedFriend" type="button" disabled>✓ اس دوست کو محفوظ کریں</button>
+  <p id="ezeroFriendSaveHelp">حقیقی WebRTC رابطے اور آپ کی اجازت کے بعد ہی اس فون کی غیر قابلِ برآمد نجی شناخت اور دوست کا تصدیق شدہ فنگرپرنٹ مقامی طور پر محفوظ ہوگا۔</p>
+</div>
+<p id="ezeroFriendSaveStatus" role="status" aria-live="polite">پہلے QR سے محفوظ رابطہ کریں، پھر دونوں طرف دوست محفوظ کریں۔ بغیر QR دوبارہ کال ابھی صرف تجرباتی تیاری میں ہے۔</p>
+<section id="ezeroTrustedFriendsLab" aria-label="Experimental Trusted Friends Calls" hidden></section>
+
+<section id="ezeroEvidencePanel" class="modern-workspace ezero-evidence-panel"
+  aria-labelledby="ezeroEvidenceTitle">
+  <h2 id="ezeroEvidenceTitle">🔐 E-ZERO Signed Evidence · SHA-256</h2>
+  <p>صرف تجرباتی سہولت۔ کال ریکارڈنگ دونوں افراد کی واضح منظوری کے بغیر شروع نہیں ہوگی۔
+    ریکارڈنگ ختم ہونے کے بعد زیادہ سے زیادہ 10 منٹ تک اسی براؤزر کی عارضی میموری میں رہے گی؛
+    پھر خودکار طور پر ختم ہوگی۔ اس دوران صارف اپنی مرضی سے اصل میڈیا، SHA-256 اور
+    ECDSA ڈیجیٹل دستخط کے ساتھ ZIP ڈاؤن لوڈ کر سکتا ہے۔
+    ایپ سرور پر ریکارڈنگ محفوظ نہیں کرتی؛ پہلے سے ڈاؤن لوڈ فائل فون سے خودکار حذف نہیں ہوتی۔</p>
+  <p>Digital fingerprint proves the exported file's integrity, not legal identity,
+    independent timestamps, or automatic court admissibility.</p>
+  <div class="ezero-evidence-actions">
+    <button id="ezeroEvidenceAsk" type="button" class="secondary">🔒 ریکارڈنگ کی اجازت مانگیں</button>
+    <button id="ezeroEvidenceStart" type="button" class="primary" hidden>🔴 ریکارڈنگ شروع کریں</button>
+    <button id="ezeroEvidenceStop" type="button" class="danger" hidden>■ ریکارڈنگ بند کریں</button>
+    <button id="ezeroEvidenceRevoke" type="button" class="danger" hidden>✕ ریکارڈنگ کی اجازت واپس لیں / Stop</button>
+    <strong id="ezeroEvidenceRecBadge" role="status" aria-live="assertive" hidden>🔴 REC</strong>
+  </div>
+  <div id="ezeroEvidenceIncoming" hidden>
+    <p>دوست ریکارڈنگ کی اجازت مانگ رہا ہے۔ انکار کرنے پر کوئی ریکارڈنگ شروع نہیں ہوگی۔</p>
+    <button id="ezeroEvidenceApprove" type="button" class="primary">✓ اجازت دیں</button>
+    <button id="ezeroEvidenceDeny" type="button" class="danger">✕ انکار کریں</button>
+  </div>
+  <p id="ezeroEvidenceStatus" role="status" aria-live="polite">
+    ریکارڈنگ ابھی بند ہے۔</p>
+  <h3>⬇ عام ڈاؤن لوڈ یا اختیاری ثبوت (SHA-256)</h3>
+  <p>اصل فائل اپنی حالت میں عارضی طور پر رہتی ہے۔ اگر صرف عام ڈاؤن لوڈ کریں تو
+    فائل کے لیے کوئی نیا SHA-256 ہیش، ڈیجیٹل دستخط یا ثبوت ZIP تیار نہیں ہوتا۔
+    اگر قانونی یا ذاتی ریکارڈ کے لیے ثبوت چاہیے تو اس فائل کے سامنے
+    «اسے ثبوت کے طور پر محفوظ کریں» منتخب کریں، پھر «ثبوت تیار کرکے ڈاؤن لوڈ»
+    دبائیں۔ اسی وقت اصل میڈیا کے ساتھ SHA-256 اور ECDSA-P256 دستخط شدہ ZIP بنے گی۔
+    دونوں صورتوں میں ڈاؤن لوڈ کی مہلت زیادہ سے زیادہ 10 منٹ ہے۔</p>
+  <div id="ezeroEvidenceList" aria-live="polite"></div>
+  <label for="ezeroEvidenceImport" id="ezeroEvidenceImportInfo">
+    اختیاری: اپنے فون سے کوئی آڈیو میسج، تصویر، ویڈیو، PDF، ٹیکسٹ یا دستاویز منتخب کریں۔
+    درآمد شدہ مواد کو E-ZERO کی اصل کال یا موصولہ پیغام کا تصدیق شدہ ثبوت نہیں کہا جائے گا۔
+  </label>
+  <input id="ezeroEvidenceImport" type="file"
+    accept="audio/*,video/*,image/*,text/*,.pdf,.docx,.xlsx,.pptx,.json,.zip"
+    aria-label="Local audio message image document or video for optional SHA-256 signed export">
+</section>
+<p class="ezero-unified-disclaimer">تجرباتی WebRTC رابطہ: دونوں فونوں پر «Connected» اور آواز/ویڈیو کی تصدیق ضروری ہے۔ بعض نیٹ ورکس میں TURN کے بغیر رابطہ ناکام ہوسکتا ہے۔</p>
+</section>
+<section class="ezero-pilot-banner" role="note">
+  <strong>🧪 E-ZERO کال کی حقیقی آزمائش</strong>
+  <p>دوست کو ایک مختصر دعوتی لنک یا QR بھیجیں۔ دوسرے فون پر «قبول کریں» دبانے سے WebRTC جواب خود Cloudflare کے ذریعے واپس جائے گا۔ دوسری بار لنک بھیجنے کی ضرورت نہیں۔ STUN/TURN کی عدم دستیابی کی صورت میں اصل کال ناکام ہو سکتی ہے۔</p>
+  <p>یہی E-ZERO Secure Connect کا مشترک عوامی صفحہ ہے۔ کالنگ کی عملی آزمائش جاری ہے؛ خودکار پس منظر کی اطلاع ابھی نہیں۔</p>
+</section>
+<section class="modern-hero">
+  <span class="modern-kicker">E-ZERO · COMMUNICATIONS</span>
+  <h1 data-modern="heading">بات کریں، دیکھیں، پیغام بھیجیں</h1>
+  <p data-modern="subheading">آڈیو کال، ویڈیو کال، وائس نوٹ اور نجی چیٹ — ایک آسان جگہ۔ کال کے لیے حقیقی دو فون WebRTC رابطہ ضروری ہے۔</p>
+  <div class="modern-trust"><span data-modern="free">بلا اشتہار</span><span data-modern="consent">اجازت کے بعد کیمرہ/مائک</span><span data-modern="noArchive">سرور پر کال آرکائیو نہیں</span></div>
+</section>
+<section id="ezeroCallSetupSlot" class="modern-workspace" hidden aria-labelledby="modernSetupHeading">
+  <h2 id="modernSetupHeading" class="modern-panel-title" data-modern="setupTitle">محفوظ رابطہ جوڑیں</h2>
+  <p class="modern-panel-help" data-modern="setupHelp">دو فونوں کے درمیان دعوت اور جواب کے تبادلے سے تجرباتی رابطہ بنے گا۔ ابھی خودکار کال سرور نہیں۔</p>
+  <div class="ezero-invite-wizard">
+    <button id="ezeroPrepareInvite" type="button" class="ezero-wizard-primary" data-modern="prepareInvite">↗ دوست کو دعوت تیار کریں</button>
+    <button id="ezeroShareInvite" type="button" class="ezero-wizard-primary" disabled hidden data-modern="shareInvite">↗ دعوت یا جواب شیئر کریں</button>
+    <p id="ezeroInviteStatus" class="modern-status" role="status" aria-live="polite">فون جوڑنے کے لیے دعوت تیار کریں، یا دوست سے آیا لنک کھولیں۔</p>
+    <div id="ezeroIncomingInvite" class="ezero-incoming-invite" hidden>
+      <strong id="ezeroIncomingHeading" data-modern="incomingTitle">دوست کی رابطہ درخواست</strong>
+      <p id="ezeroIncomingDescription" data-modern="incomingDescription">اس لنک میں دوست کی عارضی WebRTC دعوت یا جواب شامل ہے۔ صرف قابلِ اعتماد شخص کے ساتھ جاری رکھیں۔</p>
+      <div class="ezero-wizard-choices">
+        <button id="ezeroAcceptInvite" type="button" class="ezero-wizard-primary" data-modern="acceptInvite">✓ درخواست قبول کریں</button>
+        <button id="ezeroDeclineInvite" type="button" class="ezero-wizard-secondary" data-modern="declineInvite">✕ مسترد کریں</button>
+      </div>
+    </div>
+    <details id="ezeroLinkFallback" class="ezero-link-fallback">
+      <summary data-modern="linkFallbackTitle">دوست کا لنک اسی ٹیب میں نہ کھلے تو</summary>
+      <p data-modern="linkFallbackHelp">موجودہ کال والا ٹیب بند نہ کریں۔ دوست سے آیا مکمل E-ZERO دعوت/جواب لنک یہاں درج کریں؛ تکنیکی کوڈ درکار نہیں۔</p>
+      <p class="modern-call-note" id="ezeroCompleteLinkTip" data-modern="inviteIncomingTip">اگر IMO میں E-ZERO کھل گیا لیکن درخواست نظر نہیں آئی، تو اصل IMO پیغام کا پورا دعوتی لنک یہاں پیسٹ کریں۔ کوئی نمونہ لنک استعمال نہ کریں۔</p>
+      <label for="ezeroPasteLink" data-modern="pasteLinkLabel">دعوت یا جواب کا لنک</label>
+      <textarea id="ezeroPasteLink" rows="2" maxlength="210000" autocomplete="off" spellcheck="false" placeholder="E-ZERO — مکمل اصل دعوتی لنک"></textarea>
+      <button id="ezeroLoadLink" type="button" class="ezero-wizard-secondary" disabled data-modern="loadLink">✓ موصولہ لنک کھولیں</button>
+    </details>
+    <div id="ezeroGeneratedFallback" hidden>
+      <label for="ezeroGeneratedLink" data-modern="generatedLabel">صرف اپنے دوست کو بھیجنے والا عارضی لنک</label>
+      <textarea id="ezeroGeneratedLink" readonly rows="2" spellcheck="false"></textarea>
+      <button id="ezeroCopyLink" type="button" class="ezero-wizard-secondary" data-modern="copyLink">📋 لنک کاپی کریں</button>
+    </div>
+    <p class="modern-call-note" data-modern="signalPrivacy">لنک میں IP اور نیٹ ورک کی معلومات ہوسکتی ہیں۔ اسے صرف قابلِ اعتماد دوست کو بھیجیں۔ دوسری ایپ لنک محفوظ کرسکتی ہے؛ یہاں مستقل رابطہ سرور نہیں۔</p>
+  </div>
+</section>
+<section id="modernOfflinePanel" class="modern-workspace" aria-labelledby="modernOfflineHeading">
+  <h2 id="modernOfflineHeading" class="modern-panel-title" data-modern="offlineTitle">📶 مستقبل میں: انٹرنیٹ کے بغیر Nearby Connect</h2>
+  <p class="modern-panel-help" data-modern="offlineExplain">ہم مستقبل میں قریب موجود دو E-ZERO فونوں کو مقامی Wi-Fi / ہاٹ اسپاٹ سے، جہاں ممکن ہو، انٹرنیٹ کے بغیر جوڑنے کی سہولت کا منصوبہ رکھتے ہیں۔ یہ فیچر ابھی فعال نہیں۔</p>
+  <p class="modern-status" data-modern="offlineConsent">کسی دوسرے صارف کا موبائل ڈیٹا صرف اس کے واضح opt-in اور فون کی سسٹم اجازت کے بعد استعمال ہو سکتا ہے۔ مستقبل میں منظور شدہ رابطے کو آسان خودکار reconnect دیا جا سکتا ہے؛ خفیہ ڈیٹا شیئرنگ نہیں ہوگی۔</p>
+  <p class="modern-call-note" data-modern="offlineTruth">براؤزر یا PWA خود سے ہاٹ اسپاٹ/موبائل ڈیٹا فعال نہیں کر سکتی۔ فون اور OS کی سپورٹ ضروری ہوگی۔ اس وقت کوئی خودکار انٹرنیٹ شیئرنگ شروع نہیں ہوتی۔</p>
+</section>
+<nav class="modern-secondary-links" aria-label="E-ZERO navigation">
+  <a id="modernQrLink" href="./ezero_secure_connect_live_p2p_v0_1.html" data-modern="qrLink">▦ QR اور دوست</a>
+  <a id="modernPolicyLink" href="./ezero_secure_connect_privacy_v0_2.html" data-modern="privacyLink">🔒 پرائیویسی پالیسی</a>
+</nav>
+  <div id="ezeroLegacyCompatibility" hidden inert aria-hidden="true">
+  <div class="hero legacy-hero">
+    <p class="overline">E-ZERO · WEBRTC · DIRECT TEST</p>
+    <h1 data-i18n="welcome">خوش آمدید — ایک حقیقی کال کی محفوظ آزمائش</h1>
+    <p data-i18n="intro">دو براؤزرز کے درمیان براہِ راست آڈیو، ویڈیو اور ایک بار کھلنے والے پیغامات کی محدود آزمائش۔</p>
+    <div class="pills"><span data-i18n="free">بلا فیس</span><span data-i18n="ads">بغیر اشتہارات</span><span data-i18n="consent">اجازت سے ہی مائک/کیمرہ</span></div>
+  </div>
+  <section class="card one-tap" id="oneTapPanel" aria-labelledby="oneTapTitle">
+    <div class="one-tap-kicker">E-ZERO · SECURE QR</div>
+    <h2 id="oneTapTitle" data-one-tap-i18n="heading">ایک بٹن سے QR رابطہ</h2>
+    <p data-one-tap-i18n="description">بٹن دبائیں۔ آپ کا QR ظاہر ہوگا اور آپ کی اجازت سے کیمرہ دوست کا QR اسکین کرے گا۔</p>
+    <button type="button" class="primary" id="oneTapStartButton" data-one-tap-i18n="start">📷 QR رابطہ شروع کریں</button>
+    <div class="one-tap-stage" id="oneTapStage" hidden>
+      <div id="oneTapQr" role="img" aria-label="میرا عارضی QR شناختی کوڈ"></div>
+      <div id="oneTapCamera"></div>
+      <p id="oneTapResult" role="status" aria-live="polite">آغاز کے لیے بٹن دبائیں۔</p>
+      <button type="button" id="oneTapStop" hidden>■ کیمرہ بند کریں</button>
+      <button type="button" id="oneTapCall" hidden>📞 کال کی آزمائش کے اختیارات</button>
+    </div>
+    <p class="one-tap-truth" data-one-tap-i18n="truth">QR صرف عارضی ڈیجیٹل شناخت کی تصدیق ہے، مکمل کال نہیں۔ کال کے لیے محفوظ دعوت اور جواب ابھی ضروری ہیں۔</p>
+  </section>
+  <details id="secureAdvanced">
+    <summary data-one-tap-i18n="options">⚙ مزید اختیارات · دوست، شیئر، آڈیو/ویڈیو</summary>
+  <section class="share-install card" aria-labelledby="shareInstallTitle">
+    <div class="heading"><span class="number" aria-hidden="true">↗</span><h2 id="shareInstallTitle" data-share-i18n="title">E-ZERO دوستوں کو بھیجیں اور ایپ بنائیں</h2></div>
+    <p class="small" data-share-i18n="description">یہ لنک WhatsApp، IMO یا کسی بھی میسج میں بھیجیں۔ لنک کھولنے والے دوست کو اسی صفحے پر انسٹال کا بٹن نظر آئے گا۔</p>
+    <div class="buttonrow">
+      <button type="button" class="primary" id="shareConnectLink" data-share-i18n="share">↗ دوست کو لنک بھیجیں</button>
+      <button type="button" class="outline" id="copyConnectLink" data-share-i18n="copy">📋 ویب سائٹ لنک کاپی</button>
+      <button type="button" class="primary install-action" id="installSecureConnect" data-share-i18n="install">📲 ہوم اسکرین پر انسٹال کریں</button>
+    </div>
+    <a id="publicConnectLink" class="public-connect-url" href="https://coma39658-ctrl.github.io/null-bench/ezero_secure_connect_live_p2p_v0_1.html" rel="noopener noreferrer">E-ZERO Secure Connect · Shareable Link</a>
+    <p id="shareInstallStatus" class="scan-result" role="status" aria-live="polite" data-share-i18n="initial">انسٹالیشن آپ کی منظوری سے ہوگی؛ میسج کے اندر خودکار انسٹالیشن ممکن نہیں۔</p>
+    <div id="installHelp" class="install-help" hidden>
+      <strong data-share-i18n="helpTitle">اگر انسٹال ڈائیلاگ نہ کھلے</strong>
+      <p id="installHelpText"></p>
+      <p class="small" data-share-i18n="helpPrivacy">یہ شارٹ کٹ صرف ایپ کھولتا ہے۔ ابھی مستقل اکاؤنٹس یا پس منظر میں خودکار کال وصولی موجود نہیں۔</p>
+    </div>
+  </section>
+  <div class="truth" role="note" data-i18n="labWarning">یہ ابھی دو فونوں کا تجرباتی رابطہ ہے: QR سے شناخت ملے گی؛ کال کے لیے ایک دعوت اور جواب میسج میں بھیجنا ضروری ہے۔ خودکار فرینڈ اکاؤنٹ یا کال اطلاع ابھی نہیں۔</div>
+  <div class="toolbar">
+    <button type="button" id="openPolicy" class="outline" data-i18n="policyButton">🔒 ہماری واضح پرائیویسی پالیسی</button>
+  </div>
+  <section class="card easy-start" aria-labelledby="easyTitle">
+    <h2 id="easyTitle" data-i18n="easyTitle">دوست سے رابطہ — صرف دو طریقے</h2>
+    <p data-i18n="easyExplain">نزدیک ہیں تو سامنے QR اسکین کریں۔ دور ہیں تو شناختی کوڈ میسج کریں اور دوسرے فون کا کوڈ پیسٹ کریں۔</p>
+    <div class="easy-methods" role="group" aria-label="Nearby QR or remote copy paste">
+      <button type="button" id="chooseNearby" class="easy-method selected" aria-pressed="true" data-i18n="nearby">📷 سامنے موجود دوست · QR اسکین</button>
+      <button type="button" id="chooseRemote" class="easy-method" aria-pressed="false" data-i18n="remote">📩 دور موجود دوست · کاپی / پیسٹ</button>
+    </div>
+    <p class="easy-note" data-i18n="easyTrust">SHA-256 سے ڈیجیٹل شناخت کی تصدیق ہوگی۔ QR اسکین سے حقیقی فون کال خودکار طور پر شروع نہیں ہوتی؛ کال کے لیے ایک مختصر دعوت اور جواب بھی ضروری ہے۔</p>
+  </section>
+  <section class="card identity-card" aria-labelledby="identityTitle">
+    <div class="heading"><span class="number" aria-hidden="true">▦</span><h2 id="identityTitle" data-i18n="identityTitle">آپ کی خودکار ڈیجیٹل شناخت (عارضی)</h2></div>
+    <p class="muted" data-i18n="identityHelp">ہر فون پر الگ عارضی SHA-256 شناخت خودکار بنتی ہے۔ یہ ابھی مستقل اکاؤنٹ نہیں ہے۔</p>
+    <div id="nearbyPanel" class="easy-panel">
+      <p class="panel-lead" data-i18n="nearbyHint">اپنے فون کا QR دوست کو دکھائیں، پھر اس کے QR کو کیمرے سے اسکین کریں۔</p>
+    <div class="qr-layout">
+      <div class="qr-code" id="myQr" role="img" aria-label="Signed identity QR"></div>
+      <div class="qr-meta"><p class="small" data-i18n="qrOnly">یہ QR صرف شناخت کی تصدیق کرتا ہے؛ نجی چابی اس میں نہیں ہے۔</p>
+      </div>
+    </div>
+    <div class="buttonrow">
+      <button type="button" id="scanQR" class="primary" data-i18n="identityCamera">📷 دوست کا QR اسکین کریں</button>
+      <button type="button" id="stopScan" class="outline" disabled data-i18n="identityStop">■ اسکین بند کریں</button>
+      <button type="button" id="nearCopyIdentity" class="outline" data-i18n="nearCopy">📋 اسکین نہ ہو تو میرا کوڈ کاپی کریں</button>
+    </div>
+    <video id="scanVideo" class="scan-video" playsinline muted hidden aria-label="Private QR camera scanner"></video>
+    <p id="qrScanStatus" class="scan-result" role="status" aria-live="polite" data-i18n="qrInstruction">QR اسکین کریں؛ کامیابی یا خرابی یہاں واضح نظر آئے گی۔</p>
+    </div>
+    <div id="remotePanel" class="easy-panel" hidden>
+      <p class="panel-lead" data-i18n="remoteHint">میرا شناختی کوڈ میسج میں بھیجیں۔ دوست کا آیا ہوا کوڈ نیچے پیسٹ کرکے تصدیق کریں۔</p>
+      <div class="buttonrow">
+        <button type="button" id="copyIdentity" class="primary" data-i18n="identityCopy">📋 میرا شناختی کوڈ کاپی کریں</button>
+        <button type="button" id="shareIdentity" class="outline" data-i18n="shareIdentity">↗ شناختی کوڈ میسج کریں</button>
+      </div>
+      <label class="field" for="friendIdInput"><span data-i18n="identityInput">دوست کا دستخط شدہ شناختی کوڈ یا SHA-256 فنگرپرنٹ پیسٹ کریں</span>
+        <textarea id="friendIdInput" rows="3" spellcheck="false" autocomplete="off" placeholder="QR / SHA-256"></textarea>
+      </label>
+      <div class="buttonrow">
+        <button type="button" id="pasteFriend" class="outline" data-i18n="pasteFriend">📋 موصولہ میسج پیسٹ کریں</button>
+              <button type="button" id="verifyFriend" class="primary" data-i18n="identityVerify">دوست کی شناخت کی تصدیق کریں</button>
+      </div>
+      <details class="raw-code"><summary data-i18n="showMyCode">میرا شناختی کوڈ دیکھیں (اختیاری)</summary>
+        <textarea id="myDigitalId" rows="3" readonly aria-label="My signed temporary ID" spellcheck="false"></textarea>
+      </details>
+    </div>
+    <strong class="hash-title" data-i18n="localFinger">میرا SHA-256 فنگرپرنٹ</strong>
+    <output id="myFingerprint" class="hash" aria-live="polite">…</output>
+    <p class="small" id="identityStatus" role="status" aria-live="polite" data-i18n="identityPending">نئی منفرد ڈیجیٹل شناخت بن رہی ہے…</p>
+    <p id="identityPeerStatus" class="status" role="status" aria-live="polite" data-i18n="identityPeer">دوست کے کوڈ کی تصدیق</p>
+    <strong data-i18n="peerFinger">دوسرے فون کا SHA-256 فنگرپرنٹ</strong>
+    <output id="peerFingerprint" class="hash" aria-live="polite">—</output>
+    <p class="small" data-i18n="identityNotAccount">QR کی تصدیق خفیہ چابی کا ثبوت ہے، انسان کی حقیقی شناخت کا نہیں۔ مستقل دوست شامل کرنے کے لیے محفوظ اکاؤنٹ سرور ضروری ہوگا۔</p>
+  </section>
+  <section class="card contacts-card" aria-labelledby="contactsTitle">
+    <div class="heading"><span class="number" aria-hidden="true">👥</span><h2 id="contactsTitle" data-contacts-i18n="contactsTitle">میرے دوست</h2></div>
+    <p class="small" data-contacts-i18n="contactsPrivacy">صرف نام اور SHA-256 فنگرپرنٹ اس براؤزر میں محفوظ ہوگا؛ کوئی تصویر، گفتگو یا رابطے کی فہرست سرور پر نہیں جائے گی۔ نئے سیشن میں شناخت دوبارہ ملائیں۔</p>
+    <div class="friend-save">
+      <label class="field" for="friendDisplayName"><span data-contacts-i18n="friendName">دوست کا نام</span>
+        <input id="friendDisplayName" type="text" maxlength="40" autocomplete="off" placeholder="نام / Name / الاسم">
+      </label>
+      <button type="button" class="primary" id="saveVerifiedFriend" disabled data-contacts-i18n="saveFriend">✓ تصدیق شدہ دوست محفوظ کریں</button>
+    </div>
+    <label class="field" for="friendSearch"><span data-contacts-i18n="findFriend">دوست تلاش کریں</span>
+      <input id="friendSearch" type="search" maxlength="60" autocomplete="off" placeholder="نام یا SHA-256">
+    </label>
+    <div id="friendsList" class="friends-list" aria-live="polite"></div>
+    <p id="friendsStatus" class="scan-result" role="status" aria-live="polite" data-contacts-i18n="friendsEmpty">ابھی کوئی دوست شامل نہیں۔ پہلے درست QR یا دستخط شدہ شناخت کی تصدیق کریں۔</p>
+  </section>
+    <details id="callSetup" class="call-setup">
+    <summary data-i18n="callSetupSummary">📞 شناخت ملانے کے بعد: آڈیو / ویڈیو کال آزمائیں</summary>
+    <p class="easy-note" data-i18n="callSetupTruth">تجرباتی کال کے لیے دو فونوں میں ایک دعوت اور ایک جواب کا تبادلہ ضروری ہے۔ یہ ابھی WhatsApp کی طرح خودکار کال نہیں۔</p>
+    <button type="button" id="closeAll" class="outline danger" data-i18n="closeEverything">✕ کال بند اور عارضی مواد صاف کریں</button>
+  <section class="card" aria-labelledby="setTitle">
+    <div class="heading"><span class="number">1</span><h2 id="setTitle" data-i18n="step1">کال کی قسم اور نیٹ ورک منتخب کریں</h2></div>
+    <div class="mode-actions" role="group" aria-label="Call mode">
+      <label class="mode"><input type="radio" name="mode" value="audio" checked><span data-i18n="audioCall">📞 آڈیو کال</span></label>
+      <label class="mode"><input type="radio" name="mode" value="video"><span data-i18n="videoCall">📹 ویڈیو کال</span></label>
+    </div>
+    <label class="toggle"><input type="checkbox" id="enableStun"><span data-i18n="stunConsent">اختیاری انٹرنیٹ STUN فعال کریں — اس سرور کو IP/نیٹ ورک میٹاڈیٹا نظر آسکتا ہے؛ بغیر TURN بعض کالیں ناکام ہوں گی۔</span></label>
+    <label class="field"><span data-i18n="quality">ویڈیو معیار</span><select id="quality">
+      <option value="auto" data-i18n="autoQuality">خودکار · Auto</option>
+      <option value="saver" data-i18n="saverQuality">کم ڈیٹا · 360p</option>
+      <option value="hd" data-i18n="hdQuality">HD · 720p</option>
+      <option value="full" data-i18n="fullQuality">Full HD · 1080p ترجیح</option>
+    </select></label>
+  </section>
+  <section class="card guided-call" aria-labelledby="guidedCallTitle">
+    <div class="heading"><span class="number">2</span><h2 id="guidedCallTitle" data-i18n="guidedTitle">دعوت میسج کریں یا آیا ہوا جواب پیسٹ کریں</h2></div>
+    <p class="muted" data-i18n="guidedHelp">پہلے فون پر دعوت بنائیں اور شیئر کریں۔ دوسرے فون پر وہ پیسٹ کرکے آگے بڑھیں، پھر اس کا جواب پہلے فون کو بھیجیں۔ سسٹم خود پہچانے گا کہ دعوت ہے یا جواب۔</p>
+    <button type="button" class="primary" id="guidedOffer" data-i18n="guidedOffer">📩 دعوت بنائیں</button>
+    <div class="buttonrow">
+      <button type="button" class="outline" id="guidedShare" disabled data-i18n="guidedShare">↗ دعوت/جواب میسج میں بھیجیں</button>
+      <button type="button" class="outline" id="guidedCopy" disabled data-i18n="guidedCopy">📋 دعوت/جواب کاپی کریں</button>
+    </div>
+    <label class="field" for="guidedIncoming"><span data-i18n="guidedIncoming">دوسرے فون سے آیا ہوا میسج یہاں پیسٹ کریں</span>
+      <textarea id="guidedIncoming" rows="3" spellcheck="false" autocomplete="off" placeholder="Paste invite or reply / دعوت یا جواب"></textarea>
+    </label>
+    <button type="button" class="primary" id="guidedContinue" data-i18n="guidedContinue">✓ پیسٹ کیا ہوا میسج قبول کریں</button>
+    <p class="status" id="guidedStatus" role="status" aria-live="polite" data-i18n="guidedWaiting">دعوت بنانے یا دوسرے فون کا میسج پیسٹ کرنے سے آغاز کریں۔</p>
+    <p id="callDiagnostic" class="call-diagnostic" role="status" aria-live="polite" data-i18n="diagStart">QR شناخت مکمل کرنے سے کال نہیں ملتی۔ کال کے لیے فون A دعوت بھیجے، فون B جواب واپس بھیجے۔</p>
+    <p id="networkQualityHint" class="small" role="status" aria-live="polite" hidden></p>
+    <p class="small" data-i18n="guidedPrivacy">دعوت/جواب کے میسج میں آپ کے نیٹ ورک یا IP کی معلومات ہوسکتی ہیں۔ یہ صرف اپنے قابلِ اعتماد دوست کو بھیجیں؛ عوامی گروپ میں نہیں۔</p>
+    <p id="connectionStatus" class="status" role="status" aria-live="polite" data-i18n="idle">کوئی کال شروع نہیں ہوئی۔</p>
+  </section>
+  <details id="expertSetup" class="expert">
+    <summary data-i18n="expertSummary">صرف تکنیکی جانچ: تفصیلی دعوت/جواب کوڈ</summary>
+  <section class="card" aria-labelledby="exchangeTitle">
+    <div class="heading"><span class="number">2</span><h2 id="exchangeTitle" data-i18n="step2">ایک فون دعوت بنائے، دوسرا قبول کرے</h2></div>
+    <p class="muted" data-i18n="step2Help">فون A پر دعوت بنائیں، مکمل کوڈ فون B کو بھیجیں۔ فون B پر وہ پیسٹ کرکے جواب بنائیں۔ جواب واپس فون A میں پیسٹ کرکے کنکشن مکمل کریں۔</p>
+    <div class="buttonrow">
+      <button id="createOffer" type="button" class="primary" data-i18n="makeOffer">1 · دعوت بنائیں (فون A)</button>
+      <button id="acceptOffer" type="button" class="primary" data-i18n="acceptOffer">2 · دعوت قبول کریں (فون B)</button>
+      <button id="applyAnswer" type="button" class="primary" data-i18n="applyAnswer">3 · جواب لگائیں (فون A)</button>
+    </div>
+    <label class="field" for="remoteSignal"><span data-i18n="receivedCode">دوسرے فون سے ملا ہوا دعوت/جواب کوڈ</span>
+      <textarea id="remoteSignal" rows="4" spellcheck="false" autocomplete="off" placeholder="Paste session offer or answer / دعوت یا جواب پیسٹ کریں"></textarea>
+    </label>
+    <label class="field" for="localSignal"><span data-i18n="yourCode">آپ کا دعوت/جواب کوڈ — دوسرے فون کو بھیجیں</span>
+      <textarea id="localSignal" rows="4" spellcheck="false" readonly></textarea>
+    </label>
+    <div class="buttonrow">
+      <button id="copySignal" type="button" class="outline" data-i18n="copy">📋 کوڈ کاپی کریں</button>
+      <button id="shareSignal" type="button" class="outline" data-i18n="share">↗ کوڈ شیئر کریں</button>
+    </div>
+    <p class="small" data-i18n="codeWarning">کوڈ میں نیٹ ورک/IP معلومات ہوسکتی ہیں؛ صرف اسی فرد کو دیں جس پر آپ اعتماد کرتے ہیں۔ یہ مستقل ID یا QR اکاؤنٹ نہیں۔</p>
+  </section>
+  </details>
+  <section class="card" aria-labelledby="mediaTitle">
+    <div class="heading"><span class="number">3</span><h2 id="mediaTitle" data-i18n="liveCall">لائیو کال</h2></div>
+    <div class="videos">
+      <div class="videoBox"><video id="localVideo" autoplay muted playsinline aria-label="Local camera"></video><span data-i18n="myMedia">میرا کیمرہ</span></div>
+      <div class="videoBox"><video id="remoteVideo" autoplay playsinline aria-label="Remote peer"></video><span data-i18n="peerMedia">دوست کی آواز / تصویر</span></div>
+    </div>
+    <div class="buttonrow">
+      <button id="playRemote" type="button" class="outline" data-i18n="playRemote">🔊 آنے والی آواز چلائیں</button>
+      <button id="muteMic" type="button" class="outline" disabled data-i18n="mute">🎙️ مائک بند کریں</button>
+      <button id="toggleCamera" type="button" class="outline" disabled data-i18n="cameraOff">📷 کیمرہ بند کریں</button>
+      <button id="hangup" type="button" class="danger" data-i18n="hangup">📴 کال ختم کریں</button>
+    </div>
+    <p class="small" data-i18n="callTruth">کنکشن صرف تب کامیاب مانا جائے گا جب WebRTC کی حالت Connected ہو۔ مائک اور کیمرہ فعال ہونے پر فون کا اپنا نشان نظر آئے گا۔ کوئی کال ریکارڈنگ نہیں۔</p>
+  </section>
+  <section class="card" aria-labelledby="messageTitle">
+    <div class="heading"><span class="number">4</span><h2 id="messageTitle" data-i18n="oneView">ایک بار کھلنے والا پیغام</h2></div>
+    <p class="muted" data-i18n="messageHelp">صرف کال کے دوران براہِ راست DataChannel سے پیغام جائے گا۔ سرور پر آرکائیو نہیں ہوگا۔ عام پیغام ایک بار کھلنے کے بعد 5 منٹ میں ختم ہوگا۔ صرف بھیجنے والے کی اجازت سے وصول کنندہ عارضی پیغام کو ڈاؤن لوڈ کر سکے گا؛ اختیاری SHA-256 ثبوت صرف واضح انتخاب پر بنے گا۔</p>
+    <label class="field"><span data-i18n="compose">پیغام لکھیں</span><textarea id="sendText" rows="2" maxlength="2000" spellcheck="false"></textarea></label>
+    <label class="ezero-evidence-voice-consent" for="ezeroTextAllowDownload">
+      <input id="ezeroTextAllowDownload" type="checkbox">
+      وصول کرنے والا اس پیغام کو اپنے فون میں محفوظ کر سکے؟ / Allow text export / السماح بحفظ النص
+    </label>
+    <button id="sendMessage" class="primary" type="button" disabled data-i18n="send">محفوظ پیغام بھیجیں</button>
+    <p id="messageStatus" class="status" role="status" data-i18n="notConnected">میسج کے لیے دو فونوں کا کنکشن ضروری ہے۔</p>
+    <div class="incomingItem" id="incomingItem" hidden>
+      <p data-i18n="privatePending">ایک عارضی پیغام ملا ہے۔</p>
+      <button id="viewMessage" type="button" class="primary" data-i18n="viewOnce">ایک بار کھولیں</button>
+      <p id="seenMessage" class="messageBody" hidden></p>
+      <p id="messageTimer" class="small" role="status"></p>
+    </div>
+  </section>
+  <section class="card" aria-labelledby="nextTitle">
+    <h2 id="nextTitle" data-i18n="nextPhase">اگلے مراحل: مستقل ID، QR دوست اور گروپس</h2>
+    <p data-i18n="nextHelp">SHA-256 شناخت، دو طرفہ منظوری، خودکار رابطہ، وائس نوٹس، گروپس اور کمزور نیٹ ورک پر TURN سرور بعد کے مرحلے ہیں۔ انہیں یہاں فعال یا محفوظ ثابت نہیں کہا جا رہا۔</p>
+    <a class="back" href="./ezero_secure_connect_preview_v0_1.html#qr" data-i18n="identityLink">عارضی SHA-256 شناخت کی آزمائش</a>
+  </section>
+  </details>
+  </details>
+  </div><!-- Hidden legacy controls retained for JavaScript compatibility -->
+  <footer class="footer"><span data-i18n="footer">E-ZERO · عوامی خدمت، کوئی اشتہار نہیں، کوئی خفیہ ریکارڈنگ نہیں۔</span></footer>
+</main>
+</div>
+<div id="policyDialog" class="dialog" role="dialog" aria-modal="true" aria-labelledby="policyTitle" hidden>
+  <div class="dialogInner">
+    <div class="dialogTop"><h2 id="policyTitle" data-i18n="policyTitle">E-ZERO کی واضح رازداری پالیسی</h2><button id="closePolicy" type="button" class="outline" data-i18n="close">بند کریں</button></div>
+    <p data-i18n="policy1">ہم اشتہارات نہیں دکھاتے، رابطوں یا گفتگو کا ڈیٹا فروخت نہیں کرتے۔ ہمارا مقصد خدمت اور شفاف اخراجات ہیں، منافع نہیں۔</p>
+    <p data-i18n="policy2">اس تجرباتی صفحے میں کسی فون کال یا پیغام کا مرکزی آرکائیو نہیں بنایا جاتا۔ دونوں فون آپس میں WebRTC سے رابطہ کرتے ہیں، اور پیغام صرف عارضی میموری میں رہتا ہے۔</p>
+    <p data-i18n="policy3">ہم خودکار طور پر کال یا خفیہ پیغامات نہیں پڑھتے یا ریکارڈ کرتے۔ فون کی اجازت کے بغیر مائک/کیمرہ فعال نہیں ہوگا۔ جس شخص سے بات ہو وہ بیرونی ریکارڈنگ کرسکتا ہے؛ ہم اسے مکمل نہیں روک سکتے۔</p>
+    <p data-i18n="policy4">SDP دعوت میں IP/نیٹ ورک کی معلومات ہوسکتی ہیں۔ اختیاری STUN سرور بھی رابطے کی میٹاڈیٹا دیکھ سکتا ہے۔ ویب ہوسٹ اور رابطہ منتقل کرنے والی ایپس اپنے لاگز رکھ سکتی ہیں۔</p>
+    <p data-i18n="policy5">WebRTC راستے میں آواز/تصویر کو انکرپٹ کرتا ہے، لیکن اس تجربے میں مستقل شناخت کی آزاد تصدیق یا مکمل آڈٹ نہیں ہوا۔ حساس راز منتقل کرنے کے لیے اس ورژن پر انحصار نہ کریں۔</p>
+    <p data-i18n="policy6">پیغام کھلنے کا سافٹ ویئر اشارہ یہ ثبوت نہیں کہ انسان نے پڑھ لیا۔ پیغام عارضی میموری سے ہٹانے کا مطلب یہ نہیں کہ اسکرین شاٹس، دوسرے فون کی ریکارڈنگ یا OS بفر بھی یقینی طور پر مٹ گئے۔</p>
+    <p data-i18n="policy7">ابھی ادائیگی، سبسکرپشن یا اشتہار نہیں۔ مستقبل میں سرور خرچ ضروری ہوا تو صرف پیشگی واضح منظوری سے معمولی لاگت پوری کرنے کی پالیسی ہوگی۔</p>
+  </div>
+</div>
+</body>
+</html>
