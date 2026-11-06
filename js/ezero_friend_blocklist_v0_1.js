@@ -44,6 +44,9 @@ function block(fp){
    }
    // A block takes effect even if the separate local friend removal fails.
    removeLocal(fp);
+   const peer=window.EZERO_PEER_PROFILE_TRANSPORT;
+   if(peer?.connected()===true&&peer.peerFingerprint()===fp)
+     document.getElementById("hangup")?.click();
    emit(fp,"blocked");
    return true;
  }catch(_){return false;}
