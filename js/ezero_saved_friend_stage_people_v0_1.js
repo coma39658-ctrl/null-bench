@@ -8,9 +8,9 @@
   "use strict";
   const $=id=>document.getElementById(id);
   if(!$("ezeroPeopleHub")||!$("ezeroPeopleList"))return;
-  const CONTACTS="ezero_secure_connect_local_fingerprints_v0_1";
-  const HISTORY="ezero_local_completed_call_history_v0_1";
-  const CONSENT="ezero_local_call_history_consent_v0_1";
+  const CONTACTS="ezero_secure_connect_staging_fingerprints_v0_1";
+  const HISTORY="ezero_staging_local_completed_call_history_v0_1";
+  const CONSENT="ezero_staging_local_call_history_consent_v0_1";
   const TEN_MINUTES=600000, LIMIT=40;
   const validFP=s=>typeof s==="string"&&/^[a-f0-9]{64}$/.test(s);
   const nameOf=s=>typeof s==="string"?s.trim().replace(/\s+/g," ").slice(0,40):"";
