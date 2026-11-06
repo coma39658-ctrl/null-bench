@@ -240,8 +240,7 @@ body.communication-page.ezero-one-lab:not(.ezero-call-connected) #modernHangup{
   display:none!important
 }
 /* Pending QR call can always be cancelled, but never show giant red banner. */
-body.communication-page.ezero-one-lab:not(.ezero-call-connected)
-:has(#ezeroOneQrBox:not([hidden])) .ezero-unified-card #modernHangup{
+body.communication-page.ezero-one-lab:not(.ezero-call-connected):has(#ezeroOneQrBox:not([hidden])) .ezero-unified-card #modernHangup{
   display:block!important;
   width:100%!important;min-height:42px!important;max-height:54px!important;
   padding:8px 10px!important;margin:5px 0!important;
@@ -284,4 +283,44 @@ body.communication-page.ezero-one-lab #ezeroIncomingRingToggle[hidden]{display:n
   body.communication-page.ezero-one-lab .ezero-unified-card *::after{
     animation:none!important;transition:none!important;scroll-behavior:auto!important
   }
+}
+
+/* Connected peer and contact area stays visually part of the app, not a
+   stack of separate advertisement flyers. Preserve visible identities. */
+body.communication-page.ezero-one-lab .ezero-unified-card .ezero-peer-profile,
+body.communication-page.ezero-one-lab .ezero-unified-card .ezero-person-card,
+body.communication-page.ezero-one-lab .ezero-unified-card .incomingItem,
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroVoiceDraft,
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroVoiceReceived{
+  background:#113d2e!important;color:#e9fff1!important;
+  border:1px solid #7ecb9c48!important;box-shadow:none!important;
+  border-radius:14px!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroPeerDisplayName,
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroPeopleHub>summary,
+body.communication-page.ezero-one-lab .ezero-unified-card .ezero-photo-heading{
+  color:#e9fff4!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroPeerTrustNote,
+body.communication-page.ezero-one-lab .ezero-unified-card #ezeroPeerSessionId{
+  color:#b7d9c6!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card .ezero-people-tabs{
+  border:1px solid #7cc99a47!important;background:#09291f!important;
+  box-shadow:none!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card .ezero-people-tabs button{
+  color:#d6f7e2!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card .ezero-people-tabs button[aria-pressed=true]{
+  color:white!important;background:#187e51!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #modernChatPanel::before{
+  opacity:.11!important
+}
+body.communication-page.ezero-one-lab .ezero-unified-card #modernChatPanel .modern-voice-actions button,
+body.communication-page.ezero-one-lab .ezero-unified-card .modern-voice-actions button,
+body.communication-page.ezero-one-lab .ezero-unified-card #sendMessage{
+  border:1px solid #4fb37c!important;background:#157548!important;color:white!important;
+  border-radius:12px!important;box-shadow:none!important
 }
