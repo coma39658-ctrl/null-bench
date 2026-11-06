@@ -590,6 +590,10 @@
     if(peer!==p){localStream.getTracks().forEach(x=>x.stop());return;}
     $("localVideo").srcObject=localStream;
     localStream.getTracks().forEach(track=>p.addTrack(track,localStream));
+    // Optional sender-side canvas lens: it changes only the outgoing video
+    // sender and local preview. Original media and audio remain authoritative.
+    // A failing or unsupported lens must never abort a verified call.
+    try{window.EZERO_BEAUTY_FILTER?.attach(localStream,p,$("localVideo"));}catch(_){}
     micMuted=false;cameraMuted=false;
     $("muteMic").disabled=false;$("toggleCamera").disabled=localStream.getVideoTracks().length===0;
     role="peer";
@@ -646,6 +650,9 @@
           $("messageTimer").textContent="";
           $("messageStatus").textContent=t("arrived");
           unreadExpiry=setTimeout(discardIncoming,600000);
+          // Fire only for a syntactically validated message received over a
+          // real DataChannel; never include private text in notification data.
+          document.dispatchEvent(new CustomEvent("ezero:private-text-received"));
         }
       }catch(_){}
     };
@@ -813,6 +820,7 @@
     stopScanner();
     document.dispatchEvent(new CustomEvent("ezero:channel-state",{detail:{connected:false}}));
     if(channel){channel.onmessage=channel.onopen=channel.onclose=null;try{channel.close();}catch(_){}channel=null;}
+    try{window.EZERO_BEAUTY_FILTER?.detach();}catch(_){}
     if(peer){peer.ontrack=peer.ondatachannel=peer.onconnectionstatechange=null;try{peer.close();}catch(_){}peer=null;}
     if(localStream){localStream.getTracks().forEach(x=>x.stop());localStream=null;}
     remoteStream=null;
