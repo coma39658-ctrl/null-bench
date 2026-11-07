@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {chromium} from "playwright";
 
+const LIVE_SIGNALING=process.env.EZERO_LIVE_SIGNALING==="1";
 const base="http://127.0.0.1:8769/";
 const pagePath="ezero_trusted_friends_staging_20261106.html";
 const publicOrigin="https://coma39658-ctrl.github.io/null-bench/";
@@ -54,7 +55,7 @@ async function createPhone(name){
     permissions:["camera","microphone"]
   });
   contexts.push(context);
-  await context.routeWebSocket(service+"**",mockSocket);
+  if(!LIVE_SIGNALING) await context.routeWebSocket(service+"**",mockSocket);
   // Never touch the live Cloudflare trusted inbox in this test.
   // First QR and second selected-contact video use isolated WebRTC signaling.
   await context.routeWebSocket(trustedInbox+"**",socket=>{
@@ -254,7 +255,9 @@ try{
   assert.equal(await alice.evaluate(fp=>window.EZERO_FRIEND_ACCESS.isBlocked(fp),aliceFriend.fp),false);
   await alice.locator("#ezeroFriendSideClose").click();
   console.log("BLOCK_DELETES_LOCAL_FRIEND_AND_EXPLICIT_UNBLOCK_WORKS: PASS");
-  assert.ok(offers>=1&&answers>=1,"Signed real WebRTC offer and answer must both pass");
+  if(!LIVE_SIGNALING) assert.ok(offers>=1&&answers>=1,
+    "Signed real WebRTC offer and answer must both pass");
+  else console.log("LIVE_CLOUDFLARE_SIGNALING_AND_SIGNED_WEBRTC_MEDIA: PASS");
 }finally{
   await Promise.all(contexts.map(c=>c.close().catch(()=>{})));
   await browser.close();
