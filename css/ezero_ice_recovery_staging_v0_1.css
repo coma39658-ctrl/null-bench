@@ -1,0 +1,55 @@
+/* Staging-only: connection recovery appears exactly at the failed call. */
+.communication-page.ezero-one-lab #ezeroFrontNetworkMode{
+  margin:10px 0 12px!important; padding:10px 12px!important;
+  background:#dffff0!important;color:#0a492f!important;
+  border:1px solid #6dbf90!important;border-radius:13px!important;
+  line-height:1.6!important;font-size:13px!important;box-sizing:border-box;
+  max-width:100%;min-width:0;
+}
+.communication-page.ezero-one-lab #ezeroFrontNetworkTitle{
+  display:block;font-size:14px;color:#0a422d;font-weight:850;
+}
+.communication-page.ezero-one-lab .ezero-front-stun-checkbox{
+  display:flex!important;align-items:flex-start;gap:9px;
+  color:#104b34!important;font-size:13px!important;
+  background:none!important;border:0!important;
+  padding:7px 0!important;max-width:100%!important;
+}
+.communication-page.ezero-one-lab .ezero-front-stun-checkbox input{
+  width:21px!important;height:21px!important;flex:0 0 auto;
+  accent-color:#09633e!important;cursor:pointer;
+}
+.communication-page.ezero-one-lab #ezeroFrontNetworkNote{
+  color:#4b524b!important;font-size:12px!important;margin:2px 0 0!important;
+}
+.communication-page.ezero-one-lab #ezeroInlineIceRecovery{
+  display:block;max-width:100%;width:100%;min-width:0;
+  box-sizing:border-box;border-radius:13px;
+  background:#fff6ed!important;color:#6a3323!important;
+  border:1px solid #d9a480!important;
+  padding:11px!important;margin:10px 0!important;
+  overflow-wrap:anywhere;font-size:13px!important;
+  line-height:1.7!important;
+}
+.communication-page.ezero-one-lab #ezeroInlineIceRecovery[hidden]{
+  display:none!important;
+}
+.communication-page.ezero-one-lab #ezeroInlineIceRecovery strong{
+  display:block;font-size:15px;line-height:1.55;color:#7c302b;
+}
+.communication-page.ezero-one-lab #ezeroInlineIceRecovery p{
+  margin:8px 0;color:#613b34;
+}
+.communication-page.ezero-one-lab #ezeroIceSafeSummary{
+  direction:ltr;text-align:left;font:12px/1.65 ui-monospace,monospace;
+  background:#fffef8!important;padding:7px 9px;
+  border-radius:9px;border:1px solid #e6d2bf;
+  overflow-wrap:anywhere;
+}
+.communication-page.ezero-one-lab #ezeroIceNewInvite{
+  display:block;min-height:44px!important;width:100%;
+  background:#0e6644!important;color:#f5fff8!important;
+  border:1px solid #6dbc8a!important;border-radius:11px!important;
+  font-weight:900!important;white-space:normal!important;
+  padding:8px 12px!important;
+}
