@@ -12,6 +12,8 @@ on:
       - 'js/ezero_saved_friend_stage_engine_v0_1.js'
       - 'tests/test_ezero_secure_app_mutual_friend_profile_20261106.mjs'
       - 'scripts/build_ezero_secure_app_render_staging_20261107.py'
+      - 'js/ezero_front_qr_hub_v0_1.js'
+      - 'css/ezero_front_qr_hub_v0_1.css'
       - '.github/workflows/ezero_secure_app_mutual_friends_20261106.yml'
 permissions:
   contents: read
@@ -31,6 +33,9 @@ jobs:
         run: |
           set -euo pipefail
           node --check js/ezero_profile_first_verified_friends_v0_1.js
+          node --check js/ezero_front_qr_hub_v0_1.js
+          grep -Fq 'ezero_front_qr_hub_v0_1.js' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'ezero_front_qr_hub_v0_1.css' ezero_trusted_friends_staging_20261106.html
           node --check js/ezero_friend_blocklist_v0_1.js
           node --check js/ezero_contact_first_call_dock_v0_1.js
           node --check js/ezero_saved_friend_stage_people_v0_1.js
