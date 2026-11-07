@@ -173,6 +173,13 @@ try{
   assert.equal(await hub.isVisible(),true,"Each phone must display Wi-Fi-style QR up front");
   assert.equal(await alice.locator("#ezeroFrontAudioQr").isVisible(),true);
   assert.equal(await alice.locator("#ezeroOneScanInvite").isVisible(),true);
+  assert.equal(await alice.locator("#modernCallPanel").evaluate(el=>
+    el.closest("#ezeroInlineCallResult")!==null),true,
+    "Actual call video/audio must stay directly below the tapped call tile");
+  assert.equal(await alice.locator("#modernConnectionStatus").evaluate(el=>
+    el.closest("#ezeroInlineCallResult")!==null),true,
+    "Connection status and hangup must be displayed at the call button");
+
   assert.equal(await alice.locator("#ezeroOneQrBox").isHidden(),true,
     "An unsigned and unrequested QR must never look like a ready call invite");
   assert.equal(await alice.evaluate(()=>{
@@ -219,6 +226,15 @@ try{
     el.closest("#ezeroFrontQrHub")!==null),true);
   assert.equal(await alice.locator("#ezeroAutoShare").isEnabled(),true);
   assert.equal(await alice.locator("#ezeroOneCopyInvite").isEnabled(),true);
+  if(!REMOTE_RENDER_STAGE){
+    assert.equal(await alice.locator("#ezeroOneQrBox").evaluate(el=>
+      el.nextElementSibling?.id==="ezeroFrontQrShareSlot"),true,
+      "QR image and QR sharing must appear in the same inline option");
+    assert.equal(await alice.locator("#ezeroFrontQrShareSlot").evaluate(el=>
+      el.nextElementSibling?.id==="ezeroAutoStatus"),true,
+      "Cloudflare status/failures must remain next to the QR, not far below");
+  }
+
   if(!REMOTE_RENDER_STAGE){
     assert.equal(await alice.locator("#ezeroOneQrBox").evaluate(el=>
       el.parentElement?.id==="ezeroFrontQrRenderSlot"),true);
