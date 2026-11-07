@@ -66,6 +66,9 @@ jobs:
           test -f dist_ezero_secure_app_two_phone_staging/assets/ezero_secure_chat_cosmic_pattern_v0_1.svg
           ! test -d dist_ezero_secure_app_two_phone_staging/.github
           ! test -d dist_ezero_secure_app_two_phone_staging/scripts
+          grep -Fq 'ezero_front_qr_hub_v0_1.js?build=' dist_ezero_secure_app_two_phone_staging/ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'ezero_front_qr_hub_v0_1.css?build=' dist_ezero_secure_app_two_phone_staging/ezero_trusted_friends_staging_20261106.html
+          echo 'RENDER_ASSET_VERSIONED_ON_EVERY_BUILD: PASS'
           echo 'ISOLATED_RENDER_PREVIEW_BUNDLE: PASS'
       - name: Install isolated Chromium
         shell: bash
@@ -143,7 +146,7 @@ jobs:
           EZERO_REMOTE_RENDER_SHA: '2a8703d8d5a0007c0effc2b2467fe3415aa2b014'
         run: |
           set -euo pipefail
-          URL="https://ezero-secure-app-two-phone-test-20261107.onrender.com/ezero_trusted_friends_staging_20261106.html"
+          URL="https://ezero-secure-app-two-phone-test-20261107.onrender.com/ezero_trusted_friends_staging_20261106.html?stageBuild=2a8703d8d5a0"
           curl --fail --silent --show-error --location --retry 2 --max-time 25 "$URL" -o /tmp/ezero-render-live-preview.html
           python3 - <<'PY'
           from pathlib import Path
