@@ -319,7 +319,13 @@ try{
   assert.equal(await scanPhone.locator("#ezeroOneImageScan").isVisible(),true);
   assert.equal(await scanPhone.evaluate(()=>typeof window.jsQR),"function",
     "Self-hosted jsQR fallback must load without external CDN access");
-  await scanPhone.locator("#ezeroOneImageScanInput").setInputFiles({
+  // Exercise the actual visible Gallery button and OS file picker, not just
+  // programmatic file input manipulation.
+  const [chooser]=await Promise.all([
+    scanPhone.waitForEvent("filechooser"),
+    scanPhone.locator("#ezeroOneImageScan").click()
+  ]);
+  await chooser.setFiles({
     name:"call-invitation.png",mimeType:"image/png",buffer:qrPng
   });
   try{
@@ -331,6 +337,8 @@ try{
       messageKind:document.getElementById("ezeroOneScanStatus")?.dataset.kind||"",
       jsQRLoaded:typeof window.jsQR==="function",
       imagePickerPresent:!!document.getElementById("ezeroOneImageScanInput"),
+      filePickerPhase:document.getElementById("ezeroOneImageScanInput")?.dataset.scanPhase||"",
+      pickerSelectionCount:document.getElementById("ezeroOneImageScanInput")?.files?.length||0,
       hashPresent:!!location.hash,
       cameraRequested:window.__mediaCalls.length>0
     }));
