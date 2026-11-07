@@ -1,0 +1,52 @@
+name: E-ZERO Live Cloudflare Two-Browser Signaling Smoke Gate
+on:
+  push:
+    branches: [ezero-profile-first-saved-friends-20261106]
+    paths:
+      - 'tests/test_ezero_secure_app_mutual_friend_profile_20261106.mjs'
+      - '.github/workflows/ezero_live_cloudflare_two_browser_20261107.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ezero-cloudflare-qa-staging
+  cancel-in-progress: false
+jobs:
+  live-two-browser-transport:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify only deliberate staging live signaling
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check tests/test_ezero_secure_app_mutual_friend_profile_20261106.mjs
+          grep -Fq 'EZERO_LIVE_SIGNALING' tests/test_ezero_secure_app_mutual_friend_profile_20261106.mjs
+          grep -Fq 'routeWebSocket(trustedInbox' tests/test_ezero_secure_app_mutual_friend_profile_20261106.mjs
+          grep -Fq 'wss://ezero-browser-signaling-pilot.coma39658.workers.dev/v1/rooms/' tests/test_ezero_secure_app_mutual_friend_profile_20261106.mjs
+      - name: Install temporary headless Chromium
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts playwright@1.57.0 ws@8.18.3
+          npx playwright install --with-deps chromium --only-shell
+      - name: Two isolated ephemeral browser identities via REAL staging Cloudflare WSS
+        shell: bash
+        env:
+          EZERO_LIVE_SIGNALING: '1'
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8769 --bind 127.0.0.1 >/tmp/ezero-live-cloudflare-browser-qa.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8769/ezero_trusted_friends_staging_20261106.html >/dev/null && break
+            sleep 1
+          done
+          timeout 180s node tests/test_ezero_secure_app_mutual_friend_profile_20261106.mjs
