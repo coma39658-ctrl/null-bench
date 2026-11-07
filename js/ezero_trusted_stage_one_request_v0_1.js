@@ -279,6 +279,10 @@
     const scale=Math.min(1,limit/Math.max(width,height));
     const w=Math.max(1,Math.round(width*scale)),h=Math.max(1,Math.round(height*scale));
     canvas.width=w;canvas.height=h;
+    // Imported PNG/SVG QR may be transparent. Composite onto WHITE before
+    // decoding so alpha-zero pixels do not become false black QR modules.
+    ctx.fillStyle="#ffffff";
+    ctx.fillRect(0,0,w,h);
     ctx.drawImage(element,0,0,w,h);
     const data=ctx.getImageData(0,0,w,h);
     return window.jsQR(data.data,w,h,{inversionAttempts:"attemptBoth"})?.data||"";
