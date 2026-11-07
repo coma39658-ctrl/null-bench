@@ -171,7 +171,8 @@ qr.addEventListener("click",()=>{
   showSide(false);selected=null;paint();
   // This is a safe fallback for first-time friends; scanning still
   // requires the other phone's QR and explicit permission.
-  $("ezeroOneJoinPanel")?.scrollIntoView({block:"start",behavior:"auto"});
+  if(window.EZERO_INSTANT_ACTIONS?.open)window.EZERO_INSTANT_ACTIONS.open("scan");
+  else $("ezeroOneJoinPanel")?.scrollIntoView({block:"start",behavior:"auto"});
   $("ezeroOneScanInvite")?.focus();
 });
 // A top Audio/Video tile is routed to the SELECTED saved friend.
