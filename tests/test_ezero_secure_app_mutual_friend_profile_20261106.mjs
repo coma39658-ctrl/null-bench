@@ -329,8 +329,12 @@ try{
     name:"call-invitation.png",mimeType:"image/png",buffer:qrPng
   });
   try{
-    await scanPhone.waitForFunction(()=>location.hash.startsWith("#room="),
-      undefined,{timeout:18000});
+    // Successful signed QR handling CONSUMES and ERASES the fragment
+    // immediately, so test the actual incoming consent prompt instead of
+    // wrongly waiting for the secret token to stay in the address bar.
+    await scanPhone.locator("#ezeroAutoIncoming").waitFor({
+      state:"visible",timeout:18000
+    });
   }catch(error){
     const state=await scanPhone.evaluate(()=>({
       status:document.getElementById("ezeroOneScanStatus")?.textContent?.slice(0,180),
@@ -345,7 +349,9 @@ try{
     console.error("GALLERY_SCAN_SAFE_DEBUG",JSON.stringify(state));
     throw error;
   }
-  await scanPhone.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:12000});
+  assert.equal(await scanPhone.evaluate(()=>location.hash),"",
+    "Correctly received invite must erase its secret URL fragment");
+  assert.equal(await scanPhone.locator("#ezeroAutoIncoming").isVisible(),true);
   assert.equal(await scanPhone.evaluate(()=>window.__mediaCalls.length),0,
     "Scanning an image never auto-accepts a call or opens mic/camera");
   console.log("SELF_HOSTED_GALLERY_QR_SCAN_SAME_ORIGIN_SIGNED_INVITE: PASS");
