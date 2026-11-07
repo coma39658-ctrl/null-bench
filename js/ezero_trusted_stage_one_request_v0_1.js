@@ -317,19 +317,25 @@
       info("imageInvalid",true);return;
     }
     stopScan();
-    const url=URL.createObjectURL(file);
+    // Respect img-src 'self' data: CSP. Blob URLs for images are blocked by
+    // our strong policy; FileReader's local data URL does not leave the phone.
     const img=new Image();
     try{
+      const dataUrl=await new Promise((resolve,reject)=>{
+        const reader=new FileReader();
+        reader.onload=()=>resolve(String(reader.result||""));
+        reader.onerror=()=>reject(Error("BAD_IMAGE_FILE"));
+        reader.readAsDataURL(file);
+      });
       await new Promise((resolve,reject)=>{
         img.onload=resolve;img.onerror=()=>reject(Error("BAD_IMAGE"));
-        img.src=url;
+        img.src=dataUrl;
       });
       // Maximum decoded canvas size bounds memory use on low-end phones.
       const raw=await decodeQr(img);
       if(raw)handleScanResult(raw);
       else info("imageNoQr",true);
     }catch(_){info("imageNoQr",true);}
-    finally{URL.revokeObjectURL(url);}
   });
   async function scan(){
     const start=$("ezeroOneScanInvite");
