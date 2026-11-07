@@ -76,4 +76,10 @@ jobs:
             curl -sf http://127.0.0.1:8769/ezero_trusted_friends_staging_20261106.html >/dev/null && break
             sleep 1
           done
-          timeout 180s node tests/test_ezero_secure_app_mutual_friend_profile_20261106.mjs
+          # Two independent attempts: either failure is a real NO-GO signal.
+          # Never hide intermittent network/profile loss by retrying to green.
+          for attempt in 1 2; do
+            echo "LIVE_CLOUDFLARE_ATTEMPT_${attempt}: START"
+            timeout 180s node tests/test_ezero_secure_app_mutual_friend_profile_20261106.mjs
+            echo "LIVE_CLOUDFLARE_ATTEMPT_${attempt}: PASS"
+          done
