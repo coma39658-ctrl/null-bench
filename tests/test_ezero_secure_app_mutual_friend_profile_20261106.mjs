@@ -187,6 +187,39 @@ try{
 
   assert.equal(await alice.locator("#ezeroOneQrBox").isHidden(),true,
     "An unsigned and unrequested QR must never look like a ready call invite");
+  // ICE recovery must be inline and opt-in: tests cannot activate STUN,
+  // cameras, microphones, a new room, or any hidden TURN credential.
+  assert.equal(await alice.locator("#ezeroAutoStun").isVisible(),true,
+    "The real optional STUN checkbox must be visible at the front QR controls");
+  assert.equal(await alice.locator("#ezeroAutoStun").evaluate(el=>
+    el.closest("#ezeroFrontNetworkMode")!==null),true,
+    "Reuse the original authoritative ICE checkbox, not a disconnected copy");
+  assert.equal(await alice.locator("#ezeroAutoStun").isChecked(),false,
+    "Third-party STUN must remain OFF until the user opts in");
+  await alice.evaluate(()=>{
+    document.dispatchEvent(new CustomEvent("ezero:ice-diagnostic",{
+      detail:{state:"failed",gathering:"complete",
+        counts:{host:1,srflx:0,prflx:0,relay:0}}
+    }));
+    document.dispatchEvent(new CustomEvent("ezero:call-status",{
+      detail:{stage:"iceNoRoute"}
+    }));
+  });
+  assert.equal(await alice.locator("#ezeroInlineIceRecovery").isVisible(),true,
+    "Failure and the next action must appear beside the pressed call");
+  const safeDiagnostics=await alice.locator("#ezeroIceSafeSummary").innerText();
+  assert.match(safeDiagnostics,/ICE failed.*host 1.*srflx 0.*relay 0/);
+  assert.doesNotMatch(safeDiagnostics,/\b(?:192\.168\.|10\.0\.|172\.16\.)/);
+  assert.equal(await alice.evaluate(()=>window.__mediaCalls.length),0);
+  await alice.locator("#ezeroAutoStun").check();
+  assert.equal(await alice.locator("#ezeroAutoStun").isChecked(),true);
+  assert.equal(await alice.evaluate(()=>window.__mediaCalls.length),0,
+    "Opting into STUN must not auto-request the mic or camera");
+  await alice.locator("#ezeroAutoStun").uncheck();
+  await alice.evaluate(()=>document.dispatchEvent(
+    new CustomEvent("ezero:call-status",{detail:{stage:"iceChecking"}})));
+  assert.equal(await alice.locator("#ezeroInlineIceRecovery").isHidden(),true);
+  console.log("ICE_FAILURE_IN_PLACE_EXPLICIT_STUN_CONSENT_IP_FREE_DIAGNOSTIC: PASS");
   assert.equal(await alice.evaluate(()=>{
     const qr=document.getElementById("ezeroFrontQrHub");
     const dock=document.getElementById("ezeroContactFirstDock");
