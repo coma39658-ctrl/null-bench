@@ -128,6 +128,38 @@ try{
   await a.locator("#hangup").click();
   await b.waitForFunction(()=>!window.EZERO_VOICE_TRANSPORT?.connected());
   console.log("INSTANT_CALL_HANGUP_NO_REGRESSION: PASS");
+  // Repeat with a genuine audio-only call and exercise the existing
+  // consent-gated temporary voice-note path across two encrypted peers.
+  const previousInvite=invite;
+  await a.locator('[data-instant="audio"]').click();
+  await a.waitForFunction(prev=>Boolean(window.__invite)&&window.__invite!==prev,previousInvite);
+  const audioUrl=new URL(await a.evaluate(()=>window.__invite));
+  assert.equal(audioUrl.searchParams.get("mode"),"audio");
+  audioUrl.searchParams.set("quick","1");
+  await b.goto(audioUrl.href,{waitUntil:"domcontentloaded"});
+  await b.locator("#ezeroAutoIncoming").waitFor({state:"visible"});
+  await b.locator("#ezeroAutoAccept").click();
+  await Promise.all([a,b].map(p=>p.waitForFunction(
+    ()=>window.EZERO_VOICE_TRANSPORT?.connected()===true)));
+  const activeMode=await a.evaluate(()=>document.querySelector('input[name="mode"]:checked')?.value);
+  assert.equal(activeMode,"audio");
+  await a.locator(".ezero-instant-close").click();
+  await a.locator('[data-instant="voice"]').click();
+  await a.locator("#ezeroVoiceRecord").click();
+  await a.waitForTimeout(1100);
+  await a.locator("#ezeroVoiceStop").click();
+  await a.waitForFunction(()=>!document.getElementById("ezeroVoiceDraft").hidden);
+  assert.equal(await a.locator("#ezeroVoiceSend").isEnabled(),true,
+    "Recorded voice note should be sendable on verified channel");
+  await a.locator("#ezeroVoiceSend").click();
+  await b.waitForFunction(()=>!document.getElementById("ezeroVoiceReceived").hidden);
+  await b.locator(".ezero-instant-close").click();
+  await b.locator('[data-instant="voice"]').click();
+  assert.equal(await b.locator("#ezeroVoiceOpenIncoming").isVisible(),true);
+  await b.locator("#ezeroVoiceOpenIncoming").click();
+  assert.equal(await b.locator("#ezeroVoiceIncomingAudio").isVisible(),true);
+  console.log("INSTANT_AUDIO_AND_CONSENTED_VOICE_NOTE_DELIVERY_PLAYBACK_UI: PASS");
+
 }finally{
   await Promise.all(contexts.map(c=>c.close().catch(()=>{})));
   await browser.close();
