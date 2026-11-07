@@ -146,6 +146,17 @@ notice = (
     'نام اور تصویر صرف آپ کی اجازت کے بعد verified WebRTC رابطے پر شیئر ہوتی ہیں۔'
     '</span></aside>')
 call_html = call_html[:body.end()] + "\n" + notice + call_html[body.end():]
+
+# Isolated Render preview only: every build receives distinct JS/CSS URLs.
+# A second phone must not silently reuse an older cached script/stylesheet
+# when the HTML itself has changed. GitHub Pages assets stay untouched.
+def asset_version(match: re.Match[str]) -> str:
+    prefix, url = match.group(1), match.group(2)
+    plain = url.split("?", 1)[0]
+    if plain.startswith("./") and plain.endswith((".js", ".css")):
+        return prefix + plain + "?build=" + short + '"'
+    return match.group(0)
+call_html = re.sub(r'((?:src|href)=")(\./[^"]+)"', asset_version, call_html)
 (OUT / CALL).write_text(call_html, encoding="utf-8")
 
 privacy_html = privacy_html.replace(
