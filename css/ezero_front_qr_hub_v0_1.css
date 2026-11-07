@@ -250,3 +250,23 @@ body.ezero-one-lab #ezeroFrontQrRenderSlot #ezeroFrontQrShareSlot{
   grid-template-columns:1fr;
  }
 }
+
+/* Camera/gallery actions remain inside the pressed Scan QR tile. */
+.communication-page.ezero-one-lab #ezeroFrontScannerSlot .ezero-qr-image-scan,
+.communication-page.ezero-one-lab #ezeroFrontScannerSlot .ezero-qr-same-version{
+  display:block;width:100%;min-height:42px;box-sizing:border-box;
+  border:1px solid #70d99f!important;border-radius:11px!important;
+  margin:7px 0 0!important;padding:8px 9px!important;
+  background:#e0ffec!important;color:#07432c!important;
+  white-space:normal!important;line-height:1.5!important;
+  font-size:12px!important;font-weight:800!important;
+  cursor:pointer;touch-action:manipulation;
+}
+.communication-page.ezero-one-lab #ezeroFrontScannerSlot .ezero-qr-same-version{
+  background:#0f5940!important;color:#f4fff9!important;
+  border-color:#a2f3c1!important;
+}
+.communication-page.ezero-one-lab #ezeroOneImageScanInput[hidden]{display:none!important}
+.communication-page.ezero-one-lab #ezeroFrontScannerSlot #ezeroOneScanStatus{
+  overflow-wrap:anywhere;
+}
