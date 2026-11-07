@@ -1,7 +1,7 @@
 name: E-ZERO Isolated Render-Origin Signaling Worker Staging
 on:
-  pull_request:
-    branches: [main]
+  push:
+    branches: [ezero-profile-first-saved-friends-20261106]
     paths:
       - 'signaling/cloudflare/wrangler.render-two-phone-test-20261107.jsonc'
       - '.github/workflows/ezero_render_origin_signaling_worker_20261107.yml'
@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   deploy-isolated-render-origin-worker:
-    if: ${{ github.event.pull_request.head.repo.full_name == 'coma39658-ctrl/null-bench' && github.head_ref == 'ezero-profile-first-saved-friends-20261106' }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/ezero-profile-first-saved-friends-20261106' }}
     runs-on: ubuntu-22.04
     timeout-minutes: 15
     env:
