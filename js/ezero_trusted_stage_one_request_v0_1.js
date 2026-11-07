@@ -115,7 +115,17 @@
     if(typeof candidate!=="string"||!safeInvite(candidate)){
       info("inviteFail",true);return;
     }
-    link=candidate;qrBox.hidden=false;copyBtn.disabled=false;
+    link=candidate;
+    // For a selected SAVED friend the signed invitation is delivered over
+    // their separately authorized inbox. Do not show an unrelated QR image
+    // when the user pressed Call; keep the live status at that Call button.
+    if(window.EZERO_TRUSTED_SAVED_CALL?.isPending?.()===true){
+      qrBox.hidden=true;copyBtn.disabled=true;
+      qrTarget.replaceChildren();
+      $("ezeroAutoShare").disabled=true;
+      return;
+    }
+    qrBox.hidden=false;copyBtn.disabled=false;
     qrTarget.replaceChildren();
     let rendered=false;
     if(typeof window.qrcode==="function"){
