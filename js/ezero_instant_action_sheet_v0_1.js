@@ -85,6 +85,13 @@ function messages(){
 }
 function open(kind){
   if(!["audio","video","my","scan","voice","chat","incoming"].includes(kind))return;
+  // A saved friend needs explicit selection before a targeted call. Open the
+  // existing friends list instead of creating an unrelated QR room.
+  if((kind==="audio"||kind==="video") &&
+     $("ezeroContactAudio")?.disabled &&
+     $("ezeroFriendSideList")?.querySelector("[data-friend-fp]")){
+    $("ezeroFriendListToggle")?.click();return;
+  }
   returnFocus=document.activeElement;
   mode=kind;
   title.textContent=t(kind==="incoming"?"incoming":kind);
@@ -134,6 +141,7 @@ $("language")?.addEventListener("change",()=>{
     m==="voice"?"voiceHelp":m==="chat"?"chatHelp":m==="incoming"?"incomingHelp":"callHelp");
     if(m==="my")qrMirror();else messages();}
 });
+window.EZERO_INSTANT_ACTIONS=Object.freeze({open});
 if(!$("ezeroAutoIncoming")?.hidden)open("incoming");
 document.body.classList.add("ezero-quick-enabled");
 })();
