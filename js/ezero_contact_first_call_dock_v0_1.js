@@ -306,7 +306,7 @@ function startFreshQr(kind){
   freshModes.hidden=true;
   fresh.setAttribute("aria-expanded","false");
   message("");
-  callInvitation?.scrollIntoView({block:"nearest",behavior:"auto"});
+  // Keep position fixed; the QR hub presents the same signed invitation in place.
 }
 freshAudio.addEventListener("click",()=>startFreshQr("audio"));
 freshVideo.addEventListener("click",()=>startFreshQr("video"));
@@ -322,7 +322,7 @@ qr.addEventListener("click",()=>{
   freshModes.hidden=false;
   fresh.setAttribute("aria-expanded","true");
   message("freshChoose");
-  fresh.scrollIntoView({block:"nearest",behavior:"auto"});
+  // No automatic scroll to a second hidden QR menu.
 });
 // A top Audio/Video tile is routed to the SELECTED saved friend.
 // With saved friends but no selection, show the list instead of
