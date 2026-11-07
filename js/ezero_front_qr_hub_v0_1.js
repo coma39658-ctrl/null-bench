@@ -80,10 +80,12 @@
   callText.id="ezeroInlineCallText";
   callResult.append(callText);
   featureGrid?.querySelector('[data-modern-select="video"]')?.insertAdjacentElement("afterend",callResult);
+  const voiceButton=featureGrid?.querySelector('[data-modern-select="voice"]');
   const chatButton=featureGrid?.querySelector('[data-modern-select="chat"]');
   const voicePanel=$("modernVoicePanel"),chatPanel=$("modernChatPanel");
-  if(voicePanel&&chatButton)chatButton.insertAdjacentElement("afterend",voicePanel);
-  if(chatPanel&&voicePanel)voicePanel.insertAdjacentElement("afterend",chatPanel);
+  // Each companion feature opens DIRECTLY after the button pressed.
+  if(voicePanel&&voiceButton)voiceButton.insertAdjacentElement("afterend",voicePanel);
+  if(chatPanel&&chatButton)chatButton.insertAdjacentElement("afterend",chatPanel);
   // Profile editor belongs next to 'Complete name/photo', not inside the
   // far-away optional-details section. Existing save/consent logic is reused.
   const profileGate=$("ezeroProfileFirstGate"),editor=$("ezeroProfileEditor");
@@ -96,8 +98,9 @@
     }else if(where==="call"){
       callResult.append(qrBox,shareSlot);
     }else{
-      qrRenderSlot.append(qrBox);
-      $("ezeroFrontQrScanMedia").insertAdjacentElement("afterend",shareSlot);
+      // A personal QR and its share/copy actions belong to the MY QR tile,
+      // never below the other phone's scanning camera.
+      qrRenderSlot.append(qrBox,shareSlot);
     }
   }
   function callNote(key){
