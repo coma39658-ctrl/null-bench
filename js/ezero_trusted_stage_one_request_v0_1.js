@@ -136,6 +136,7 @@
         const svg=qrTarget.querySelector("svg");
         if(svg){
           svg.setAttribute("aria-label","E-ZERO single-request call invite");
+          svg.setAttribute("shape-rendering","crispEdges");
           rendered=true;
         }
       }catch(_){/* Keep the share/copy fallback visible and report failure. */}
