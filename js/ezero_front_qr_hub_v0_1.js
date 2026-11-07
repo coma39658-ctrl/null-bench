@@ -68,12 +68,17 @@
   let fromQrButton=false,qrWhere="own";
   const videoSlot=$("ezeroFrontVideoSlot"),qrRenderSlot=$("ezeroFrontQrRenderSlot"),shareSlot=$("ezeroFrontQrShareSlot");
   const featureGrid=unified.querySelector(".modern-feature-grid");
+  const scannerSlot=$("ezeroFrontScannerSlot");
+  scannerSlot.append($("ezeroFrontQrScanMedia"),$("ezeroFrontQrIncomingSlot"));
   const callResult=document.createElement("div");
   callResult.id="ezeroInlineCallResult";
   callResult.className="ezero-inline-feature-result";
   callResult.hidden=true;
   callResult.setAttribute("role","status");
   callResult.setAttribute("aria-live","polite");
+  const callText=document.createElement("p");
+  callText.id="ezeroInlineCallText";
+  callResult.append(callText);
   featureGrid?.querySelector('[data-modern-select="video"]')?.insertAdjacentElement("afterend",callResult);
   const chatButton=featureGrid?.querySelector('[data-modern-select="chat"]');
   const voicePanel=$("modernVoicePanel"),chatPanel=$("modernChatPanel");
@@ -102,7 +107,7 @@
       ar:{calling:"جارٍ الاتصال الآمن؛ يلزم قبول الصديق.",first:"للمكالمة الأولى يظهر QR هنا ويجب قبول الدعوة.",connected:"✓ اتصل الهاتفان بأمان.",failed:"تعذر الاتصال؛ تحقق من الشبكة والأذونات.",ended:"انتهت المكالمة."}
     };
     callResult.hidden=false;
-    callResult.textContent=(phrase[document.documentElement.lang]||phrase.ur)[key];
+    callText.textContent=(phrase[document.documentElement.lang]||phrase.ur)[key];
   }
   const label = k => (translations[document.documentElement.lang]||translations.ur)[k];
   function setStatus(key){message.textContent=label(key);message.dataset.state=key;}
@@ -190,7 +195,10 @@
   featureGrid?.addEventListener("click",e=>{
     const button=e.target.closest('[data-modern-select="audio"],[data-modern-select="video"]');
     if(!button||fromQrButton)return;
-    const hasFriends=JSON.parse(localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1")||"[]").length>0;
+    let hasFriends=false;
+    try{hasFriends=Array.isArray(JSON.parse(localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1")||"[]"))&&
+      JSON.parse(localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1")||"[]").length>0;}
+    catch(_){hasFriends=false;}
     if(!hasFriends)placeQr("call");
     callNote(hasFriends?"calling":"first");
   },true);
@@ -217,9 +225,14 @@
     else if(["micDenied","iceNoRoute","signalInvalid","fingerprintMismatch","failed"].includes(e.detail?.stage))callNote("failed");
   });
   scannerButton.addEventListener("click",()=>{
-    // Camera and Stop remain beside their Scan control; never scroll away.
-    $("ezeroFrontQrScanMedia").hidden=false;
+    // The scanner expands its own tile, directly beneath its Scan control.
+    scannerSlot.classList.add("ezero-scanner-active");
   });
+  scannerStop.addEventListener("click",()=>scannerSlot.classList.remove("ezero-scanner-active"));
+  const scannerObserver=new MutationObserver(()=>{
+    if(scannerVideo.hidden)scannerSlot.classList.remove("ezero-scanner-active");
+  });
+  scannerObserver.observe(scannerVideo,{attributes:true,attributeFilter:["hidden"]});
   $("modernHangup")?.addEventListener("click",()=>{
     imageShare.disabled=true;message.textContent="";
     own.setAttribute("aria-expanded","false");
