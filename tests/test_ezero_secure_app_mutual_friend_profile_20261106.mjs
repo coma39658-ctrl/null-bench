@@ -264,6 +264,19 @@ try{
   // Capture the actual on-screen WHITE QR tile, not the transparent SVG alone:
   // otherwise transparent pixels are interpreted as black by image decoders.
   const qrPng=await alice.locator("#ezeroOneQr").screenshot({type:"png"});
+  const qrSafeMeta=await alice.locator("#ezeroOneQr").evaluate(el=>{
+    const svg=el.querySelector("svg"),bounds=el.getBoundingClientRect();
+    const svgBounds=svg?.getBoundingClientRect();
+    return {
+      tileWidth:Math.round(bounds.width),tileHeight:Math.round(bounds.height),
+      svgWidth:Math.round(svgBounds?.width||0),
+      svgHeight:Math.round(svgBounds?.height||0),
+      rawSvgWidth:svg?.getAttribute("width")||"",
+      rawSvgHeight:svg?.getAttribute("height")||"",
+      transparent:window.getComputedStyle(el).backgroundColor==="rgba(0, 0, 0, 0)"
+    };
+  });
+  console.log("QR_IMAGE_SAFE_DIMENSIONS",JSON.stringify({...qrSafeMeta,bytes:qrPng.byteLength}));
   const scanPhone=await createPhone("QR_IMAGE_FALLBACK_PHONE");
   await scanPhone.evaluate(()=>Object.defineProperty(window,"BarcodeDetector",{
     configurable:true,value:undefined
