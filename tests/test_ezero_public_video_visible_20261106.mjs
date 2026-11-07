@@ -92,12 +92,41 @@ async function createPhone(name){
   return page;
 }
 
+const profilePhoto=Buffer.from("iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAGUlEQVR4nGPkrzBhIAUwkaR6VMOohiGlAQBvQwDbVY2zjwAAAABJRU5ErkJggg==","base64");
+async function completeFirstTimeProfile(page,name){
+  assert.equal(await page.locator("#ezeroProfileMissingReminder").isVisible(),true);
+  await page.locator("#ezeroProfileFirstOpen").click();
+  await page.locator("#ezeroMyName").fill(name);
+  await page.locator("#ezeroMyPhoto").setInputFiles({
+    name:"ci-profile.png",mimeType:"image/png",buffer:profilePhoto
+  });
+  await page.waitForFunction(()=>document.getElementById("ezeroMyAvatar")?.hidden===false,
+    undefined,{timeout:12000});
+  await page.locator("#ezeroShareProfile").check();
+  await page.locator("#ezeroSaveProfile").click();
+  await page.waitForFunction(()=>document.getElementById("ezeroProfileFirstStatus")?.dataset.state==="ready",
+    undefined,{timeout:15000});
+  assert.equal(await page.locator("#ezeroProfileMissingReminder").isHidden(),true);
+  const identityMatches=await page.evaluate(async()=>{
+    const fingerprint=document.getElementById("myFingerprint")?.textContent.trim();
+    const saved=await window.EZERO_DEVICE_IDENTITY_STORE.read();
+    return /^[a-f0-9]{64}$/.test(fingerprint||"")&&saved?.fingerprint===fingerprint;
+  });
+  assert.equal(identityMatches,true,
+    "The profile must be bound to the saved device identity before a video invite");
+}
+
 try{
   const caller=await createPhone("CALLER");
   assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),0,
     "Opening public site must not access the camera or microphone");
   assert.equal(await caller.locator("#modernCallPanel").isVisible(),false,
     "No video preview before user starts a call");
+  // First-time user cannot call until their name, photo and durable key are saved.
+  await caller.locator('[data-modern-select="video"]').click();
+  assert.equal(await caller.evaluate(()=>window.__oneInvite),"");
+  assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),0);
+  await completeFirstTimeProfile(caller,"First Phone");
   await caller.locator('[data-modern-select="video"]').click();
   await caller.waitForFunction(()=>!!window.__oneInvite,{timeout:30000});
   const invite=await caller.evaluate(()=>window.__oneInvite);
@@ -118,6 +147,10 @@ try{
   assert.equal(await callee.evaluate(()=>window.__mediaCalls.length),0,
     "Receiving a video QR must not open camera until explicit acceptance");
   assert.equal(await callee.locator("#modernCallPanel").isVisible(),false);
+  // Incoming Accept is similarly blocked until the recipient has consented.
+  await callee.locator("#ezeroAutoAccept").click();
+  assert.equal(await callee.evaluate(()=>window.__mediaCalls.length),0);
+  await completeFirstTimeProfile(callee,"Second Phone");
   await callee.locator("#ezeroAutoAccept").click();
   await Promise.all([caller,callee].map(page=>page.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===true,{timeout:45000})));

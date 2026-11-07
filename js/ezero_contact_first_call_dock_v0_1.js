@@ -19,7 +19,10 @@ const copy={
     selected:"منتخب دوست",pick:"پہلے فہرست سے دوست منتخب کریں۔",
     pending:"درخواست شروع ہو گئی؛ دوسرا فون قبول کرے گا تو رابطہ بنے گا۔",
     busy:"پچھلی کال یا درخواست ختم کریں۔",
-    noService:"محفوظ دوستوں کی کال سروس دستیاب نہیں؛ QR استعمال کریں۔"},
+    noService:"محفوظ دوستوں کی کال سروس دستیاب نہیں؛ QR استعمال کریں۔",
+    deleteFriend:"🗑️ دوست حذف کریں",blockFriend:"⛔ بلاک کریں",unblockFriend:"بلاک ختم کریں",blockedFriends:"بلاک کردہ شناختیں",blockedEmpty:"کوئی بلاک کردہ دوست نہیں",savedAction:"فہرست اپ ڈیٹ ہوگئی",actionError:"اس فون کی مقامی فہرست اپ ڈیٹ نہیں ہوئی",
+    peerName:"دوست کا اپنا پروفائل نام",rename:"✎ اپنا رکھا نام",nickname:"اپنا نام رکھیں",saveName:"✓ نام محفوظ کریں",cancelName:"منسوخ",
+    fresh:"🔁 نئی کال کا QR بنائیں",freshChoose:"آڈیو یا ویڈیو QR منتخب کریں",freshAudio:"📞 نیا آڈیو QR",freshVideo:"📹 نیا ویڈیو QR",freshBusy:"جاری کال ختم کرنے کے بعد نیا QR بنائیں۔"},
   en:{head:"👥 Choose a friend",hint:"Select a friend first; then call that friend by audio or video.",
     select:"Friends list",hide:"Close list",search:"Search friends",
     empty:"No saved friends yet. Pair the first friend using QR.",
@@ -28,7 +31,10 @@ const copy={
     selected:"Selected friend",pick:"Choose a friend from the list first.",
     pending:"Calling request started; your friend still needs to accept.",
     busy:"Finish the existing call or request first.",
-    noService:"Saved-friend service unavailable; use QR instead."},
+    noService:"Saved-friend service unavailable; use QR instead.",
+    deleteFriend:"🗑️ Delete friend",blockFriend:"⛔ Block",unblockFriend:"Unblock",blockedFriends:"Blocked identities",blockedEmpty:"No blocked friends",savedAction:"Friends list updated",actionError:"Unable to update local friends storage",
+    peerName:"Friend's shared profile name",rename:"✎ My nickname",nickname:"Choose nickname",saveName:"✓ Save nickname",cancelName:"Cancel",
+    fresh:"🔁 Create new call QR",freshChoose:"Choose an audio or video invitation",freshAudio:"📞 New audio QR",freshVideo:"📹 New video QR",freshBusy:"Hang up the current call before creating a new QR."},
   ar:{head:"👥 اختر صديقًا",hint:"اختر صديقًا أولاً، ثم اضغط الاتصال الصوتي أو المرئي بجواره.",
     select:"قائمة الأصدقاء",hide:"إغلاق القائمة",search:"ابحث عن صديق",
     empty:"لا يوجد أصدقاء محفوظون. استخدم QR للاتصال الأول.",
@@ -37,7 +43,10 @@ const copy={
     selected:"الصديق المختار",pick:"اختر صديقًا من القائمة أولاً.",
     pending:"بدأ طلب المكالمة؛ يلزم قبول الطرف الآخر.",
     busy:"أنهِ المكالمة أو الطلب الجاري أولاً.",
-    noService:"خدمة الأصدقاء غير متاحة؛ استخدم QR."}
+    noService:"خدمة الأصدقاء غير متاحة؛ استخدم QR.",
+    deleteFriend:"🗑️ حذف الصديق",blockFriend:"⛔ حظر",unblockFriend:"إلغاء الحظر",blockedFriends:"الهويات المحظورة",blockedEmpty:"لا توجد هويات محظورة",savedAction:"تم تحديث القائمة",actionError:"تعذر تحديث قائمة الأصدقاء المحلية",
+    peerName:"اسم ملف الصديق",rename:"✎ الاسم لدي",nickname:"لقب محلي",saveName:"✓ حفظ الاسم",cancelName:"إلغاء",
+    fresh:"🔁 إنشاء QR لمكالمة جديدة",freshChoose:"اختر دعوة صوتية أو فيديو",freshAudio:"📞 QR صوتي جديد",freshVideo:"📹 QR فيديو جديد",freshBusy:"أنهِ المكالمة الحالية قبل إنشاء QR جديد."}
 };
 const tr=k=>(copy[document.documentElement.lang]||copy.ur)[k];
 function contacts(){
@@ -49,7 +58,12 @@ function contacts(){
       if(!x||!FP.test(x.fp)||typeof x.name!=="string"||
          !x.name.trim()||x.name.length>40||seen.has(x.fp))return false;
       seen.add(x.fp);return true;
-    }).map(x=>({fp:x.fp,name:x.name.trim()}));
+    }).map(x=>({fp:x.fp,name:x.name.trim(),
+      profileName:typeof x.profileName==="string"?x.profileName.trim().slice(0,40):"",
+      nickname:x.nickname===true,
+      avatar:typeof x.avatar==="string"&&x.avatar.length<=12000&&
+        /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(x.avatar)?
+          x.avatar:""}));
   }catch(_){return[];}
 }
 let selected=null,open=false;
@@ -72,11 +86,36 @@ const selectedName=el("strong","ezeroSelectedFriendName");
 const selectedNote=el("small","ezeroSelectedFriendNote");
 identity.append(selectedName,selectedNote);
 selectedCard.append(initial,identity);
+const editName=el("button","ezeroSelectedFriendRename","ezero-contact-name-edit");
+editName.type="button";editName.hidden=true;
+const nameEditPanel=el("div","ezeroContactNameEdit","ezero-contact-name-edit-panel");
+nameEditPanel.hidden=true;
+const nameInput=el("input","ezeroContactNickname");
+nameInput.type="text";nameInput.maxLength=40;nameInput.autocomplete="off";
+const saveNickname=el("button","ezeroContactNicknameSave");
+saveNickname.type="button";
+const cancelNickname=el("button","ezeroContactNicknameCancel");
+cancelNickname.type="button";
+nameEditPanel.append(nameInput,saveNickname,cancelNickname);
+const contactManagement=el("div","ezeroContactManagement","ezero-contact-management");
+const removeFriend=el("button","ezeroDeleteSelectedFriend");
+const blockFriend=el("button","ezeroBlockSelectedFriend");
+removeFriend.type=blockFriend.type="button";removeFriend.hidden=blockFriend.hidden=true;
+contactManagement.append(removeFriend,blockFriend);
 const actions=el("div","ezeroContactCallActions","ezero-contact-call-actions");
 const audio=el("button","ezeroContactAudio"),video=el("button","ezeroContactVideo");
 audio.type=video.type="button";
 audio.dataset.contactCall="audio";video.dataset.contactCall="video";
 actions.append(audio,video);
+const fresh=el("button","ezeroFreshQrToggle","ezero-fresh-qr-toggle");
+fresh.type="button";fresh.setAttribute("aria-controls","ezeroFreshQrModes");
+fresh.setAttribute("aria-expanded","false");
+const freshModes=el("div","ezeroFreshQrModes","ezero-fresh-qr-modes");
+freshModes.hidden=true;
+const freshAudio=el("button","ezeroFreshQrAudio");
+const freshVideo=el("button","ezeroFreshQrVideo");
+freshAudio.type=freshVideo.type="button";
+freshModes.append(freshAudio,freshVideo);
 const notice=el("p","ezeroContactFirstStatus","ezero-contact-first-status");
 notice.setAttribute("role","status");notice.setAttribute("aria-live","polite");
 const backdrop=el("button","ezeroFriendBackdrop","ezero-friend-backdrop");
@@ -97,8 +136,16 @@ const receive=el("button","ezeroFriendEnableIncoming");
 receive.type="button";
 const qr=el("button","ezeroFriendNewQr");
 qr.type="button";
-side.append(sideHead,search,list,receive,qr);
-root.append(bar,selectedCard,actions,notice,backdrop,side);
+const blockedHeading=el("strong","ezeroBlockedHeading");
+const blockedList=el("div","ezeroBlockedIdentities");
+side.append(sideHead,search,list,receive,qr,blockedHeading,blockedList);
+root.append(bar,selectedCard,editName,nameEditPanel,contactManagement,actions,fresh,freshModes,notice,backdrop,side);
+// Keep the actual invitation QR beside the friend's actions, not under the
+// scanner and not halfway down a long settings page. All existing listeners
+// refer to these nodes by id; only their visual parent changes.
+const callInvitation=$("ezeroAutoPilot");
+if(callInvitation)root.append(callInvitation);
+let explicitQrIntent=null;
 function message(key){notice.textContent=tr(key);}
 function showSide(yes){
   open=Boolean(yes);side.hidden=!open;backdrop.hidden=!open;
@@ -109,10 +156,18 @@ toggle.addEventListener("click",()=>showSide(!open));
 close.addEventListener("click",()=>showSide(false));
 backdrop.addEventListener("click",()=>showSide(false));
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&open)showSide(false);});
+function friendAvatar(holder,friend){
+  holder.replaceChildren();
+  if(friend?.avatar){
+    const pic=document.createElement("img");
+    pic.src=friend.avatar;pic.alt="";pic.loading="lazy";
+    holder.append(pic);
+  }else holder.textContent=friend?.name?.charAt(0).toLocaleUpperCase()||"?";
+}
 const pickFriend=fp=>{
   const person=contacts().find(x=>x.fp===fp);
   if(!person)return;
-  selected=fp;message("");paint();showSide(false);
+  selected=fp;message("");nameEditPanel.hidden=true;paint();showSide(false);
 };
 function paint(){
   const people=contacts();
@@ -121,15 +176,45 @@ function paint(){
   heading.textContent=tr("head");toggle.textContent=tr("select");
   sideTitle.textContent=tr("select");close.textContent="✕";
   search.placeholder=tr("search");search.setAttribute("aria-label",tr("search"));
-  initial.textContent=person?.name.charAt(0).toLocaleUpperCase()||"?";
+  friendAvatar(initial,person);
   selectedName.textContent=person?.name||tr("unnamed");
-  selectedNote.textContent=person?tr("saved"):tr("hint");
+  selectedNote.textContent=person?
+    (person.profileName&&person.profileName!==person.name?
+      tr("peerName")+": "+person.profileName+" · ":"")+tr("saved"):
+    tr("hint");
+  editName.hidden=!person;
+  removeFriend.hidden=blockFriend.hidden=!person;
+  editName.textContent=tr("rename");
+  removeFriend.textContent=tr("deleteFriend");
+  blockFriend.textContent=tr("blockFriend");
+  nameInput.placeholder=tr("nickname");
+  saveNickname.textContent=tr("saveName");
+  cancelNickname.textContent=tr("cancelName");
   audio.textContent=tr("audio");video.textContent=tr("video");
   receive.textContent=tr("receive");qr.textContent=tr("qr");
+  fresh.textContent=tr("fresh");
+  freshAudio.textContent=tr("freshAudio");
+  freshVideo.textContent=tr("freshVideo");
   audio.disabled=video.disabled=!person;
   toggle.setAttribute("aria-label",tr("select"));
+  blockedHeading.textContent=tr("blockedFriends");
+  blockedList.replaceChildren();
+  const blocked=window.EZERO_FRIEND_ACCESS?.listBlocked?.()||[];
+  if(!blocked.length){const empty=el("small");empty.textContent=tr("blockedEmpty");blockedList.append(empty);}
+  for(const fp of blocked){
+    const row=el("div",null,"ezero-blocked-row");
+    const hint=el("code");hint.textContent=fp.slice(0,10)+"…"+fp.slice(-7);
+    const undo=el("button");undo.type="button";undo.textContent=tr("unblockFriend");
+    undo.addEventListener("click",()=>{
+      if(window.EZERO_FRIEND_ACCESS?.unblock?.(fp))paint();
+      else message("actionError");
+    });
+    row.append(hint,undo);blockedList.append(row);
+  }
   const query=search.value.trim().toLocaleLowerCase();
-  const found=people.filter(x=>x.name.toLocaleLowerCase().includes(query));
+  const found=people.filter(x=>
+    x.name.toLocaleLowerCase().includes(query)||
+    x.profileName.toLocaleLowerCase().includes(query));
   list.replaceChildren();
   if(!found.length){
     const p=el("p");p.className="ezero-contact-empty";
@@ -141,9 +226,16 @@ function paint(){
     button.setAttribute("aria-selected",String(friend.fp===selected));
     button.dataset.friendFp=friend.fp;
     const avatar=el("span",null,"ezero-friend-monogram");
-    avatar.textContent=friend.name.charAt(0).toLocaleUpperCase();
-    const name=el("span");name.textContent=friend.name;
-    button.append(avatar,name);button.addEventListener("click",()=>pickFriend(friend.fp));
+    friendAvatar(avatar,friend);
+    const names=el("span");names.className="ezero-friend-names";
+    const name=el("strong");name.textContent=friend.name;
+    names.append(name);
+    if(friend.profileName&&friend.profileName!==friend.name){
+      const own=el("small");own.textContent=tr("peerName")+": "+friend.profileName;
+      names.append(own);
+    }
+    button.append(avatar,names);
+    button.addEventListener("click",()=>pickFriend(friend.fp));
     list.append(button);
   }
 }
@@ -158,8 +250,66 @@ function contactCall(kind){
   const feature=featureGrid.querySelector('[data-modern-select="'+kind+'"]');
   if(feature)feature.click();
 }
+editName.addEventListener("click",()=>{
+  const friend=contacts().find(x=>x.fp===selected);if(!friend)return;
+  nameInput.value=friend.name;nameEditPanel.hidden=false;
+  nameInput.focus();
+});
+cancelNickname.addEventListener("click",()=>{nameEditPanel.hidden=true;});
+saveNickname.addEventListener("click",()=>{
+  const nick=nameInput.value.trim().replace(/\s+/g," ").slice(0,40);
+  if(!nick||!selected)return;
+  try{
+    const list=JSON.parse(localStorage.getItem(KEY)||"[]");
+    if(!Array.isArray(list)||!list.some(x=>x.fp===selected))return;
+    const next=list.map(x=>x.fp===selected?{...x,name:nick,nickname:true}:x);
+    localStorage.setItem(KEY,JSON.stringify(next));
+    nameEditPanel.hidden=true;paint();
+  }catch(_){message("noService");}
+});
+function updateSelectedAccess(action){
+  if(!selected)return;
+  const fp=selected;
+  const api=window.EZERO_FRIEND_ACCESS;
+  if(!api?.[action]?.(fp)){message("actionError");return;}
+  selected=null;nameEditPanel.hidden=true;
+  paint();message("savedAction");
+}
+removeFriend.addEventListener("click",()=>updateSelectedAccess("remove"));
+blockFriend.addEventListener("click",()=>updateSelectedAccess("block"));
 audio.addEventListener("click",()=>contactCall("audio"));
 video.addEventListener("click",()=>contactCall("video"));
+fresh.addEventListener("click",()=>{
+  const expanded=freshModes.hidden;
+  freshModes.hidden=!expanded;
+  fresh.setAttribute("aria-expanded",String(expanded));
+  if(expanded)message("freshChoose");
+});
+function startFreshQr(kind){
+  const feature=featureGrid.querySelector('[data-modern-select="'+kind+'"]');
+  if(!feature||!["audio","video"].includes(kind))return;
+  if(window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true)
+    return message("freshBusy");
+  showSide(false);
+  // A fresh QR is an explicit alternative to calling a saved friend. It
+  // must never route through the old selected-contact preparation/receipt.
+  window.EZERO_TRUSTED_SAVED_CALL?.cancelForQr?.();
+  document.dispatchEvent(new CustomEvent("ezero:explicit-fresh-call-qr",{
+    detail:{kind}
+  }));
+  explicitQrIntent=kind;
+  if(callInvitation)callInvitation.hidden=false;
+  // Dispatch one synchronous deliberate click to the existing guarded
+  // camera/microphone + signed WebRTC signaling engine.
+  try{feature.click();}
+  finally{explicitQrIntent=null;}
+  freshModes.hidden=true;
+  fresh.setAttribute("aria-expanded","false");
+  message("");
+  // Keep position fixed; the QR hub presents the same signed invitation in place.
+}
+freshAudio.addEventListener("click",()=>startFreshQr("audio"));
+freshVideo.addEventListener("click",()=>startFreshQr("video"));
 search.addEventListener("input",paint);
 receive.addEventListener("click",()=>{
   showSide(false);
@@ -168,11 +318,11 @@ receive.addEventListener("click",()=>{
   else message("noService");
 });
 qr.addEventListener("click",()=>{
-  showSide(false);selected=null;paint();
-  // This is a safe fallback for first-time friends; scanning still
-  // requires the other phone's QR and explicit permission.
-  $("ezeroOneJoinPanel")?.scrollIntoView({block:"start",behavior:"auto"});
-  $("ezeroOneScanInvite")?.focus();
+  showSide(false);
+  freshModes.hidden=false;
+  fresh.setAttribute("aria-expanded","true");
+  message("freshChoose");
+  // No automatic scroll to a second hidden QR menu.
 });
 // A top Audio/Video tile is routed to the SELECTED saved friend.
 // With saved friends but no selection, show the list instead of
@@ -181,6 +331,9 @@ qr.addEventListener("click",()=>{
 featureGrid.addEventListener("click",e=>{
   const target=e.target.closest?.('[data-modern-select="audio"],[data-modern-select="video"]');
   if(!target||!featureGrid.contains(target))return;
+  // A deliberate fresh QR must bypass selected-contact routing even when
+  // several trusted friends are already saved. It is still user-initiated.
+  if(explicitQrIntent===target.dataset.modernSelect)return;
   const api=window.EZERO_TRUSTED_SAVED_CALL;
   if(api?.isPending?.())return; // already prepared by nearby contact button
   if(!contacts().length)return; // first QR pairing still works
@@ -194,6 +347,7 @@ featureGrid.addEventListener("click",e=>{
 },true);
 document.addEventListener("ezero:friend-local-saved",paint);
 document.addEventListener("ezero:friend-local-removed",paint);
+document.addEventListener("ezero:friend-access-updated",paint);
 window.addEventListener("storage",e=>{if(e.key===KEY)paint();});
 $("language")?.addEventListener("change",paint);
 document.addEventListener("ezero:call-status",e=>{

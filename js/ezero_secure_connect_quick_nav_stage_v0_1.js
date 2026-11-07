@@ -13,11 +13,14 @@
     if(!profile)return;
     // Profile is nested in a collapsed optional-details region. Open both
     // levels before scrolling so the first phone tap actually reveals it.
-    const parent=profile.closest(".ezero-unified-options");
-    if(parent)parent.open=true;
-    profile.open=true;
-    goTo(profile);
-    profile.querySelector("summary")?.focus?.({preventScroll:true});
+    if(typeof window.EZERO_PROFILE_OPEN_NEAR==="function")
+      window.EZERO_PROFILE_OPEN_NEAR($("ezeroQuickProfile"));
+    else {
+      const parent=profile.closest(".ezero-unified-options");
+      if(parent)parent.open=true;
+      profile.open=true;
+    }
+    // No page jump to a different card. The profile opens by the header.
   });
   $("ezeroQuickPaste")?.addEventListener("click",()=>{
     if(!setup||!fallback)return;
