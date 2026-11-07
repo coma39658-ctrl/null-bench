@@ -278,6 +278,25 @@ try{
     };
   });
   console.log("QR_IMAGE_SAFE_DIMENSIONS",JSON.stringify({...qrSafeMeta,bytes:qrPng.byteLength}));
+  const sourceScan=await alice.locator("#ezeroOneQr svg").evaluate(async svg=>{
+    const xml=new XMLSerializer().serializeToString(svg);
+    const image=new Image();
+    const src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(xml);
+    await new Promise((resolve,reject)=>{
+      image.onload=resolve;image.onerror=()=>reject(new Error("SVG_DATA_FAIL"));
+      image.src=src;
+    });
+    const c=document.createElement("canvas");c.width=1080;c.height=1080;
+    const ctx=c.getContext("2d",{willReadFrequently:true});
+    ctx.fillStyle="#fff";ctx.fillRect(0,0,1080,1080);
+    ctx.drawImage(image,0,0,1080,1080);
+    const data=ctx.getImageData(0,0,1080,1080);
+    const decoded=window.jsQR?.(data.data,1080,1080,{inversionAttempts:"attemptBoth"});
+    return {validSource:!!decoded,sameInvite:decoded?.data===window.__oneInvite,
+      imageReady:image.complete,imageWidth:image.width,imageHeight:image.height};
+  });
+  console.log("QR_SOURCE_SAFE_DECODE",JSON.stringify(sourceScan));
+
   const scanPhone=await createPhone("QR_IMAGE_FALLBACK_PHONE");
   await scanPhone.evaluate(()=>Object.defineProperty(window,"BarcodeDetector",{
     configurable:true,value:undefined
