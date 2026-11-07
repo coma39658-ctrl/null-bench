@@ -53,6 +53,9 @@
   const validAvatar=v=>typeof v==="string"&&v.length<=12000&&(v===""||PHOTO.test(v));
   let profile={name:"",avatar:"",share:false};
   let draftAvatar="",connected=false,lastRemote=null,lastFingerprint="",pendingRemote=null,sentThisSession=false;
+  // WebRTC can report an open DataChannel before the peer's final connected
+  // event. Bounded post-handshake sends recover this race without polling.
+  let profileHandoffTimers=[];
   function read(){
     try{
       const p=JSON.parse(localStorage.getItem(KEY)||"null");
@@ -90,7 +93,12 @@
       showAvatar("ezeroHeaderAvatar","ezeroHeaderInitial",profile.name,profile.avatar);
     updateLocalHeaderLabel();
   }
+  function cancelProfileHandoff(){
+    for(const timer of profileHandoffTimers)clearTimeout(timer);
+    profileHandoffTimers=[];
+  }
   function resetRemote(){
+    cancelProfileHandoff();
     connected=false;lastRemote=null;lastFingerprint="";pendingRemote=null;sentThisSession=false;
     $("ezeroPeerProfileCard").hidden=true;
     $("ezeroPeerDisplayName").textContent=t("noProfile");
@@ -117,9 +125,28 @@
   function sendProfile(force=false){
     const transport=window.EZERO_PEER_PROFILE_TRANSPORT;
     if((sentThisSession&&!force)||!profile.share||!profile.name||!transport?.connected())return false;
-    const good=transport.send(profile.name,profile.avatar);
+    let good=false;
+    try{good=transport.send(profile.name,profile.avatar)===true;}
+    catch(_){good=false;}
     if(good){sentThisSession=true;labelStatus("sharing");}
     return good;
+  }
+  function reconcileProfileHandoff(){
+    cancelProfileHandoff();
+    const transport=window.EZERO_PEER_PROFILE_TRANSPORT;
+    // Retransmit only a consented name/photo to the SAME signed, live peer.
+    if(!profile.share||!profile.name||!transport?.connected())return;
+    const boundPeer=transport.peerFingerprint();
+    if(!/^[a-f0-9]{64}$/.test(boundPeer))return;
+    for(const delay of [200,900]){
+      const timer=setTimeout(()=>{
+        if(!profile.share||!profile.name)return;
+        const live=window.EZERO_PEER_PROFILE_TRANSPORT;
+        if(live?.connected()===true&&live.peerFingerprint()===boundPeer)
+          sendProfile(true);
+      },delay);
+      profileHandoffTimers.push(timer);
+    }
   }
   profile=read();updateLocal();
   $("ezeroMyName").addEventListener("input",()=>{
@@ -198,6 +225,7 @@
       }));
       labelStatus(profile.share?"saved":"notSharing");
       sendProfile(true);
+      reconcileProfileHandoff();
     }catch(_){labelStatus("storeError");}
     finally{save.disabled=false;}
   });
@@ -216,11 +244,11 @@
   }
   $("language").addEventListener("change",localize);
   document.addEventListener("ezero:channel-state",e=>{
-    if(e.detail?.connected){showPeerConnection();sendProfile();}
+    if(e.detail?.connected){showPeerConnection();sendProfile();reconcileProfileHandoff();}
     else resetRemote();
   });
   document.addEventListener("ezero:call-status",e=>{
-    if(e.detail?.stage==="connected"){showPeerConnection();sendProfile();}
+    if(e.detail?.stage==="connected"){showPeerConnection();sendProfile();reconcileProfileHandoff();}
     else if(["offline","iceNoRoute","idle"].includes(e.detail?.stage))resetRemote();
   });
   document.addEventListener("ezero:profile-received",e=>{
