@@ -200,3 +200,18 @@
   .communication-page.ezero-one-lab #ezeroFrontScannerSlot.ezero-scanner-active{grid-column:1/-1}
   .communication-page.ezero-one-lab #ezeroFrontQrShareSlot{grid-template-columns:1fr}
 }
+
+
+/* Live call controls use the same immediate expansion area as Call buttons. */
+.communication-page.ezero-one-lab .modern-feature-grid #modernCallPanel{
+  grid-column:1/-1;min-width:0;width:100%;box-sizing:border-box;
+  margin:0!important;padding:11px!important;
+  border:1px solid #85c9a6!important;border-radius:14px!important;
+  background:#e9fff2!important;color:#10432d!important;
+}
+.communication-page.ezero-one-lab .modern-feature-grid #modernCallPanel[hidden]{display:none!important}
+.communication-page.ezero-one-lab .modern-feature-grid #modernCallPanel #modernHangup{
+  display:block;max-width:100%;width:100%;margin:9px 0 0;
+  background:#a3292a!important;color:white!important;
+  border-radius:10px!important;min-height:45px;
+}
