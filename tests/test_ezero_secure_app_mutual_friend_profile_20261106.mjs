@@ -272,8 +272,21 @@ try{
   await scanPhone.locator("#ezeroOneImageScanInput").setInputFiles({
     name:"call-invitation.png",mimeType:"image/png",buffer:qrPng
   });
-  await scanPhone.waitForFunction(()=>location.hash.startsWith("#room="),
-    undefined,{timeout:20000});
+  try{
+    await scanPhone.waitForFunction(()=>location.hash.startsWith("#room="),
+      undefined,{timeout:18000});
+  }catch(error){
+    const state=await scanPhone.evaluate(()=>({
+      status:document.getElementById("ezeroOneScanStatus")?.textContent?.slice(0,180),
+      messageKind:document.getElementById("ezeroOneScanStatus")?.dataset.kind||"",
+      jsQRLoaded:typeof window.jsQR==="function",
+      imagePickerPresent:!!document.getElementById("ezeroOneImageScanInput"),
+      hashPresent:!!location.hash,
+      cameraRequested:window.__mediaCalls.length>0
+    }));
+    console.error("GALLERY_SCAN_SAFE_DEBUG",JSON.stringify(state));
+    throw error;
+  }
   await scanPhone.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:12000});
   assert.equal(await scanPhone.evaluate(()=>window.__mediaCalls.length),0,
     "Scanning an image never auto-accepts a call or opens mic/camera");
