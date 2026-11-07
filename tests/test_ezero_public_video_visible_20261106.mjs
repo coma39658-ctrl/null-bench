@@ -107,6 +107,13 @@ async function completeFirstTimeProfile(page,name){
   await page.waitForFunction(()=>document.getElementById("ezeroProfileFirstStatus")?.dataset.state==="ready",
     undefined,{timeout:15000});
   assert.equal(await page.locator("#ezeroProfileMissingReminder").isHidden(),true);
+  const identityMatches=await page.evaluate(async()=>{
+    const fingerprint=document.getElementById("myFingerprint")?.textContent.trim();
+    const saved=await window.EZERO_DEVICE_IDENTITY_STORE.read();
+    return /^[a-f0-9]{64}$/.test(fingerprint||"")&&saved?.fingerprint===fingerprint;
+  });
+  assert.equal(identityMatches,true,
+    "The profile must be bound to the saved device identity before a video invite");
 }
 
 try{
