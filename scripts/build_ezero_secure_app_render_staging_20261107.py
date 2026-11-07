@@ -191,6 +191,14 @@ landing = """<!doctype html><html lang="ur" dir="rtl"><head>
 (OUT / "index.html").write_text(landing, encoding="utf-8")
 (OUT / "robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8")
 
+# Preserve the Apache-2.0 legal notice when distributing the offline QR reader.
+vendor_notice = ROOT / "js/vendor/LICENSE-jsQR-Apache-2.0.txt"
+if not vendor_notice.is_file():
+    raise RuntimeError("Bundled QR decoder license missing: fail closed")
+license_dest = OUT / "licenses/jsQR-Apache-2.0.txt"
+license_dest.parent.mkdir(parents=True, exist_ok=True)
+shutil.copyfile(vendor_notice, license_dest)
+
 # A build must never publish source control or unrelated project materials.
 result_files = [p for p in OUT.rglob("*") if p.is_file()]
 if not result_files or any(p.name.startswith(".") for p in result_files):
