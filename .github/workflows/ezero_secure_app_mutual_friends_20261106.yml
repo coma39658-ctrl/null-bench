@@ -145,6 +145,17 @@ jobs:
           set -euo pipefail
           URL="https://ezero-secure-app-two-phone-test-20261107.onrender.com/ezero_trusted_friends_staging_20261106.html"
           curl --fail --silent --show-error --location --retry 2 --max-time 25 "$URL" -o /tmp/ezero-render-live-preview.html
+          python3 - <<'PY'
+          from pathlib import Path
+          page=Path("/tmp/ezero-render-live-preview.html").read_text(errors="replace")
+          for name,marker in [
+            ("staging_banner","ezero-stage-banner"),
+            ("pinned_build","2a8703d8d5a0"),
+            ("isolated_wss","wss://ezero-browser-signaling-render-test.coma39658.workers.dev"),
+            ("inline_controls","ezero_front_qr_hub_v0_1.js")
+          ]:
+            print("REMOTE_RENDER_STATIC_"+name+"="+str(marker in page).upper())
+          PY
           grep -Fq 'ezero-stage-banner' /tmp/ezero-render-live-preview.html
           grep -Fq '2a8703d8d5a0' /tmp/ezero-render-live-preview.html
           grep -Fq 'wss://ezero-browser-signaling-render-test.coma39658.workers.dev' /tmp/ezero-render-live-preview.html
