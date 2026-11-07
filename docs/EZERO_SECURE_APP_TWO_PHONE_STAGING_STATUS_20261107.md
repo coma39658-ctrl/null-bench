@@ -16,7 +16,7 @@ Date: 2026-11-07. Maintained on draft PR #122, branch `ezero-profile-first-saved
 - PASS — two-browser **real Cloudflare live WebSocket** test on original authorized GitHub Pages Origin.
 - PASS — two-browser **real Render HTTPS + separate Cloudflare Worker** test (GitHub Actions run `42380275960`, job `128426248280`): signed WebRTC connection, mutual names and DPs, second QR video call, persistence after reload, user nickname kept, block/unblock. Two ephemeral Chromium browser contexts with fake camera/microphone capture, not physical devices.
 - PASS — all 10 GitHub QA workflows on staging commit `45ff890633a056611a3410cd2c2759f63a82b9a9`.
-- **PENDING** — explicit negative Origin 403 rejection CI added on `39115e55164417bdb63da0bf62ddd9708c994b80`; inspect run before calling it PASS.
+- PASS — negative Origin 403 rejection against Render Worker (GitHub Actions run `42380556846`, step `Ensure isolated Render Worker rejects production GitHub Pages Origin`). Exact test commit: `39115e55164417bdb63da0bf62ddd9708c994b80`.
 - UNKNOWN — physical Android/Android or Android/iPhone peer media: microphone audio both directions, real camera on both sides, speaker/mute and release on hangup.
 - UNKNOWN — mobile data vs Wi-Fi NAT and TURN fallback (there is no configured TURN relay).
 - UNKNOWN — real missed call/foreground inbox on Render (explicitly disabled); background notifications and universal cross-network calling are NOT claimed.
