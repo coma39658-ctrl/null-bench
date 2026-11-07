@@ -96,3 +96,18 @@ jobs:
             timeout 180s node tests/test_ezero_secure_app_mutual_friend_profile_20261106.mjs
             echo "LIVE_CLOUDFLARE_ATTEMPT_${attempt}: PASS"
           done
+      - name: Remote Render HTTPS origin + live Cloudflare two-browser staging gate
+        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/ezero-profile-first-saved-friends-20261106') || (github.event_name == 'pull_request' && github.head_ref == 'ezero-profile-first-saved-friends-20261106') }}
+        shell: bash
+        env:
+          EZERO_LIVE_SIGNALING: '1'
+          EZERO_REMOTE_RENDER_STAGE: '1'
+          EZERO_REMOTE_RENDER_SHA: 'd2f58d2813bfb0b1fbc78c09cdffde0f83e0a934'
+        run: |
+          set -euo pipefail
+          URL="https://ezero-secure-app-two-phone-test-20261107.onrender.com/ezero_trusted_friends_staging_20261106.html"
+          curl --fail --silent --show-error --location --retry 2 --max-time 25 "$URL" -o /tmp/ezero-render-live-preview.html
+          grep -Fq 'ezero-stage-banner' /tmp/ezero-render-live-preview.html
+          grep -Fq 'd2f58d2813bf' /tmp/ezero-render-live-preview.html
+          echo 'REMOTE_RENDER_HTTPS_STAGING_PAGE: PASS'
+          timeout 180s node tests/test_ezero_secure_app_mutual_friend_profile_20261106.mjs
