@@ -133,12 +133,19 @@ for(const id of ["ezeroOneScanStatus","ezeroAutoStatus","ezeroVoiceStatus","mess
 }
 document.addEventListener("ezero:auto-incoming-open",()=>open("incoming"));
 document.addEventListener("ezero:auto-invite-ready",messages);
-document.addEventListener("ezero:call-status",e=>{
+function closeForVerifiedVideo(){
+  // Signed call connection and an open encrypted DataChannel may become
+  // ready in either order; close only after BOTH are truly confirmed.
   if((mode==="video"||mode==="incoming")&&
      document.querySelector('input[name="mode"]:checked')?.value==="video"&&
-     e.detail?.stage==="connected"&&
-     window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true)close();
-  else messages();
+     window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true){close();return true;}
+  return false;
+}
+document.addEventListener("ezero:call-status",()=>{
+  if(!closeForVerifiedVideo())messages();
+});
+document.addEventListener("ezero:channel-state",e=>{
+  if(e.detail?.connected)closeForVerifiedVideo();
 });
 $("language")?.addEventListener("change",()=>{
   for(const [kind,b] of Object.entries(buttons))b.textContent=t(kind);
