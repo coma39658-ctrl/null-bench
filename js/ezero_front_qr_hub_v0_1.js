@@ -87,6 +87,10 @@
   const callText=document.createElement("p");
   callText.id="ezeroInlineCallText";
   callResult.append(callText);
+  // Real connection/error status is visible at the Call button, not in a
+  // disconnected lower section. It keeps its original ID and live updates.
+  const connectionStatus=$("modernConnectionStatus");
+  if(connectionStatus)callResult.append(connectionStatus);
   featureGrid?.querySelector('[data-modern-select="video"]')?.insertAdjacentElement("afterend",callResult);
   // The live audio/video area and Hang Up belong under the call buttons.
   // Keep original IDs and event listeners, only move their existing DOM.
@@ -117,6 +121,9 @@
       // never below the other phone's scanning camera.
       qrRenderSlot.append(qrBox,shareSlot);
     }
+    const liveStatus=$("ezeroAutoStatus");
+    // Each QR's real connection/error feedback follows its share controls.
+    if(liveStatus)shareSlot.insertAdjacentElement("afterend",liveStatus);
   }
   function callNote(key){
     const phrase={
