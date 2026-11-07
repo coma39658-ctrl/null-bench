@@ -157,6 +157,9 @@ jobs:
             print("REMOTE_RENDER_STATIC_"+name+"="+str(marker in page).upper())
           PY
           grep -Fq 'ezero-stage-banner' /tmp/ezero-render-live-preview.html
+          # Diagnostic is public build metadata only, never user QR/token/call data.
+          printf 'REMOTE_RENDER_STAGE_BUILD: '
+          grep -oE 'SHA: [a-f0-9]{12}' /tmp/ezero-render-live-preview.html | head -1 || true
           grep -Fq '2a8703d8d5a0' /tmp/ezero-render-live-preview.html
           grep -Fq 'wss://ezero-browser-signaling-render-test.coma39658.workers.dev' /tmp/ezero-render-live-preview.html
           curl --fail --silent --show-error --location --max-time 25 \
