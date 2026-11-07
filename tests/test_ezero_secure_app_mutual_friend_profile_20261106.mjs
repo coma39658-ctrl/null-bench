@@ -76,6 +76,14 @@ async function createPhone(name){
   await context.addInitScript(()=>{
     window.__mediaCalls=[];
     window.__oneInvite="";
+    // Safe staging QA diagnostics: counts/booleans only; never names, photos,
+    // signatures, room tokens or complete fingerprints.
+    window.__ezeroEventCounts={signed:0,channelOpen:0,profilesReceived:0,friendsSaved:0,callConnected:0};
+    document.addEventListener("ezero:peer-signed-verified",()=>window.__ezeroEventCounts.signed++);
+    document.addEventListener("ezero:channel-state",e=>{if(e.detail?.connected)window.__ezeroEventCounts.channelOpen++;});
+    document.addEventListener("ezero:profile-received",()=>window.__ezeroEventCounts.profilesReceived++);
+    document.addEventListener("ezero:friend-local-saved",()=>window.__ezeroEventCounts.friendsSaved++);
+    document.addEventListener("ezero:call-status",e=>{if(e.detail?.stage==="connected")window.__ezeroEventCounts.callConnected++;});
     // Synthetic Web Audio test: verifies a ringtone starts for genuine
     // incoming calls and stops before the camera is opened by Accept.
     window.__ringCounts={contexts:0,resume:0,tones:0,suspend:0};
@@ -175,7 +183,35 @@ try{
   await bob.locator("#ezeroAutoAccept").click();
   await Promise.all([alice,bob].map(p=>p.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===true,{timeout:45000})));
-  await Promise.all([waitForProfileFriend(alice,"Bob"),waitForProfileFriend(bob,"Alice")]);
+  try{
+    await Promise.all([waitForProfileFriend(alice,"Bob"),waitForProfileFriend(bob,"Alice")]);
+  }catch(error){
+    if(LIVE_SIGNALING){
+      for(const [label,page] of [["A",alice],["B",bob]]){
+        const diagnostics=await page.evaluate(()=>{
+          const contacts=JSON.parse(localStorage.getItem(
+            "ezero_secure_connect_staging_fingerprints_v0_1")||"[]");
+          const local=JSON.parse(localStorage.getItem(
+            "ezero_secure_connect_staging_local_profile_v0_1")||"null");
+          return {
+            events:window.__ezeroEventCounts,
+            voiceChannelOpen:window.EZERO_VOICE_TRANSPORT?.connected()===true,
+            verifiedProfileTransport:window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true,
+            verifiedPeerFingerprintPresent:/^[a-f0-9]{64}$/.test(
+              window.EZERO_PEER_PROFILE_TRANSPORT?.peerFingerprint?.()||""),
+            userProfileReady:document.getElementById("ezeroProfileFirstStatus")?.dataset.state==="ready",
+            localShareConsent:local?.share===true,
+            hasRemoteProfileCard:document.getElementById("ezeroPeerProfileCard")?.hidden===false,
+            contactCount:contacts.length,
+            contactsWithRemoteProfiles:contacts.filter(c=>!!c.profileName&&
+              typeof c.avatar==="string"&&c.avatar.startsWith("data:image/jpeg;base64,")).length
+          };
+        });
+        console.error("LIVE_PROFILE_SAFE_DIAGNOSTIC_"+label,JSON.stringify(diagnostics));
+      }
+    }
+    throw error;
+  }
   const aliceFriend=(await readFriends(alice)).find(x=>x.profileName==="Bob");
   const bobFriend=(await readFriends(bob)).find(x=>x.profileName==="Alice");
   assert.equal(aliceFriend.name,"Bob");
