@@ -98,15 +98,30 @@ async function verifyProfile(){
    ready=false;verifiedKey=null;paint();status.textContent=t("failed");return false;
  }finally{checking=false;}
 }
-function showProfile(){
+function showProfile(trigger){
  const editor=$("ezeroProfileEditor");
- editor?.closest(".ezero-unified-options")?.setAttribute("open","");
- if(editor)editor.open=true;
- editor?.scrollIntoView?.({block:"start",behavior:"auto"});
+ if(!editor)return;
+ const source=trigger?.target?.closest?.("button")||trigger;
+ let target=box;
+ // One form is reparented, not duplicated; its consent and key store remain
+ // unchanged. The name/photo editor now opens beside the pressed action.
+ if(source?.id==="ezeroFrontAudioQr"||source?.id==="ezeroFrontVideoQr"||
+    /^ezeroFreshQr/.test(source?.id||"")){
+   target=$("ezeroFrontQrRenderSlot")||box;
+ }else if(source?.dataset?.modernSelect==="audio"||
+          source?.dataset?.modernSelect==="video"){
+   target=$("ezeroInlineCallResult")||box;
+   target.hidden=false;
+ }else if(source?.id==="ezeroQuickProfile"){
+   target=$("ezeroHeaderProfileSlot")||box;
+ }
+ target.append(editor);
+ editor.open=true;
  const name=$("ezeroMyName");
  if(!name?.value?.trim())name?.focus?.({preventScroll:true});
 }
-open.addEventListener("click",showProfile);
+window.EZERO_PROFILE_OPEN_NEAR=showProfile;
+open.addEventListener("click",()=>showProfile(open));
 document.addEventListener("ezero:profile-local-saved",()=>{void verifyProfile();});
 // Keep the request visible after scanning until the user saves a name and DP.
 document.addEventListener("ezero:auto-incoming-open",()=>{
@@ -146,7 +161,7 @@ document.addEventListener("click",e=>{
  e.preventDefault();e.stopImmediatePropagation();
  status.textContent=t("missing");
  reminder.hidden=false;reminder.textContent=t("missing");
- showProfile();
+ showProfile(clicked);
 },true);
 // When profile changes in a separate tab, re-check the SAME browser-origin
 // persistent identity. Never mark an unsaved or mismatched fingerprint ready.
