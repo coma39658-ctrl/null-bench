@@ -255,6 +255,31 @@ try{
     console.log("SAME_PLACE_QR_SCANNER_PROFILE_CHAT_VOICE: PASS");
   }
   console.log("FRONT_WIFI_STYLE_CALL_QR_SCAN_AND_SHARE_SAME_PAGE: PASS");
+  // A real gallery QR decode on an isolated mobile Chromium page. Force the
+  // browser-native BarcodeDetector OFF: the self-hosted jsQR fallback must
+  // read the actual generated signed QR PNG (without using a server or camera).
+  assert.equal(await alice.locator("#ezeroOneImageScan").isVisible(),true);
+  assert.equal(await alice.locator("#ezeroOneSameVersion").isVisible(),true,
+    "The share-this-test-link control must be visible even before pairing");
+  const qrPng=await alice.locator("#ezeroOneQr svg").screenshot({type:"png"});
+  const scanPhone=await createPhone("QR_IMAGE_FALLBACK_PHONE");
+  await scanPhone.evaluate(()=>Object.defineProperty(window,"BarcodeDetector",{
+    configurable:true,value:undefined
+  }));
+  assert.equal(await scanPhone.locator("#ezeroOneImageScan").isVisible(),true);
+  assert.equal(await scanPhone.evaluate(()=>typeof window.jsQR),"function",
+    "Self-hosted jsQR fallback must load without external CDN access");
+  await scanPhone.locator("#ezeroOneImageScanInput").setInputFiles({
+    name:"call-invitation.png",mimeType:"image/png",buffer:qrPng
+  });
+  await scanPhone.waitForFunction(()=>location.hash.startsWith("#room="),
+    undefined,{timeout:20000});
+  await scanPhone.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:12000});
+  assert.equal(await scanPhone.evaluate(()=>window.__mediaCalls.length),0,
+    "Scanning an image never auto-accepts a call or opens mic/camera");
+  console.log("SELF_HOSTED_GALLERY_QR_SCAN_SAME_ORIGIN_SIGNED_INVITE: PASS");
+  await scanPhone.context().close();
+
   if(REMOTE_RENDER_STAGE)assert.ok(invite.startsWith(REMOTE_RENDER_ORIGIN),
     "Generated invite must point back to the same isolated Render staging site");
   const bob=await createPhone("BOB");
