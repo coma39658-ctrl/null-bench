@@ -62,3 +62,18 @@ jobs:
             sleep 1
           done
           node tests/test_ezero_secure_app_mutual_friend_profile_20261106.mjs
+      - name: Live staging Cloudflare WSS and signed browser-to-browser media (not physical phones)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/ezero-profile-first-saved-friends-20261106' }}
+        shell: bash
+        env:
+          EZERO_LIVE_SIGNALING: '1'
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8769 --bind 127.0.0.1 > /tmp/ezero-secure-app-live-network.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8769/ezero_trusted_friends_staging_20261106.html >/dev/null && break
+            sleep 1
+          done
+          timeout 180s node tests/test_ezero_secure_app_mutual_friend_profile_20261106.mjs
