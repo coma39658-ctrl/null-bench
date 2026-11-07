@@ -130,8 +130,9 @@
     let rendered=false;
     if(typeof window.qrcode==="function"){
       try{
-        const qr=window.qrcode(0,"L");qr.addData(link);qr.make();
-        qrTarget.innerHTML=qr.createSvgTag(4,4);
+        const qr=window.qrcode(0,"M");qr.addData(link);qr.make();
+        // 4-module white quiet zone and crisp SVG paths for phone cameras.
+        qrTarget.innerHTML=qr.createSvgTag(6,24);
         const svg=qrTarget.querySelector("svg");
         if(svg){
           svg.setAttribute("aria-label","E-ZERO single-request call invite");
@@ -232,7 +233,7 @@
   const sameVersion=document.createElement("button");
   sameVersion.type="button";sameVersion.id="ezeroOneSameVersion";
   sameVersion.className="secondary ezero-qr-same-version";
-  sameVersion.hidden=true;
+  sameVersion.hidden=false;
   const refreshScannerLabels=()=>{
     fileButton.textContent=t("imageChoose");
     sameVersion.textContent=t("sameVersion");
@@ -276,7 +277,7 @@
     canvas.width=w;canvas.height=h;
     ctx.drawImage(element,0,0,w,h);
     const data=ctx.getImageData(0,0,w,h);
-    return window.jsQR(data.data,w,h,{inversionAttempts:"dontInvert"})?.data||"";
+    return window.jsQR(data.data,w,h,{inversionAttempts:"attemptBoth"})?.data||"";
   }
   async function decodeQr(element){
     const native=await nativeDetector();
@@ -322,7 +323,7 @@
   });
   async function scan(){
     const start=$("ezeroOneScanInvite");
-    sameVersion.hidden=true;
+    sameVersion.hidden=false;
     if(!navigator.mediaDevices?.getUserMedia){
       info("unsupported",true);return;
     }
