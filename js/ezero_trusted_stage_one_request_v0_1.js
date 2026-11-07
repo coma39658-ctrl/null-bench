@@ -244,7 +244,11 @@
   fileButton.addEventListener("click",()=>fileInput.click());
   sameVersion.addEventListener("click",async()=>{
     // Share only the public app URL, NEVER a private QR room token.
-    const url=new URL("./ezero_trusted_friends_staging_20261106.html",location.href).href;
+    const target=new URL("./ezero_trusted_friends_staging_20261106.html",location.href);
+    const stage=document.querySelector(".ezero-stage-banner")?.textContent||"";
+    const build=/SHA:\s*([a-f0-9]{12})/i.exec(stage)?.[1];
+    if(build)target.searchParams.set("stageBuild",build);
+    const url=target.href; // no private room token or contact fingerprint
     try{
       if(navigator.share)await navigator.share({title:"E-ZERO Secure App TEST",url});
       else if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(url);
@@ -290,12 +294,13 @@
     return qrFromCanvas(element);
   }
   function handleScanResult(raw){
-    if(safeInvite(raw)){
+    const candidate=String(raw||"").trim();
+    if(safeInvite(candidate)){
       stopScan();
-      location.assign(raw); // Opens visible request; never auto-accepts.
+      location.assign(candidate); // Opens visible request; never auto-accepts.
     }else{
       stopScan();
-      const reason=scannedQrError(raw);
+      const reason=scannedQrError(candidate);
       sameVersion.hidden=false; // Always allow fixing an old-link/version mismatch.
       info(reason,true);
     }
