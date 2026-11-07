@@ -122,7 +122,16 @@ function showProfile(trigger){
 }
 window.EZERO_PROFILE_OPEN_NEAR=showProfile;
 open.addEventListener("click",()=>showProfile(open));
-document.addEventListener("ezero:profile-local-saved",()=>{void verifyProfile();});
+document.addEventListener("ezero:profile-local-saved",()=>{
+ void verifyProfile();
+ // Saving closes only the temporary inline form. The single authoritative
+ // editor remains available from Profile without covering QR/call results.
+ const editor=$("ezeroProfileEditor");
+ if(editor&&editor.parentElement!==box){
+   editor.open=false;
+   box.append(editor);
+ }
+});
 // Keep the request visible after scanning until the user saves a name and DP.
 document.addEventListener("ezero:auto-incoming-open",()=>{
  if(!ready){paint();reminder.hidden=false;}
