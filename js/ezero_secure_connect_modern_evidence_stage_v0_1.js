@@ -31,6 +31,7 @@ $("modernHangup").addEventListener("click",()=>{
   $("ezeroCallSetupSlot").hidden=true;
 });
 function openConnectionSteps(){
+  if(window.EZERO_INSTANT_ACTIONS?.open){window.EZERO_INSTANT_ACTIONS.open("audio");return;}
   $("ezeroCallSetupSlot").hidden=false;
   $("ezeroCallSetupSlot").scrollIntoView({block:"start",behavior:"smooth"});
 }
@@ -397,6 +398,13 @@ $("ezeroVoiceSend").addEventListener("click",async()=>{
     if($("ezeroVoiceAllowDownload"))$("ezeroVoiceAllowDownload").checked=false;
     voiceStatus("sent");
  }catch(_){voiceStatus("invalid");}
+ finally{
+   // Failed dispatch must never strand a locally recorded note behind
+   // a permanently disabled Send button. The existing consented
+   // DataChannel remains authoritative; no retry is automatic.
+   if(draft&&window.EZERO_VOICE_TRANSPORT?.connected())
+     $("ezeroVoiceSend").disabled=false;
+ }
 });
 document.addEventListener("ezero:voice-note-received",e=>{
  const d=e.detail;

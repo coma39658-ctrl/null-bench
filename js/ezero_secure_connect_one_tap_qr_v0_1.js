@@ -96,7 +96,8 @@
     if(!verified)return;
     advanced.open=true;
     $("callSetup").open=true;
-    $("guidedCallTitle")?.scrollIntoView({block:"start",behavior:"auto"});
+    if(window.EZERO_INSTANT_ACTIONS?.open)window.EZERO_INSTANT_ACTIONS.open("audio");
+    else $("guidedCallTitle")?.scrollIntoView({block:"start",behavior:"auto"});
   });
   document.addEventListener("ezero:friend-verification",event=>{
     const info=event.detail || {};

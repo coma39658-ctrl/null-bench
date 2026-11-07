@@ -76,7 +76,7 @@
          $("ezeroAutoStart") && !$("ezeroAutoStart").disabled){
         info("starting");
         $("ezeroAutoStart").click();
-        auto.scrollIntoView({block:"start",behavior:"smooth"});
+        if(!window.EZERO_INSTANT_ACTIONS)auto.scrollIntoView({block:"start",behavior:"smooth"});
       }
     });
   }
@@ -162,7 +162,7 @@
     const type=new URLSearchParams(location.search).get("mode")==="video"?"video":"audio";
     $("ezeroOneIncomingHeading").textContent=type==="video"?
       "📹 آنے والی ویڈیو کال — قبول کریں؟":"📞 آنے والی آڈیو کال — قبول کریں؟";
-    $("ezeroOneJoinPanel")?.scrollIntoView({block:"start",behavior:"auto"});
+    if(!window.EZERO_INSTANT_ACTIONS)$("ezeroOneJoinPanel")?.scrollIntoView({block:"start",behavior:"auto"});
   }
   document.addEventListener("ezero:auto-incoming-open",jumpIncoming);
   jumpIncoming();
@@ -180,7 +180,7 @@
   $("ezeroAutoAccept")?.addEventListener("click",()=>{
     incomingShell.hidden=true;
     showProgress("connecting");
-    $("ezeroOneJoinPanel")?.scrollIntoView({block:"start",behavior:"auto"});
+    if(!window.EZERO_INSTANT_ACTIONS)$("ezeroOneJoinPanel")?.scrollIntoView({block:"start",behavior:"auto"});
   });
   $("ezeroAutoDecline")?.addEventListener("click",()=>{
     incomingShell.hidden=true;
