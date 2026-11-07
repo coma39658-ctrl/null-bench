@@ -11,6 +11,7 @@ on:
       - 'js/ezero_secure_connect_peer_profile_staging_v0_1.js'
       - 'js/ezero_saved_friend_stage_engine_v0_1.js'
       - 'tests/test_ezero_secure_app_mutual_friend_profile_20261106.mjs'
+      - 'scripts/build_ezero_secure_app_render_staging_20261107.py'
       - '.github/workflows/ezero_secure_app_mutual_friends_20261106.yml'
 permissions:
   contents: read
@@ -44,6 +45,18 @@ jobs:
           ! grep -Fq 'getUserMedia(' js/ezero_profile_first_verified_friends_v0_1.js
           ! grep -Fq 'new RTCPeerConnection' js/ezero_profile_first_verified_friends_v0_1.js
           echo 'SECURE_APP_PROFILE_CRYPTO_BOUNDARY: PASS'
+      - name: Build minimal Render staging files without publishing the whole repo
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/build_ezero_secure_app_render_staging_20261107.py
+          python3 scripts/build_ezero_secure_app_render_staging_20261107.py
+          test -f dist_ezero_secure_app_two_phone_staging/ezero_trusted_friends_staging_20261106.html
+          test -f dist_ezero_secure_app_two_phone_staging/js/ezero_profile_first_verified_friends_v0_1.js
+          test -f dist_ezero_secure_app_two_phone_staging/assets/ezero_secure_chat_cosmic_pattern_v0_1.svg
+          ! test -d dist_ezero_secure_app_two_phone_staging/.github
+          ! test -d dist_ezero_secure_app_two_phone_staging/scripts
+          echo 'ISOLATED_RENDER_PREVIEW_BUNDLE: PASS'
       - name: Install isolated Chromium
         shell: bash
         run: |
