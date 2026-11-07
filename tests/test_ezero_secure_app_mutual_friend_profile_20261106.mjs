@@ -169,21 +169,45 @@ async function waitForProfileFriend(page,name){
 }
 try{
   const alice=await createPhone("ALICE");
+  const hub=alice.locator("#ezeroFrontQrHub");
+  assert.equal(await hub.isVisible(),true,"Each phone must display Wi-Fi-style QR up front");
+  assert.equal(await alice.locator("#ezeroFrontAudioQr").isVisible(),true);
+  assert.equal(await alice.locator("#ezeroOneScanInvite").isVisible(),true);
+  assert.equal(await alice.locator("#ezeroOneQrBox").isHidden(),true,
+    "An unsigned and unrequested QR must never look like a ready call invite");
+  assert.equal(await alice.evaluate(()=>{
+    const qr=document.getElementById("ezeroFrontQrHub");
+    const dock=document.getElementById("ezeroContactFirstDock");
+    return qr.compareDocumentPosition(dock)&Node.DOCUMENT_POSITION_FOLLOWING;
+  })!==0,true,"The QR hub must be ahead of long friend/contact panels");
+  assert.equal(await alice.locator("#ezeroOneScanInvite").evaluate(el=>
+    el.parentElement?.id==="ezeroFrontScannerSlot"),true,
+    "Only the original signed call scanner, not an identity-only scanner, is shown up front");
   assert.equal(await alice.locator("#ezeroContactVideo").isEnabled(),false);
-  await alice.locator('[data-modern-select="audio"]').click();
+  await alice.locator("#ezeroFrontAudioQr").click();
   assert.equal(await alice.evaluate(()=>window.__mediaCalls.length),0,
     "Unsaved profile must never request media");
   assert.equal(await alice.evaluate(()=>window.__oneInvite),"",
     "Unsaved profile must not create invitation");
   console.log("MISSING_NAME_DP_PREVENTS_CALL: PASS");
   await setupProfile(alice,"Alice",photoAlice);
-  await alice.locator('[data-modern-select="audio"]').click();
+  await alice.locator("#ezeroFrontAudioQr").click();
   await alice.waitForFunction(()=>!!window.__oneInvite,{timeout:20000});
   const invite=await alice.evaluate(()=>window.__oneInvite);
   assert.match(invite,/mode=audio#room=/);
+  await alice.locator("#ezeroOneQr svg").waitFor({state:"visible",timeout:12000});
+  assert.equal(await alice.locator("#ezeroOneQrBox").isVisible(),true);
+  assert.equal(await alice.locator("#ezeroFrontShareQrImage").isEnabled(),true);
+  assert.equal(await alice.locator("#ezeroOneQr").evaluate(el=>
+    el.closest("#ezeroFrontQrHub")!==null),true);
+  assert.equal(await alice.locator("#ezeroAutoShare").isEnabled(),true);
+  assert.equal(await alice.locator("#ezeroOneCopyInvite").isEnabled(),true);
+  console.log("FRONT_WIFI_STYLE_CALL_QR_SCAN_AND_SHARE_SAME_PAGE: PASS");
   if(REMOTE_RENDER_STAGE)assert.ok(invite.startsWith(REMOTE_RENDER_ORIGIN),
     "Generated invite must point back to the same isolated Render staging site");
   const bob=await createPhone("BOB");
+  assert.equal(await bob.locator("#ezeroFrontQrHub").isVisible(),true);
+  assert.equal(await bob.locator("#ezeroOneScanInvite").isVisible(),true);
   await bob.goto(invite,{waitUntil:"domcontentloaded"});
   await bob.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:12000});
   const unaccepted=await readFriends(bob);
