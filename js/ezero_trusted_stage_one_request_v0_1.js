@@ -311,6 +311,7 @@
     }
   }
   fileInput.addEventListener("change",async()=>{
+    fileInput.dataset.scanPhase="selected";
     const file=fileInput.files?.[0];fileInput.value="";
     if(!file)return;
     if(!file.type.startsWith("image/")||file.size>8*1024*1024){
@@ -321,21 +322,28 @@
     // our strong policy; FileReader's local data URL does not leave the phone.
     const img=new Image();
     try{
+      fileInput.dataset.scanPhase="reading";
       const dataUrl=await new Promise((resolve,reject)=>{
         const reader=new FileReader();
         reader.onload=()=>resolve(String(reader.result||""));
         reader.onerror=()=>reject(Error("BAD_IMAGE_FILE"));
         reader.readAsDataURL(file);
       });
+      fileInput.dataset.scanPhase="loaded-bytes";
       await new Promise((resolve,reject)=>{
         img.onload=resolve;img.onerror=()=>reject(Error("BAD_IMAGE"));
         img.src=dataUrl;
       });
       // Maximum decoded canvas size bounds memory use on low-end phones.
+      fileInput.dataset.scanPhase="decoding";
       const raw=await decodeQr(img);
+      fileInput.dataset.scanPhase=raw?"found":"unreadable";
       if(raw)handleScanResult(raw);
       else info("imageNoQr",true);
-    }catch(_){info("imageNoQr",true);}
+    }catch(_){
+      fileInput.dataset.scanPhase="failed";
+      info("imageNoQr",true);
+    }
   });
   async function scan(){
     const start=$("ezeroOneScanInvite");
