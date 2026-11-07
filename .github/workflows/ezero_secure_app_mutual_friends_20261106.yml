@@ -13,6 +13,9 @@ on:
       - 'tests/test_ezero_secure_app_mutual_friend_profile_20261106.mjs'
       - 'scripts/build_ezero_secure_app_render_staging_20261107.py'
       - 'js/ezero_front_qr_hub_v0_1.js'
+      - 'js/ezero_trusted_stage_one_request_v0_1.js'
+      - 'js/vendor/jsQR-1.4.0.js'
+      - 'js/vendor/LICENSE-jsQR-Apache-2.0.txt'
       - 'js/ezero_inline_action_results_v0_1.js'
       - 'css/ezero_inline_action_results_v0_1.css'
       - 'css/ezero_front_qr_hub_v0_1.css'
@@ -36,6 +39,10 @@ jobs:
           set -euo pipefail
           node --check js/ezero_profile_first_verified_friends_v0_1.js
           node --check js/ezero_front_qr_hub_v0_1.js
+          node --check js/ezero_trusted_stage_one_request_v0_1.js
+          node --check js/vendor/jsQR-1.4.0.js
+          grep -Fq 'js/vendor/jsQR-1.4.0.js' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'Apache License' js/vendor/LICENSE-jsQR-Apache-2.0.txt
           node --check js/ezero_inline_action_results_v0_1.js
           grep -Fq 'ezero_inline_action_results_v0_1.js' ezero_trusted_friends_staging_20261106.html
           grep -Fq 'ezero_inline_action_results_v0_1.css' ezero_trusted_friends_staging_20261106.html
@@ -63,6 +70,9 @@ jobs:
           python3 scripts/build_ezero_secure_app_render_staging_20261107.py
           test -f dist_ezero_secure_app_two_phone_staging/ezero_trusted_friends_staging_20261106.html
           test -f dist_ezero_secure_app_two_phone_staging/js/ezero_profile_first_verified_friends_v0_1.js
+          test -f dist_ezero_secure_app_two_phone_staging/js/vendor/jsQR-1.4.0.js
+          test -f dist_ezero_secure_app_two_phone_staging/licenses/jsQR-Apache-2.0.txt
+          grep -Fq 'js/vendor/jsQR-1.4.0.js?build=' dist_ezero_secure_app_two_phone_staging/ezero_trusted_friends_staging_20261106.html
           test -f dist_ezero_secure_app_two_phone_staging/assets/ezero_secure_chat_cosmic_pattern_v0_1.svg
           ! test -d dist_ezero_secure_app_two_phone_staging/.github
           ! test -d dist_ezero_secure_app_two_phone_staging/scripts
