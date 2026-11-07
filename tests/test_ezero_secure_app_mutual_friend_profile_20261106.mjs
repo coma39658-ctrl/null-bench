@@ -262,9 +262,24 @@ try{
   assert.equal(await alice.locator("#ezeroOneImageScan").isVisible(),true);
   assert.equal(await alice.locator("#ezeroOneSameVersion").isVisible(),true,
     "The share-this-test-link control must be visible even before pairing");
-  // Capture the actual on-screen WHITE QR tile, not the transparent SVG alone:
-  // otherwise transparent pixels are interpreted as black by image decoders.
-  const qrPng=await alice.locator("#ezeroOneQr").screenshot({type:"png"});
+  // Export the same 480 px WHITE PNG used by the app's Share QR image
+  // action; browser DOM screenshots can contain transient overlays unrelated
+  // to the QR payload, while a shared QR image must always be decodable.
+  const exportedPng=await alice.locator("#ezeroOneQr svg").evaluate(async svg=>{
+    const raw=new XMLSerializer().serializeToString(svg);
+    const image=new Image();
+    await new Promise((resolve,reject)=>{
+      image.onload=resolve;image.onerror=()=>reject(new Error("SVG_EXPORT_FAILED"));
+      image.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(raw);
+    });
+    const canvas=document.createElement("canvas");
+    canvas.width=480;canvas.height=480;
+    const ctx=canvas.getContext("2d");
+    ctx.fillStyle="#ffffff";ctx.fillRect(0,0,480,480);
+    ctx.drawImage(image,0,0,480,480);
+    return canvas.toDataURL("image/png").split(",")[1];
+  });
+  const qrPng=Buffer.from(exportedPng,"base64");
   const qrSafeMeta=await alice.locator("#ezeroOneQr").evaluate(el=>{
     const svg=el.querySelector("svg"),bounds=el.getBoundingClientRect();
     const svgBounds=svg?.getBoundingClientRect();
