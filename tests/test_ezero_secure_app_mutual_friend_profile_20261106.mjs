@@ -195,11 +195,13 @@ try{
       el.closest("#ezeroFrontScannerSlot")!==null),true,
       "The camera must open underneath the Scan button, not at the bottom of the page");
     assert.equal(await alice.locator("#modernVoicePanel").evaluate(el=>
-      el.parentElement?.classList.contains("modern-feature-grid")),true,
-      "Voice-note controls must stay next to their own feature tile");
+      el.parentElement?.classList.contains("modern-feature-grid")&&
+      el.previousElementSibling?.dataset.modernSelect==="voice"),true,
+      "Voice-note panel must immediately follow the Voice button");
     assert.equal(await alice.locator("#modernChatPanel").evaluate(el=>
-      el.parentElement?.classList.contains("modern-feature-grid")),true,
-      "Private chat must stay next to its own feature tile");
+      el.parentElement?.classList.contains("modern-feature-grid")&&
+      el.previousElementSibling?.dataset.modernSelect==="chat"),true,
+      "Chat panel must immediately follow the Chat button");
     assert.equal(await alice.locator("#ezeroProfileEditor").evaluate(el=>
       el.parentElement?.id==="ezeroProfileFirstGate"),true,
       "Name/photo editor must open beside the profile prerequisite");
@@ -213,6 +215,9 @@ try{
     "Unsaved profile must never request media");
   assert.equal(await alice.evaluate(()=>window.__oneInvite),"",
     "Unsaved profile must not create invitation");
+  assert.equal(await alice.locator("#ezeroProfileEditor").evaluate(el=>
+    el.parentElement?.id==="ezeroFrontQrRenderSlot"),true,
+    "Name/DP editor should open next to My QR without scrolling to settings");
   console.log("MISSING_NAME_DP_PREVENTS_CALL: PASS");
   await setupProfile(alice,"Alice",photoAlice);
   await alice.locator("#ezeroFrontAudioQr").click();
@@ -225,6 +230,9 @@ try{
   assert.equal(await alice.locator("#ezeroOneQr").evaluate(el=>
     el.closest("#ezeroFrontQrHub")!==null),true);
   assert.equal(await alice.locator("#ezeroAutoShare").isEnabled(),true);
+  assert.equal(await alice.locator("#ezeroAutoShare").evaluate(el=>
+    el.closest("#ezeroFrontQrRenderSlot")!==null),true,
+    "Share actions must remain under My QR instead of the Scan button");
   assert.equal(await alice.locator("#ezeroOneCopyInvite").isEnabled(),true);
   if(!REMOTE_RENDER_STAGE){
     assert.equal(await alice.locator("#ezeroOneQrBox").evaluate(el=>
