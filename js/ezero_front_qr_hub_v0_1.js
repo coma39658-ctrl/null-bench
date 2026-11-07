@@ -25,25 +25,26 @@
       <small id="ezeroFrontQrVersion" aria-label="Staging version">E-ZERO TEST</small>
     </div>
     <div class="ezero-front-qr-pair">
-      <button type="button" id="ezeroFrontAudioQr" class="ezero-front-qr-square" aria-controls="ezeroOneQrBox">
+      <button type="button" id="ezeroFrontAudioQr" class="ezero-front-qr-square" aria-controls="ezeroOneQrBox" aria-expanded="false">
         <span class="ezero-front-qr-symbol" aria-hidden="true">▦</span>
         <strong id="ezeroFrontAudioQrText">میرا کال QR</strong>
         <small id="ezeroFrontAudioQrNote">آڈیو دعوت بنائیں</small>
       </button>
       <div id="ezeroFrontScannerSlot" class="ezero-front-scanner-slot"></div>
     </div>
-    <button type="button" id="ezeroFrontVideoQr" class="ezero-front-video-qr" aria-controls="ezeroOneQrBox">
-      📹 ویڈیو کال کا QR بنائیں
-    </button>
-    <p id="ezeroFrontQrHelp" class="ezero-front-qr-help">
-      دونوں فونوں میں یہی ٹیسٹ صفحہ کھولیں۔ میرا QR دبانے پر نیا عارضی کال QR بنے گا؛
-      دوسرا فون اسکین کرکے قبول کرے۔ صرف QR دیکھنے سے کال نہیں ملتی۔
-    </p>
     <div id="ezeroFrontQrRenderSlot"></div>
-    <div id="ezeroFrontQrShareSlot" class="ezero-front-qr-share"></div>
     <div id="ezeroFrontQrScanMedia" class="ezero-front-qr-scanner-media"></div>
-    <p id="ezeroFrontQrStatus" role="status" aria-live="polite"></p>
     <div id="ezeroFrontQrIncomingSlot"></div>
+    <div id="ezeroFrontQrShareSlot" class="ezero-front-qr-share"></div>
+    <div id="ezeroFrontVideoSlot">
+      <button type="button" id="ezeroFrontVideoQr" class="ezero-front-video-qr" aria-controls="ezeroOneQrBox" aria-expanded="false">
+        📹 ویڈیو کال کا QR بنائیں
+      </button>
+    </div>
+    <p id="ezeroFrontQrStatus" role="status" aria-live="polite"></p>
+    <p id="ezeroFrontQrHelp" class="ezero-front-qr-help">
+      میرا QR دبائیں تو عارضی کوڈ فوراً اسی کے نیچے آئے گا۔ اسکین دبائیں تو کیمرہ وہیں کھلے گا۔ پہلی کال میں دوسرے فون کی منظوری ضروری ہے۔
+    </p>
   `;
   heading.insertAdjacentElement("afterend",hub);
   // Reuse, don't copy, the existing authoritative QR/link, scanner controls,
@@ -64,6 +65,45 @@
   imageShare.className = "ezero-front-share-qr-image";
   $("ezeroFrontQrShareSlot").prepend(imageShare);
   const message=$("ezeroFrontQrStatus");
+  let fromQrButton=false,qrWhere="own";
+  const videoSlot=$("ezeroFrontVideoSlot"),qrRenderSlot=$("ezeroFrontQrRenderSlot"),shareSlot=$("ezeroFrontQrShareSlot");
+  const featureGrid=unified.querySelector(".modern-feature-grid");
+  const callResult=document.createElement("div");
+  callResult.id="ezeroInlineCallResult";
+  callResult.className="ezero-inline-feature-result";
+  callResult.hidden=true;
+  callResult.setAttribute("role","status");
+  callResult.setAttribute("aria-live","polite");
+  featureGrid?.querySelector('[data-modern-select="video"]')?.insertAdjacentElement("afterend",callResult);
+  const chatButton=featureGrid?.querySelector('[data-modern-select="chat"]');
+  const voicePanel=$("modernVoicePanel"),chatPanel=$("modernChatPanel");
+  if(voicePanel&&chatButton)chatButton.insertAdjacentElement("afterend",voicePanel);
+  if(chatPanel&&voicePanel)voicePanel.insertAdjacentElement("afterend",chatPanel);
+  // Profile editor belongs next to 'Complete name/photo', not inside the
+  // far-away optional-details section. Existing save/consent logic is reused.
+  const profileGate=$("ezeroProfileFirstGate"),editor=$("ezeroProfileEditor");
+  if(profileGate&&editor)profileGate.append(editor);
+  function placeQr(where){
+    qrWhere=where;
+    // One authoritative signed QR, never duplicate a stale QR image.
+    if(where==="video"){
+      videoSlot.append(qrBox,shareSlot);
+    }else if(where==="call"){
+      callResult.append(qrBox,shareSlot);
+    }else{
+      qrRenderSlot.append(qrBox);
+      $("ezeroFrontQrScanMedia").insertAdjacentElement("afterend",shareSlot);
+    }
+  }
+  function callNote(key){
+    const phrase={
+      ur:{calling:"دوست سے محفوظ کال ملائی جا رہی ہے؛ دوسرے فون کی منظوری ضروری ہے۔",first:"پہلی کال کے لیے اسی جگہ QR دعوت دکھائی جائے گی؛ دوست اسکین یا لنک قبول کرے۔",connected:"✓ دونوں فونوں کا محفوظ کنکشن قائم ہے۔",failed:"کال نہیں ملی؛ نیٹ ورک یا اجازت کا مسئلہ چیک کریں۔",ended:"کال ختم ہو گئی۔"},
+      en:{calling:"Calling friend securely; their approval is required.",first:"First call: the signed QR invitation appears here. Your friend must accept.",connected:"✓ Two phones connected securely.",failed:"Call failed. Check network and permissions.",ended:"Call ended."},
+      ar:{calling:"جارٍ الاتصال الآمن؛ يلزم قبول الصديق.",first:"للمكالمة الأولى يظهر QR هنا ويجب قبول الدعوة.",connected:"✓ اتصل الهاتفان بأمان.",failed:"تعذر الاتصال؛ تحقق من الشبكة والأذونات.",ended:"انتهت المكالمة."}
+    };
+    callResult.hidden=false;
+    callResult.textContent=(phrase[document.documentElement.lang]||phrase.ur)[key];
+  }
   const label = k => (translations[document.documentElement.lang]||translations.ur)[k];
   function setStatus(key){message.textContent=label(key);message.dataset.state=key;}
   const translations={
@@ -129,21 +169,37 @@
     if(window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true){
       setStatus("endFirst");return;
     }
+    placeQr(kind==="video"?"video":"own");
+    fromQrButton=true;
     if($("ezeroProfileFirstStatus")?.dataset.state!=="ready"){
       setStatus("needProfile");
     }else setStatus("waiting");
-    // Use the existing UI's genuine click path and mandatory identity gate.
-    // Neither a QR image nor a camera/microphone starts on page load.
+    // QR creates a *fresh* one-shot invitation even if a contact is saved.
+    // The existing consent and cryptographic gates still decide if it starts.
+    const fresh=$("ezeroFreshQr"+(kind==="video"?"Video":"Audio"));
     const original=unified.querySelector('[data-modern-select="'+kind+'"]');
-    original?.click();
+    try{
+      if(fresh)fresh.click();
+      else original?.click();
+    }finally{fromQrButton=false;}
   }
   own.addEventListener("click",()=>start("audio"));
   video.addEventListener("click",()=>start("video"));
+  // Show the outcome of the top Audio / Video actions right under those
+  // buttons; direct saved-friend calls remain direct, first-time calls need QR.
+  featureGrid?.addEventListener("click",e=>{
+    const button=e.target.closest('[data-modern-select="audio"],[data-modern-select="video"]');
+    if(!button||fromQrButton)return;
+    const hasFriends=JSON.parse(localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1")||"[]").length>0;
+    if(!hasFriends)placeQr("call");
+    callNote(hasFriends?"calling":"first");
+  },true);
   const onReady=()=>{
     if(qrBox.hidden)return;
     imageShare.disabled=!qrBox.querySelector("svg");
     setStatus("ready");
-    hub.scrollIntoView({block:"start",behavior:"smooth"});
+    own.setAttribute("aria-expanded",String(qrWhere==="own"));
+    video.setAttribute("aria-expanded",String(qrWhere==="video"));
   };
   document.addEventListener("ezero:auto-call-starting",()=>{
     imageShare.disabled=true;message.textContent="";
@@ -156,8 +212,19 @@
   document.addEventListener("ezero:channel-state",e=>{
     if(e.detail?.connected===false){ imageShare.disabled=true; }
   });
+  document.addEventListener("ezero:call-status",e=>{
+    if(e.detail?.stage==="connected")callNote("connected");
+    else if(["micDenied","iceNoRoute","signalInvalid","fingerprintMismatch","failed"].includes(e.detail?.stage))callNote("failed");
+  });
+  scannerButton.addEventListener("click",()=>{
+    // Camera and Stop remain beside their Scan control; never scroll away.
+    $("ezeroFrontQrScanMedia").hidden=false;
+  });
   $("modernHangup")?.addEventListener("click",()=>{
     imageShare.disabled=true;message.textContent="";
+    own.setAttribute("aria-expanded","false");
+    video.setAttribute("aria-expanded","false");
+    if(!callResult.hidden)callNote("ended");
   });
   imageShare.addEventListener("click",async()=>{
     if(qrBox.hidden||!qrBox.querySelector("svg")){
