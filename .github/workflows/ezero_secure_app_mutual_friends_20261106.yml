@@ -140,13 +140,13 @@ jobs:
         env:
           EZERO_LIVE_SIGNALING: '1'
           EZERO_REMOTE_RENDER_STAGE: '1'
-          EZERO_REMOTE_RENDER_SHA: 'a8b6e5d1fb70c1cf994921258e0bada43079ff7b'
+          EZERO_REMOTE_RENDER_SHA: '2ae87e4303744f5e7407b74d1b66df71a05614ae'
         run: |
           set -euo pipefail
           URL="https://ezero-secure-app-two-phone-test-20261107.onrender.com/ezero_trusted_friends_staging_20261106.html"
           curl --fail --silent --show-error --location --retry 2 --max-time 25 "$URL" -o /tmp/ezero-render-live-preview.html
           grep -Fq 'ezero-stage-banner' /tmp/ezero-render-live-preview.html
-          grep -Fq 'a8b6e5d1fb70' /tmp/ezero-render-live-preview.html
+          grep -Fq '2ae87e430374' /tmp/ezero-render-live-preview.html
           grep -Fq 'wss://ezero-browser-signaling-render-test.coma39658.workers.dev' /tmp/ezero-render-live-preview.html
           curl --fail --silent --show-error --location --max-time 25 \
             'https://ezero-secure-app-two-phone-test-20261107.onrender.com/js/ezero_auto_signaling_lab_config_20261106.js' \
