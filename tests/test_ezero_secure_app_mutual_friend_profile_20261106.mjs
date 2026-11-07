@@ -115,7 +115,11 @@ async function createPhone(name){
   });
   const page=await context.newPage();
   page.on("pageerror",e=>console.error(name+"_PAGE_ERROR",e.message));
-  await page.goto(publicOrigin+pagePath,{waitUntil:"domcontentloaded"});
+  // Cache-bust the *HTML* too: otherwise Render's CDN or a mobile browser
+  // can serve an older build while the JS/CSS source branch is newer.
+  const buildQuery=REMOTE_RENDER_STAGE?
+    "?stageBuild="+encodeURIComponent((process.env.EZERO_REMOTE_RENDER_SHA||"unknown").slice(0,12)):"";
+  await page.goto(publicOrigin+pagePath+buildQuery,{waitUntil:"domcontentloaded"});
   if(REMOTE_RENDER_STAGE){
     const banner=page.locator(".ezero-stage-banner");
     await banner.waitFor({state:"visible",timeout:15000});
