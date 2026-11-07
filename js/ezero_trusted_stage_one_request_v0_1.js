@@ -296,7 +296,7 @@
     }else{
       stopScan();
       const reason=scannedQrError(raw);
-      sameVersion.hidden=reason!=="oldPage";
+      sameVersion.hidden=false; // Always allow fixing an old-link/version mismatch.
       info(reason,true);
     }
   }
