@@ -13,14 +13,14 @@
   const ttl=10*60*1000;
   const copy={
     ur:{title:"محفوظ خودکار رابطہ — تجرباتی",start:"📞 محفوظ دعوت بنائیں",
-      share:"↗ دعوت شیئر کریں",join:"✓ درخواست قبول کریں",
+      share:"↗ فرینڈ ریکویسٹ / دعوت شیئر کریں",join:"✓ قبول کریں اور دوست شامل کریں",
       decline:"✕ درخواست مسترد کریں",idle:"فون ملانے کے لیے دعوت تیار کریں۔",
-      incoming:"دوست کی کال کی دعوت ہے۔ قبول کریں تو مائیک/کیمرے کی اجازت مانگی جا سکتی ہے۔",
+      incoming:"فرینڈ ریکویسٹ موصول ہوئی ہے۔ قبول کرنے اور دستخط شدہ شناخت کی تصدیق پر دونوں فونوں میں دوست محفوظ ہوگا۔ کیمرہ/مائیک صرف آپ کی اجازت سے چلے گا۔",
       connecting:"محفوظ رابطے کی کوشش جاری ہے۔",
       inviteReady:"دعوت تیار ہے؛ قابلِ اعتماد دوست کو بھیجیں۔",
       waiting:"دوست کے رابطہ کھولنے کا انتظار ہے۔",
       peerFound:"دوست نے دعوت کھولی ہے؛ محفوظ جواب کی تصدیق ہوگی۔",
-      received:"دوست کی درخواست آئی ہے؛ قبول کرنے سے پہلے فرد کی شناخت چیک کریں۔",
+      received:"دوست کی درخواست آئی ہے؛ قبول کرنے پر تصدیق شدہ رابطہ دونوں فہرستوں میں محفوظ ہوگا۔ پہلے بھیجنے والے کی شناخت چیک کریں۔",
       finished:"✓ حقیقی WebRTC رابطے کی تصدیق ہوئی۔",
       noRoute:"رابطہ قائم نہیں ہوا۔ دونوں فونوں کا انٹرنیٹ اور STUN/TURN چیک کریں۔",
       noShare:"شیئرنگ کی اجازت نہیں ملی؛ پہلے دعوت پھر سے بنائیں۔",
@@ -31,14 +31,14 @@
       remoteLeft:"دوسرا فون رابطے سے نکل گیا؛ کال کی حالت WebRTC سے الگ دیکھی جائے گی۔",
       stun:"دوسرے نیٹ ورک کے لیے اختیاری STUN (IP/نیٹ ورک میٹاڈیٹا ظاہر ہو سکتا ہے)"},
     en:{title:"Secure auto-connect — pilot",start:"📞 Create secure invite",
-      share:"↗ Share invite",join:"✓ Accept request",decline:"✕ Decline",
+      share:"↗ Share friend request",join:"✓ Accept & add friend",decline:"✕ Decline",
       idle:"Create an invitation to connect phones.",
-      incoming:"A friend has invited you. Camera/microphone permission may be requested after you accept.",
+      incoming:"Friend request received. Accept to save the verified digital contact on both devices after signed key verification. Camera/mic still need permission.",
       connecting:"Secure connection in progress.",
       inviteReady:"Invitation ready. Share with a trusted friend.",
       waiting:"Waiting for your friend to open the link.",
       peerFound:"Your friend opened the invitation. Verifying the signed answer.",
-      received:"Incoming request. Verify the person before accepting.",
+      received:"Friend request: Accept to pair verified device IDs, not to prove real-world identity. Check who sent it.",
       finished:"✓ Actual WebRTC connection confirmed.",
       noRoute:"No connection. Check both phones' internet and STUN/TURN availability.",
       noShare:"Could not share the link. Create a fresh invitation.",
@@ -49,14 +49,14 @@
       remoteLeft:"The other phone left signaling. WebRTC call state is checked separately.",
       stun:"Optional STUN for different networks (may expose IP/network metadata)"},
     ar:{title:"اتصال تلقائي آمن — تجريبي",start:"📞 إنشاء دعوة آمنة",
-      share:"↗ مشاركة الدعوة",join:"✓ قبول الطلب",decline:"✕ رفض الطلب",
+      share:"↗ مشاركة طلب صداقة",join:"✓ قبول وإضافة الصديق",decline:"✕ رفض الطلب",
       idle:"أنشئ دعوة لربط الهاتفين.",
-      incoming:"وصلتك دعوة. قد يُطلب إذن الكاميرا أو الميكروفون بعد قبولها.",
+      incoming:"وصل طلب صداقة. بعد القبول وتأكيد التوقيع تُحفظ الهوية الرقمية على الجهازين؛ يبقى إذن الكاميرا والميكروفون منفصلاً.",
       connecting:"جارٍ إنشاء الاتصال الآمن.",
       inviteReady:"الدعوة جاهزة. شاركها مع صديق موثوق.",
       waiting:"بانتظار فتح الصديق للرابط.",
       peerFound:"فتح الصديق الدعوة. يجري التحقق من الرد الموقّع.",
-      received:"وصل طلب. تحقق من هوية الشخص قبل القبول.",
+      received:"وصل طلب صداقة. قبولك يعني حفظ الهوية الرقمية بعد التحقق. تأكد من الشخص أولاً.",
       finished:"✓ تم التأكد من اتصال WebRTC حقيقي.",
       noRoute:"تعذر الاتصال. تحقق من إنترنت الهاتفين وتوافر STUN/TURN.",
       noShare:"تعذرت مشاركة الرابط. أنشئ دعوة جديدة.",
@@ -115,6 +115,16 @@
     session=null;localOffer="";answerSent=false;
     $("ezeroAutoShare").disabled=true;
   }
+  // When the user explicitly requests a NEW QR after a completed call,
+  // never replay a stale room or the previous recipient's invitation.
+  // This does not run automatically and cannot interrupt a connected call.
+  document.addEventListener("ezero:explicit-fresh-call-qr",()=>{
+    if(window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true)return;
+    closeRoom(true);
+    // Release a stale, disconnected peer before a new offer. Keep the
+    // original core media cleanup authoritative.
+    $("hangup")?.click();
+  });
   const signalError=key=>{
     set(key,"error");
     if(!window.EZERO_PEER_PROFILE_TRANSPORT?.connected())closeRoom();

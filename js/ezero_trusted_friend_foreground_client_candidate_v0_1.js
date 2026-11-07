@@ -40,6 +40,7 @@
       const arr=JSON.parse(localStorage.getItem(CONTACTS)||"[]");
       if(!Array.isArray(arr))return [];
       return arr.slice(0,50).filter(x=>x&&FP.test(x.fp)&&
+        window.EZERO_FRIEND_ACCESS?.isBlocked?.(x.fp)!==true&&
         typeof x.name==="string"&&x.name.trim().length>0&&x.name.length<=40);
     }catch(_){return [];}
   }

@@ -651,9 +651,17 @@
     const pub=await crypto.subtle.importKey("spki",spki,{name:"ECDSA",namedCurve:"P-256"},false,["verify"]);
     if(!await crypto.subtle.verify({name:"ECDSA",hash:"SHA-256"},pub,fromB64(s.sig),
       te.encode(signedSignalText(s.type,s.sdp,s.issued,s.nonce))))throw Error("BAD_SIGNATURE");
+    if(window.EZERO_FRIEND_ACCESS?.isBlocked?.(s.fp)===true)
+      throw Error("FRIEND_BLOCKED");
     if(expectedPeerFingerprint&&expectedPeerFingerprint!==s.fp)throw Error("FRIEND_ID_MISMATCH");
     $("peerFingerprint").textContent=s.fp;
     $("identityPeerStatus").textContent=expectedPeerFingerprint?t("verifiedSelf"):t("confirmPeer");
+    // Separate evidence: a correctly signed, freshness-bounded RTC peer key
+    // is verified BEFORE media routing. This is NOT a claim of connected
+    // media or real-world identity; it may finish a user-accepted friend link.
+    document.dispatchEvent(new CustomEvent("ezero:peer-signed-verified",{
+      detail:{peerFingerprint:s.fp,signalType:type,signatureVerified:true}
+    }));
     return {type,sdp:s.sdp,fp:s.fp};
   }
   let busy=false;
