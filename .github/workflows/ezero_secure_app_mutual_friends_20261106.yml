@@ -63,6 +63,34 @@ jobs:
           set -euo pipefail
           npm install --no-save --ignore-scripts playwright@1.57.0 ws@8.18.3
           npx playwright install --with-deps chromium --only-shell
+      - name: Ensure isolated Render Worker rejects production GitHub Pages Origin
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module - <<'NODE'
+          import assert from 'node:assert/strict';
+          import {randomBytes} from 'node:crypto';
+          import WebSocket from 'ws';
+          const room=randomBytes(24).toString('base64url');
+          const url='wss://ezero-browser-signaling-render-test.coma39658.workers.dev/v1/rooms/'+room;
+          const code=await new Promise((resolve,reject)=>{
+            const ws=new WebSocket(url,{
+              headers:{Origin:'https://coma39658-ctrl.github.io'},
+              handshakeTimeout:12000
+            });
+            ws.once('unexpected-response',(_request,response)=>{
+              const status=response.statusCode;
+              response.resume();
+              ws.terminate();
+              resolve(status);
+            });
+            ws.once('open',()=>{ws.close();resolve(101);});
+            ws.once('error',reject);
+          });
+          assert.equal(code,403,
+            'Render-only Worker MUST reject the production GitHub Pages Origin');
+          console.log('RENDER_WORKER_FOREIGN_ORIGIN_REJECTED_403: PASS');
+          NODE
       - name: Two real Chromium media stacks with locally simulated signaling
         shell: bash
         run: |
