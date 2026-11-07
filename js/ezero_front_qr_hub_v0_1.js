@@ -96,7 +96,7 @@
   // Keep original IDs and event listeners, only move their existing DOM.
   const callPanel=$("modernCallPanel"),hangup=$("modernHangup");
   if(callPanel){
-    callResult.insertAdjacentElement("afterend",callPanel);
+    callResult.append(callPanel);
     if(hangup)callPanel.append(hangup);
   }
   const voiceButton=featureGrid?.querySelector('[data-modern-select="voice"]');
