@@ -73,7 +73,7 @@
   imageShare.className = "ezero-front-share-qr-image";
   $("ezeroFrontQrShareSlot").prepend(imageShare);
   const message=$("ezeroFrontQrStatus");
-  let fromQrButton=false,qrWhere="own";
+  let fromQrButton=false,qrWhere="own",pendingProfileKind=null;
   const videoSlot=$("ezeroFrontVideoSlot"),qrRenderSlot=$("ezeroFrontQrRenderSlot"),shareSlot=$("ezeroFrontQrShareSlot");
   const featureGrid=unified.querySelector(".modern-feature-grid");
   const scannerSlot=$("ezeroFrontScannerSlot");
@@ -146,6 +146,8 @@
       copyLink:"📋 لنک کاپی کریں",ready:"✓ نیا کال QR تیار ہے۔ دوست کو دکھائیں یا شیئر کریں۔",
       waiting:"QR بن رہا ہے؛ صرف آپ کی منظوری پر کال شروع ہوگی۔",
       needProfile:"پہلے نام، DP اور اجازت محفوظ کریں؛ پھر نیا کال QR بنے گا۔",
+       resumeAfterProfile:"✓ پروفائل محفوظ ہوگئی۔ اب اسی کال QR بٹن کو دوبارہ دبائیں؛ بغیر آپ کی منظوری کال شروع نہیں ہوگی۔",
+       renderFailed:"دعوتی لنک تیار ہوا، مگر QR تصویر نہیں بنی۔ لنک شیئر کریں یا QR دوبارہ بنائیں۔",
       endFirst:"پہلی کال ختم کریں، پھر نیا QR بنائیں۔",
       notReady:"ابھی QR تیار نہیں۔ پہلے میرا کال QR دبائیں۔",
       fallback:"اس فون پر QR تصویر شیئر نہیں ہوئی؛ دعوتی لنک شیئر کرنے کا اختیار کھول دیا ہے۔",
@@ -160,6 +162,8 @@
       ready:"✓ Fresh call QR ready. Show or share it.",
       waiting:"Creating QR. Calls require explicit acceptance.",
       needProfile:"Save your name, photo and consent first, then create QR.",
+       resumeAfterProfile:"✓ Profile saved. Tap the same call QR button again. Calls require explicit approval.",
+       renderFailed:"Invite link ready, but no scannable QR image was rendered. Share the link or retry.",
       endFirst:"End the current call before creating a fresh QR.",
       notReady:"No call QR yet. Tap My call QR first.",
       fallback:"Sharing an image is unavailable; share the invite link instead.",
@@ -172,7 +176,7 @@
       help:"افتح الصفحة نفسها على الهاتفين. اضغط رمزي لإنشاء دعوة مؤقتة، ثم يمسحها الطرف الآخر ويوافق.",
       shareImage:"↗ مشاركة صورة QR",shareLink:"↗ مشاركة رابط الدعوة",copyLink:"📋 نسخ الرابط",
       ready:"✓ رمز المكالمة الجديد جاهز للمشاركة.",waiting:"جارٍ إنشاء الرمز. الاتصال يحتاج موافقة واضحة.",
-      needProfile:"احفظ الاسم والصورة والموافقة أولًا.",endFirst:"أنهِ المكالمة الأولى قبل إنشاء رمز جديد.",
+      needProfile:"احفظ الاسم والصورة والموافقة أولًا.",resumeAfterProfile:"✓ حُفظ الملف الشخصي. اضغط زر QR نفسه مرة أخرى؛ يلزم موافقتك.",renderFailed:"رابط الدعوة جاهز لكن صورة QR لم تظهر. شارك الرابط أو أعد المحاولة.",endFirst:"أنهِ المكالمة الأولى قبل إنشاء رمز جديد.",
       notReady:"لا يوجد رمز مكالمة بعد. اضغط رمزي أولًا.",
       fallback:"تعذرت مشاركة الصورة؛ شارك رابط الدعوة بدلًا منها.",
       shareFailed:"لم تتم المشاركة. انسخ رابط الدعوة.",
@@ -203,6 +207,7 @@
     fromQrButton=true;
     if($("ezeroProfileFirstStatus")?.dataset.state!=="ready"){
       setStatus("needProfile");
+       pendingProfileKind=kind;
       // The user's own QR button opens the required consent form HERE.
       // No hidden fresh-call button or media request is attempted yet.
       window.EZERO_PROFILE_OPEN_NEAR?.(kind==="video"?video:own);
@@ -220,6 +225,19 @@
   }
   own.addEventListener("click",()=>start("audio"));
   video.addEventListener("click",()=>start("video"));
+  // Saving a profile is not permission to initiate a call or activate media.
+  // Return focus to the selected QR button and require an explicit second tap.
+  const profileStatus=$("ezeroProfileFirstStatus");
+  if(profileStatus){
+    new MutationObserver(()=>{
+      if(!pendingProfileKind||profileStatus.dataset.state!=="ready")return;
+      const chosen=pendingProfileKind==="video"?video:own;
+      placeQr(pendingProfileKind==="video"?"video":"own");
+      pendingProfileKind=null;
+      setStatus("resumeAfterProfile");
+      chosen.focus();
+    }).observe(profileStatus,{attributes:true,attributeFilter:["data-state"]});
+  }
   // Show the outcome of the top Audio / Video actions right under those
   // buttons; direct saved-friend calls remain direct, first-time calls need QR.
   featureGrid?.addEventListener("click",e=>{
@@ -234,10 +252,12 @@
   },true);
   const onReady=()=>{
     if(qrBox.hidden)return;
-    imageShare.disabled=!qrBox.querySelector("svg");
-    setStatus("ready");
-    own.setAttribute("aria-expanded",String(qrWhere==="own"));
-    video.setAttribute("aria-expanded",String(qrWhere==="video"));
+    // A signal-ready event is not proof that a scannable QR image exists.
+    const scannable=Boolean(qrBox.querySelector("svg"));
+    imageShare.disabled=!scannable;
+    setStatus(scannable?"ready":"renderFailed");
+    own.setAttribute("aria-expanded",String(scannable&&qrWhere==="own"));
+    video.setAttribute("aria-expanded",String(scannable&&qrWhere==="video"));
   };
   document.addEventListener("ezero:auto-call-starting",()=>{
     imageShare.disabled=true;message.textContent="";
