@@ -54,6 +54,7 @@ function mockSocket(ws){
 async function createPhone(name){
   const context=await browser.newContext({
     viewport:{width:393,height:852},isMobile:true,hasTouch:true,
+    deviceScaleFactor:3, // Physical Android phones typically render 2–3 device pixels per CSS pixel
     permissions:["camera","microphone"]
   });
   contexts.push(context);
