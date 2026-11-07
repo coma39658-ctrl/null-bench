@@ -47,6 +47,14 @@
     </p>
   `;
   heading.insertAdjacentElement("afterend",hub);
+  // Header profile opens its own inline editor, never a distant settings card.
+  const header=document.querySelector("header.top");
+  if(header){
+    const headerSlot=document.createElement("div");
+    headerSlot.id="ezeroHeaderProfileSlot";
+    headerSlot.className="ezero-inline-profile-slot";
+    header.insertAdjacentElement("afterend",headerSlot);
+  }
   // Reuse, don't copy, the existing authoritative QR/link, scanner controls,
   // and Accept/Decline. Moving nodes retains their existing event listeners.
   $("ezeroFrontScannerSlot").append(scannerButton);
@@ -188,6 +196,11 @@
     fromQrButton=true;
     if($("ezeroProfileFirstStatus")?.dataset.state!=="ready"){
       setStatus("needProfile");
+      // The user's own QR button opens the required consent form HERE.
+      // No hidden fresh-call button or media request is attempted yet.
+      window.EZERO_PROFILE_OPEN_NEAR?.(kind==="video"?video:own);
+      fromQrButton=false;
+      return;
     }else setStatus("waiting");
     // QR creates a *fresh* one-shot invitation even if a contact is saved.
     // The existing consent and cryptographic gates still decide if it starts.
