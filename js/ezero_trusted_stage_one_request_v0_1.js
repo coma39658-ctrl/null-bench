@@ -17,7 +17,7 @@
     ur:{ready:"✓ مختصر دعوت تیار ہے۔ دوست QR اسکین کرے یا لنک کھولے؛ جواب خود واپس آئے گا۔",
       copied:"✓ صرف عارضی دعوتی لنک کاپی ہوا۔ اسے قابلِ اعتماد دوست کو بھیجیں۔",
       copyFail:"لنک کاپی نہیں ہوا؛ «دعوت شیئر کریں» دبائیں۔",
-      invalid:"یہ E-ZERO کال دعوت کا صحیح QR نہیں۔",identityOnly:"یہ شناختی QR ہے، کال کی دعوت نہیں۔ پہلے فون پر 📞 یا 📹 دبائیں اور اس کا «دوست یہ QR اسکین کرے» والا QR دکھائیں۔",unsupported:"اس براؤزر میں QR اسکیننگ دستیاب نہیں۔ دوست کو لنک بھیجیں۔",
+      invalid:"یہ E-ZERO کال دعوت کا صحیح QR نہیں۔",oldPage:"یہ دوسرے ورژن کا QR ہے۔ دونوں موبائلوں میں ایک ہی نیا E-ZERO Secure App ٹیسٹ لنک کھولیں اور نیا کال QR بنائیں۔",identityOnly:"یہ شناختی QR ہے، کال کی دعوت نہیں۔ پہلے فون پر 📞 یا 📹 دبائیں اور اس کا «دوست یہ QR اسکین کرے» والا QR دکھائیں۔",unsupported:"اس براؤزر میں QR اسکیننگ دستیاب نہیں۔ دوست کو لنک بھیجیں۔",
       scanning:"📷 کیمرہ فعال ہے؛ دوست کی E-ZERO کال QR سامنے رکھیں۔",stopped:"کیمرہ بند ہے۔",
       failure:"QR اسکین ناکام؛ لنک کھولنے کا طریقہ استعمال کریں۔",timeout:"20 سیکنڈ میں QR نہیں ملا؛ کیمرہ بند ہے۔",
       starting:"کال شروع کرنے کی درخواست۔ مائیک/کیمرے کی اجازت آپ سے مانگی جائے گی۔",
@@ -25,7 +25,7 @@
       inviteFail:"کال QR نہیں بنا۔ دوبارہ 📞 آڈیو کال دبائیں؛ خرابی برقرار ہو تو رابطہ سرور چیک کریں۔"},
     en:{ready:"✓ One short invite ready. Your friend scans QR or opens link; the answer returns automatically.",
       copied:"✓ Invitation link copied. Share only with someone you trust.",
-      copyFail:"Cannot copy link; tap Share Invitation.",invalid:"This is not a valid E-ZERO call invitation QR.",identityOnly:"This QR verifies identity only. On the first phone tap Audio or Video, then scan the call invitation QR.",
+      copyFail:"Cannot copy link; tap Share Invitation.",invalid:"This is not a valid E-ZERO call invitation QR.",oldPage:"This QR belongs to a different version. Open the same new E-ZERO Secure App test link on both phones and create a fresh call QR.",identityOnly:"This QR verifies identity only. On the first phone tap Audio or Video, then scan the call invitation QR.",
       unsupported:"QR scan unavailable in this browser. Share the link instead.",scanning:"📷 Camera ready; scan friend's call QR.",
       stopped:"Camera off.",failure:"QR failed. Open the invitation link instead.",timeout:"No QR in 20 seconds; camera stopped.",
       starting:"Calling: camera/microphone permission will be requested.",
@@ -33,7 +33,7 @@
       inviteFail:"Call QR not created. Tap Audio again; check signaling if this persists."},
     ar:{ready:"✓ الدعوة المختصرة جاهزة؛ يفتحها الصديق ويعود الرد تلقائياً.",
       copied:"✓ نُسخ الرابط المؤقت. شاركه مع شخص موثوق فقط.",copyFail:"تعذر النسخ؛ اضغط مشاركة الدعوة.",
-      invalid:"هذا ليس رمز QR صالحاً لدعوة مكالمة E-ZERO.",identityOnly:"هذا رمز هوية فقط. اضغط مكالمة صوتية أو فيديو في الهاتف الأول وامسح رمز دعوة الاتصال.",unsupported:"مسح QR غير متاح؛ شارك الرابط بدلاً منه.",
+      invalid:"هذا ليس رمز QR صالحاً لدعوة مكالمة E-ZERO.",oldPage:"هذا QR لنسخة مختلفة. افتح رابط اختبار E-ZERO Secure App الجديد على الهاتفين ثم أنشئ رمز مكالمة جديداً.",identityOnly:"هذا رمز هوية فقط. اضغط مكالمة صوتية أو فيديو في الهاتف الأول وامسح رمز دعوة الاتصال.",unsupported:"مسح QR غير متاح؛ شارك الرابط بدلاً منه.",
       scanning:"📷 الكاميرا تعمل. امسح رمز دعوة صديقك.",stopped:"تم إيقاف الكاميرا.",
       failure:"فشل المسح؛ افتح الرابط مباشرة.",timeout:"لم يُعثر على QR خلال 20 ثانية.",
       starting:"بدء المكالمة؛ سيطلب المتصفح إذن الميكروفون أو الكاميرا.",
@@ -58,6 +58,16 @@
     const validOrigin=url.origin===location.origin;
     const validPage=url.pathname.endsWith("/ezero_trusted_friends_staging_20261106.html");
     return validOrigin&&validPage&&/^#room=[A-Za-z0-9_-]{32}\.[A-Za-z0-9_-]{43}$/.test(url.hash);
+  }
+  function scannedQrError(value){
+    if(value.startsWith("EZERO1."))return "identityOnly";
+    try{
+      const url=new URL(value);
+      if(url.protocol==="https:"&&
+        url.pathname.endsWith("/ezero_trusted_friends_staging_20261106.html")&&
+        url.origin!==location.origin)return "oldPage";
+    }catch(_){}
+    return "invalid";
   }
   // A call button initiates a real connection attempt, not a sticky choice.
   // Legacy JS changes its presentation first; we clear the selected state
@@ -227,7 +237,7 @@
             if(safeInvite(raw)){
               stopScan();
               location.assign(raw); // Shows accept/reject, never auto-accepts.
-            }else{stopScan();info(raw.startsWith("EZERO1.")?"identityOnly":"invalid",true);}
+            }else{stopScan();info(scannedQrError(raw),true);}
             return;
           }
           loops=0;
