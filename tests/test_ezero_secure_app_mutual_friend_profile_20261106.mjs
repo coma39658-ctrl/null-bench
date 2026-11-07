@@ -355,6 +355,10 @@ try{
   assert.equal(await scanPhone.evaluate(()=>window.__mediaCalls.length),0,
     "Scanning an image never auto-accepts a call or opens mic/camera");
   console.log("SELF_HOSTED_GALLERY_QR_SCAN_SAME_ORIGIN_SIGNED_INVITE: PASS");
+  // A newly navigated invite has deferred scripts still loading; never close
+  // a Playwright request context while a mocked response route is in flight.
+  await scanPhone.waitForLoadState("load");
+  await scanPhone.context().unrouteAll({behavior:"ignoreErrors"});
   await scanPhone.context().close();
 
   if(REMOTE_RENDER_STAGE)assert.ok(invite.startsWith(REMOTE_RENDER_ORIGIN),
