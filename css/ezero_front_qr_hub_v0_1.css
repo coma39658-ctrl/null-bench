@@ -270,3 +270,17 @@ body.ezero-one-lab #ezeroFrontQrRenderSlot #ezeroFrontQrShareSlot{
 .communication-page.ezero-one-lab #ezeroFrontScannerSlot #ezeroOneScanStatus{
   overflow-wrap:anywhere;
 }
+
+/* Use actual phone camera density: larger square SVG QR, no clipped/unequal
+   max-height that can distort modules. Crisp rects + white 4-module margin. */
+.communication-page.ezero-one-lab .ezero-front-qr-hub #ezeroOneQr{
+  width:min(100%,352px)!important;max-width:100%!important;
+  height:auto!important;box-sizing:border-box!important;
+  background:#fff!important;
+}
+.communication-page.ezero-one-lab .ezero-front-qr-hub #ezeroOneQr svg{
+  display:block!important;width:100%!important;height:auto!important;
+  max-height:none!important;aspect-ratio:1/1;
+  shape-rendering:crispEdges;
+  background:#fff;
+}
