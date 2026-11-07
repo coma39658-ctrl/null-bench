@@ -80,6 +80,13 @@
   callText.id="ezeroInlineCallText";
   callResult.append(callText);
   featureGrid?.querySelector('[data-modern-select="video"]')?.insertAdjacentElement("afterend",callResult);
+  // The live audio/video area and Hang Up belong under the call buttons.
+  // Keep original IDs and event listeners, only move their existing DOM.
+  const callPanel=$("modernCallPanel"),hangup=$("modernHangup");
+  if(callPanel){
+    callResult.insertAdjacentElement("afterend",callPanel);
+    if(hangup)callPanel.append(hangup);
+  }
   const voiceButton=featureGrid?.querySelector('[data-modern-select="voice"]');
   const chatButton=featureGrid?.querySelector('[data-modern-select="chat"]');
   const voicePanel=$("modernVoicePanel"),chatPanel=$("modernChatPanel");
