@@ -1,0 +1,33 @@
+/* Optional one-tap UX: preserves the forest-green verified call layout. */
+body.ezero-quick-enabled #ezeroUnifiedCard>.modern-feature-grid{display:none!important}
+body.ezero-quick-enabled .ezero-instant-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:15px 0 22px}
+body.ezero-quick-enabled .ezero-instant-button{min-width:0;min-height:72px;padding:10px 5px;border:1.5px solid #9ee7b4;border-radius:16px;
+  background:linear-gradient(145deg,#176846,#0b422d);color:#f7fff9;font-size:13px;font-weight:800;line-height:1.4;
+  box-shadow:inset 0 0 0 1px #ffffff1e,0 5px 14px #001b1269;cursor:pointer}
+body.ezero-quick-enabled .ezero-instant-button:focus-visible,
+body.ezero-quick-enabled .ezero-instant-close:focus-visible{outline:3px solid #ffce73;outline-offset:2px}
+body.ezero-instant-open{overflow:hidden!important}
+body.ezero-quick-enabled .ezero-instant-sheet[hidden]{display:none!important}
+body.ezero-quick-enabled .ezero-instant-sheet{position:fixed!important;inset:0!important;z-index:9000!important;
+  display:flex;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 10px max(12px,env(safe-area-inset-bottom))}
+body.ezero-quick-enabled .ezero-instant-backdrop{position:absolute;inset:0;border:0;background:#02140fd9;cursor:pointer}
+body.ezero-quick-enabled .ezero-instant-panel{position:relative;z-index:1;width:min(100%,600px);max-height:calc(100dvh - 24px);
+  overflow:auto;overscroll-behavior:contain;border:1.5px solid #87deb0;border-radius:22px;
+  background:linear-gradient(150deg,#093b2c,#072c21);box-shadow:0 20px 65px #001e14b3;padding:15px;color:#ecfff2}
+body.ezero-quick-enabled .ezero-instant-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+body.ezero-quick-enabled .ezero-instant-head h2{font-size:19px;line-height:1.4;color:#f3fff5;margin:0}
+body.ezero-quick-enabled .ezero-instant-close{background:#11583d;color:white;border:1px solid #a2dbb6;
+  padding:9px 12px;min-height:45px;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer}
+body.ezero-quick-enabled .ezero-instant-hint{font-size:13px;line-height:1.8;color:#c9ebd5;margin:10px 0}
+body.ezero-quick-enabled .ezero-instant-feedback{font-size:12px;line-height:1.7;color:#edfff4;min-height:20px}
+body.ezero-quick-enabled .ezero-instant-qr[hidden]{display:none!important}
+body.ezero-quick-enabled .ezero-instant-qr{background:white;border-radius:16px;max-width:360px;
+  margin:12px auto;padding:16px;display:flex;align-items:center;justify-content:center}
+body.ezero-quick-enabled .ezero-instant-qr svg{display:block;max-width:100%;height:auto}
+body.ezero-quick-enabled #ezeroInstantWork>*{margin-block:10px!important;min-width:0;max-width:100%}
+body.ezero-quick-enabled #ezeroInstantWork #ezeroOneQrBox{max-width:100%!important}
+body.ezero-quick-enabled #ezeroInstantWork #ezeroOneQr svg{max-width:100%;height:auto}
+@media(max-width:380px){body.ezero-quick-enabled .ezero-instant-actions{gap:6px}
+ body.ezero-quick-enabled .ezero-instant-button{font-size:11px;min-height:65px}
+ body.ezero-quick-enabled .ezero-instant-panel{padding:10px}}
+@media(prefers-reduced-motion:reduce){body.ezero-quick-enabled .ezero-instant-button{transition:none!important}}
