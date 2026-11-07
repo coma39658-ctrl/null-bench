@@ -261,7 +261,9 @@ try{
   assert.equal(await alice.locator("#ezeroOneImageScan").isVisible(),true);
   assert.equal(await alice.locator("#ezeroOneSameVersion").isVisible(),true,
     "The share-this-test-link control must be visible even before pairing");
-  const qrPng=await alice.locator("#ezeroOneQr svg").screenshot({type:"png"});
+  // Capture the actual on-screen WHITE QR tile, not the transparent SVG alone:
+  // otherwise transparent pixels are interpreted as black by image decoders.
+  const qrPng=await alice.locator("#ezeroOneQr").screenshot({type:"png"});
   const scanPhone=await createPhone("QR_IMAGE_FALLBACK_PHONE");
   await scanPhone.evaluate(()=>Object.defineProperty(window,"BarcodeDetector",{
     configurable:true,value:undefined
