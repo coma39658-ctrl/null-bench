@@ -2,9 +2,11 @@ import assert from "node:assert/strict";
 import {chromium} from "playwright";
 
 const LIVE_SIGNALING=process.env.EZERO_LIVE_SIGNALING==="1";
+const REMOTE_RENDER_STAGE=process.env.EZERO_REMOTE_RENDER_STAGE==="1";
+const REMOTE_RENDER_ORIGIN="https://ezero-secure-app-two-phone-test-20261107.onrender.com/";
 const base="http://127.0.0.1:8769/";
 const pagePath="ezero_trusted_friends_staging_20261106.html";
-const publicOrigin="https://coma39658-ctrl.github.io/null-bench/";
+const publicOrigin=REMOTE_RENDER_STAGE?REMOTE_RENDER_ORIGIN:"https://coma39658-ctrl.github.io/null-bench/";
 const trustedInbox="wss://ezero-trusted-friends-inbox-staging.coma39658.workers.dev";
 const service="wss://ezero-browser-signaling-pilot.coma39658.workers.dev/v1/rooms/";
 const browser=await chromium.launch({headless:true,
@@ -65,7 +67,7 @@ async function createPhone(name){
   });
   // Preserve the exact allowed public HTTPS Origin while reading candidate
   // files ONLY from the local CI server; public Pages is never modified.
-  await context.route("**/*",async route=>{
+  if(!REMOTE_RENDER_STAGE) await context.route("**/*",async route=>{
     const url=route.request().url();
     if(!url.startsWith(publicOrigin))return route.abort("blockedbyclient");
     const u=new URL(url);
@@ -114,6 +116,14 @@ async function createPhone(name){
   const page=await context.newPage();
   page.on("pageerror",e=>console.error(name+"_PAGE_ERROR",e.message));
   await page.goto(publicOrigin+pagePath,{waitUntil:"domcontentloaded"});
+  if(REMOTE_RENDER_STAGE){
+    const banner=page.locator(".ezero-stage-banner");
+    await banner.waitFor({state:"visible",timeout:15000});
+    assert.match(await banner.innerText(),/TEST|ٹیسٹ/);
+    const expected=process.env.EZERO_REMOTE_RENDER_SHA||"";
+    if(expected)assert.ok((await banner.innerText()).includes(expected.slice(0,12)),
+      "Deployed stage SHA must match the pinned expected build");
+  }
   await page.waitForFunction(()=>document.getElementById("myFingerprint")?.textContent.length===64);
   return page;
 }
@@ -171,6 +181,8 @@ try{
   await alice.waitForFunction(()=>!!window.__oneInvite,{timeout:20000});
   const invite=await alice.evaluate(()=>window.__oneInvite);
   assert.match(invite,/mode=audio#room=/);
+  if(REMOTE_RENDER_STAGE)assert.ok(invite.startsWith(REMOTE_RENDER_ORIGIN),
+    "Generated invite must point back to the same isolated Render staging site");
   const bob=await createPhone("BOB");
   await bob.goto(invite,{waitUntil:"domcontentloaded"});
   await bob.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:12000});
@@ -293,7 +305,9 @@ try{
   console.log("BLOCK_DELETES_LOCAL_FRIEND_AND_EXPLICIT_UNBLOCK_WORKS: PASS");
   if(!LIVE_SIGNALING) assert.ok(offers>=1&&answers>=1,
     "Signed real WebRTC offer and answer must both pass");
-  else console.log("LIVE_CLOUDFLARE_SIGNALING_AND_SIGNED_WEBRTC_MEDIA: PASS");
+  else console.log(REMOTE_RENDER_STAGE?
+    "RENDER_HTTPS_REAL_CLOUDFLARE_TWO_BROWSER_WEBRTC: PASS":
+    "LIVE_CLOUDFLARE_SIGNALING_AND_SIGNED_WEBRTC_MEDIA: PASS");
 }finally{
   await Promise.all(contexts.map(c=>c.close().catch(()=>{})));
   await browser.close();
