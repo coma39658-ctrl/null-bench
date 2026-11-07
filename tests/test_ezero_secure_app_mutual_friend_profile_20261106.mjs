@@ -183,6 +183,23 @@ try{
   assert.equal(await alice.locator("#ezeroOneScanInvite").evaluate(el=>
     el.parentElement?.id==="ezeroFrontScannerSlot"),true,
     "Only the original signed call scanner, not an identity-only scanner, is shown up front");
+  if(!REMOTE_RENDER_STAGE){
+    assert.equal(await alice.locator("#ezeroOneScannerVideo").evaluate(el=>
+      el.closest("#ezeroFrontScannerSlot")!==null),true,
+      "The camera must open underneath the Scan button, not at the bottom of the page");
+    assert.equal(await alice.locator("#modernVoicePanel").evaluate(el=>
+      el.parentElement?.classList.contains("modern-feature-grid")),true,
+      "Voice-note controls must stay next to their own feature tile");
+    assert.equal(await alice.locator("#modernChatPanel").evaluate(el=>
+      el.parentElement?.classList.contains("modern-feature-grid")),true,
+      "Private chat must stay next to its own feature tile");
+    assert.equal(await alice.locator("#ezeroProfileEditor").evaluate(el=>
+      el.parentElement?.id==="ezeroProfileFirstGate"),true,
+      "Name/photo editor must open beside the profile prerequisite");
+    assert.equal(await alice.locator("#ezeroOneQrBox").evaluate(el=>
+      el.parentElement?.id==="ezeroFrontQrRenderSlot"),true,
+      "Call QR starts next to My QR, not under another feature");
+  }
   assert.equal(await alice.locator("#ezeroContactVideo").isEnabled(),false);
   await alice.locator("#ezeroFrontAudioQr").click();
   assert.equal(await alice.evaluate(()=>window.__mediaCalls.length),0,
@@ -202,6 +219,13 @@ try{
     el.closest("#ezeroFrontQrHub")!==null),true);
   assert.equal(await alice.locator("#ezeroAutoShare").isEnabled(),true);
   assert.equal(await alice.locator("#ezeroOneCopyInvite").isEnabled(),true);
+  if(!REMOTE_RENDER_STAGE){
+    assert.equal(await alice.locator("#ezeroOneQrBox").evaluate(el=>
+      el.parentElement?.id==="ezeroFrontQrRenderSlot"),true);
+    assert.equal(await alice.locator("#ezeroFrontAudioQr").getAttribute("aria-expanded"),"true");
+    assert.equal(await alice.locator("#ezeroOneQrBox").isVisible(),true);
+    console.log("SAME_PLACE_QR_SCANNER_PROFILE_CHAT_VOICE: PASS");
+  }
   console.log("FRONT_WIFI_STYLE_CALL_QR_SCAN_AND_SHARE_SAME_PAGE: PASS");
   if(REMOTE_RENDER_STAGE)assert.ok(invite.startsWith(REMOTE_RENDER_ORIGIN),
     "Generated invite must point back to the same isolated Render staging site");
