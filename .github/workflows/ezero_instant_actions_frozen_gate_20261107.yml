@@ -1,0 +1,56 @@
+name: E-ZERO Instant Actions - Frozen Calling Regression
+on:
+  push:
+    branches: [ezero-instant-actions-frozen-calling-20261107]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ezero_trusted_friends_staging_20261106.html'
+      - 'js/ezero_instant_action_sheet_v0_1.js'
+      - 'css/ezero_instant_action_sheet_v0_1.css'
+      - 'js/ezero_trusted_stage_one_request_v0_1.js'
+      - 'js/ezero_secure_connect_modern_evidence_stage_v0_1.js'
+      - 'tests/test_ezero_instant_actions_20261107.mjs'
+permissions:
+  contents: read
+jobs:
+  frozen-calling-and-one-click:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax, frozen-engine and safe entry checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check js/ezero_instant_action_sheet_v0_1.js
+          node --check js/ezero_trusted_stage_one_request_v0_1.js
+          node --check js/ezero_secure_connect_modern_evidence_stage_v0_1.js
+          node --check tests/test_ezero_instant_actions_20261107.mjs
+          grep -Fq 'ezero_instant_action_sheet_v0_1.js' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'ezero_instant_action_sheet_v0_1.css' ezero_trusted_friends_staging_20261106.html
+          ! grep -Eq 'getUserMedia|new RTCPeerConnection|new WebSocket|MediaRecorder|localStorage' js/ezero_instant_action_sheet_v0_1.js
+          node tests/test_ezero_unified_public_entry_20261106.cjs
+      - name: Install fake-camera Chromium for two independent browser contexts
+        shell: bash
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.57.0 ws@8.18.3
+          npx playwright install --with-deps chromium --only-shell
+      - name: Run original frozen real-video regression and new quick-action test
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8769 --bind 127.0.0.1 >/tmp/ezero-instant-qa.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8769/ezero_trusted_friends_staging_20261106.html >/dev/null; then break; fi
+            sleep 1
+          done
+          node tests/test_ezero_public_video_visible_20261106.mjs
+          node tests/test_ezero_instant_actions_20261107.mjs
