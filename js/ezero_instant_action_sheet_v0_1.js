@@ -134,7 +134,9 @@ for(const id of ["ezeroOneScanStatus","ezeroAutoStatus","ezeroVoiceStatus","mess
 document.addEventListener("ezero:auto-incoming-open",()=>open("incoming"));
 document.addEventListener("ezero:auto-invite-ready",messages);
 document.addEventListener("ezero:call-status",e=>{
-  if(mode==="video"&&e.detail?.stage==="connected"&&
+  if((mode==="video"||mode==="incoming")&&
+     document.querySelector('input[name="mode"]:checked')?.value==="video"&&
+     e.detail?.stage==="connected"&&
      window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true)close();
   else messages();
 });
