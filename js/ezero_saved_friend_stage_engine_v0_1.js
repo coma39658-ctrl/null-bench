@@ -517,6 +517,27 @@
     await identityPromise;
     const cfg = {iceServers:$("enableStun").checked?[{urls:"stun:stun.cloudflare.com:3478"}]:[]};
     const p = new RTCPeerConnection(cfg);peer=p;
+    // Never export raw ICE candidates, IPs, SDP or room tokens. This bounded
+    // transient diagnostic only reports candidate CATEGORY counts and states
+    // to the active page, to distinguish no-route from signaling or camera.
+    const iceCounts={host:0,srflx:0,prflx:0,relay:0};
+    const emitIce=()=>{
+      if(peer!==p)return;
+      document.dispatchEvent(new CustomEvent("ezero:ice-diagnostic",{
+        detail:{state:p.iceConnectionState,gathering:p.iceGatheringState,
+          counts:{...iceCounts}}
+      }));
+    };
+    p.addEventListener("icecandidate",event=>{
+      if(peer!==p||!event.candidate)return;
+      const candidate=event.candidate;
+      const kind=candidate.type||
+        /(?:^|\\s)typ\\s(host|srflx|prflx|relay)(?:\\s|$)/.exec(candidate.candidate||"")?.[1];
+      if(Object.hasOwn(iceCounts,kind))
+        iceCounts[kind]=Math.min(999,iceCounts[kind]+1);
+      emitIce();
+    });
+    p.addEventListener("icegatheringstatechange",emitIce);
     remoteStream=new MediaStream(); $("remoteVideo").srcObject=remoteStream;
     p.ontrack = event => {
       if (peer !== p) return;
@@ -526,6 +547,7 @@
     };
     p.onconnectionstatechange=()=>{
       if(peer!==p)return;
+      emitIce();
       if(p.connectionState==="connected") status("connected",p.__ezeroPeerFP?.slice(0,16));
       else if(p.connectionState==="failed") status("iceNoRoute");
       else if(p.connectionState==="disconnected") status("offline","disconnected");
@@ -533,6 +555,7 @@
     };
     p.oniceconnectionstatechange=()=>{
       if(peer!==p)return;
+      emitIce();
       // ICE 'failed' means there is no viable network route for this exact peer attempt.
       // Without a provisioned TURN relay we must not promise universal connectivity.
       if(p.iceConnectionState==="failed") status("iceNoRoute");
