@@ -17,7 +17,7 @@
     ur:{ready:"✓ مختصر دعوت تیار ہے۔ دوست QR اسکین کرے یا لنک کھولے؛ جواب خود واپس آئے گا۔",
       copied:"✓ صرف عارضی دعوتی لنک کاپی ہوا۔ اسے قابلِ اعتماد دوست کو بھیجیں۔",
       copyFail:"لنک کاپی نہیں ہوا؛ «دعوت شیئر کریں» دبائیں۔",
-      invalid:"یہ E-ZERO کال دعوت کا صحیح QR نہیں۔",oldPage:"یہ دوسرے ورژن کا QR ہے۔ دونوں موبائلوں میں ایک ہی نیا E-ZERO Secure App ٹیسٹ لنک کھولیں اور نیا کال QR بنائیں۔",identityOnly:"یہ شناختی QR ہے، کال کی دعوت نہیں۔ پہلے فون پر 📞 یا 📹 دبائیں اور اس کا «دوست یہ QR اسکین کرے» والا QR دکھائیں۔",unsupported:"اس براؤزر میں QR اسکیننگ دستیاب نہیں۔ دوست کو لنک بھیجیں۔",
+      invalid:"یہ E-ZERO کال دعوت کا صحیح QR نہیں۔",oldPage:"یہ دوسرے ورژن کا QR ہے۔ دونوں موبائلوں میں ایک ہی نیا E-ZERO Secure App ٹیسٹ لنک کھولیں اور نیا کال QR بنائیں۔",identityOnly:"یہ شناختی QR ہے، کال کی دعوت نہیں۔ پہلے فون پر 📞 یا 📹 دبائیں اور اس کا «دوست یہ QR اسکین کرے» والا QR دکھائیں۔",unsupported:"اس براؤزر میں لائیو کیمرہ دستیاب نہیں؛ اسی خانے میں «تصویر سے QR پڑھیں» استعمال کریں یا Chrome میں کھولیں۔",cameraDenied:"کیمرے کی اجازت بند ہے۔ Chrome میں اجازت دیں یا تصویر سے QR پڑھیں۔",cameraBusy:"کیمرہ مصروف ہے یا اس فون میں دستیاب نہیں؛ QR کی تصویر منتخب کریں۔",imageChoose:"🖼️ تصویر / گیلری سے QR پڑھیں",imageInvalid:"درست QR تصویر منتخب کریں (8 MB سے کم)۔",imageNoQr:"اس تصویر میں QR نہیں پڑھا جا سکا؛ واضح تصویر یا دعوتی لنک استعمال کریں۔",sameVersion:"↗ یہی ٹیسٹ ورژن دوسرے فون پر شیئر کریں",
       scanning:"📷 کیمرہ فعال ہے؛ دوست کی E-ZERO کال QR سامنے رکھیں۔",stopped:"کیمرہ بند ہے۔",
       failure:"QR اسکین ناکام؛ لنک کھولنے کا طریقہ استعمال کریں۔",timeout:"20 سیکنڈ میں QR نہیں ملا؛ کیمرہ بند ہے۔",
       starting:"کال شروع کرنے کی درخواست۔ مائیک/کیمرے کی اجازت آپ سے مانگی جائے گی۔",
@@ -26,14 +26,14 @@
     en:{ready:"✓ One short invite ready. Your friend scans QR or opens link; the answer returns automatically.",
       copied:"✓ Invitation link copied. Share only with someone you trust.",
       copyFail:"Cannot copy link; tap Share Invitation.",invalid:"This is not a valid E-ZERO call invitation QR.",oldPage:"This QR belongs to a different version. Open the same new E-ZERO Secure App test link on both phones and create a fresh call QR.",identityOnly:"This QR verifies identity only. On the first phone tap Audio or Video, then scan the call invitation QR.",
-      unsupported:"QR scan unavailable in this browser. Share the link instead.",scanning:"📷 Camera ready; scan friend's call QR.",
+      unsupported:"Live camera unavailable here. Use Scan QR from image in this tile, or open in Chrome.",cameraDenied:"Camera permission denied. Allow it in Chrome or choose a QR image.",cameraBusy:"Camera unavailable or busy; select a QR image.",imageChoose:"🖼️ Scan QR from image",imageInvalid:"Choose an image smaller than 8 MB.",imageNoQr:"No readable QR found. Try a clearer image or invite link.",sameVersion:"↗ Share this test version to the other phone",scanning:"📷 Camera ready; scan friend's call QR.",
       stopped:"Camera off.",failure:"QR failed. Open the invitation link instead.",timeout:"No QR in 20 seconds; camera stopped.",
       starting:"Calling: camera/microphone permission will be requested.",
       qrFail:"Invite is ready but the QR image failed. Use Share Invitation or Copy Link.",
       inviteFail:"Call QR not created. Tap Audio again; check signaling if this persists."},
     ar:{ready:"✓ الدعوة المختصرة جاهزة؛ يفتحها الصديق ويعود الرد تلقائياً.",
       copied:"✓ نُسخ الرابط المؤقت. شاركه مع شخص موثوق فقط.",copyFail:"تعذر النسخ؛ اضغط مشاركة الدعوة.",
-      invalid:"هذا ليس رمز QR صالحاً لدعوة مكالمة E-ZERO.",oldPage:"هذا QR لنسخة مختلفة. افتح رابط اختبار E-ZERO Secure App الجديد على الهاتفين ثم أنشئ رمز مكالمة جديداً.",identityOnly:"هذا رمز هوية فقط. اضغط مكالمة صوتية أو فيديو في الهاتف الأول وامسح رمز دعوة الاتصال.",unsupported:"مسح QR غير متاح؛ شارك الرابط بدلاً منه.",
+      invalid:"هذا ليس رمز QR صالحاً لدعوة مكالمة E-ZERO.",oldPage:"هذا QR لنسخة مختلفة. افتح رابط اختبار E-ZERO Secure App الجديد على الهاتفين ثم أنشئ رمز مكالمة جديداً.",identityOnly:"هذا رمز هوية فقط. اضغط مكالمة صوتية أو فيديو في الهاتف الأول وامسح رمز دعوة الاتصال.",unsupported:"الكاميرا غير متاحة في هذا المتصفح؛ اختر صورة QR أو افتح في Chrome.",cameraDenied:"إذن الكاميرا مرفوض؛ اسمح به أو اختر الصورة.",cameraBusy:"الكاميرا مشغولة؛ اختر صورة QR.",imageChoose:"🖼️ قراءة QR من صورة",imageInvalid:"اختر صورة أصغر من 8 ميغابايت.",imageNoQr:"لم يتم العثور على QR واضح. حاول بصورة أخرى.",sameVersion:"↗ مشاركة هذا الإصدار للهاتف الآخر",
       scanning:"📷 الكاميرا تعمل. امسح رمز دعوة صديقك.",stopped:"تم إيقاف الكاميرا.",
       failure:"فشل المسح؛ افتح الرابط مباشرة.",timeout:"لم يُعثر على QR خلال 20 ثانية.",
       starting:"بدء المكالمة؛ سيطلب المتصفح إذن الميكروفون أو الكاميرا.",
@@ -217,47 +217,152 @@
     else if(["iceNoRoute","signalInvalid","micDenied","fingerprintMismatch","failed"].includes(stage))
       showProgress("failed");
   });
+  // Self-hosted jsQR is bundled in staging. Browser-native BarcodeDetector is
+  // an optional fast path, NOT required for Android WebViews or other browsers.
+  // Decoding is entirely local; signed-invite origin and room validation remain
+  // unchanged and the other phone still must explicitly approve.
+  const scannerSlot=$("ezeroFrontScannerSlot")||$("ezeroOneJoinPanel");
+  const fileButton=document.createElement("button");
+  fileButton.type="button";fileButton.id="ezeroOneImageScan";
+  fileButton.className="secondary ezero-qr-image-scan";
+  const fileInput=document.createElement("input");
+  fileInput.id="ezeroOneImageScanInput";fileInput.type="file";
+  fileInput.accept="image/*";fileInput.hidden=true;
+  fileInput.setAttribute("aria-label","Choose a QR image from gallery");
+  const sameVersion=document.createElement("button");
+  sameVersion.type="button";sameVersion.id="ezeroOneSameVersion";
+  sameVersion.className="secondary ezero-qr-same-version";
+  sameVersion.hidden=true;
+  const refreshScannerLabels=()=>{
+    fileButton.textContent=t("imageChoose");
+    sameVersion.textContent=t("sameVersion");
+  };
+  refreshScannerLabels();
+  $("language")?.addEventListener("change",refreshScannerLabels);
+  scannerSlot?.append(fileButton,fileInput,sameVersion);
+  fileButton.addEventListener("click",()=>fileInput.click());
+  sameVersion.addEventListener("click",async()=>{
+    // Share only the public app URL, NEVER a private QR room token.
+    const url=new URL("./ezero_trusted_friends_staging_20261106.html",location.href).href;
+    try{
+      if(navigator.share)await navigator.share({title:"E-ZERO Secure App TEST",url});
+      else if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(url);
+      else throw Error("NO_SHARE");
+    }catch(_){info("unsupported",true);}
+  });
+  const canvas=document.createElement("canvas");
+  const ctx=canvas.getContext("2d",{willReadFrequently:true});
+  let detector=null, detectorReady=false;
+  async function nativeDetector(){
+    if(detectorReady)return detector;
+    detectorReady=true;
+    if(typeof window.BarcodeDetector!=="function")return null;
+    try{
+      if(typeof BarcodeDetector.getSupportedFormats==="function"){
+        const formats=await BarcodeDetector.getSupportedFormats();
+        if(!formats.includes("qr_code"))return null;
+      }
+      detector=new BarcodeDetector({formats:["qr_code"]});
+    }catch(_){detector=null;}
+    return detector;
+  }
+  function qrFromCanvas(element,limit=1100){
+    if(!ctx||typeof window.jsQR!=="function")return "";
+    const width=element.videoWidth||element.naturalWidth||element.width||0;
+    const height=element.videoHeight||element.naturalHeight||element.height||0;
+    if(width<2||height<2)return "";
+    const scale=Math.min(1,limit/Math.max(width,height));
+    const w=Math.max(1,Math.round(width*scale)),h=Math.max(1,Math.round(height*scale));
+    canvas.width=w;canvas.height=h;
+    ctx.drawImage(element,0,0,w,h);
+    const data=ctx.getImageData(0,0,w,h);
+    return window.jsQR(data.data,w,h,{inversionAttempts:"dontInvert"})?.data||"";
+  }
+  async function decodeQr(element){
+    const native=await nativeDetector();
+    if(native){
+      try{
+        const results=await native.detect(element);
+        if(results?.[0]?.rawValue)return results[0].rawValue;
+      }catch(_){detector=null;}
+    }
+    return qrFromCanvas(element);
+  }
+  function handleScanResult(raw){
+    if(safeInvite(raw)){
+      stopScan();
+      location.assign(raw); // Opens visible request; never auto-accepts.
+    }else{
+      stopScan();
+      const reason=scannedQrError(raw);
+      sameVersion.hidden=reason!=="oldPage";
+      info(reason,true);
+    }
+  }
+  fileInput.addEventListener("change",async()=>{
+    const file=fileInput.files?.[0];fileInput.value="";
+    if(!file)return;
+    if(!file.type.startsWith("image/")||file.size>8*1024*1024){
+      info("imageInvalid",true);return;
+    }
+    stopScan();
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    try{
+      await new Promise((resolve,reject)=>{
+        img.onload=resolve;img.onerror=()=>reject(Error("BAD_IMAGE"));
+        img.src=url;
+      });
+      // Maximum decoded canvas size bounds memory use on low-end phones.
+      const raw=await decodeQr(img);
+      if(raw)handleScanResult(raw);
+      else info("imageNoQr",true);
+    }catch(_){info("imageNoQr",true);}
+    finally{URL.revokeObjectURL(url);}
+  });
   async function scan(){
     const start=$("ezeroOneScanInvite");
-    if(!window.BarcodeDetector||!navigator.mediaDevices?.getUserMedia){
+    sameVersion.hidden=true;
+    if(!navigator.mediaDevices?.getUserMedia){
       info("unsupported",true);return;
     }
     stopScan();
     const serial=scanSerial;
     start.disabled=true;
     try{
-      const detector=new BarcodeDetector({formats:["qr_code"]});
       const media=await navigator.mediaDevices.getUserMedia({
         video:{facingMode:{ideal:"environment"}},audio:false
       });
-      if(serial!==scanSerial||document.hidden){media.getTracks().forEach(x=>x.stop());return;}
+      if(serial!==scanSerial||document.hidden){
+        media.getTracks().forEach(x=>x.stop());return;
+      }
       stream=media;scanner.srcObject=media;scanner.hidden=false;
       await scanner.play();
       stopBtn.hidden=false;info("scanning");
-      let loops=0;
-      const expires=Date.now()+20000;
+      let failures=0;
+      const expires=Date.now()+45000;
       async function frame(){
         if(serial!==scanSerial||!stream)return;
         if(Date.now()>expires){stopScan();info("timeout",true);return;}
         try{
-          const found=await detector.detect(scanner);
+          const raw=await decodeQr(scanner);
           if(serial!==scanSerial||!stream)return;
-          const raw=found?.[0]?.rawValue;
-          if(raw){
-            if(safeInvite(raw)){
-              stopScan();
-              location.assign(raw); // Shows accept/reject, never auto-accepts.
-            }else{stopScan();info(scannedQrError(raw),true);}
-            return;
-          }
-          loops=0;
+          if(raw){handleScanResult(raw);return;}
+          failures=0;
         }catch(_){
-          if(++loops>=5){stopScan();info("failure",true);return;}
+          if(++failures>=5){stopScan();info("failure",true);return;}
         }
-        scanTimer=setTimeout(frame,320);
+        scanTimer=setTimeout(frame,420);
       }
-      scanTimer=setTimeout(frame,300);
-    }catch(_){if(serial===scanSerial){stopScan();info("failure",true);}}
+      scanTimer=setTimeout(frame,250);
+    }catch(error){
+      if(serial===scanSerial){
+        stopScan();
+        info(error?.name==="NotAllowedError"||error?.name==="SecurityError"?
+          "cameraDenied":error?.name==="NotFoundError"||error?.name==="NotReadableError"?
+          "cameraBusy":"failure",true);
+      }
+    }
   }
   $("ezeroOneScanInvite")?.addEventListener("click",scan);
   stopBtn?.addEventListener("click",()=>{stopScan();info("stopped");});
