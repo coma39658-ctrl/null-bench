@@ -3,6 +3,10 @@
  * No network, media capture, recording, credentials or storage here.
  */
 (()=>{"use strict";
+// Keep the frozen localhost/CI baseline unchanged. The new UI is enabled on
+// the official public origin, or deliberately in an opt-in browser test.
+if(location.hostname!=="coma39658-ctrl.github.io"&&
+   new URLSearchParams(location.search).get("quick")!=="1")return;
 const $=id=>document.getElementById(id);
 const grid=document.querySelector("#ezeroUnifiedCard .modern-feature-grid");
 const parent=$("ezeroUnifiedCard"), myQr=$("myQr");
