@@ -160,17 +160,17 @@ jobs:
         env:
           EZERO_LIVE_SIGNALING: '1'
           EZERO_REMOTE_RENDER_STAGE: '1'
-          EZERO_REMOTE_RENDER_SHA: '8fae82c355e168e06f7d727b20be9188099f51fc'
+          EZERO_REMOTE_RENDER_SHA: '51d7aec556dec935d74edf339d86f3794f5aa865'
         run: |
           set -euo pipefail
-          URL="https://ezero-secure-app-two-phone-test-20261107.onrender.com/ezero_trusted_friends_staging_20261106.html?stageBuild=8fae82c355e1"
+          URL="https://ezero-secure-app-two-phone-test-20261107.onrender.com/ezero_trusted_friends_staging_20261106.html?stageBuild=51d7aec556de"
           curl --fail --silent --show-error --location --retry 2 --max-time 25 "$URL" -o /tmp/ezero-render-live-preview.html
           python3 - <<'PY'
           from pathlib import Path
           page=Path("/tmp/ezero-render-live-preview.html").read_text(errors="replace")
           for name,marker in [
             ("staging_banner","ezero-stage-banner"),
-            ("pinned_build","8fae82c355e1"),
+            ("pinned_build","51d7aec556de"),
             ("isolated_wss","wss://ezero-browser-signaling-render-test.coma39658.workers.dev"),
             ("inline_controls","ezero_front_qr_hub_v0_1.js")
           ]:
@@ -180,7 +180,7 @@ jobs:
           # Diagnostic is public build metadata only, never user QR/token/call data.
           printf 'REMOTE_RENDER_STAGE_BUILD: '
           grep -oE 'SHA: [a-f0-9]{12}' /tmp/ezero-render-live-preview.html | head -1 || true
-          grep -Fq '8fae82c355e1' /tmp/ezero-render-live-preview.html
+          grep -Fq '51d7aec556de' /tmp/ezero-render-live-preview.html
           grep -Fq 'wss://ezero-browser-signaling-render-test.coma39658.workers.dev' /tmp/ezero-render-live-preview.html
           curl --fail --silent --show-error --location --max-time 25 \
             'https://ezero-secure-app-two-phone-test-20261107.onrender.com/js/ezero_auto_signaling_lab_config_20261106.js' \
