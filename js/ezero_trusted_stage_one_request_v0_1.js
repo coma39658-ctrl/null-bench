@@ -86,7 +86,7 @@
          $("ezeroAutoStart") && !$("ezeroAutoStart").disabled){
         info("starting");
         $("ezeroAutoStart").click();
-        auto.scrollIntoView({block:"start",behavior:"smooth"});
+        // No automatic page jump: this call's status/QR is rendered by the tapped control.
       }
     });
   }
@@ -172,7 +172,7 @@
     const type=new URLSearchParams(location.search).get("mode")==="video"?"video":"audio";
     $("ezeroOneIncomingHeading").textContent=type==="video"?
       "📹 آنے والی ویڈیو کال — قبول کریں؟":"📞 آنے والی آڈیو کال — قبول کریں؟";
-    $("ezeroOneJoinPanel")?.scrollIntoView({block:"start",behavior:"auto"});
+    // Incoming Accept/Decline remain next to the on-screen Scan action.
   }
   document.addEventListener("ezero:auto-incoming-open",jumpIncoming);
   jumpIncoming();
@@ -190,7 +190,7 @@
   $("ezeroAutoAccept")?.addEventListener("click",()=>{
     incomingShell.hidden=true;
     showProgress("connecting");
-    $("ezeroOneJoinPanel")?.scrollIntoView({block:"start",behavior:"auto"});
+    // A connection result must remain where the user pressed Accept.
   });
   $("ezeroAutoDecline")?.addEventListener("click",()=>{
     incomingShell.hidden=true;
