@@ -215,3 +215,38 @@
   background:#a3292a!important;color:white!important;
   border-radius:10px!important;min-height:45px;
 }
+
+/* Keep profile setup beside the actual QR / Call / header control, never
+   in a collapsed options drawer at the bottom of the page. */
+body.ezero-one-lab #ezeroHeaderProfileSlot{
+  display:block;max-width:640px;margin:0 auto;
+  padding:0 12px;box-sizing:border-box;
+}
+body.ezero-one-lab #ezeroHeaderProfileSlot:empty{display:none}
+body.ezero-one-lab #ezeroFrontQrRenderSlot #ezeroProfileEditor,
+body.ezero-one-lab #ezeroInlineCallResult #ezeroProfileEditor,
+body.ezero-one-lab #ezeroHeaderProfileSlot #ezeroProfileEditor{
+  display:block;max-width:100%;box-sizing:border-box;
+  background:#effff6;color:#0d4830;border:2px solid #64bb8d;
+  border-radius:14px;padding:12px;margin:7px 0;
+  overflow-wrap:anywhere;
+}
+body.ezero-one-lab #ezeroFrontQrRenderSlot #ezeroProfileEditor[open],
+body.ezero-one-lab #ezeroInlineCallResult #ezeroProfileEditor[open],
+body.ezero-one-lab #ezeroHeaderProfileSlot #ezeroProfileEditor[open]{
+  box-shadow:0 6px 16px #00291c30;
+}
+body.ezero-one-lab #ezeroFrontQrRenderSlot #ezeroProfileEditor input,
+body.ezero-one-lab #ezeroInlineCallResult #ezeroProfileEditor input,
+body.ezero-one-lab #ezeroHeaderProfileSlot #ezeroProfileEditor input{
+  max-width:100%;box-sizing:border-box;
+}
+body.ezero-one-lab #ezeroFrontQrRenderSlot #ezeroFrontQrShareSlot{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:6px;margin:8px 0 5px;
+}
+@media (max-width:380px){
+ body.ezero-one-lab #ezeroFrontQrRenderSlot #ezeroFrontQrShareSlot{
+  grid-template-columns:1fr;
+ }
+}
