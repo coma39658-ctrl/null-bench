@@ -1,0 +1,21 @@
+/* Isolated, opt-in signed contact forwarding pilot.
+ * Existing green calling layout and WebRTC buttons are unchanged.
+ */
+.ezero-forward-contact{margin:15px 0;padding:14px;border:1.5px solid #96dbaf;border-radius:18px;background:linear-gradient(145deg,#124a36,#082d22);color:#f1fff6;box-shadow:0 6px 18px #001c154d}
+.ezero-forward-contact h3{font-size:18px;margin:0 0 8px;color:#deffe7}
+.ezero-forward-contact p{font-size:13px;line-height:1.7;margin:9px 0;color:#daeee2}
+.ezero-forward-contact .ezero-forward-consent{display:flex;align-items:flex-start;gap:10px;line-height:1.7;font-size:13px;margin:12px 0}
+.ezero-forward-contact input[type="checkbox"]{width:20px;height:20px;margin:2px 0;accent-color:#73e3a4;flex-shrink:0}
+.ezero-forward-contact .ezero-forward-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0}
+.ezero-forward-contact button{min-height:48px;min-width:0;padding:9px;border-radius:11px;border:1px solid #a9e8b7;background:#196b49;color:white;font-size:13px;line-height:1.5;font-weight:750;cursor:pointer}
+.ezero-forward-contact button:disabled{opacity:.55;cursor:not-allowed}
+.ezero-forward-contact button:focus-visible{outline:3px solid #ffc783;outline-offset:2px}
+.ezero-forward-contact .ezero-forward-incoming{padding:12px;border-radius:13px;border:1px solid #a0d8b6;background:#154634}
+.ezero-forward-contact .ezero-forward-incoming[hidden]{display:none!important}
+.ezero-forward-contact .ezero-forward-incoming strong{display:block;margin:5px 0}
+.ezero-forward-contact code{display:block;word-break:break-all;color:#d8f7e1;font-size:12px}
+.ezero-forward-contact .ezero-forward-incoming button{margin:8px 4px 4px}
+.ezero-forward-contact .ezero-forward-list{margin:9px 0;max-height:210px;overflow:auto}
+.ezero-forward-contact .ezero-forward-list-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid #9ed9b34d}
+.ezero-forward-contact .ezero-forward-list-row>span{flex:1;overflow-wrap:anywhere;min-width:0;font-size:13px}
+@media(max-width:380px){.ezero-forward-contact{padding:10px}.ezero-forward-contact button{font-size:12px;min-height:48px}}
