@@ -102,8 +102,14 @@ async function run(){
  await room.webSocketMessage(intruder,JSON.stringify({t:"hello",role:"host",
  hostProof:"d".repeat(64),guestProof}));
  assert.ok(intruder.closed,"guest link cannot impersonate original host");
+ // Pending-auth cleanup alarms must NOT delete a valid ten-minute room.
  await room.alarm();
- assert.equal(meta.size,0);
+ assert.equal(meta.size,1,"early auth-timeout alarms must preserve unexpired room auth");
+ // The following mutates the test's in-memory clock-backed fixture only.
+ // No real room credentials or Cloudflare infrastructure are touched.
+ meta.set("roomAuth",{...meta.get("roomAuth"),expires:Date.now()-1});
+ await room.alarm();
+ assert.equal(meta.size,0,"expired room auth must be deleted");
  console.log("SECURE_TWO_PEER_SIGNALING_ORIGIN_CAPABILITY_TTL_NO_SDP_STORE: PASS");
  console.log("AUTO_SIGNALING_REMAINS_PUBLICLY_DISABLED: PASS");
 }

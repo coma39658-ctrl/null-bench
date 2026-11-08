@@ -13,6 +13,11 @@ import { DurableObject } from "cloudflare:workers";
 const ROOM = /^[A-Za-z0-9_-]{32}$/;
 const PROOF = /^[a-f0-9]{64}$/;
 const TTL_MS = 10 * 60 * 1000;
+// Per-socket abuse limits also apply to invalid JSON and app-level pings.
+// Counters live in hibernatable attachments, never in process-global memory.
+const HELLO_TIMEOUT_MS = 20 * 1000;
+const MESSAGE_WINDOW_MS = 60 * 1000;
+const MAX_MESSAGES_PER_WINDOW = 60;
 const MAX_SIGNAL = 145000;
 const MAX_MESSAGE = MAX_SIGNAL + 300;
 const json = (data) => JSON.stringify(data);
@@ -55,6 +60,42 @@ export default {
 };
 
 export class SignalRoom extends DurableObject {
+  // Release only expired, unauthenticated sockets; never close a valid call
+  // merely because the earliest pending-auth alarm fired.
+  prunePending(now=Date.now()) {
+    for(const ws of this.members()) {
+      const state=attachment(ws);
+      if(state?.role==="pending" && now-state.opened>=HELLO_TIMEOUT_MS) {
+        try{ws.close(1008,"auth-timeout");}catch(_){}
+      }
+    }
+  }
+  async scheduleCleanup(now=Date.now()) {
+    // One idempotent alarm per room for the next pending deadline or room TTL.
+    // A later host authentication must not accidentally cancel an earlier
+    // unauthenticated connection deadline.
+    const auth=await this.ctx.storage.get("roomAuth");
+    let next=auth?.expires>now ? auth.expires : Infinity;
+    for(const ws of this.members()) {
+      const a=attachment(ws);
+      if(a?.role==="pending")next=Math.min(next,Math.max(now+1,a.opened+HELLO_TIMEOUT_MS));
+    }
+    if(Number.isFinite(next))await this.ctx.storage.setAlarm(next);
+  }
+  memberMessage(ws,old,now=Date.now()) {
+    if(!old)return null;
+    const windowStart=Number.isFinite(old.windowStart)&&
+      now>=old.windowStart&&now-old.windowStart<MESSAGE_WINDOW_MS ? old.windowStart : now;
+    const count=(windowStart===old.windowStart?(old.windowCount||0):0)+1;
+    if(count>MAX_MESSAGES_PER_WINDOW) {
+      send(ws,{t:"error",code:"RATE_LIMIT"});
+      try{ws.close(1008,"rate-limit");}catch(_){}
+      return null;
+    }
+    const updated={...old,windowStart,windowCount:count};
+    ws.serializeAttachment(updated);
+    return updated;
+  }
   members() {
     return this.ctx.getWebSockets().filter(ws => ws.readyState === 1);
   }
@@ -70,6 +111,7 @@ export class SignalRoom extends DurableObject {
   async fetch(request) {
     if(request.headers.get("Origin") !== this.env.PUBLIC_ORIGIN)
       return new Response("Forbidden",{status:403});
+    this.prunePending();
     if(this.members().length >= 4)
       return new Response("Too many clients",{status:429});
     if(request.headers.get("Upgrade")?.toLowerCase() !== "websocket")
@@ -78,7 +120,9 @@ export class SignalRoom extends DurableObject {
     const [client,server] = Object.values(pair);
     this.ctx.acceptWebSocket(server);
     // No session is granted until a valid hello message is authenticated.
-    server.serializeAttachment({role:"pending",opened:Date.now()});
+    const opened=Date.now();
+    server.serializeAttachment({role:"pending",opened,windowStart:opened,windowCount:0});
+    await this.scheduleCleanup(opened);
     return new Response(null,{status:101,webSocket:client});
   }
   async webSocketMessage(ws,message) {
@@ -86,14 +130,16 @@ export class SignalRoom extends DurableObject {
       send(ws,{t:"error",code:"BAD_SIZE"});
       ws.close(1008,"invalid");return;
     }
+    const now=Date.now();
+    // Charge EVERY message to this connection, including malformed JSON,
+    // disallowed actions and ping floods, before attempting to parse it.
+    const old=this.memberMessage(ws,attachment(ws),now);
+    if(!old) {if(ws.readyState===1)ws.close(1008,"unauthorized");return;}
     let m;
     try{m=JSON.parse(message);}catch(_){send(ws,{t:"error",code:"BAD_JSON"});return;}
-    if(!m || typeof m!=="object")return;
-    const old=attachment(ws);
-    if(!old)return ws.close(1008,"unauthorized");
-    const now=Date.now();
+    if(!m || typeof m!=="object" || Array.isArray(m))return;
     if(old.role==="pending"){
-      if(now-old.opened>20000 || m.t!=="hello")
+      if(now-old.opened>=HELLO_TIMEOUT_MS || m.t!=="hello")
         return ws.close(1008,"unauthorized");
       if(m.role==="host"){
         if(this.active("host") || !PROOF.test(m.hostProof||"") ||
@@ -113,9 +159,9 @@ export class SignalRoom extends DurableObject {
         if(!stored)await this.ctx.storage.put("roomAuth",{
           hostProof:m.hostProof,guestProof:m.guestProof,expires
         });
-        ws.serializeAttachment({role:"host",hostProof:m.hostProof,
+        ws.serializeAttachment({...old,role:"host",hostProof:m.hostProof,
           guestProof:m.guestProof,expires,signals:0});
-        await this.ctx.storage.setAlarm(expires);
+        await this.scheduleCleanup(now);
         send(ws,{t:"ready",role:"host",expires});
         return;
       }
@@ -125,7 +171,14 @@ export class SignalRoom extends DurableObject {
         if(!ha || ha.expires<=now || this.active("guest") ||
            !sameProof(m.guestProof,ha.guestProof))
           return ws.close(1008,"unauthorized");
-        ws.serializeAttachment({role:"guest",expires:ha.expires,signals:0});
+        const stored=await this.ctx.storage.get("roomAuth");
+        // A completed signed answer consumes the invite. An unfinished first
+        // connection may retry until TTL; a completed session cannot replay.
+        if(!stored || stored.expires<=now || stored.guestConsumed===true ||
+           !sameProof(stored.guestProof,m.guestProof))
+          return ws.close(1008,"unauthorized");
+        ws.serializeAttachment({...old,role:"guest",expires:ha.expires,signals:0});
+        await this.scheduleCleanup(now);
         send(ws,{t:"ready",role:"guest",expires:ha.expires});
         send(host,{t:"peer",state:"joined"});
         return;
@@ -151,6 +204,15 @@ export class SignalRoom extends DurableObject {
         send(ws,{t:"error",code:"BAD_SIGNAL"});return;
       }
       if(!other) {send(ws,{t:"error",code:"PEER_UNAVAILABLE"});return;}
+      if(old.role==="guest") {
+        const stored=await this.ctx.storage.get("roomAuth");
+        if(!stored || stored.expires<=now || stored.guestConsumed===true) {
+          send(ws,{t:"error",code:"INVITE_CONSUMED"});return;
+        }
+        // Consume the *guest capability* only upon forwarding a valid answer,
+        // not on mere WebSocket join: early network drops can still retry.
+        await this.ctx.storage.put("roomAuth",{...stored,guestConsumed:true});
+      }
       ws.serializeAttachment({...old,signals:1});
       // The relay does not persist the payload, and never echoes it.
       send(other,{t:"signal",role:old.role,payload:m.payload});
@@ -171,12 +233,21 @@ export class SignalRoom extends DurableObject {
     const a=attachment(ws);
     if(a?.role==="host")this.closeAll("host-left");
     else if(a?.role==="guest")send(this.active("host"),{t:"peer",state:"left"});
+    await this.scheduleCleanup();
   }
   async webSocketError(ws) {
     await this.webSocketClose(ws);
   }
   async alarm() {
-    this.closeAll("expired");
-    await this.ctx.storage.delete("roomAuth");
+    const now=Date.now();
+    this.prunePending(now);
+    const auth=await this.ctx.storage.get("roomAuth");
+    if(auth?.expires<=now) {
+      this.closeAll("expired");
+      await this.ctx.storage.delete("roomAuth");
+    } else {
+      // An expired pending socket must not tear down a still-live room.
+      await this.scheduleCleanup(now);
+    }
   }
 }
