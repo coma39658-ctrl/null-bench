@@ -24,6 +24,8 @@ jobs:
           node --check js/ezero_contact_forwarding_protocol_v0_1.js
           node --check js/ezero_contact_forwarding_stage_v0_1.js
           node tests/test_ezero_signed_contact_forwarding_20261108.cjs
+          node --check tests/test_ezero_contact_forwarding_adversarial_20261108.cjs
+          node tests/test_ezero_contact_forwarding_adversarial_20261108.cjs
       - name: Preserve old public calling baseline
         shell: bash
         run: |
