@@ -88,7 +88,7 @@ try{
   await b.locator("#ezeroForwardIncomingName").waitFor();
   await b.waitForFunction(()=>document.getElementById("ezeroForwardIncoming")?.hidden===false);
   assert.equal(await b.locator("#ezeroForwardIncomingName").textContent(),"Ali Device Owner");
-  assert.equal(await b.locator("#ezeroForwardIncomingFp").textContent()?.slice(0,16),identity.slice(0,16));
+  assert.equal((await b.locator("#ezeroForwardIncomingFp").textContent())?.slice(0,16),identity.slice(0,16));
   assert.equal(await b.evaluate(()=>localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1")),null);
   await b.locator("#ezeroForwardSave").click();
   await b.waitForFunction(()=>JSON.parse(localStorage.getItem("ezero_signed_forwarded_public_contacts_stage_v0_1")||"[]").length===1);
