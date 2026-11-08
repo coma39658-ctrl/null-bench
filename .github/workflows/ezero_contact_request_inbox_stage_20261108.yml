@@ -12,6 +12,8 @@ on:
       - '.github/workflows/ezero_contact_request_inbox_stage_20261108.yml'
 permissions:
   contents: read
+  security-events: write
+  actions: read
 jobs:
   cryptographic-request-gate:
     runs-on: ubuntu-22.04
@@ -72,3 +74,19 @@ jobs:
           grep -Fq 'js/ezero_contact_request_inbox_config_20261108.js' ezero_trusted_friends_staging_20261106.html
           python3 -m json.tool signaling/cloudflare/wrangler.contact-requests-lab-20261108.jsonc >/dev/null
           echo 'NEW_REFERRAL_INBOX_ISOLATED_FROM_ALL_DEPLOYED_WORKERS: PASS'
+  codeql-security-extended:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Initialize CodeQL security-extended (JS/TS)
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+      - name: Analyze isolated request Worker and frontend code
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: /security:ezero-contact-request-owner-approval
