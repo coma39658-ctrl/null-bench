@@ -13,6 +13,8 @@ const str=p=>read(p).toString("utf8");
 const manifest=JSON.parse(str("tests/ezero_verified_success_lock_20261108.json"));
 const expected=manifest.gitBlobSHA1;
 assert.ok(Object.keys(expected).length>=7,"Pin all critical tested media, QR and identity modules");
+assert.ok(manifest.sha256 && Object.keys(manifest.sha256).length===Object.keys(expected).length,
+ "An independent SHA-256 digest is required for each frozen file");
 for(const [file,sha] of Object.entries(expected)){
   assert.match(file,/^js\/[a-zA-Z0-9_-]+\.js$/);
   assert.match(sha,/^[a-f0-9]{40}$/);
@@ -20,7 +22,8 @@ for(const [file,sha] of Object.entries(expected)){
   const actual=crypto.createHash("sha1").update("blob "+buf.length+"\0").update(buf).digest("hex");
   assert.equal(actual,sha,"FROZEN VERIFIED SUCCESS code changed without approval: "+file);
   const actualSha256=crypto.createHash("sha256").update(buf).digest("hex");
-  if(manifest.sha256)assert.equal(actualSha256,manifest.sha256[file],"SHA256 critical module was modified: "+file);
+  assert.match(manifest.sha256[file],/^[a-f0-9]{64}$/,"Invalid SHA-256 baseline: "+file);
+  assert.equal(actualSha256,manifest.sha256[file],"SHA256 critical module was modified: "+file);
   console.log("FROZEN_MODULE_INTEGRITY: PASS "+file);
   console.log("BASELINE_SHA256 "+file+" "+actualSha256);
 }
