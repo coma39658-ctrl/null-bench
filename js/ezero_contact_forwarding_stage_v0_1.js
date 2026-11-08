@@ -187,14 +187,26 @@ function showIncoming(item){
  incomingExpiry.textContent=t("expires")+": "+new Date(item.expires).toLocaleString(language());
  statusText("verified");
 }
+let referralRevision=0;
 async function onReferral(){
- if(!location.hash.startsWith("#contact="))return;
+ // A contact link is a URL fragment, so navigating to another forwarded
+ // contact may stay in the SAME document. Reset any previously shown identity.
+ const revision=++referralRevision, hash=location.hash;
+ viewed=null;incoming.hidden=true;
+ if(!hash.startsWith("#contact="))return;
  try{
-   const link=plainUrl()+location.hash;
+   const link=plainUrl()+hash;
    const item=await protocol.verify(link,{expectedOrigin:location.origin});
-   if(window.EZERO_FRIEND_ACCESS?.isBlocked?.(item.fp)===true)throw Error("BLOCKED");
+   // A slower old signature verification must never restore a stale contact
+   // after the user follows a different, possibly forged, referral link.
+   if(revision!==referralRevision||location.hash!==hash)return;
+   if(window.EZERO_FRIEND_ACCESS?.isBlocked?.(item.fp)===true)
+     throw Error("BLOCKED");
    showIncoming(item);
- }catch(_){viewed=null;incoming.hidden=true;statusText("invalid");}
+ }catch(_){
+   if(revision!==referralRevision||location.hash!==hash)return;
+   viewed=null;incoming.hidden=true;statusText("invalid");
+ }
 }
 function repaint(){
  for(const n of root.querySelectorAll("[data-forward-key]"))
@@ -215,5 +227,6 @@ save.addEventListener("click",()=>{if(viewed)void persist(viewed);else statusTex
 shareReceived.addEventListener("click",()=>share(viewed));
 $("language")?.addEventListener("change",repaint);
 document.addEventListener("ezero:friend-access-updated",()=>void loadStored());
+window.addEventListener("hashchange",()=>void onReferral());
 repaint();void loadStored();void onReferral();
 })();
