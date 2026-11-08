@@ -11,6 +11,8 @@ on:
       - '.github/workflows/ezero_signaling_abuse_guard_20261108.yml'
 permissions:
   contents: read
+  security-events: write
+  actions: read
 jobs:
   isolated-worker-defense:
     runs-on: ubuntu-22.04
@@ -24,7 +26,25 @@ jobs:
           node-version: '22'
       - name: Security-critical worker syntax
         run: node --check signaling/cloudflare/src/worker.js
+      - name: Verify frozen, signed calling and identity module digests
+        run: node tests/test_ezero_verified_success_security_20261108.cjs
       - name: Original two-party signaling and room auth contract
         run: node tests/test_ezero_cloudflare_auto_signaling_v0_1.js
       - name: Adversarial fake-room negative tests — NEVER live infrastructure
         run: node tests/test_ezero_cloudflare_signaling_abuse_guard_20261108.cjs
+  codeql-worker:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Initialize CodeQL JS security-extended
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+      - name: Analyze JavaScript Worker security candidate
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: /security:ezero-signaling-abuse-guard
