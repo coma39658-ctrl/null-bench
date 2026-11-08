@@ -1,0 +1,30 @@
+name: E-ZERO Isolated Signaling Abuse and Replay Gate
+on:
+  push:
+    branches: [ezero-signaling-abuse-guard-staging-20261108]
+  pull_request:
+    branches: [ezero-render-instant-actions-physical-pilot-20261108]
+    paths:
+      - 'signaling/cloudflare/src/worker.js'
+      - 'tests/test_ezero_cloudflare_auto_signaling_v0_1.js'
+      - 'tests/test_ezero_cloudflare_signaling_abuse_guard_20261108.cjs'
+      - '.github/workflows/ezero_signaling_abuse_guard_20261108.yml'
+permissions:
+  contents: read
+jobs:
+  isolated-worker-defense:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Security-critical worker syntax
+        run: node --check signaling/cloudflare/src/worker.js
+      - name: Original two-party signaling and room auth contract
+        run: node tests/test_ezero_cloudflare_auto_signaling_v0_1.js
+      - name: Adversarial fake-room negative tests — NEVER live infrastructure
+        run: node tests/test_ezero_cloudflare_signaling_abuse_guard_20261108.cjs
