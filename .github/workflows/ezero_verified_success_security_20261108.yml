@@ -1,0 +1,39 @@
+name: E-ZERO Verified Success Security Guard
+on:
+  push:
+    branches: [ezero-render-instant-actions-physical-pilot-20261108]
+  pull_request:
+    branches: [main, ezero-profile-first-saved-friends-20261106]
+    paths:
+      - 'js/ezero_saved_friend_stage_engine_v0_1.js'
+      - 'js/ezero_trusted_stage_signaling_v0_1.js'
+      - 'js/ezero_trusted_stage_one_request_v0_1.js'
+      - 'js/ezero_secure_connect_device_identity_v0_1.js'
+      - 'js/ezero_profile_first_verified_friends_v0_1.js'
+      - 'js/ezero_secure_connect_modern_evidence_stage_v0_1.js'
+      - 'js/ezero_front_qr_hub_v0_1.js'
+      - 'ezero_trusted_friends_staging_20261106.html'
+      - 'tests/test_ezero_verified_success_security_20261108.cjs'
+      - 'tests/ezero_verified_success_lock_20261108.json'
+permissions:
+  contents: read
+jobs:
+  locked-security-regression:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify pinned audio/video, QR and identity modules
+        run: node tests/test_ezero_verified_success_security_20261108.cjs
+      - name: Check script syntax of pinned security-critical modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in js/ezero_saved_friend_stage_engine_v0_1.js js/ezero_trusted_stage_signaling_v0_1.js js/ezero_trusted_stage_one_request_v0_1.js js/ezero_secure_connect_device_identity_v0_1.js js/ezero_profile_first_verified_friends_v0_1.js js/ezero_secure_connect_modern_evidence_stage_v0_1.js js/ezero_front_qr_hub_v0_1.js; do
+            node --check "$path"
+          done
