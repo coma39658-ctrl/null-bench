@@ -28,7 +28,7 @@ class WS {
  deserializeAttachment(){return this.current;}
 }
 class Pair {constructor(){this[0]={};this[1]=new WS();}}
-const wrap=source.replace(/^import \{ DurableObject \} from "cloudflare:workers";\s*/,"")
+const wrap=source.replace(/^import \{ DurableObject \} from "cloudflare:workers";\s*/m,"")
   .replace("export default {","const edge = {")
   .replace("export class ContactRequestInbox extends DurableObject","class ContactRequestInbox extends DurableObject");
 const context=vm.createContext({crypto:webcrypto,Date:TestDate,Response,WebSocketPair:Pair,
