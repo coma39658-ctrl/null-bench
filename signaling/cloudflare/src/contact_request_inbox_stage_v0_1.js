@@ -16,6 +16,8 @@ const ROUTE=/^\/v1\/contact-requests\/([a-f0-9]{64})$/;
 const FP=/^[a-f0-9]{64}$/;
 const B64=/^[A-Za-z0-9_-]+$/;
 const ID=/^[a-f0-9]{32}$/;
+const ROOM=/^#room=[A-Za-z0-9_-]{32}\.[A-Za-z0-9_-]{43}$/;
+const CALL_PAGE="/null-bench/ezero_trusted_friends_staging_20261106.html";
 const TYPE="EZERO-SIGNED-CONTACT-1";
 const DOMAIN="EZERO-CONTACT-REQUEST-INBOX-1";
 const MAX_SOCKETS=6;
@@ -45,6 +47,14 @@ function send(ws,packet){
 }
 function close(ws,reason){
   try{ws.close(1008,reason);}catch(_){}
+}
+function validCallInvite(value,kind,allowedOrigin){
+  if(typeof value!=="string"||value.length>300||!["audio","video"].includes(kind))
+    return false;
+  let u;try{u=new URL(value);}catch(_){return false;}
+  return u.origin===allowedOrigin&&u.pathname===CALL_PAGE&&
+    !u.username&&!u.password&&u.searchParams.size===1&&
+    u.searchParams.get("mode")===kind&&ROOM.test(u.hash);
 }
 function normalizedName(value){
   if(typeof value!=="string"||value.length>40||
@@ -229,11 +239,30 @@ export class ContactRequestInbox extends DurableObject {
       });
       if(!guest)return send(ws,{t:"error",code:"UNKNOWN_REQUEST"});
       const g=state(guest);
-      guest.serializeAttachment({...g,pendingId:null,requested:false,decided:true});
+      guest.serializeAttachment({...g,pendingId:null,requested:false,decided:true,
+        approvedId:m.approve?m.id:null,inviteRelayed:false});
       const sent=send(guest,{t:"decision",id:m.id,approved:m.approve});
       send(ws,{t:"decision-recorded",id:m.id,approved:m.approve,
         relayQueued:sent});
       // An approval DOES NOT mark a friend as trusted and cannot start a call.
+      return;
+    }
+    if(a.role==="owner"&&m.t==="invite"){
+      if(!ID.test(m.id||"")||!validCallInvite(m.url,m.kind,origin(this.env)))
+        return send(ws,{t:"error",code:"INVALID_INVITE"});
+      const guest=this.sockets().find(candidate=>{
+        const x=state(candidate);
+        return x?.role==="visitor"&&x.approvedId===m.id&&
+          x.decided===true&&x.inviteRelayed!==true&&x.expires>now;
+      });
+      if(!guest)return send(ws,{t:"error",code:"REQUEST_NOT_APPROVED_OR_EXPIRED"});
+      // A signed, short-lived call QR capability crosses the Worker ONLY
+      // for this one authenticated and explicitly approved browser socket.
+      // Neither SDP nor the invite are written to DO storage or log output.
+      if(!send(guest,{t:"call-invite",id:m.id,kind:m.kind,url:m.url}))
+        return send(ws,{t:"error",code:"DELIVERY_FAILED"});
+      guest.serializeAttachment({...state(guest),inviteRelayed:true});
+      send(ws,{t:"invite-relayed",id:m.id,kind:m.kind});
       return;
     }
     send(ws,{t:"error",code:"NOT_PERMITTED"});
