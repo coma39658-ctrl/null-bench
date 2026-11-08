@@ -1,0 +1,49 @@
+name: E-ZERO Friend-of-Friend Owner Approval Security Gate
+on:
+  push:
+    branches: [ezero-friend-of-friend-owner-approval-stage-20261108]
+  pull_request:
+    branches: [ezero-signed-contact-forwarding-stage-20261108]
+    paths:
+      - 'signaling/cloudflare/src/contact_request_inbox_stage_v0_1.js'
+      - 'tests/test_ezero_contact_request_inbox_stage_20261108.cjs'
+      - 'js/ezero_contact_forwarding_protocol_v0_1.js'
+      - 'js/ezero_contact_forwarding_stage_v0_1.js'
+      - '.github/workflows/ezero_contact_request_inbox_stage_20261108.yml'
+permissions:
+  contents: read
+jobs:
+  cryptographic-request-gate:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Node syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check signaling/cloudflare/src/contact_request_inbox_stage_v0_1.js
+          node --check js/ezero_contact_forwarding_protocol_v0_1.js
+          node --check tests/test_ezero_contact_request_inbox_stage_20261108.cjs
+      - name: P-256 signed referral card and explicit owner-approval negative tests
+        run: node tests/test_ezero_contact_request_inbox_stage_20261108.cjs
+      - name: Previous signed contact QR and original calling regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tests/test_ezero_signed_contact_forwarding_20261108.cjs
+          node tests/test_ezero_cloudflare_auto_signaling_v0_1.js
+          node tests/test_ezero_secure_connect_modern_communications_v0_3_contract.js
+      - name: Offline-only and no live Cloudflare mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! grep -Fq 'contact_request_inbox_stage_v0_1.js' signaling/cloudflare/wrangler.jsonc
+          ! grep -Fq 'contact_request_inbox_stage_v0_1.js' signaling/cloudflare/wrangler.render-two-phone-test-20261107.jsonc
+          ! grep -Fq 'contact_request_inbox_stage_v0_1.js' signaling/cloudflare/wrangler.trusted-staging.jsonc
+          echo 'NEW_REFERRAL_INBOX_ISOLATED_FROM_ALL_DEPLOYED_WORKERS: PASS'
