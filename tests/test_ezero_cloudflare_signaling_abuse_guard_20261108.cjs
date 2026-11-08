@@ -105,9 +105,17 @@ async function run(){
  const wrong=await upgrade();
  await room.webSocketMessage(wrong,JSON.stringify({...guestHello,guestProof:"f".repeat(64)}));
  assert.equal(wrong.closed,true);
+ // A dropped browser connection BEFORE its signed SDP answer can retry:
+ // one-time consumption must never break an interrupted first approval.
+ const earlyGuest=await upgrade();
+ await room.webSocketMessage(earlyGuest,JSON.stringify(guestHello));
+ assert.equal(earlyGuest.deserializeAttachment().role,"guest");
+ earlyGuest.close(1000,"network-drop");
+ assert.notEqual(store.get("roomAuth")?.guestConsumed,true);
  const guest=await upgrade();
  await room.webSocketMessage(guest,JSON.stringify(guestHello));
  assert.equal(guest.deserializeAttachment().role,"guest");
+ console.log("SIGNAL_DROPPED_GUEST_RETRY_BEFORE_SDP_ANSWER: PASS");
 
  // Signed SDP schema remains forwarded one time only; transport never
  // archives SDP, media, private messages or credentials.
@@ -118,6 +126,8 @@ async function run(){
  assert.ok(guest.sent.some(x=>x.t==="signal"&&x.payload===offer));
  await room.webSocketMessage(guest,JSON.stringify({t:"signal",payload:answer}));
  assert.ok(host.sent.some(x=>x.t==="signal"&&x.payload===answer));
+ assert.equal(store.get("roomAuth")?.guestConsumed,true,
+   "First validated answer must consume the guest's short-lived QR capability");
  assert.deepEqual([...store.keys()],["roomAuth"],"Only token proofs and TTL may persist");
  await room.webSocketMessage(host,JSON.stringify({t:"signal",payload:offer}));
  assert.ok(host.sent.some(x=>x.code==="BAD_SIGNAL"),
@@ -135,6 +145,15 @@ async function run(){
  assert.equal(host.closed,false,"Bad guest must not terminate valid caller");
  assert.equal(guest.deserializeAttachment().windowCount,60);
  console.log("SIGNAL_PING_FLOOD_BOUNDED_WITH_PERSISTENT_SOCKET_ATTACHMENT: PASS");
+
+ // A QR invite that has ALREADY resulted in a signed answer is single-use.
+ // Closing the first socket must never permit the same invitation to join
+ // another session and receive a second user's SDP.
+ const replay=await upgrade();
+ await room.webSocketMessage(replay,JSON.stringify(guestHello));
+ assert.equal(replay.closed,true,"Used QR token must not authenticate a second guest");
+ assert.equal(replay.sent.filter(x=>x.t==="ready").length,0);
+ console.log("SIGNAL_COMPLETED_INVITE_REPLAY_REJECTED: PASS");
 
  // Invalid JSON also has a bounded budget on an already-authenticated socket.
  for(let i=0;i<61;i++){
