@@ -29,7 +29,10 @@ jobs:
           set -euo pipefail
           node --check signaling/cloudflare/src/contact_request_inbox_stage_v0_1.js
           node --check js/ezero_contact_forwarding_protocol_v0_1.js
+          node --check js/ezero_contact_request_inbox_config_20261108.js
+          node --check js/ezero_contact_request_inbox_stage_v0_1.js
           node --check tests/test_ezero_contact_request_inbox_stage_20261108.cjs
+          node --check tests/test_ezero_contact_request_ui_browser_20261108.mjs
       - name: P-256 signed referral card and explicit owner-approval negative tests
         run: node tests/test_ezero_contact_request_inbox_stage_20261108.cjs
       - name: Previous signed contact QR and original calling regression
@@ -39,6 +42,24 @@ jobs:
           node tests/test_ezero_signed_contact_forwarding_20261108.cjs
           node tests/test_ezero_cloudflare_auto_signaling_v0_1.js
           node tests/test_ezero_secure_connect_modern_communications_v0_3_contract.js
+      - name: Install headless browser for real mobile viewport UI test
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.57.0
+          npx playwright install --with-deps chromium --only-shell
+      - name: Mobile browser consent and no hidden network regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8769 --bind 127.0.0.1 >/tmp/ezero-referral-qa.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 20); do
+            curl -fs http://127.0.0.1:8769/ezero_trusted_friends_staging_20261106.html >/dev/null && break
+            sleep 1
+          done
+          node tests/test_ezero_contact_request_ui_browser_20261108.mjs
       - name: Offline-only and no live Cloudflare mutation
         shell: bash
         run: |
@@ -46,4 +67,8 @@ jobs:
           ! grep -Fq 'contact_request_inbox_stage_v0_1.js' signaling/cloudflare/wrangler.jsonc
           ! grep -Fq 'contact_request_inbox_stage_v0_1.js' signaling/cloudflare/wrangler.render-two-phone-test-20261107.jsonc
           ! grep -Fq 'contact_request_inbox_stage_v0_1.js' signaling/cloudflare/wrangler.trusted-staging.jsonc
+          grep -Fq 'enabled:false' js/ezero_contact_request_inbox_config_20261108.js
+          grep -Fq 'js/ezero_contact_request_inbox_stage_v0_1.js' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'js/ezero_contact_request_inbox_config_20261108.js' ezero_trusted_friends_staging_20261106.html
+          python3 -m json.tool signaling/cloudflare/wrangler.contact-requests-lab-20261108.jsonc >/dev/null
           echo 'NEW_REFERRAL_INBOX_ISOLATED_FROM_ALL_DEPLOYED_WORKERS: PASS'
