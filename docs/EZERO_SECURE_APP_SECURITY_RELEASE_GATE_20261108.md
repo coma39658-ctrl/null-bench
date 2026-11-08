@@ -34,6 +34,19 @@
 - E: Release staging candidate only after approval, freeze a new digest manifest and keep rollback artifact.
 - No production publish when any security-critical gate is FAIL/UNKNOWN.
 
+## Render HTTPS security-header deployment gate (NOT yet applied)
+Render Static Sites supports response headers via **Settings → Headers** or a reviewed Blueprint. HTML meta CSP does **not** enforce the `frame-ancestors` rule. Configure headers on the isolated **test** host before public release; verify they are actually present in HTTP responses and perform two-phone audio/video/QR regressions afterward. Never disable camera/microphone permission globally.
+
+Required candidate rules for `/*`:
+- `X-Frame-Options: DENY`
+- `X-Content-Type-Options: nosniff`
+- `Referrer-Policy: no-referrer`
+- `Permissions-Policy: camera=(self), microphone=(self), geolocation=(), payment=(), usb=()`
+- `Content-Security-Policy: frame-ancestors 'none'; default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self' wss://ezero-browser-signaling-render-test.coma39658.workers.dev; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'`
+- `Strict-Transport-Security: max-age=31536000` on a host serving exclusively HTTPS (do not add `includeSubDomains` without reviewing all subdomains).
+
+The test host's existing CSP must be examined for any extra safe necessary directives before applying it. These headers are **recommended**, not yet verified as configured. Refer to https://render.com/docs/static-site-headers.
+
 ## External references
 - OWASP ASVS 5.0: https://asvs.owasp.org/
 - OWASP WebSocket Security Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/WebSocket_Security_Cheat_Sheet.html
