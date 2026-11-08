@@ -1,0 +1,88 @@
+name: E-ZERO Three-Device Contact Forwarding and Public Staging QA
+on:
+  push:
+    branches: [ezero-signed-contact-forwarding-stage-20261108]
+    paths:
+      - 'js/ezero_contact_forwarding_*'
+      - 'css/ezero_contact_forwarding_*'
+      - 'ezero_trusted_friends_staging_20261106.html'
+      - 'tests/test_ezero_contact_forwarding_three_device_browser_20261108.mjs'
+      - '.github/workflows/ezero_three_device_forwarding_public_staging_20261108.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ezero-three-device-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  browser-lab:
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit, firefox]
+    name: Three isolated phones/laptop — ${{ matrix.browser }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify source identity, signatures and call controls
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check js/ezero_contact_forwarding_protocol_v0_1.js
+          node --check js/ezero_contact_forwarding_stage_v0_1.js
+          node --check tests/test_ezero_contact_forwarding_three_device_browser_20261108.mjs
+          node tests/test_ezero_signed_contact_forwarding_20261108.cjs
+          node tests/test_ezero_secure_connect_modern_communications_v0_3_contract.js
+          node tests/test_ezero_cloudflare_auto_signaling_v0_1.js
+      - name: Install isolated browser simulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.57.0
+          npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Start local source server — never publish test assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          nohup python3 -m http.server 8769 --bind 127.0.0.1 > /tmp/ezero-contact-lab-http.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8769/ezero_trusted_friends_staging_20261106.html >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/ezero-contact-lab-http.log
+          exit 1
+      - name: Simulate three isolated phones/desktop without real media or backend
+        env:
+          EZERO_BROWSER: ${{ matrix.browser }}
+        run: node tests/test_ezero_contact_forwarding_three_device_browser_20261108.mjs
+  live-external-observation:
+    name: Independent public URL and Render staging smoke (read only)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - name: Check both existing public URLs without calling or changing state
+        shell: bash
+        run: |
+          set -euo pipefail
+          main="https://coma39658-ctrl.github.io/null-bench/"
+          stage="https://ezero-secure-app-two-phone-test-20261107.onrender.com/ezero_trusted_friends_staging_20261106.html"
+          curl --retry 2 --retry-delay 2 --connect-timeout 15 --max-time 45 -fsSL "$main" -o /tmp/ezero-main.html
+          curl --retry 2 --retry-delay 2 --connect-timeout 15 --max-time 45 -fsSL "$stage" -o /tmp/ezero-stage.html
+          grep -qi 'E-ZERO' /tmp/ezero-main.html
+          grep -q 'ezero-stage-banner' /tmp/ezero-stage.html
+          grep -q 'ezero-browser-signaling-render-test' /tmp/ezero-stage.html
+          grep -q 'ezero_trusted_friends_staging_20261106' /tmp/ezero-stage.html || grep -q 'ezeroUnifiedCard' /tmp/ezero-stage.html
+          if grep -Eq 'Content-Security-Policy.*unsafe-eval|CF_API_TOKEN|TURN_KEY_API_TOKEN' /tmp/ezero-stage.html; then
+            echo 'Unsafe public stage output'
+            exit 1
+          fi
+          echo 'PUBLIC_MAIN_AND_EXISTING_RENDER_STAGING_HTTP_SMOKE: PASS'
+          echo 'This HTTP smoke alone does not verify calls, camera, physical phones or new candidate deployment.'
