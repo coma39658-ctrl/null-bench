@@ -171,6 +171,12 @@ export class SignalRoom extends DurableObject {
         if(!ha || ha.expires<=now || this.active("guest") ||
            !sameProof(m.guestProof,ha.guestProof))
           return ws.close(1008,"unauthorized");
+        const stored=await this.ctx.storage.get("roomAuth");
+        // A completed signed answer consumes the invite. An unfinished first
+        // connection may retry until TTL; a completed session cannot replay.
+        if(!stored || stored.expires<=now || stored.guestConsumed===true ||
+           !sameProof(stored.guestProof,m.guestProof))
+          return ws.close(1008,"unauthorized");
         ws.serializeAttachment({...old,role:"guest",expires:ha.expires,signals:0});
         await this.scheduleCleanup(now);
         send(ws,{t:"ready",role:"guest",expires:ha.expires});
@@ -198,6 +204,15 @@ export class SignalRoom extends DurableObject {
         send(ws,{t:"error",code:"BAD_SIGNAL"});return;
       }
       if(!other) {send(ws,{t:"error",code:"PEER_UNAVAILABLE"});return;}
+      if(old.role==="guest") {
+        const stored=await this.ctx.storage.get("roomAuth");
+        if(!stored || stored.expires<=now || stored.guestConsumed===true) {
+          send(ws,{t:"error",code:"INVITE_CONSUMED"});return;
+        }
+        // Consume the *guest capability* only upon forwarding a valid answer,
+        // not on mere WebSocket join: early network drops can still retry.
+        await this.ctx.storage.put("roomAuth",{...stored,guestConsumed:true});
+      }
       ws.serializeAttachment({...old,signals:1});
       // The relay does not persist the payload, and never echoes it.
       send(other,{t:"signal",role:old.role,payload:m.payload});
