@@ -38,7 +38,13 @@ const words={
    unavailable:"مالک اس وقت درخواستیں وصول نہیں کر رہا، یا درخواست کی اجازت دستیاب نہیں۔",
    rate:"بہت زیادہ درخواستیں۔ دوبارہ درخواست دینے سے پہلے وقفہ کریں۔",
    pending:"درخواست زیرِ جائزہ ہے؛ ابھی دوستی یا کال کی اجازت نہیں۔",
-   close:"کنکشن بند ہوگیا۔ دوبارہ رابطہ صرف آپ کے بٹن سے شروع ہوگا۔"},
+   close:"کنکشن بند ہوگیا۔ دوبارہ رابطہ صرف آپ کے بٹن سے شروع ہوگا۔",
+   callAudio:"📞 آڈیو کال دعوت بھیجیں",callVideo:"📹 ویڈیو کال دعوت بھیجیں",
+   callOpen:"✓ منظور شدہ محفوظ کال کھولیں",inviteCreating:"کال دعوت تیار ہو رہی ہے...",
+   inviteSent:"✓ منظور شدہ شخص تک کال دعوت کا لنک پہنچانے کا پیغام بھیج دیا گیا۔",
+   inviteBad:"کال دعوت درست نہیں؛ کوئی نجی لنک آگے نہیں بھیجا گیا۔",
+   callFirst:"پہلے اپنی پروفائل مکمل کریں اور موجودہ کال ختم کریں۔",
+   notDelivered:"کال دعوت نہیں پہنچ سکی۔ دوبارہ محفوظ دعوت بنائیں۔"},
  en:{title:"🔐 Friend-of-friend approval — test only",
    intro:"A forwarded link does not grant calling or friendship. The owner must approve while their tab is open.",
    owner:"✓ Receive contact requests",disable:"■ Stop receiving",
@@ -59,7 +65,13 @@ const words={
    unavailable:"The owner is not receiving requests, or the service is unavailable.",
    rate:"Too many requests; try again later.",
    pending:"Awaiting review. No friendship or calling access has been granted.",
-   close:"Connection closed. Reconnection requires a fresh button tap."},
+   close:"Connection closed. Reconnection requires a fresh button tap.",
+   callAudio:"📞 Send secure audio call invite",callVideo:"📹 Send secure video invite",
+   callOpen:"✓ Open approved secure call invite",inviteCreating:"Preparing fresh signed call invite...",
+   inviteSent:"✓ Server relayed signed call invite to approved browser.",
+   inviteBad:"Invalid or stale call invite. No room link was forwarded.",
+   callFirst:"Complete profile and end any active call before starting a fresh one.",
+   notDelivered:"Invite could not be relayed. Create a new signed invite."},
  ar:{title:"🔐 طلب اتصال من صديق صديق — تجريبي",
    intro:"الرابط لا يتيح المكالمات أو الصداقة تلقائياً؛ موافقة المالك مطلوبة مع فتح صفحته.",
    owner:"✓ استقبال طلبات الاتصال",disable:"■ إيقاف الاستقبال",
@@ -80,7 +92,13 @@ const words={
    unavailable:"المالك غير متصل أو الخدمة غير متاحة.",
    rate:"طلبات كثيرة؛ حاول لاحقاً.",
    pending:"بانتظار المراجعة، دون صلاحيات اتصال.",
-   close:"انقطع الاتصال؛ يلزم ضغط الزر لإعادة المحاولة."}
+   close:"انقطع الاتصال؛ يلزم ضغط الزر لإعادة المحاولة.",
+   callAudio:"📞 إرسال دعوة مكالمة صوتية",callVideo:"📹 إرسال دعوة فيديو",
+   callOpen:"✓ فتح دعوة المكالمة الموافق عليها",inviteCreating:"جار تحضير دعوة آمنة...",
+   inviteSent:"✓ أرسل الخادم الدعوة إلى الشخص الموافق عليه.",
+   inviteBad:"دعوة غير صالحة؛ لم يُرسل أي رابط.",
+   callFirst:"أكمل الملف الشخصي وأنهِ المكالمة الحالية.",
+   notDelivered:"تعذر إرسال الدعوة؛ أنشئ دعوة جديدة."}
 };
 const t=k=>(words[lang()]||words.ur)[k]||k;
 const el=(tag,id)=>{const x=document.createElement(tag);if(id)x.id=id;return x;};
@@ -99,6 +117,7 @@ status.setAttribute("role","status");status.setAttribute("aria-live","polite");
 root.append(head,intro,owner,stop,consentRow,visitor,received,status);
 host.append(root);
 let ownerSocket=null, visitorSocket=null, connecting=false;
+let callHandoff=null,visitorApprovalId=null;
 const requests=new Map();
 function state(key){status.textContent=t(key);status.dataset.code=key;}
 function label(){
@@ -108,6 +127,8 @@ function label(){
  for(const [id,entry] of requests){
   entry.title.textContent=t("incoming")+" · "+entry.name+" · "+entry.from.slice(0,12)+"…";
   entry.accept.textContent=t("yes");entry.reject.textContent=t("no");
+  if(entry.callAudio)entry.callAudio.textContent=t("callAudio");
+  if(entry.callVideo)entry.callVideo.textContent=t("callVideo");
  }
  if(cfg?.enabled!==true)state("off");
 }
@@ -191,19 +212,78 @@ function open(role,target,id,onMessage){
   ws.addEventListener("close",()=>{
     if(!done)fail("CLOSED");
     else if(role==="owner"&&ownerSocket===ws){ownerSocket=null;stop.hidden=true;owner.disabled=false;state("close");}
-    else if(role==="visitor"&&visitorSocket===ws){visitorSocket=null;state("close");}
+    else if(role==="visitor"&&visitorSocket===ws){visitorSocket=null;visitor.disabled=false;state("close");}
   });
  });
 }
+function validCallUrl(value,kind){
+ try{
+   if(typeof value!=="string"||value.length>300||!["audio","video"].includes(kind))return false;
+   const u=new URL(value);
+   return u.protocol==="https:"&&u.origin===location.origin&&
+     u.pathname===location.pathname&&
+     u.searchParams.size===1&&u.searchParams.get("mode")===kind&&
+     /^#room=[A-Za-z0-9_-]{32}\.[A-Za-z0-9_-]{43}$/.test(u.hash);
+ }catch(_){return false;}
+}
+function startApprovedCall(ws,id,kind){
+ if(callHandoff || ws.readyState!==WebSocket.OPEN)return state("network");
+ if($("ezeroProfileFirstStatus")?.dataset.state!=="ready"||
+    window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true)
+   return state("callFirst");
+ const callButton=$(kind==="video"?"ezeroFrontVideoQr":"ezeroFrontAudioQr");
+ if(!callButton||callButton.disabled)return state("callFirst");
+ callHandoff={ws,id,kind,started:false,createdAt:Date.now()};
+ state("inviteCreating");
+ // This click passes through the EXISTING consent, profile, WebRTC and signed
+ // QR engine. No reimplementation or bypass of the working call behavior.
+ callButton.click();
+}
+document.addEventListener("ezero:auto-call-starting",()=>{
+ if(callHandoff)callHandoff.started=true;
+});
+document.addEventListener("ezero:auto-invite-ready",event=>{
+ const h=callHandoff;if(!h)return;
+ // An old QR room being re-displayed is NOT a fresh approved invitation.
+ if(!h.started || Date.now()-h.createdAt>30000 ||
+    !validCallUrl(event.detail?.link,h.kind) ||
+    h.ws.readyState!==WebSocket.OPEN){
+   callHandoff=null;return state("inviteBad");
+ }
+ h.ws.send(JSON.stringify({t:"invite",id:h.id,kind:h.kind,url:event.detail.link}));
+ callHandoff=null;
+ state("inviteCreating");
+});
+function addOwnerCallButtons(ws,id,item){
+ if(item.callAudio)return;
+ const wrapper=el("div");
+ const audio=el("button"),video=el("button");
+ item.callAudio=audio;item.callVideo=video;
+ audio.type="button";video.type="button";
+ audio.textContent=t("callAudio");video.textContent=t("callVideo");
+ audio.addEventListener("click",()=>startApprovedCall(ws,id,"audio"));
+ video.addEventListener("click",()=>startApprovedCall(ws,id,"video"));
+ wrapper.append(audio,video);item.line.append(wrapper);
+}
 function incoming(ws,m){
- if(m.t==="decision-recorded"){state("approvalRecorded");return;}
+ if(m.t==="decision-recorded"){
+   state("approvalRecorded");
+   if(m.approved===true&&m.relayQueued===true&&requests.has(m.id))
+     addOwnerCallButtons(ws,m.id,requests.get(m.id));
+   return;
+ }
+ if(m.t==="invite-relayed"){state("inviteSent");return;}
+ if(m.t==="error"){
+   state(m.code==="DELIVERY_FAILED"||m.code==="REQUEST_NOT_APPROVED_OR_EXPIRED"?
+     "notDelivered":"inviteBad");return;
+ }
  if(m.t!=="contact-request"||!ID.test(m.id||"")||
     !FP.test(m.from||"")||typeof m.name!=="string"||m.name.length>40||
     requests.has(m.id))return;
  const line=el("div");line.style.cssText="border-top:1px solid #487960;padding:10px 0";
  const title=el("p");
  const accept=el("button"),reject=el("button");
- const item={title,accept,reject,from:m.from,name:m.name};requests.set(m.id,item);
+ const item={line,title,accept,reject,from:m.from,name:m.name};requests.set(m.id,item);
  title.textContent=t("incoming")+" · "+m.name+" · "+m.from.slice(0,12)+"…";
  accept.textContent=t("yes");reject.textContent=t("no");
  for(const [btn,approved] of [[accept,true],[reject,false]]){
@@ -231,7 +311,7 @@ async function listen(){
 }
 function disable(){
  if(ownerSocket){try{ownerSocket.close(1000,"owner-disabled");}catch(_){}}
- ownerSocket=null;owner.disabled=false;stop.hidden=true;requests.clear();received.replaceChildren();
+ ownerSocket=null;owner.disabled=false;stop.hidden=true;requests.clear();received.replaceChildren();callHandoff=null;
  state("close");
 }
 async function ask(){
@@ -252,13 +332,31 @@ async function ask(){
    if(id.fingerprint===contact.fp)return state("invalid");
    const ws=await open("visitor",contact.fp,id,(_ws,m)=>{
      if(m.t==="pending")state("pending");
-     else if(m.t==="decision")state(m.approved===true?"approved":"rejected");
+     else if(m.t==="decision"){
+       visitorApprovalId=m.approved===true?m.id:null;
+       state(m.approved===true?"approved":"rejected");
+     }
+     else if(m.t==="call-invite"){
+       if(m.id!==visitorApprovalId || !validCallUrl(m.url,m.kind))
+         return state("inviteBad");
+       const box=el("div");
+       const btn=el("button");btn.type="button";btn.textContent=t("callOpen");
+       btn.addEventListener("click",()=>{
+         // Opened only from an explicit tap; existing signed guest QR screen
+         // independently requires accept and camera/microphone permission.
+         if(validCallUrl(m.url,m.kind))location.assign(m.url);
+         else state("inviteBad");
+       });
+       box.append(btn);received.replaceChildren(box);
+       state("approved");
+     }
      else if(m.t==="error")state(["NOT_AVAILABLE"].includes(m.code)?"unavailable":
          ["COOLDOWN","RATE_LIMIT"].includes(m.code)?"rate":"network");
    });
    visitorSocket=ws;
    const random=new Uint8Array(16);crypto.getRandomValues(random);
    const requestId=Array.from(random,b=>b.toString(16).padStart(2,"0")).join("");
+   visitorApprovalId=null;
    ws.send(JSON.stringify({t:"request",id:requestId,
      name:p.name.trim(),card:location.hash.slice("#contact=".length)}));
    state("pending");
