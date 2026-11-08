@@ -107,7 +107,11 @@ try{
   data.p.name="Fake Owner";
   altered.hash="contact="+Buffer.from(JSON.stringify(data),"utf8").toString("base64url");
   await c.goto(altered.href,{waitUntil:"domcontentloaded"});
-  await c.waitForFunction(()=>document.getElementById("ezeroForwardStatus")?.textContent?.length>0);
+  await c.waitForFunction(()=>{
+    const status=document.getElementById("ezeroForwardStatus")?.textContent||"";
+    return document.getElementById("ezeroForwardIncoming")?.hidden===true &&
+      /غلط|invalid|غير صحيح/i.test(status);
+  });
   assert.equal(await c.locator("#ezeroForwardIncoming").isHidden(),true);
   assert.match(await c.locator("#ezeroForwardStatus").innerText(),/غلط|invalid|غير صحيح/i);
   assert.equal(await c.evaluate(()=>localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1")),null);
