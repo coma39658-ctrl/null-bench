@@ -43,6 +43,7 @@ const ctx={
   async get(k){return data.get(k);},
   async put(k,v){data.set(k,structuredClone(v));},
   async delete(k){data.delete(k);},
+  async deleteAll(){data.clear();},
   async setAlarm(t){alarms.push(t);},
   async deleteAlarm(){alarms.push(null);}
  }
@@ -201,7 +202,11 @@ async function run(){
  console.log("REQUEST_INBOX_MALFORMED_FLOOD_AND_OVERSIZE_REJECTED: PASS");
  time+=20*60*1000+1;await room.alarm();
  assert.equal(ownerWs.closed,true,"An owner session must expire instead of staying active forever");
- console.log("REQUEST_INBOX_OWNER_SESSION_EXPIRY: PASS");
+ assert.equal(data.size,0,"Expiring replay cache must not persist pseudonymous identities indefinitely");
+ console.log("REQUEST_INBOX_OWNER_SESSION_EXPIRY_AND_REPLAY_CACHE_DELETED: PASS");
+ await room.alarm();
+ assert.equal(data.size,0,"Repeated cleanup alarm must be idempotent and privacy-preserving");
+ console.log("REQUEST_INBOX_IDLE_DURABLE_OBJECT_STORAGE_CLEANUP: PASS");
  console.log("E_ZERO_FRIEND_OF_FRIEND_SIGNED_CONTACT_APPROVAL_STAGE: PASS");
 }
 run().catch(e=>{console.error(e);process.exitCode=1;});
