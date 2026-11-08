@@ -1,0 +1,24 @@
+{
+  "policy": "E-ZERO VERIFIED SUCCESS LOCK V1 - staging only",
+  "created": "2026-11-08",
+  "baseline": "ezero-profile-first-saved-friends-20261106",
+  "rule": "Any digest change is a deliberate release-gate decision requiring full regression and real two-phone validation. Never silently regenerate this manifest.",
+  "gitBlobSHA1": {
+    "js/ezero_saved_friend_stage_engine_v0_1.js": "1b04749bd394cd5297507dd20fc428e69ab0fd26",
+    "js/ezero_trusted_stage_signaling_v0_1.js": "b56ac55c2d59ae150f1285416e7301d8a6fe8a7e",
+    "js/ezero_trusted_stage_one_request_v0_1.js": "5759c2851cc1a627ee945fdadfd4d792f50547e0",
+    "js/ezero_secure_connect_device_identity_v0_1.js": "fee835dc48f67d23819e8ac3e16a7275abd8791f",
+    "js/ezero_profile_first_verified_friends_v0_1.js": "4be12b6afa142819b0a659c13f7b9cb374e06fd3",
+    "js/ezero_secure_connect_modern_evidence_stage_v0_1.js": "8869001b757ea564cbfe5c1644efce2d97f45863",
+    "js/ezero_front_qr_hub_v0_1.js": "86a249cf3b8727b5639e04c64f8f890b15d6d65e"
+  },
+  "sha256": {
+    "js/ezero_saved_friend_stage_engine_v0_1.js": "9d0b3100d0f48ca8a80821eeed06707c31ec56f4c57abc9679f1c962fdfaf121",
+    "js/ezero_trusted_stage_signaling_v0_1.js": "7a70ab124c35f290137162d5b7f7077f9d65ec94bbdb167031065829275eb85b",
+    "js/ezero_trusted_stage_one_request_v0_1.js": "b429a85345eedf61cf54341051ecde14bd3673853f52545d8907f263b2d4fef9",
+    "js/ezero_secure_connect_device_identity_v0_1.js": "7edbd508c0c35dd3811f80e98fece560078fee53b8d6d3c4923f1a5f8a05dea1",
+    "js/ezero_profile_first_verified_friends_v0_1.js": "b7630fefc29b657a4ec361f366e10c590616fcb328695969aad40c7ac5b85231",
+    "js/ezero_secure_connect_modern_evidence_stage_v0_1.js": "95cdb910cc74747320d9ae517403b12ff5e561646c31a79d8b7067c5a1aca699",
+    "js/ezero_front_qr_hub_v0_1.js": "ea97608dd35df244391c30c9ffcebd9c1428a1488a8a881c6a74f727a46735d9"
+  }
+}

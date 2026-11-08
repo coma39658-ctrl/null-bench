@@ -1,0 +1,32 @@
+name: E-ZERO Secure App CodeQL Security Review
+on:
+  push:
+    branches: [ezero-render-instant-actions-physical-pilot-20261108]
+  pull_request:
+    branches: [ezero-profile-first-saved-friends-20261106]
+  workflow_dispatch:
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+jobs:
+  codeql:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, python]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Initialize security analysis
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended
+      - name: Analyze for common vulnerabilities
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:${{ matrix.language }}
