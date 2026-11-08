@@ -149,6 +149,12 @@ export class ContactRequestInbox extends DurableObject {
       if(!a)continue;
       next=Math.min(next,a.role==="pending"?a.opened+AUTH_MS:a.expires);
     }
+    const stored=await this.ctx.storage.get("recent");
+    if(Array.isArray(stored)){
+      for(const entry of stored)
+        if(Number.isFinite(entry.until)&&entry.until>now)
+          next=Math.min(next,entry.until);
+    }
     if(Number.isFinite(next))await this.ctx.storage.setAlarm(Math.max(now+1,next));
     else await this.ctx.storage.deleteAlarm?.();
   }
@@ -270,7 +276,24 @@ export class ContactRequestInbox extends DurableObject {
   async webSocketClose(){await this.schedule();}
   async webSocketError(ws){close(ws,"socket-error");await this.schedule();}
   async alarm(){
-    this.prune();
-    await this.schedule();
+    const now=Date.now();
+    this.prune(now);
+    // The ten-minute replay cache contains pseudonymous public fingerprint
+    // hashes and random IDs only. Destroy expired records deterministically,
+    // even if no new visitors ever reconnect to this target.
+    const saved=await this.ctx.storage.get("recent");
+    if(Array.isArray(saved)){
+      const active=saved.filter(x=>Number.isFinite(x.until)&&x.until>now).slice(-32);
+      if(active.length)await this.ctx.storage.put("recent",active);
+      else await this.ctx.storage.delete("recent");
+    }
+    if(!this.sockets().length && !await this.ctx.storage.get("recent")){
+      // Cloudflare DOs can retain allocation metadata until deleteAll().
+      // Only invoke this when NO active sockets or replay records remain.
+      await this.ctx.storage.deleteAlarm?.();
+      await this.ctx.storage.deleteAll?.();
+      return;
+    }
+    await this.schedule(now);
   }
 }
