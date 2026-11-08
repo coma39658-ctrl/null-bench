@@ -1,0 +1,32 @@
+name: E-ZERO Signed Contact Forwarding Security Gate
+on:
+  push:
+    branches: [ezero-signed-contact-forwarding-stage-20261108]
+  pull_request:
+    branches: [ezero-profile-first-saved-friends-20261106]
+permissions:
+  contents: read
+jobs:
+  signed-public-contact:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify standalone staged contact code
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check js/ezero_contact_forwarding_protocol_v0_1.js
+          node --check js/ezero_contact_forwarding_stage_v0_1.js
+          node tests/test_ezero_signed_contact_forwarding_20261108.cjs
+      - name: Preserve old public calling baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tests/test_ezero_secure_connect_modern_communications_v0_3_contract.js
+          node tests/test_ezero_cloudflare_auto_signaling_v0_1.js
