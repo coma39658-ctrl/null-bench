@@ -19,7 +19,10 @@ for(const [file,sha] of Object.entries(expected)){
   const buf=read(file);
   const actual=crypto.createHash("sha1").update("blob "+buf.length+"\0").update(buf).digest("hex");
   assert.equal(actual,sha,"FROZEN VERIFIED SUCCESS code changed without approval: "+file);
+  const actualSha256=crypto.createHash("sha256").update(buf).digest("hex");
+  if(manifest.sha256)assert.equal(actualSha256,manifest.sha256[file],"SHA256 critical module was modified: "+file);
   console.log("FROZEN_MODULE_INTEGRITY: PASS "+file);
+  console.log("BASELINE_SHA256 "+file+" "+actualSha256);
 }
 const page=str("ezero_trusted_friends_staging_20261106.html");
 assert.match(page,/<meta\b[^>]*http-equiv="Content-Security-Policy"[^>]*>/);
