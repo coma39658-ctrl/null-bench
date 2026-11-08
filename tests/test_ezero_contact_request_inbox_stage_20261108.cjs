@@ -151,6 +151,36 @@ async function run(){
  assert.ok(!JSON.stringify(guest.sent).includes("room="));
  console.log("REQUEST_INBOX_OWNER_ONLY_ACCEPT_NO_AUTOTRUST_NO_CALL_TOKEN: PASS");
 
+ // The accepted request can receive ONE verified call QR link from the
+ // authenticated OWNER, only after a separate explicit call-start click.
+ // A mere approval still does not start a call or camera capture.
+ const callUrl="https://stage.example/null-bench/ezero_trusted_friends_staging_20261106.html"+
+   "?mode=audio#room="+("A".repeat(32))+"."+("B".repeat(43));
+ await room.webSocketMessage(guest,JSON.stringify({t:"invite",id:id2,
+   kind:"audio",url:callUrl}));
+ assert.ok(statuses(guest).includes("NOT_PERMITTED"));
+ await room.webSocketMessage(ownerWs,JSON.stringify({t:"invite",id:id2,
+   kind:"audio",url:callUrl.replace("https://stage.example","https://evil.example")}));
+ assert.ok(statuses(ownerWs).includes("INVALID_INVITE"));
+ await room.webSocketMessage(ownerWs,JSON.stringify({t:"invite",id:id2,
+   kind:"video",url:callUrl}));
+ assert.equal(statuses(ownerWs).filter(x=>x==="INVALID_INVITE").length,2);
+ await room.webSocketMessage(ownerWs,JSON.stringify({t:"invite",id:id1,
+   kind:"audio",url:callUrl}));
+ assert.ok(statuses(ownerWs).includes("REQUEST_NOT_APPROVED_OR_EXPIRED"),
+   "Previously rejected requester must never receive media call capability");
+ await room.webSocketMessage(ownerWs,JSON.stringify({t:"invite",id:id2,
+   kind:"audio",url:callUrl}));
+ assert.equal(packet(guest,"call-invite").length,1);
+ assert.equal(packet(guest,"call-invite")[0].url,callUrl);
+ assert.equal(packet(ownerWs,"invite-relayed").at(-1).kind,"audio");
+ assert.ok(!JSON.stringify([...data.values()]).includes(callUrl),
+   "Transient room capability must not be persisted");
+ await room.webSocketMessage(ownerWs,JSON.stringify({t:"invite",id:id2,
+   kind:"audio",url:callUrl}));
+ assert.equal(packet(guest,"call-invite").length,1,"Second call QR relay must be rejected");
+ console.log("REQUEST_INBOX_ONE_EXPLICIT_APPROVED_SIGNED_CALL_LINK_ONLY: PASS");
+
  // Expired pending sockets release quotas without hanging up owner.
  const pending=[];
  for(let i=0;i<2;i++)pending.push(await connect(target));
