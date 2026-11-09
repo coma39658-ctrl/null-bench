@@ -40,3 +40,10 @@ No secrets, OTPs, personal contact data or QR payloads included. No deployment o
 3. If no visible response, record browser type, whether QR panel appeared, and any non-sensitive console error if available.
 4. Only after a QR appears, phone B scans and both users explicitly approve. Confirm Connected and two-way audio/video on devices.
 5. All changes remain staging-only. NO RELEASE while real-device and live smoke checks are unknown.
+
+## Source inspection — staged QR UI, 2026-11-09
+- Inspected `ezero_trusted_friends_staging_20261106.html` at the audit base. Existing separate `#myQr` display and `#scanQR` scanner controls exist, plus `#oneTapQr` preview.
+- Inspected `js/ezero_secure_connect_one_tap_qr_v0_1.js`: preview is a clone of `#myQr`, not an independent QR generator. Thus an empty source QR necessarily leaves this preview empty.
+- One-tap handler opens a camera/scanner flow and explicitly checks `window.BarcodeDetector` and `navigator.mediaDevices.getUserMedia`. This is a potential browser compatibility blocker; it is NOT established as the cause on the owner's Render TEST page, which may use different assets.
+- Do not change the frozen WebRTC or signed-identity generator before identifying the actual TEST page asset SHA and click handler. Next isolated step: identify actual TEST entry HTML and JS bundle, reproduce QR render in mobile browser test, and only then fix the relevant control.
+- This is source inspection PASS, QR bug fix NOT DONE, physical scan UNKNOWN. NO RELEASE.
