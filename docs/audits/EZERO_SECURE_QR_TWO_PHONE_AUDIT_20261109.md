@@ -25,3 +25,18 @@ Scope: isolated staging-only evidence note; no production changes. Base commit: 
 4. Run affected frozen regressions and browser/accessibility tests before any physical call test.
 
 No secrets, OTPs, personal contact data or QR payloads included. No deployment or user data mutation.
+
+## Owner's physical two-phone observation — update 2026-11-09
+- Owner provided screenshots from two physical phones showing the same TEST UI label `51d7aec556de`.
+- Both show separate buttons equivalent to "My call QR" and "Scan friend's QR". Earlier concern that these controls were missing is superseded for this TEST page.
+- Owner reports that pressing the QR control does not open/display a usable QR code. Root cause is NOT VERIFIED: profile prerequisites, JavaScript runtime, origin/signaling, QR render, or UI state remain hypotheses.
+- TEST page text requires a name, profile photo, explicit profile sharing consent and saving before first friendship. Do not assume this is the failing gate without observing the exact error.
+- A screenshot shows the TEST page in an in-app browser frame on one phone; camera permissions and browser restrictions should be checked without changing the frozen call engine.
+- No QR payload, user profile, digital identity hash, image, or private invite was copied into this audit.
+
+## Revised immediate test — physical gate
+1. On phone A, use the TEST page, press "My call QR" once; capture only the visible status/error (redact personal data).
+2. If an explicit profile prerequisite appears, complete it locally with consent and retry; do not upload profile data.
+3. If no visible response, record browser type, whether QR panel appeared, and any non-sensitive console error if available.
+4. Only after a QR appears, phone B scans and both users explicitly approve. Confirm Connected and two-way audio/video on devices.
+5. All changes remain staging-only. NO RELEASE while real-device and live smoke checks are unknown.
