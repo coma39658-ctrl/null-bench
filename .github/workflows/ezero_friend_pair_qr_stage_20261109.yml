@@ -1,0 +1,24 @@
+name: E-ZERO Friend Pair QR Staging Contract
+on:
+  push:
+    branches:
+      - ezero-friend-pair-qr-ui-stage-20261109
+    paths:
+      - 'ezero_trusted_friends_staging_20261106.html'
+      - 'js/ezero_friend_pair_qr_entry_stage_v0_1.js'
+      - 'js/ezero_front_qr_hub_v0_1.js'
+      - 'tests/test_ezero_friend_pair_qr_stage_contract_20261109.cjs'
+      - '.github/workflows/ezero_friend_pair_qr_stage_20261109.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  qr-stage-static-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check JavaScript syntax
+        run: node --check js/ezero_friend_pair_qr_entry_stage_v0_1.js
+      - name: Offline QR UI contract
+        run: node tests/test_ezero_friend_pair_qr_stage_contract_20261109.cjs
