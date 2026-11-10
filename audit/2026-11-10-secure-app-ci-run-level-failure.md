@@ -37,3 +37,9 @@ Keep Render autoDeploy OFF and live SHA pinned. Establish authoritative run-leve
 - Warning: `Node.js 20 is deprecated`; checkout@v4, setup-node@v4, setup-python@v5 are forced to run on Node.js 24. This is a separate warning, not demonstrated as the failure cause.
 - `two-mobile-chromium` was SUCCESS; `signed-identity-and-ui` appears as an empty circle without a successful run in the graph. The annotation establishes a GitHub Actions internal server error for this run, not an application test failure. GitHub's underlying infrastructure cause remains unverified.
 - Safe action: keep release blocked; preserve frozen calling code. Rerun failed jobs or workflow from GitHub Actions UI if available, then compare all job conclusions and run annotations. If reproducible, report the correlation ID and run URL to GitHub Support/status. Do not bypass required checks.
+
+## Resolution update — rerun successful (2026-11-10)
+- Owner triggered GitHub Actions **Re-run all jobs** on https://github.com/coma39658-ctrl/null-bench/actions/runs/42672518281 . Owner-supplied screenshot shows workflow **SUCCESS**, duration **1m 7s**.
+- Independently rechecked GitHub job API after rerun: `signed-identity-and-ui` job 129985251333 **SUCCESS** (including signed QR/multilingual contract step), and `two-mobile-chromium` job 129985250586 **SUCCESS** (including browser endpoints step).
+- The earlier GitHub Actions `Internal server error` annotation did not prevent this successful rerun; root infrastructure cause remains unconfirmed. No app code or workflow permission change was needed.
+- Scope of PASS: this one rerun of PR #131's P2P workflow only. Other workflows, draft PR #128, current Render TEST SHA mismatch, public smoke, privacy consistency and real physical two-phone tests remain separately gated/UNKNOWN. **NO RELEASE**.
