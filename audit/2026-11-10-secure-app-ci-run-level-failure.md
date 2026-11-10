@@ -30,3 +30,10 @@ Review run-level annotations in GitHub UI/API, reproduce with a staging-only dia
 
 ## Safe remediation gate
 Keep Render autoDeploy OFF and live SHA pinned. Establish authoritative run-level failure reason and complete original jobs, then test a *separate* isolated deployment only if approved and safe. No release or changes to existing calling baseline.
+
+## Owner-supplied GitHub Actions annotation — confirmed (2026-11-10)
+- The owner opened the **Annotations** section of run https://github.com/coma39658-ctrl/null-bench/actions/runs/42672518281 and supplied a screenshot showing **1 error and 1 warning**.
+- Run-level error text: `Internal server error. Correlation ID: 7916462c-3a4a-41fa-979a-2dd78650e3f5`.
+- Warning: `Node.js 20 is deprecated`; checkout@v4, setup-node@v4, setup-python@v5 are forced to run on Node.js 24. This is a separate warning, not demonstrated as the failure cause.
+- `two-mobile-chromium` was SUCCESS; `signed-identity-and-ui` appears as an empty circle without a successful run in the graph. The annotation establishes a GitHub Actions internal server error for this run, not an application test failure. GitHub's underlying infrastructure cause remains unverified.
+- Safe action: keep release blocked; preserve frozen calling code. Rerun failed jobs or workflow from GitHub Actions UI if available, then compare all job conclusions and run annotations. If reproducible, report the correlation ID and run URL to GitHub Support/status. Do not bypass required checks.
