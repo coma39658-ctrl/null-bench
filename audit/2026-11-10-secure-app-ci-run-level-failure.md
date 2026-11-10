@@ -56,3 +56,10 @@ Keep Render autoDeploy OFF and live SHA pinned. Establish authoritative run-leve
 - GitHub job API independently confirms `validate-evidence` job 129991814673 completed **SUCCESS**, including `Validate evidence registry` and `Check AI browser contract and external link safety` steps.
 - All three previously identified run-level failures now have successful reruns (P2P QA, Local Device Preview QA, Evidence Registry Validator). This does not imply all required repository checks or live-device/staging/public gates pass.
 - Release remains blocked pending exact deployed SHA, CSP/origin/assets public checks, privacy and fresh two-phone evidence. No production deployment performed.
+
+## Next bounded gate — deployment and PR #128 read-only review (2026-11-10)
+- Render service deployment API still reports LIVE SHA `51d7aec556dec935d74edf339d86f3794f5aa865` (Nov 7); TEST02 run refers to `2bc4e30`. These are different artifacts; no claim of TEST02 Render live smoke.
+- PR #128 remains draft optional owner-signed 24-hour contact forwarding. Its own description explicitly says no unknown-owner direct request implementation and no offline card revocation before expiry. It must remain isolated; do not advertise as full trusted-contact feature.
+- GitHub main `index.html` read-only fetch succeeded (blob SHA `15d4529ea15b27c1347a5045c931e1634ff739d9`); this blob SHA is not a deployed GitHub Pages commit SHA. Main HTML includes GA4 G-YTVCF5JZCY early in head; consent/privacy compliance requires separate review.
+- Attempts to open both owned public URLs through available web access returned tool internal errors. Consequently actual public HTTP response, assets, CSP, origin headers and served SHA remain UNKNOWN, not PASS or site outage.
+- No deploy, permissions or privacy changes. **NO RELEASE** pending full CI and live physical two-phone verification.
