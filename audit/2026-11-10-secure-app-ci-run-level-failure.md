@@ -18,3 +18,15 @@ Run-level CI FAIL/UNKNOWN; evidence registry UNKNOWN; actual two physical phones
 
 ## Next bounded step
 Review run-level annotations in GitHub UI/API, reproduce with a staging-only diagnostic workflow only after identifying the failure, then run original regression suite. Never merge automatically.
+
+## Additional verified Render TEST findings (2026-11-10)
+- Read-only Render service inventory: `ezero-secure-app-two-phone-test-20261107`, service `srv-dbnis0lg1s2s73cquj1g`, is a static site connected to `coma39658-ctrl/null-bench` branch `ezero-profile-first-saved-friends-20261106`.
+- Render autoDeploy and autoDeployTrigger are OFF; there is no automatic deployment of TEST02 PR #131 to this service.
+- Render deploy history reports current LIVE deployment `dep-dbnlrc49v7es73d4i6qg` at commit `51d7aec556dec935d74edf339d86f3794f5aa865` on 2026-11-07, distinct from TEST02 commit `2bc4e30`. Therefore TEST02's staging deployment and exact-SHA smoke are NOT verified by the existing live Render TEST deployment.
+- This is a confirmed *version mismatch for the intended TEST02 comparison*, not evidence of a malfunction in the older live Render service. Do not redeploy it without matching CI, assets and regression evidence.
+- Attempted direct HTTP GET to the owned Render and GitHub Pages public URLs from the sandbox; DNS resolution failed in this environment. HTTP status, headers/CSP, served asset integrity and public SHA remain UNKNOWN, not FAIL.
+- GitHub official documentation states invalid workflow YAML can generate failed workflow runs; investigate workflow-level annotations before changing any workflow permissions or required checks: https://docs.github.com/en/actions/how-tos/monitor-workflows/use-workflow-run-logs
+- Render official docs explain live deploy SHA, branch and auto-deploy behavior: https://render.com/docs/deploys
+
+## Safe remediation gate
+Keep Render autoDeploy OFF and live SHA pinned. Establish authoritative run-level failure reason and complete original jobs, then test a *separate* isolated deployment only if approved and safe. No release or changes to existing calling baseline.
