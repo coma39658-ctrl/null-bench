@@ -43,3 +43,10 @@ Keep Render autoDeploy OFF and live SHA pinned. Establish authoritative run-leve
 - Independently rechecked GitHub job API after rerun: `signed-identity-and-ui` job 129985251333 **SUCCESS** (including signed QR/multilingual contract step), and `two-mobile-chromium` job 129985250586 **SUCCESS** (including browser endpoints step).
 - The earlier GitHub Actions `Internal server error` annotation did not prevent this successful rerun; root infrastructure cause remains unconfirmed. No app code or workflow permission change was needed.
 - Scope of PASS: this one rerun of PR #131's P2P workflow only. Other workflows, draft PR #128, current Render TEST SHA mismatch, public smoke, privacy consistency and real physical two-phone tests remain separately gated/UNKNOWN. **NO RELEASE**.
+
+## Local Device Preview QA rerun — verified success (2026-11-10)
+- Owner re-ran https://github.com/coma39658-ctrl/null-bench/actions/runs/42672518256 after an initial run-level `Internal server error` annotation.
+- Owner screenshot after rerun shows only Node.js 20 deprecation warnings; no displayed internal-server-error annotation.
+- Independently checked GitHub jobs API: `contract` job 129988020781 **SUCCESS** (including no-network Secure Connect / AI Studio separation contract); `mobile-browser` job 129988020238 **SUCCESS** (including camera, mic, bounded voice draft and local identity test step).
+- Scope: these two jobs passed on the rerun; no new app code or permission changes. The exact GitHub backend incident cause is not established. Warning remediation is a separate nonblocking maintenance task.
+- Release remains BLOCKED for other checks, Render SHA alignment, public asset/CSP/origin verification and fresh real two-phone evidence. **NO RELEASE**.
