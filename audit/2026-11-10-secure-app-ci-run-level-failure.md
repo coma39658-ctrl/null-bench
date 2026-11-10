@@ -63,3 +63,9 @@ Keep Render autoDeploy OFF and live SHA pinned. Establish authoritative run-leve
 - GitHub main `index.html` read-only fetch succeeded (blob SHA `15d4529ea15b27c1347a5045c931e1634ff739d9`); this blob SHA is not a deployed GitHub Pages commit SHA. Main HTML includes GA4 G-YTVCF5JZCY early in head; consent/privacy compliance requires separate review.
 - Attempts to open both owned public URLs through available web access returned tool internal errors. Consequently actual public HTTP response, assets, CSP, origin headers and served SHA remain UNKNOWN, not PASS or site outage.
 - No deploy, permissions or privacy changes. **NO RELEASE** pending full CI and live physical two-phone verification.
+
+## Render build-source comparison (2026-11-10)
+- Render service config (read-only): static_site, branch `ezero-profile-first-saved-friends-20261106`, build command `python3 scripts/build_ezero_secure_app_render_staging_20261107.py`, publish directory `dist_ezero_secure_app_two_phone_staging`, auto deploy OFF, PR previews OFF.
+- Compared that builder at deployed SHA `51d7aec556dec935d74edf339d86f3794f5aa865` and TEST02 SHA `2bc4e30`: identical Git blob SHA `9556035f183fbbe3011d8f1818e874f0eb378957`.
+- Static source inspection: builder uses an explicit suffix allowlist, path traversal containment, strict WSS origin replacement, disables incompatible trusted inbox on Render, adds build-SHA query strings to JS/CSS, and copies QR vendor license. These are observed safeguards, **not** proof that served HTTP assets and CSP headers match.
+- Remaining UNKNOWN: actual HTTP responses, browser-loaded asset hashes, server headers, WSS Origin enforcement and two physical phone calls. No deployment, code change or production action.
