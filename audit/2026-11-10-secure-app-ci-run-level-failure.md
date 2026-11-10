@@ -69,3 +69,9 @@ Keep Render autoDeploy OFF and live SHA pinned. Establish authoritative run-leve
 - Compared that builder at deployed SHA `51d7aec556dec935d74edf339d86f3794f5aa865` and TEST02 SHA `2bc4e30`: identical Git blob SHA `9556035f183fbbe3011d8f1818e874f0eb378957`.
 - Static source inspection: builder uses an explicit suffix allowlist, path traversal containment, strict WSS origin replacement, disables incompatible trusted inbox on Render, adds build-SHA query strings to JS/CSS, and copies QR vendor license. These are observed safeguards, **not** proof that served HTTP assets and CSP headers match.
 - Remaining UNKNOWN: actual HTTP responses, browser-loaded asset hashes, server headers, WSS Origin enforcement and two physical phone calls. No deployment, code change or production action.
+
+## Source HTML parity and live access gate (2026-11-10)
+- `ezero_trusted_friends_staging_20261106.html` has identical Git blob SHA `06b3010cff1ac7ad5b08c8f251f17aaabd0b8fe6` at deployed Render source commit `51d7aec556dec935d74edf339d86f3794f5aa865` and TEST02 `2bc4e30`.
+- HTML meta CSP restricts default-src none, self scripts/styles, self/data images, self/blob media, and allowlisted WSS signaling/inbox; frame/object/base restrictions observed in source. Render builder rewrites WSS and injected staging banner, so source parity **does not** prove live asset parity.
+- Direct HTTP GET from available execution environment failed DNS resolution for Render and GitHub Pages; web retrieval also unavailable. Thus live HTTP status, actual CSP headers, served assets/hashes remain UNKNOWN (not evidence of outage).
+- No public changes, no staging deploy, no new real-device evidence. NO RELEASE.
