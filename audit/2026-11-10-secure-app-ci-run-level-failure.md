@@ -50,3 +50,9 @@ Keep Render autoDeploy OFF and live SHA pinned. Establish authoritative run-leve
 - Independently checked GitHub jobs API: `contract` job 129988020781 **SUCCESS** (including no-network Secure Connect / AI Studio separation contract); `mobile-browser` job 129988020238 **SUCCESS** (including camera, mic, bounded voice draft and local identity test step).
 - Scope: these two jobs passed on the rerun; no new app code or permission changes. The exact GitHub backend incident cause is not established. Warning remediation is a separate nonblocking maintenance task.
 - Release remains BLOCKED for other checks, Render SHA alignment, public asset/CSP/origin verification and fresh real two-phone evidence. **NO RELEASE**.
+
+## Evidence Registry Validator rerun — verified success (2026-11-10)
+- Owner reran https://github.com/coma39658-ctrl/null-bench/actions/runs/42672511794 for commit `2bc4e30`. Screenshot shows run-level **SUCCESS**, duration 13 seconds, one artifact.
+- GitHub job API independently confirms `validate-evidence` job 129991814673 completed **SUCCESS**, including `Validate evidence registry` and `Check AI browser contract and external link safety` steps.
+- All three previously identified run-level failures now have successful reruns (P2P QA, Local Device Preview QA, Evidence Registry Validator). This does not imply all required repository checks or live-device/staging/public gates pass.
+- Release remains blocked pending exact deployed SHA, CSP/origin/assets public checks, privacy and fresh two-phone evidence. No production deployment performed.
