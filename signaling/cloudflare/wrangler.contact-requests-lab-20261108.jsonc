@@ -1,0 +1,18 @@
+{
+  "$schema": "https://unpkg.com/wrangler@4/config-schema.json",
+  "name": "ezero-contact-requests-inbox-lab-20261108",
+  "main": "src/contact_request_inbox_stage_v0_1.js",
+  "compatibility_date": "2026-11-08",
+  "workers_dev": true,
+  "vars": {
+    "PUBLIC_ORIGIN": "https://coma39658-ctrl.github.io"
+  },
+  "durable_objects": {
+    "bindings": [
+      {"name":"REQUEST_INBOXES","class_name":"ContactRequestInbox"}
+    ]
+  },
+  "migrations":[
+    {"tag":"v1","new_sqlite_classes":["ContactRequestInbox"]}
+  ]
+}
