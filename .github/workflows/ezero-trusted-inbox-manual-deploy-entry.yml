@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   staging-only:
-    if: ${{ inputs.confirmation == 'DEPLOY-EZERO-TRUSTED-INBOX-TEST' }}
+    if: ${{ github.repository == 'coma39658-ctrl/null-bench' && github.ref == 'refs/heads/main' && inputs.confirmation == 'DEPLOY-EZERO-TRUSTED-INBOX-TEST' }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     environment: ezero-trusted-inbox-staging
@@ -26,6 +26,13 @@ jobs:
         with:
           ref: dca016430238651f7e3432a5d1ebe2f79475fd7f
           persist-credentials: false
+      - name: Confirm exact reviewed candidate commit is checked out
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected='dca016430238651f7e3432a5d1ebe2f79475fd7f'
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$expected" || { echo 'Candidate SHA mismatch; deployment blocked'; exit 1; }
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
