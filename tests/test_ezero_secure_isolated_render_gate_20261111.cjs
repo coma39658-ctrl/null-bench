@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, '..');
 const read = p => fs.readFileSync(path.join(root,p),'utf8');
 test('Render build disables unverified production-origin trusted inbox', () => {
   const src=read('scripts/build_ezero_secure_app_render_staging_20261107.py');
-  assert.match(src,/cfg\.replace\("enabled:true", "enabled:false", 1\)/);
+  assert.match(src,/cfg\s*=\s*cfg\.replace\(needle, "enabled:false", 1\)/);
   assert.match(src,/Unexpected trusted-inbox configuration: fail closed/);
 });
 test('Render QR signaling uses separate staging Worker', () => {
