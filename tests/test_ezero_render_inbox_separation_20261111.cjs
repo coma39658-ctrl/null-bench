@@ -13,7 +13,7 @@ const client=read("js/ezero_trusted_friend_foreground_client_candidate_v0_1.js")
 const renderOrigin="https://ezero-secure-app-two-phone-test-20261107.onrender.com";
 assert.equal(renderCfg.vars.PUBLIC_ORIGIN,renderOrigin);
 assert.equal(renderCfg.name,"ezero-browser-signaling-render-test");
-assert.match(worker,/\/v1\/rooms\//);
+assert.match(worker,/ROOM\.test\(m\[1\]\)/);
 assert.doesNotMatch(worker,/\/v1\/trusted\//);
 assert.match(client,/\/v1\/trusted\//);
 assert.match(client,/location\.origin===ORIGIN/);
