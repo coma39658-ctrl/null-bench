@@ -55,7 +55,8 @@ function validInvite(value,kind){
     /^#room=[A-Za-z0-9_-]{32}\.[A-Za-z0-9_-]{43}$/.test(u.hash);
 }
 async function verifyHello(s,hello,target){
-  if(!s||s.role!=="pending"||Date.now()-s.opened>HELLO_MS ||
+  if(!s||s.role!=="pending"||!Number.isSafeInteger(s.opened)||
+     s.opened>Date.now()+5000||Date.now()-s.opened>HELLO_MS ||
      s.target!==target||hello?.t!=="hello"||
      !["owner","caller"].includes(hello.role))return null;
   const pub=fromB64(hello.pub,240),sig=fromB64(hello.sig,180);
