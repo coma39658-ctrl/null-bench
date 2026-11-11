@@ -5,6 +5,8 @@
  */
 window.EZERO_TRUSTED_INBOX_CONFIG=Object.freeze({
   enabled:true,
+  expectedOrigin:"https://coma39658-ctrl.github.io",
+  callPage:"/null-bench/ezero_trusted_friends_staging_20261106.html",
   websocketOrigin:"wss://ezero-trusted-friends-inbox-staging.coma39658.workers.dev",
   version:"0.1-pre-release-test"
 });

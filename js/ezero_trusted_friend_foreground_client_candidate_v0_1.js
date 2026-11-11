@@ -10,11 +10,16 @@
  */
 (() => {
   "use strict";
-  const ORIGIN="https://coma39658-ctrl.github.io";
-  const CALL_PAGE="/null-bench/ezero_trusted_friends_staging_20261106.html";
+  const CONFIG=window.EZERO_TRUSTED_INBOX_CONFIG;
+  // Explicit, immutable deployment-specific trust boundary. Never infer from a link.
+  const ORIGIN=CONFIG?.expectedOrigin;
+  const CALL_PAGE=CONFIG?.callPage;
+  const TRUSTED_DEPLOYMENTS=Object.freeze({
+    "https://coma39658-ctrl.github.io":"/null-bench/ezero_trusted_friends_staging_20261106.html",
+    "https://ezero-secure-app-two-phone-test-20261107.onrender.com":"/ezero_trusted_friends_staging_20261106.html"
+  });
   const FP=/^[a-f0-9]{64}$/;
   const ROOM=/^#room=[A-Za-z0-9_-]{32}\.[A-Za-z0-9_-]{43}$/;
-  const CONFIG=window.EZERO_TRUSTED_INBOX_CONFIG;
   const CONTACTS="ezero_secure_connect_staging_fingerprints_v0_1";
   const encoder=new TextEncoder();
   const MAX_WAIT=15000;
@@ -25,12 +30,14 @@
     if(typeof value!=="string"||value.length>240)return false;
     try{
       const u=new URL(value);
-      return u.origin===ORIGIN&&u.pathname===CALL_PAGE&&
+      return TRUSTED_DEPLOYMENTS[ORIGIN]===CALL_PAGE&&
+        u.origin===ORIGIN&&u.pathname===CALL_PAGE&&
         u.searchParams.size===1&&u.searchParams.get("mode")===mode&&ROOM.test(u.hash);
     }catch(_){return false;}
   }
   function ready(){
     return CONFIG?.enabled===true&&
+      TRUSTED_DEPLOYMENTS[ORIGIN]===CALL_PAGE&&
       /^wss:\/\/[a-z0-9.-]+(?::443)?$/i.test(CONFIG.websocketOrigin||"")&&
       location.origin===ORIGIN&&window.isSecureContext===true&&
       !!crypto?.subtle;
@@ -40,6 +47,7 @@
       const arr=JSON.parse(localStorage.getItem(CONTACTS)||"[]");
       if(!Array.isArray(arr))return [];
       return arr.slice(0,50).filter(x=>x&&FP.test(x.fp)&&
+        window.EZERO_FRIEND_ACCESS?.isBlocked?.(x.fp)!==true&&
         typeof x.name==="string"&&x.name.trim().length>0&&x.name.length<=40);
     }catch(_){return [];}
   }

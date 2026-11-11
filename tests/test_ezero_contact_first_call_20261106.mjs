@@ -109,6 +109,23 @@ async function createPhone(name){
   return page;
 }
 
+const profilePhoto=Buffer.from("iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAGUlEQVR4nGPkrzBhIAUwkaR6VMOohiGlAQBvQwDbVY2zjwAAAABJRU5ErkJggg==","base64");
+async function completeFirstTimeProfile(page,name){
+  assert.equal(await page.locator("#ezeroProfileMissingReminder").isVisible(),true);
+  await page.locator("#ezeroProfileFirstOpen").click();
+  await page.locator("#ezeroMyName").fill(name);
+  await page.locator("#ezeroMyPhoto").setInputFiles({
+    name:"ci-profile.png",mimeType:"image/png",buffer:profilePhoto
+  });
+  await page.waitForFunction(()=>document.getElementById("ezeroMyAvatar")?.hidden===false,
+    undefined,{timeout:12000});
+  await page.locator("#ezeroShareProfile").check();
+  await page.locator("#ezeroSaveProfile").click();
+  await page.waitForFunction(()=>document.getElementById("ezeroProfileFirstStatus")?.dataset.state==="ready",
+    undefined,{timeout:15000});
+  assert.equal(await page.locator("#ezeroProfileMissingReminder").isHidden(),true);
+}
+
 try{
   const caller=await createPhone("CONTACT_CALLER");
   assert.equal(await caller.locator("#ezeroContactFirstDock").isVisible(),true);
@@ -122,6 +139,11 @@ try{
   console.log("CONTACT_FIRST_EMPTY_LIST_NO_MEDIA_OR_FAKE_FRIEND: PASS");
   // The first ever call still uses real explicit QR/accept, no saved friend.
   await caller.locator('[data-modern-select="audio"]').click();
+  assert.equal(await caller.evaluate(()=>window.__oneInvite),"",
+    "Unsaved name/photo must not create a QR or start calling");
+  assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),0);
+  await completeFirstTimeProfile(caller,"First Phone");
+  await caller.locator('[data-modern-select="audio"]').click();
   await caller.waitForFunction(()=>!!window.__oneInvite,{timeout:12000});
   const first=await caller.evaluate(()=>window.__oneInvite);
   assert.match(first,/mode=audio#room=/);
@@ -130,19 +152,24 @@ try{
   await callee.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:12000});
   assert.equal(await callee.evaluate(()=>window.__mediaCalls.length),0);
   await callee.locator("#ezeroAutoAccept").click();
+  assert.equal(await callee.evaluate(()=>window.__mediaCalls.length),0,
+    "Incoming call requires recipient profile and explicit consent");
+  await completeFirstTimeProfile(callee,"Second Phone");
+  await callee.locator("#ezeroAutoAccept").click();
   await Promise.all([caller,callee].map(p=>p.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===true,{timeout:45000})));
+  // Signed offer/answer and receiver Accept now save each verified friend
+  // automatically; do not regress to a second manual Save Friend operation.
   for(const [phone,friendName] of [[caller,"Second Phone"],[callee,"First Phone"]]){
-    await phone.evaluate(()=>{
-      document.querySelector(".ezero-unified-options").open=true;
-      document.getElementById("ezeroPeopleHub").open=true;
-    });
-    await phone.locator("#ezeroFriendSavePanel").waitFor({state:"visible",timeout:15000});
-    await phone.locator("#ezeroFriendSaveName").fill(friendName);
-    await phone.locator("#ezeroSaveConnectedFriend").click();
-    await phone.waitForFunction(()=>JSON.parse(
+    await phone.waitForFunction(name=>JSON.parse(
       localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1")||"[]"
-    ).length===1,{timeout:10000});
+    ).some(peer=>peer.profileName===name&&peer.nickname===false),friendName,{timeout:25000});
+    const saved=await phone.evaluate(()=>JSON.parse(
+      localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1")||"[]"
+    ));
+    assert.equal(saved.length,1);
+    assert.equal(saved[0].name,friendName);
+    assert.ok(saved[0].avatar?.startsWith("data:image/jpeg;base64,"));
   }
   await caller.locator("#modernHangup").click();
   await Promise.all([caller,callee].map(p=>p.waitForFunction(()=>
@@ -167,6 +194,10 @@ try{
   const videoInvite=await caller.evaluate(()=>window.__oneInvite);
   assert.match(videoInvite,/mode=video#room=/,
     "Saved contact's video button must create VIDEO not audio invitation");
+  assert.equal(await caller.locator("#ezeroOneQrBox").isHidden(),true,
+    "Saved friend's direct Call must not show the initial-pairing QR");
+  assert.equal(await caller.locator("#ezeroInlineCallResult").isVisible(),true,
+    "The call status must appear beside the chosen Call control");
   const callerMedia=await caller.evaluate(()=>window.__mediaCalls.at(-1));
   assert.ok(callerMedia?.video&&callerMedia?.audio,
     "Selected-contact video call must explicitly request camera AND mic");

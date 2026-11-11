@@ -6,16 +6,16 @@
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0b3426">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self' wss://ezero-browser-signaling-pilot.coma39658.workers.dev wss://ezero-trusted-friends-inbox-staging.coma39658.workers.dev; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
-<title>E-ZERO Secure Connect — Unified Public Beta</title>
+<title>E-ZERO Secure App — Friends & Calls</title>
 <meta name="robots" content="noindex,nofollow">
-<meta name="description" content="E-ZERO Secure Connect — one green page for QR call invitations, one accept, and experimental WebRTC audio/video.">
-<meta property="og:title" content="E-ZERO Secure Connect — Friends & Calls">
-<meta property="og:description" content="Open E-ZERO Secure Connect and choose Install App or Add to Home Screen. No hidden fees, ads or tracking. Experimental two-phone calls.">
+<meta name="description" content="E-ZERO Secure App — secure friend requests, QR invites, audio and video calls using WebRTC.">
+<meta property="og:title" content="E-ZERO Secure App — Friends & Calls">
+<meta property="og:description" content="Open E-ZERO Secure App and choose Install App or Add to Home Screen. No hidden fees, ads or tracking. Experimental two-phone calls.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://coma39658-ctrl.github.io/null-bench/ezero_trusted_friends_staging_20261106.html">
 <meta property="og:image" content="https://coma39658-ctrl.github.io/null-bench/icon-512.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="E-ZERO Test">
+<meta name="apple-mobile-web-app-title" content="E-ZERO Secure App">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <link rel="manifest" href="./secure-connect-staging.webmanifest">
 <link rel="stylesheet" href="./css/ezero_secure_connect_live_p2p_v0_1.css">
@@ -24,37 +24,46 @@
 <link rel="stylesheet" href="./css/ezero_secure_connect_quick_nav_v0_1.css">
 <link rel="stylesheet" href="./css/ezero_one_request_lab_20261106.css?v=20261106onepage1">
 <link rel="stylesheet" href="./css/ezero_immersive_video_call_v0_1.css?v=20261106publicvideo2">
-<link rel="stylesheet" href="./css/ezero_contact_first_call_dock_v0_1.css?v=20261106contact1">
+<link rel="stylesheet" href="./css/ezero_contact_first_call_dock_v0_1.css?v=20261106friendsafe1">
 <link rel="stylesheet" href="./css/ezero_trusted_friends_stage_v0_1.css?v=20261106profile3">
+<link rel="stylesheet" href="./css/ezero_front_qr_hub_v0_1.css?v=20261107square1">
+<link rel="stylesheet" href="./css/ezero_inline_action_results_v0_1.css?v=20261107inline1">
+<link rel="stylesheet" href="./css/ezero_ice_recovery_staging_v0_1.css?v=20261107route1">
 <script defer src="./js/vendor/ezero-qrcode-generator-mit.js"></script>
 <script defer src="./js/ezero_secure_connect_device_identity_v0_1.js?v=20261106stage1"></script>
-<script defer src="./js/ezero_saved_friend_stage_engine_v0_1.js?v=20261106stage1"></script>
+<script defer src="./js/ezero_friend_blocklist_v0_1.js?v=20261106friendsafe1"></script>
+<script defer src="./js/ezero_saved_friend_stage_engine_v0_1.js?v=20261106friendsafe1"></script>
 <script defer src="./js/ezero_secure_connect_simple_near_far_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_contacts_staging_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_install_share_staging_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_one_tap_qr_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_modern_evidence_stage_v0_1.js?v=20261106evidence1"></script>
-<script defer src="./js/ezero_secure_connect_peer_profile_staging_v0_1.js?v=20261106profile3"></script>
-<script defer src="./js/ezero_saved_friend_stage_people_v0_1.js?v=20261106stage1"></script>
+<script defer src="./js/ezero_secure_connect_peer_profile_staging_v0_1.js?v=20261106friendsafe1"></script>
+<script defer src="./js/ezero_saved_friend_stage_people_v0_1.js?v=20261106friendsafe1"></script>
 <script defer src="./js/ezero_auto_signaling_lab_config_20261106.js"></script>
-<script defer src="./js/ezero_trusted_stage_signaling_v0_1.js?v=20261106stage1"></script>
+<script defer src="./js/ezero_trusted_stage_signaling_v0_1.js?v=20261106newqr2"></script>
+<script defer src="./js/vendor/jsQR-1.4.0.js?v=20261107selfhost1"></script>
 <script defer src="./js/ezero_trusted_stage_one_request_v0_1.js?v=20261106stage1"></script>
 <script defer src="./js/ezero_trusted_inbox_stage_config_20261106.js?v=20261106stage1"></script>
-<script defer src="./js/ezero_trusted_friend_foreground_client_candidate_v0_1.js?v=20261106stage1"></script>
-<script defer src="./js/ezero_trusted_friends_controls_candidate_v0_1.js?v=20261106stage1"></script>
+<script defer src="./js/ezero_trusted_friend_foreground_client_candidate_v0_1.js?v=20261106friendsafe1"></script>
+<script defer src="./js/ezero_trusted_friends_controls_candidate_v0_1.js?v=20261106friendsafe1"></script>
 <script defer src="./js/ezero_signed_media_evidence_v0_1.js?v=20261106proof1"></script>
 <script defer src="./js/ezero_evidence_recording_controls_v0_1.js?v=20261106proof1"></script>
 <script defer src="./js/ezero_secure_connect_quick_nav_stage_v0_1.js?v=20261106profile3"></script>
 <script defer src="./js/ezero_unified_nav_v0_1.js"></script>
 <script defer src="./js/ezero_immersive_video_call_v0_1.js?v=20261106publicvideo2"></script>
-<script defer src="./js/ezero_contact_first_call_dock_v0_1.js?v=20261106contact1"></script>
+<script defer src="./js/ezero_contact_first_call_dock_v0_1.js?v=20261106friendsafe1"></script>
+<script defer src="./js/ezero_profile_first_verified_friends_v0_1.js?v=20261106friendsafe1"></script>
+<script defer src="./js/ezero_front_qr_hub_v0_1.js?v=20261107square1"></script>
+<script defer src="./js/ezero_inline_action_results_v0_1.js?v=20261107inline1"></script>
+<script defer src="./js/ezero_ice_recovery_staging_v0_1.js?v=20261107route1"></script>
 </head>
 <body class="communication-page ezero-one-lab">
 <div class="shell">
 <header class="top">
   <a class="back" id="modernBack" href="./index.html" data-modern="back">↩ E-ZERO مرکزی صفحہ</a>
   <div class="ezero-header-identity">
-    <strong class="logo">E-ZERO <span>Secure Connect</span></strong>
+    <strong class="logo">E-ZERO <span>Secure App</span></strong>
     <button type="button" id="ezeroQuickProfile" class="ezero-header-profile"
       aria-label="میری پروفائل اور تصویر کھولیں" aria-controls="ezeroProfileEditor"
       title="میری پروفائل / تصویر">
@@ -68,8 +77,8 @@
 </header>
 <main>
 <section id="ezeroUnifiedCard" class="ezero-unified-card" aria-labelledby="ezeroUnifiedHeading">
-  <div class="ezero-unified-heading"><span class="ezero-unified-label">E-ZERO · SECURE CONNECT</span>
-  <h1 id="ezeroUnifiedHeading">E-ZERO محفوظ دوست — مشترکہ عوامی آزمائشی صفحہ</h1>
+  <div class="ezero-unified-heading"><span class="ezero-unified-label">E-ZERO · SECURE APP · SECURE CONNECT</span>
+  <h1 id="ezeroUnifiedHeading">ای زیرو سکیور ایپ — دوست اور کالز</h1>
   <p>دونوں موبائلوں پر یہی صفحہ کھولیں۔ پہلی کال QR اور واضح منظوری سے جوڑیں؛ اس کے بعد دونوں طرف دوست محفوظ کریں۔ بغیر QR دوبارہ کال ابھی تجرباتی ہے اور صفحہ کھلا ہونا ضروری ہے۔</p></div>
 <section id="ezeroContactFirstDock" class="ezero-contact-first-dock" aria-label="Select a saved friend before calling"></section>
 <div class="modern-feature-grid" aria-label="Communication features">
