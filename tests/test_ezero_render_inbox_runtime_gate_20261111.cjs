@@ -56,3 +56,59 @@ test("runtime: unauthenticated socket cannot send call or trust command",async()
   await obj.webSocketMessage(ws,JSON.stringify({t:"trust",fp:"b".repeat(64)}));
   assert.equal(closed,1008);
 });
+
+function b64url(bytes){return Buffer.from(bytes).toString("base64url");}
+function fingerprint(bytes){return Buffer.from(bytes).toString("hex");}
+async function identity(){
+  const keys=await webcrypto.subtle.generateKey({name:"ECDSA",namedCurve:"P-256"},false,["sign","verify"]);
+  const pub=new Uint8Array(await webcrypto.subtle.exportKey("spki",keys.publicKey));
+  const fp=fingerprint(await webcrypto.subtle.digest("SHA-256",pub));
+  return {keys,pub,fp};
+}
+async function signedHello(id,role,recipient,session){
+  const payload=["EZERO-TRUSTED-INBOX-1",ORIGIN,recipient,role,id.fp,session.nonce,String(session.opened)].join("\\n");
+  const sig=await webcrypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},id.keys.privateKey,new TextEncoder().encode(payload));
+  return {t:"hello",role,fp:id.fp,pub:b64url(id.pub),sig:b64url(new Uint8Array(sig))};
+}
+function socket(session){
+  const sent=[];let closed=null,attachment=session;
+  return {readyState:1,sent,get closed(){return closed;},
+    deserializeAttachment(){return attachment;},
+    serializeAttachment(value){attachment=value;},
+    send(data){sent.push(JSON.parse(data));},
+    close(code,reason){closed={code,reason};this.readyState=3;}};
+}
+test("crypto runtime: correctly signed P-256 owner authenticates",async()=>{
+  const id=await identity(),session={role:"pending",target:id.fp,nonce:b64url(webcrypto.getRandomValues(new Uint8Array(24))),opened:Date.now()};
+  const ws=socket(session);
+  const obj=new (load().TrustedInbox)({getWebSockets(){return [ws];},storage:{async get(){return [];}}},{PUBLIC_ORIGIN:ORIGIN});
+  await obj.webSocketMessage(ws,JSON.stringify(await signedHello(id,"owner",id.fp,session)));
+  assert.equal(ws.closed,null);
+  assert.equal(ws.deserializeAttachment().role,"owner");
+  assert.equal(ws.sent.at(-1)?.t,"ready");
+});
+test("crypto runtime: modified signature cannot impersonate saved owner",async()=>{
+  const id=await identity(),session={role:"pending",target:id.fp,nonce:b64url(webcrypto.getRandomValues(new Uint8Array(24))),opened:Date.now()};
+  const ws=socket(session),hello=await signedHello(id,"owner",id.fp,session);
+  const sig=Buffer.from(hello.sig,"base64url");sig[0]^=1;hello.sig=b64url(sig);
+  const obj=new (load().TrustedInbox)({getWebSockets(){return [ws];}},{PUBLIC_ORIGIN:ORIGIN});
+  await obj.webSocketMessage(ws,JSON.stringify(hello));
+  assert.equal(ws.closed?.code,1008);
+  assert.equal(ws.sent.some(m=>m.t==="ready"),false);
+});
+test("crypto runtime: signature for another challenge is rejected",async()=>{
+  const id=await identity(),session={role:"pending",target:id.fp,nonce:b64url(webcrypto.getRandomValues(new Uint8Array(24))),opened:Date.now()};
+  const ws=socket(session),hello=await signedHello(id,"owner",id.fp,{...session,nonce:b64url(webcrypto.getRandomValues(new Uint8Array(24)))});
+  const obj=new (load().TrustedInbox)({getWebSockets(){return [ws];}},{PUBLIC_ORIGIN:ORIGIN});
+  await obj.webSocketMessage(ws,JSON.stringify(hello));
+  assert.equal(ws.closed?.code,1008);
+});
+test("crypto runtime: untrusted caller with valid signature is denied",async()=>{
+  const owner=await identity(),caller=await identity();
+  const session={role:"pending",target:owner.fp,nonce:b64url(webcrypto.getRandomValues(new Uint8Array(24))),opened:Date.now()};
+  const ws=socket(session);
+  const obj=new (load().TrustedInbox)({getWebSockets(){return [ws];},storage:{async get(){return [];}}},{PUBLIC_ORIGIN:ORIGIN});
+  await obj.webSocketMessage(ws,JSON.stringify(await signedHello(caller,"caller",owner.fp,session)));
+  assert.equal(ws.closed?.code,1008);
+  assert.equal(ws.sent.some(m=>m.t==="ready"),false);
+});
