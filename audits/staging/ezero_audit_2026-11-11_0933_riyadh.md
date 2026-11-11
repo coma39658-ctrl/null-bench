@@ -21,3 +21,12 @@ NO RELEASE. Preserve frozen working public QR/WebRTC baseline. Require passing c
 
 ## Next safe step
 Investigate failed isolated QA workflow logs and correct only staging test/build mismatches; do not change production. For Null Bench #try, evaluate one accessible multilingual quick-start change separately without new analytics/tracking.
+
+## Incremental read-only review — 2026-11-11 11:12 Asia/Riyadh
+- GitHub commit search still reports public baseline main commit 53bbeb2a6426d47821c268f48e8777e3b227a389 (repository search result; not proof of deployed Pages SHA).
+- The isolated Trusted Inbox workflow definition includes syntax, static/runtime, browser contract, Wrangler dry-run and fail-closed preview build gates. Workflow definition existence is NOT a successful run.
+- New Gmail workflow failure notifications for isolated inbox candidate SHAs 73cf2a0 and 9f76a89; exact subsequent complete CI success remains UNKNOWN. Older isolated QA failures on 960e657 remain relevant. No credentials or email bodies copied.
+- Direct public HTTP attempts to Render TEST call page and GitHub Pages call page were inaccessible to the checking tool; no status code, response headers, CSP, assets or deployed SHA verified. Do not label either service down based on this result.
+- GA4 read-only aggregate 2026-11-08: 7d=7,28d=11,sessions=3,views=4; 2026-11-09: 8,11,3,5; 2026-11-10: 6,11,0,0. Last-day coverage UNKNOWN. Country report 2026-11-03 through 09: Saudi Arabia 7 active users/49 sessions; Jordan 1/1; Qatar 1/1. Country active users are nonadditive.
+- Qwen repository README was not retrieved in this pass; no AI capability/provider or regression claims.
+- Release remains BLOCKED: complete CI, exact public asset integrity and origin/CSP, privacy/accessibility audit, and new real two-phone call evidence are missing. No deployment, account, billing, permission or tracking mutation.
