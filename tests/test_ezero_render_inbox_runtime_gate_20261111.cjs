@@ -66,7 +66,7 @@ async function identity(){
   return {keys,pub,fp};
 }
 async function signedHello(id,role,recipient,session){
-  const payload=["EZERO-TRUSTED-INBOX-1",ORIGIN,recipient,role,id.fp,session.nonce,String(session.opened)].join("\\n");
+  const payload=["EZERO-TRUSTED-INBOX-1",ORIGIN,recipient,role,id.fp,session.nonce,String(session.opened)].join("\n");
   const sig=await webcrypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},id.keys.privateKey,new TextEncoder().encode(payload));
   return {t:"hello",role,fp:id.fp,pub:b64url(id.pub),sig:b64url(new Uint8Array(sig))};
 }
