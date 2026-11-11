@@ -1,0 +1,45 @@
+name: E-ZERO Secure App isolated automated QA
+on:
+  push:
+    branches: [ezero-secure-automated-qa-20261111]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  safe-static-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JS syntax without running app
+        run: |
+          set -eu
+          node --check js/ezero_trusted_friend_foreground_client_candidate_v0_1.js
+          node --check js/ezero_trusted_inbox_stage_config_20261106.js
+          node --check js/ezero_auto_signaling_lab_config_20261106.js
+      - name: Validate isolated Render build
+        run: |
+          set -eu
+          python3 -m py_compile scripts/build_ezero_secure_app_render_staging_20261107.py
+          python3 scripts/build_ezero_secure_app_render_staging_20261107.py
+          test -f dist_ezero_secure_app_two_phone_staging/ezero_trusted_friends_staging_20261106.html
+          test -f dist_ezero_secure_app_two_phone_staging/js/ezero_trusted_inbox_stage_config_20261106.js
+          grep -q 'enabled:false' dist_ezero_secure_app_two_phone_staging/js/ezero_trusted_inbox_stage_config_20261106.js
+          echo 'PASS: Render preview inbox remains fail-closed'
+      - name: Run available isolated security and QR regression tests
+        run: |
+          set -eu
+          count=0
+          for file in tests/test_ezero_trusted_inbox_candidate_20261106.cjs tests/test_ezero_trusted_friend_controls_candidate_20261106.cjs tests/test_ezero_trusted_friend_foreground_client_20261106.cjs tests/test_ezero_trusted_friends_stage_wiring_20261106.cjs; do
+            if test -f "$file"; then
+              node --test "$file"
+              count=$((count+1))
+            fi
+          done
+          echo "Executed $count available test files; missing tests are NOT counted as PASS"
+          test "$count" -gt 0
