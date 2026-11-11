@@ -1,0 +1,52 @@
+name: E-ZERO QR Close isolated staging deploy (manual)
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type DEPLOY-EZERO-QR-CLOSE-TEST to deploy only the isolated test Worker'
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: ezero-qr-close-isolated-staging-deploy
+  cancel-in-progress: false
+jobs:
+  staging-only:
+    if: ${{ github.repository == 'coma39658-ctrl/null-bench' && github.ref == 'refs/heads/main' && inputs.confirmation == 'DEPLOY-EZERO-QR-CLOSE-TEST' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ezero-qr-close-staging
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Checkout fixed QR close candidate
+        uses: actions/checkout@v4
+        with:
+          ref: 0e82f38e1124bbad38f70893ccba1d7d0ae02339
+          persist-credentials: false
+      - name: Verify exact candidate and staging target
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = '0e82f38e1124bbad38f70893ccba1d7d0ae02339'
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo 'Missing Cloudflare token'; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo 'Missing Cloudflare account ID'; exit 1; }
+          node - <<'NODE'
+          const fs=require('fs');
+          const c=JSON.parse(fs.readFileSync('signaling/cloudflare/wrangler.qr-close-test-20261111.jsonc','utf8'));
+          if(c.name!=='ezero-browser-signaling-qr-close-test' || c.main!=='src/worker.js' || c.workers_dev!==true || c.vars?.PUBLIC_ORIGIN!=='https://ezero-qr-close-two-phone-test-20261111.onrender.com' || c.durable_objects?.bindings?.[0]?.class_name!=='SignalRoom')throw Error('Staging-only target mismatch');
+          NODE
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compile before remote changes
+        working-directory: signaling/cloudflare
+        run: npx --yes wrangler@4 deploy --config wrangler.qr-close-test-20261111.jsonc --dry-run --outdir /tmp/ezero-qr-close-compile
+      - name: Verify compiled JS exists
+        shell: bash
+        run: find /tmp/ezero-qr-close-compile -type f -name '*.js' -print -quit | grep -q .
+      - name: Deploy dedicated QR close test Worker only
+        working-directory: signaling/cloudflare
+        run: npx --yes wrangler@4 deploy --config wrangler.qr-close-test-20261111.jsonc
