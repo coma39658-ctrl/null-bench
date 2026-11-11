@@ -21,7 +21,7 @@ jobs:
           node --check js/ezero_trusted_friend_foreground_client_candidate_v0_1.js
       - name: Isolated origin and security static gate
         run: node --test tests/test_ezero_render_inbox_static_gate_20261111.cjs
-      - name: Compile dedicated Worker without deploying
+      - name: Exercise isolated Trusted Inbox runtime rejection and routing\n        run: node --test tests/test_ezero_render_inbox_runtime_gate_20261111.cjs\n      - name: Compile dedicated Worker without deploying
         working-directory: signaling/cloudflare
         run: npx --yes wrangler@4 deploy --config wrangler.trusted-render-test-20261111.jsonc --dry-run --outdir /tmp/ezero-trusted-inbox-build
       - name: Build current Render preview without enabling unverified inbox
