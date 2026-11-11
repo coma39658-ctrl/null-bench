@@ -131,10 +131,11 @@
   function placeQr(where){
     qrWhere=where;
     // Do not expose an empty QR or disabled share controls while an invite is pending.
-    const hasQr=Boolean(qrBox.querySelector("svg"));
-    qrBox.hidden=!hasQr;
-    shareSlot.hidden=!hasQr;
-    closeQr.hidden=!hasQr;
+    // Preserve the proven original invite renderer visibility lifecycle.
+    // The renderer itself hides this box while creating a fresh invite.
+    qrBox.hidden=false;
+    shareSlot.hidden=false;
+    closeQr.hidden=!qrBox.querySelector("svg");
     // One authoritative signed QR, never duplicate a stale QR image.
     if(where==="video"){
       videoSlot.append(qrBox,shareSlot);
@@ -274,13 +275,18 @@
     video.setAttribute("aria-expanded",String(qrWhere==="video"));
   };
   document.addEventListener("ezero:auto-call-starting",()=>{
-    imageShare.disabled=true;message.textContent="";
+    imageShare.disabled=true;closeQr.hidden=true;message.textContent="";
   });
   // This listener runs after the original QR renderer; queue one microtask to
   // avoid a stale SVG and to preserve existing signed invite validation.
   document.addEventListener("ezero:auto-invite-ready",()=>{
+    // The signed invite renderer may finish after this listener. Observe the
+    // real SVG instead of assuming a microtask always runs late enough.
     queueMicrotask(onReady);
   });
+  new MutationObserver(()=>{
+    if(qrBox.querySelector("svg") && !qrBox.hidden && qrWhere)onReady();
+  }).observe(qrBox,{subtree:true,childList:true});
   document.addEventListener("ezero:channel-state",e=>{
     if(e.detail?.connected===false){ imageShare.disabled=true; }
   });
