@@ -33,6 +33,7 @@
       <div id="ezeroFrontScannerSlot" class="ezero-front-scanner-slot"></div>
     </div>
     <div id="ezeroFrontQrRenderSlot"></div>
+    <button type="button" id="ezeroFrontCloseQr" class="ezero-front-qr-close" hidden aria-controls="ezeroOneQrBox">✕ QR بند کریں</button>
     <div id="ezeroFrontQrScanMedia" class="ezero-front-qr-scanner-media"></div>
     <div id="ezeroFrontQrIncomingSlot"></div>
     <div id="ezeroFrontQrShareSlot" class="ezero-front-qr-share"></div>
@@ -66,6 +67,7 @@
   // expose a second misleading QR/scanner or a second colored layer.
   join.hidden = true;
   const own = $("ezeroFrontAudioQr"),video = $("ezeroFrontVideoQr");
+  const closeQr=$("ezeroFrontCloseQr");
   const imageShare = document.createElement("button");
   imageShare.id = "ezeroFrontShareQrImage";
   imageShare.type = "button";
@@ -116,8 +118,21 @@
   // far-away optional-details section. Existing save/consent logic is reused.
   const profileGate=$("ezeroProfileFirstGate"),editor=$("ezeroProfileEditor");
   if(profileGate&&editor)profileGate.append(editor);
+  function hideQr(){
+    // Close only the QR presentation; never hang up, revoke trust, or navigate.
+    qrBox.hidden=true;
+    shareSlot.hidden=true;
+    closeQr.hidden=true;
+    imageShare.disabled=true;
+    own.setAttribute("aria-expanded","false");
+    video.setAttribute("aria-expanded","false");
+    setStatus("closed");
+  }
   function placeQr(where){
     qrWhere=where;
+    qrBox.hidden=false;
+    shareSlot.hidden=false;
+    closeQr.hidden=false;
     // One authoritative signed QR, never duplicate a stale QR image.
     if(where==="video"){
       videoSlot.append(qrBox,shareSlot);
@@ -128,6 +143,8 @@
       // never below the other phone's scanning camera.
       qrRenderSlot.append(qrBox,shareSlot);
     }
+    // The close control follows the QR regardless of its current tile.
+    qrBox.insertAdjacentElement("afterend",closeQr);
     const liveStatus=$("ezeroAutoStatus");
     // Each QR's real connection/error feedback follows its share controls.
     if(liveStatus)shareSlot.insertAdjacentElement("afterend",liveStatus);
@@ -157,7 +174,7 @@
       notReady:"ابھی QR تیار نہیں۔ پہلے میرا کال QR دبائیں۔",
       fallback:"اس فون پر QR تصویر شیئر نہیں ہوئی؛ دعوتی لنک شیئر کرنے کا اختیار کھول دیا ہے۔",
       shareFailed:"QR شیئر نہیں ہوا؛ دعوتی لنک کاپی کریں۔",
-      cancelled:"شیئرنگ منسوخ ہو گئی۔"
+      cancelled:"شیئرنگ منسوخ ہو گئی۔",closed:"QR بند ہو گیا؛ اب دوست کا QR اسکین کر سکتے ہیں۔",close:"✕ QR بند کریں"
     },
     en:{
       head:"▦ My QR / Scan QR",own:"My call QR",audio:"Create audio invite",
@@ -171,7 +188,7 @@
       notReady:"No call QR yet. Tap My call QR first.",
       fallback:"Sharing an image is unavailable; share the invite link instead.",
       shareFailed:"QR not shared. Try copying the invite link.",
-      cancelled:"Sharing cancelled."
+      cancelled:"Sharing cancelled.",closed:"QR closed. You can scan your friend’s QR.",close:"✕ Close QR"
     },
     ar:{
       head:"▦ رمزي QR / مسح QR",own:"رمز مكالمتي QR",audio:"إنشاء دعوة صوتية",
@@ -183,7 +200,7 @@
       notReady:"لا يوجد رمز مكالمة بعد. اضغط رمزي أولًا.",
       fallback:"تعذرت مشاركة الصورة؛ شارك رابط الدعوة بدلًا منها.",
       shareFailed:"لم تتم المشاركة. انسخ رابط الدعوة.",
-      cancelled:"أُلغيت المشاركة."
+      cancelled:"أُلغيت المشاركة.",closed:"تم إغلاق QR. يمكنك مسح رمز صديقك.",close:"✕ إغلاق QR"
     }
   };
   const scannedLabel = () => {
@@ -192,6 +209,7 @@
     $("ezeroFrontAudioQrNote").textContent=label("audio");
     scannerButton.textContent=label("scan");
     video.textContent=label("video");
+    closeQr.textContent=label("close");
     $("ezeroFrontQrHelp").textContent=label("help");
     imageShare.textContent=label("shareImage");
     share.textContent=label("shareLink");
@@ -225,6 +243,7 @@
       else original?.click();
     }finally{fromQrButton=false;}
   }
+  closeQr.addEventListener("click",hideQr);
   own.addEventListener("click",()=>start("audio"));
   video.addEventListener("click",()=>start("video"));
   // Show the outcome of the top Audio / Video actions right under those
@@ -240,7 +259,7 @@
     callNote(hasFriends?"calling":"first");
   },true);
   const onReady=()=>{
-    if(qrBox.hidden)return;
+    if(qrBox.hidden||closeQr.hidden)return;
     imageShare.disabled=!qrBox.querySelector("svg");
     setStatus("ready");
     own.setAttribute("aria-expanded",String(qrWhere==="own"));
@@ -262,6 +281,7 @@
     else if(["micDenied","iceNoRoute","signalInvalid","fingerprintMismatch","failed"].includes(e.detail?.stage))callNote("failed");
   });
   scannerButton.addEventListener("click",()=>{
+    hideQr();
     // The scanner expands its own tile, directly beneath its Scan control.
     scannerSlot.classList.add("ezero-scanner-active");
   });
