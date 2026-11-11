@@ -177,3 +177,39 @@ test("crypto runtime: expired authentication challenge fails closed",async()=>{
   assert.equal(ws.closed?.code,1008);
   assert.equal(ws.sent.some(m=>m.t==="ready"),false);
 });
+
+test("revocation runtime: owner removes trust and disconnects the affected caller",async()=>{
+  const owner=await identity(),caller=await identity();
+  const ownerWs=socket({role:"owner",fp:owner.fp,target:owner.fp});
+  const callerWs=socket({role:"caller",fp:caller.fp,target:owner.fp});
+  const storage=new Map([["trusted",[caller.fp]]]);
+  const obj=new (load().TrustedInbox)({getWebSockets(){return [ownerWs,callerWs];},storage:{async get(k){return storage.get(k);},async put(k,v){storage.set(k,v);}}},{PUBLIC_ORIGIN:ORIGIN});
+  await obj.webSocketMessage(ownerWs,JSON.stringify({t:"untrust",fp:caller.fp}));
+  assert.deepEqual(storage.get("trusted"),[]);
+  assert.equal(callerWs.closed?.code,1000);
+  assert.equal(ownerWs.sent.at(-1)?.t,"trust-updated");
+  assert.equal(ownerWs.sent.at(-1)?.trusted,false);
+});
+test("receipt runtime: forged or unmatched receipt cannot acknowledge a call",async()=>{
+  const owner=await identity(),caller=await identity();
+  const ownerWs=socket({role:"owner",fp:owner.fp,target:owner.fp});
+  const callerWs=socket({role:"caller",fp:caller.fp,target:owner.fp,pendingAck:"a".repeat(32)});
+  const obj=new (load().TrustedInbox)({getWebSockets(){return [ownerWs,callerWs];}},{PUBLIC_ORIGIN:ORIGIN});
+  await obj.webSocketMessage(ownerWs,JSON.stringify({t:"received",from:caller.fp,callId:"b".repeat(32)}));
+  assert.equal(ownerWs.sent.at(-1)?.code,"UNKNOWN_RECEIPT");
+  assert.equal(callerWs.sent.some(m=>m.t==="delivered-to-active-tab"),false);
+  assert.equal(callerWs.deserializeAttachment().pendingAck,"a".repeat(32));
+});
+test("delivery runtime: failed owner socket send must not produce success receipt",async()=>{
+  const owner=await identity(),caller=await identity();
+  const ownerWs=socket({role:"owner",fp:owner.fp,target:owner.fp});
+  ownerWs.send=()=>{throw Error("socket failed");};
+  const callerWs=socket({role:"caller",fp:caller.fp,target:owner.fp});
+  const storage=new Map([["trusted",[caller.fp]]]);
+  const obj=new (load().TrustedInbox)({getWebSockets(){return [ownerWs,callerWs];},storage:{async get(k){return storage.get(k);},async put(k,v){storage.set(k,v);}}},{PUBLIC_ORIGIN:ORIGIN});
+  const invite=ORIGIN+"/ezero_trusted_friends_staging_20261106.html?mode=audio#room="+"a".repeat(32)+"."+"b".repeat(43);
+  await obj.webSocketMessage(callerWs,JSON.stringify({t:"call",kind:"audio",callId:"c".repeat(32),invite}));
+  assert.equal(callerWs.sent.at(-1)?.code,"DELIVERY_FAILED");
+  assert.equal(callerWs.sent.some(m=>m.t==="delivered-to-active-tab"),false);
+  assert.equal(callerWs.deserializeAttachment().pendingAck,null);
+});
