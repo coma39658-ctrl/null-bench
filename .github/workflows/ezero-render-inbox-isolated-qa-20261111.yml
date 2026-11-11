@@ -62,6 +62,7 @@ jobs:
           assert_status 403 "http://127.0.0.1:8788$path"
           assert_status 426 -H 'Origin: https://ezero-secure-app-two-phone-test-20261107.onrender.com' "http://127.0.0.1:8788$path"
           assert_status 404 -H 'Origin: https://ezero-secure-app-two-phone-test-20261107.onrender.com' "http://127.0.0.1:8788$path?unexpected=1"
+          node ../../tests/test_ezero_render_inbox_real_websocket_20261111.cjs
       - name: Build current Render preview without enabling unverified inbox
         run: python3 scripts/build_ezero_secure_app_render_staging_20261107.py
       - name: Assert live-preview build remains fail closed
