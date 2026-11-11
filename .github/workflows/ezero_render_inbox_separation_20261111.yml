@@ -1,0 +1,25 @@
+name: E-ZERO Render Inbox Separation — Isolated CI
+on:
+  push:
+    branches: [audit-render-inbox-repair-20261111]
+    paths:
+      - 'tests/test_ezero_render_inbox_separation_20261111.cjs'
+      - '.github/workflows/ezero_render_inbox_separation_20261111.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-separation-gate:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Assert no insecure QR-to-inbox substitution
+        run: node tests/test_ezero_render_inbox_separation_20261111.cjs
+      - name: Check existing fail-closed direct-call security gate
+        run: node tests/test_ezero_direct_call_render_gate_20261109.cjs
