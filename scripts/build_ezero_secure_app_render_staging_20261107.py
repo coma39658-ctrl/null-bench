@@ -95,7 +95,7 @@ def put(path: Path) -> None:
         # WebSocket Origin is the Render HTTPS test hostname.
         current = data.decode("utf-8")
         old_ws = "wss://ezero-browser-signaling-pilot.coma39658.workers.dev"
-        new_ws = "wss://ezero-browser-signaling-render-test.coma39658.workers.dev"
+        new_ws = "wss://ezero-browser-signaling-qr-close-test.coma39658.workers.dev"
         if current.count(old_ws) != 1:
             raise RuntimeError("Unexpected signaling Worker source: fail closed")
         data = current.replace(old_ws, new_ws, 1).encode("utf-8")
@@ -116,7 +116,7 @@ linked_documents(privacy_html, PRIVACY)
 # Keep strict Origin isolation. Replace ONLY this copy's CSP allowlist,
 # never relax the existing production GitHub Pages signaling policy.
 old_ws = "wss://ezero-browser-signaling-pilot.coma39658.workers.dev"
-new_ws = "wss://ezero-browser-signaling-render-test.coma39658.workers.dev"
+new_ws = "wss://ezero-browser-signaling-qr-close-test.coma39658.workers.dev"
 if call_html.count(old_ws) != 1:
     raise RuntimeError("Unexpected call-page CSP: fail closed")
 call_html = call_html.replace(old_ws, new_ws, 1)
