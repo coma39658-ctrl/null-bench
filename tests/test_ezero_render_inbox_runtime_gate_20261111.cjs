@@ -112,3 +112,49 @@ test("crypto runtime: untrusted caller with valid signature is denied",async()=>
   assert.equal(ws.closed?.code,1008);
   assert.equal(ws.sent.some(m=>m.t==="ready"),false);
 });
+
+test("delivery runtime: trusted caller forwards once; receipt requires authenticated owner",async()=>{
+  const owner=await identity(),caller=await identity();
+  const storage=new Map([["trusted",[caller.fp]]]);
+  const ownerWs=socket({role:"owner",fp:owner.fp,target:owner.fp});
+  const callerWs=socket({role:"caller",fp:caller.fp,target:owner.fp});
+  const ctx={getWebSockets(){return [ownerWs,callerWs];},storage:{async get(k){return storage.get(k);},async put(k,v){storage.set(k,v);}}};
+  const obj=new (load().TrustedInbox)(ctx,{PUBLIC_ORIGIN:ORIGIN});
+  const callId="c".repeat(32);
+  const invite=ORIGIN+"/ezero_trusted_friends_staging_20261106.html?mode=audio#room="+
+    "a".repeat(32)+"."+"b".repeat(43);
+  await obj.webSocketMessage(callerWs,JSON.stringify({t:"call",kind:"audio",callId,invite}));
+  assert.equal(ownerWs.sent.at(-1)?.t,"incoming");
+  assert.equal(callerWs.sent.some(m=>m.t==="delivered-to-active-tab"),false);
+  await obj.webSocketMessage(ownerWs,JSON.stringify({t:"received",from:caller.fp,callId}));
+  assert.equal(callerWs.sent.at(-1)?.t,"delivered-to-active-tab");
+  assert.equal(callerWs.deserializeAttachment().pendingAck,null);
+  await obj.webSocketMessage(ownerWs,JSON.stringify({t:"received",from:caller.fp,callId}));
+  assert.equal(ownerWs.sent.at(-1)?.code,"UNKNOWN_RECEIPT");
+});
+test("delivery runtime: blocked caller and offline owner never get delivery receipt",async()=>{
+  const owner=await identity(),caller=await identity();
+  const storage=new Map([["trusted",[]]]);
+  const callerWs=socket({role:"caller",fp:caller.fp,target:owner.fp});
+  const ctx={getWebSockets(){return [callerWs];},storage:{async get(k){return storage.get(k);},async put(k,v){storage.set(k,v);}}};
+  const obj=new (load().TrustedInbox)(ctx,{PUBLIC_ORIGIN:ORIGIN});
+  const callId="d".repeat(32);
+  const invite=ORIGIN+"/ezero_trusted_friends_staging_20261106.html?mode=video#room="+
+    "a".repeat(32)+"."+"b".repeat(43);
+  await obj.webSocketMessage(callerWs,JSON.stringify({t:"call",kind:"video",callId,invite}));
+  assert.equal(callerWs.sent.at(-1)?.code,"RECIPIENT_OFFLINE");
+  storage.set("trusted",[caller.fp]);
+  await obj.webSocketMessage(callerWs,JSON.stringify({t:"call",kind:"video",callId,invite}));
+  assert.equal(callerWs.sent.at(-1)?.code,"RECIPIENT_OFFLINE");
+  assert.equal(callerWs.sent.some(m=>m.t==="delivered-to-active-tab"),false);
+});
+test("delivery runtime: malformed call invitation rejected before owner notification",async()=>{
+  const owner=await identity(),caller=await identity();
+  const ownerWs=socket({role:"owner",fp:owner.fp,target:owner.fp});
+  const callerWs=socket({role:"caller",fp:caller.fp,target:owner.fp});
+  const ctx={getWebSockets(){return [ownerWs,callerWs];},storage:{async get(){return [caller.fp];}}};
+  const obj=new (load().TrustedInbox)(ctx,{PUBLIC_ORIGIN:ORIGIN});
+  await obj.webSocketMessage(callerWs,JSON.stringify({t:"call",kind:"audio",callId:"e".repeat(32),invite:"https://evil.example/"}));
+  assert.equal(callerWs.sent.at(-1)?.code,"BAD_INVITE");
+  assert.equal(ownerWs.sent.length,0);
+});
