@@ -158,3 +158,22 @@ test("delivery runtime: malformed call invitation rejected before owner notifica
   assert.equal(callerWs.sent.at(-1)?.code,"BAD_INVITE");
   assert.equal(ownerWs.sent.length,0);
 });
+
+test("crypto runtime: future-dated authentication challenge fails closed",async()=>{
+  const id=await identity();
+  const session={role:"pending",target:id.fp,nonce:b64url(webcrypto.getRandomValues(new Uint8Array(24))),opened:Date.now()+60000};
+  const ws=socket(session);
+  const obj=new (load().TrustedInbox)({getWebSockets(){return [ws];},storage:{async get(){return [];}}},{PUBLIC_ORIGIN:ORIGIN});
+  await obj.webSocketMessage(ws,JSON.stringify(await signedHello(id,"owner",id.fp,session)));
+  assert.equal(ws.closed?.code,1008);
+  assert.equal(ws.sent.some(m=>m.t==="ready"),false);
+});
+test("crypto runtime: expired authentication challenge fails closed",async()=>{
+  const id=await identity();
+  const session={role:"pending",target:id.fp,nonce:b64url(webcrypto.getRandomValues(new Uint8Array(24))),opened:Date.now()-21000};
+  const ws=socket(session);
+  const obj=new (load().TrustedInbox)({getWebSockets(){return [ws];},storage:{async get(){return [];}}},{PUBLIC_ORIGIN:ORIGIN});
+  await obj.webSocketMessage(ws,JSON.stringify(await signedHello(id,"owner",id.fp,session)));
+  assert.equal(ws.closed?.code,1008);
+  assert.equal(ws.sent.some(m=>m.t==="ready"),false);
+});
