@@ -130,9 +130,11 @@
   }
   function placeQr(where){
     qrWhere=where;
-    qrBox.hidden=false;
-    shareSlot.hidden=false;
-    closeQr.hidden=false;
+    // Do not expose an empty QR or disabled share controls while an invite is pending.
+    const hasQr=Boolean(qrBox.querySelector("svg"));
+    qrBox.hidden=!hasQr;
+    shareSlot.hidden=!hasQr;
+    closeQr.hidden=!hasQr;
     // One authoritative signed QR, never duplicate a stale QR image.
     if(where==="video"){
       videoSlot.append(qrBox,shareSlot);
@@ -221,6 +223,9 @@
   scannedLabel();
   $("language")?.addEventListener("change",scannedLabel);
   function start(kind) {
+    // Scanner and invite are mutually exclusive. Release the camera first.
+    if(!scannerVideo.hidden && !scannerStop.disabled)scannerStop.click();
+    scannerSlot.classList.remove("ezero-scanner-active");
     if(window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true){
       setStatus("endFirst");return;
     }
@@ -259,8 +264,11 @@
     callNote(hasFriends?"calling":"first");
   },true);
   const onReady=()=>{
-    if(qrBox.hidden||closeQr.hidden)return;
-    imageShare.disabled=!qrBox.querySelector("svg");
+    if(!qrBox.querySelector("svg"))return;
+    qrBox.hidden=false;
+    shareSlot.hidden=false;
+    closeQr.hidden=false;
+    imageShare.disabled=false;
     setStatus("ready");
     own.setAttribute("aria-expanded",String(qrWhere==="own"));
     video.setAttribute("aria-expanded",String(qrWhere==="video"));
