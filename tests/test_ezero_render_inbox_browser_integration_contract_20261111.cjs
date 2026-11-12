@@ -33,7 +33,7 @@ test("integration contract: incoming call requires visible card and explicit acc
 });
 test("integration contract: QR media and Render preview remain isolated",()=>{
  assert.match(build,/cfg = cfg\.replace\(needle, "enabled:false", 1\)/);
- assert.match(build,/new_ws = "wss:\/\/ezero-browser-signaling-render-test/);
+ assert.match(build,/new_ws = "wss:\/\/ezero-browser-signaling-(?:render-test|qr-inbox-20261112)\.coma39658\.workers\.dev"/);
  assert.match(page,/ezero_trusted_stage_signaling_v0_1\.js/);
  assert.match(page,/ezero_trusted_stage_one_request_v0_1\.js/);
  assert.doesNotMatch(worker,/getUserMedia|RTCPeerConnection|Mode 04/);
