@@ -1,0 +1,53 @@
+name: E-ZERO Trusted Inbox manual isolated staging deployment
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_worker:
+        description: 'Type ezero-trusted-inbox-render-test to authorize ONLY this isolated staging Worker'
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: ezero-trusted-inbox-render-test-deploy
+  cancel-in-progress: false
+jobs:
+  deploy-isolated-staging:
+    if: ${{ github.ref == 'refs/heads/ezero-render-inbox-implementation-20261111' && inputs.confirm_worker == 'ezero-trusted-inbox-render-test' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    environment: ezero-trusted-inbox-staging
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Confirm isolated target and secret presence without printing values
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo 'Missing CLOUDFLARE_API_TOKEN'; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo 'Missing CLOUDFLARE_ACCOUNT_ID'; exit 1; }
+          node -e "const c=require('./signaling/cloudflare/wrangler.trusted-render-test-20261111.jsonc');if(c.name!=='ezero-trusted-inbox-render-test'||c.main!=='src/trusted_inbox_candidate_v0_1.js'||c.workers_dev!==true||c.vars.PUBLIC_ORIGIN!=='https://ezero-secure-app-two-phone-test-20261107.onrender.com')process.exit(1)"
+      - name: Run candidate security and signed two-client mock tests
+        run: |
+          node --test tests/test_ezero_render_inbox_static_gate_20261111.cjs
+          node --test tests/test_ezero_render_inbox_runtime_gate_20261111.cjs
+          node --test tests/test_ezero_render_inbox_browser_integration_contract_20261111.cjs
+      - name: Deploy ONLY dedicated test Worker
+        working-directory: signaling/cloudflare
+        run: npx --yes wrangler@4 deploy --config wrangler.trusted-render-test-20261111.jsonc
+      - name: Verify public HTTPS endpoint rejects non-WebSocket request
+        shell: bash
+        run: |
+          set -euo pipefail
+          path="/v1/trusted/$(printf 'a%.0s' {1..64})"
+          url="https://ezero-trusted-inbox-render-test.${CLOUDFLARE_ACCOUNT_SUBDOMAIN:-coma39658}.workers.dev$path"
+          code=$(curl -sS --max-time 15 -o /dev/null -w '%{http_code}' -H 'Origin: https://ezero-secure-app-two-phone-test-20261107.onrender.com' "$url")
+          echo "Staging non-upgrade status: $code"
+          test "$code" = 426
