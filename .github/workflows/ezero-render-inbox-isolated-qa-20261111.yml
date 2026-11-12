@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - ezero-render-inbox-implementation-20261111
+      - ezero-qr-inbox-render-integration-20261112
   workflow_dispatch:
 permissions:
   contents: read
