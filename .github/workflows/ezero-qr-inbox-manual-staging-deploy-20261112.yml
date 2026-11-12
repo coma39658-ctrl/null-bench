@@ -1,0 +1,59 @@
+name: E-ZERO QR Inbox manual staging deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_worker:
+        description: 'Type ezero-browser-signaling-qr-inbox-20261112'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ezero-qr-inbox-isolated-deployment
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ github.ref == 'refs/heads/ezero-render-inbox-implementation-20261111' && inputs.confirm_worker == 'ezero-browser-signaling-qr-inbox-20261112' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ezero-qr-inbox-staging
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify isolated Worker and secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN"
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          node -e 'const fs=require("node:fs");const c=JSON.parse(fs.readFileSync("signaling/cloudflare/wrangler.qr-inbox-isolated-20261112.jsonc","utf8"));if(c.name!=="ezero-browser-signaling-qr-inbox-20261112"||c.main!=="src/worker.js"||c.workers_dev!==true||c.vars.PUBLIC_ORIGIN!=="https://ezero-qr-inbox-test-20261112.onrender.com"||!c.durable_objects.bindings.some(x=>x.class_name==="SignalRoom"))process.exit(1)'
+      - name: Existing signaling security regression
+        run: node tests/test_ezero_cloudflare_auto_signaling_v0_1.js
+      - name: Install WebSocket test dependency
+        run: npm install --prefix tests --no-save --no-package-lock ws
+      - name: Test isolated Worker locally
+        working-directory: signaling/cloudflare
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4 dev --config wrangler.qr-inbox-isolated-20261112.jsonc --local --ip 127.0.0.1 --port 8789 > /tmp/ezero-qr-deploy-test.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8789/v1/health >/dev/null; then break; fi
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:8789/v1/health >/dev/null
+          node ../../tests/test_ezero_qr_inbox_isolated_signaling_20261112.mjs
+      - name: Deploy ONLY isolated QR staging Worker
+        working-directory: signaling/cloudflare
+        run: npx --yes wrangler@4 deploy --config wrangler.qr-inbox-isolated-20261112.jsonc
