@@ -1,0 +1,43 @@
+name: E-ZERO QR Inbox isolated signaling QA
+on:
+  push:
+    branches:
+      - ezero-render-inbox-implementation-20261111
+    paths:
+      - 'signaling/cloudflare/src/worker.js'
+      - 'signaling/cloudflare/wrangler.qr-inbox-isolated-20261112.jsonc'
+      - 'tests/test_ezero_cloudflare_auto_signaling_v0_1.js'
+      - '.github/workflows/ezero-qr-inbox-isolated-qa-20261112.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify isolated QR Worker target
+        run: |
+          node --check signaling/cloudflare/src/worker.js
+          node -e 'const c=require("./signaling/cloudflare/wrangler.qr-inbox-isolated-20261112.jsonc");if(c.name!=="ezero-browser-signaling-qr-inbox-20261112"||c.main!=="src/worker.js"||c.vars.PUBLIC_ORIGIN!=="https://ezero-qr-inbox-test-20261112.onrender.com"||c.durable_objects.bindings[0].class_name!=="SignalRoom")process.exit(1)'
+      - name: Run existing signaling security regression
+        run: node tests/test_ezero_cloudflare_auto_signaling_v0_1.js
+      - name: Install WebSocket test dependency
+        run: npm install --prefix tests --no-save --no-package-lock ws
+      - name: Test isolated QR Worker WebSocket locally
+        working-directory: signaling/cloudflare
+        run: |
+          npx --yes wrangler@4 dev --config wrangler.qr-inbox-isolated-20261112.jsonc --local --ip 127.0.0.1 --port 8789 > /tmp/ezero-qr-worker.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8789/v1/health > /dev/null; then break; fi
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:8789/v1/health
+          node ../../tests/test_ezero_qr_inbox_isolated_signaling_20261112.mjs
+      - name: Compile isolated QR Worker without deployment
+        working-directory: signaling/cloudflare
+        run: npx --yes wrangler@4 deploy --config wrangler.qr-inbox-isolated-20261112.jsonc --dry-run --outdir /tmp/ezero-qr-inbox-build
