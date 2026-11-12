@@ -23,7 +23,7 @@ jobs:
       - name: Verify isolated QR Worker target
         run: |
           node --check signaling/cloudflare/src/worker.js
-          node -e 'const c=require("./signaling/cloudflare/wrangler.qr-inbox-isolated-20261112.jsonc");if(c.name!=="ezero-browser-signaling-qr-inbox-20261112"||c.main!=="src/worker.js"||c.vars.PUBLIC_ORIGIN!=="https://ezero-qr-inbox-test-20261112.onrender.com"||c.durable_objects.bindings[0].class_name!=="SignalRoom")process.exit(1)'
+          node -e 'const fs=require("node:fs");const c=JSON.parse(fs.readFileSync("./signaling/cloudflare/wrangler.qr-inbox-isolated-20261112.jsonc","utf8"));if(c.name!=="ezero-browser-signaling-qr-inbox-20261112"||c.main!=="src/worker.js"||c.vars.PUBLIC_ORIGIN!=="https://ezero-qr-inbox-test-20261112.onrender.com"||c.durable_objects.bindings[0].class_name!=="SignalRoom")process.exit(1)'
       - name: Run existing signaling security regression
         run: node tests/test_ezero_cloudflare_auto_signaling_v0_1.js
       - name: Install WebSocket test dependency
