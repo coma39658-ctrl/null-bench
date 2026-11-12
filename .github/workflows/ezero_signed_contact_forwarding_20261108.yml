@@ -1,7 +1,7 @@
 name: E-ZERO Signed Contact Forwarding Security Gate
 on:
   push:
-    branches: [ezero-signed-contact-forwarding-stage-20261108]
+    branches: [ezero-signed-contact-forwarding-stage-20261108, ezero-contact-inbox-isolated-20261112]
   pull_request:
     branches: [ezero-profile-first-saved-friends-20261106]
 permissions:
@@ -26,6 +26,7 @@ jobs:
           node tests/test_ezero_signed_contact_forwarding_20261108.cjs
           node --check tests/test_ezero_contact_forwarding_adversarial_20261108.cjs
           node tests/test_ezero_contact_forwarding_adversarial_20261108.cjs
+          node tests/test_ezero_front_qr_visibility_20261112.cjs
       - name: Preserve old public calling baseline
         shell: bash
         run: |
