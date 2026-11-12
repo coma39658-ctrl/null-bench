@@ -240,8 +240,11 @@
     callNote(hasFriends?"calling":"first");
   },true);
   const onReady=()=>{
-    if(qrBox.hidden)return;
-    imageShare.disabled=!qrBox.querySelector("svg");
+    // An invite-ready event alone is not proof that a scannable QR rendered.
+    // Keep sharing disabled and tell the user when the actual SVG is absent.
+    const visible=!qrBox.hidden && !!qrBox.querySelector("svg");
+    imageShare.disabled=!visible;
+    if(!visible){setStatus("notReady");return;}
     setStatus("ready");
     own.setAttribute("aria-expanded",String(qrWhere==="own"));
     video.setAttribute("aria-expanded",String(qrWhere==="video"));
