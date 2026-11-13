@@ -10,8 +10,8 @@
  */
 (() => {
   "use strict";
-  const ORIGIN="https://coma39658-ctrl.github.io";
-  const CALL_PAGE="/null-bench/ezero_trusted_friends_staging_20261106.html";
+  const ORIGIN=location.origin;
+  const CALL_PAGE=new URL("./ezero_trusted_friends_staging_20261106.html",location.href).pathname;
   const FP=/^[a-f0-9]{64}$/;
   const ROOM=/^#room=[A-Za-z0-9_-]{32}\.[A-Za-z0-9_-]{43}$/;
   const CONFIG=window.EZERO_TRUSTED_INBOX_CONFIG;
