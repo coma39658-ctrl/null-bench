@@ -7,6 +7,8 @@ const assert=require('node:assert/strict');
 const read=p=>fs.readFileSync(p,'utf8');
 const dock=read('js/ezero_contact_first_call_dock_v0_1.js');
 const inbox=read('js/ezero_trusted_friend_foreground_client_candidate_v0_1.js');
+const signed=read('js/ezero_trusted_stage_one_request_v0_1.js');
+const controls=read('js/ezero_trusted_friends_controls_candidate_v0_1.js');
 const profile=read('js/ezero_profile_first_verified_friends_v0_1.js');
 const config=read('js/ezero_trusted_inbox_stage_config_20261106.js');
 const cases=[
@@ -18,6 +20,10 @@ const cases=[
  ['inbox is restricted to owned public origin',()=>assert.match(inbox,/location\.origin===ORIGIN/)],
  ['incoming request does not auto-answer',()=>assert.match(inbox,/never an auto-accept/)],
  ['no socket is started on page load',()=>assert.match(inbox,/No WebSocket or persistent identity initialization happens on page load/)],
+ ['saved friend activates existing signed call workspace',()=>assert.match(dock,/function ensureSignedCallReady\(\)/)],
+ ['saved friend uses existing call feature',()=>assert.match(dock,/feature\.click\(\)/)],
+ ['signed engine requires visible call workspace',()=>assert.match(signed,/auto\?\.hidden===false/)],
+ ['fresh signed invite routes through trusted inbox',()=>assert.match(controls,/api\.callSavedFriend\(fp,kind,link\)/)],
  ['inbox config remains explicitly staging',()=>assert.match(config,/pre-release-test/)],
  ['recipient must accept before saving friend',()=>assert.match(profile,/pairIntent\.role==="recipient"&&d\.signalType!=="offer"/)]
 ];
