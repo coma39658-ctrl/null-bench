@@ -16,3 +16,5 @@ jobs:
           node-version: '22'
       - name: Verify saved-friend and QR baseline source contracts
         run: node tests/ezero_saved_friend_no_repeat_qr_contract_20261113.cjs
+      - name: Verify simplified multilingual home source contracts
+        run: node tests/ezero_simple_home_staging_contract_20261113.cjs
