@@ -189,6 +189,7 @@ try{
   assert.equal(await caller.locator("#ezeroContactVideo").isEnabled(),true);
   assert.equal(await caller.locator("#ezeroFriendSidePanel").isHidden(),true);
   await caller.locator("#ezeroContactVideo").click();
+  console.log("SECOND_VIDEO_DIAGNOSTIC", JSON.stringify(await caller.evaluate(() => ({autoPilotHidden:document.getElementById("ezeroAutoPilot")?.hidden,incomingHidden:document.getElementById("ezeroAutoIncoming")?.hidden,autoStartDisabled:document.getElementById("ezeroAutoStart")?.disabled,autoStartHidden:document.getElementById("ezeroAutoStart")?.hidden,selectedFriend:document.getElementById("ezeroSelectedFriendName")?.textContent,mediaCalls:window.__mediaCalls.length,connected:window.EZERO_VOICE_TRANSPORT?.connected(),savedCallPending:window.EZERO_TRUSTED_SAVED_CALL?.isPending?.()}))));
   await caller.waitForFunction(old=>
     !!window.__oneInvite&&window.__oneInvite!==old,lastInvite,{timeout:30000});
   const videoInvite=await caller.evaluate(()=>window.__oneInvite);
