@@ -106,7 +106,16 @@ panel.addEventListener("click",event=>{
      dock?.scrollIntoView({block:"nearest"});
      return;
    }
-   panel.querySelector("#ezeroSimpleStatus").textContent="پہلے تصدیق شدہ دوست شامل کریں۔ کوئی کال شروع نہیں ہوئی۔";
+   // First-time callers need a visible, actionable invitation, not a dead end.
+   const start=find(["ezeroAutoStart"]);
+   const workspace=start?.closest("section");
+   if(workspace){show(workspace);workspace.classList.remove("ezero-simple-collapsed");}
+   if(start&&!start.disabled){
+     panel.querySelector("#ezeroSimpleStatus").textContent="کال کی دعوت بنائی جا رہی ہے؛ QR یا شیئر لنک نیچے ظاہر ہوگا۔";
+     start.click();
+   }else{
+     panel.querySelector("#ezeroSimpleStatus").textContent="دعوتی سروس تیار نہیں؛ کوئی کال شروع نہیں ہوئی۔";
+   }
    return;
  }
  const feature=root.querySelector('[data-modern-select="'+action+'"]');
