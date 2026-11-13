@@ -1,0 +1,15 @@
+/* Isolated staging simple home: preserves all original controls below. */
+.ezero-simple-home{margin:1rem 0;padding:1rem;border:1px solid #386a4f;border-radius:18px;background:linear-gradient(145deg,#123e2c,#0c2b21);color:#f5fff6}
+.ezero-simple-hint{margin:0 0 .9rem;line-height:1.65;color:#e3f4e6}
+.ezero-simple-tiles,.ezero-simple-actions{display:grid;gap:.7rem}
+.ezero-simple-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ezero-simple-actions{grid-template-columns:repeat(4,minmax(0,1fr));margin-top:.8rem}
+.ezero-simple-home button{min-height:52px;border:1px solid #77ab85;border-radius:12px;background:#20563b;color:#fff;font:inherit;padding:.6rem;cursor:pointer}
+.ezero-simple-home button:focus-visible{outline:3px solid #f6d56b;outline-offset:2px}
+.ezero-simple-tiles button{display:flex;flex-direction:column;align-items:center;gap:.3rem}
+.ezero-simple-actions button{font-size:.86rem;overflow-wrap:anywhere}
+.ezero-simple-more{width:100%;margin-top:.6rem}
+#ezeroSimpleStatus{font-size:.85rem;line-height:1.6;color:#e3f4e6}
+.ezero-simple-collapsed{display:none!important}
+@media(max-width:420px){.ezero-simple-actions{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.ezero-simple-home *{scroll-behavior:auto!important}}
