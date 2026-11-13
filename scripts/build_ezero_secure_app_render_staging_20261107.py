@@ -226,6 +226,10 @@ if "enabled:false" not in (OUT / "js/ezero_trusted_inbox_stage_config_20261106.j
     raise RuntimeError("Production-origin inbox must be disabled on preview")
 if "wss://ezero-browser-signaling-render-test.coma39658.workers.dev" not in (OUT / "js/ezero_auto_signaling_lab_config_20261106.js").read_text():
     raise RuntimeError("New Render-origin staging signaling Worker not bound")
+if "wss://ezero-trusted-inbox-simple-home-stage.coma39658.workers.dev" not in (OUT / CALL).read_text():
+    raise RuntimeError("Isolated signed inbox WSS missing from browser CSP")
+if "wss://ezero-trusted-inbox-simple-home-stage.coma39658.workers.dev" not in (OUT / "js/ezero_trusted_inbox_stage_config_20261106.js").read_text():
+    raise RuntimeError("Isolated signed inbox WSS missing from browser config")
 if "wss://ezero-browser-signaling-render-test.coma39658.workers.dev" not in (OUT / CALL).read_text():
     raise RuntimeError("Render-origin WSS missing from preview Content Security Policy")
 print(f"STAGING_STATIC_BUNDLE_PASS files={len(result_files)} commit={short}")
