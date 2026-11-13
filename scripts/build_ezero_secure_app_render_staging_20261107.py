@@ -91,6 +91,11 @@ def put(path: Path) -> None:
         if cfg.count(needle) != 1:
             raise RuntimeError("Unexpected trusted-inbox configuration: fail closed")
         cfg = cfg.replace(needle, "enabled:false", 1)
+        old_inbox = "wss://ezero-trusted-friends-inbox-staging.coma39658.workers.dev"
+        new_inbox = "wss://ezero-trusted-inbox-simple-home-stage.coma39658.workers.dev"
+        if cfg.count(old_inbox) != 1:
+            raise RuntimeError("Unexpected inbox Worker source: fail closed")
+        cfg = cfg.replace(old_inbox, new_inbox, 1)
         data = cfg.encode("utf-8")
     if relative == "js/ezero_auto_signaling_lab_config_20261106.js":
         # This preview uses a DIFFERENT Cloudflare Worker whose one allowed
@@ -122,6 +127,12 @@ new_ws = "wss://ezero-browser-signaling-render-test.coma39658.workers.dev"
 if call_html.count(old_ws) != 1:
     raise RuntimeError("Unexpected call-page CSP: fail closed")
 call_html = call_html.replace(old_ws, new_ws, 1)
+# Permit only the isolated signed-inbox Worker on the Render preview CSP.
+old_inbox = "wss://ezero-trusted-friends-inbox-staging.coma39658.workers.dev"
+new_inbox = "wss://ezero-trusted-inbox-simple-home-stage.coma39658.workers.dev"
+if call_html.count(old_inbox) != 1:
+    raise RuntimeError("Unexpected inbox CSP: fail closed")
+call_html = call_html.replace(old_inbox, new_inbox, 1)
 
 # Existing scripts and media engine are not changed; only the preview copies
 # of navigation, page metadata and incompatible inbox configuration differ.
