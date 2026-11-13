@@ -4,7 +4,15 @@ const fs=require('node:fs'),assert=require('node:assert/strict');
 const page=fs.readFileSync('ezero_trusted_friends_staging_20261106.html','utf8');
 const js=fs.readFileSync('js/ezero_simple_home_staging_20261113.js','utf8');
 const css=fs.readFileSync('css/ezero_simple_home_staging_20261113.css','utf8');
+const signaling=fs.readFileSync('js/ezero_trusted_stage_signaling_v0_1.js','utf8');
+const builder=fs.readFileSync('scripts/build_ezero_secure_app_render_staging_20261107.py','utf8');
 const checks=[
+ ['Render preview binds its own isolated signaling Worker',()=>assert.match(builder,/ezero-browser-signaling-render-test\\.coma39658\\.workers\\.dev/)],
+ ['Render preview replaces pilot Worker rather than sharing production',()=>assert.match(builder,/data\\.replace\\(old_ws, new_ws, 1\\)/)],
+ ['QR creation requires confirmed server ready response',()=>{assert.match(signaling,/m\\.t==="ready"&&m\\.role===s\\.role/);assert.match(signaling,/settle\\(\\)/);}],
+ ['QR invite event is not dispatched before server acknowledgement',()=>{const a=signaling.indexOf('async function start()');const b=signaling.indexOf('function openedInvite()',a);assert.ok(a>=0&&b>a);assert.ok(!signaling.slice(a,b).includes('ezero:auto-invite-ready'));}],
+ ['signaling has a bounded connection timeout',()=>assert.match(signaling,/setTimeout\\(\\(\\)=>\\{try\\{ws\\.close\\(\\)/)],
+
  ['new CSS is referenced',()=>assert.match(page,/css\/ezero_simple_home_staging_20261113\.css/)],
  ['new JS is referenced',()=>assert.match(page,/js\/ezero_simple_home_staging_20261113\.js/)],
  ['original WebRTC signaling is retained',()=>assert.match(page,/ezero_trusted_stage_signaling_v0_1\.js/)],
