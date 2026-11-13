@@ -7,13 +7,13 @@ if(!root)return;
 const heading=root.querySelector(".ezero-unified-heading");
 if(!heading)return;
 const labels={
- ur:{search:"دوست تلاش کریں",add:"دوست شامل کریں",friends:"میرے دوست",audio:"آڈیو کال",video:"ویڈیو کال",chat:"چیٹ",voice:"وائس میسج",more:"مزید سہولتیں",back:"واپس",hint:"دوست کو دعوتی لنک بھیجیں؛ قبول ہونے کے بعد ایک بٹن سے کال کریں۔",status:"یہ تجرباتی ورژن ہے۔ کال وصول کرنے کے لیے دوسرے فون پر صفحہ کھلا ہونا ضروری ہوسکتا ہے۔"},
- ar:{search:"ابحث عن صديق",add:"إضافة صديق",friends:"أصدقائي",audio:"مكالمة صوتية",video:"مكالمة فيديو",chat:"دردشة",voice:"رسالة صوتية",more:"المزيد",back:"رجوع",hint:"أرسل رابط دعوة لصديق، ثم اتصل بنقرة واحدة بعد القبول.",status:"نسخة تجريبية؛ قد يلزم إبقاء الصفحة مفتوحة لتلقي المكالمات."},
- en:{search:"Find a friend",add:"Add friend",friends:"My friends",audio:"Audio call",video:"Video call",chat:"Chat",voice:"Voice note",more:"More options",back:"Back",hint:"Share a friend invite link, then call with one tap after acceptance.",status:"Experimental: the recipient may need to keep this page open."}
+ ur:{search:"دوست تلاش کریں",add:"دوست شامل کریں",friends:"میرے دوست",audio:"آڈیو کال",video:"ویڈیو کال",chat:"چیٹ",voice:"وائس میسج",myqr:"میرا کال QR",gallery:"گیلری سے QR پڑھیں",more:"مزید سہولتیں",back:"واپس",hint:"دوست کو دعوتی لنک بھیجیں؛ قبول ہونے کے بعد ایک بٹن سے کال کریں۔",status:"یہ تجرباتی ورژن ہے۔ کال وصول کرنے کے لیے دوسرے فون پر صفحہ کھلا ہونا ضروری ہوسکتا ہے۔"},
+ ar:{search:"ابحث عن صديق",add:"إضافة صديق",friends:"أصدقائي",audio:"مكالمة صوتية",video:"مكالمة فيديو",chat:"دردشة",voice:"رسالة صوتية",myqr:"رمز مكالمتي",gallery:"قراءة QR من المعرض",more:"المزيد",back:"رجوع",hint:"أرسل رابط دعوة لصديق، ثم اتصل بنقرة واحدة بعد القبول.",status:"نسخة تجريبية؛ قد يلزم إبقاء الصفحة مفتوحة لتلقي المكالمات."},
+ en:{search:"Find a friend",add:"Add friend",friends:"My friends",audio:"Audio call",video:"Video call",chat:"Chat",voice:"Voice note",myqr:"My call QR",gallery:"Scan QR from gallery",more:"More options",back:"Back",hint:"Share a friend invite link, then call with one tap after acceptance.",status:"Experimental: the recipient may need to keep this page open."}
 };
 const panel=document.createElement("section");
 panel.className="ezero-simple-home";panel.setAttribute("aria-label","E-ZERO Secure App quick actions");
-panel.innerHTML='<p class="ezero-simple-hint" id="ezeroSimpleHint"></p><label class="ezero-simple-search-label" for="ezeroSimpleSearch"></label><input id="ezeroSimpleSearch" type="search" autocomplete="off" maxlength="40"><div class="ezero-simple-tiles"><button type="button" data-ezero-home="add"><span aria-hidden="true">▦</span><strong></strong></button><button type="button" data-ezero-home="friends"><span aria-hidden="true">👥</span><strong></strong></button></div><div class="ezero-simple-actions"><button type="button" data-ezero-home="audio">📞 <span></span></button><button type="button" data-ezero-home="video">📹 <span></span></button><button type="button" data-ezero-home="chat">💬 <span></span></button><button type="button" data-ezero-home="voice">🎙️ <span></span></button></div><p id="ezeroSimpleStatus" role="status" aria-live="polite"></p><button type="button" class="ezero-simple-more" data-ezero-home="more"></button>';
+panel.innerHTML='<p class="ezero-simple-hint" id="ezeroSimpleHint"></p><label class="ezero-simple-search-label" for="ezeroSimpleSearch"></label><input id="ezeroSimpleSearch" type="search" autocomplete="off" maxlength="40"><div class="ezero-simple-tiles"><button type="button" data-ezero-home="add"><span aria-hidden="true">▦</span><strong></strong></button><button type="button" data-ezero-home="friends"><span aria-hidden="true">👥</span><strong></strong></button></div><div class="ezero-simple-actions"><button type="button" data-ezero-home="audio">📞 <span></span></button><button type="button" data-ezero-home="video">📹 <span></span></button><button type="button" data-ezero-home="chat">💬 <span></span></button><button type="button" data-ezero-home="voice">🎙️ <span></span></button></div><div class="ezero-simple-actions"><button type="button" data-ezero-home="myqr">▦ <span></span></button><button type="button" data-ezero-home="gallery">🖼️ <span></span></button></div><p id="ezeroSimpleStatus" role="status" aria-live="polite"></p><button type="button" class="ezero-simple-more" data-ezero-home="more"></button>';
 heading.after(panel);
 const sections=[...root.children].filter(e=>e!==heading&&e!==panel);
 // Start in the actual simplified home, not the legacy QR wall. Preserve
@@ -60,7 +60,7 @@ function translate(){
  panel.querySelector(".ezero-simple-search-label").textContent=t.search;
  simpleSearch.placeholder=t.search;
  panel.querySelector("#ezeroSimpleStatus").textContent=t.status;
- for(const action of ["add","friends","audio","video","chat","voice"]){
+ for(const action of ["add","friends","audio","video","chat","voice","myqr","gallery"]){
  const b=panel.querySelector('[data-ezero-home="'+action+'"]');
  (b.querySelector("strong")||b.querySelector("span:last-child")).textContent=t[action];
  }
@@ -71,6 +71,8 @@ panel.addEventListener("click",event=>{
  const action=event.target.closest("[data-ezero-home]")?.dataset.ezeroHome;
  if(!action)return;
  if(action==="more"){show(null);return;}
+ if(action==="myqr"){const start=find(["ezeroAutoStart"]);const workspace=start?.closest("section");if(workspace)show(workspace);if(start&&!start.disabled)start.click();else panel.querySelector("#ezeroSimpleStatus").textContent="دعوتی سروس تیار نہیں؛ QR نہیں بنا۔";return;}
+ if(action==="gallery"){const picker=find(["ezeroOneGalleryInvite"]);const workspace=picker?.closest("section");if(workspace)show(workspace);picker?.click();return;}
  if(action==="friends"){find(["ezeroFriendListToggle"])?.click();dock?.scrollIntoView({block:"nearest"});return;}
  if(action==="add"){
    // Do not automatically open a camera or claim a friend request was sent.
