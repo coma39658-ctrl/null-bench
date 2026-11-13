@@ -19,7 +19,7 @@ const sections=[...root.children].filter(e=>e!==heading&&e!==panel);
 // Start in the actual simplified home, not the legacy QR wall. Preserve
 // incoming-call acceptance and the working call workspace; More restores all.
 for(const section of sections){
- if(section.id==="ezeroTrustedFriendsLab")continue;
+ if(section.id==="ezeroTrustedFriendsLab"||section.id==="ezeroFrontQrHub")continue;
  if(section.id==="ezeroContactFirstDock")continue;
  section.classList.add("ezero-simple-collapsed");
 }
@@ -44,7 +44,7 @@ const simpleSearch=panel.querySelector("#ezeroSimpleSearch");
 function lang(){return labels[select?.value]||labels.ur;}
 function show(target){
  // Never hide the incoming-call acceptance UI or active WebRTC media.
- const protectedIds=new Set(["ezeroOneJoinPanel","ezeroTrustedFriendsLab"]);
+ const protectedIds=new Set(["ezeroOneJoinPanel","ezeroTrustedFriendsLab","ezeroFrontQrHub"]);
 
  for(const e of sections){
    if(e===dock||protectedIds.has(e.id))continue;
@@ -71,8 +71,8 @@ panel.addEventListener("click",event=>{
  const action=event.target.closest("[data-ezero-home]")?.dataset.ezeroHome;
  if(!action)return;
  if(action==="more"){show(null);return;}
- if(action==="myqr"){const start=find(["ezeroAutoStart"]);const workspace=start?.closest("section");if(workspace)show(workspace);if(start&&!start.disabled)start.click();else panel.querySelector("#ezeroSimpleStatus").textContent="دعوتی سروس تیار نہیں؛ QR نہیں بنا۔";return;}
- if(action==="gallery"){const picker=find(["ezeroOneGalleryInvite"]);const workspace=picker?.closest("section");if(workspace)show(workspace);picker?.click();return;}
+ if(action==="myqr"){const hub=find(["ezeroFrontQrHub"]);if(hub)hub.classList.remove("ezero-simple-collapsed");const own=find(["ezeroFrontAudioQr"]);if(own){own.click();hub?.scrollIntoView({block:"nearest"});}else panel.querySelector("#ezeroSimpleStatus").textContent="کال QR دستیاب نہیں؛ دعوتی سروس چیک کریں۔";return;}
+ if(action==="gallery"){const hub=find(["ezeroFrontQrHub"]);hub?.classList.remove("ezero-simple-collapsed");const picker=find(["ezeroOneGalleryInvite"]);if(picker)picker.click();else panel.querySelector("#ezeroSimpleStatus").textContent="گیلری QR آپشن دستیاب نہیں۔";return;}
  if(action==="friends"){find(["ezeroFriendListToggle"])?.click();dock?.scrollIntoView({block:"nearest"});return;}
  if(action==="add"){
    // Do not automatically open a camera or claim a friend request was sent.
