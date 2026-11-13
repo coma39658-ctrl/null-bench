@@ -5,7 +5,7 @@ const config=fs.readFileSync("signaling/cloudflare/wrangler.trusted-render-test-
 const tests=[
  ["per-owner address",()=>assert.ok(worker.includes("const ROUTE=")&&worker.includes("v1"))],
  ["durable object binding",()=>assert.match(config,/"class_name"\s*:\s*"TrustedInbox"/)],
- ["owner-specific object selection",()=>assert.match(worker,/idFromName\(/)],
+ ["owner-specific object selection",()=>assert.match(worker,/TRUSTED_INBOXES\.getByName\(m\[1\]\)/)],
  ["trusted sender enforcement",()=>assert.match(worker,/current\.includes\(a\.fp\)/)],
  ["bounded clients per identity",()=>assert.match(worker,/MAX_CLIENTS\s*=\s*8/)],
  ["no offline invitation storage",()=>assert.match(worker,/No offline storage/)],
