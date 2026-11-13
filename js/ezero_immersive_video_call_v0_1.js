@@ -175,19 +175,19 @@
     const localBox=videoBoxes[0],remoteBox=videoBoxes[1];
     const swapStyle=document.createElement("style");
     swapStyle.textContent=`
-      body.ezero-video-connected #ezeroCallMediaSlot .videoBox.ezero-swapped-large{
+      body.communication-page.ezero-one-lab.ezero-video-connected #ezeroCallMediaSlot .videoBox.ezero-swapped-large{
         inset:0!important;width:100%!important;height:100%!important;
         border:0!important;border-radius:0!important;z-index:1!important;
       }
-      body.ezero-video-connected #ezeroCallMediaSlot .videoBox.ezero-swapped-small{
+      body.communication-page.ezero-one-lab.ezero-video-connected #ezeroCallMediaSlot .videoBox.ezero-swapped-small{
         inset:calc(env(safe-area-inset-top) + 75px) 14px auto auto!important;
         width:clamp(112px,31vw,170px)!important;
         height:clamp(157px,42vw,245px)!important;
         border:2px solid #9efac0!important;border-radius:17px!important;
         box-shadow:0 10px 30px #000a!important;z-index:5!important;
       }
-      body.ezero-video-connected #ezeroCallMediaSlot .videoBox.ezero-swapped-small{cursor:pointer}
-      body.ezero-video-connected #ezeroCallMediaSlot .videoBox.ezero-swapped-small:focus-visible{
+      body.communication-page.ezero-one-lab.ezero-video-connected #ezeroCallMediaSlot .videoBox.ezero-swapped-small{cursor:pointer}
+      body.communication-page.ezero-one-lab.ezero-video-connected #ezeroCallMediaSlot .videoBox.ezero-swapped-small:focus-visible{
         outline:3px solid white!important;outline-offset:3px
       }
     `;
