@@ -14,6 +14,8 @@ const checks=[
  ['no call on page load',()=>assert.match(js,/panel\.addEventListener\("click"/)],
  ['accessible live status and focus',()=>{assert.match(js,/aria-live/);assert.match(css,/:focus-visible/);}],
  ['mobile responsive layout',()=>assert.match(css,/@media\(max-width:420px\)/)],
+ ['simple search forwards to existing friends search',()=>{assert.match(js,/ezeroFriendSideSearch/);assert.match(js,/dispatchEvent\(new Event\("input"/);}],
+ ['incoming call panels stay visible',()=>{assert.match(js,/ezeroOneJoinPanel/);assert.match(js,/ezeroTrustedFriendsLab/);}],
  ['original advanced options are not deleted',()=>assert.match(js,/ezero-simple-more/)]
 ];
 let failures=0;for(const [name,fn] of checks){try{fn();console.log('PASS',name)}catch(e){failures++;console.error('FAIL',name,e.message)}}
