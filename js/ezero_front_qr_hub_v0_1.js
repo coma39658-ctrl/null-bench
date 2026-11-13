@@ -65,6 +65,31 @@
   // Keep old compatibility panel mounted (its JS relies on its ID), but do not
   // expose a second misleading QR/scanner or a second colored layer.
   join.hidden = true;
+  // UI-only dismissal: preserve signed invite, WebRTC and scanner state.
+  const closeOwnQr=document.createElement("button");
+  closeOwnQr.type="button";
+  closeOwnQr.id="ezeroFrontCloseQr";
+  closeOwnQr.className="ezero-front-close-qr";
+  closeOwnQr.setAttribute("aria-label","Close call QR");
+  closeOwnQr.textContent="✕ QR بند کریں";
+  qrBox.prepend(closeOwnQr);
+  closeOwnQr.addEventListener("click",()=>{
+    qrBox.hidden=true;
+    $("ezeroFrontAudioQr")?.setAttribute("aria-expanded","false");
+    $("ezeroFrontVideoQr")?.setAttribute("aria-expanded","false");
+    const shareBox=$("ezeroFrontQrShareSlot");
+    if(shareBox)shareBox.hidden=true;
+  });
+  const qrVisibility=new MutationObserver(()=>{
+    closeOwnQr.hidden=qrBox.hidden;
+    const shareBox=$("ezeroFrontQrShareSlot");
+    if(shareBox&&!qrBox.hidden)shareBox.hidden=false;
+  });
+  qrVisibility.observe(qrBox,{attributes:true,attributeFilter:["hidden"]});
+  closeOwnQr.hidden=qrBox.hidden;
+  const closeStyle=document.createElement("style");
+  closeStyle.textContent="#ezeroFrontCloseQr{display:block;margin:0 0 12px auto;padding:10px 15px;border:2px solid #bd4050;border-radius:12px;background:#a52b39;color:white;font-weight:800;cursor:pointer}#ezeroFrontCloseQr[hidden]{display:none!important}";
+  document.head.append(closeStyle);
   const own = $("ezeroFrontAudioQr"),video = $("ezeroFrontVideoQr");
   const imageShare = document.createElement("button");
   imageShare.id = "ezeroFrontShareQrImage";
