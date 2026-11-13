@@ -19,9 +19,24 @@ const sections=[...root.children].filter(e=>e!==heading&&e!==panel);
 // Start in the actual simplified home, not the legacy QR wall. Preserve
 // incoming-call acceptance and the working call workspace; More restores all.
 for(const section of sections){
- if(section.id==="ezeroOneJoinPanel"||section.id==="ezeroTrustedFriendsLab")continue;
+ if(section.id==="ezeroTrustedFriendsLab")continue;
  if(section.id==="ezeroContactFirstDock")continue;
  section.classList.add("ezero-simple-collapsed");
+}
+// Reveal the QR workspace only when explicitly requested or a genuine
+// incoming-call panel/progress becomes visible. Never auto-answer a call.
+const qrWorkspace=document.getElementById("ezeroOneJoinPanel");
+const incomingShell=document.getElementById("ezeroOneIncomingShell");
+const callProgress=document.getElementById("ezeroOneCallProgress");
+if(qrWorkspace){
+ const syncIncoming=()=>{
+   if((incomingShell&&!incomingShell.hidden)||(callProgress&&!callProgress.hidden))
+     qrWorkspace.classList.remove("ezero-simple-collapsed");
+ };
+ const observer=new MutationObserver(syncIncoming);
+ if(incomingShell)observer.observe(incomingShell,{attributes:true,attributeFilter:["hidden"]});
+ if(callProgress)observer.observe(callProgress,{attributes:true,attributeFilter:["hidden"]});
+ syncIncoming();
 }
 const dock=document.getElementById("ezeroContactFirstDock");
 const select=document.getElementById("language");
