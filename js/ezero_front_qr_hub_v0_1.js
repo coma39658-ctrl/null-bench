@@ -81,7 +81,7 @@
   // QR decoder / gallery fallback initializes before this front hub.
   // Reparent its real (already event-wired) controls into the visible
   // scanner tile; the legacy QR join panel is intentionally hidden.
-  for(const id of ["ezeroOneImageScan","ezeroOneImageScanInput","ezeroOneSameVersion"]){
+  for(const id of ["ezeroOneGalleryInvite","ezeroOneGalleryFile","ezeroOneImageScan","ezeroOneImageScanInput","ezeroOneSameVersion"]){
     const control=$(id);
     if(control)scannerSlot.append(control);
   }
