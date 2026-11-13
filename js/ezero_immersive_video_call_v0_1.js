@@ -212,7 +212,9 @@
     localBox.setAttribute("aria-label","Swap large and small video");
     for(const box of [localBox,remoteBox]){
       box.addEventListener("click",e=>{
-        if(!box.classList.contains("ezero-swapped-small")&&box!==localBox)return;
+        const isSmall=box.classList.contains("ezero-swapped-small") ||
+          (box===localBox&&!localBox.classList.contains("ezero-swapped-large"));
+        if(!isSmall)return;
         if(e.target.closest("button,a,input"))return;
         swap();
       });
