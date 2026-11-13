@@ -7,9 +7,9 @@ if(!root)return;
 const heading=root.querySelector(".ezero-unified-heading");
 if(!heading)return;
 const labels={
- ur:{search:"دوست تلاش کریں",add:"دوست شامل کریں",friends:"میرے دوست",audio:"آڈیو کال",video:"ویڈیو کال",chat:"چیٹ",voice:"وائس میسج",more:"مزید سہولتیں",back:"واپس",hint:"پہلی دوستی QR سے، پھر محفوظ دوست کو منتخب کرکے کال کریں۔",status:"یہ تجرباتی ورژن ہے۔ کال وصول کرنے کے لیے دوسرے فون پر صفحہ کھلا ہونا ضروری ہوسکتا ہے۔"},
- ar:{search:"ابحث عن صديق",add:"إضافة صديق",friends:"أصدقائي",audio:"مكالمة صوتية",video:"مكالمة فيديو",chat:"دردشة",voice:"رسالة صوتية",more:"المزيد",back:"رجوع",hint:"امسح QR لأول مرة، ثم اتصل بصديق محفوظ.",status:"نسخة تجريبية؛ قد يلزم إبقاء الصفحة مفتوحة لتلقي المكالمات."},
- en:{search:"Find a friend",add:"Add friend",friends:"My friends",audio:"Audio call",video:"Video call",chat:"Chat",voice:"Voice note",more:"More options",back:"Back",hint:"Scan QR once to pair, then call a saved friend.",status:"Experimental: the recipient may need to keep this page open."}
+ ur:{search:"دوست تلاش کریں",add:"دوست شامل کریں",friends:"میرے دوست",audio:"آڈیو کال",video:"ویڈیو کال",chat:"چیٹ",voice:"وائس میسج",more:"مزید سہولتیں",back:"واپس",hint:"دوست کو دعوتی لنک بھیجیں؛ قبول ہونے کے بعد ایک بٹن سے کال کریں۔",status:"یہ تجرباتی ورژن ہے۔ کال وصول کرنے کے لیے دوسرے فون پر صفحہ کھلا ہونا ضروری ہوسکتا ہے۔"},
+ ar:{search:"ابحث عن صديق",add:"إضافة صديق",friends:"أصدقائي",audio:"مكالمة صوتية",video:"مكالمة فيديو",chat:"دردشة",voice:"رسالة صوتية",more:"المزيد",back:"رجوع",hint:"أرسل رابط دعوة لصديق، ثم اتصل بنقرة واحدة بعد القبول.",status:"نسخة تجريبية؛ قد يلزم إبقاء الصفحة مفتوحة لتلقي المكالمات."},
+ en:{search:"Find a friend",add:"Add friend",friends:"My friends",audio:"Audio call",video:"Video call",chat:"Chat",voice:"Voice note",more:"More options",back:"Back",hint:"Share a friend invite link, then call with one tap after acceptance.",status:"Experimental: the recipient may need to keep this page open."}
 };
 const panel=document.createElement("section");
 panel.className="ezero-simple-home";panel.setAttribute("aria-label","E-ZERO Secure App quick actions");
@@ -51,8 +51,15 @@ panel.addEventListener("click",event=>{
  if(action==="more"){show(null);return;}
  if(action==="friends"){find(["ezeroFriendListToggle"])?.click();dock?.scrollIntoView({block:"nearest"});return;}
  if(action==="add"){
-   const qr=find(["ezeroFrontQrHub","ezeroOneJoinPanel","ezeroOneScanInvite"]);
-   show(qr?.closest("section")||document.getElementById("ezeroOneJoinPanel"));
+   // Do not automatically open a camera or claim a friend request was sent.
+   // The existing invite-share button is a deliberate, user-driven fallback.
+   const share=find(["ezeroAutoShare","ezeroOneShareInvite"]);
+   if(share&&!share.disabled){share.click();return;}
+   show(document.getElementById("ezeroOneJoinPanel"));
+   panel.querySelector("#ezeroSimpleStatus").textContent=
+     lang()===labels.en?"Invitation service is not ready. No request was sent.":
+     lang()===labels.ar?"خدمة الدعوات غير جاهزة؛ لم يتم إرسال طلب.":
+     "دعوتی سروس تیار نہیں؛ کوئی درخواست نہیں بھیجی گئی۔";
    return;
  }
  if(action==="audio"||action==="video"){
