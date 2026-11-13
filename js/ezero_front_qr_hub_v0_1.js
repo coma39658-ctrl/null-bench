@@ -239,6 +239,25 @@
     if(!hasFriends)placeQr("call");
     callNote(hasFriends?"calling":"first");
   },true);
+  const closeOwnQr=document.createElement("button");
+  closeOwnQr.id="ezeroFrontCloseQr";
+  closeOwnQr.type="button";
+  closeOwnQr.textContent="✕ QR بند کریں / Close QR";
+  closeOwnQr.hidden=true;
+  closeOwnQr.setAttribute("aria-controls","ezeroOneQrBox");
+  qrBox.insertAdjacentElement("beforebegin",closeOwnQr);
+  closeOwnQr.addEventListener("click",()=>{
+    qrBox.hidden=true;
+    closeOwnQr.hidden=true;
+    imageShare.disabled=true;
+    own.setAttribute("aria-expanded","false");
+    video.setAttribute("aria-expanded","false");
+  });
+  const qrVisibility=new MutationObserver(()=>{
+    closeOwnQr.hidden=qrBox.hidden;
+  });
+  qrVisibility.observe(qrBox,{attributes:true,attributeFilter:["hidden"]});
+  closeOwnQr.hidden=qrBox.hidden;
   const onReady=()=>{
     if(qrBox.hidden)return;
     imageShare.disabled=!qrBox.querySelector("svg");

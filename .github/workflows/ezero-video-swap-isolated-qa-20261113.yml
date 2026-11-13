@@ -1,0 +1,47 @@
+name: E-ZERO Video Swap Isolated QA
+on:
+  push:
+    branches:
+      - ezero-video-swap-safe-fix-20261113
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-qa:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check changed JavaScript
+        run: |
+          node --check js/ezero_front_qr_hub_v0_1.js
+          node --check js/ezero_immersive_video_call_v0_1.js
+      - name: Test QR Close and Video Swap
+        run: node --test tests/test_ezero_qr_close_video_swap_static_20261113.cjs
+      - name: Run existing integration contracts
+        run: |
+          node --test tests/test_ezero_render_inbox_browser_integration_contract_20261111.cjs
+          node --test tests/test_ezero_public_video_mode_preservation_20261106.cjs
+      - name: Install browser testing dependencies
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.57.0 ws@8.18.3
+          npx playwright install --with-deps chromium
+      - name: Start isolated website
+        run: |
+          nohup python3 -m http.server 8769 --bind 127.0.0.1 > /tmp/ezero-video-swap-http.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8769/ezero_secure_connect_one_request_lab_20261106.html > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ezero-video-swap-http.log
+          exit 1
+      - name: Run existing browser regressions
+        run: |
+          node tests/test_ezero_contact_first_call_20261106.mjs
+          node tests/test_ezero_immersive_video_call_20261106.mjs
+          node tests/test_ezero_public_video_visible_20261106.mjs

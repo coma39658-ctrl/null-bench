@@ -123,6 +123,26 @@
     return stream && typeof stream.getVideoTracks==="function" &&
       stream.getVideoTracks().some(track=>track.readyState==="live");
   }
+  const localBox=$("localVideo")?.closest(".videoBox");
+  const remoteBox=$("remoteVideo")?.closest(".videoBox");
+  let isSwapped=false;
+  function resetVideoSwap(){
+    isSwapped=false;
+    localBox?.classList.remove("ezero-swapped-large","ezero-swapped-small");
+    remoteBox?.classList.remove("ezero-swapped-large","ezero-swapped-small");
+  }
+  function swapVideo(event){
+    if(!body.classList.contains("ezero-video-connected"))return;
+    if(!localBox||!remoteBox)return;
+    const box=event.currentTarget;
+    const isSmall=isSwapped?box===remoteBox:box===localBox;
+    if(!isSmall)return;
+    isSwapped=!isSwapped;
+    localBox.classList.toggle("ezero-swapped-large",isSwapped);
+    remoteBox.classList.toggle("ezero-swapped-small",isSwapped);
+  }
+  localBox?.addEventListener("click",swapVideo);
+  remoteBox?.addEventListener("click",swapVideo);
   let hadVerifiedCall=false;
   function updateScene(){
     const connected=window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true;
@@ -144,6 +164,7 @@
       // The immersive hangup uses the original core button rather than the
       // former top-card modernHangup wrapper. Hide its expired QR too.
       if(stage==="idle"){
+      resetVideoSwap();
         const qrBox=$("ezeroOneQrBox"),qr=$("ezeroOneQr"),copy=$("ezeroOneCopyInvite");
         if(qrBox)qrBox.hidden=true;
         qr?.replaceChildren();
