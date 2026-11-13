@@ -1,0 +1,33 @@
+name: E-ZERO isolated trusted inbox staging deploy
+on:
+  push:
+    branches: [ezero-secure-simple-home-ui-stage-20261113]
+    paths:
+      - 'signaling/cloudflare/src/trusted_inbox_candidate_v0_1.js'
+      - 'signaling/cloudflare/wrangler.trusted-render-test-20261111.jsonc'
+      - '.github/workflows/ezero-simple-home-inbox-worker-stage-20261113.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Cloudflare credentials exist
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CF_TOKEN" ] || [ -z "$CF_ACCOUNT" ]; then
+            echo "::error::Missing CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID; configure repository Actions secrets."
+            exit 1
+          fi
+      - name: Deploy staging-only inbox Worker
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: signaling/cloudflare
+          command: deploy --config wrangler.trusted-render-test-20261111.jsonc
