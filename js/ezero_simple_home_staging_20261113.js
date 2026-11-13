@@ -13,15 +13,19 @@ const labels={
 };
 const panel=document.createElement("section");
 panel.className="ezero-simple-home";panel.setAttribute("aria-label","E-ZERO Secure App quick actions");
-panel.innerHTML='<p class="ezero-simple-hint" id="ezeroSimpleHint"></p><div class="ezero-simple-tiles"><button type="button" data-ezero-home="add"><span aria-hidden="true">▦</span><strong></strong></button><button type="button" data-ezero-home="friends"><span aria-hidden="true">👥</span><strong></strong></button></div><div class="ezero-simple-actions"><button type="button" data-ezero-home="audio">📞 <span></span></button><button type="button" data-ezero-home="video">📹 <span></span></button><button type="button" data-ezero-home="chat">💬 <span></span></button><button type="button" data-ezero-home="voice">🎙️ <span></span></button></div><p id="ezeroSimpleStatus" role="status" aria-live="polite"></p><button type="button" class="ezero-simple-more" data-ezero-home="more"></button>';
+panel.innerHTML='<p class="ezero-simple-hint" id="ezeroSimpleHint"></p><label class="ezero-simple-search-label" for="ezeroSimpleSearch"></label><input id="ezeroSimpleSearch" type="search" autocomplete="off" maxlength="40"><div class="ezero-simple-tiles"><button type="button" data-ezero-home="add"><span aria-hidden="true">▦</span><strong></strong></button><button type="button" data-ezero-home="friends"><span aria-hidden="true">👥</span><strong></strong></button></div><div class="ezero-simple-actions"><button type="button" data-ezero-home="audio">📞 <span></span></button><button type="button" data-ezero-home="video">📹 <span></span></button><button type="button" data-ezero-home="chat">💬 <span></span></button><button type="button" data-ezero-home="voice">🎙️ <span></span></button></div><p id="ezeroSimpleStatus" role="status" aria-live="polite"></p><button type="button" class="ezero-simple-more" data-ezero-home="more"></button>';
 heading.after(panel);
 const sections=[...root.children].filter(e=>e!==heading&&e!==panel);
 const dock=document.getElementById("ezeroContactFirstDock");
 const select=document.getElementById("language");
+const simpleSearch=panel.querySelector("#ezeroSimpleSearch");
 function lang(){return labels[select?.value]||labels.ur;}
 function show(target){
+ // Never hide the incoming-call acceptance UI or active WebRTC media.
+ const protectedIds=new Set(["ezeroOneJoinPanel","ezeroTrustedFriendsLab"]);
+
  for(const e of sections){
-   if(e===dock)continue;
+   if(e===dock||protectedIds.has(e.id))continue;
    e.classList.toggle("ezero-simple-collapsed",!!target&&e!==target);
    if(!target)e.classList.remove("ezero-simple-collapsed");
  }
@@ -31,6 +35,8 @@ function show(target){
 function translate(){
  const t=lang();
  panel.querySelector("#ezeroSimpleHint").textContent=t.hint;
+ panel.querySelector(".ezero-simple-search-label").textContent=t.search;
+ simpleSearch.placeholder=t.search;
  panel.querySelector("#ezeroSimpleStatus").textContent=t.status;
  for(const action of ["add","friends","audio","video","chat","voice"]){
  const b=panel.querySelector('[data-ezero-home="'+action+'"]');
@@ -59,6 +65,12 @@ panel.addEventListener("click",event=>{
  }
  const feature=root.querySelector('[data-modern-select="'+action+'"]');
  feature?.click();
+});
+simpleSearch.addEventListener("input",()=>{
+ const search=document.getElementById("ezeroFriendSideSearch");
+ if(search){search.value=simpleSearch.value;search.dispatchEvent(new Event("input",{bubbles:true}));}
+ const list=document.getElementById("ezeroFriendSidePanel");
+ if(simpleSearch.value.trim()&&list?.hidden)find(["ezeroFriendListToggle"])?.click();
 });
 select?.addEventListener("change",translate);
 translate();
