@@ -9,5 +9,7 @@ assert.match(client,/const CALL_PAGE=new URL\(/);
 assert.equal(config.vars.PUBLIC_ORIGIN,origin);
 assert.ok(worker.includes('const ORIGIN="'+origin+'"'));
 assert.ok(worker.includes("verifyHello"));
+assert.match(client,/EZERO-TRUSTED-INBOX-1/);
+assert.match(worker,/EZERO-TRUSTED-INBOX-1/);
 assert.ok(worker.includes("crypto.subtle.verify"));
 console.log("PASS signed inbox staging origin alignment (static contract only; not a live socket test)");
