@@ -239,6 +239,10 @@ function paint(){
     list.append(button);
   }
 }
+function ensureSignedCallReady(){
+  const workspace=$("ezeroAutoPilot");
+  if(workspace)workspace.hidden=false;
+}
 function contactCall(kind){
   if(!selected)return message("pick");
   const api=window.EZERO_TRUSTED_SAVED_CALL;
@@ -247,6 +251,7 @@ function contactCall(kind){
   // starts authenticated signaling and requests camera/mic as appropriate.
   if(!api.prepare(selected,kind))return message("busy");
   message("pending");showSide(false);
+  ensureSignedCallReady();
   const feature=featureGrid.querySelector('[data-modern-select="'+kind+'"]');
   if(feature)feature.click();
 }
@@ -343,6 +348,7 @@ featureGrid.addEventListener("click",e=>{
   if(!api?.prepare?.(selected,target.dataset.modernSelect)){
     e.preventDefault();e.stopImmediatePropagation();message(api?"busy":"noService");return;
   }
+  ensureSignedCallReady();
   message("pending");
 },true);
 document.addEventListener("ezero:friend-local-saved",paint);
