@@ -389,6 +389,39 @@
       }
     }
   }
+  // Decode a QR screenshot locally; never upload the photo or auto-accept.
+  const galleryBtn=$("ezeroOneGalleryInvite"),galleryInput=$("ezeroOneGalleryFile");
+  galleryBtn?.addEventListener("click",()=>galleryInput?.click());
+  galleryInput?.addEventListener("change",async()=>{
+    const file=galleryInput.files?.[0];galleryInput.value="";
+    if(!file)return;
+    if(!file.type.startsWith("image/")||file.size>8*1024*1024){info("invalid",true);return;}
+    galleryBtn.disabled=true;
+    let bitmap;
+    try{
+      bitmap=await createImageBitmap(file);
+      const max=1600,scale=Math.min(1,max/Math.max(bitmap.width,bitmap.height));
+      const canvas=document.createElement("canvas");
+      canvas.width=Math.max(1,Math.round(bitmap.width*scale));
+      canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+      const ctx=canvas.getContext("2d",{willReadFrequently:true});
+      if(!ctx)throw Error("Canvas unavailable");
+      ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+      let raw="";
+      if(typeof BarcodeDetector==="function"){
+        try{const results=await new BarcodeDetector({formats:["qr_code"]}).detect(canvas);raw=results?.[0]?.rawValue||"";}catch(_){}
+      }
+      if(!raw&&typeof window.jsQR==="function"){
+        const pixels=ctx.getImageData(0,0,canvas.width,canvas.height);
+        raw=window.jsQR(pixels.data,pixels.width,pixels.height,{inversionAttempts:"attemptBoth"})?.data||"";
+      }
+      if(!raw){info("failure",true);return;}
+      if(!safeInvite(raw)){info(raw.startsWith("EZERO1.")?"identityOnly":"invalid",true);return;}
+      // Same-origin, signed temporary call invite only. Acceptance remains explicit.
+      location.assign(raw);
+    }catch(_){info("failure",true);}
+    finally{bitmap?.close?.();galleryBtn.disabled=false;}
+  });
   $("ezeroOneScanInvite")?.addEventListener("click",scan);
   stopBtn?.addEventListener("click",()=>{stopScan();info("stopped");});
   document.addEventListener("visibilitychange",()=>{if(document.hidden)stopScan();});
