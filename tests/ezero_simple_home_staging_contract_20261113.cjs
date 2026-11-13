@@ -18,6 +18,10 @@ const checks=[
  ['incoming call panels stay visible',()=>{assert.match(js,/ezeroOneJoinPanel/);assert.match(js,/ezeroTrustedFriendsLab/);}],
  ['saved contacts do not silently fall back to another QR',()=>{assert.match(js,/if\(hasFriends\)/);assert.match(js,/ezeroFriendSidePanel/);assert.match(js,/EZERO_FRIEND_ACCESS/);}],
  ['first-time pairing exposes existing invite controls without auto-calling',()=>{assert.match(js,/ezeroAutoStart/);assert.match(js,/ezeroAutoShare/);assert.match(js,/کوئی کال شروع نہیں ہوئی/);}],
+ ['front QR hub is never collapsed by simplified home',()=>assert.match(js,/section\.id==="ezeroFrontQrHub"/)],
+ ['front QR remains protected during navigation',()=>assert.match(js,/protectedIds\.has\(target\.id\)/)],
+ ['My QR uses visible front QR handler',()=>assert.match(js,/ezeroFrontAudioQr/)],
+ ['gallery uses existing QR picker',()=>assert.match(js,/ezeroOneGalleryInvite/)],
  ['original advanced options are not deleted',()=>assert.match(js,/ezero-simple-more/)]
 ];
 let failures=0;for(const [name,fn] of checks){try{fn();console.log('PASS',name)}catch(e){failures++;console.error('FAIL',name,e.message)}}
