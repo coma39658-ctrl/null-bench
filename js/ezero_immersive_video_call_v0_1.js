@@ -168,6 +168,71 @@
     }
     updateScene();
   });
+  // UI-only picture-in-picture swap: the original video nodes and streams
+  // stay mounted and untouched. Works with touch, keyboard and screen readers.
+  const videoBoxes=media.querySelectorAll(".videos .videoBox");
+  if(videoBoxes.length===2){
+    const localBox=videoBoxes[0],remoteBox=videoBoxes[1];
+    const swapStyle=document.createElement("style");
+    swapStyle.textContent=`
+      body.ezero-video-connected #ezeroCallMediaSlot .videoBox.ezero-swapped-large{
+        inset:0!important;width:100%!important;height:100%!important;
+        border:0!important;border-radius:0!important;z-index:1!important;
+      }
+      body.ezero-video-connected #ezeroCallMediaSlot .videoBox.ezero-swapped-small{
+        inset:calc(env(safe-area-inset-top) + 75px) 14px auto auto!important;
+        width:clamp(112px,31vw,170px)!important;
+        height:clamp(157px,42vw,245px)!important;
+        border:2px solid #9efac0!important;border-radius:17px!important;
+        box-shadow:0 10px 30px #000a!important;z-index:5!important;
+      }
+      body.ezero-video-connected #ezeroCallMediaSlot .videoBox.ezero-swapped-small{cursor:pointer}
+      body.ezero-video-connected #ezeroCallMediaSlot .videoBox.ezero-swapped-small:focus-visible{
+        outline:3px solid white!important;outline-offset:3px
+      }
+    `;
+    document.head.append(swapStyle);
+    const swap=()=>{
+      if(!body.classList.contains("ezero-video-connected"))return;
+      const isSwapped=localBox.classList.contains("ezero-swapped-large");
+      localBox.classList.toggle("ezero-swapped-large",!isSwapped);
+      localBox.classList.toggle("ezero-swapped-small",isSwapped);
+      remoteBox.classList.toggle("ezero-swapped-large",isSwapped);
+      remoteBox.classList.toggle("ezero-swapped-small",!isSwapped);
+      const small=isSwapped?localBox:remoteBox;
+      const large=isSwapped?remoteBox:localBox;
+      small.tabIndex=0;large.removeAttribute("tabindex");
+      small.setAttribute("role","button");
+      small.setAttribute("aria-label","Swap large and small video");
+      large.removeAttribute("role");large.removeAttribute("aria-label");
+    };
+    // Initially the local camera is small, as in the proven baseline.
+    localBox.tabIndex=0;
+    localBox.setAttribute("role","button");
+    localBox.setAttribute("aria-label","Swap large and small video");
+    for(const box of [localBox,remoteBox]){
+      box.addEventListener("click",e=>{
+        if(!box.classList.contains("ezero-swapped-small")&&box!==localBox)return;
+        if(e.target.closest("button,a,input"))return;
+        swap();
+      });
+      box.addEventListener("keydown",e=>{
+        if((e.key==="Enter"||e.key===" ")&&box.getAttribute("role")==="button"){
+          e.preventDefault();swap();
+        }
+      });
+    }
+    document.addEventListener("ezero:call-status",e=>{
+      if(e.detail?.stage==="idle"){
+        localBox.classList.remove("ezero-swapped-large","ezero-swapped-small");
+        remoteBox.classList.remove("ezero-swapped-large","ezero-swapped-small");
+        localBox.tabIndex=0;remoteBox.removeAttribute("tabindex");
+        localBox.setAttribute("role","button");
+        localBox.setAttribute("aria-label","Swap large and small video");
+        remoteBox.removeAttribute("role");remoteBox.removeAttribute("aria-label");
+      }
+    });
+  }
   $("remoteVideo")?.addEventListener("loadedmetadata",updateScene);
   $("remoteVideo")?.addEventListener("playing",updateScene);
   $("localVideo")?.addEventListener("playing",updateScene);
