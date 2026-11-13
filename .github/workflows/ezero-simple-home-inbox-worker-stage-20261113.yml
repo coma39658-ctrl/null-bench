@@ -33,3 +33,13 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: signaling/cloudflare
           command: deploy --config wrangler.trusted-render-test-20261111.jsonc
+      - name: Verify deployed Worker health and strict WebSocket gates
+        run: |
+          set -euo pipefail
+          BASE="https://ezero-trusted-inbox-simple-home-stage.coma39658.workers.dev"
+          curl --fail --silent --show-error --retry 5 --retry-delay 2 "$BASE/health" | grep -F '"purpose":"trusted-inbox-staging"'
+          FP=$(printf 'a%.0s' {1..64})
+          CODE=$(curl --silent --output /dev/null --write-out "%{http_code}" "$BASE/v1/trusted/$FP")
+          test "$CODE" = "403"
+          CODE=$(curl --silent --output /dev/null --write-out "%{http_code}" -H "Origin: https://ezero-secure-simple-home-two-phone.onrender.com" "$BASE/v1/trusted/$FP")
+          test "$CODE" = "426"
