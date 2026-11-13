@@ -16,6 +16,13 @@ panel.className="ezero-simple-home";panel.setAttribute("aria-label","E-ZERO Secu
 panel.innerHTML='<p class="ezero-simple-hint" id="ezeroSimpleHint"></p><label class="ezero-simple-search-label" for="ezeroSimpleSearch"></label><input id="ezeroSimpleSearch" type="search" autocomplete="off" maxlength="40"><div class="ezero-simple-tiles"><button type="button" data-ezero-home="add"><span aria-hidden="true">▦</span><strong></strong></button><button type="button" data-ezero-home="friends"><span aria-hidden="true">👥</span><strong></strong></button></div><div class="ezero-simple-actions"><button type="button" data-ezero-home="audio">📞 <span></span></button><button type="button" data-ezero-home="video">📹 <span></span></button><button type="button" data-ezero-home="chat">💬 <span></span></button><button type="button" data-ezero-home="voice">🎙️ <span></span></button></div><p id="ezeroSimpleStatus" role="status" aria-live="polite"></p><button type="button" class="ezero-simple-more" data-ezero-home="more"></button>';
 heading.after(panel);
 const sections=[...root.children].filter(e=>e!==heading&&e!==panel);
+// Start in the actual simplified home, not the legacy QR wall. Preserve
+// incoming-call acceptance and the working call workspace; More restores all.
+for(const section of sections){
+ if(section.id==="ezeroOneJoinPanel"||section.id==="ezeroTrustedFriendsLab")continue;
+ if(section.id==="ezeroContactFirstDock")continue;
+ section.classList.add("ezero-simple-collapsed");
+}
 const dock=document.getElementById("ezeroContactFirstDock");
 const select=document.getElementById("language");
 const simpleSearch=panel.querySelector("#ezeroSimpleSearch");
