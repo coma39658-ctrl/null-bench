@@ -21,6 +21,8 @@ import subprocess
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
+# Fail the staging build if the new signed-inbox browser/Worker origin contract drifts.
+subprocess.run(["node", "tests/ezero_trusted_inbox_staging_origin_contract_20261113.cjs"], cwd=ROOT, check=True)
 OUT = ROOT / "dist_ezero_secure_app_two_phone_staging"
 CALL = "ezero_trusted_friends_staging_20261106.html"
 PRIVACY = "ezero_secure_connect_privacy_v0_2.html"
