@@ -188,6 +188,7 @@ try{
   assert.equal(await caller.locator("#ezeroSelectedFriendName").innerText(),"Second Phone");
   assert.equal(await caller.locator("#ezeroContactVideo").isEnabled(),true);
   assert.equal(await caller.locator("#ezeroFriendSidePanel").isHidden(),true);
+  console.log("BEFORE_SECOND_VIDEO_PANEL_HIDDEN", await caller.locator("#ezeroAutoPilot").isHidden());
   await caller.locator("#ezeroContactVideo").click();
   console.log("SECOND_VIDEO_DIAGNOSTIC", JSON.stringify(await caller.evaluate(() => ({autoPilotHidden:document.getElementById("ezeroAutoPilot")?.hidden,incomingHidden:document.getElementById("ezeroAutoIncoming")?.hidden,autoStartDisabled:document.getElementById("ezeroAutoStart")?.disabled,autoStartHidden:document.getElementById("ezeroAutoStart")?.hidden,selectedFriend:document.getElementById("ezeroSelectedFriendName")?.textContent,mediaCalls:window.__mediaCalls.length,connected:window.EZERO_VOICE_TRANSPORT?.connected(),savedCallPending:window.EZERO_TRUSTED_SAVED_CALL?.isPending?.()}))));
   await caller.waitForFunction(old=>
