@@ -55,6 +55,8 @@ panel.addEventListener("click",event=>{
    // The existing invite-share button is a deliberate, user-driven fallback.
    const share=find(["ezeroAutoShare","ezeroOneShareInvite"]);
    if(share&&!share.disabled){share.click();return;}
+   const start=find(["ezeroAutoStart"]);
+   if(start&&!start.disabled){const workspace=start.closest("section");if(workspace)show(workspace);start.focus();return;}
    show(document.getElementById("ezeroOneJoinPanel"));
    panel.querySelector("#ezeroSimpleStatus").textContent=
      lang()===labels.en?"Invitation service is not ready. No request was sent.":
@@ -82,8 +84,8 @@ panel.addEventListener("click",event=>{
      dock?.scrollIntoView({block:"nearest"});
      return;
    }
-   const feature=root.querySelector('[data-modern-select="'+action+'"]');
-   feature?.click();return;
+   panel.querySelector("#ezeroSimpleStatus").textContent="پہلے تصدیق شدہ دوست شامل کریں۔ کوئی کال شروع نہیں ہوئی۔";
+   return;
  }
  const feature=root.querySelector('[data-modern-select="'+action+'"]');
  feature?.click();
