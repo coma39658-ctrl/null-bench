@@ -17,7 +17,7 @@ const checks=[
  ['simple search forwards to existing friends search',()=>{assert.match(js,/ezeroFriendSideSearch/);assert.match(js,/dispatchEvent\(new Event\("input"/);}],
  ['incoming call panels stay visible',()=>{assert.match(js,/ezeroOneJoinPanel/);assert.match(js,/ezeroTrustedFriendsLab/);}],
  ['saved contacts do not silently fall back to another QR',()=>{assert.match(js,/if\(hasFriends\)/);assert.match(js,/ezeroFriendSidePanel/);assert.match(js,/EZERO_FRIEND_ACCESS/);}],
- ['first-time pairing still uses the existing feature',()=>assert.match(js,/feature\?\.click\(\);return;/)],
+ ['first-time pairing exposes existing invite controls without auto-calling',()=>{assert.match(js,/ezeroAutoStart/);assert.match(js,/ezeroAutoShare/);assert.match(js,/کوئی کال شروع نہیں ہوئی/);}],
  ['original advanced options are not deleted',()=>assert.match(js,/ezero-simple-more/)]
 ];
 let failures=0;for(const [name,fn] of checks){try{fn();console.log('PASS',name)}catch(e){failures++;console.error('FAIL',name,e.message)}}
