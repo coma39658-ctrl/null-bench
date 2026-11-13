@@ -201,6 +201,26 @@ landing = """<!doctype html><html lang="ur" dir="rtl"><head>
 <p><a style="color:#bde6b0" href="./ezero_trusted_friends_staging_20261106.html">دو موبائلوں کا ٹیسٹ صفحہ کھولیں</a></p>
 <p><a style="color:#bde6b0" href="https://coma39658-ctrl.github.io/null-bench/">اصل E-ZERO مرکزی ویب سائٹ</a></p>
 </main></body></html>"""
+# Browser-accessible, non-secret deployment diagnostic. Never reports a call as working.
+diagnostic = """<!doctype html><html lang="ur" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src 'self' https://ezero-trusted-inbox-simple-home-stage.coma39658.workers.dev; base-uri 'none'">
+<meta name="robots" content="noindex,nofollow"><title>E-ZERO Inbox Diagnostic</title></head>
+<body style="background:#102b22;color:#fff;font:17px system-ui;padding:24px">
+<h1>E-ZERO Inbox — سرور جانچ</h1><p id="result">جانچ شروع نہیں ہوئی</p>
+<button id="check" type="button">سرور چیک کریں</button>
+<p>یہ صرف سرور کی دستیابی کی جانچ ہے، کال یا دوستوں کے رابطے کا ثبوت نہیں۔</p>
+<a style="color:#b5e5ca" href="./ezero_trusted_friends_staging_20261106.html">واپس</a>
+<script src="./js/ezero_inbox_health_diagnostic_20261113.js"></script></body></html>"""
+(OUT / "inbox-health-staging.html").write_text(diagnostic, encoding="utf-8")
+health_js = """document.getElementById('check').addEventListener('click',async()=>{
+const el=document.getElementById('result');el.textContent='سرور چیک ہو رہا ہے…';
+try{const response=await fetch('https://ezero-trusted-inbox-simple-home-stage.coma39658.workers.dev/health',{cache:'no-store',signal:AbortSignal.timeout(8000)});
+const data=await response.json();
+el.textContent=response.ok&&data.purpose==='trusted-inbox-staging'?'سرور نے درست جواب دیا؛ WebSocket اور کال ابھی غیر تصدیق شدہ ہیں':'سرور کا جواب غیر متوقع ہے: '+response.status;
+}catch(e){el.textContent='براؤزر سے سرور کی تصدیق نہیں ہوئی (نیٹ ورک یا CORS)';}
+});"""
+(OUT / "js/ezero_inbox_health_diagnostic_20261113.js").write_text(health_js, encoding="utf-8")
 (OUT / "index.html").write_text(landing, encoding="utf-8")
 (OUT / "robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8")
 
