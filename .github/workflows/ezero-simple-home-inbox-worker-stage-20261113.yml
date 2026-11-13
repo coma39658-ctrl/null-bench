@@ -24,6 +24,8 @@ jobs:
             echo "::error::Missing CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID; configure repository Actions secrets."
             exit 1
           fi
+      - name: Verify signed browser/Worker contract before deployment
+        run: node tests/ezero_trusted_inbox_staging_origin_contract_20261113.cjs
       - name: Deploy staging-only inbox Worker
         uses: cloudflare/wrangler-action@v4
         with:
