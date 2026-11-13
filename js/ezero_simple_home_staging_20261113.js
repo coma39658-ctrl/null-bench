@@ -60,6 +60,21 @@ panel.addEventListener("click",event=>{
    // falls back to first-time QR. Never synthesize a WebRTC Connected status.
    const existing=find([action==="audio"?"ezeroContactAudio":"ezeroContactVideo"]);
    if(existing&&!existing.disabled){existing.click();return;}
+   // A saved friend must be explicitly selected; never silently create
+   // another QR when the selected-contact button is disabled.
+   let hasFriends=false;
+   try{
+     const items=JSON.parse(localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1")||"[]");
+     hasFriends=Array.isArray(items)&&items.some(x=>x&&/^[a-f0-9]{64}$/.test(x.fp||"")&&
+       typeof x.name==="string"&&x.name.trim()&&
+       window.EZERO_FRIEND_ACCESS?.isBlocked?.(x.fp)!==true);
+   }catch(_){}
+   if(hasFriends){
+     const drawer=document.getElementById("ezeroFriendSidePanel");
+     if(drawer?.hidden)find(["ezeroFriendListToggle"])?.click();
+     dock?.scrollIntoView({block:"nearest"});
+     return;
+   }
    const feature=root.querySelector('[data-modern-select="'+action+'"]');
    feature?.click();return;
  }
