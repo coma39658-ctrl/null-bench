@@ -83,7 +83,8 @@ export default {
     const headers={"Cache-Control":"no-store","X-Content-Type-Options":"nosniff"};
     if(u.pathname==="/health"&&!u.search&&request.method==="GET")
       return new Response(JSON.stringify({status:"ok",purpose:"trusted-inbox-staging"}),
-        {status:200,headers:{...headers,"Content-Type":"application/json; charset=utf-8"}});
+        {status:200,headers:{...headers,"Content-Type":"application/json; charset=utf-8",
+          ...(request.headers.get("Origin")===(env.PUBLIC_ORIGIN||ORIGIN)?{"Access-Control-Allow-Origin":ORIGIN}: {})}});
     if(!m||u.search||request.method!=="GET")
       return new Response("Not Found",{status:404,headers});
     if(request.headers.get("Origin")!==(env.PUBLIC_ORIGIN||ORIGIN))
