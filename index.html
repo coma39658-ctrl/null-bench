@@ -2887,7 +2887,7 @@ function runTest(edges){
  const z=
   sd>0
    ?(observed-mean)/sd
-   :0;
+   :null;
 
  document.getElementById("statNE").textContent=
   nodeCount+" / "+edges.length;
@@ -2902,7 +2902,7 @@ function runTest(edges){
   "["+lo.toFixed(4)+", "+hi.toFixed(4)+"]";
 
  document.getElementById("statZ").textContent=
-  z.toFixed(2);
+  z===null?"N/A":z.toFixed(2);
 
  drawHistogram(nullVals,observed);
 
@@ -2956,7 +2956,7 @@ function runTest(edges){
    observed_transitivity:Number(observed.toFixed(6)),
    null_mean:Number(mean.toFixed(6)),
    null_sd:Number(sd.toFixed(6)),
-   z_score:Number(z.toFixed(4)),
+   ...(z===null?{}:{z_score:Number(z.toFixed(4))}),
    outside_95_percent_interval:outside
   });
  }
