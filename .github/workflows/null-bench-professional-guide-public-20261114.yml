@@ -35,15 +35,26 @@ jobs:
           git fetch --no-tags origin main --depth=15
           git diff --name-only origin/main...HEAD > /tmp/null-guide-changed.txt
           cat /tmp/null-guide-changed.txt
-          if grep -Ev '^(README\.md|docs/null-bench-quickstart-ur-en-ar\.md|index\.html|null_bench_professional_guide\.html|tests/test_null_bench_professional_guide_20261114\.cjs|tests/test_null_bench_professional_guide_browser_20261114\.mjs|\.github/workflows/null-bench-professional-guide-public-20261114\.yml)$' /tmp/null-guide-changed.txt; then
+          if grep -Ev '^(README\.md|docs/null-bench-quickstart-ur-en-ar\.md|index\.html|null_bench_professional_guide\.html|tests/test_null_bench_professional_guide_20261114\.cjs|tests/test_null_bench_professional_guide_browser_20261114\.mjs|tests/test_null_bench_zero_sd_zscore_20261114\.cjs|\.github/workflows/null-bench-zero-sd-zscore-20261114\.yml|\.github/workflows/null-bench-professional-guide-public-20261114\.yml)$' /tmp/null-guide-changed.txt; then
             echo 'UNEXPECTED_RUNTIME_OR_PRIVACY_FILE_CHANGE'
             exit 1
           fi
-          if git diff --unified=0 origin/main...HEAD -- index.html | grep -E '^-[^-]' ; then
-            echo 'EXISTING_PAGE_CODE_REMOVED'
-            exit 1
+          # Preserve the additions-only rule for ordinary guide PRs.
+          # Exception: precisely the three reviewed zero-SD z-score corrections,
+          # including unchanged public GA4 event wiring when SD > 0.
+          if git diff --unified=0 origin/main...HEAD -- index.html | grep -Eq '^-[^-]' ; then
+            removed="$(git diff --unified=0 origin/main...HEAD -- index.html | grep -E '^-[^-]')"
+            added="$(git diff --unified=0 origin/main...HEAD -- index.html | grep -E '^\+[^+]')"
+            expected_removed="$(printf '%s\n' '-   :0;' '-  z.toFixed(2);' '-   z_score:Number(z.toFixed(4)),')"
+            expected_added="$(printf '%s\n' '+   :null;' '+  z===null?"N/A":z.toFixed(2);' '+   ...(z===null?{}:{z_score:Number(z.toFixed(4))}),')"
+            if [[ "$removed" != "$expected_removed" || "$added" != "$expected_added" ]]; then
+              echo 'UNREVIEWED_INDEX_REMOVAL_OR_ADDITION_REJECTED'
+              exit 1
+            fi
+            echo 'EXACT_THREE_LINE_ZERO_SD_EXCEPTION: PASS'
+          else
+            echo 'ADDITIONS_ONLY_INDEX_AND_GUIDE_BOUNDARY: PASS'
           fi
-          echo 'ADDITIONS_ONLY_INDEX_AND_GUIDE_BOUNDARY: PASS'
       - name: Check professional guide source, actual controls and privacy constraints
         run: |
           node --check tests/test_null_bench_professional_guide_20261114.cjs
