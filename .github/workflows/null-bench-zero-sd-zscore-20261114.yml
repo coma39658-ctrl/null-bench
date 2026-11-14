@@ -27,7 +27,7 @@ jobs:
           git fetch --no-tags origin main --depth=15
           git diff --name-only origin/main...HEAD >/tmp/ezero-zscore-changed.txt
           cat /tmp/ezero-zscore-changed.txt
-          if grep -Ev '^(index\.html|null_bench_professional_guide\.html|tests/test_null_bench_zero_sd_zscore_20261114\.cjs|\.github/workflows/null-bench-zero-sd-zscore-20261114\.yml)$' /tmp/ezero-zscore-changed.txt; then
+          if grep -Ev '^(index\.html|null_bench_professional_guide\.html|tests/test_null_bench_zero_sd_zscore_20261114\.cjs|\.github/workflows/null-bench-zero-sd-zscore-20261114\.yml|\.github/workflows/null-bench-professional-guide-public-20261114\.yml)$' /tmp/ezero-zscore-changed.txt; then
             echo UNAUTHORIZED_CODE_CHANGE; exit 1
           fi
           git diff --unified=0 origin/main...HEAD -- index.html | grep -E '^[+][^+].*(workers.dev|websocket|RTCPeerConnection|\.onrender\.com|googletagmanager|gtag\(.config)' && { echo UNAUTHORIZED_RISKY_ADDITION; exit 1; } || true
