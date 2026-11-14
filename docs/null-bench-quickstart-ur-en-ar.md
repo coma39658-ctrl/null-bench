@@ -4,11 +4,6 @@
 
 **Run Null Bench:** https://coma39658-ctrl.github.io/null-bench/#try
 
-**Full professional guide (Urdu, English, Arabic; browser JavaScript; research-only):** https://coma39658-ctrl.github.io/null-bench/null_bench_professional_guide.html
-
-**Intended audience:** specialist graph/network researchers, data scientists, trained analysts, educators, and research students; publicly readable but **not a general-purpose consumer AI or diagnostic tool**. The existing public runner performs graph calculations in browser JavaScript; Python is **not required** for this browser demonstration.
-
-
 Null Bench compares a graph's observed clustering/transitivity with a degree-preserving randomized network baseline. It is an **exploratory statistical research tool**, not a causal proof, medical diagnosis, vehicle fault diagnosis or industrial safety certification.
 
 ---
