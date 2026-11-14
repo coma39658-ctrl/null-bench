@@ -27,7 +27,7 @@ jobs:
           git fetch --no-tags origin main --depth=15
           git diff --name-only origin/main...HEAD >/tmp/ezero-degenerate-verdict-files.txt
           cat /tmp/ezero-degenerate-verdict-files.txt
-          if grep -Ev '^(index\.html|null_bench_professional_guide\.html|tests/test_null_bench_degenerate_verdict_20261114\.cjs|tests/test_null_bench_degenerate_verdict_browser_20261114\.mjs|tests/verify_null_bench_sd0_verdict_diff_20261114\.py|\.github/workflows/null-bench-degenerate-verdict-20261114\.yml|\.github/workflows/null-bench-professional-guide-public-20261114\.yml)$' /tmp/ezero-degenerate-verdict-files.txt; then
+          if grep -Ev '^(index\.html|null_bench_professional_guide\.html|tests/test_null_bench_degenerate_verdict_20261114\.cjs|tests/test_null_bench_degenerate_verdict_browser_20261114\.mjs|tests/verify_null_bench_sd0_verdict_diff_20261114\.py|\.github/workflows/null-bench-degenerate-verdict-20261114\.yml|\.github/workflows/null-bench-distinct-edges-20261114\.yml|\.github/workflows/null-bench-professional-guide-public-20261114\.yml)$' /tmp/ezero-degenerate-verdict-files.txt; then
             echo 'UNAUTHORIZED_FILE_CHANGE'
             exit 1
           fi
