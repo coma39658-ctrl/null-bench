@@ -1,0 +1,49 @@
+name: Null Bench Public Trilingual Guide Release Gate
+on:
+  push:
+    branches:
+      - null-bench-trilingual-guide-stage-20261114
+  pull_request:
+    paths:
+      - 'docs/null-bench-quickstart-ur-en-ar.md'
+      - 'docs/null-bench-quickstart-ur-en-ar-staging.md'
+      - 'README.md'
+      - 'tests/test_null_bench_trilingual_guide_20261114.cjs'
+      - '.github/workflows/null-bench-public-guide-release-gate-20261114.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  null-bench-docs-only-gate:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout non-deployment guide PR
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 30
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify no runtime/analytics/OBD/AI/Secure App code changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main --depth=10
+          git diff --name-only origin/main...HEAD >/tmp/ezero-public-doc-diff.txt
+          cat /tmp/ezero-public-doc-diff.txt
+          if grep -Ev '^(README.md|docs/null-bench-quickstart-ur-en-ar(-staging)?\.md|tests/test_null_bench_trilingual_guide_20261114\.cjs|\.github/workflows/null-bench-public-guide-release-gate-20261114\.yml)$' /tmp/ezero-public-doc-diff.txt; then
+            echo 'NOT_DOCUMENTATION_ONLY_FAIL'
+            exit 1
+          fi
+          test ! -f docs/null-bench-quickstart-ur-en-ar-staging.md
+      - name: Check real public browser controls and evidence boundaries
+        run: |
+          node --check tests/test_null_bench_trilingual_guide_20261114.cjs
+          node --test tests/test_null_bench_trilingual_guide_20261114.cjs
+      - name: Summary (does not claim site deployment)
+        run: |
+          echo 'PUBLIC_GUIDE_SOURCE_GATE_PASS: content-only; no deployment, no analytics change.'
+          echo 'Public GitHub Pages smoke and GA4 privacy notice are separate release gates.'
