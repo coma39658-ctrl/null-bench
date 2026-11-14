@@ -74,6 +74,16 @@ test("RED: SD=0 but observed differs from constant reference still gets degenera
   assert.equal(Object.hasOwn(out.telemetry,"outside_95_percent_interval"),false);
 });
 
+test("Identical fractional null samples report true zero SD, not floating-point noise",()=>{
+  for(const x of [0.1, 1/3, 0.7]){
+    const out=runScenario(x,[x]);
+    assert.match(out.statNull,/± 0\.0000$/);
+    assert.equal(out.z,"N/A");
+    assert.match(out.verdict,/Degenerate null distribution/);
+    assert.equal(Object.hasOwn(out.telemetry,"outside_95_percent_interval"),false);
+  }
+});
+
 test("GREEN control: positive SD with inside observation retains prior text",()=>{
   const out=runScenario(.3,[.2,.4]);
   assert.notEqual(out.z,"N/A");
