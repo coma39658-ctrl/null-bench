@@ -1,0 +1,28 @@
+name: Null Bench degenerate verdict regression
+
+on:
+  push:
+    branches:
+      - fix-null-bench-degenerate-verdict-20261114
+    paths:
+      - index.html
+      - tests/test_degenerate_verdict.js
+      - .github/workflows/null-bench-degenerate-verdict.yml
+  pull_request:
+    paths:
+      - index.html
+      - tests/test_degenerate_verdict.js
+      - .github/workflows/null-bench-degenerate-verdict.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  degenerate-verdict:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run offline degenerate-null regression
+        run: node tests/test_degenerate_verdict.js index.html
