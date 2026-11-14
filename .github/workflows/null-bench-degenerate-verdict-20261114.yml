@@ -9,7 +9,7 @@ permissions:
 jobs:
   degenerate-null-verdict:
     runs-on: ubuntu-22.04
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - name: Checkout without write credentials
         uses: actions/checkout@v4
@@ -27,7 +27,7 @@ jobs:
           git fetch --no-tags origin main --depth=15
           git diff --name-only origin/main...HEAD >/tmp/ezero-degenerate-verdict-files.txt
           cat /tmp/ezero-degenerate-verdict-files.txt
-          if grep -Ev '^(index\.html|tests/test_null_bench_degenerate_verdict_20261114\.cjs|\.github/workflows/null-bench-degenerate-verdict-20261114\.yml)$' /tmp/ezero-degenerate-verdict-files.txt; then
+          if grep -Ev '^(index\.html|tests/test_null_bench_degenerate_verdict_20261114\.cjs|tests/test_null_bench_degenerate_verdict_browser_20261114\.mjs|\.github/workflows/null-bench-degenerate-verdict-20261114\.yml)$' /tmp/ezero-degenerate-verdict-files.txt; then
             echo 'UNAUTHORIZED_FILE_CHANGE'
             exit 1
           fi
@@ -46,5 +46,21 @@ jobs:
           node tests/test_benchmark006c_runtime_v0_1.js
           node tests/test_benchmark006c_public_runner_v0_1.js
           node --test tests/test_null_bench_trilingual_guide_20261114.cjs
+      - name: Install isolated Chromium browser dependencies
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.57.0
+          npx playwright install --with-deps chromium
+      - name: Verify actual 360px and 800px browser behavior without external requests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8768 --bind 127.0.0.1 >/tmp/null-bench-degenerate-browser.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8768/index.html >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          node tests/test_null_bench_degenerate_verdict_browser_20261114.mjs
       - name: No public deployment
         run: echo 'ISOLATED_STAGING_QA_ONLY'
