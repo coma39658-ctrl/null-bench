@@ -128,7 +128,7 @@ async function createPhone(name){
   await context.routeWebSocket(service+"**",mockSocket);
   // No real inbox connection. An in-memory test-only relay simulates
   // authenticated routing; cryptographic verification is tested separately.
-  await context.routeWebSocket(trustedInbox+"**",mockTrustedInbox);
+  await context.routeWebSocket(trustedInbox+"/v1/trusted/**",mockTrustedInbox);
   // Preserve the exact allowed public HTTPS Origin while reading candidate
   // files ONLY from the local CI server; public Pages is never modified.
   await context.route("**/*",async route=>{
