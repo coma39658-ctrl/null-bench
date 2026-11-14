@@ -47,5 +47,8 @@ jobs:
           test "$CODE" = "426"
           curl --fail --silent --show-error -D /tmp/ezero-health-headers -o /tmp/ezero-health-body \
             -H "Origin: https://ezero-secure-simple-home-two-phone.onrender.com" "$BASE/health"
-          grep -iFx "access-control-allow-origin: https://ezero-secure-simple-home-two-phone.onrender.com" /tmp/ezero-health-headers
+          # curl -D stores HTTP headers with CRLF. Strip the carriage return
+          # before an exact-line comparison, otherwise successful live health
+          # responses can be incorrectly reported as failed deployments.
+          tr -d '\r' </tmp/ezero-health-headers | grep -iFx "access-control-allow-origin: https://ezero-secure-simple-home-two-phone.onrender.com"
           grep -F '"status":"ok"' /tmp/ezero-health-body
