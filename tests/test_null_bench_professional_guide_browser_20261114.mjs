@@ -36,8 +36,20 @@ try{
       scroll:document.documentElement.scrollWidth}));
     assert.ok(dims.scroll<=dims.viewport+5,
       "PROFESSIONAL_GUIDE_HORIZONTAL_OVERFLOW_"+width+"_"+JSON.stringify(dims));
-    await page.goBack({waitUntil:"domcontentloaded"});
+    const backButton=page.locator("#ezeroGuideBack");
+    assert.equal(await backButton.isVisible(),true,
+      "PROFESSIONAL_GUIDE_BACK_BUTTON_VISIBLE_"+width);
+    assert.match(await backButton.innerText(),/واپس.*Back/);
+    assert.equal(await backButton.getAttribute("href"),
+      "./index.html#null-bench-professional-entry");
+    const tapTarget=await backButton.boundingBox();
+    assert.ok(tapTarget && tapTarget.height>=44,
+      "PROFESSIONAL_GUIDE_BACK_TOUCH_TARGET_"+width);
+    await backButton.click();
+    await page.waitForURL("**/index.html#null-bench-professional-entry",{timeout:10000});
+    assert.equal(await page.locator("#null-bench-professional-entry").count(),1);
     assert.equal(await page.locator("#try #runBtn").count(),1);
+    console.log("PROFESSIONAL_GUIDE_BACK_"+width+"_PASS");
     if(width===360){
       await page.locator("#edgeInput").fill("a,b\na,c\nb,c\nc,d\nd,e\ne,f\nf,d\nb,e");
       await page.locator("#nullSamples").fill("20");
