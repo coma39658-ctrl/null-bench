@@ -2839,6 +2839,7 @@ function runTest(edges){
  const baseAdj=buildAdjacency(edges);
 
  const nodeCount=baseAdj.size;
+ const edgeCount=edgesFromAdjacency(baseAdj).length;
 
  const observed=transitivity(baseAdj);
 
@@ -2890,7 +2891,7 @@ function runTest(edges){
    :0;
 
  document.getElementById("statNE").textContent=
-  nodeCount+" / "+edges.length;
+  nodeCount+" / "+edgeCount;
 
  document.getElementById("statObs").textContent=
   observed.toFixed(4);
@@ -2950,7 +2951,7 @@ function runTest(edges){
  if(typeof gtag==="function"){
   gtag("event","null_model_test_completed",{
    node_count:nodeCount,
-   edge_count:edges.length,
+   edge_count:edgeCount,
    null_samples:nSamples,
    swap_attempts:swapAttempts,
    observed_transitivity:Number(observed.toFixed(6)),
