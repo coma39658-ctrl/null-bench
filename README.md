@@ -4,6 +4,15 @@
 
 Public-facing Null Bench tool for graph/network structural analysis.
 
+## Public beginner guide (Urdu · English · Arabic)
+
+Read the [three-language Null Bench quick start](docs/null-bench-quickstart-ur-en-ar.md)
+for the real browser controls, authorized sample graph data, the meaning of the
+null distribution, evidence limits, and privacy notes.
+
+Try the existing [public browser tool](https://coma39658-ctrl.github.io/null-bench/#try).
+The guide is documentation only; it does not add a new model or change the live app.
+
 ## Core Function
 
 Null Bench compares an observed network structure against randomized/null-model networks to identify statistically unusual structural patterns.
