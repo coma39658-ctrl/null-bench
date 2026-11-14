@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="E-ZERO Null Bench: professional network-science research guide in Urdu, English and Arabic. Learn graph input, degree-preserving null models, statistics, limitations and the browser JavaScript implementation.">
+<title>Null Bench | Professional Research Guide | اردو · English · العربية</title>
+<style>
+:root{color-scheme:light;--ink:#15312e;--bg:#f4f7f5;--leaf:#164c3d;--muted:#465b57;--line:#d0ded6;--panel:#fff}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.75 system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif}
+a{color:#075f66}a:focus-visible{outline:3px solid #cf8d00;outline-offset:3px;border-radius:3px}
+header{padding:23px 16px;background:#10382e;color:white}header .wrap{max-width:1030px;margin:auto}header a{color:#dcffe5}
+header h1{font-size:clamp(1.5rem,3.5vw,2.3rem);line-height:1.35;margin:9px 0}
+.eyebrow{color:#b9e8c9;font-size:.86rem;letter-spacing:.07em;font-weight:750}
+.sub{color:#d8e9e2;max-width:830px;margin:8px 0 16px}
+main{max-width:1030px;margin:auto;padding:20px 16px 65px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+nav a,.primary-link{display:inline-block;background:#d9f4e2;color:#123c31;padding:9px 14px;border-radius:9px;text-decoration:none;font-weight:750}
+nav a:hover,.primary-link:hover{background:#c0eccc}
+section{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:clamp(17px,3vw,29px);margin:17px 0;box-shadow:0 3px 14px #112d2008;overflow-wrap:anywhere}
+h2{font-size:clamp(1.3rem,2.7vw,1.75rem);line-height:1.45;margin:0 0 13px}h3{font-size:1.06rem;margin:19px 0 8px}
+p{margin:10px 0}ul,ol{padding-inline-start:1.5em}li{margin-bottom:9px}
+code{background:#edf2ef;color:#153731;border:1px solid #d6e2d9;padding:2px 5px;border-radius:4px;font-size:.94em;unicode-bidi:isolate}
+pre{overflow:auto;background:#eaf4ee;color:#153731;border:1px solid #d2e3d7;border-radius:9px;padding:12px;text-align:left;direction:ltr}
+table{border-collapse:collapse;width:100%;font-size:.94rem}th,td{text-align:start;border:1px solid var(--line);padding:8px 10px;vertical-align:top}th{background:#eaf3ed}
+.small{font-size:.9rem;color:var(--muted)}.note{border-inline-start:4px solid #196e54;padding:10px 14px;background:#eff8f1;border-radius:6px;margin:14px 0}.warning{border-inline-start-color:#bd842b;background:#fff7e9}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}.actions a{min-height:44px;display:inline-flex;align-items:center}
+.tag{font-size:.77rem;font-weight:800;background:#e6f5eb;color:#185541;display:inline-block;border-radius:99px;padding:3px 10px}
+[dir=rtl] {text-align:right}
+[dir=rtl] pre{unicode-bidi:plaintext}
+footer{max-width:1030px;margin:15px auto 30px;padding:0 16px;color:var(--muted);font-size:.9rem}
+@media(max-width:600px){body{font-size:15px}th,td{padding:8px 6px}section{margin:12px 0}nav a{flex-grow:1;text-align:center}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header>
+<div class="wrap">
+<div class="eyebrow">E-ZERO · EVIDENCE FIRST · SPECIALIZED RESEARCH TOOL</div>
+<h1>Null Bench — Professional Research &amp; Testing Guide</h1>
+<p class="sub">اردو · English · العربية — A specialized browser-based graph/network null-model experiment, primarily for researchers, analysts, educators and trained students, not an everyday general-purpose AI application.</p>
+<nav aria-label="Guide languages and test">
+<a href="#urdu" lang="ur">اردو: مکمل رہنمائی</a>
+<a href="#english" lang="en">English guide</a>
+<a href="#arabic" lang="ar">الشرح بالعربية</a>
+<a href="./index.html#try">▶ Open the real test</a>
+</nav>
+</div>
+</header>
+<main>
+<section id="urdu" lang="ur" dir="rtl" aria-labelledby="ur-title">
+<span class="tag">اردو · مکمل تفصیل</span>
+<h2 id="ur-title">Null Bench کس کے لیے ہے اور کیسے استعمال ہوتا ہے؟</h2>
+<div class="note"><strong>خاص پیشہ ورانہ سافٹ ویئر:</strong> یہ عام روزمرہ گفتگو، ہر قسم کی AI سرچ، گاڑی کی تشخیص یا موبائل کالنگ کا ٹول نہیں۔ یہ گراف تھیوری اور نیٹ ورک سائنس میں کسی نیٹ ورک کی ساخت کو مناسب بے ترتیب (Null) نیٹ ورکس کے مقابلے میں جانچنے کے لیے بنایا گیا ہے۔ صفحہ ہر کسی کے لیے کھلا ہے، لیکن نتائج کی سائنسی تشریح متعلقہ مہارت چاہتی ہے۔</div>
+<h3>کن شعبوں اور پیشہ ور افراد کے لیے؟</h3>
+<ul>
+<li><strong>نیٹ ورک سائنس اور گراف تھیوری:</strong> یونیورسٹی محققین، ریسرچ فیلو، شماریات دان اور ڈیٹا سائنسدان جو ساختی پیٹرن کی جانچ کرتے ہیں۔</li>
+<li><strong>کمپیوٹر سائنس / سافٹ ویئر ریسرچ:</strong> گراف الگورتھم، الگورتھم کی جانچ، نیٹ ورک ٹاپولوجی اور سائنسی طریقہ کار پر کام کرنے والے افراد۔</li>
+<li><strong>سماجی علوم:</strong> رضامندی سے حاصل کردہ غیر حساس ربط کے ڈیٹا میں کمیونٹی یا مثلث نما ساخت پر ابتدائی تحقیق کرنے والے محققین۔</li>
+<li><strong>حیاتیاتی نیٹ ورکس:</strong> مجاز جینیاتی، پروٹین یا تعاملاتی نیٹ ورکس کی ساخت کی تحقیق؛ طبی یا حیاتیاتی دعویٰ آزاد تجرباتی تصدیق مانگتا ہے۔</li>
+<li><strong>سائبر سیکیورٹی کی تحقیق:</strong> اجازت یافتہ نیٹ ورک ٹاپولوجی کی شماریاتی جانچ؛ یہ حملے یا ہیکنگ کا قطعی شناختی آلہ نہیں۔</li>
+<li><strong>ٹرانسپورٹ، لاجسٹکس اور انجینئرنگ:</strong> مجاز روٹ یا کنکشن گراف کی ساخت کا تقابل؛ یہ حقیقی راستے یا تعمیر کی حفاظت کا سرٹیفکیٹ نہیں۔</li>
+<li><strong>اساتذہ اور اعلیٰ تعلیم کے طلبہ:</strong> صرف مثالوں اور تحقیقی مشقوں کے لیے، حقیقی نتائج کو حتمی سائنسی ثبوت قرار دیے بغیر۔</li>
+</ul>
+<h3>کیا یہ براؤزر میں چلتا ہے یا Python میں؟</h3>
+<p><strong>موجودہ پبلک ٹیسٹ Android، iPhone یا کمپیوٹر کے جدید ویب براؤزر میں چلتا ہے۔</strong> یہ صفحہ HTML (ساخت)، CSS (ڈیزائن)، اور <strong>JavaScript (حسابات)</strong> استعمال کرتا ہے۔ گراف بنانا، degree-preserving double-edge swapping، clustering/transitivity اور null distribution کا حساب براؤزر کے JavaScript میں ہوتا ہے۔ <strong>Python، Termux، GitHub اکاؤنٹ یا الگ ایپ انسٹال کرنا ضروری نہیں۔</strong></p>
+<p>Python سے مستقبل میں الگ تحقیق یا الگ اسکرپٹس بن سکتے ہیں، لیکن اس پبلک ٹیسٹ کے لیے Python کی لازمی یا فعال سروس کا دعویٰ درست نہیں۔ ویب سائٹ کے دیگر E-ZERO ماڈیولز کا ٹیکنالوجی اسٹیک مختلف ہو سکتا ہے۔</p>
+<h3>مکمل عملی طریقہ — ایک مختصر تجربہ</h3>
+<ol>
+<li><strong>ٹیسٹ کھولیں:</strong> <a href="./index.html#try">Run Null Bench</a> کھولیں، اور <code dir="ltr">01 — Run a test</code> تک آئیں۔</li>
+<li><strong>ڈیٹا کا انتخاب:</strong> <code dir="ltr">Demo network</code> میں <code dir="ltr">Modular network</code> یا <code dir="ltr">Random network</code> چنیں۔ اپنا مجاز ڈیٹا ہو تو <code dir="ltr">Custom edge list</code> منتخب کریں۔</li>
+<li><strong>کنکشن درج کریں:</strong> <code dir="ltr">Generate Demo Network</code> دبائیں یا <code dir="ltr">Edge list</code> میں ہر لائن پر دو نوڈز کے نام درج کریں، مثلاً نیچے دی گئی مثال۔ یہ سادہ، دو طرفہ (undirected)، بغیر وزن والا (unweighted) نیٹ ورک ہے۔</li>
+</ol>
+<pre aria-label="Example network edge list">a,b
+a,c
+b,c
+c,d
+d,e
+e,f
+f,d
+b,e</pre>
+<ol start="4">
+<li><strong>نمونوں کی تعداد:</strong> <code dir="ltr">Null samples</code> پہلے 200 ہی رکھیں (مجاز حد 20–2000)۔ <code dir="ltr">Swap attempts / sample</code> پہلے 300 رکھیں (مجاز حد 10–5000)۔ زیادہ تعداد موبائل پر زیادہ حسابی وقت لے سکتی ہے۔</li>
+<li><strong>چلائیں:</strong> <code dir="ltr">Run Null-Model Test</code> دبائیں اور نتیجہ آنے تک اسی صفحے پر رہیں۔</li>
+<li><strong>نتیجے کو پڑھیں:</strong> <code dir="ltr">Nodes / edges</code> (نوڈ اور کنکشن)، <code dir="ltr">Observed clustering</code> (حقیقی داخل کردہ گراف کا پیمانہ)، <code dir="ltr">Null mean ± SD</code> (نمونے کی اوسط اور پھیلاؤ)، <code dir="ltr">95% null interval</code> (نمونہ جاتی حدود)، <code dir="ltr">z-score</code> اور گراف/ہسٹوگرام ملاحظہ کریں۔</li>
+<li><strong>تحقیقی رپورٹ:</strong> گراف کا مجاز ماخذ، نوڈز/کنکشن، نمونوں کی تعداد، Swap attempts، متوقع نیٹ ورک مفروضے، حاصل شدہ اعداد، تاریخ اور محدودیت لکھیں۔ ہر بڑے دعوے کے لیے الگ سائنسی جانچ کریں۔</li>
+</ol>
+<h3>یہ حساب اصل میں کیا کرتا ہے؟</h3>
+<p>جاوا اسکرپٹ پہلے آپ کے گراف کا transitivity/clustering پیمانہ نکالتا ہے۔ پھر موجودہ کنکشنز کو بدل کر ایسے بہت سے نئے گراف بناتا ہے جن میں ہر نوڈ کے کنکشنز کی تعداد (degree) برقرار رہتی ہے؛ بعد میں ان کے clustering پیمانوں کی تقسیم سے اصل پیمانے کا تقابل کرتا ہے۔ یہ کسی بیماری، خراب گاڑی، دھوکے یا سیکیورٹی حملے کا قطعی فیصلہ نہیں کرتا۔</p>
+<div class="note warning"><strong>سائنسی اور ڈیٹا حدود:</strong> یہ ہر قسم کے نیٹ ورک کے لیے مناسب Null Model نہیں۔ Self-loops نظر انداز ہوتے ہیں، دہرائے ہوئے کنکشن گراف میں ایک کنکشن بن جاتے ہیں، کم یا ناکام swap attempts مناسب بے ترتیبی کی ضمانت نہیں، اور اس عوامی ورژن میں random seed یا باقاعدہ p-value کنٹرول موجود نہیں۔ اگر null standard deviation صفر ہو تو موجودہ UI کا z-score صفر آ سکتا ہے؛ اسے خودکار طور پر عدمِ فرق کا مضبوط ثبوت نہ سمجھیں۔</div>
+<p><strong>پرائیویسی:</strong> گراف کا بنیادی حساب اسی براؤزر میں ہوتا ہے؛ موجودہ مرکزی ویب سائٹ Google Analytics 4 کے ذریعے وزٹ اور کچھ شماریاتی event metadata بھیجتی ہے۔ حساس، ذاتی یا غیر مجاز رابطوں کا ڈیٹا پیسٹ نہ کریں۔</p>
+</section>
+<section id="english" lang="en" aria-labelledby="en-title">
+<span class="tag">ENGLISH · PROFESSIONAL RESEARCH REFERENCE</span>
+<h2 id="en-title">Who should use Null Bench, and how does it work?</h2>
+<div class="note"><strong>Specialized audience, publicly accessible:</strong> Null Bench is for researchers, data scientists, graph-theory and network-science specialists, educators and trained students. It is not a general chatbot, AI search engine, vehicle fault scanner, physical sensor monitor or safety-certified decision system.</div>
+<h3>Appropriate professional applications</h3>
+<ul>
+<li><strong>Network science / graph theory:</strong> Assess graph structure relative to a degree-preserving reference ensemble.</li>
+<li><strong>Computer science and algorithms:</strong> Explore topology, transitivity, graph-randomization assumptions and computational statistics.</li>
+<li><strong>Social science:</strong> Explore non-sensitive, consented relationship graphs; no individual profiling or causal conclusions.</li>
+<li><strong>Biology:</strong> Explore permitted interaction-network structure; biological claims need independent experimental validation.</li>
+<li><strong>Cybersecurity research:</strong> Study authorized connectivity graphs, not identify an intrusion or certify a system as secure.</li>
+<li><strong>Logistics / transport / engineering:</strong> Compare abstract connection structures, not certify the safety of routes or equipment.</li>
+<li><strong>Teaching:</strong> Demonstrate null hypotheses, randomized controls and limitations of network statistics.</li>
+</ul>
+<h3>Technology: JavaScript in a browser, not a Python requirement</h3>
+<p>The existing public graph test uses <strong>HTML for page structure, CSS for layout, and JavaScript for computation</strong>. The page calculates graph adjacency, double-edge swaps, transitivity, a sampled null distribution, a histogram and the displayed statistics locally in the user's browser. Use a modern mobile or desktop browser; no Python interpreter, Termux, notebook, account or separate app installation is required for this test.</p>
+<p>Python could be used in an independent offline research workflow, but the current <strong>public #try runner is JavaScript</strong>; no general Python execution API is implied by this guide.</p>
+<h3>Step-by-step: one real browser exercise</h3>
+<ol>
+<li>Open <a href="./index.html#try">Run Null Bench</a>. In <strong>Demo network</strong>, pick <code>Modular network</code> or <code>Random network</code>, then press <strong>Generate Demo Network</strong>. Or choose <code>Custom edge list</code> and paste an authorized graph.</li>
+<li>For custom data, enter one pair of node identifiers per line, separated by a comma or space; for example <code>a,b</code>, <code>a,c</code>, <code>b,c</code>, <code>c,d</code>. Each pair represents one undirected edge. No direct file-upload control is required.</li>
+<li>Set <strong>Null samples</strong> to 200 (allowed 20–2000) and <strong>Swap attempts / sample</strong> to 300 (allowed 10–5000). Larger values can take longer on a mobile phone.</li>
+<li>Press <strong>Run Null-Model Test</strong>. The browser samples rewired graphs that preserve each node's degree, then evaluates their transitivity.</li>
+<li>Read <strong>Nodes / edges</strong>, <strong>Observed clustering</strong>, <strong>Null mean ± SD</strong>, the sampled <strong>95% null interval</strong>, <strong>z-score</strong> and the histogram. “Outside the interval” is a research signal relative to this model, not a confirmed cause.</li>
+<li>Document the data source, constraints, graph preparation, sample count, attempted swaps, outputs and limitations. Seek expert replication for consequential findings.</li>
+</ol>
+<h3>How to interpret the test correctly</h3>
+<table>
+<thead><tr><th>Displayed output</th><th>Meaning and caution</th></tr></thead>
+<tbody>
+<tr><td>Observed clustering</td><td>Global transitivity of the entered undirected graph; not a measure of disease, faults or causation.</td></tr>
+<tr><td>Null mean ± SD</td><td>Mean and sample standard deviation of the randomized transitivity values; only meaningful under model assumptions.</td></tr>
+<tr><td>95% null interval</td><td>Approximate sampled 2.5th–97.5th percentile range; not a confidence interval on a real-world cause.</td></tr>
+<tr><td>z-score</td><td>Deviation relative to sampled SD. If SD is zero, the current interface displays 0; interpret as a degenerate simulation, not proof of equivalence.</td></tr>
+<tr><td>Histogram / verdict</td><td>Relative placement of observed data and sampled randomizations; no certified statistical p-value or universal diagnosis.</td></tr>
+</tbody>
+</table>
+<h3>Methodological limits</h3>
+<p>The tool builds a simple undirected graph: self-loops are ignored, duplicate edges collapse in the adjacency representation, and extra columns beyond the first two node identifiers are not used. Random double-edge swaps preserve node degrees but finite accepted swaps do not guarantee uniform or independent graph samples. The public interface does not expose a random seed field or a formal p-value. Input edge counts shown by the UI may reflect submitted rows rather than the number of distinct graph edges after de-duplication. Re-check modeling assumptions, degree distribution and mixing before publishing scientific claims.</p>
+<div class="note warning"><strong>Privacy:</strong> The graph calculation itself runs in the browser. The main public site currently uses Google Analytics 4 and sends visit/event statistic metadata. Do not paste confidential networks or personal identifiers. This documentation page adds no analytics code, account sign-in or server-side graph upload.</div>
+</section>
+<section id="arabic" lang="ar" dir="rtl" aria-labelledby="ar-title">
+<span class="tag">العربية · إرشادات للباحثين والمتخصصين</span>
+<h2 id="ar-title">لمن صُممت أداة Null Bench؟ وكيف تُشغَّل؟</h2>
+<div class="note"><strong>أداة بحثية متخصصة:</strong> يمكن للجميع زيارة الصفحة، لكن الاستخدام العلمي موجّه أساساً إلى باحثي علوم الشبكات ونظرية الرسوم البيانية والإحصاء وعلوم الحاسوب، والمحللين المتخصصين، والأساتذة وطلاب البحث. ليست مساعد ذكاء اصطناعي عاماً، ولا أداة تشخيص طبي أو أعطال سيارات أو شهادة سلامة هندسية.</div>
+<h3>المهن والمجالات المناسبة</h3>
+<ul>
+<li><strong>علوم الشبكات ونظرية الرسوم:</strong> اختبار أنماط الترابط والتجمع مقابل نموذج مرجعي عشوائي.</li>
+<li><strong>علوم الحاسوب والخوارزميات:</strong> دراسة بنية الشبكات وخوارزميات إعادة توصيل الروابط.</li>
+<li><strong>العلوم الاجتماعية:</strong> فحص شبكات العلاقات المصرّح بها ومن دون بيانات شخصية.</li>
+<li><strong>الشبكات الحيوية:</strong> تحليل البنية فقط، مع اشتراط تحقق بيولوجي مستقل لأي استنتاج تجريبي.</li>
+<li><strong>أبحاث الأمن السيبراني:</strong> استكشاف البنية في الشبكات المصرّح بها، دون إصدار حكم قطعي بوجود هجوم.</li>
+<li><strong>النقل واللوجستيات والهندسة والتعليم:</strong> مقارنة رسوم الاتصالات لأغراض البحث والتدريب، لا لإصدار شهادات سلامة فعلية.</li>
+</ul>
+<h3>هل تعمل في المتصفح أم في Python؟</h3>
+<p><strong>تعمل النسخة العامة داخل متصفح الهاتف أو الحاسوب بواسطة HTML وCSS وJavaScript.</strong> تنفَّذ حسابات الشبكة وإعادة التوصيل العشوائي والإحصاءات والرسوم البيانية بوساطة JavaScript داخل المتصفح. لا يلزم تثبيت Python أو Termux أو تطبيق منفصل. يمكن استخدام Python في عمل بحثي مستقل، لكن ذلك ليس محرك اختبار <code dir="ltr">#try</code> المنشور حالياً.</p>
+<h3>طريقة التشغيل خطوة بخطوة</h3>
+<ol>
+<li>افتح <a href="./index.html#try">صفحة الاختبار</a> وانتقل إلى <code dir="ltr">01 — Run a test</code>.</li>
+<li>اختر <code dir="ltr">Modular network</code> أو <code dir="ltr">Random network</code> من <code dir="ltr">Demo network</code>، ثم اضغط <code dir="ltr">Generate Demo Network</code>. أو اختر <code dir="ltr">Custom edge list</code> لبيانات رسم مصرح بها.</li>
+<li>في <code dir="ltr">Edge list</code> أدخل رابطاً واحداً في كل سطر، مثلاً <code dir="ltr">a,b</code> أو <code dir="ltr">a b</code>. هذه شبكة بسيطة غير موجهة وغير موزونة.</li>
+<li>اضبط <code dir="ltr">Null samples</code> على 200 (المدى 20–2000)، و<code dir="ltr">Swap attempts / sample</code> على 300 (المدى 10–5000).</li>
+<li>اضغط <code dir="ltr">Run Null-Model Test</code>. يقارن المتصفح التجمع المرصود بنماذج عشوائية تحافظ على عدد روابط كل عقدة.</li>
+<li>اقرأ <code dir="ltr">Nodes / edges</code> و<code dir="ltr">Observed clustering</code> و<code dir="ltr">Null mean ± SD</code> و<code dir="ltr">95% null interval</code> و<code dir="ltr">z-score</code> والرسم التكراري. الاختلاف يعني إشارة للاستقصاء، لا برهاناً على السبب.</li>
+<li>دوّن مصدر البيانات والروابط والافتراضات وعدد العينات ومحاولات التبديل والقيود، واطلب تكرار البحث بصورة مستقلة عند وجود ادعاءات مهمة.</li>
+</ol>
+<h3>قيود المنهج والخصوصية</h3>
+<p>تُتجاهل الروابط الذاتية وتندمج الروابط المكررة في الرسم، ولا تضمن المحاولات العشوائية المحدودة عينات موحّدة أو مستقلة إحصائياً. لا يوجد حقل عام للبذرة العشوائية أو اختبار قيمة <code dir="ltr">p-value</code> رسمي في هذه الواجهة. إذا كان الانحراف المعياري صفراً، فإن قيمة <code dir="ltr">z-score</code> المعروضة قد تكون صفراً من دون أن يثبت ذلك التماثل. احرص على التحقق من صلاحية نموذج المقارنة.</p>
+<div class="note warning"><strong>الخصوصية:</strong> تجري حسابات الرسم في المتصفح، لكن الصفحة الرئيسية تستخدم Google Analytics 4 لإرسال بيانات زيارات ومقاييس أحداث إحصائية؛ لا تُدخل بيانات شخصية أو شبكات سرية. هذه الصفحة الإرشادية نفسها لا تضيف أدوات تتبع أو ميزة رفع الملفات.</div>
+</section>
+<section aria-label="Further information">
+<h2>Evidence and operating boundary</h2>
+<p>Null Bench is an <strong>exploratory, computational statistical method</strong>, not a causal proof. Mathematical degree-preservation, a displayed browser statistic, replicated empirical evidence and independent physical validation are different levels of evidence. The output should never be presented as a certified clinical, automotive, cybersecurity or engineering decision.</p>
+<div class="actions">
+<a class="primary-link" href="./index.html#try">▶ Run the existing Null Bench test</a>
+<a class="primary-link" href="https://github.com/coma39658-ctrl/null-bench/blob/main/docs/null-bench-quickstart-ur-en-ar.md" rel="noopener">Read the public three-language research notes</a>
+<a class="primary-link" href="./index.html#limits">Open existing scientific limitations</a>
+</div>
+<p class="small">E-ZERO — evidence-first research. Public availability does not imply the tool is suitable for untrained general-purpose decisions. All listed functionality describes the existing browser test; no Python compute service, new statistical inference engine, sensor processing, personal-data upload or vehicle write capability is added by this guide.</p>
+</section>
+</main>
+<footer>E-ZERO · Null Bench Professional Research Guide · 2026-11-14 · Public educational reference.</footer>
+</body>
+</html>
