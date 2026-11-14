@@ -56,8 +56,11 @@ function mockSocket(ws){
 // explicit trust, a single sent invite, delivery receipt and consent-bound UI.
 // This simulator does NOT verify real Worker cryptographic signatures.
 const owners=new Map(),trusted=new Map(),receipts=new Map();
-let delivered=0,displayed=0;
+let delivered=0,displayed=0,inboxConnections=0;
+const inboxPackets=[];
 function mockTrustedInbox(ws){
+  inboxConnections++;
+  inboxPackets.push("socket-opened");
   const prefix=trustedInbox+"/v1/trusted/";
   const target=ws.url().slice(prefix.length);
   assert.match(target,/^[a-f0-9]{64}$/,"Recipient is addressed by fingerprint");
@@ -65,6 +68,7 @@ function mockTrustedInbox(ws){
   const opened=Date.now();
   ws.onMessage(payload=>{
     const m=JSON.parse(payload);
+    inboxPackets.push(m.t);
     if(m.t==="hello"){
       assert.match(m.fp,/^[a-f0-9]{64}$/);
       assert.match(m.sig,/^[A-Za-z0-9_-]+$/);
@@ -251,7 +255,8 @@ try{
       status:document.getElementById("ezeroTrustedStatus")?.textContent,
       identity:!!(await window.EZERO_DEVICE_IDENTITY_STORE?.read?.())
     }));
-    console.error("OWNER_INBOX_TEST_DIAGNOSTIC",JSON.stringify(diagnostics));
+    console.error("OWNER_INBOX_TEST_DIAGNOSTIC",
+      JSON.stringify({...diagnostics,inboxConnections,inboxPackets}));
     throw error;
   }
   const callerFingerprint=await caller.locator("#myFingerprint").innerText();
