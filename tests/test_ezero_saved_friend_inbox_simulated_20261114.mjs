@@ -249,12 +249,26 @@ try{
       document.getElementById("ezeroTrustedStatus")?.textContent.includes("تیار"),
       undefined,{timeout:12000});
   }catch(error){
-    const diagnostics=await callee.evaluate(async()=>({
-      available:window.EZERO_TRUSTED_FRIEND_LAB?.enabled?.(),
-      root:!!document.getElementById("ezeroTrustedFriendsLab"),
-      status:document.getElementById("ezeroTrustedStatus")?.textContent,
-      identity:!!(await window.EZERO_DEVICE_IDENTITY_STORE?.read?.())
-    }));
+    const diagnostics=await callee.evaluate(async()=>{
+      const row=await window.EZERO_DEVICE_IDENTITY_STORE?.read?.();
+      let fingerprintValid=null,publicKeyValid=null,directOpenError=null;
+      try{
+        const pub=new Uint8Array(await crypto.subtle.exportKey("spki",row.keys.publicKey));
+        const fp=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",pub)),
+          x=>x.toString(16).padStart(2,"0")).join("");
+        const b64=btoa(String.fromCharCode(...pub)).replace(/\\+/g,"-").replace(/\\//g,"_").replace(/=+$/,"");
+        fingerprintValid=fp===row.fingerprint;
+        publicKeyValid=b64===row.spki;
+      }catch(e){directOpenError="KEY_CHECK_"+e.message;}
+      try{
+        await window.EZERO_TRUSTED_FRIEND_LAB.openOwnerInbox();
+        directOpenError="DIRECT_OPEN_SUCCEEDED";
+      }catch(e){directOpenError=e.message;}
+      return {available:window.EZERO_TRUSTED_FRIEND_LAB?.enabled?.(),
+        root:!!document.getElementById("ezeroTrustedFriendsLab"),
+        status:document.getElementById("ezeroTrustedStatus")?.textContent,
+        identity:!!row,fingerprintValid,publicKeyValid,directOpenError};
+    });
     console.error("OWNER_INBOX_TEST_DIAGNOSTIC",
       JSON.stringify({...diagnostics,inboxConnections,inboxPackets}));
     throw error;
