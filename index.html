@@ -2885,8 +2885,12 @@ function runTest(edges){
    )
   )];
 
+ // Identical sampled statistics do not support a z-score or separation claim.
+ // Check the raw values: floating-point averaging can yield a tiny false SD.
+ const degenerate=sorted[0]===sorted[sorted.length-1];
+
  const z=
-  sd>0
+  !degenerate && sd>0
    ?(observed-mean)/sd
    :null;
 
@@ -2914,7 +2918,18 @@ function runTest(edges){
   observed<lo ||
   observed>hi;
 
- if(outside){
+ if(degenerate){
+
+  verdict.className="verdict";
+
+  verdict.innerHTML=
+   "<b>Degenerate null distribution — inference inconclusive</b>"+
+   "All sampled null clustering values are identical (SD = 0). "+
+   "The sampled null interval does not support a structural-separation "+
+   "conclusion. Try a larger or different network, check eligible "+
+   "edge swaps, and independently replicate the analysis.";
+
+ }else if(outside){
 
   verdict.className="verdict positive";
 
@@ -2958,7 +2973,9 @@ function runTest(edges){
    null_mean:Number(mean.toFixed(6)),
    null_sd:Number(sd.toFixed(6)),
    ...(z===null?{}:{z_score:Number(z.toFixed(4))}),
-   outside_95_percent_interval:outside
+   null_distribution_degenerate:degenerate,
+   inference_status:degenerate?"INCONCLUSIVE_DEGENERATE":(outside?"OUTSIDE_INTERVAL":"WITHIN_INTERVAL"),
+   ...(degenerate?{}:{outside_95_percent_interval:outside})
   });
  }
 
