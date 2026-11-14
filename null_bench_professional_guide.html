@@ -87,7 +87,7 @@ b,e</pre>
 </ol>
 <h3>یہ حساب اصل میں کیا کرتا ہے؟</h3>
 <p>جاوا اسکرپٹ پہلے آپ کے گراف کا transitivity/clustering پیمانہ نکالتا ہے۔ پھر موجودہ کنکشنز کو بدل کر ایسے بہت سے نئے گراف بناتا ہے جن میں ہر نوڈ کے کنکشنز کی تعداد (degree) برقرار رہتی ہے؛ بعد میں ان کے clustering پیمانوں کی تقسیم سے اصل پیمانے کا تقابل کرتا ہے۔ یہ کسی بیماری، خراب گاڑی، دھوکے یا سیکیورٹی حملے کا قطعی فیصلہ نہیں کرتا۔</p>
-<div class="note warning"><strong>سائنسی اور ڈیٹا حدود:</strong> یہ ہر قسم کے نیٹ ورک کے لیے مناسب Null Model نہیں۔ Self-loops نظر انداز ہوتے ہیں، دہرائے ہوئے کنکشن گراف میں ایک کنکشن بن جاتے ہیں، کم یا ناکام swap attempts مناسب بے ترتیبی کی ضمانت نہیں، اور اس عوامی ورژن میں random seed یا باقاعدہ p-value کنٹرول موجود نہیں۔ اگر null standard deviation صفر ہو تو موجودہ UI کا z-score صفر آ سکتا ہے؛ اسے خودکار طور پر عدمِ فرق کا مضبوط ثبوت نہ سمجھیں۔</div>
+<div class="note warning"><strong>سائنسی اور ڈیٹا حدود:</strong> یہ ہر قسم کے نیٹ ورک کے لیے مناسب Null Model نہیں۔ Self-loops نظر انداز ہوتے ہیں، دہرائے ہوئے کنکشن گراف میں ایک کنکشن بن جاتے ہیں، کم یا ناکام swap attempts مناسب بے ترتیبی کی ضمانت نہیں، اور اس عوامی ورژن میں random seed یا باقاعدہ p-value کنٹرول موجود نہیں۔ اگر null standard deviation صفر ہو تو z-score قابلِ حساب نہیں ہوتا، اس لیے UI میں N/A دکھایا جاتا ہے؛ اسے خودکار طور پر عدمِ فرق کا ثبوت نہ سمجھیں۔</div>
 <p><strong>پرائیویسی:</strong> گراف کا بنیادی حساب اسی براؤزر میں ہوتا ہے؛ موجودہ مرکزی ویب سائٹ Google Analytics 4 کے ذریعے وزٹ اور کچھ شماریاتی event metadata بھیجتی ہے۔ حساس، ذاتی یا غیر مجاز رابطوں کا ڈیٹا پیسٹ نہ کریں۔</p>
 </section>
 <section id="english" lang="en" aria-labelledby="en-title">
@@ -123,7 +123,7 @@ b,e</pre>
 <tr><td>Observed clustering</td><td>Global transitivity of the entered undirected graph; not a measure of disease, faults or causation.</td></tr>
 <tr><td>Null mean ± SD</td><td>Mean and sample standard deviation of the randomized transitivity values; only meaningful under model assumptions.</td></tr>
 <tr><td>95% null interval</td><td>Approximate sampled 2.5th–97.5th percentile range; not a confidence interval on a real-world cause.</td></tr>
-<tr><td>z-score</td><td>Deviation relative to sampled SD. If SD is zero, the current interface displays 0; interpret as a degenerate simulation, not proof of equivalence.</td></tr>
+<tr><td>z-score</td><td>Deviation relative to sampled SD. If SD is zero, the interface displays N/A (undefined z-score); this is a degenerate simulation, not proof of equivalence.</td></tr>
 <tr><td>Histogram / verdict</td><td>Relative placement of observed data and sampled randomizations; no certified statistical p-value or universal diagnosis.</td></tr>
 </tbody>
 </table>
@@ -157,7 +157,7 @@ b,e</pre>
 <li>دوّن مصدر البيانات والروابط والافتراضات وعدد العينات ومحاولات التبديل والقيود، واطلب تكرار البحث بصورة مستقلة عند وجود ادعاءات مهمة.</li>
 </ol>
 <h3>قيود المنهج والخصوصية</h3>
-<p>تُتجاهل الروابط الذاتية وتندمج الروابط المكررة في الرسم، ولا تضمن المحاولات العشوائية المحدودة عينات موحّدة أو مستقلة إحصائياً. لا يوجد حقل عام للبذرة العشوائية أو اختبار قيمة <code dir="ltr">p-value</code> رسمي في هذه الواجهة. إذا كان الانحراف المعياري صفراً، فإن قيمة <code dir="ltr">z-score</code> المعروضة قد تكون صفراً من دون أن يثبت ذلك التماثل. احرص على التحقق من صلاحية نموذج المقارنة.</p>
+<p>تُتجاهل الروابط الذاتية وتندمج الروابط المكررة في الرسم، ولا تضمن المحاولات العشوائية المحدودة عينات موحّدة أو مستقلة إحصائياً. لا يوجد حقل عام للبذرة العشوائية أو اختبار قيمة <code dir="ltr">p-value</code> رسمي في هذه الواجهة. إذا كان الانحراف المعياري صفراً، فإن قيمة <code dir="ltr">z-score</code> تكون غير معرّفة، لذا تعرض الواجهة <code dir="ltr">N/A</code>، ولا يُعد ذلك دليلاً على التماثل. احرص على التحقق من صلاحية نموذج المقارنة.</p>
 <div class="note warning"><strong>الخصوصية:</strong> تجري حسابات الرسم في المتصفح، لكن الصفحة الرئيسية تستخدم Google Analytics 4 لإرسال بيانات زيارات ومقاييس أحداث إحصائية؛ لا تُدخل بيانات شخصية أو شبكات سرية. هذه الصفحة الإرشادية نفسها لا تضيف أدوات تتبع أو ميزة رفع الملفات.</div>
 </section>
 <section aria-label="Further information">
