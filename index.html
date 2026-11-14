@@ -2866,7 +2866,10 @@ function runTest(edges){
     )/(nullVals.length-1)
    :0;
 
- const sd=Math.sqrt(variance);
+ const sd=
+  nullVals.every(value=>value===nullVals[0])
+   ?0
+   :Math.sqrt(variance);
 
  const sorted=[...nullVals].sort(
   (a,b)=>a-b
