@@ -30,6 +30,7 @@ function exercise({observed,series}){
       return vals.get(id);
     }},
     buildAdjacency:()=>graph,
+    edgesFromAdjacency:()=>[["a","b"]], // deterministic one-edge fixture for new distinct-edge metric
     cloneAdj:()=>graph,
     doubleEdgeSwap:()=>0,
     transitivity:()=>k++===0?observed:series[(k-2)%series.length],
