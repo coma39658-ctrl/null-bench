@@ -30,6 +30,10 @@ test("Guide has accessible Urdu, English and Arabic anchors and runs on mobile",
   has(page,"@media(max-width:600px)");
   has(page,"prefers-reduced-motion");
   has(page,'href="./index.html#try"');
+  has(page,'id="ezeroGuideBack"');
+  has(page,'href="./index.html#null-bench-professional-entry"');
+  has(page,"← واپس / Back");
+  has(page,"min-height:48px");
   has(page,'aria-labelledby="ur-title"');
   has(page,'aria-labelledby="en-title"');
   has(page,'aria-labelledby="ar-title"');
