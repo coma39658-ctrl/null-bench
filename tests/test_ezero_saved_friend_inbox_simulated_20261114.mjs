@@ -110,8 +110,10 @@ function mockTrustedInbox(ws){
       delivered++;
     }
   });
-  ws.send(JSON.stringify({t:"challenge",nonce:"n".repeat(32),
-    target,opened,expires:opened+20000}));
+  // Deliver the challenge after the intercepted browser socket has
+  // installed its event listeners (a real network handshake is asynchronous).
+  setTimeout(()=>ws.send(JSON.stringify({t:"challenge",nonce:"n".repeat(32),
+    target,opened,expires:opened+20000})),40);
 }
 async function createPhone(name){
   const context=await browser.newContext({
@@ -238,9 +240,20 @@ try{
   // After successful verified first QR call, recipient opts into
   // foreground delivery AND explicitly trusts this one saved contact.
   await callee.locator("#ezeroTrustedEnable").click();
-  await callee.waitForFunction(()=>
-    document.getElementById("ezeroTrustedStatus")?.textContent.includes("تیار"),
-    undefined,{timeout:12000});
+  try{
+    await callee.waitForFunction(()=>
+      document.getElementById("ezeroTrustedStatus")?.textContent.includes("تیار"),
+      undefined,{timeout:12000});
+  }catch(error){
+    const diagnostics=await callee.evaluate(async()=>({
+      available:window.EZERO_TRUSTED_FRIEND_LAB?.enabled?.(),
+      root:!!document.getElementById("ezeroTrustedFriendsLab"),
+      status:document.getElementById("ezeroTrustedStatus")?.textContent,
+      identity:!!(await window.EZERO_DEVICE_IDENTITY_STORE?.read?.())
+    }));
+    console.error("OWNER_INBOX_TEST_DIAGNOSTIC",JSON.stringify(diagnostics));
+    throw error;
+  }
   const callerFingerprint=await caller.locator("#myFingerprint").innerText();
   assert.ok(trusted.size===0,"Trust cannot be granted implicitly");
   await callee.locator("#ezeroTrustedList .ezero-trusted-friend-row button").first().click();
