@@ -1,0 +1,53 @@
+name: E-ZERO Gallery and Friend Call Isolated QA
+on:
+  push:
+    branches:
+      - ezero-gallery-friend-call-qa-20261114
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-browser-qa:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout isolated candidate
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate browser test syntax and safe QR contracts
+        run: |
+          node --check tests/test_ezero_gallery_repeat_isolated_20261114.mjs
+          node --check js/ezero_trusted_stage_one_request_v0_1.js
+          node --check js/ezero_trusted_friend_foreground_client_candidate_v0_1.js
+          node --test tests/test_ezero_render_inbox_browser_integration_contract_20261111.cjs
+          node --test tests/test_ezero_public_video_mode_preservation_20261106.cjs
+          node --test tests/test_ezero_qr_close_video_swap_static_20261113.cjs
+      - name: Verify published staging bundle disables unvalidated trusted inbox
+        run: |
+          python3 scripts/build_ezero_secure_app_render_staging_20261107.py
+          node -e 'const fs=require("node:fs");const s=fs.readFileSync("dist_ezero_secure_app_two_phone_staging/js/ezero_trusted_inbox_stage_config_20261106.js","utf8");if(!s.includes("enabled:false")||s.includes("enabled:true"))process.exit(1);console.log("TRUSTED_INBOX_DEPLOYMENT_GATE_CLOSED: PASS")'
+      - name: Install isolated browser dependencies
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.57.0 ws@8.18.3
+          npx playwright install --with-deps chromium
+      - name: Start local test site
+        run: |
+          nohup python3 -m http.server 8769 --bind 127.0.0.1 > /tmp/ezero-gallery-http.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8769/ezero_trusted_friends_staging_20261106.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ezero-gallery-http.log
+          exit 1
+      - name: Test repeat gallery scanning with isolated screenshot QR
+        run: node tests/test_ezero_gallery_repeat_isolated_20261114.mjs
+      - name: Preserve working saved-friend and video call browser regressions
+        run: |
+          node tests/test_ezero_contact_first_call_20261106.mjs
+          node tests/test_ezero_immersive_video_call_20261106.mjs
+          node tests/test_ezero_public_video_visible_20261106.mjs
