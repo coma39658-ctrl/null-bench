@@ -44,9 +44,9 @@ jobs:
           # including unchanged public GA4 event wiring when SD > 0.
           if git diff --unified=0 origin/main...HEAD -- index.html | grep -Eq '^-[^-]' ; then
             removed="$(git diff --unified=0 origin/main...HEAD -- index.html | grep -E '^-[^-]')"
-            added="$(git diff --unified=0 origin/main...HEAD -- index.html | grep -E '^\\+[^+]')"
-            expected_removed="$(printf '%s\\n' '-   :0;' '-  z.toFixed(2);' '-   z_score:Number(z.toFixed(4)),')"
-            expected_added="$(printf '%s\\n' '+   :null;' '+  z===null?"N/A":z.toFixed(2);' '+   ...(z===null?{}:{z_score:Number(z.toFixed(4))}),')"
+            added="$(git diff --unified=0 origin/main...HEAD -- index.html | grep -E '^\+[^+]')"
+            expected_removed="$(printf '%s\n' '-   :0;' '-  z.toFixed(2);' '-   z_score:Number(z.toFixed(4)),')"
+            expected_added="$(printf '%s\n' '+   :null;' '+  z===null?"N/A":z.toFixed(2);' '+   ...(z===null?{}:{z_score:Number(z.toFixed(4))}),')"
             if [[ "$removed" != "$expected_removed" || "$added" != "$expected_added" ]]; then
               echo 'UNREVIEWED_INDEX_REMOVAL_OR_ADDITION_REJECTED'
               exit 1
