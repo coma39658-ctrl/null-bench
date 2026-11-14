@@ -1,0 +1,68 @@
+name: Null Bench Degenerate Verdict RED-GREEN Isolated QA
+on:
+  push:
+    branches:
+      - null-bench-degenerate-verdict-qa-20261114
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  degenerate-null-verdict:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout without write credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 30
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Enforce isolated source-only change boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main --depth=15
+          git diff --name-only origin/main...HEAD >/tmp/ezero-degenerate-verdict-files.txt
+          cat /tmp/ezero-degenerate-verdict-files.txt
+          if grep -Ev '^(index\.html|null_bench_professional_guide\.html|tests/test_null_bench_degenerate_verdict_20261114\.cjs|tests/test_null_bench_degenerate_verdict_browser_20261114\.mjs|tests/verify_null_bench_sd0_verdict_diff_20261114\.py|\.github/workflows/null-bench-degenerate-verdict-20261114\.yml|\.github/workflows/null-bench-distinct-edges-20261114\.yml|\.github/workflows/null-bench-professional-guide-public-20261114\.yml)$' /tmp/ezero-degenerate-verdict-files.txt; then
+            echo 'UNAUTHORIZED_FILE_CHANGE'
+            exit 1
+          fi
+          if git diff --unified=0 origin/main...HEAD -- index.html | grep -E '^\+[^+].*(workers.dev|websocket|RTCPeerConnection|\.onrender\.com|googletagmanager|gtag\(.config)' ; then
+            echo 'UNAUTHORIZED_NETWORK_OR_ANALYTICS_CHANGE'
+            exit 1
+          fi
+      - name: Verify exact unchanged graph and analytics runtime outside reviewed SD-zero verdict
+        run: python3 tests/verify_null_bench_sd0_verdict_diff_20261114.py
+      - name: RED-GREEN degenerate SD zero verdict and GA4 metadata
+        run: |
+          node --check tests/test_null_bench_degenerate_verdict_20261114.cjs
+          node --test tests/test_null_bench_degenerate_verdict_20261114.cjs
+      - name: Keep zero-SD and distinct-edge fixes and core graph benchmarks working
+        run: |
+          node --test tests/test_null_bench_zero_sd_zscore_20261114.cjs
+          node --test tests/test_null_bench_distinct_edges_20261114.cjs
+          node tests/test_benchmark006c_runtime_v0_1.js
+          node tests/test_benchmark006c_public_runner_v0_1.js
+          node --test tests/test_null_bench_trilingual_guide_20261114.cjs
+      - name: Install isolated Chromium browser dependencies
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.57.0
+          npx playwright install --with-deps chromium
+      - name: Verify actual 360px and 800px browser behavior without external requests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8768 --bind 127.0.0.1 >/tmp/null-bench-degenerate-browser.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8768/index.html >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          node tests/test_null_bench_degenerate_verdict_browser_20261114.mjs
+      - name: No public deployment
+        run: echo 'ISOLATED_STAGING_QA_ONLY'

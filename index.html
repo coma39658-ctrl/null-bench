@@ -2914,7 +2914,19 @@ function runTest(edges){
   observed<lo ||
   observed>hi;
 
- if(outside){
+ if(sd===0){
+
+  verdict.className="verdict";
+
+  verdict.innerHTML=
+   "<b>Degenerate null distribution (SD = 0)</b>"+
+   "All sampled null values are identical, so the "+
+   "z-score is undefined. This run does not support "+
+   "a reliable inference about structural separation. "+
+   "Review the null model and independently validate "+
+   "any consequential interpretation.";
+
+ }else if(outside){
 
   verdict.className="verdict positive";
 
@@ -2958,7 +2970,7 @@ function runTest(edges){
    null_mean:Number(mean.toFixed(6)),
    null_sd:Number(sd.toFixed(6)),
    ...(z===null?{}:{z_score:Number(z.toFixed(4))}),
-   outside_95_percent_interval:outside
+   ...(sd>0?{outside_95_percent_interval:outside}:{})
   });
  }
 
