@@ -26,7 +26,7 @@ test("exact origin header succeeds for CRLF and LF but rejects other origins",()
       });
     };
     const CRLF="HTTP/2 200\r\n"+wanted+"\r\ncontent-type: application/json\r\n";
-    const LF=CRLF.replaceAll("\r\n","\\n");
+    const LF=CRLF.replaceAll("\r\n","\n");
     const evil="HTTP/2 200\r\naccess-control-allow-origin: https://wrong.example\r\n";
     const suffix="HTTP/2 200\r\n"+wanted+".evil.example\r\n";
     const a=shell(CRLF),b=shell(LF),c=shell(evil),d=shell(suffix);
