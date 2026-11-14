@@ -82,7 +82,7 @@ b,e</pre>
 <ol start="4">
 <li><strong>نمونوں کی تعداد:</strong> <code dir="ltr">Null samples</code> پہلے 200 ہی رکھیں (مجاز حد 20–2000)۔ <code dir="ltr">Swap attempts / sample</code> پہلے 300 رکھیں (مجاز حد 10–5000)۔ زیادہ تعداد موبائل پر زیادہ حسابی وقت لے سکتی ہے۔</li>
 <li><strong>چلائیں:</strong> <code dir="ltr">Run Null-Model Test</code> دبائیں اور نتیجہ آنے تک اسی صفحے پر رہیں۔</li>
-<li><strong>نتیجے کو پڑھیں:</strong> <code dir="ltr">Nodes / edges</code> (نوڈ اور کنکشن)، <code dir="ltr">Observed clustering</code> (حقیقی داخل کردہ گراف کا پیمانہ)، <code dir="ltr">Null mean ± SD</code> (نمونے کی اوسط اور پھیلاؤ)، <code dir="ltr">95% null interval</code> (نمونہ جاتی حدود)، <code dir="ltr">z-score</code> اور گراف/ہسٹوگرام ملاحظہ کریں۔</li>
+<li><strong>نتیجے کو پڑھیں:</strong> <code dir="ltr">Nodes / edges</code> (نوڈ اور منفرد، دو طرفہ کنکشن؛ دہرائے ہوئے اور خود سے جڑے کنکشن نہیں گنے جاتے)، <code dir="ltr">Observed clustering</code> (حقیقی داخل کردہ گراف کا پیمانہ)، <code dir="ltr">Null mean ± SD</code> (نمونے کی اوسط اور پھیلاؤ)، <code dir="ltr">95% null interval</code> (نمونہ جاتی حدود)، <code dir="ltr">z-score</code> اور گراف/ہسٹوگرام ملاحظہ کریں۔</li>
 <li><strong>تحقیقی رپورٹ:</strong> گراف کا مجاز ماخذ، نوڈز/کنکشن، نمونوں کی تعداد، Swap attempts، متوقع نیٹ ورک مفروضے، حاصل شدہ اعداد، تاریخ اور محدودیت لکھیں۔ ہر بڑے دعوے کے لیے الگ سائنسی جانچ کریں۔</li>
 </ol>
 <h3>یہ حساب اصل میں کیا کرتا ہے؟</h3>
@@ -128,7 +128,7 @@ b,e</pre>
 </tbody>
 </table>
 <h3>Methodological limits</h3>
-<p>The tool builds a simple undirected graph: self-loops are ignored, duplicate edges collapse in the adjacency representation, and extra columns beyond the first two node identifiers are not used. Random double-edge swaps preserve node degrees but finite accepted swaps do not guarantee uniform or independent graph samples. The public interface does not expose a random seed field or a formal p-value. Input edge counts shown by the UI may reflect submitted rows rather than the number of distinct graph edges after de-duplication. Re-check modeling assumptions, degree distribution and mixing before publishing scientific claims.</p>
+<p>The tool builds a simple undirected graph: self-loops are ignored, duplicate edges collapse in the adjacency representation, and extra columns beyond the first two node identifiers are not used. Random double-edge swaps preserve node degrees but finite accepted swaps do not guarantee uniform or independent graph samples. The public interface does not expose a random seed field or a formal p-value. The UI's Nodes / edges count reports distinct undirected graph edges after de-duplication and ignoring self-loops, not the number of submitted rows. Re-check modeling assumptions, degree distribution and mixing before publishing scientific claims.</p>
 <div class="note warning"><strong>Privacy:</strong> The graph calculation itself runs in the browser. The main public site currently uses Google Analytics 4 and sends visit/event statistic metadata. Do not paste confidential networks or personal identifiers. This documentation page adds no analytics code, account sign-in or server-side graph upload.</div>
 </section>
 <section id="arabic" lang="ar" dir="rtl" aria-labelledby="ar-title">
@@ -153,7 +153,7 @@ b,e</pre>
 <li>في <code dir="ltr">Edge list</code> أدخل رابطاً واحداً في كل سطر، مثلاً <code dir="ltr">a,b</code> أو <code dir="ltr">a b</code>. هذه شبكة بسيطة غير موجهة وغير موزونة.</li>
 <li>اضبط <code dir="ltr">Null samples</code> على 200 (المدى 20–2000)، و<code dir="ltr">Swap attempts / sample</code> على 300 (المدى 10–5000).</li>
 <li>اضغط <code dir="ltr">Run Null-Model Test</code>. يقارن المتصفح التجمع المرصود بنماذج عشوائية تحافظ على عدد روابط كل عقدة.</li>
-<li>اقرأ <code dir="ltr">Nodes / edges</code> و<code dir="ltr">Observed clustering</code> و<code dir="ltr">Null mean ± SD</code> و<code dir="ltr">95% null interval</code> و<code dir="ltr">z-score</code> والرسم التكراري. الاختلاف يعني إشارة للاستقصاء، لا برهاناً على السبب.</li>
+<li>اقرأ <code dir="ltr">Nodes / edges</code> (عدد العقد والروابط الفريدة غير الموجهة بعد حذف التكرار والروابط الذاتية) و<code dir="ltr">Observed clustering</code> و<code dir="ltr">Null mean ± SD</code> و<code dir="ltr">95% null interval</code> و<code dir="ltr">z-score</code> والرسم التكراري. الاختلاف يعني إشارة للاستقصاء، لا برهاناً على السبب.</li>
 <li>دوّن مصدر البيانات والروابط والافتراضات وعدد العينات ومحاولات التبديل والقيود، واطلب تكرار البحث بصورة مستقلة عند وجود ادعاءات مهمة.</li>
 </ol>
 <h3>قيود المنهج والخصوصية</h3>
