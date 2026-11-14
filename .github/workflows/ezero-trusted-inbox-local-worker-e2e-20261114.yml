@@ -1,0 +1,53 @@
+name: E-ZERO Trusted Inbox Real Local Worker Security QA
+on:
+  push:
+    branches:
+      - ezero-trusted-inbox-local-worker-e2e-20261114
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  local-worker-security:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 18
+    steps:
+      - name: Checkout separate QA branch without write tokens
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check syntax and existing crypto/runtime gates
+        run: |
+          node --check tests/test_ezero_trusted_inbox_local_worker_e2e_20261114.cjs
+          node --check signaling/cloudflare/src/trusted_inbox_candidate_v0_1.js
+          node --test tests/test_ezero_render_inbox_static_gate_20261111.cjs
+          node --test tests/test_ezero_render_inbox_runtime_gate_20261111.cjs
+          node --test tests/test_ezero_render_inbox_browser_integration_contract_20261111.cjs
+      - name: Protect original QR/video and Render preview
+        run: |
+          node --test tests/test_ezero_qr_close_video_swap_static_20261113.cjs
+          node --test tests/test_ezero_public_video_mode_preservation_20261106.cjs
+          python3 scripts/build_ezero_secure_app_render_staging_20261107.py
+          node -e 'const s=require("node:fs").readFileSync("dist_ezero_secure_app_two_phone_staging/js/ezero_trusted_inbox_stage_config_20261106.js","utf8");if(!s.includes("enabled:false")||s.includes("enabled:true"))process.exit(1);console.log("RENDER_TRUSTED_INBOX_STILL_DISABLED_PASS")'
+      - name: Compile candidate Worker locally only, no deployment
+        working-directory: signaling/cloudflare
+        run: npx --yes wrangler@4 deploy --config wrangler.trusted-render-test-20261111.jsonc --dry-run --outdir /tmp/ezero-trusted-local-e2e-dryrun
+      - name: Run real signed WebSocket security and delivery tests against LOCAL Worker
+        working-directory: signaling/cloudflare
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4 dev --config wrangler.trusted-render-test-20261111.jsonc --local --ip 127.0.0.1 --port 8788 > /tmp/ezero-trusted-local-e2e.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          ready=0
+          for attempt in $(seq 1 50); do
+            if curl -sS --max-time 2 http://127.0.0.1:8788/__local_probe >/dev/null 2>&1; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" != 1 ]; then cat /tmp/ezero-trusted-local-e2e.log; exit 1; fi
+          node ../../tests/test_ezero_render_inbox_real_websocket_20261111.cjs
+          node ../../tests/test_ezero_trusted_inbox_local_worker_e2e_20261114.cjs
