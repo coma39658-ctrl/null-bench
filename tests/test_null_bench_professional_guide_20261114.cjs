@@ -69,7 +69,7 @@ test("Scientific and privacy boundaries do not overclaim",()=>{
   assert.doesNotMatch(page,/<iframe\b/i);
   assert.doesNotMatch(page,/googletagmanager\.com\/gtag\/js\?id=/i);
   has(index,"googletagmanager.com/gtag/js?id=");
-  has(guide,"null_bench_professional_guide.html");
-  has(readme,"null_bench_professional_guide.html");
+  has(guide,"#try");
+  has(readme,"docs/null-bench-quickstart-ur-en-ar.md");
   console.log("NULL_BENCH_PROFESSIONAL_GUIDE_SCOPE_AND_PRIVACY: PASS");
 });
