@@ -1,0 +1,36 @@
+name: E-ZERO Mail Alert Health Gate Audit (Non-Deploy)
+on:
+  push:
+    branches:
+      - ezero-mail-healthcheck-audit-20261114
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-mail-regression:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 8
+    steps:
+      - name: Checkout isolated audit branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Reproduce and prevent false CORS failure on curl CRLF
+        run: |
+          node --check tests/test_ezero_mail_healthcheck_crlf_20261114.cjs
+          node --test tests/test_ezero_mail_healthcheck_crlf_20261114.cjs
+      - name: Verify staging worker and client source contracts
+        run: |
+          node tests/ezero_trusted_inbox_staging_origin_contract_20261113.cjs
+          node tests/ezero_inbox_scale_isolation_contract_20261113.cjs
+          node --check signaling/cloudflare/src/trusted_inbox_candidate_v0_1.js
+          node --check js/ezero_trusted_friend_foreground_client_candidate_v0_1.js
+      - name: Preserve original signed call engine and safe staging build
+        run: |
+          node tests/ezero_saved_friend_no_repeat_qr_contract_20261113.cjs
+          python3 scripts/build_ezero_secure_app_render_staging_20261107.py
+          node -e 'const s=require("node:fs").readFileSync("dist_ezero_secure_app_two_phone_staging/js/ezero_trusted_inbox_stage_config_20261106.js","utf8"); if(!s.includes("enabled:false")||s.includes("enabled:true"))process.exit(1);console.log("NO_LIVE_INBOX_ACTIVATION_PASS")'
