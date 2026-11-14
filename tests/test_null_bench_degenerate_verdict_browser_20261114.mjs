@@ -46,6 +46,19 @@ try {
       assert.doesNotMatch(verdict,/No structural separation was detected|Within the 95% null interval|Outside the 95% null interval/);
       console.log("REAL_BROWSER_DEGENERATE_VERDICT_PASS",JSON.stringify({width,scenario,nodesEdges,z}));
     }
+    const back=page.locator("#ezeroNullBenchBack");
+    assert.equal(await back.isVisible(),true,"Back navigation must be visible at mobile/tablet widths");
+    assert.equal(await back.getAttribute("href"),"https://e-zero-dashboard.onrender.com/studio");
+    assert.match(await back.innerText(),/واپس.*Back/);
+    assert.ok((await back.boundingBox()).height>=44,"Back target must be touch-accessible");
+
+    // Navigate from a genuine same-origin guide: Back must return there.
+    await page.goto("http://127.0.0.1:8768/null_bench_professional_guide.html");
+    await page.evaluate(()=>window.location.assign("./index.html#try"));
+    await page.waitForURL(/index\.html#try/);
+    await page.locator("#ezeroNullBenchBack").click();
+    await page.waitForURL(/null_bench_professional_guide\.html/);
+    console.log("REAL_BROWSER_BACK_NAV_PASS",JSON.stringify({width,mode:"same_origin_history_back"}));
     await context.close();
   }
 } finally {
