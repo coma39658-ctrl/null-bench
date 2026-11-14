@@ -25,10 +25,10 @@ test("exact origin header succeeds for CRLF and LF but rejects other origins",()
         encoding:"utf8",env:{...process.env,E_ZERO_HEADER_FILE:filename}
       });
     };
-    const CRLF="HTTP/2 200\\r\\n"+wanted+"\\r\\ncontent-type: application/json\\r\\n";
-    const LF=CRLF.replaceAll("\\r\\n","\\n");
-    const evil="HTTP/2 200\\r\\naccess-control-allow-origin: https://wrong.example\\r\\n";
-    const suffix="HTTP/2 200\\r\\n"+wanted+".evil.example\\r\\n";
+    const CRLF="HTTP/2 200\r\n"+wanted+"\r\ncontent-type: application/json\r\n";
+    const LF=CRLF.replaceAll("\r\n","\\n");
+    const evil="HTTP/2 200\r\naccess-control-allow-origin: https://wrong.example\r\n";
+    const suffix="HTTP/2 200\r\n"+wanted+".evil.example\r\n";
     const a=shell(CRLF),b=shell(LF),c=shell(evil),d=shell(suffix);
     assert.equal(a.status,0,a.stderr);
     assert.equal(b.status,0,b.stderr);
