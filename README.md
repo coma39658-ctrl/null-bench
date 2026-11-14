@@ -6,6 +6,9 @@ Public-facing Null Bench tool for graph/network structural analysis.
 
 ## Public beginner guide (Urdu · English · Arabic)
 
+**Website professional guide:** [Who this is for, full usage steps, browser JavaScript architecture, statistics and limits](https://coma39658-ctrl.github.io/null-bench/null_bench_professional_guide.html).
+
+
 Read the [three-language Null Bench quick start](docs/null-bench-quickstart-ur-en-ar.md)
 for the real browser controls, authorized sample graph data, the meaning of the
 null distribution, evidence limits, and privacy notes.
