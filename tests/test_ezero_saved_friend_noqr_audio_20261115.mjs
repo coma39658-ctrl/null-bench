@@ -300,11 +300,24 @@ try{
   }
   console.log("SELECTED_CONTACT_TWO_PHONE_NOQR_AUDIO_TRACKS_LIVE_NO_CAMERA: PASS");
   await caller.locator("#hangup").click();
-  await callee.waitForFunction(()=>{
-    const s=document.getElementById("localVideo")?.srcObject;
-    return !window.EZERO_VOICE_TRANSPORT?.connected()&&
-      (!s||s.getTracks().every(t=>t.readyState==="ended"));
-  },{timeout:15000});
+  try{
+    await callee.waitForFunction(()=>{
+      const s=document.getElementById("localVideo")?.srcObject;
+      return !window.EZERO_VOICE_TRANSPORT?.connected()&&
+        (!s||s.getTracks().every(t=>t.readyState==="ended"));
+    },null,{timeout:15000});
+  }catch(error){
+    const state=await Promise.all([caller,callee].map(p=>p.evaluate(()=>({
+      connected:window.EZERO_VOICE_TRANSPORT?.connected()===true,
+      localLive:document.getElementById("localVideo")?.srcObject?.getTracks()
+        ?.filter(t=>t.readyState==="live").length||0,
+      remoteLive:document.getElementById("remoteVideo")?.srcObject?.getTracks()
+        ?.filter(t=>t.readyState==="live").length||0,
+      callState:document.getElementById("ezeroAutoStatus")?.dataset.state||"unknown"
+    }))));
+    console.log("AUDIO_HANGUP_DIAGNOSTIC_NON_SENSITIVE",JSON.stringify(state));
+    throw error;
+  }
   console.log("CONTACT_FIRST_NOQR_AUDIO_HANGUP_STOPS_MIC: PASS");
 }finally{
   await Promise.all(contexts.map(ctx=>ctx.close().catch(()=>{})));
