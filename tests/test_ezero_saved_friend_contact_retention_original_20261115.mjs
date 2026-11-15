@@ -386,10 +386,11 @@ try{
     // receiver's saved names must stay visible, not silently disappear.
     for(const [phone,name] of [[caller,"Second Phone"],[callee,"First Phone"]]){
       const state=await readSavedFriends(phone);
-      assert.equal(state.friends.length,1,"Repeat calls must not erase any friend");
-      assert.equal(state.friends[0].name,name);
+      assert.equal(state.friends.length,2,"Repeat calls must not erase any friend");
+      assert.ok(state.friends.some(x=>x.name==="Existing Saved Friend"));
+      assert.ok(state.friends.some(x=>x.name===name));
       assert.equal(state.chosen,name,"Selected name must survive incoming navigation");
-      assert.equal(state.selection,state.friends[0].fp);
+      assert.equal(state.selection,state.friends.find(x=>x.name===name).fp);
       assert.ok(state.list.includes(name),"Friend sidebar must retain name");
       assert.ok(state.people.includes(name),"Friends panel must retain name");
     }
