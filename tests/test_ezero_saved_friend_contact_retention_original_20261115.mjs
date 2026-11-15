@@ -436,8 +436,9 @@ try{
   // A fresh QR selection clears only the selected-person UI preference. The
   // saved friend must not be deleted even when the user onboards another one.
   const finalState=await readSavedFriends(caller);
-  assert.equal(finalState.friends.length,1);
-  assert.equal(finalState.friends[0].name,"Second Phone");
+  assert.equal(finalState.friends.length,2);
+  assert.ok(finalState.friends.some(x=>x.name==="Existing Saved Friend"));
+  assert.ok(finalState.friends.some(x=>x.name==="Second Phone"));
   assert.ok(finalState.list.includes("Second Phone"));
   console.log("EXPLICIT_NEW_QR_PRESERVES_ALL_SAVED_CONTACTS: PASS");
 }finally{
