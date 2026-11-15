@@ -20,7 +20,7 @@ const permitted=new Map();
 const pendingCalls=new Map();
 function mockTrustedInbox(ws){
   const url=new URL(ws.url());
-  const match=/^\\/v1\\/trusted\\/([a-f0-9]{64})$/.exec(url.pathname);
+  const match=new RegExp("^/v1/trusted/([a-f0-9]{64})$").exec(url.pathname);
   assert.ok(match,"Trusted inbox endpoint must be a verified SHA-256 device fingerprint");
   const target=match[1],opened=Date.now();
   const nonce="AbCdEfGhIjKlMnOpQrStUvWxYz012345";
@@ -36,7 +36,7 @@ function mockTrustedInbox(ws){
       if(msg.role==="owner")assert.equal(msg.fp,target);
       else assert.notEqual(msg.fp,target);
       const content=["EZERO-TRUSTED-INBOX-1","https://coma39658-ctrl.github.io",
-        target,msg.role,msg.fp,nonce,String(opened)].join("\\n");
+        target,msg.role,msg.fp,nonce,String(opened)].join("\n");
       const pub=createPublicKey({key:pk,format:"der",type:"spki"});
       assert.ok(verify("sha256",Buffer.from(content),
         {key:pub,dsaEncoding:"ieee-p1363"},Buffer.from(msg.sig,"base64url")),
@@ -222,6 +222,7 @@ try{
     "Explicit trust grant must reach the recipient inbox");
   const lastInvite=await caller.evaluate(()=>window.__oneInvite);
   const before=await caller.evaluate(()=>window.__mediaCalls.length);
+  const receivedMediaBefore=await callee.evaluate(()=>window.__mediaCalls.length);
   await caller.locator('[data-modern-select="video"]').click();
   assert.equal(await caller.locator("#ezeroFriendSidePanel").isVisible(),true,
     "Video button must request friend selection instead of silently calling anyone");
@@ -251,10 +252,13 @@ try{
   await callee.locator("#ezeroTrustedIncoming").waitFor({state:"visible",timeout:15000});
   assert.equal(callee.url(),recipientUrlBefore,
     "Saved friend's call must arrive on the existing page without navigation");
-  assert.equal(await callee.evaluate(()=>window.__mediaCalls.length),0,
+  assert.equal(await callee.evaluate(()=>window.__mediaCalls.length),receivedMediaBefore,
     "Incoming display must not auto-activate camera or microphone");
   assert.match(await callee.locator("#ezeroTrustedIncoming").innerText(),/First Phone/);
-  assert.equal(pendingCalls.size,0,"Receipt is evidence of display only, not acceptance");
+  await caller.waitForFunction(()=>
+    document.getElementById("ezeroTrustedStatus")?.textContent.includes("پہنچی"),
+    {timeout:15000});
+  assert.equal(pendingCalls.size,0,"Receipt only means visible, not accepted");
   console.log("SAVED_FRIEND_NO_QR_FOREGROUND_INCOMING_VISIBLE: PASS");
   await callee.locator("#ezeroTrustedIncoming button").first().click();
   await callee.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:12000});
