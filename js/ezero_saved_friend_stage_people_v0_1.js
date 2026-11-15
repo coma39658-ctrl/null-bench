@@ -148,7 +148,9 @@
     const transport=window.EZERO_PEER_PROFILE_TRANSPORT;
     const live=!!active&&transport?.connected()===true&&
       transport.peerFingerprint()===active.fp;
-    panel.hidden=!live;
+    // Keep the Save Friend control visible on the main page at all times.
+    // It remains disabled until a real, matching WebRTC peer is connected.
+    panel.hidden=false;
     if(live&&!$("ezeroFriendSaveName").value.trim()&&
        active.name!==t("unknown"))$("ezeroFriendSaveName").value=active.name;
     btn.disabled=!live||savingFriend||!nameOf($("ezeroFriendSaveName").value);
