@@ -255,6 +255,10 @@ try{
   await caller.waitForFunction(old=>
     !!window.__oneInvite&&window.__oneInvite!==old,lastInvite,{timeout:30000});
   const videoInvite=await caller.evaluate(()=>window.__oneInvite);
+  assert.equal(await caller.locator("#ezeroOneQrBox").isHidden(),true,
+    "RED: saved-contact video must NOT reopen the QR panel when sending a direct call");
+  assert.equal(await caller.locator("#ezeroOneCopyInvite").isDisabled(),true,
+    "RED: while direct delivery is pending, do not invite the user to manually copy a link");
   assert.match(videoInvite,/mode=video#room=/,
     "Saved contact's video button must create VIDEO not audio invitation");
   const callerMedia=await caller.evaluate(()=>window.__mediaCalls.at(-1));
