@@ -1,0 +1,62 @@
+name: E-ZERO Secure App Original Page Names + No-QR Release Gate
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ezero_trusted_friends_staging_20261106.html'
+      - 'js/ezero_contact_first_call_dock_v0_1.js'
+      - 'js/ezero_trusted_stage_one_request_v0_1.js'
+      - 'js/ezero_trusted_friends_controls_candidate_v0_1.js'
+      - 'tests/test_ezero_saved_friend_contact_retention_original_20261115.mjs'
+      - '.github/workflows/ezero_saved_friend_original_release_gate_20261115.yml'
+  push:
+    branches: [ezero-secure-app-original-page-friend-retention-20261115]
+permissions:
+  contents: read
+jobs:
+  original-saved-friends-noqr:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 30
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Enforce minimal original-page patch, no WebRTC engine writes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main --depth=30
+          git diff --name-only origin/main...HEAD | tee /tmp/ezero-original-release-files.txt
+          if grep -Ev '^(ezero_trusted_friends_staging_20261106\.html|js/ezero_contact_first_call_dock_v0_1\.js|js/ezero_trusted_stage_one_request_v0_1\.js|js/ezero_trusted_friends_controls_candidate_v0_1\.js|tests/test_ezero_saved_friend_contact_retention_original_20261115\.mjs|\.github/workflows/ezero_saved_friend_original_release_gate_20261115\.yml)$' /tmp/ezero-original-release-files.txt; then
+            echo 'OUT_OF_SCOPE_RELEASE_FILE'; exit 1
+          fi
+          for source in js/ezero_contact_first_call_dock_v0_1.js js/ezero_trusted_stage_one_request_v0_1.js js/ezero_trusted_friends_controls_candidate_v0_1.js tests/test_ezero_saved_friend_contact_retention_original_20261115.mjs; do
+            node --check "$source"
+          done
+          grep -Fq 'src="./js/ezero_contact_first_call_dock_v0_1.js?v=20261115friends3"' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'src="./js/ezero_trusted_stage_one_request_v0_1.js?v=20261115friends3"' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'src="./js/ezero_trusted_friends_controls_candidate_v0_1.js?v=20261115friends3"' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'const CALL_PAGE="/null-bench/ezero_trusted_friends_staging_20261106.html"' js/ezero_trusted_friend_foreground_client_candidate_v0_1.js
+      - name: Install isolated Chromium and WebSocket test dependencies
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.57.0 ws@8.18.3
+          npx playwright install --with-deps chromium
+      - name: Serve candidate original page on localhost, no deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          nohup python3 -m http.server 8769 --bind 127.0.0.1 >/tmp/ezero-original-release-localhost.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8769/ezero_trusted_friends_staging_20261106.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ezero-original-release-localhost.log
+          exit 1
+      - name: First QR, two additional video calls, saved names on both phones, no surprise QR
+        run: node tests/test_ezero_saved_friend_contact_retention_original_20261115.mjs
+      - name: Preserve evidence provenance
+        run: echo 'PASS_ONLY_ISOLATED_TWO_BROWSER_WEBRTC_WITH_MOCKED_WORKER_NOT_PHYSICAL_PHONE_OR_LIVE_CLOUDFLARE_PROOF'
