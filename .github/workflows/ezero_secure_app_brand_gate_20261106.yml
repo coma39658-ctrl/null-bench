@@ -1,0 +1,36 @@
+name: E-ZERO Secure App Branding Release Gate
+on:
+  push:
+    branches:
+      - ezero-secure-app-brand-20261106
+  pull_request:
+    branches: [main]
+    paths:
+      - ezero_trusted_friends_staging_20261106.html
+      - index.html
+      - secure-connect-staging.webmanifest
+      - secure-connect.webmanifest
+      - js/ezero_secure_connect_install_share_staging_v0_1.js
+      - tests/test_ezero_secure_app_brand_20261106.cjs
+      - .github/workflows/ezero_secure_app_brand_gate_20261106.yml
+permissions:
+  contents: read
+jobs:
+  branding-no-regression:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate production JS and stable branded PWA identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check js/ezero_secure_connect_install_share_staging_v0_1.js
+          node --check tests/test_ezero_secure_app_brand_20261106.cjs
+          node tests/test_ezero_secure_app_brand_20261106.cjs
+          echo "E-ZERO_SECURE_APP_BRANDING_PASS"

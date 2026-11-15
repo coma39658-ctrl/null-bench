@@ -7,8 +7,8 @@ const install=fs.readFileSync("js/ezero_secure_connect_install_share_v0_1.js","u
 const manifest=JSON.parse(fs.readFileSync("secure-connect.webmanifest","utf8"));
 const oldStudio=JSON.parse(fs.readFileSync("ai-studio.webmanifest","utf8"));
 new vm.Script(install,{filename:"ezero_secure_connect_install_share_v0_1.js"});
-assert.equal(manifest.name,"E-ZERO Secure Connect");
-assert.equal(manifest.short_name,"E-ZERO Connect");
+assert.equal(manifest.name,"E-ZERO Secure App");
+assert.equal(manifest.short_name,"E-ZERO Secure App");
 assert.equal(manifest.start_url,"./ezero_trusted_friends_staging_20261106.html");
 assert.equal(manifest.id,"./ezero_secure_connect_live_p2p_v0_1.html","Preserve the original installed-app ID while upgrading its launch screen");
 assert.notEqual(manifest.id,oldStudio.id,"Secure Connect installs separately from existing AI Studio");

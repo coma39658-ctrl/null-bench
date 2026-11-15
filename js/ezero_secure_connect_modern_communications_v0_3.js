@@ -227,7 +227,7 @@ $("ezeroShareInvite").addEventListener("click",async()=>{
   if(!preparedShare)return;
   try{
     if(typeof navigator.share!=="function")throw Error("NO_SHARE");
-    await navigator.share({title:"E-ZERO Secure Connect — experimental call",url:preparedShare});
+    await navigator.share({title:"E-ZERO Secure App — private call",url:preparedShare});
     wizardStatus("inviteShared");
   }catch(e){
     if(e?.name==="AbortError"){wizardStatus("inviteNotSent");return;}

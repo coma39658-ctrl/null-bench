@@ -1,5 +1,5 @@
 /*
- * E-ZERO Secure Connect — public link sharing & consent-first install guidance.
+ * E-ZERO Secure App — public link sharing & consent-first install guidance.
  * A message contains ONLY a public static URL, never a contact fingerprint, SDP,
  * QR token, media, personal data or call status.
  * beforeinstallprompt is browser-controlled; never force installation or claim
@@ -11,7 +11,7 @@
   const $=id=>document.getElementById(id);
   const labels={
     ur:{
-      title:"E-ZERO دوستوں کو بھیجیں اور ایپ بنائیں",
+      title:"E-ZERO Secure App دوستوں کو بھیجیں",
       description:"یہ لنک WhatsApp، IMO یا کسی بھی میسج میں بھیجیں۔ لنک کھولنے والے دوست کو اسی صفحے پر انسٹال کا بٹن نظر آئے گا۔",
       share:"↗ دوست کو لنک بھیجیں",copy:"📋 ویب سائٹ لنک کاپی",install:"📲 ہوم اسکرین پر انسٹال کریں",
       initial:"انسٹالیشن آپ کی منظوری سے ہوگی؛ میسج کے اندر خودکار انسٹالیشن ممکن نہیں۔",
@@ -32,11 +32,11 @@
       iosHelp:"Safari یا معاون براؤزر میں لنک کھولیں، Share کا آئیکن دبائیں، «Add to Home Screen» منتخب کریں اور «Add» کی منظوری دیں۔",
       desktopHelp:"براؤزر کے مینو میں «Install app» یا «Create shortcut» تلاش کریں۔ صرف براؤزر کی اجازت کے بعد ایپ یا شارٹ کٹ بنے گا۔",
       installError:"براؤزر انسٹالیشن کی درخواست مکمل نہ کرسکا۔ Chrome کے مینو سے Install app / Add to Home Screen آزمائیں۔",
-      urlLabel:"E-ZERO Secure Connect کا عوامی لنک",
-      shareText:"E-ZERO Secure Connect کھولیں۔ اسی صفحے پر «Install app / Add to Home Screen» موجود ہے۔ یہ ابھی تجرباتی دو فون کالنگ سروس ہے۔"
+      urlLabel:"E-ZERO Secure App کا عوامی لنک",
+      shareText:"E-ZERO Secure App کھولیں۔ اسی صفحے پر «Install app / Add to Home Screen» موجود ہے۔ یہ ابھی تجرباتی دو فون کالنگ سروس ہے۔"
     },
     en:{
-      title:"Share E-ZERO and install the app",
+      title:"Share E-ZERO Secure App and install",
       description:"Send this link via WhatsApp, IMO or any messaging app. Your friend sees the Install button on the same page when they open it.",
       share:"↗ Send link to friend",copy:"📋 Copy website link",install:"📲 Install on home screen",
       initial:"Installation needs your approval. A link inside a message cannot install an app automatically.",
@@ -57,11 +57,11 @@
       iosHelp:"Open this page in Safari or another supported browser. Tap Share → Add to Home Screen → Add.",
       desktopHelp:"Open your browser menu and choose Install app or Create shortcut. Installation always requires your approval.",
       installError:"The browser could not start installation. Use the Chrome menu → Install app / Add to Home screen.",
-      urlLabel:"E-ZERO Secure Connect public link",
-      shareText:"Open E-ZERO Secure Connect. Install App / Add to Home Screen is on the page. Two-phone calling is experimental."
+      urlLabel:"E-ZERO Secure App public link",
+      shareText:"Open E-ZERO Secure App. Install App / Add to Home Screen is on the page. Two-phone calling is experimental."
     },
     ar:{
-      title:"مشاركة E-ZERO وتثبيته كتطبيق",
+      title:"مشاركة E-ZERO Secure App وتثبيته",
       description:"أرسل هذا الرابط عبر واتساب أو IMO أو أي تطبيق مراسلة. سيظهر زر التثبيت في الصفحة نفسها عند فتحه.",
       share:"↗ إرسال الرابط لصديق",copy:"📋 نسخ رابط الموقع",install:"📲 تثبيت على الشاشة الرئيسية",
       initial:"يتطلب التثبيت موافقتك. لا يمكن للرابط داخل الرسائل تثبيت التطبيق تلقائياً.",
@@ -82,8 +82,8 @@
       iosHelp:"افتح الصفحة في Safari أو متصفح مدعوم. اضغط مشاركة ← إضافة إلى الشاشة الرئيسية ← إضافة.",
       desktopHelp:"من قائمة المتصفح اختر تثبيت التطبيق أو إنشاء اختصار. التثبيت يحتاج موافقتك دائماً.",
       installError:"تعذر بدء التثبيت. استخدم قائمة Chrome ← تثبيت التطبيق / إضافة إلى الشاشة الرئيسية.",
-      urlLabel:"الرابط العام لـ E-ZERO Secure Connect",
-      shareText:"افتح E-ZERO Secure Connect. ستجد خيار تثبيت التطبيق / إضافته إلى الشاشة الرئيسية في الصفحة. المكالمات بين هاتفين تجريبية حالياً."
+      urlLabel:"الرابط العام لـ E-ZERO Secure App",
+      shareText:"افتح E-ZERO Secure App. ستجد خيار تثبيت التطبيق / إضافته إلى الشاشة الرئيسية في الصفحة. المكالمات بين هاتفين تجريبية حالياً."
     }
   };
   const lang=()=>["en","ar","ur"].includes(document.documentElement.lang)?
@@ -184,7 +184,7 @@
     }
     try{
       await navigator.share({
-        title:"E-ZERO Secure Connect",
+        title:"E-ZERO Secure App",
         text:t("shareText"),
         url:PUBLIC_URL
       });

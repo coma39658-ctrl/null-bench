@@ -6,16 +6,16 @@
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0b3426">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self' wss://ezero-browser-signaling-pilot.coma39658.workers.dev wss://ezero-trusted-friends-inbox-staging.coma39658.workers.dev; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
-<title>E-ZERO Secure Connect — Unified Public Beta</title>
+<title>E-ZERO Secure App — Audio, Video & Friends</title>
 <meta name="robots" content="noindex,nofollow">
-<meta name="description" content="E-ZERO Secure Connect — one green page for QR call invitations, one accept, and experimental WebRTC audio/video.">
-<meta property="og:title" content="E-ZERO Secure Connect — Friends & Calls">
-<meta property="og:description" content="Open E-ZERO Secure Connect and choose Install App or Add to Home Screen. No hidden fees, ads or tracking. Experimental two-phone calls.">
+<meta name="description" content="E-ZERO Secure App — one green page for QR call invitations, one accept, and experimental WebRTC audio/video.">
+<meta property="og:title" content="E-ZERO Secure App — Friends & Calls">
+<meta property="og:description" content="Open E-ZERO Secure App and choose Install App or Add to Home Screen. No hidden fees, ads or tracking. Experimental two-phone calls.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://coma39658-ctrl.github.io/null-bench/ezero_trusted_friends_staging_20261106.html">
 <meta property="og:image" content="https://coma39658-ctrl.github.io/null-bench/icon-512.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="E-ZERO Test">
+<meta name="apple-mobile-web-app-title" content="E-ZERO Secure App">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <link rel="manifest" href="./secure-connect-staging.webmanifest">
 <link rel="stylesheet" href="./css/ezero_secure_connect_live_p2p_v0_1.css">
@@ -31,7 +31,7 @@
 <script defer src="./js/ezero_saved_friend_stage_engine_v0_1.js?v=20261106stage1"></script>
 <script defer src="./js/ezero_secure_connect_simple_near_far_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_contacts_staging_v0_1.js"></script>
-<script defer src="./js/ezero_secure_connect_install_share_staging_v0_1.js"></script>
+<script defer src="./js/ezero_secure_connect_install_share_staging_v0_1.js?v=20261106secureapp1"></script>
 <script defer src="./js/ezero_secure_connect_one_tap_qr_v0_1.js"></script>
 <script defer src="./js/ezero_secure_connect_modern_evidence_stage_v0_1.js?v=20261106evidence1"></script>
 <script defer src="./js/ezero_secure_connect_peer_profile_staging_v0_1.js?v=20261106profile3"></script>
@@ -54,7 +54,7 @@
 <header class="top">
   <a class="back" id="modernBack" href="./index.html" data-modern="back">↩ E-ZERO مرکزی صفحہ</a>
   <div class="ezero-header-identity">
-    <strong class="logo">E-ZERO <span>Secure Connect</span></strong>
+    <strong class="logo">E-ZERO <span>Secure App</span></strong>
     <button type="button" id="ezeroQuickProfile" class="ezero-header-profile"
       aria-label="میری پروفائل اور تصویر کھولیں" aria-controls="ezeroProfileEditor"
       title="میری پروفائل / تصویر">
@@ -68,8 +68,8 @@
 </header>
 <main>
 <section id="ezeroUnifiedCard" class="ezero-unified-card" aria-labelledby="ezeroUnifiedHeading">
-  <div class="ezero-unified-heading"><span class="ezero-unified-label">E-ZERO · SECURE CONNECT</span>
-  <h1 id="ezeroUnifiedHeading">E-ZERO محفوظ دوست — مشترکہ عوامی آزمائشی صفحہ</h1>
+  <div class="ezero-unified-heading"><span class="ezero-unified-label">E-ZERO · SECURE APP</span>
+  <h1 id="ezeroUnifiedHeading">E-ZERO Secure App — محفوظ دوست اور کالز</h1>
   <p>دونوں موبائلوں پر یہی صفحہ کھولیں۔ پہلی کال QR اور واضح منظوری سے جوڑیں؛ اس کے بعد دونوں طرف دوست محفوظ کریں۔ بغیر QR دوبارہ کال ابھی تجرباتی ہے اور صفحہ کھلا ہونا ضروری ہے۔</p></div>
 <section id="ezeroContactFirstDock" class="ezero-contact-first-dock" aria-label="Select a saved friend before calling"></section>
 <div class="modern-feature-grid" aria-label="Communication features">
@@ -288,7 +288,7 @@
 <section class="ezero-pilot-banner" role="note">
   <strong>🧪 E-ZERO کال کی حقیقی آزمائش</strong>
   <p>دوست کو ایک مختصر دعوتی لنک یا QR بھیجیں۔ دوسرے فون پر «قبول کریں» دبانے سے WebRTC جواب خود Cloudflare کے ذریعے واپس جائے گا۔ دوسری بار لنک بھیجنے کی ضرورت نہیں۔ STUN/TURN کی عدم دستیابی کی صورت میں اصل کال ناکام ہو سکتی ہے۔</p>
-  <p>یہی E-ZERO Secure Connect کا مشترک عوامی آزمائشی صفحہ ہے۔ دونوں فونوں پر اسی لنک سے QR کال شروع کریں۔ حقیقی فون ٹیسٹ ابھی جاری ہیں؛ پس منظر میں خودکار اطلاع نہیں۔</p>
+  <p>یہی E-ZERO Secure App کا مشترک عوامی آزمائشی صفحہ ہے۔ دونوں فونوں پر اسی لنک سے QR کال شروع کریں۔ حقیقی فون ٹیسٹ ابھی جاری ہیں؛ پس منظر میں خودکار اطلاع نہیں۔</p>
 </section>
 <section class="modern-hero">
   <span class="modern-kicker">E-ZERO · COMMUNICATIONS</span>
@@ -368,7 +368,7 @@
       <button type="button" class="outline" id="copyConnectLink" data-share-i18n="copy">📋 ویب سائٹ لنک کاپی</button>
       <button type="button" class="primary install-action" id="installSecureConnect" data-share-i18n="install">📲 ہوم اسکرین پر انسٹال کریں</button>
     </div>
-    <a id="publicConnectLink" class="public-connect-url" href="https://coma39658-ctrl.github.io/null-bench/ezero_trusted_friends_staging_20261106.html" rel="noopener noreferrer">E-ZERO Secure Connect · Shareable Link</a>
+    <a id="publicConnectLink" class="public-connect-url" href="https://coma39658-ctrl.github.io/null-bench/ezero_trusted_friends_staging_20261106.html" rel="noopener noreferrer">E-ZERO Secure App · Shareable Link</a>
     <p id="shareInstallStatus" class="scan-result" role="status" aria-live="polite" data-share-i18n="initial">انسٹالیشن آپ کی منظوری سے ہوگی؛ میسج کے اندر خودکار انسٹالیشن ممکن نہیں۔</p>
     <div id="installHelp" class="install-help" hidden>
       <strong data-share-i18n="helpTitle">اگر انسٹال ڈائیلاگ نہ کھلے</strong>

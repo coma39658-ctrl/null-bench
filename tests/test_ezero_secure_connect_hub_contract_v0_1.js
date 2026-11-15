@@ -11,7 +11,7 @@ for (const [i,m] of [...page.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/
   new vm.Script(m[1],{filename:"connect-inline-"+i});
 }
 assert.match(home,/id="ezeroVoiceGuideButton"/);
-assert.match(home,/Open E-ZERO Secure Connect preview/);
+assert.match(home,/Open E-ZERO Secure App preview/);
 assert.match(home,/id="ezeroAssistFutureDock"/);
 assert.match(home,/id="ezeroLegacyVoiceGuide" hidden/);
 assert.match(home,/id="ezeroVoiceGuideClose"/);
@@ -45,7 +45,7 @@ assert.match(css,/\.incoming-demo-actions button\{min-height:54px/);
 assert.match(home,/ezero_ai_studio_v0_1\.html#voice/,"Existing AI Studio button preserved");
 assert.match(home,/onclick="window\.location\.assign\('\.\/ezero_ai_studio_v0_1\.html'\)"/,"Front Qwen AI guide goes to AI Studio, not new communication hub");
 assert.ok(!/EZERO_AI_AGENT_ANCHOR=this/.test(home),"Old Qwen button no longer opens the repurposed Secure Connect modal");
-assert.match(home,/Open E-ZERO Secure Connect preview/);
+assert.match(home,/Open E-ZERO Secure App preview/);
 assert.match(page,/RESEARCH PREVIEW/);
 assert.match(page,/فی الحال دوسرے صارف سے کال/);
 assert.match(page,/یہ کسی کو کال نہیں کرتا/);
