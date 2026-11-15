@@ -1,0 +1,29 @@
+name: E-ZERO AI Studio Health Status Truthfulness
+on:
+  push:
+    branches: [staging/ai-health-status-truthfulness-20261116]
+    paths:
+      - 'index.html'
+      - 'tests/test_ezero_public_ai_health_truthfulness_20261116.cjs'
+      - '.github/workflows/ezero_public_ai_health_truthfulness_20261116.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'tests/test_ezero_public_ai_health_truthfulness_20261116.cjs'
+      - '.github/workflows/ezero_public_ai_health_truthfulness_20261116.yml'
+permissions:
+  contents: read
+jobs:
+  public-ai-health-truthfulness:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify health status cannot be claimed before live confirmation
+        run: node tests/test_ezero_public_ai_health_truthfulness_20261116.cjs
