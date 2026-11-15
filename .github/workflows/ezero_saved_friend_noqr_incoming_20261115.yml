@@ -26,10 +26,12 @@ jobs:
           set -euo pipefail
           git fetch --no-tags origin main --depth=15
           git diff --name-only origin/main...HEAD | tee /tmp/ezero-saved-friend-changes.txt
-          if grep -Ev '^(tests/test_ezero_saved_friend_noqr_incoming_20261115\.mjs|tests/test_ezero_saved_friend_noqr_audio_20261115\.mjs|\.github/workflows/ezero_saved_friend_noqr_incoming_20261115\.yml)$' /tmp/ezero-saved-friend-changes.txt; then
+          if grep -Ev '^(js/ezero_trusted_stage_one_request_v0_1\.js|js/ezero_trusted_friends_controls_candidate_v0_1\.js|tests/test_ezero_saved_friend_noqr_incoming_20261115\.mjs|tests/test_ezero_saved_friend_noqr_audio_20261115\.mjs|\.github/workflows/ezero_saved_friend_noqr_incoming_20261115\.yml)$' /tmp/ezero-saved-friend-changes.txt; then
             echo 'UNEXPECTED_PRODUCTION_FILE_CHANGE'
             exit 1
           fi
+          node --check js/ezero_trusted_stage_one_request_v0_1.js
+          node --check js/ezero_trusted_friends_controls_candidate_v0_1.js
           node --check tests/test_ezero_saved_friend_noqr_incoming_20261115.mjs
           node --check tests/test_ezero_saved_friend_noqr_audio_20261115.mjs
       - name: Install isolated browser QA dependencies
