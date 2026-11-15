@@ -205,12 +205,17 @@ try{
   assert.equal(await caller.locator("#ezeroFriendSideList .ezero-friend-option").count(),0);
   await caller.locator("#ezeroFriendSideClose").click();
   console.log("CONTACT_FIRST_EMPTY_LIST_NO_MEDIA_OR_FAKE_FRIEND: PASS");
+  const existingFriend={fp:"a".repeat(64),name:"Existing Saved Friend"};
+  await caller.evaluate(friend=>localStorage.setItem(
+    "ezero_secure_connect_staging_fingerprints_v0_1",JSON.stringify([friend])),existingFriend);
   // The first ever call still uses real explicit QR/accept, no saved friend.
   await caller.locator('[data-modern-select="audio"]').click();
   await caller.waitForFunction(()=>!!window.__oneInvite,{timeout:12000});
   const first=await caller.evaluate(()=>window.__oneInvite);
   assert.match(first,/mode=audio#room=/);
   const callee=await createPhone("CONTACT_CALLEE");
+  await callee.evaluate(friend=>localStorage.setItem(
+    "ezero_secure_connect_staging_fingerprints_v0_1",JSON.stringify([friend])),existingFriend);
   await callee.goto(first,{waitUntil:"domcontentloaded"});
   await callee.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:12000});
   assert.equal(await callee.evaluate(()=>window.__mediaCalls.length),0);
@@ -227,7 +232,7 @@ try{
     await phone.locator("#ezeroSaveConnectedFriend").click();
     await phone.waitForFunction(()=>JSON.parse(
       localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1")||"[]"
-    ).length===1,{timeout:10000});
+    ).length===2,{timeout:10000});
   }
   // Saving the verified peer is durable browser data on BOTH devices, not
   // temporary call metadata. The selected label must survive route changes.
@@ -241,12 +246,13 @@ try{
   }));
   for(const [phone,name] of [[caller,"Second Phone"],[callee,"First Phone"]]){
     const state=await readSavedFriends(phone);
-    assert.equal(state.friends.length,1);
-    assert.equal(state.friends[0].name,name);
+    assert.equal(state.friends.length,2,"Adding a new friend must not erase existing saved contacts");
+    assert.ok(state.friends.some(x=>x.name==="Existing Saved Friend"),"Previously saved friend must survive QR pairing and saving a new friend");
+    assert.ok(state.friends.some(x=>x.name===name),"Newly connected friend must be saved too");
     assert.equal(state.chosen,name,"Saving a friend must show the name immediately");
     assert.ok(state.list.includes(name));
     assert.ok(state.people.includes(name));
-    assert.equal(state.selection,state.friends[0].fp);
+    assert.equal(state.selection,state.friends.find(x=>x.name===name).fp);
   }
   await caller.locator("#modernHangup").click();
   await Promise.all([caller,callee].map(p=>p.waitForFunction(()=>
