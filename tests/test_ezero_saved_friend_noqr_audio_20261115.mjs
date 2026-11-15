@@ -319,6 +319,39 @@ try{
     throw error;
   }
   console.log("CONTACT_FIRST_NOQR_AUDIO_HANGUP_STOPS_MIC: PASS");
+  // The same saved friend can be called again: no new QR, no new save,
+  // no camera permission, and genuine microphone/audio tracks on both phones.
+  const priorInvite=await caller.evaluate(()=>window.__oneInvite);
+  const priorMedia=await callee.evaluate(()=>window.__mediaCalls.length);
+  await caller.locator("#ezeroContactAudio").click();
+  await caller.waitForFunction(old=>!!window.__oneInvite&&window.__oneInvite!==old,
+    priorInvite,{timeout:30000});
+  assert.equal(await caller.locator("#ezeroOneQrBox").isHidden(),true);
+  assert.equal(await caller.locator("#ezeroOneCopyInvite").isDisabled(),true);
+  await callee.locator("#ezeroTrustedIncoming").waitFor({state:"visible",timeout:15000});
+  assert.equal(await callee.evaluate(()=>window.__mediaCalls.length),priorMedia,
+    "Repeat audio incoming must not access mic without accept");
+  await callee.locator("#ezeroTrustedIncoming button").first().click();
+  await callee.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:12000});
+  await callee.locator("#ezeroAutoAccept").click();
+  await Promise.all([caller,callee].map(p=>p.waitForFunction(()=>
+    window.EZERO_VOICE_TRANSPORT?.connected()===true,{timeout:45000})));
+  for(const phone of [caller,callee]){
+    const state=await phone.evaluate(()=>({
+      audio:document.getElementById("localVideo")?.srcObject?.getAudioTracks()
+        ?.filter(t=>t.readyState==="live").length||0,
+      video:document.getElementById("localVideo")?.srcObject?.getVideoTracks()
+        ?.filter(t=>t.readyState==="live").length||0
+    }));
+    assert.equal(state.audio,1);assert.equal(state.video,0);
+  }
+  await caller.locator("#hangup").click();
+  await callee.waitForFunction(()=>{
+    const tracks=document.getElementById("localVideo")?.srcObject?.getTracks()||[];
+    return !window.EZERO_VOICE_TRANSPORT?.connected()&&
+      tracks.every(t=>t.readyState==="ended");
+  },{timeout:15000});
+  console.log("SAVED_FRIEND_REPEAT_AUDIO_NO_QR_AND_MIC_CLEANUP: PASS");
 }finally{
   await Promise.all(contexts.map(ctx=>ctx.close().catch(()=>{})));
   await browser.close();
