@@ -7,6 +7,7 @@ on:
       - 'js/ezero_contact_first_call_dock_v0_1.js'
       - 'js/ezero_trusted_stage_one_request_v0_1.js'
       - 'js/ezero_trusted_friends_controls_candidate_v0_1.js'
+      - 'js/ezero_saved_friend_stage_people_v0_1.js'
       - 'tests/test_ezero_saved_friend_contact_retention_original_20261115.mjs'
       - 'tests/test_ezero_contact_first_call_20261106.mjs'
       - '.github/workflows/ezero_saved_friend_original_release_gate_20261115.yml'
@@ -35,7 +36,7 @@ jobs:
           if grep -Ev '^(ezero_trusted_friends_staging_20261106\.html|js/ezero_contact_first_call_dock_v0_1\.js|js/ezero_trusted_stage_one_request_v0_1\.js|js/ezero_trusted_friends_controls_candidate_v0_1\.js|tests/test_ezero_saved_friend_contact_retention_original_20261115\.mjs|tests/test_ezero_contact_first_call_20261106\.mjs|\.github/workflows/ezero_saved_friend_original_release_gate_20261115\.yml)$' /tmp/ezero-original-release-files.txt; then
             echo 'OUT_OF_SCOPE_RELEASE_FILE'; exit 1
           fi
-          for source in js/ezero_contact_first_call_dock_v0_1.js js/ezero_trusted_stage_one_request_v0_1.js js/ezero_trusted_friends_controls_candidate_v0_1.js tests/test_ezero_saved_friend_contact_retention_original_20261115.mjs; do
+          for source in js/ezero_contact_first_call_dock_v0_1.js js/ezero_trusted_stage_one_request_v0_1.js js/ezero_trusted_friends_controls_candidate_v0_1.js js/ezero_saved_friend_stage_people_v0_1.js tests/test_ezero_saved_friend_contact_retention_original_20261115.mjs; do
             node --check "$source"
           done
           grep -Fq 'src="./js/ezero_contact_first_call_dock_v0_1.js?v=20261115friends3"' ezero_trusted_friends_staging_20261106.html
