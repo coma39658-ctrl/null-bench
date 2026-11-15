@@ -4155,13 +4155,70 @@ function drawHistogram(vals,observed){
 <script>
 window.EZERO_PUBLIC_AI_ENDPOINT = "https://ezero-qwen-public-siteaware-v0-3.coma39658.workers.dev/api/ezero-agent/v0.1/ask";
 window.EZERO_PUBLIC_AI_ENABLED = true;
+// Keep request permission separate from the user-visible health claim.
+window.EZERO_PUBLIC_AI_HEALTH_STATUS = "CHECKING";
+window.EZERO_PUBLIC_AI_HEALTH_VERIFIED = false;
+
+function renderQwenFrontStatus(state) {
+  const status = document.getElementById("ezeroQwenFrontStatus");
+  const description = document.getElementById("ezeroQwenFrontDescription");
+  const button = document.getElementById("ezeroQwenFrontOpen");
+
+  const views = {
+    CHECKING: {
+      label: "Checking AI availability…",
+      description: "Live availability has not yet been verified. Verified local guidance remains available.",
+      background: "#e0f2fe",
+      color: "#075985",
+      border: "#7dd3fc"
+    },
+    ONLINE: {
+      label: "Governed AI Live · v0.3",
+      description: "The governed Qwen gateway passed its public health check. Responses remain subject to evidence boundaries, fail-closed safety rules, and registered E-ZERO limitations.",
+      background: "#dcfce7",
+      color: "#166534",
+      border: "#86efac"
+    },
+    OFFLINE: {
+      label: "Public AI Off",
+      description: "The public AI health check reports that the gateway is unavailable or disabled. Verified local guidance remains available.",
+      background: "#fff3cd",
+      color: "#7a5a00",
+      border: "#e8cf7a"
+    },
+    UNVERIFIED: {
+      label: "AI availability unverified",
+      description: "The health check did not confirm live availability. You may still try a request; the gateway and response validator remain authoritative. Verified local guidance remains available.",
+      background: "#fff3cd",
+      color: "#7a5a00",
+      border: "#e8cf7a"
+    }
+  };
+
+  const view = views[state] || views.UNVERIFIED;
+  if (status) {
+    status.textContent = view.label;
+    status.style.background = view.background;
+    status.style.color = view.color;
+    status.style.borderColor = view.border;
+  }
+  if (description) description.textContent = view.description;
+  if (button) button.textContent = "🤖 Open E-ZERO AI Studio";
+}
+
 window.addEventListener("load", async function () {
   try {
     const response = await fetch(
       "https://ezero-qwen-public-siteaware-v0-3.coma39658.workers.dev/health",
       { cache: "no-store" }
     );
-    if (!response.ok) return;
+
+    if (!response.ok) {
+      window.EZERO_PUBLIC_AI_HEALTH_STATUS = "UNVERIFIED";
+      renderQwenFrontStatus("UNVERIFIED");
+      return;
+    }
+
     const data = await response.json();
     const enabled =
       data.status === "ONLINE" &&
@@ -4169,54 +4226,18 @@ window.addEventListener("load", async function () {
       data.evidence_authority === false;
 
     window.EZERO_PUBLIC_AI_ENABLED = enabled;
-
-    const status = document.getElementById("ezeroQwenFrontStatus");
-    const description = document.getElementById("ezeroQwenFrontDescription");
-    const button = document.getElementById("ezeroQwenFrontOpen");
-
-    if (status) {
-      status.textContent = enabled ? "Governed AI Live · v0.3" : "Public AI Off";
-    }
-    if (description) {
-      description.textContent = enabled
-        ? "Qwen AI is available through the E-ZERO governed gateway."
-        : "Public AI is unavailable. Verified local guidance remains available.";
-    }
-    if (button) {
-      button.textContent = enabled
-        ? "🤖 Open E-ZERO AI Studio"
-        : "🤖 Open E-ZERO AI Studio";
-    }
+    window.EZERO_PUBLIC_AI_HEALTH_VERIFIED = enabled;
+    window.EZERO_PUBLIC_AI_HEALTH_STATUS = enabled ? "ONLINE" : "OFFLINE";
+    renderQwenFrontStatus(window.EZERO_PUBLIC_AI_HEALTH_STATUS);
   } catch (_) {
-    // A failed health probe does not block an authorized user request.
-    // The gateway and response validator remain authoritative.
+    window.EZERO_PUBLIC_AI_HEALTH_STATUS = "UNVERIFIED";
+    renderQwenFrontStatus("UNVERIFIED");
   }
 });
 
 (function () {
-  const enabled = window.EZERO_PUBLIC_AI_ENABLED === true;
-  const status = document.getElementById("ezeroQwenFrontStatus");
-  const description = document.getElementById("ezeroQwenFrontDescription");
-  const openButton = document.getElementById("ezeroQwenFrontOpen");
-
-  if (status) {
-    status.textContent = enabled ? "Governed AI Live · v0.3" : "Public AI Off";
-    status.style.background = enabled ? "#dcfce7" : "#fff3cd";
-    status.style.color = enabled ? "#166534" : "#7a5a00";
-    status.style.borderColor = enabled ? "#86efac" : "#e8cf7a";
-  }
-
-  if (description) {
-    description.textContent = enabled
-      ? "Qwen AI is available through the E-ZERO governed gateway. Responses remain subject to evidence boundaries, fail-closed safety rules, and registered E-ZERO limitations."
-      : "The governed Qwen gateway is configured, but Public AI is not enabled yet. Verified deterministic E-ZERO guidance remains available.";
-  }
-
-  if (openButton) {
-    openButton.textContent = enabled
-      ? "🤖 Open E-ZERO AI Studio"
-      : "🤖 Open E-ZERO AI Studio";
-  }
+  const state = window.EZERO_PUBLIC_AI_HEALTH_STATUS || "CHECKING";
+  renderQwenFrontStatus(state);
 })();
 </script>
 
