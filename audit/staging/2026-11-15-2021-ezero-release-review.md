@@ -53,3 +53,27 @@ NO RELEASE for Secure App. Keep PR draft and staging isolated. Verify failure lo
 - Render sent a subprocessor notice (2026-11-12) effective 2026-11-20 adding Anthropic, Grafana Labs, Temporal and TypeSafe AI, all US-based. DPA objection deadline stated in the notice: 2026-11-20. No email or account change was made.
 - No new tracking, permissions, paid accounts, billing, production config, call engine, user data or live Render deployment changes were made.
 - Decision remains **NO RELEASE**: public HTTP/assets/CSP response verification, privacy review, live third-party smoke and real two-phone evidence are incomplete; the new PR #156 test fix has no post-fix CI result yet. No rollback was performed because no safe rollback evidence or user-approved production change was available.
+
+
+## 22:10 CI and AI follow-up — 2026-11-15
+
+### PR #156 test correction result
+- The test-only fixture correction commit `f1c9748b61bab92db8c3fbb3a9841cb13c907b35` did trigger a fresh PR run set on the new head.
+- On that exact head: Original Page Names + No-QR Release Gate run 43751310653 SUCCESS; Frozen Secure Connect Regression Gate run 43751310643 SUCCESS; Signed QR and Real P2P Call Lab QA run 43751310699 SUCCESS; Evidence Registry Validator run 43751305472 SUCCESS; Local Device Preview QA run 43751310622 SUCCESS; AI Studio Voice Share/Install run 43751310648 SUCCESS; AI Studio Local Video Frame/Consent QA run 43751310656 SUCCESS.
+- The frozen gate still SKIPPED `Verify isolated media evidence cryptography, consent controls and ten-minute TTL`. Signed QR/P2P QA is Chromium lab evidence, not two physical Android phones or live Cloudflare proof.
+- PR #156 is still OPEN/DRAFT at `f1c9748b61bab92db8c3fbb3a9841cb13c907b35`; no merge or deployment occurred. The test-only setup defect is corrected and its automated PR checks pass, but release blockers remain.
+
+### Null Bench page / analytics static review
+- At main SHA `a830a73`, all 18 relative assets referenced by `index.html` exist in the same Git tree. `#try` states that null-model processing occurs locally in the browser and links to the Urdu/English/Arabic professional guide.
+- The main page root is English (`lang=en`) with Urdu, Arabic and English language choices. No CSP meta policy is present in `index.html`; Secure App's separate HTML page does have its strict CSP meta policy.
+- Existing GA4 is loaded immediately via `gtag('config','G-YTVCF5JZCY')`; no Consent Mode call, cookie notice, or explicit opt-out was found in the inspected source. The three event payloads observed are aggregate demo/graph statistics (edge/node counts, null sample/swap counts, transitivity and null distribution statistics); no chat, call, QR, photo, email, fingerprint, IP or user identifier fields were found. Retention and GA4-side controls were not accessible here. No new tracking was added.
+- No public HTTP or response-header verification was possible, so source inspection does not prove deployed CSP, caching, or asset bytes.
+
+### Qwen gateway budget and readiness
+- Default-branch source SHA remains `39adf3a429503f86cdc1f248f9080af50548ee03`; daily QA run 43699933545 SUCCESS on 2026-11-15.
+- Gateway source uses environment-provided upstream URL/model/API key (key value not read), a 120-second default upstream timeout, default rate limits of 10 requests/client and 60 global requests per 60-second window, and bounded answer token limits. No hard monetary spend/budget cap was found in the inspected gateway source.
+- Render Qwen service remains on Free Render plan, auto-deploy off, pinned to `qwen-overview-release-prep-v0.1` / live commit `43178152ceab138345e89d438956acb0f8deeb40` (2026-10-09), not the newer default-branch SHA. The daily QA is source/safety/regression testing, not proof of a live upstream provider or web-search response. Provider account balance, contractual budget and live availability remain UNKNOWN.
+- No Qwen deployment, paid provider activation, account, secret, permission or billing change was made.
+
+### Release decision
+- The PR #156 test-only correction is an automated PASS at its new head, but the overall Secure App release gate remains **NO RELEASE** due to skipped media-evidence step, absent physical two-phone proof, absent live public HTTP/Cloudflare smoke, and unverified privacy/consent and deployed asset hashes.
