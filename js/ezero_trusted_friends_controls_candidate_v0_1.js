@@ -13,6 +13,8 @@
   const api=window.EZERO_TRUSTED_FRIEND_LAB;
   if(!root||!api?.enabled?.())return;
   const FRIENDS_KEY="ezero_secure_connect_staging_fingerprints_v0_1";
+  const RESUME_INBOX_KEY="ezero_trusted_inbox_one_navigation_resume_v0_1";
+  const RESUME_TTL_MS=60000;
   const FP=/^[a-f0-9]{64}$/;
   const $=tag=>document.createElement(tag);
   let active=false,pending=null,incoming=null,pendingTimer=null;
@@ -109,8 +111,17 @@
       incoming=null;paintIncoming();
       // This is an EXPLICIT user click and only opens the existing
       // validated invitation. The next page still requires Accept.
-      if(api.safeInvite(selected.invite,selected.kind))
+      if(api.safeInvite(selected.invite,selected.kind)){
+        // The existing WebRTC invitation may reload this same-origin page
+        // (notably when changing ?mode=audio to ?mode=video). Keep the
+        // user's already-granted foreground inbox permission for exactly ONE
+        // navigation, never auto-accept media or persist any device key.
+        if(active&&!document.hidden){
+          try{sessionStorage.setItem(RESUME_INBOX_KEY,
+            String(Date.now()+RESUME_TTL_MS));}catch(_){}
+        }
         window.location.assign(selected.invite);
+      }
     });
     const dismiss=button(t("dismiss"),()=>{incoming=null;paintIncoming();});
     view.append(heading,review,dismiss);
@@ -257,4 +268,19 @@
     clearPending();outgoingInFlight=false;outgoingResult=null;
     api.closeOwnerInbox();
   });
+  // Only the SAME TAB's explicit incoming-review navigation can resume
+  // the already-enabled foreground inbox. One-time, 60-second bound;
+  // it never runs in a hidden tab or grants trust/starts media.
+  let resumeUntil=0;
+  try{
+    resumeUntil=Number(sessionStorage.getItem(RESUME_INBOX_KEY)||0);
+    sessionStorage.removeItem(RESUME_INBOX_KEY);
+  }catch(_){}
+  if(!document.hidden&&Number.isSafeInteger(resumeUntil)&&
+     resumeUntil>Date.now()&&resumeUntil<=Date.now()+RESUME_TTL_MS&&
+     contacts().length>0){
+    api.openOwnerInbox().then(()=>{
+      active=true;status("ownerOn");
+    }).catch(()=>{active=false;status("offline",true);});
+  }
 })();
