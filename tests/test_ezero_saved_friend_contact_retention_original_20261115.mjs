@@ -194,6 +194,10 @@ try{
   const caller=await createPhone("CONTACT_CALLER");
   assert.equal(await caller.locator("#ezeroContactFirstDock").isVisible(),true);
   assert.equal(await caller.locator("#ezeroContactVideo").isEnabled(),false);
+  assert.equal(await caller.locator("#ezeroFriendSavePanel").isVisible(),true,
+    "Save Friend instructions must be visible before the first call");
+  assert.equal(await caller.locator("#ezeroSaveConnectedFriend").isEnabled(),false,
+    "Saving must remain disabled until a real verified WebRTC connection exists");
   assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),0,
     "Contact list itself must never activate microphone or camera");
   await caller.locator("#ezeroFriendListToggle").click();
