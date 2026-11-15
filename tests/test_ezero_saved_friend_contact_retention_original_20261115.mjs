@@ -206,13 +206,16 @@ try{
   await caller.locator("#ezeroFriendSideClose").click();
   console.log("CONTACT_FIRST_EMPTY_LIST_NO_MEDIA_OR_FAKE_FRIEND: PASS");
   const existingFriend={fp:"a".repeat(64),name:"Existing Saved Friend"};
-  await caller.evaluate(friend=>localStorage.setItem(
-    "ezero_secure_connect_staging_fingerprints_v0_1",JSON.stringify([friend])),existingFriend);
-  // The first ever call still uses real explicit QR/accept, no saved friend.
+  // Generate the first-contact QR invitation before seeding an older contact.
+  // Otherwise the saved-friend UI correctly switches to direct dialing and
+  // this test would accidentally bypass the first-pairing QR path it intends
+  // to exercise.
   await caller.locator('[data-modern-select="audio"]').click();
   await caller.waitForFunction(()=>!!window.__oneInvite,{timeout:12000});
   const first=await caller.evaluate(()=>window.__oneInvite);
   assert.match(first,/mode=audio#room=/);
+  await caller.evaluate(friend=>localStorage.setItem(
+    "ezero_secure_connect_staging_fingerprints_v0_1",JSON.stringify([friend])),existingFriend);
   const callee=await createPhone("CONTACT_CALLEE");
   await callee.evaluate(friend=>localStorage.setItem(
     "ezero_secure_connect_staging_fingerprints_v0_1",JSON.stringify([friend])),existingFriend);
