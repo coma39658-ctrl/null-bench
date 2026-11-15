@@ -308,6 +308,31 @@ try{
       (!s||s.getTracks().every(t=>t.readyState==="ended"));
   },{timeout:15000});
   console.log("CONTACT_FIRST_VIDEO_HANGUP_STOPS_REMOTE_CAMERA: PASS");
+  // An explicitly revoked recipient trust permission must FAIL closed.
+  // Only in that case should the fresh signed QR/link fallback become visible.
+  await callee.locator("#ezeroTrustedEnable").click();
+  await callee.waitForFunction(()=>
+    document.getElementById("ezeroTrustedStatus")?.textContent.includes("تیار"),
+    {timeout:15000});
+  await callee.locator("#ezeroTrustedList .ezero-trusted-friend-row button").nth(1).click();
+  await callee.waitForFunction(()=>
+    document.getElementById("ezeroTrustedStatus")?.textContent.includes("واپس"),
+    {timeout:15000});
+  assert.equal(permitted.get(calleeFp)?.has(callerFp),false,
+    "Revoked trust must not be silently re-granted");
+  const previousInvite=await caller.evaluate(()=>window.__oneInvite);
+  await caller.locator("#ezeroContactVideo").click();
+  await caller.waitForFunction(old=>
+    !!window.__oneInvite&&window.__oneInvite!==old,
+    previousInvite,{timeout:30000});
+  await caller.locator("#ezeroOneQrBox").waitFor({state:"visible",timeout:15000});
+  assert.equal(await caller.locator("#ezeroOneQr svg").count(),1,
+    "On a genuine direct-delivery failure the existing signed QR is restored");
+  assert.equal(await caller.locator("#ezeroOneCopyInvite").isEnabled(),true,
+    "After failure, link copy is available as a deliberate fallback");
+  assert.match(await caller.locator("#ezeroOneScanStatus").innerText(),
+    /براہِ راست کال نہیں پہنچ سکی/);
+  console.log("SAVED_FRIEND_REVOKED_TRUST_RESTORES_QR_FALLBACK: PASS");
 }finally{
   await Promise.all(contexts.map(ctx=>ctx.close().catch(()=>{})));
   await browser.close();
