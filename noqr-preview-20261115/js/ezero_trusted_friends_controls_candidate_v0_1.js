@@ -111,7 +111,11 @@
       incoming=null;paintIncoming();
       // This is an EXPLICIT user click and only opens the existing
       // validated invitation. The next page still requires Accept.
-      if(api.safeInvite(selected.invite,selected.kind)){
+      const localLink=api.localInvite?.(selected.invite,selected.kind);
+      if(localLink){
+        // The Worker authenticates only the original call URL. Once the user
+        // deliberately reviews it, open the same signed room on the preview
+        // page; preserve its one-time token, mode and explicit media consent.
         // The existing WebRTC invitation may reload this same-origin page
         // (notably when changing ?mode=audio to ?mode=video). Keep the
         // user's already-granted foreground inbox permission for exactly ONE
@@ -120,7 +124,7 @@
           try{sessionStorage.setItem(RESUME_INBOX_KEY,
             String(Date.now()+RESUME_TTL_MS));}catch(_){}
         }
-        window.location.assign(selected.invite);
+        window.location.assign(localLink);
       }
     });
     const dismiss=button(t("dismiss"),()=>{incoming=null;paintIncoming();});
