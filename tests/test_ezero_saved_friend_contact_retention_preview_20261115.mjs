@@ -63,6 +63,15 @@ function mockTrustedInbox(ws){
       }
       assert.ok(/^[a-f0-9]{32}$/.test(msg.callId));
       assert.ok(["audio","video"].includes(msg.kind));
+      // The real staging Worker accepts ONLY its original exact public route.
+      // A preview-path invite used to pass mocks but fail on real phones.
+      const u=new URL(msg.invite);
+      assert.equal(u.origin,"https://coma39658-ctrl.github.io");
+      assert.equal(u.pathname,"/null-bench/ezero_trusted_friends_staging_20261106.html",
+        "Worker rejects direct calls carrying preview-path invitations");
+      assert.equal(u.searchParams.size,1);
+      assert.equal(u.searchParams.get("mode"),msg.kind);
+      assert.match(u.hash,/^#room=[A-Za-z0-9_-]{32}\.[A-Za-z0-9_-]{43}$/);
       pendingCalls.set(msg.callId,client);
       owner.ws.send(JSON.stringify({t:"incoming",from:client.fp,
         kind:msg.kind,callId:msg.callId,invite:msg.invite}));
@@ -258,18 +267,13 @@ try{
   const lastInvite=await caller.evaluate(()=>window.__oneInvite);
   const before=await caller.evaluate(()=>window.__mediaCalls.length);
   const receivedMediaBefore=await callee.evaluate(()=>window.__mediaCalls.length);
-  await caller.locator('[data-modern-select="video"]').click();
-  assert.equal(await caller.locator("#ezeroFriendSidePanel").isVisible(),true,
-    "Video button must request friend selection instead of silently calling anyone");
-  assert.equal(await caller.evaluate(()=>window.__oneInvite),lastInvite,
-    "No unselected outgoing call may create a new QR or activate media");
-  assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),before);
-  await caller.locator("#ezeroFriendSideList .ezero-friend-option").filter({
-    hasText:"Second Phone"
-  }).click();
+  // First successful QR call + explicit Save Friend selected this person.
+  // The second and third calls should not ask for friend selection again.
   assert.equal(await caller.locator("#ezeroSelectedFriendName").innerText(),"Second Phone");
   assert.equal(await caller.locator("#ezeroContactVideo").isEnabled(),true);
   assert.equal(await caller.locator("#ezeroFriendSidePanel").isHidden(),true);
+  assert.equal(await caller.evaluate(()=>window.__oneInvite),lastInvite);
+  assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),before);
   await caller.locator("#ezeroContactVideo").click();
   await caller.waitForFunction(old=>
     !!window.__oneInvite&&window.__oneInvite!==old,lastInvite,{timeout:30000});
@@ -300,6 +304,8 @@ try{
   assert.equal(pendingCalls.size,0,"Receipt only means visible, not accepted");
   console.log("SAVED_FRIEND_NO_QR_FOREGROUND_INCOMING_VISIBLE: PASS");
   await callee.locator("#ezeroTrustedIncoming button").first().click();
+  assert.ok(new URL(callee.url()).pathname.includes("/noqr-preview-20261115/"),
+    "Receiver must remain on the isolated preview after reviewing a signed Worker invite");
   await callee.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:12000});
   assert.equal(await callee.locator("#ezeroOneIncomingHeading").innerText(),
     "📹 آنے والی ویڈیو کال — قبول کریں؟");
