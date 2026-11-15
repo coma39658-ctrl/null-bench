@@ -11,7 +11,7 @@
   const KEY="ezero_secure_connect_staging_local_profile_v0_1";
   const PHOTO=/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
   const copy={
-    ur:{"cameraPhoto":"📷 کیمرے سے تصویر لیں","galleryPhoto":"🖼️ گیلری سے منتخب کریں","photoHint":"کیمرہ صرف بٹن دبانے پر کھلے گا؛ تصویر کبھی خودکار اپ لوڈ نہیں ہوگی۔","photoReady":"✓ تصویر تیار ہے۔ پروفائل محفوظ کریں۔","yourPhoto":"پروفائل تصویر (اختیاری)",editProfile:"👤 میری E-ZERO پروفائل — نام اور تصویر",
+    ur:{"cameraPhoto":"📷 کیمرے سے تصویر لیں","galleryPhoto":"🖼️ گیلری سے منتخب کریں","photoHint":"کیمرہ صرف بٹن دبانے پر کھلے گا؛ تصویر کبھی خودکار اپ لوڈ نہیں ہوگی۔","photoReady":"✓ تصویر تیار ہے۔ پروفائل محفوظ کریں۔","yourPhoto":"ڈی پی تصویر (لازمی)",editProfile:"👤 میری E-ZERO پروفائل — نام اور تصویر",
       profilePrivacy:"نام اور تصویر صرف اس فون پر محفوظ رہیں گے؛ دونوں فون کے محفوظ رابطے اور آپ کی اجازت کے بعد ہی دوست کو بھیجے جائیں گے۔",
       yourName:"آپ کا نام",shareConsent:"میرا نام اور منتخب تصویر حقیقی کال کنکشن بننے پر دوست کو شیئر کرنے کی اجازت ہے؛ میں اسے بعد میں بند کرسکتا ہوں۔",
       saveProfile:"✓ پروفائل محفوظ کریں",profileLocal:"پروفائل ابھی صرف اس فون پر ہے۔",
@@ -20,10 +20,10 @@
       saved:"✓ پروفائل اس فون پر محفوظ ہے۔",sharing:"✓ محفوظ رابطے پر آپ کی منظور شدہ پروفائل شیئر ہوئی ہے۔",
       notSharing:"پروفائل محفوظ ہے، لیکن دوسرے فون کو شیئر نہیں ہوئی۔",
       invalid:"1 سے 40 حروف تک اپنا نام درج کریں۔",
-      photoRejected:"یہ تصویر بہت بڑی، غیر معاون یا خراب ہے۔ JPEG، PNG یا WebP منتخب کریں۔",
+      photoRejected:"یہ تصویر بہت بڑی، غیر معاون یا خراب ہے۔ JPEG، PNG یا WebP منتخب کریں۔",photoRequired:"دوستوں سے رابطے کے لیے اپنی ڈی پی تصویر منتخب کریں۔",shareRequired:"دوستوں کی فہرست میں پہچان کے لیے نام اور تصویر شیئر کرنے کی اجازت منتخب کریں۔",
       storeError:"اس براؤزر میں مقامی پروفائل محفوظ نہ ہو سکی۔",profileReceived:"دوست کی فراہم کردہ پروفائل",
       idPrefix:"تصدیق شدہ عارضی ڈیجیٹل آئی ڈی"},
-    en:{"cameraPhoto":"📷 Take a photo","galleryPhoto":"🖼️ Choose from gallery","photoHint":"The camera opens only when you choose it. Photos are never automatically uploaded.","photoReady":"✓ Photo is ready. Save your profile.","yourPhoto":"Profile photo (optional)",editProfile:"👤 My E-ZERO profile — name & photo",
+    en:{"cameraPhoto":"📷 Take a photo","galleryPhoto":"🖼️ Choose from gallery","photoHint":"The camera opens only when you choose it. Photos are never automatically uploaded.","photoReady":"✓ Photo is ready. Save your profile.","yourPhoto":"Display photo (required)",editProfile:"👤 My E-ZERO profile — name & photo",
       profilePrivacy:"Your name and photo stay on this phone until you opt in and a verified call connection is established.",
       yourName:"Your name",shareConsent:"Share my name and chosen photo with my friend after a real secure call connection. I can turn this off later.",
       saveProfile:"✓ Save profile",profileLocal:"Your profile is currently local to this phone.",
@@ -32,10 +32,10 @@
       saved:"✓ Profile saved only on this phone.",sharing:"✓ Approved profile shared over the secure connection.",
       notSharing:"Profile saved locally; not shared with your peer.",
       invalid:"Enter a name of 1–40 characters.",
-      photoRejected:"The picture is too large, unsupported, or invalid. Choose JPEG, PNG or WebP.",
+      photoRejected:"The picture is too large, unsupported, or invalid. Choose JPEG, PNG or WebP.",photoRequired:"Add a display photo before connecting with friends.",shareRequired:"Allow sharing your name and photo for mutual friend recognition.",
       storeError:"Browser storage prevented saving your local profile.",profileReceived:"Friend's self-declared profile",
       idPrefix:"Verified temporary digital ID"},
-    ar:{"cameraPhoto":"📷 التقاط صورة بالكاميرا","galleryPhoto":"🖼️ اختر من المعرض","photoHint":"لا تفتح الكاميرا إلا بعد اختيارك؛ ولا تُرفع الصورة تلقائيًا.","photoReady":"✓ الصورة جاهزة. احفظ الملف الشخصي.","yourPhoto":"الصورة الشخصية (اختياري)",editProfile:"👤 ملفي في E-ZERO — الاسم والصورة",
+    ar:{"cameraPhoto":"📷 التقاط صورة بالكاميرا","galleryPhoto":"🖼️ اختر من المعرض","photoHint":"لا تفتح الكاميرا إلا بعد اختيارك؛ ولا تُرفع الصورة تلقائيًا.","photoReady":"✓ الصورة جاهزة. احفظ الملف الشخصي.","yourPhoto":"الصورة الشخصية (مطلوبة)",editProfile:"👤 ملفي في E-ZERO — الاسم والصورة",
       profilePrivacy:"يبقى الاسم والصورة على هذا الهاتف ولا تُرسلان إلا بموافقتك بعد اتصال مكالمة آمن.",
       yourName:"اسمك",shareConsent:"أسمح بمشاركة اسمي وصورتي المختارة مع صديقي بعد اتصال آمن حقيقي؛ ويمكنني إلغاء الموافقة لاحقًا.",
       saveProfile:"✓ حفظ الملف",profileLocal:"الملف محفوظ محليًا على هذا الهاتف فقط.",
@@ -44,7 +44,7 @@
       saved:"✓ حُفظ الملف على هذا الهاتف فقط.",sharing:"✓ تمت مشاركة الملف الموافق عليه عبر اتصال آمن.",
       notSharing:"الملف محفوظ محليًا ولم يُشارك مع الصديق.",
       invalid:"أدخل اسمًا من حرف واحد إلى 40 حرفًا.",
-      photoRejected:"الصورة كبيرة جدًا أو غير مدعومة أو غير صالحة. اختر JPEG أو PNG أو WebP.",
+      photoRejected:"الصورة كبيرة جدًا أو غير مدعومة أو غير صالحة. اختر JPEG أو PNG أو WebP.",photoRequired:"اختر صورة شخصية قبل الاتصال بالأصدقاء.",shareRequired:"وافق على مشاركة اسمك وصورتك لإضافة الأصدقاء.",
       storeError:"منع المتصفح حفظ الملف المحلي.",profileReceived:"ملف الصديق الذي اختاره",
       idPrefix:"معرّف رقمي مؤقت تم التحقق منه"}
   };
@@ -53,6 +53,9 @@
   const validAvatar=v=>typeof v==="string"&&v.length<=12000&&(v===""||PHOTO.test(v));
   let profile={name:"",avatar:"",share:false};
   let draftAvatar="",connected=false,lastRemote=null,lastFingerprint="",pendingRemote=null,sentThisSession=false;
+  // WebRTC can report an open DataChannel before the peer's final connected
+  // event. Bounded post-handshake sends recover this race without polling.
+  let profileHandoffTimers=[];
   function read(){
     try{
       const p=JSON.parse(localStorage.getItem(KEY)||"null");
@@ -90,7 +93,12 @@
       showAvatar("ezeroHeaderAvatar","ezeroHeaderInitial",profile.name,profile.avatar);
     updateLocalHeaderLabel();
   }
+  function cancelProfileHandoff(){
+    for(const timer of profileHandoffTimers)clearTimeout(timer);
+    profileHandoffTimers=[];
+  }
   function resetRemote(){
+    cancelProfileHandoff();
     connected=false;lastRemote=null;lastFingerprint="";pendingRemote=null;sentThisSession=false;
     $("ezeroPeerProfileCard").hidden=true;
     $("ezeroPeerDisplayName").textContent=t("noProfile");
@@ -117,9 +125,28 @@
   function sendProfile(force=false){
     const transport=window.EZERO_PEER_PROFILE_TRANSPORT;
     if((sentThisSession&&!force)||!profile.share||!profile.name||!transport?.connected())return false;
-    const good=transport.send(profile.name,profile.avatar);
+    let good=false;
+    try{good=transport.send(profile.name,profile.avatar)===true;}
+    catch(_){good=false;}
     if(good){sentThisSession=true;labelStatus("sharing");}
     return good;
+  }
+  function reconcileProfileHandoff(){
+    cancelProfileHandoff();
+    const transport=window.EZERO_PEER_PROFILE_TRANSPORT;
+    // Retransmit only a consented name/photo to the SAME signed, live peer.
+    if(!profile.share||!profile.name||!transport?.connected())return;
+    const boundPeer=transport.peerFingerprint();
+    if(!/^[a-f0-9]{64}$/.test(boundPeer))return;
+    for(const delay of [200,900]){
+      const timer=setTimeout(()=>{
+        if(!profile.share||!profile.name)return;
+        const live=window.EZERO_PEER_PROFILE_TRANSPORT;
+        if(live?.connected()===true&&live.peerFingerprint()===boundPeer)
+          sendProfile(true);
+      },delay);
+      profileHandoffTimers.push(timer);
+    }
   }
   profile=read();updateLocal();
   $("ezeroMyName").addEventListener("input",()=>{
@@ -166,6 +193,7 @@
       draftAvatar=encoded;
       showAvatar("ezeroMyAvatar","ezeroMyInitial",$("ezeroMyName").value,draftAvatar);
       labelStatus("photoReady");
+      document.dispatchEvent(new CustomEvent("ezero:profile-photo-selected"));
     }catch(_){labelStatus("photoRejected");}
     finally{
       input.value="";
@@ -176,15 +204,30 @@
   }
   $("ezeroCameraPhoto").addEventListener("change",()=>onPhotoChosen("ezeroCameraPhoto"));
   $("ezeroMyPhoto").addEventListener("change",()=>onPhotoChosen("ezeroMyPhoto"));
-  $("ezeroSaveProfile").addEventListener("click",()=>{
+  $("ezeroSaveProfile").addEventListener("click",async()=>{
     const name=cleanName($("ezeroMyName").value);
     if(name.length<1||name.length>40){labelStatus("invalid");return;}
-    const next={name,avatar:validAvatar(draftAvatar)?draftAvatar:"",share:$("ezeroShareProfile").checked};
-    try{localStorage.setItem(KEY,JSON.stringify(next));}
-    catch(_){labelStatus("storeError");return;}
-    profile=next;updateLocal();
-    labelStatus(profile.share?"saved":"notSharing");
-    sendProfile(true);
+    if(!draftAvatar||!validAvatar(draftAvatar)){labelStatus("photoRequired");return;}
+    if($("ezeroShareProfile").checked!==true){labelStatus("shareRequired");return;}
+    const next={name,avatar:draftAvatar,share:true};
+    const save=$("ezeroSaveProfile");
+    save.disabled=true;
+    try{
+      // An explicit Save Profile click also persists the same P-256 key
+      // already used for current-page signed WebRTC/QR. Without this step
+      // a reload could silently generate a NEW identity and break contacts.
+      if(await window.EZERO_DEVICE_IDENTITY_CONTROL?.saveAfterConsent()!==true)
+        throw Error("DURABLE_DEVICE_IDENTITY_UNAVAILABLE");
+      localStorage.setItem(KEY,JSON.stringify(next));
+      profile=next;updateLocal();
+      document.dispatchEvent(new CustomEvent("ezero:profile-local-saved",{
+        detail:{name:profile.name,hasPhoto:!!profile.avatar}
+      }));
+      labelStatus(profile.share?"saved":"notSharing");
+      sendProfile(true);
+      reconcileProfileHandoff();
+    }catch(_){labelStatus("storeError");}
+    finally{save.disabled=false;}
   });
   function localize(){
     for(const el of document.querySelectorAll("[data-profile-i18n]")){
@@ -201,11 +244,11 @@
   }
   $("language").addEventListener("change",localize);
   document.addEventListener("ezero:channel-state",e=>{
-    if(e.detail?.connected){showPeerConnection();sendProfile();}
+    if(e.detail?.connected){showPeerConnection();sendProfile();reconcileProfileHandoff();}
     else resetRemote();
   });
   document.addEventListener("ezero:call-status",e=>{
-    if(e.detail?.stage==="connected"){showPeerConnection();sendProfile();}
+    if(e.detail?.stage==="connected"){showPeerConnection();sendProfile();reconcileProfileHandoff();}
     else if(["offline","iceNoRoute","idle"].includes(e.detail?.stage))resetRemote();
   });
   document.addEventListener("ezero:profile-received",e=>{

@@ -129,7 +129,12 @@
   window.EZERO_TRUSTED_SAVED_CALL=Object.freeze({
     prepare:prepareSavedCall,
     hasContact:fp=>contacts().some(x=>x.fp===fp),
-    isPending:()=>Boolean(pending||outgoingInFlight)
+    isPending:()=>Boolean(pending||outgoingInFlight),
+    cancelForQr:()=>{
+      // Only after a deliberate user tap on New Call QR. Do not leave
+      // a stale selected-contact receipt waiting across the new invitation.
+      clearPending();outgoingInFlight=false;outgoingResult=null;
+    }
   });
   function paint(){
     const title=document.getElementById("ezeroTrustedTitle");

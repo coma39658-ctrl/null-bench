@@ -1,0 +1,97 @@
+/* Display feedback directly below tapped call/QR controls, not at page end. */
+body.ezero-one-lab #ezeroInlineCallResult{
+  grid-column:1/-1;
+  min-width:0;
+  max-width:100%;
+  padding:10px;
+  border:1px solid #71c997;
+  border-radius:14px;
+  background:#ebfff2;
+  color:#104c33;
+  box-sizing:border-box;
+}
+body.ezero-one-lab #ezeroInlineCallResult[hidden]{display:none!important}
+body.ezero-one-lab #ezeroInlineCallResult .modern-workspace{
+  display:block;
+  min-width:0;
+  max-width:100%;
+  margin:8px 0!important;
+  box-sizing:border-box;
+  background:#f4fff7!important;
+  border:1px solid #c3e5cc!important;
+  padding:9px!important;
+  color:#0e4730!important;
+  border-radius:10px!important;
+}
+body.ezero-one-lab #ezeroInlineCallResult #modernCallPanel[hidden]{
+  display:none!important;
+}
+body.ezero-one-lab #ezeroInlineCallResult #modernConnectionStatus{
+  color:#154d34;font-size:13px;line-height:1.6;
+}
+body.ezero-one-lab #ezeroInlineCallResult video,
+body.ezero-one-lab #ezeroInlineCallResult audio{
+  width:100%!important;max-width:100%!important;
+  min-width:0;box-sizing:border-box;
+}
+body.ezero-one-lab #ezeroInlineCallResult #modernHangup{
+  min-height:48px;
+  width:100%;
+  background:#9b2d31!important;
+  color:white!important;
+  border-radius:11px;
+  font-weight:800;
+}
+body.ezero-one-lab #ezeroFrontQrHub #ezeroFrontQrShareSlot{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  width:100%;max-width:100%;box-sizing:border-box;
+}
+body.ezero-one-lab #ezeroFrontQrHub #ezeroFrontQrShareSlot button{
+  min-height:44px;
+}
+body.ezero-one-lab #ezeroInlineCallResult #ezeroFrontQrShareSlot,
+body.ezero-one-lab #ezeroFrontVideoSlot #ezeroFrontQrShareSlot{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  width:100%;max-width:100%;box-sizing:border-box;gap:7px;
+  margin:8px 0!important;
+}
+body.ezero-one-lab #ezeroInlineCallResult #ezeroFrontQrShareSlot button,
+body.ezero-one-lab #ezeroFrontVideoSlot #ezeroFrontQrShareSlot button{
+  min-height:44px;min-width:0;padding:8px 5px;
+  background:#dffff0;color:#06482e;
+  border:1px solid #7ec69d;border-radius:10px;
+  font-weight:750;font-size:12px;white-space:normal;
+}
+body.ezero-one-lab #ezeroInlineCallResult #ezeroOneQrBox{
+  margin:9px 0!important;max-width:100%;
+  background:#f9fff9;color:#0b4c34;
+  border:1px solid #83c4a3;border-radius:13px;
+}
+body.ezero-one-lab #ezeroInlineCallResult #ezeroOneQr{
+  width:min(100%,320px);
+}
+body.ezero-one-lab #ezeroInlineCallResult #ezeroOneQr svg{
+  width:100%;height:auto;
+}
+body.ezero-one-lab #ezeroFrontQrHub #ezeroAutoStatus,
+body.ezero-one-lab #ezeroInlineCallResult #ezeroAutoStatus{
+  max-width:100%;box-sizing:border-box;
+  border:1px solid #6bb789;
+  background:#eafff1;
+  color:#0b5938;
+  padding:8px 10px;
+  border-radius:10px;
+  font-size:12px;
+  line-height:1.6;
+}
+body.ezero-one-lab #ezeroInlineCallResult #ezeroAutoStatus[data-state="error"],
+body.ezero-one-lab #ezeroFrontQrHub #ezeroAutoStatus[data-state="error"]{
+  background:#fff2f0;color:#992c29;border-color:#e0a4a0;
+}
+@media(max-width:370px){
+  body.ezero-one-lab #ezeroInlineCallResult #ezeroFrontQrShareSlot,
+  body.ezero-one-lab #ezeroFrontVideoSlot #ezeroFrontQrShareSlot{
+    grid-template-columns:1fr;
+  }
+}

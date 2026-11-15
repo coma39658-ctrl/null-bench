@@ -1,0 +1,190 @@
+name: E-ZERO Secure App Mutual Friends + Name DP + Block
+on:
+  push:
+    branches: [ezero-profile-first-saved-friends-20261106]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'js/ezero_profile_first_verified_friends_v0_1.js'
+      - 'js/ezero_friend_blocklist_v0_1.js'
+      - 'js/ezero_contact_first_call_dock_v0_1.js'
+      - 'js/ezero_secure_connect_peer_profile_staging_v0_1.js'
+      - 'js/ezero_saved_friend_stage_engine_v0_1.js'
+      - 'tests/test_ezero_secure_app_mutual_friend_profile_20261106.mjs'
+      - 'scripts/build_ezero_secure_app_render_staging_20261107.py'
+      - 'js/ezero_front_qr_hub_v0_1.js'
+      - 'js/ezero_ice_recovery_staging_v0_1.js'
+      - 'css/ezero_ice_recovery_staging_v0_1.css'
+      - 'js/ezero_trusted_stage_one_request_v0_1.js'
+      - 'js/vendor/jsQR-1.4.0.js'
+      - 'js/vendor/LICENSE-jsQR-Apache-2.0.txt'
+      - 'js/ezero_inline_action_results_v0_1.js'
+      - 'css/ezero_inline_action_results_v0_1.css'
+      - 'css/ezero_front_qr_hub_v0_1.css'
+      - '.github/workflows/ezero_secure_app_mutual_friends_20261106.yml'
+permissions:
+  contents: read
+jobs:
+  mutual-friend-profile-two-mobile:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript, branding and encrypted boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check js/ezero_profile_first_verified_friends_v0_1.js
+          node --check js/ezero_front_qr_hub_v0_1.js
+          node --check js/ezero_ice_recovery_staging_v0_1.js
+          grep -Fq 'ezero_ice_recovery_staging_v0_1.js' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'ezero_ice_recovery_staging_v0_1.css' ezero_trusted_friends_staging_20261106.html
+          node --check js/ezero_trusted_stage_one_request_v0_1.js
+          node --check js/vendor/jsQR-1.4.0.js
+          grep -Fq 'js/vendor/jsQR-1.4.0.js' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'Apache License' js/vendor/LICENSE-jsQR-Apache-2.0.txt
+          node --check js/ezero_inline_action_results_v0_1.js
+          grep -Fq 'ezero_inline_action_results_v0_1.js' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'ezero_inline_action_results_v0_1.css' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'ezero_front_qr_hub_v0_1.js' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'ezero_front_qr_hub_v0_1.css' ezero_trusted_friends_staging_20261106.html
+          node --check js/ezero_friend_blocklist_v0_1.js
+          node --check js/ezero_contact_first_call_dock_v0_1.js
+          node --check js/ezero_saved_friend_stage_people_v0_1.js
+          node --check js/ezero_saved_friend_stage_engine_v0_1.js
+          node --check js/ezero_secure_connect_peer_profile_staging_v0_1.js
+          node --check tests/test_ezero_secure_app_mutual_friend_profile_20261106.mjs
+          grep -Fq '<title>E-ZERO Secure App' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'ezero_friend_blocklist_v0_1.js' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'ezero_profile_first_verified_friends_v0_1.js' ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'ezero_secure_connect_device_identity_v0_1.js' ezero_trusted_friends_staging_20261106.html
+          grep -Fq '"name": "E-ZERO Secure App"' secure-connect-staging.webmanifest
+          ! grep -Fq 'getUserMedia(' js/ezero_profile_first_verified_friends_v0_1.js
+          ! grep -Fq 'new RTCPeerConnection' js/ezero_profile_first_verified_friends_v0_1.js
+          echo 'SECURE_APP_PROFILE_CRYPTO_BOUNDARY: PASS'
+      - name: Build minimal Render staging files without publishing the whole repo
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/build_ezero_secure_app_render_staging_20261107.py
+          python3 scripts/build_ezero_secure_app_render_staging_20261107.py
+          test -f dist_ezero_secure_app_two_phone_staging/ezero_trusted_friends_staging_20261106.html
+          test -f dist_ezero_secure_app_two_phone_staging/js/ezero_profile_first_verified_friends_v0_1.js
+          test -f dist_ezero_secure_app_two_phone_staging/js/ezero_ice_recovery_staging_v0_1.js
+          test -f dist_ezero_secure_app_two_phone_staging/css/ezero_ice_recovery_staging_v0_1.css
+          test -f dist_ezero_secure_app_two_phone_staging/js/vendor/jsQR-1.4.0.js
+          test -f dist_ezero_secure_app_two_phone_staging/licenses/jsQR-Apache-2.0.txt
+          grep -Fq 'js/vendor/jsQR-1.4.0.js?build=' dist_ezero_secure_app_two_phone_staging/ezero_trusted_friends_staging_20261106.html
+          test -f dist_ezero_secure_app_two_phone_staging/assets/ezero_secure_chat_cosmic_pattern_v0_1.svg
+          ! test -d dist_ezero_secure_app_two_phone_staging/.github
+          ! test -d dist_ezero_secure_app_two_phone_staging/scripts
+          grep -Fq 'ezero_front_qr_hub_v0_1.js?build=' dist_ezero_secure_app_two_phone_staging/ezero_trusted_friends_staging_20261106.html
+          grep -Fq 'ezero_front_qr_hub_v0_1.css?build=' dist_ezero_secure_app_two_phone_staging/ezero_trusted_friends_staging_20261106.html
+          echo 'RENDER_ASSET_VERSIONED_ON_EVERY_BUILD: PASS'
+          echo 'ISOLATED_RENDER_PREVIEW_BUNDLE: PASS'
+      - name: Install isolated Chromium
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts playwright@1.57.0 ws@8.18.3
+          npx playwright install --with-deps chromium --only-shell
+      - name: Ensure isolated Render Worker rejects production GitHub Pages Origin
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module - <<'NODE'
+          import assert from 'node:assert/strict';
+          import {randomBytes} from 'node:crypto';
+          import WebSocket from 'ws';
+          const room=randomBytes(24).toString('base64url');
+          const url='wss://ezero-browser-signaling-render-test.coma39658.workers.dev/v1/rooms/'+room;
+          const code=await new Promise((resolve,reject)=>{
+            const ws=new WebSocket(url,{
+              headers:{Origin:'https://coma39658-ctrl.github.io'},
+              handshakeTimeout:12000
+            });
+            ws.once('unexpected-response',(_request,response)=>{
+              const status=response.statusCode;
+              response.resume();
+              ws.terminate();
+              resolve(status);
+            });
+            ws.once('open',()=>{ws.close();resolve(101);});
+            ws.once('error',reject);
+          });
+          assert.equal(code,403,
+            'Render-only Worker MUST reject the production GitHub Pages Origin');
+          console.log('RENDER_WORKER_FOREIGN_ORIGIN_REJECTED_403: PASS');
+          NODE
+      - name: Two real Chromium media stacks with locally simulated signaling
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8769 --bind 127.0.0.1 > /tmp/ezero-secure-app-qa.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8769/ezero_trusted_friends_staging_20261106.html >/dev/null && break
+            sleep 1
+          done
+          node tests/test_ezero_secure_app_mutual_friend_profile_20261106.mjs
+      - name: Live staging Cloudflare WSS and signed browser-to-browser media (not physical phones)
+        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/ezero-profile-first-saved-friends-20261106') || (github.event_name == 'pull_request' && github.head_ref == 'ezero-profile-first-saved-friends-20261106') }}
+        shell: bash
+        env:
+          EZERO_LIVE_SIGNALING: '1'
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8769 --bind 127.0.0.1 > /tmp/ezero-secure-app-live-network.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8769/ezero_trusted_friends_staging_20261106.html >/dev/null && break
+            sleep 1
+          done
+          # Two independent attempts: either failure is a real NO-GO signal.
+          # Never hide intermittent network/profile loss by retrying to green.
+          for attempt in 1 2; do
+            echo "LIVE_CLOUDFLARE_ATTEMPT_${attempt}: START"
+            timeout 180s node tests/test_ezero_secure_app_mutual_friend_profile_20261106.mjs
+            echo "LIVE_CLOUDFLARE_ATTEMPT_${attempt}: PASS"
+          done
+      - name: Remote Render HTTPS origin + live Cloudflare two-browser staging gate
+        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/ezero-profile-first-saved-friends-20261106') || (github.event_name == 'pull_request' && github.head_ref == 'ezero-profile-first-saved-friends-20261106') }}
+        shell: bash
+        env:
+          EZERO_LIVE_SIGNALING: '1'
+          EZERO_REMOTE_RENDER_STAGE: '1'
+          EZERO_REMOTE_RENDER_SHA: '8fae82c355e168e06f7d727b20be9188099f51fc'
+        run: |
+          set -euo pipefail
+          URL="https://ezero-secure-app-two-phone-test-20261107.onrender.com/ezero_trusted_friends_staging_20261106.html?stageBuild=8fae82c355e1"
+          curl --fail --silent --show-error --location --retry 2 --max-time 25 "$URL" -o /tmp/ezero-render-live-preview.html
+          python3 - <<'PY'
+          from pathlib import Path
+          page=Path("/tmp/ezero-render-live-preview.html").read_text(errors="replace")
+          for name,marker in [
+            ("staging_banner","ezero-stage-banner"),
+            ("pinned_build","8fae82c355e1"),
+            ("isolated_wss","wss://ezero-browser-signaling-render-test.coma39658.workers.dev"),
+            ("inline_controls","ezero_front_qr_hub_v0_1.js")
+          ]:
+            print("REMOTE_RENDER_STATIC_"+name+"="+str(marker in page).upper())
+          PY
+          grep -Fq 'ezero-stage-banner' /tmp/ezero-render-live-preview.html
+          # Diagnostic is public build metadata only, never user QR/token/call data.
+          printf 'REMOTE_RENDER_STAGE_BUILD: '
+          grep -oE 'SHA: [a-f0-9]{12}' /tmp/ezero-render-live-preview.html | head -1 || true
+          grep -Fq '8fae82c355e1' /tmp/ezero-render-live-preview.html
+          grep -Fq 'wss://ezero-browser-signaling-render-test.coma39658.workers.dev' /tmp/ezero-render-live-preview.html
+          curl --fail --silent --show-error --location --max-time 25 \
+            'https://ezero-secure-app-two-phone-test-20261107.onrender.com/js/ezero_auto_signaling_lab_config_20261106.js' \
+            | grep -Fq 'wss://ezero-browser-signaling-render-test.coma39658.workers.dev'
+          echo 'RENDER_ORIGIN_PINNED_WEBRTC_SIGNALING: PASS'
+          echo 'REMOTE_RENDER_HTTPS_STAGING_PAGE: PASS'
+          timeout 180s node tests/test_ezero_secure_app_mutual_friend_profile_20261106.mjs

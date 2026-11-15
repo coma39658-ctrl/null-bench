@@ -1,0 +1,23 @@
+name: E-ZERO TEST 02 direct-call security gate
+on:
+  push:
+    branches:
+      - ezero-no-qr-direct-call-test-2-20261109
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  direct-call-static-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check JavaScript syntax
+        run: |
+          node --check js/ezero_trusted_friend_foreground_client_candidate_v0_1.js
+          node --check js/ezero_trusted_inbox_stage_config_20261106.js
+          node --check tests/test_ezero_direct_call_render_gate_20261109.cjs
+      - name: Assert fail-closed Render direct-call gate
+        run: node tests/test_ezero_direct_call_render_gate_20261109.cjs
+      - name: Check isolated Render bundle build
+        run: python3 scripts/build_ezero_secure_app_render_staging_20261107.py
