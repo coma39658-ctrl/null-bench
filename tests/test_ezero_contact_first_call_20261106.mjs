@@ -149,18 +149,15 @@ try{
     window.EZERO_VOICE_TRANSPORT?.connected()===false,{timeout:15000})));
   const lastInvite=await caller.evaluate(()=>window.__oneInvite);
   const before=await caller.evaluate(()=>window.__mediaCalls.length);
-  await caller.locator('[data-modern-select="video"]').click();
-  assert.equal(await caller.locator("#ezeroFriendSidePanel").isVisible(),true,
-    "Video button must request friend selection instead of silently calling anyone");
-  assert.equal(await caller.evaluate(()=>window.__oneInvite),lastInvite,
-    "No unselected outgoing call may create a new QR or activate media");
-  assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),before);
-  await caller.locator("#ezeroFriendSideList .ezero-friend-option").filter({
-    hasText:"Second Phone"
-  }).click();
+  // Explicit Save Friend has already selected the verified peer.
+  // The correct UX is one tap for a saved friend, not a second QR or
+  // another selection prompt. Never choose an unsaved/unverified contact.
   assert.equal(await caller.locator("#ezeroSelectedFriendName").innerText(),"Second Phone");
   assert.equal(await caller.locator("#ezeroContactVideo").isEnabled(),true);
   assert.equal(await caller.locator("#ezeroFriendSidePanel").isHidden(),true);
+  assert.equal(await caller.evaluate(()=>window.__oneInvite),lastInvite,
+    "Contact selection must not silently start another call");
+  assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),before);
   await caller.locator("#ezeroContactVideo").click();
   await caller.waitForFunction(old=>
     !!window.__oneInvite&&window.__oneInvite!==old,lastInvite,{timeout:30000});
