@@ -168,7 +168,17 @@ receive.addEventListener("click",()=>{
   else message("noService");
 });
 qr.addEventListener("click",()=>{
-  if(window.EZERO_TRUSTED_SAVED_CALL?.isPending?.())return message("busy");
+  // Never interrupt a connected call or a live incoming acceptance.  A fresh
+  // QR is an explicit user decision, not an automatic fallback to a new room.
+  if(window.EZERO_TRUSTED_SAVED_CALL?.isPending?.()||
+     window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true||
+     $("ezeroAutoIncoming")?.hidden===false)return message("busy");
+  // An undelivered saved-friend invite can leave its signed signaling room
+  // open. Without closing it, the next Audio/Video tap reuses the stale link
+  // instead of generating the NEW QR that the user explicitly requested.
+  // Use the existing guarded UI handlers; do not alter the WebRTC engine.
+  $("ezeroAutoDecline")?.click();
+  $("hangup")?.click(); // release any unfinished media before a new request
   showSide(false);selected=null;explicitFreshQrChoice=true;paint();
   // This is an EXPLICIT fresh QR choice for first-time or additional friends.
   // The NEXT deliberate Audio/Video tap starts the existing verified engine.
