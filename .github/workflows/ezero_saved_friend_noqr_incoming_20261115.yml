@@ -26,11 +26,12 @@ jobs:
           set -euo pipefail
           git fetch --no-tags origin main --depth=15
           git diff --name-only origin/main...HEAD | tee /tmp/ezero-saved-friend-changes.txt
-          if grep -Ev '^(tests/test_ezero_saved_friend_noqr_incoming_20261115\.mjs|\.github/workflows/ezero_saved_friend_noqr_incoming_20261115\.yml)$' /tmp/ezero-saved-friend-changes.txt; then
+          if grep -Ev '^(tests/test_ezero_saved_friend_noqr_incoming_20261115\.mjs|tests/test_ezero_saved_friend_noqr_audio_20261115\.mjs|\.github/workflows/ezero_saved_friend_noqr_incoming_20261115\.yml)$' /tmp/ezero-saved-friend-changes.txt; then
             echo 'UNEXPECTED_PRODUCTION_FILE_CHANGE'
             exit 1
           fi
           node --check tests/test_ezero_saved_friend_noqr_incoming_20261115.mjs
+          node --check tests/test_ezero_saved_friend_noqr_audio_20261115.mjs
       - name: Install isolated browser QA dependencies
         run: |
           npm install --no-save --ignore-scripts playwright@1.57.0 ws@8.18.3
@@ -48,5 +49,7 @@ jobs:
           exit 1
       - name: Prove saved friend receives a foreground incoming call without QR relaying
         run: node tests/test_ezero_saved_friend_noqr_incoming_20261115.mjs
+      - name: Prove AUDIO no-QR contact calling with live mic tracks and zero camera tracks
+        run: node tests/test_ezero_saved_friend_noqr_audio_20261115.mjs
       - name: Report lab-only evidence
         run: echo 'ISOLATED_CHROMIUM_SIMULATED_TRUSTED_INBOX_NO_DEPLOYMENT_NO_PHYSICAL_PHONE_PROOF'
