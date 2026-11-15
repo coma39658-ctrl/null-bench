@@ -1,0 +1,63 @@
+name: E-ZERO Secure App Repeat Direct Calls (No QR) QA
+on:
+  push:
+    branches:
+      - ezero-saved-friend-no-repeat-qr-qa-20261115
+  pull_request:
+    paths:
+      - 'js/ezero_contact_first_call_dock_v0_1.js'
+      - 'js/ezero_trusted_stage_one_request_v0_1.js'
+      - 'tests/test_ezero_saved_friend_noqr_*.mjs'
+      - '.github/workflows/ezero_saved_friend_repeated_redial_20261115.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  repeat-saved-friend-calls:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout without writable credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 30
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restrict edits to saved-contact UI and isolated QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main --depth=15
+          git diff --name-only origin/main...HEAD | tee /tmp/ezero-repeat-call-changes.txt
+          if grep -Ev '^(js/ezero_contact_first_call_dock_v0_1\.js|js/ezero_trusted_stage_one_request_v0_1\.js|tests/test_ezero_saved_friend_noqr_incoming_20261115\.mjs|tests/test_ezero_saved_friend_noqr_audio_20261115\.mjs|\.github/workflows/ezero_saved_friend_repeated_redial_20261115\.yml)$' /tmp/ezero-repeat-call-changes.txt; then
+            echo 'UNAUTHORIZED_FILE_CHANGE'
+            exit 1
+          fi
+          node --check js/ezero_contact_first_call_dock_v0_1.js
+          node --check js/ezero_trusted_stage_one_request_v0_1.js
+          node --check tests/test_ezero_saved_friend_noqr_incoming_20261115.mjs
+          node --check tests/test_ezero_saved_friend_noqr_audio_20261115.mjs
+      - name: Install isolated Playwright browser dependencies
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.57.0 ws@8.18.3
+          npx playwright install --with-deps chromium
+      - name: Serve candidate only on localhost
+        shell: bash
+        run: |
+          set -euo pipefail
+          nohup python3 -m http.server 8769 --bind 127.0.0.1 >/tmp/ezero-noqr-repeat-call.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8769/ezero_trusted_friends_staging_20261106.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ezero-noqr-repeat-call.log
+          exit 1
+      - name: First pairing then repeated video no-QR calls and explicit-only fresh QR
+        run: node tests/test_ezero_saved_friend_noqr_incoming_20261115.mjs
+      - name: First pairing then repeated audio no-QR calls and mic cleanup
+        run: node tests/test_ezero_saved_friend_noqr_audio_20261115.mjs
+      - name: Label evidence conservatively
+        run: echo 'LAB_ONLY_TWO_BROWSER_WEBRTC_MOCKED_CLOUDFLARE_NO_REAL_PHONES_NO_DEPLOYMENT'
