@@ -52,7 +52,20 @@ function contacts(){
     }).map(x=>({fp:x.fp,name:x.name.trim()}));
   }catch(_){return[];}
 }
-let selected=null,open=false;
+// Keep only the user's selected, verified friend across same-tab call navigation.
+// This is a UI preference, not an authorization or a device identity.
+const SELECTED_KEY="ezero_secure_connect_selected_friend_tab_v0_1";
+function chosenFromSession(){
+  try{
+    const fp=sessionStorage.getItem(SELECTED_KEY);
+    return FP.test(fp||"")&&contacts().some(x=>x.fp===fp)?fp:null;
+  }catch(_){return null;}
+}
+function rememberSelected(fp){
+  try{if(fp)sessionStorage.setItem(SELECTED_KEY,fp);
+      else sessionStorage.removeItem(SELECTED_KEY);}catch(_){}
+}
+let selected=chosenFromSession(),open=false,explicitFreshQrChoice=false;
 const el=(tag,id,cls)=>{
   const node=document.createElement(tag);
   if(id)node.id=id;if(cls)node.className=cls;
@@ -112,11 +125,13 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&open)showSide(false
 const pickFriend=fp=>{
   const person=contacts().find(x=>x.fp===fp);
   if(!person)return;
-  selected=fp;message("");paint();showSide(false);
+  selected=fp;rememberSelected(fp);explicitFreshQrChoice=false;message("");paint();showSide(false);
 };
 function paint(){
   const people=contacts();
-  if(selected&&!people.some(x=>x.fp===selected))selected=null;
+  if(selected&&!people.some(x=>x.fp===selected)){
+    selected=null;rememberSelected(null); // revoked/deleted contact cannot stay selected
+  }
   const person=people.find(x=>x.fp===selected);
   heading.textContent=tr("head");toggle.textContent=tr("select");
   sideTitle.textContent=tr("select");close.textContent="✕";
@@ -168,11 +183,22 @@ receive.addEventListener("click",()=>{
   else message("noService");
 });
 qr.addEventListener("click",()=>{
-  showSide(false);selected=null;paint();
-  // This is a safe fallback for first-time friends; scanning still
-  // requires the other phone's QR and explicit permission.
+  // Never interrupt a connected call or a live incoming acceptance.  A fresh
+  // QR is an explicit user decision, not an automatic fallback to a new room.
+  if(window.EZERO_TRUSTED_SAVED_CALL?.isPending?.()||
+     window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true||
+     $("ezeroAutoIncoming")?.hidden===false)return message("busy");
+  // An undelivered saved-friend invite can leave its signed signaling room
+  // open. Without closing it, the next Audio/Video tap reuses the stale link
+  // instead of generating the NEW QR that the user explicitly requested.
+  // Use the existing guarded UI handlers; do not alter the WebRTC engine.
+  $("ezeroAutoDecline")?.click();
+  $("hangup")?.click(); // release any unfinished media before a new request
+  showSide(false);selected=null;rememberSelected(null);
+  explicitFreshQrChoice=true;paint();
+  // This is an EXPLICIT fresh QR choice for first-time or additional friends.
+  // The NEXT deliberate Audio/Video tap starts the existing verified engine.
   $("ezeroOneJoinPanel")?.scrollIntoView({block:"start",behavior:"auto"});
-  $("ezeroOneScanInvite")?.focus();
 });
 // A top Audio/Video tile is routed to the SELECTED saved friend.
 // With saved friends but no selection, show the list instead of
@@ -181,6 +207,10 @@ qr.addEventListener("click",()=>{
 featureGrid.addEventListener("click",e=>{
   const target=e.target.closest?.('[data-modern-select="audio"],[data-modern-select="video"]');
   if(!target||!featureGrid.contains(target))return;
+  if(explicitFreshQrChoice){
+    explicitFreshQrChoice=false;
+    return; // user chose fresh QR; bypass saved-contact routing exactly once
+  }
   const api=window.EZERO_TRUSTED_SAVED_CALL;
   if(api?.isPending?.())return; // already prepared by nearby contact button
   if(!contacts().length)return; // first QR pairing still works
@@ -192,7 +222,15 @@ featureGrid.addEventListener("click",e=>{
   }
   message("pending");
 },true);
-document.addEventListener("ezero:friend-local-saved",paint);
+document.addEventListener("ezero:friend-local-saved",e=>{
+  // Saving followed an actual connected and consented call; show the name
+  // immediately on this phone, including after the upcoming call navigation.
+  const fp=e.detail?.fp;
+  if(FP.test(fp||"")&&contacts().some(x=>x.fp===fp)){
+    selected=fp;rememberSelected(fp);
+  }
+  paint();
+});
 document.addEventListener("ezero:friend-local-removed",paint);
 window.addEventListener("storage",e=>{if(e.key===KEY)paint();});
 $("language")?.addEventListener("change",paint);
