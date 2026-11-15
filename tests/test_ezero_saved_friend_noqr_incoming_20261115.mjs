@@ -308,8 +308,39 @@ try{
       (!s||s.getTracks().every(t=>t.readyState==="ended"));
   },{timeout:15000});
   console.log("CONTACT_FIRST_VIDEO_HANGUP_STOPS_REMOTE_CAMERA: PASS");
-  // An explicitly revoked recipient trust permission must FAIL closed.
-  // Only in that case should the fresh signed QR/link fallback become visible.
+  // Repeat without rescanning QR or re-saving the friend. These are new real
+  // browser WebRTC cycles using the same persisted identity and active inbox.
+  for(let redial=1;redial<=2;redial++){
+    const oldInvite=await caller.evaluate(()=>window.__oneInvite);
+    const mediaBefore=await callee.evaluate(()=>window.__mediaCalls.length);
+    await caller.locator("#ezeroContactVideo").click();
+    await caller.waitForFunction(old=>!!window.__oneInvite&&window.__oneInvite!==old,
+      oldInvite,{timeout:30000});
+    assert.equal(await caller.locator("#ezeroOneQrBox").isHidden(),true,
+      "Repeat saved-friend video must never reopen a call QR");
+    assert.equal(await caller.locator("#ezeroOneCopyInvite").isDisabled(),true);
+    await callee.locator("#ezeroTrustedIncoming").waitFor({state:"visible",timeout:15000});
+    assert.equal(await callee.evaluate(()=>window.__mediaCalls.length),mediaBefore,
+      "Repeat incoming must not capture media before the recipient accepts");
+    await callee.locator("#ezeroTrustedIncoming button").first().click();
+    await callee.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:12000});
+    await callee.locator("#ezeroAutoAccept").click();
+    await Promise.all([caller,callee].map(p=>p.waitForFunction(()=>
+      window.EZERO_VOICE_TRANSPORT?.connected()===true,{timeout:45000})));
+    for(const phone of [caller,callee]){
+      await phone.waitForFunction(()=>document.getElementById("remoteVideo")
+        ?.srcObject?.getVideoTracks?.().some(t=>t.readyState==="live"),{timeout:12000});
+    }
+    await caller.locator("#hangup").click();
+    await callee.waitForFunction(()=>{
+      const s=document.getElementById("localVideo")?.srcObject;
+      return !window.EZERO_VOICE_TRANSPORT?.connected()&&
+        (!s||s.getTracks().every(t=>t.readyState==="ended"));
+    },{timeout:15000});
+    console.log("SAVED_FRIEND_REPEAT_VIDEO_NO_QR_CYCLE_"+redial+": PASS");
+  }
+  // Revocation must FAIL closed but must NOT surprise saved contacts with QR.
+  // The user may separately choose to add a new friend via a fresh QR.
   await callee.locator("#ezeroTrustedEnable").click();
   await callee.waitForFunction(()=>
     document.getElementById("ezeroTrustedStatus")?.textContent.includes("تیار"),
@@ -325,14 +356,25 @@ try{
   await caller.waitForFunction(old=>
     !!window.__oneInvite&&window.__oneInvite!==old,
     previousInvite,{timeout:30000});
-  await caller.locator("#ezeroOneQrBox").waitFor({state:"visible",timeout:15000});
-  assert.equal(await caller.locator("#ezeroOneQr svg").count(),1,
-    "On a genuine direct-delivery failure the existing signed QR is restored");
-  assert.equal(await caller.locator("#ezeroOneCopyInvite").isEnabled(),true,
-    "After failure, link copy is available as a deliberate fallback");
-  assert.match(await caller.locator("#ezeroOneScanStatus").innerText(),
-    /براہِ راست کال نہیں پہنچ سکی/);
-  console.log("SAVED_FRIEND_REVOKED_TRUST_RESTORES_QR_FALLBACK: PASS");
+  await caller.waitForFunction(()=>document.getElementById("ezeroOneScanStatus")
+    ?.textContent.includes("براہِ راست کال نہیں پہنچ سکی"),{timeout:15000});
+  assert.equal(await caller.locator("#ezeroOneQrBox").isHidden(),true,
+    "Revoked trust may NOT automatically reopen QR for a saved friend");
+  assert.equal(await caller.locator("#ezeroOneCopyInvite").isDisabled(),true,
+    "No automatic manual QR/link prompt after a direct-call failure");
+  console.log("REVOKED_TRUST_FAILS_CLOSED_WITHOUT_FORCING_QR: PASS");
+  // New QR remains accessible only through a separate EXPLICIT user choice.
+  await caller.locator("#ezeroFriendListToggle").click();
+  await caller.locator("#ezeroFriendNewQr").click();
+  const explicitlyOldInvite=await caller.evaluate(()=>window.__oneInvite);
+  await caller.locator('[data-modern-select="video"]').click();
+  await caller.waitForFunction(old=>!!window.__oneInvite&&window.__oneInvite!==old,
+    explicitlyOldInvite,{timeout:30000});
+  assert.equal(await caller.locator("#ezeroOneQrBox").isVisible(),true,
+    "User-selected new contact QR must still work");
+  assert.equal(await caller.locator("#ezeroOneQr svg").count(),1);
+  assert.equal(await caller.locator("#ezeroOneCopyInvite").isEnabled(),true);
+  console.log("EXPLICIT_FRESH_QR_STILL_WORKS_WITH_SAVED_CONTACTS: PASS");
 }finally{
   await Promise.all(contexts.map(ctx=>ctx.close().catch(()=>{})));
   await browser.close();
