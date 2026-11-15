@@ -1,0 +1,36 @@
+name: E-ZERO Secure App Live Trusted Inbox Read-Only Handshake QA
+on:
+  push:
+    branches: [ezero-secure-app-trusted-live-wss-readonly-20261115]
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  live-existing-staging-wss-handshake:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 6
+    steps:
+      - name: Checkout exact existing code without write credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 30
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Enforce no source or production changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main --depth=15
+          git diff --name-only origin/main...HEAD | tee /tmp/ezero-live-smoke-scope.txt
+          if grep -Ev '^\.github/workflows/ezero_secure_app_trusted_live_wss_readonly_20261115\.yml$' /tmp/ezero-live-smoke-scope.txt; then
+            echo UNEXPECTED_CODE_MODIFICATION; exit 1
+          fi
+          node --check tests/ezero_trusted_inbox_live_staging_smoke_20261106.mjs
+      - name: Install ephemeral WebSocket CLI (no server deploy)
+        run: npm install --no-save --ignore-scripts --no-audit --no-fund ws@8
+      - name: Test actual isolated Cloudflare staging WSS challenge and signed owner handshake
+        run: node tests/ezero_trusted_inbox_live_staging_smoke_20261106.mjs
+      - name: Evidence scope
+        run: echo 'REAL_STAGE_WSS_OWNER_HANDSHAKE_ONLY_NOT_A_REAL_PHONE_CALL_NO_TRUST_WRITES'
