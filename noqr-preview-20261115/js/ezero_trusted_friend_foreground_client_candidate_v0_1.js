@@ -12,6 +12,9 @@
   "use strict";
   const ORIGIN="https://coma39658-ctrl.github.io";
   const CALL_PAGE="/null-bench/noqr-preview-20261115/ezero_trusted_friends_staging_20261106.html";
+  // The already-deployed trusted Worker strictly accepts this ORIGINAL route.
+  // A distinct same-origin preview route must never be sent to that Worker.
+  const WORKER_CALL_PAGE="/null-bench/ezero_trusted_friends_staging_20261106.html";
   const FP=/^[a-f0-9]{64}$/;
   const ROOM=/^#room=[A-Za-z0-9_-]{32}\.[A-Za-z0-9_-]{43}$/;
   const CONFIG=window.EZERO_TRUSTED_INBOX_CONFIG;
@@ -25,9 +28,19 @@
     if(typeof value!=="string"||value.length>240)return false;
     try{
       const u=new URL(value);
-      return u.origin===ORIGIN&&u.pathname===CALL_PAGE&&
+      return u.origin===ORIGIN&&
+        [CALL_PAGE,WORKER_CALL_PAGE].includes(u.pathname)&&
         u.searchParams.size===1&&u.searchParams.get("mode")===mode&&ROOM.test(u.hash);
     }catch(_){return false;}
+  }
+  // Rebind ONLY an already validated, same-origin, one-time call invitation
+  // between the two exact allowlisted routes. Query, fragment and expiry
+  // remain unchanged; this is not a trust grant or media acceptance.
+  function routeInvite(value,mode,page){
+    if(!validUrl(value,mode)||![CALL_PAGE,WORKER_CALL_PAGE].includes(page))return "";
+    const u=new URL(value);
+    u.pathname=page;
+    return validUrl(u.href,mode)?u.href:"";
   }
   function ready(){
     return CONFIG?.enabled===true&&
@@ -209,7 +222,9 @@
       if(fp===id.fingerprint)throw Error("SELF_CALL");
       ws=await connect("caller",fp,p=>emit("outgoing-"+p.type,p));
       const callId=hex(crypto.getRandomValues(new Uint8Array(16)));
-      ws.send(JSON.stringify({t:"call",kind:mode,callId,invite}));
+      const serverInvite=routeInvite(invite,mode,WORKER_CALL_PAGE);
+      if(!serverInvite)throw Error("INVALID_WORKER_INVITE");
+      ws.send(JSON.stringify({t:"call",kind:mode,callId,invite:serverInvite}));
       emit("outgoing-sent",{to:fp,callId});
       return callId;
     }finally{
@@ -255,6 +270,7 @@
     on:(event,callback)=>events.addEventListener(event,callback),
     off:(event,callback)=>events.removeEventListener(event,callback),
     openOwnerInbox,setFriendTrust,callSavedFriend,closeOwnerInbox,
-    confirmIncomingVisible,safeInvite:validUrl
+    confirmIncomingVisible,safeInvite:validUrl,
+    localInvite:(link,mode)=>routeInvite(link,mode,CALL_PAGE)
   });
 })();
