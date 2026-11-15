@@ -52,7 +52,7 @@ function contacts(){
     }).map(x=>({fp:x.fp,name:x.name.trim()}));
   }catch(_){return[];}
 }
-let selected=null,open=false;
+let selected=null,open=false,explicitFreshQrChoice=false;
 const el=(tag,id,cls)=>{
   const node=document.createElement(tag);
   if(id)node.id=id;if(cls)node.className=cls;
@@ -112,7 +112,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&open)showSide(false
 const pickFriend=fp=>{
   const person=contacts().find(x=>x.fp===fp);
   if(!person)return;
-  selected=fp;message("");paint();showSide(false);
+  selected=fp;explicitFreshQrChoice=false;message("");paint();showSide(false);
 };
 function paint(){
   const people=contacts();
@@ -168,11 +168,11 @@ receive.addEventListener("click",()=>{
   else message("noService");
 });
 qr.addEventListener("click",()=>{
-  showSide(false);selected=null;paint();
-  // This is a safe fallback for first-time friends; scanning still
-  // requires the other phone's QR and explicit permission.
+  if(window.EZERO_TRUSTED_SAVED_CALL?.isPending?.())return message("busy");
+  showSide(false);selected=null;explicitFreshQrChoice=true;paint();
+  // This is an EXPLICIT fresh QR choice for first-time or additional friends.
+  // The NEXT deliberate Audio/Video tap starts the existing verified engine.
   $("ezeroOneJoinPanel")?.scrollIntoView({block:"start",behavior:"auto"});
-  $("ezeroOneScanInvite")?.focus();
 });
 // A top Audio/Video tile is routed to the SELECTED saved friend.
 // With saved friends but no selection, show the list instead of
@@ -181,6 +181,10 @@ qr.addEventListener("click",()=>{
 featureGrid.addEventListener("click",e=>{
   const target=e.target.closest?.('[data-modern-select="audio"],[data-modern-select="video"]');
   if(!target||!featureGrid.contains(target))return;
+  if(explicitFreshQrChoice){
+    explicitFreshQrChoice=false;
+    return; // user chose fresh QR; bypass saved-contact routing exactly once
+  }
   const api=window.EZERO_TRUSTED_SAVED_CALL;
   if(api?.isPending?.())return; // already prepared by nearby contact button
   if(!contacts().length)return; // first QR pairing still works
