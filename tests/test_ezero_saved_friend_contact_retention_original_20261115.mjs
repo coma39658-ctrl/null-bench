@@ -142,8 +142,16 @@ async function createPhone(name){
     if(!url.startsWith(publicOrigin))return route.abort("blockedbyclient");
     const u=new URL(url);
     const relative=u.pathname.slice("/null-bench/".length);
-    const response=await context.request.get(base+relative+u.search);
-    return route.fulfill({response});
+    // During rapid repeat-call navigation a page may close while an old
+    // image/script request is in flight. Let the final test assertions report
+    // the real error instead of an unhandled Playwright route teardown race.
+    try{
+      const response=await context.request.get(base+relative+u.search);
+      await route.fulfill({response});
+    }catch(error){
+      if(/TargetClosedError|Target page, context or browser has been closed|Route is already handled/i.test(String(error)))return;
+      throw error;
+    }
   });
   await context.addInitScript(()=>{
     window.__mediaCalls=[];
