@@ -206,6 +206,16 @@
           }
           return signalError("bad");
         }
+        // The authenticated signaling room can report a peer's explicit
+        // departure before Chromium fires DataChannel.onclose, especially in
+        // audio-only sessions. Immediately release this phone's mic/camera
+        // using the EXISTING core hangup; never auto-capture or reconnect.
+        if(m.t==="left"){
+          $("hangup")?.click();
+          closeRoom(false);
+          set("remoteLeft");
+          return;
+        }
         if(m.t==="declined"){signalError("rejected");return;}
         if(m.t==="closed"){signalError(m.reason==="expired"?"expired":"server");return;}
         if(m.t==="error"){signalError("server");return;}
