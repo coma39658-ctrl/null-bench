@@ -1,0 +1,27 @@
+name: E-ZERO Isolated No-QR Preview URL Contract
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'noqr-preview-20261115/**'
+      - 'tests/test_ezero_noqr_preview_contract_20261115.mjs'
+      - '.github/workflows/ezero_noqr_preview_contract_20261115.yml'
+  push:
+    branches: [ezero-saved-friend-isolated-phone-preview-20261115]
+permissions:
+  contents: read
+jobs:
+  preview-same-origin-contract:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check isolated preview asset links, signed origin and guarded QR
+        run: node tests/test_ezero_noqr_preview_contract_20261115.mjs
+      - name: Lab-only evidence label
+        run: echo 'PREVIEW_STATIC_CONTRACT_PASS_NOT_LIVE_PHONE_OR_CLOUD_PROOF'
