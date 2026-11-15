@@ -214,7 +214,18 @@ try{
   await callee.locator("#ezeroTrustedEnable").click();
   await callee.waitForFunction(()=>document.getElementById("ezeroTrustedStatus")
     ?.textContent.includes("تیار"),{timeout:15000});
-  assert.equal(owners.has(calleeFp),true,"Recipient owner inbox should be authenticated");
+  const persistedCalleeFp=await callee.evaluate(async()=>
+    (await window.EZERO_DEVICE_IDENTITY_STORE.read())?.fingerprint||"");
+  console.log("SAFE_OWNER_DIAGNOSTIC",JSON.stringify({
+    ownerCount:owners.size,
+    ownerMatchesDisplay:owners.has(calleeFp),
+    ownerMatchesPersisted:owners.has(persistedCalleeFp),
+    persistedMatchesDisplay:persistedCalleeFp===calleeFp,
+    ownerRolePresent:Array.from(owners.values()).some(x=>x.role==="owner"),
+    status:await callee.locator("#ezeroTrustedStatus").textContent()
+  }));
+  assert.equal(owners.has(persistedCalleeFp),true,
+    "Recipient owner inbox should authenticate consent-saved device identity");
   await callee.locator("#ezeroTrustedList .ezero-trusted-friend-row button").first().click();
   await callee.waitForFunction(()=>document.getElementById("ezeroTrustedStatus")
     ?.textContent.includes("محفوظ"),{timeout:15000});
