@@ -89,6 +89,11 @@
     node.type="button";node.textContent=text;
     node.addEventListener("click",click);return node;
   }
+  function reportDirect(status){
+    // UI-only receipt; never reports a connected call or bypasses acceptance.
+    document.dispatchEvent(new CustomEvent("ezero:saved-friend-direct-result",
+      {detail:{status}}));
+  }
   function clearPending(){
     pending=null;
     if(pendingTimer!==null){clearTimeout(pendingTimer);pendingTimer=null;}
@@ -210,17 +215,21 @@
   api.on("outgoing-delivered",()=>{
     if(!outgoingInFlight)return;
     outgoingResult="delivered";outgoingInFlight=false;status("delivered");
+    reportDirect("delivered");
   });
   api.on("outgoing-error",()=>{
     if(!outgoingInFlight)return;
     outgoingResult="failed";outgoingInFlight=false;status("failed",true);
+    reportDirect("failed");
   });
   api.on("offline",()=>{active=false;status("offline",true);});
   document.addEventListener("ezero:auto-invite-ready",async e=>{
     if(!pending)return;
     const {fp,kind}=pending;clearPending();
     const link=e.detail?.link;
-    if(!api.safeInvite(link,kind))return status("failed",true);
+    if(!api.safeInvite(link,kind)){
+      status("failed",true);reportDirect("failed");return;
+    }
     outgoingInFlight=true;outgoingResult=null;
     try{
       await api.callSavedFriend(fp,kind,link);
@@ -231,6 +240,7 @@
       else status("sent");
     }catch(_){
       outgoingInFlight=false;outgoingResult="failed";status("failed",true);
+      reportDirect("failed");
     }
   });
   // The first connected call can save a friend without reloading the page.
