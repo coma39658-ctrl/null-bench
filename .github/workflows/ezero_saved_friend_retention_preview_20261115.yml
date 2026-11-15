@@ -19,6 +19,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          fetch-depth: 30
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -26,7 +27,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git fetch --no-tags origin main --depth=15
+          git fetch --no-tags origin main --depth=30
           git diff --name-only origin/main...HEAD | tee /tmp/ezero-retention-changes.txt
           if grep -Ev '^(noqr-preview-20261115/js/ezero_contact_first_call_dock_v0_1\.js|noqr-preview-20261115/js/ezero_trusted_stage_one_request_v0_1\.js|tests/test_ezero_saved_friend_contact_retention_preview_20261115\.mjs|\.github/workflows/ezero_saved_friend_retention_preview_20261115\.yml)$' /tmp/ezero-retention-changes.txt; then
             echo 'OUT_OF_SCOPE_CHANGE'; exit 1
