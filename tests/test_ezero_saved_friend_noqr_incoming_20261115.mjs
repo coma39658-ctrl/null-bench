@@ -19,6 +19,7 @@ const owners=new Map();
 const permitted=new Map();
 const pendingCalls=new Map();
 function mockTrustedInbox(ws){
+  console.log("TRUSTED_INBOX_LAB_ONLY_SOCKET_INTERCEPTED");
   const url=new URL(ws.url());
   const match=new RegExp("^/v1/trusted/([a-f0-9]{64})$").exec(url.pathname);
   assert.ok(match,"Trusted inbox endpoint must be a verified SHA-256 device fingerprint");
@@ -118,9 +119,13 @@ async function createPhone(name){
     permissions:["camera","microphone"]
   });
   contexts.push(context);
-  await context.routeWebSocket(service+"**",mockSocket);
-  // Never touch live Cloudflare: emulate signed trusted-inbox protocol locally.
-  await context.routeWebSocket(trustedInbox+"**",mockTrustedInbox);
+  // Capture every WebSocket. Unknown external sockets are never forwarded.
+  await context.routeWebSocket("**/*",socket=>{
+    const u=socket.url();
+    if(u.startsWith(service))return mockSocket(socket);
+    if(u.startsWith(trustedInbox))return mockTrustedInbox(socket);
+    throw Error("UNAUTHORIZED_WEBSOCKET_DESTINATION");
+  });
   // Preserve the exact allowed public HTTPS Origin while reading candidate
   // files ONLY from the local CI server; public Pages is never modified.
   await context.route("**/*",async route=>{
