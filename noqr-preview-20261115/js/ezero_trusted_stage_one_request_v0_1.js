@@ -106,8 +106,16 @@
       resetSelection();
     }else if(e.detail?.stage==="connected")updateConnected();
   });
-  // Reset stale QR only when a genuinely fresh one-shot call begins.
+  // Every newly authorized dial is a NEW attempt. Never leave a previous
+  // green Connected banner alongside an unrelated failed direct invitation.
+  function clearStaleConnectionBanner(){
+    const node=$("ezeroOneCallProgress");
+    if(!node)return;
+    node.hidden=true;node.textContent="";node.removeAttribute("data-state");
+  }
+  // Reset stale QR and the old call result at the start of a new attempt.
   document.addEventListener("ezero:auto-call-starting",()=>{
+    clearStaleConnectionBanner();
     link="";savedDirect=false;copyBtn.disabled=true;
     qrBox.hidden=true;qrTarget.replaceChildren();
     info("starting");
@@ -228,11 +236,13 @@
   function showPeerResult(){
     if(window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true)
       showProgress("connected");
+    else if(progress?.dataset.state==="connected")clearStaleConnectionBanner();
   }
   document.addEventListener("ezero:channel-state",showPeerResult);
   document.addEventListener("ezero:call-status",e=>{
     const stage=e.detail?.stage;
     if(stage==="connected")showPeerResult();
+    else if(stage==="idle")clearStaleConnectionBanner();
     else if(["iceNoRoute","signalInvalid","micDenied","fingerprintMismatch","failed"].includes(stage))
       showProgress("failed");
   });
