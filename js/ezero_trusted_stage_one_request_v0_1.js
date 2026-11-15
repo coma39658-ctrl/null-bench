@@ -25,7 +25,7 @@
       inviteFail:"کال QR نہیں بنا۔ دوبارہ 📞 آڈیو کال دبائیں؛ خرابی برقرار ہو تو رابطہ سرور چیک کریں۔",
       savedDialing:"محفوظ دوست کو براہِ راست کال بھیجی جا رہی ہے؛ QR اسکین کرنے کی ضرورت نہیں۔",
       savedDelivered:"✓ دعوت دوست کے کھلے صفحے تک پہنچی؛ دوست کے قبول کرنے کا انتظار ہے۔",
-      savedFallback:"براہِ راست کال نہیں پہنچ سکی؛ صرف اب QR یا دعوتی لنک کا متبادل دستیاب ہے۔"},
+      savedFallback:"براہِ راست کال نہیں پہنچ سکی۔ دوست کا انٹرنیٹ اور کال وصول کرنے کی اجازت چیک کریں۔ نیا QR صرف آپ خود منتخب کریں۔"},
     en:{ready:"✓ One short invite ready. Your friend scans QR or opens link; the answer returns automatically.",
       copied:"✓ Invitation link copied. Share only with someone you trust.",
       copyFail:"Cannot copy link; tap Share Invitation.",invalid:"This is not a valid E-ZERO call invitation QR.",identityOnly:"This QR verifies identity only. On the first phone tap Audio or Video, then scan the call invitation QR.",
@@ -36,7 +36,7 @@
       inviteFail:"Call QR not created. Tap Audio again; check signaling if this persists.",
       savedDialing:"Calling your saved friend directly; no QR scan is needed.",
       savedDelivered:"✓ Delivered to your friend's open page. Waiting for acceptance.",
-      savedFallback:"Direct delivery failed; QR or the invite link is now available as a fallback."},
+      savedFallback:"Direct call was not delivered. Check your friend’s connection and incoming-call permission. A new QR is available only if you choose it."},
     ar:{ready:"✓ الدعوة المختصرة جاهزة؛ يفتحها الصديق ويعود الرد تلقائياً.",
       copied:"✓ نُسخ الرابط المؤقت. شاركه مع شخص موثوق فقط.",copyFail:"تعذر النسخ؛ اضغط مشاركة الدعوة.",
       invalid:"هذا ليس رمز QR صالحاً لدعوة مكالمة E-ZERO.",identityOnly:"هذا رمز هوية فقط. اضغط مكالمة صوتية أو فيديو في الهاتف الأول وامسح رمز دعوة الاتصال.",unsupported:"مسح QR غير متاح؛ شارك الرابط بدلاً منه.",
@@ -47,7 +47,7 @@
       inviteFail:"لم يُنشأ QR للمكالمة. اضغط صوت مرة أخرى وتحقق من الخادم.",
       savedDialing:"جارٍ الاتصال بالصديق المحفوظ مباشرةً؛ لا حاجة إلى مسح QR.",
       savedDelivered:"✓ وصلت الدعوة إلى صفحة صديقك المفتوحة؛ ننتظر الموافقة.",
-      savedFallback:"تعذر التوصيل المباشر؛ يتوفر الآن QR أو رابط الدعوة كخيار احتياطي."}
+      savedFallback:"لم تصل المكالمة المباشرة. تحقق من اتصال الصديق وإذن استقبال المكالمات. لا يظهر QR جديد إلا باختيارك."}
   };
   const t=k=>(words[document.documentElement.lang]||words.ur)[k];
   function info(k,error=false){
@@ -106,14 +106,22 @@
       resetSelection();
     }else if(e.detail?.stage==="connected")updateConnected();
   });
-  // Reset stale QR only when a genuinely fresh one-shot call begins.
+  // Every newly authorized dial is a NEW attempt. Never leave a previous
+  // green Connected banner alongside an unrelated failed direct invitation.
+  function clearStaleConnectionBanner(){
+    const node=$("ezeroOneCallProgress");
+    if(!node)return;
+    node.hidden=true;node.textContent="";node.removeAttribute("data-state");
+  }
+  // Reset stale QR and the old call result at the start of a new attempt.
   document.addEventListener("ezero:auto-call-starting",()=>{
+    clearStaleConnectionBanner();
     link="";savedDirect=false;copyBtn.disabled=true;
     qrBox.hidden=true;qrTarget.replaceChildren();
     info("starting");
   });
-  // Reuse the original QR renderer ONLY for first-time pairing and
-  // honest failure fallback. Do not render a QR during saved-friend redial.
+  // Reuse the original QR renderer ONLY for explicitly requested new QR calls.
+  // Failed saved-friend calls must NEVER auto-open a new QR.
   function showFallbackQr(){
     if(!link||!safeInvite(link))return;
     qrBox.hidden=false;copyBtn.disabled=false;
@@ -152,15 +160,15 @@
     }
     showFallbackQr();
   });
-  // Delivery is not acceptance or connection. Only show QR after a
-  // verified outgoing-error, retaining the manual fallback for genuine failures.
+  // Delivery is not acceptance or connection. A delivery failure must report
+  // honestly, without silently forcing a QR on a previously saved friend.
   document.addEventListener("ezero:saved-friend-direct-result",e=>{
     if(!savedDirect)return;
     if(e.detail?.status==="delivered"){
       info("savedDelivered");
     }else if(e.detail?.status==="failed"){
       savedDirect=false;
-      showFallbackQr();
+      qrBox.hidden=true;copyBtn.disabled=true;qrTarget.replaceChildren();
       info("savedFallback",true);
     }
   });
@@ -228,11 +236,13 @@
   function showPeerResult(){
     if(window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true)
       showProgress("connected");
+    else if(progress?.dataset.state==="connected")clearStaleConnectionBanner();
   }
   document.addEventListener("ezero:channel-state",showPeerResult);
   document.addEventListener("ezero:call-status",e=>{
     const stage=e.detail?.stage;
     if(stage==="connected")showPeerResult();
+    else if(stage==="idle")clearStaleConnectionBanner();
     else if(["iceNoRoute","signalInvalid","micDenied","fingerprintMismatch","failed"].includes(stage))
       showProgress("failed");
   });
