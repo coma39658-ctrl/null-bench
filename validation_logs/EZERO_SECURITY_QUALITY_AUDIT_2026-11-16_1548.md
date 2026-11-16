@@ -81,7 +81,7 @@ Specified service `ezero-secure-app-two-phone-test-20261107`:
 
 - Render's 12 November DPA notice schedules four US subprocessors (Anthropic, Grafana Labs, Temporal, TypeSafe AI) for 20 November 2026; its stated objection deadline is 20 November. No email was sent and no objection was submitted. This is an owner/legal decision.
 - Cloudflare's 29 October Observability notice says the Free plan includes 0.5 GB/day ingestion with seven-day retention and pauses ingestion at the daily limit; the Paid plan includes 50 GB ingestion and 10 GB-month storage, with additional ingestion/storage priced at $0.25/GB and $0.10/GB-month. The account's current plan was not verified; no billing change was made.
-- No matching new Cloudflare security notice or billing/payment email was found in the targeted 14-day / 30-day searches. No new GitHub Dependabot/secret-scanning alert was found; the relevant GitHub emails were CI workflow notifications.
+- No Cloudflare security notice was found in the 14-day window and no billing/payment email was found in the targeted searches. The 30-day Gmail review also surfaced older account-security notices outside that window; their contents and identifiers were not copied into this public note. No new GitHub Dependabot/secret-scanning alert was found; the relevant GitHub emails were CI workflow notifications.
 - The earlier Mail Alert Health Gate audit failure was followed by a later successful non-deploy run [#43854647230](https://github.com/coma39658-ctrl/null-bench/actions/runs/43854647230) on a newer audit commit; its CRLF/CORS fixture, Worker/client source, and frozen calling checks succeeded.
 
 ## Workstream status and blockers
