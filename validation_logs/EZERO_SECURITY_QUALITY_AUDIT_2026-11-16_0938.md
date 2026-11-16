@@ -65,3 +65,11 @@
 - NOT RUN: intrusive scanning, exploit attempts, third-party probing, production mutation, live provider requests, billing or permission changes.
 
 **Final decision: NO RELEASE.** This note is evidence of the audit performed, not a deployment approval or claim of physical validation.
+
+
+## Audit-note validation
+
+- Audit-only branch: ezero-audit-readonly-20261116-0938
+- Audit-note commit: https://github.com/coma39658-ctrl/null-bench/commit/8fe277fa291d7a543a71f18f20eb30249f15354c
+- Evidence Registry Validator for that commit: PASS — https://github.com/coma39658-ctrl/null-bench/actions/runs/43819203422
+- Compare against main: only the two audit markdown files are added; no source code or production artifact changes.
