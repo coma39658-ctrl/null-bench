@@ -12,7 +12,7 @@ Read-only review of owned GitHub repositories, PR metadata, Actions evidence, Re
 - Current main SHA: `a830a73f84ce0f9b0a116790d1330b00dcb9ec54`.
 - [Main commit](https://github.com/coma39658-ctrl/null-bench/commit/a830a73f84ce0f9b0a116790d1330b00dcb9ec54).
 - Latest successful Pages build/deployment run observed: [#43744654693](https://github.com/coma39658-ctrl/null-bench/actions/runs/43744654693), on the same SHA `a830a73f84ce0f9b0a116790d1330b00dcb9ec54).
-- Latest main scheduled QA run observed: [#43844469190](https://github.com/coma39658-ctrl/null-bench/actions/runs/43844469190). Its current check-run set is 12 success and 1 skipped; the weekly mobile-browser job was skipped.
+- Latest main scheduled QA run observed: [#43844469190](https://github.com/coma39658-ctrl/null-bench/actions/runs/43844469190): 1 of its 2 jobs succeeded and the weekly mobile-browser job was skipped. Separately, all check-runs currently associated with the main SHA total 12 success and 1 skipped across multiple runs.
 - The main SHA and latest successful Pages build SHA match at source/build level. The actual served Pages body, response headers, and deployed asset hashes were not verified.
 
 ## Public HTTP and source asset checks
