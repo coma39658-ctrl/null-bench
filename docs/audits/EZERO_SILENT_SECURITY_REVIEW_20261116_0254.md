@@ -152,3 +152,10 @@ A single cache-busting correction was applied only to existing draft PR #156 bra
 
 ### Release decision
 **NO RELEASE.** PR #128 and #156 remain Draft; PR #157 has failed CI gates. Public Pages/Render HTTP and served asset SHA, response CSP headers, live Worker handshake, provider budget/availability, privacy/GA4 consent alignment, and real physical two-phone evidence are not verified. Preserve current main and production unchanged.
+
+
+### Additional correction — GA4 event payload minimization
+- A closer source read of main `index.html` (lines 2808–3000) shows the existing GA4 completion event sends per-run numeric research output fields: `node_count`, `edge_count`, `null_samples`, `swap_attempts`, `observed_transitivity`, `null_mean`, `null_sd`, `z_score` when defined, and `outside_95_percent_interval` when defined. The start event sends `edge_count`; demo generation sends `demo_type` and `edge_count`. Raw edge lists, graph text, chats, calls, QR payloads, images and audio are not included in these event calls.
+- Correction: these are **per-run research metrics**, not merely coarse audience events. They may reveal a user's analysis output even though they do not contain the graph itself. They are sent by the page's existing GA4 integration without a visible consent gate in the reviewed source. No GA4 event-level/user-level report was accessed, and no new tracking was added.
+- Before continuing or expanding analytics, the owner should decide whether these research-result fields are necessary. Align the website privacy notice, explicit consent/opt-out and retention with actual GA4 behavior; prefer aggregate-only metrics and avoid transmitting per-run result values unless clearly disclosed and consented. Do not silently change the existing tracker in this review.
+- The main homepage has no CSP meta tag in the reviewed source and contains inline scripts as well as the external GA4 loader. Actual HTTP response CSP headers remain UNKNOWN; any strict server-side CSP must be tested against the current page rather than assumed from the Secure Connect meta policy.
