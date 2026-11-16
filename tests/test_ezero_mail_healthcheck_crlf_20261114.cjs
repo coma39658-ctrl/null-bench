@@ -9,7 +9,7 @@ const {spawnSync}=require("node:child_process");
 const workflow=fs.readFileSync(".github/workflows/ezero-simple-home-inbox-worker-stage-20261113.yml","utf8");
 const origin="https://ezero-secure-simple-home-two-phone.onrender.com";
 const wanted="access-control-allow-origin: "+origin;
-const command="tr -d '\\r' < \"$E_ZERO_HEADER_FILE\" | grep -iFx '"+wanted+"'";
+const command="tr -d '\r' < \"$E_ZERO_HEADER_FILE\" | grep -iFx '"+wanted+"'";
 test("staging deploy smoke gate normalizes curl CRLF before exact CORS match",()=>{
   assert.ok(workflow.includes("tr -d '\\r' </tmp/ezero-health-headers | grep -iFx \""+wanted+"\""));
   assert.ok(workflow.includes('test "$CODE" = "403"'));
