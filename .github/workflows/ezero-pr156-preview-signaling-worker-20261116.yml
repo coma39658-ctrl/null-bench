@@ -33,6 +33,27 @@ jobs:
           console.log('PR156_PREVIEW_SIGNALING_ISOLATION: PASS');
           NODE
           node --input-type=module --check < signaling/cloudflare/src/worker.js
+      - name: Ensure isolated Worker resource exists
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          API="https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT/workers/workers/ezero-browser-signaling-pr156-preview-v2"
+          CODE="$(curl --silent --show-error -o /tmp/worker-resource.json -w '%{http_code}' -H "Authorization: Bearer $CF_TOKEN" "$API")"
+          if [ "$CODE" = "200" ]; then
+            echo "PR156 preview Worker resource already exists."
+          elif [ "$CODE" = "404" ]; then
+            curl --fail --silent --show-error -X POST "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT/workers/workers" \
+              -H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/json" \
+              --data '{"name":"ezero-browser-signaling-pr156-preview-v2"}' > /tmp/worker-create.json
+            node -e "const r=require('/tmp/worker-create.json'); if(!r.success) { console.error(JSON.stringify(r.errors)); process.exit(1) }"
+            echo "PR156 preview Worker resource created."
+          else
+            cat /tmp/worker-resource.json
+            echo "::error::Unexpected Cloudflare Worker lookup HTTP $CODE"
+            exit 1
+          fi
       - name: Deploy only the PR156 preview signaling Worker
         uses: cloudflare/wrangler-action@v4
         with:
