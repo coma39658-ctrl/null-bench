@@ -1,0 +1,47 @@
+name: E-ZERO PR156 preview signaling worker
+on:
+  push:
+    branches: [ezero-pr156-render-preview-20261116]
+    paths:
+      - 'signaling/cloudflare/src/worker.js'
+      - 'signaling/cloudflare/wrangler.pr156-preview-v2-20261116.jsonc'
+      - '.github/workflows/ezero-pr156-preview-signaling-worker-20261116.yml'
+permissions:
+  contents: read
+jobs:
+  deploy-isolated-preview-worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Cloudflare credentials exist
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          test -n "$CF_TOKEN" || { echo "::error::Missing CLOUDFLARE_API_TOKEN"; exit 1; }
+          test -n "$CF_ACCOUNT" || { echo "::error::Missing CLOUDFLARE_ACCOUNT_ID"; exit 1; }
+      - name: Verify exact isolated origin and worker name
+        run: |
+          node - <<'NODE'
+          const assert=require('node:assert/strict');
+          const c=JSON.parse(require('node:fs').readFileSync('signaling/cloudflare/wrangler.pr156-preview-v2-20261116.jsonc','utf8'));
+          assert.equal(c.name,'ezero-browser-signaling-pr156-preview-v2');
+          assert.equal(c.vars.PUBLIC_ORIGIN,'https://ezero-save-friend-pr156-preview-v2.onrender.com');
+          assert.equal(c.workers_dev,true);
+          assert.equal(c.durable_objects.bindings[0].class_name,'SignalRoom');
+          console.log('PR156_PREVIEW_SIGNALING_ISOLATION: PASS');
+          NODE
+          node --input-type=module --check < signaling/cloudflare/src/worker.js
+      - name: Deploy only the PR156 preview signaling Worker
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: signaling/cloudflare
+          command: deploy --config wrangler.pr156-preview-v2-20261116.jsonc
+      - name: Verify deployed Worker health
+        run: |
+          set -euo pipefail
+          BASE="https://ezero-browser-signaling-pr156-preview-v2.coma39658.workers.dev"
+          curl --fail --silent --show-error --retry 5 --retry-delay 2 "$BASE/v1/health" | grep -F '"purpose":"signaling-only"'
