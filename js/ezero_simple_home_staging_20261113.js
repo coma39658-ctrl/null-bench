@@ -71,7 +71,7 @@ panel.addEventListener("click",event=>{
  const action=event.target.closest("[data-ezero-home]")?.dataset.ezeroHome;
  if(!action)return;
  if(action==="more"){show(null);return;}
- if(action==="myqr"){const hub=find(["ezeroFrontQrHub"]);if(hub)hub.classList.remove("ezero-simple-collapsed");const own=find(["ezeroFrontAudioQr"]);if(own){own.click();hub?.scrollIntoView({block:"nearest"});}else panel.querySelector("#ezeroSimpleStatus").textContent="کال QR دستیاب نہیں؛ دعوتی سروس چیک کریں۔";return;}
+ if(action==="myqr"){const workspace=find(["ezeroAutoPilot"]);if(workspace){workspace.hidden=false;workspace.classList.remove("ezero-simple-collapsed");show(workspace);const start=find(["ezeroAutoStart"]);if(start&&!start.disabled){panel.querySelector("#ezeroSimpleStatus").textContent="محفوظ کال دعوت بنائی جا رہی ہے؛ QR نیچے ظاہر ہوگا۔";start.click();}else{panel.querySelector("#ezeroSimpleStatus").textContent="پہلے پروفائل اور اجازت مکمل کریں، پھر محفوظ دعوت بنائیں۔";}}else{panel.querySelector("#ezeroSimpleStatus").textContent="دعوت بنانے کا حصہ اس ورژن میں موجود نہیں؛ QR تیار نہیں ہوا۔";}return;}
  if(action==="gallery"){const hub=find(["ezeroFrontQrHub"]);hub?.classList.remove("ezero-simple-collapsed");const picker=find(["ezeroOneGalleryInvite"]);if(picker)picker.click();else panel.querySelector("#ezeroSimpleStatus").textContent="گیلری QR آپشن دستیاب نہیں۔";return;}
  if(action==="friends"){find(["ezeroFriendListToggle"])?.click();dock?.scrollIntoView({block:"nearest"});return;}
  if(action==="add"){
