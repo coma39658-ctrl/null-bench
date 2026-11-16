@@ -18,6 +18,7 @@ const checks=[
  ['incoming call panels stay visible',()=>{assert.match(js,/ezeroOneJoinPanel/);assert.match(js,/ezeroTrustedFriendsLab/);}],
  ['saved contacts do not silently fall back to another QR',()=>{assert.match(js,/if\(hasFriends\)/);assert.match(js,/ezeroFriendSidePanel/);assert.match(js,/EZERO_FRIEND_ACCESS/);}],
  ['first-time pairing exposes existing invite controls without auto-calling',()=>{assert.match(js,/ezeroAutoStart/);assert.match(js,/ezeroAutoShare/);assert.match(js,/کوئی کال شروع نہیں ہوئی/);}],
+ ['pending call QR appears before signaling and is marked unusable until verified',()=>{const signal=fs.readFileSync('js/ezero_trusted_stage_signaling_v0_1.js','utf8');const one=fs.readFileSync('js/ezero_trusted_stage_one_request_v0_1.js','utf8');assert.ok(signal.indexOf('ezero:auto-invite-preview')<signal.indexOf('await connectSocket(session)'));assert.match(one,/ezero:auto-invite-preview/);assert.match(one,/copyBtn\.disabled=!ready/);assert.match(one,/ezero:auto-signal-error/);}],
  ['original advanced options are not deleted',()=>assert.match(js,/ezero-simple-more/)]
 ];
 let failures=0;for(const [name,fn] of checks){try{fn();console.log('PASS',name)}catch(e){failures++;console.error('FAIL',name,e.message)}}
