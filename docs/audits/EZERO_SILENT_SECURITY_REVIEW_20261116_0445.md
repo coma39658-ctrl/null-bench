@@ -75,7 +75,7 @@ The active default-branch ruleset is named **E-ZERO Secure Connect Protection**.
 
 - Render subprocessor notice dated 2026-11-12: four US-based subprocessors become effective 2026-11-20; objection window ends 2026-11-20. This is a legal/data-processing notice, not an incident.
 - Render build-failure email dated 2026-11-13 concerns the separate simplified-home staging service; a later deployment on that service succeeded at 08:57Z.
-- No new Cloudflare security/billing incident or invoice was verified in the relevant search. The visible Cloudflare email was general promotional content.
+- Gmail review surfaced Cloudflare password-reset/password-changed notices dated 2026-10-29 and the 2026-10-29 Observability pricing notice (details in the addendum below); no separate breach/incident notice or invoice was identified. One additional Cloudflare email was general promotional content.
 - GitHub notifications include PR #157 scope/regression failures. No account compromise or exposed secret was established by this Gmail review.
 - No billing setting, plan, account, credential, permission or paid provider was changed.
 
