@@ -69,3 +69,9 @@
 Next bounded work should remain isolated: (a) reconcile Trusted Inbox enabled/disabled source and deployment documentation only after live owner-approved smoke; (b) run physical Android-to-Android and Android-to-iPhone foreground call/redial cycles; (c) separate AI Studio status changes from the shared Null Bench `index.html` boundary without weakening Null Bench guards; (d) obtain explicit owner decision on GA4 consent/opt-out and Render's 2026-11-20 DPA notice; (e) verify Render workspace/service SHA and public HTTP/asset parity after owner selection.
 
 No production code, public main branch, deployed app, audio/video/chat engine, user data, tracking configuration, Cloudflare account, Render service, permission or billing setting was changed in this audit.
+
+
+## Audit-note validation caveat
+
+- Audit-only commit: `dd564bdf5101f1ca6330d2ada14d81a445d5e2bd`; audit file blob: `040030e33a95515c0650fad780aa1224c7fdcaad`.
+- The branch-scoped Evidence Registry Validator run [43816564940](https://github.com/coma39658-ctrl/null-bench/actions/runs/43816564940) completed successfully, but its API-reported `head_sha` is the base main commit `a830a73f84ce0f9b0a116790d1330b00dcb9ec54`, not the audit commit above. Therefore it is **not** accepted as audit-commit-specific validation evidence. Audit-note-specific CI status remains UNKNOWN; the note remains isolated and unmerged.
