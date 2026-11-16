@@ -127,6 +127,7 @@
   });
   const signalError=key=>{
     set(key,"error");
+    document.dispatchEvent(new CustomEvent("ezero:auto-signal-error",{detail:{key}}));
     if(!window.EZERO_PEER_PROFILE_TRANSPORT?.connected())closeRoom();
   };
   function secureSignal(raw,type){
@@ -273,6 +274,9 @@
     const room=random(24),hostToken=random(32),guestToken=random(32);
     if(!ROOM.test(room)||!TOKEN.test(hostToken)||!TOKEN.test(guestToken))return signalError("bad");
     session={role:"host",room,hostToken,guestToken,offerForwarded:false,peerJoined:false};
+    // Show a pending QR immediately; it is not shareable/usable until signaling
+    // is ready and the signed SDP offer has been produced.
+    document.dispatchEvent(new CustomEvent("ezero:auto-invite-preview",{detail:{link:shareLink()}}));
     set("connecting");
     try{
       await connectSocket(session);
