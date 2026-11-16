@@ -71,6 +71,7 @@ A single cache-busting correction was applied only to existing draft PR #156 bra
 ## 6. AI Studio / Qwen
 
 - [PR #157](https://github.com/coma39658-ctrl/null-bench/pull/157), head 0753ce4eba7c6de46266a15f84afb9a4eef7b5ec, is Draft. Its AI health-truthfulness test passed ([run 43763736376](https://github.com/coma39658-ctrl/null-bench/actions/runs/43763736376)), but three Null Bench scope gates failed because the AI change touches shared index.html/workflow/test files outside their allowed Null Bench-only diff:
+- Main homepage source currently displays an initial Public AI Off label while setting the request-enable flag true before the health fetch. PR #157 separates the visible CHECKING/UNVERIFIED health state from request permission; a failed health probe still permits a user request attempt, with the gateway remaining authoritative. This behavior must be clearly explained and verified against the live gateway before any public claim of AI availability.
   - [run 43763736301](https://github.com/coma39658-ctrl/null-bench/actions/runs/43763736301)
   - [run 43763736350](https://github.com/coma39658-ctrl/null-bench/actions/runs/43763736350)
   - [run 43763736216](https://github.com/coma39658-ctrl/null-bench/actions/runs/43763736216)
