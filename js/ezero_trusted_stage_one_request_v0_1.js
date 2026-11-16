@@ -23,7 +23,7 @@
       starting:"کال شروع کرنے کی درخواست۔ مائیک/کیمرے کی اجازت آپ سے مانگی جائے گی۔",
       qrFail:"کال کی دعوت بن گئی مگر QR تصویر نہیں بن سکی۔ «دعوت شیئر کریں» یا «مختصر لنک کاپی کریں» استعمال کریں۔",
       inviteFail:"کال QR نہیں بنا۔ دوبارہ 📞 آڈیو کال دبائیں؛ خرابی برقرار ہو تو رابطہ سرور چیک کریں۔"},
-    en:{ready:"✓ One short invite ready. Your friend scans QR or opens link; the answer returns automatically.",
+    en:{ready:"✓ One short invite ready. Your friend scans QR or opens link; the answer returns automatically.",preview:"QR generated; signaling server verification is pending. Scanning now will not connect the call.",offline:"QR is visible, but the signaling server is unavailable. Do not share it yet.",
       copied:"✓ Invitation link copied. Share only with someone you trust.",
       copyFail:"Cannot copy link; tap Share Invitation.",invalid:"This is not a valid E-ZERO call invitation QR.",oldPage:"This QR belongs to a different version. Open the same new E-ZERO Secure App test link on both phones and create a fresh call QR.",identityOnly:"This QR verifies identity only. On the first phone tap Audio or Video, then scan the call invitation QR.",
       unsupported:"Live camera unavailable here. Use Scan QR from image in this tile, or open in Chrome.",cameraDenied:"Camera permission denied. Allow it in Chrome or choose a QR image.",cameraBusy:"Camera unavailable or busy; select a QR image.",imageChoose:"🖼️ Scan QR from image",imageInvalid:"Choose an image smaller than 8 MB.",imageNoQr:"No readable QR found. Try a clearer image or invite link.",sameVersion:"↗ Share this test version to the other phone",scanning:"📷 Camera ready; scan friend's call QR.",
@@ -31,7 +31,7 @@
       starting:"Calling: camera/microphone permission will be requested.",
       qrFail:"Invite is ready but the QR image failed. Use Share Invitation or Copy Link.",
       inviteFail:"Call QR not created. Tap Audio again; check signaling if this persists."},
-    ar:{ready:"✓ الدعوة المختصرة جاهزة؛ يفتحها الصديق ويعود الرد تلقائياً.",
+    ar:{ready:"✓ الدعوة المختصرة جاهزة؛ يفتحها الصديق ويعود الرد تلقائياً.",preview:"تم إنشاء QR، لكن التحقق من خادم الاتصال لم يكتمل. المسح الآن لن يوصل المكالمة.",offline:"رمز QR ظاهر لكن خادم الاتصال غير متاح؛ لا تشاركه الآن.",
       copied:"✓ نُسخ الرابط المؤقت. شاركه مع شخص موثوق فقط.",copyFail:"تعذر النسخ؛ اضغط مشاركة الدعوة.",
       invalid:"هذا ليس رمز QR صالحاً لدعوة مكالمة E-ZERO.",oldPage:"هذا QR لنسخة مختلفة. افتح رابط اختبار E-ZERO Secure App الجديد على الهاتفين ثم أنشئ رمز مكالمة جديداً.",identityOnly:"هذا رمز هوية فقط. اضغط مكالمة صوتية أو فيديو في الهاتف الأول وامسح رمز دعوة الاتصال.",unsupported:"الكاميرا غير متاحة في هذا المتصفح؛ اختر صورة QR أو افتح في Chrome.",cameraDenied:"إذن الكاميرا مرفوض؛ اسمح به أو اختر الصورة.",cameraBusy:"الكاميرا مشغولة؛ اختر صورة QR.",imageChoose:"🖼️ قراءة QR من صورة",imageInvalid:"اختر صورة أصغر من 8 ميغابايت.",imageNoQr:"لم يتم العثور على QR واضح. حاول بصورة أخرى.",sameVersion:"↗ مشاركة هذا الإصدار للهاتف الآخر",
       scanning:"📷 الكاميرا تعمل. امسح رمز دعوة صديقك.",stopped:"تم إيقاف الكاميرا.",
@@ -110,42 +110,33 @@
     link="";copyBtn.disabled=true;qrBox.hidden=true;qrTarget.replaceChildren();
     info("starting");
   });
-  document.addEventListener("ezero:auto-invite-ready",e=>{
-    const candidate=e.detail?.link;
-    if(typeof candidate!=="string"||!safeInvite(candidate)){
-      info("inviteFail",true);return;
-    }
+  function renderInviteQr(candidate,ready){
+    if(typeof candidate!=="string"||!safeInvite(candidate)){info("inviteFail",true);return;}
     link=candidate;
-    // For a selected SAVED friend the signed invitation is delivered over
-    // their separately authorized inbox. Do not show an unrelated QR image
-    // when the user pressed Call; keep the live status at that Call button.
-    if(window.EZERO_TRUSTED_SAVED_CALL?.isPending?.()===true){
-      qrBox.hidden=true;copyBtn.disabled=true;
-      qrTarget.replaceChildren();
-      $("ezeroAutoShare").disabled=true;
-      return;
+    // A pending QR is visible for diagnosis, but cannot be copied/shared until
+    // the signaling socket and signed SDP offer are both ready.
+    if(ready&&window.EZERO_TRUSTED_SAVED_CALL?.isPending?.()===true){
+      qrBox.hidden=true;copyBtn.disabled=true;qrTarget.replaceChildren();
+      $("ezeroAutoShare").disabled=true;return;
     }
-    qrBox.hidden=false;copyBtn.disabled=false;
-    qrTarget.replaceChildren();
+    qrBox.hidden=false;copyBtn.disabled=!ready;qrTarget.replaceChildren();
     let rendered=false;
     if(typeof window.qrcode==="function"){
       try{
         const qr=window.qrcode(0,"M");qr.addData(link);qr.make();
-        // 4-module white quiet zone and crisp SVG paths for phone cameras.
         qrTarget.innerHTML=qr.createSvgTag(6,24);
         const svg=qrTarget.querySelector("svg");
-        if(svg){
-          svg.setAttribute("aria-label","E-ZERO single-request call invite");
-          svg.setAttribute("shape-rendering","crispEdges");
-          rendered=true;
-        }
-      }catch(_){/* Keep the share/copy fallback visible and report failure. */}
+        if(svg){svg.setAttribute("aria-label","E-ZERO single-request call invite");
+          svg.setAttribute("shape-rendering","crispEdges");rendered=true;}
+      }catch(_){/* Report failure honestly. */}
     }
-    if(!rendered){
-      qrTarget.replaceChildren();
-      qrTarget.textContent=t("qrFail");
-      info("qrFail",true);
-    }else info("ready");
+    if(!rendered){qrTarget.replaceChildren();qrTarget.textContent=t("qrFail");info("qrFail",true);return;}
+    info(ready?"ready":"preview");
+  }
+  document.addEventListener("ezero:auto-invite-preview",e=>renderInviteQr(e.detail?.link,false));
+  document.addEventListener("ezero:auto-invite-ready",e=>renderInviteQr(e.detail?.link,true));
+  document.addEventListener("ezero:auto-signal-error",()=>{
+    if(!qrBox.hidden&&link)info("offline",true);
   });
   copyBtn?.addEventListener("click",async()=>{
     if(!link)return;
