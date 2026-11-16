@@ -75,3 +75,9 @@ No production code, public main branch, deployed app, audio/video/chat engine, u
 
 - Audit-only commit: `dd564bdf5101f1ca6330d2ada14d81a445d5e2bd`; audit file blob: `040030e33a95515c0650fad780aa1224c7fdcaad`.
 - The branch-scoped Evidence Registry Validator run [43816564940](https://github.com/coma39658-ctrl/null-bench/actions/runs/43816564940) completed successfully, but its API-reported `head_sha` is the base main commit `a830a73f84ce0f9b0a116790d1330b00dcb9ec54`, not the audit commit above. Therefore it is **not** accepted as audit-commit-specific validation evidence. Audit-note-specific CI status remains UNKNOWN; the note remains isolated and unmerged.
+
+
+### Render source-branch cross-check
+
+- A related GitHub candidate branch `ezero-secure-app-two-phone-pass-baseline-20261113` currently points to `cb6982990373fe2a31a923fe1de97de1dfed0ecc`; its only recent branch run found here is Evidence Registry Validator [43365894065](https://github.com/coma39658-ctrl/null-bench/actions/runs/43365894065) — PASS. No Render service metadata links that branch to the requested 2026-11-07 TEST hostname, so it is **not** accepted as that service's deployed SHA.
+- Final audit-only branch head after this addendum: `476a99b7c816faeb05cf7098200d249a25ad6fd4`; final audit file blob: `101ba22c8d210f6ac35ee1d33538af47da7a414c`. No secrets, private email addresses, OTPs or user-level records are present.
