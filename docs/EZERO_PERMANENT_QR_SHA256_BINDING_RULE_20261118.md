@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-18  
 **Applies to:** isolated staging branch `ezero-pr156-render-preview-20261116`  
-**Status:** Binding requirement; implementation and acceptance tests still pending.
+**Status:** Isolated staging implementation present; automated acceptance coverage is in progress; physical-device and mutual-consent end-to-end validation remain pending.
 
 ## Non-negotiable user requirement
 
@@ -57,7 +57,9 @@ The QR identity remains stable for the lifetime of its associated public/private
 
 ## Source inspection note (2026-11-18)
 
-The current staging engine already persists an opt-in non-extractable P-256 key in same-origin IndexedDB and derives a SHA-256 fingerprint. It currently creates an `EZERO1` QR/invite payload with a random challenge code and 10-minute expiry. Therefore the current displayed QR is not yet the permanent QR required here. Do not simply remove expiry from the existing call-invite parser: introduce a separate versioned permanent public-identity payload and keep short-lived pairing/call-session challenges separate. The profile/friend logic already has signed offer/answer verification and local fingerprint-based friend storage; integrate with it without weakening verification or rewriting the existing media engine.
+The isolated staging implementation now creates a separate versioned `EZERO2` permanent public-identity payload using an opt-in non-extractable P-256 key in same-origin IndexedDB. It derives SHA-256 over the public SPKI key and signs a canonical envelope. The existing short-lived `EZERO1` call invitation remains separate. Camera and gallery scanners verify the permanent token locally before exposing the explicit local Save Friend action; QR images are not uploaded. The gallery path was corrected on 2026-11-18 to use the same permanent-identity verifier and save form as camera scanning, rather than the legacy temporary-ID verifier.
+
+**Important unresolved integration gates:** the current signature canonicalization includes `location.origin`, so QR generated on a staging hostname will not verify on a different production hostname. Select and test a stable canonical application origin or define a deliberate migration/re-pairing procedure before production. Also, the present Save Friend implementation writes the peer locally and requests trusted-inbox permission where available; this alone is not proof that both devices completed a mutually accepted pairing and both saved each other. A two-sided signed challenge/acceptance handshake and rollback behavior must be demonstrated before declaring mutual pairing complete.
 
 ## Release boundary
 
