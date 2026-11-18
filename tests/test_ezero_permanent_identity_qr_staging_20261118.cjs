@@ -35,7 +35,8 @@ function boot(){
  const home=new Element("section");
  const root={querySelector:s=>s===".ezero-simple-home"?home:null};
  const elements=new Map();
- const document={getElementById:id=>id==="ezeroUnifiedCard"?root:(elements.get(id)||null),
+ const document={documentElement:{lang:"ur",dir:"rtl"},
+   getElementById:id=>id==="ezeroUnifiedCard"?root:(elements.get(id)||null),
    createElement:tag=>new Element(tag,(id,el)=>elements.set(id,el))};
  const window={EZERO_DEVICE_IDENTITY_STORE:store,EZERO_DEVICE_IDENTITY_CONTROL:control,
    qrcode:()=>({addData:s=>{lastQr=s;},make(){},createSvgTag:()=>"<svg></svg>"})};
