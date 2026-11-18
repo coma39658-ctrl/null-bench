@@ -203,12 +203,15 @@ function persistFriend(fp,peer){
  const avatar=typeof peer?.avatar==="string"&&peer.avatar.length<=12000&&
    (peer.avatar===""||PHOTO.test(peer.avatar))?peer.avatar:
    (typeof existing?.avatar==="string"?existing.avatar:"");
+ const identitySpki=typeof existing?.spki==="string"&&
+   /^[A-Za-z0-9_-]{50,240}$/.test(existing.spki)?existing.spki:"";
  if(lastAutoPeer===fp&&existing?.name===newName&&
     (existing?.profileName||"")===profileName&&
     existing?.nickname===explicitAlias&&
     (existing?.avatar||"")===(avatar||""))return true;
  const next=items.filter(row=>row.fp!==fp);
  next.unshift({fp,name:newName,profileName,nickname:explicitAlias,
+   ...(identitySpki?{spki:identitySpki,identityVersion:2}:{}),
    ...(avatar?{avatar}:{})});
  if(next.length>50)next.length=50;
  try{localStorage.setItem(FRIENDS,JSON.stringify(next));}
