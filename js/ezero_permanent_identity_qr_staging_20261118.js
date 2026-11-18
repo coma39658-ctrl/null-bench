@@ -45,7 +45,11 @@ function fromB64url(s){
  const raw=atob(s.replace(/-/g,"+").replace(/_/g,"/")+"=".repeat((4-s.length%4)%4));
  return Uint8Array.from(raw,c=>c.charCodeAt(0));
 }
-const canonical=(spki,fp)=>["EZERO-PERMANENT-IDENTITY-1",location.origin,spki,fp].join("\n");
+// Stable application identity: do not bind durable device QR keys to a temporary
+// Render preview hostname. This canonical origin is the existing production app
+// origin; staging and production builds share the same protocol identifier.
+const IDENTITY_ORIGIN="https://coma39658-ctrl.github.io";
+const canonical=(spki,fp)=>["EZERO-PERMANENT-IDENTITY-1",IDENTITY_ORIGIN,spki,fp].join("\n");
 async function verifyProof(row,proof){
  const bytes=fromB64url(row.spki);
  const fp=hex(await crypto.subtle.digest("SHA-256",bytes));
@@ -253,8 +257,9 @@ async function saveFriend(token,name){
  const existing=items.find(x=>x.fp===verified.fingerprint);
  if(existing?.spki&&existing.spki!==verified.spki)throw Error("FRIEND_KEY_CHANGED");
  const next=items.filter(x=>x.fp!==verified.fingerprint);
- next.unshift({fp:verified.fingerprint,spki:verified.spki,identityVersion:2,
-   name:clean,profileName:"",nickname:true});
+ next.unshift({...existing,fp:verified.fingerprint,spki:verified.spki,identityVersion:2,
+   name:clean,profileName:existing?.profileName||"",
+   nickname:existing?.profileName?clean!==existing.profileName:true});
  if(next.length>50)next.length=50;
  try{localStorage.setItem("ezero_secure_connect_staging_fingerprints_v0_1",JSON.stringify(next));}
  catch(_){throw Error("FRIEND_STORE_UNAVAILABLE");}
