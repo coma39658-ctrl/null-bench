@@ -94,7 +94,7 @@ try{
     "The compact messenger home must be the visible entry point");
   const homeActions=await caller.locator(".ezero-simple-home [data-ezero-home]")
     .evaluateAll(nodes=>nodes.map(node=>node.dataset.ezeroHome).sort());
-  assert.deepEqual(homeActions,["add","chat","friends","voice"],
+  assert.deepEqual(homeActions,["add","chat","friends","more","voice"],
     "Home must not duplicate call or QR controls");
   assert.equal(await caller.locator("#ezeroContactAudio").isVisible(),true,
     "Audio call belongs beside the selected saved friend");
