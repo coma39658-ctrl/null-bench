@@ -8,7 +8,7 @@ console.log('PASS language preference runtime regression test');
 const permanentQrRun=spawnSync(process.execPath,['tests/test_ezero_permanent_identity_qr_staging_20261118.cjs'],{encoding:'utf8'});
 if(permanentQrRun.status!==0)throw new Error('Permanent QR runtime test failed:\n'+permanentQrRun.stdout+'\n'+permanentQrRun.stderr);
 console.log('PASS permanent QR runtime regression test');
-for(const file of ['js/ezero_saved_friend_stage_engine_v0_1.js','js/ezero_secure_connect_modern_evidence_stage_v0_1.js','js/ezero_permanent_identity_qr_staging_20261118.js','js/ezero_simple_home_staging_20261113.js','tests/test_ezero_audio_chat_voice_languages_20261106.mjs','tests/test_ezero_contact_first_call_20261106.mjs']){
+for(const file of ['js/ezero_saved_friend_stage_engine_v0_1.js','js/ezero_trusted_stage_signaling_v0_1.js','js/ezero_secure_connect_modern_evidence_stage_v0_1.js','js/ezero_permanent_identity_qr_staging_20261118.js','js/ezero_simple_home_staging_20261113.js','tests/test_ezero_public_video_mode_preservation_20261106.cjs','tests/test_ezero_audio_chat_voice_languages_20261106.mjs','tests/test_ezero_contact_first_call_20261106.mjs']){
  const check=spawnSync(process.execPath,['--check',file],{encoding:'utf8'});
  if(check.status!==0)throw new Error('JavaScript syntax check failed for '+file+':\n'+check.stdout+'\n'+check.stderr);
 }
