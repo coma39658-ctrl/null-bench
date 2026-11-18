@@ -93,6 +93,7 @@ async function createPhone(label){
       window.__oneInvite=e.detail?.link||"";
     });
     const original=navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+    window.__testOriginalGetUserMedia=original;
     window.__cameraTrackStopCount=0;
     navigator.mediaDevices.getUserMedia=async args=>{
       window.__mediaCalls.push(args);
@@ -383,6 +384,11 @@ try{
     undefined,{timeout:10000});
   assert.equal(await callee.locator("#ezeroPermanentFriendQrCamera").isVisible(),false);
   console.log("PR156_CAMERA_PERMISSION_DENIED_LOCALIZED_AND_CLOSED: PASS");
+  // Restore the test's permission-denial stub before the later call test.
+  // Keep the original recorder wrapper so subsequent media requests remain observable.
+  await callee.evaluate(()=>{
+    navigator.mediaDevices.getUserMedia=window.__testOriginalGetUserMedia;
+  });
 
   const callerPermanentFp=callerPermanent.split(".")[2];
   const calleePermanentFp=calleePermanent.split(".")[2];
