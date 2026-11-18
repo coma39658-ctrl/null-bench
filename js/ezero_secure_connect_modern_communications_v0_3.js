@@ -319,7 +319,7 @@ function renderIncomingQueue(){
  const count=incomingQueue.length;
  $("ezeroVoiceReceived").hidden=count===0&&!incoming;
  $("ezeroVoiceOpenIncoming").hidden=count===0;
- $("ezeroVoiceOpenIncoming").textContent=count>1?t("playVoice")+" ("+count+")":t("playVoice");
+ $("ezeroVoiceOpenIncoming").textContent=count>0?t("playVoice")+" ("+count+")":t("playVoice");
  $("ezeroVoiceIncomingAudio").hidden=!incoming;
 }
 function scheduleIncomingExpiry(){
