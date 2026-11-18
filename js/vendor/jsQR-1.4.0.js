@@ -1,4 +1,4 @@
-/* jsQR 1.4.0 (Apache-2.0), https://github.com/cozmo/jsQR ; license: ./LICENSE-jsQR-Apache-2.0.txt */
+/* jsQR 1.4.0 (Apache-2.0), https://github.com/cozmo/jsQR ; license: ./jsQR-1.4.0.LICENSE.js */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
