@@ -31,10 +31,7 @@ async function createPhone(label){
       const kind=raw.includes("/v1/trusted/")?"trusted-inbox":
         raw.includes("/v1/rooms/")?"signaling":"other";
       const record=event=>window.__wsEvents.push({
-        kind,event,readyState:ws.readyState,
-        code:event==="close"?arguments[0]?.code:undefined,
-        reason:event==="close"?String(arguments[0]?.reason||"").slice(0,80):undefined,
-        at:Date.now()
+        kind,event,readyState:ws.readyState,at:Date.now()
       });
       ws.addEventListener("open",()=>record("open"));
       ws.addEventListener("close",event=>window.__wsEvents.push({
