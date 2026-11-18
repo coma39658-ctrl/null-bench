@@ -85,10 +85,11 @@ async function acceptDeliveredInvite(kind){
     "Trusted Inbox must not auto-answer or start media");
   assert.equal(await caller.locator("#ezeroOneQrBox").isVisible(),false,
     "A saved-friend call must not show a new QR");
+  const mediaCallsBeforeReview=await callee.evaluate(()=>window.__mediaCalls.length);
   await callee.locator("#ezeroTrustedIncoming button").filter({hasText:"دعوت کھولیں"}).click();
   await callee.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:15000});
-  assert.equal(await callee.evaluate(()=>window.__mediaCalls.length),0,
-    "Reviewing the inbox invitation must not activate camera or microphone");
+  assert.equal(await callee.evaluate(()=>window.__mediaCalls.length),mediaCallsBeforeReview,
+    "Reviewing the inbox invitation must not add a new camera or microphone request");
   assert.match(await callee.locator("#ezeroOneIncomingHeading").innerText(),
     kind==="audio"?/آنے والی آڈیو کال/:/آنے والی ویڈیو کال/);
   await callee.locator("#ezeroAutoAccept").click();
@@ -290,6 +291,11 @@ try{
     assert.equal(tracks.remote,1);
   }
   console.log("PR156_SAVED_FRIEND_DIRECT_VIDEO_REAL_INBOX_ACCEPT_AND_LIVE_TRACKS: PASS");
+  const permanentAfterVideo=await caller.evaluate(async()=>
+    (await window.EZERO_PERMANENT_IDENTITY_QR.createAfterConsent()).token);
+  assert.equal(permanentAfterVideo,callerPermanent,
+    "Repeated saved-friend audio/video calls must not rotate or regenerate the permanent QR");
+  console.log("PR156_PERMANENT_QR_STABLE_AFTER_DIRECT_AUDIO_VIDEO: PASS");
   await caller.locator("#hangup").click();
   await waitDisconnected();
 
