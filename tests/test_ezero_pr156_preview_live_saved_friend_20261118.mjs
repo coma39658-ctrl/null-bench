@@ -72,6 +72,14 @@ async function createPhone(label){
         window.__callEvents.push({name:"rtc-datachannel",detail:{label:dc.label,state:dc.readyState},at:Date.now()});
         dc.addEventListener("open",()=>window.__callEvents.push({name:"rtc-datachannel-open",detail:{label:dc.label},at:Date.now()}));
         dc.addEventListener("close",()=>window.__callEvents.push({name:"rtc-datachannel-close",detail:{label:dc.label},at:Date.now()}));
+        dc.addEventListener("message",e=>{
+          let m={};try{m=JSON.parse(String(e.data));}catch(_){}
+          window.__callEvents.push({name:"rtc-datachannel-message",detail:{
+            label:dc.label,v:m.v||0,kind:m.kind||"unknown",
+            seq:Number.isInteger(m.seq)?m.seq:null,total:Number.isInteger(m.total)?m.total:null,
+            audioLength:typeof m.audio==="string"?m.audio.length:0
+          },at:Date.now()});
+        });
       });
       const originalCreate=pc.createDataChannel.bind(pc);
       pc.createDataChannel=(...params)=>{
@@ -79,6 +87,14 @@ async function createPhone(label){
         window.__callEvents.push({name:"rtc-datachannel-created",detail:{label:dc.label},at:Date.now()});
         dc.addEventListener("open",()=>window.__callEvents.push({name:"rtc-datachannel-open",detail:{label:dc.label},at:Date.now()}));
         dc.addEventListener("close",()=>window.__callEvents.push({name:"rtc-datachannel-close",detail:{label:dc.label},at:Date.now()}));
+        dc.addEventListener("message",e=>{
+          let m={};try{m=JSON.parse(String(e.data));}catch(_){}
+          window.__callEvents.push({name:"rtc-datachannel-message",detail:{
+            label:dc.label,v:m.v||0,kind:m.kind||"unknown",
+            seq:Number.isInteger(m.seq)?m.seq:null,total:Number.isInteger(m.total)?m.total:null,
+            audioLength:typeof m.audio==="string"?m.audio.length:0
+          },at:Date.now()});
+        });
         return dc;
       };
       return pc;
@@ -565,6 +581,24 @@ try{
     e.fp===fp&&e.trusted===false),callerFingerprint,{timeout:20000});
   console.log("PR156_SYNTHETIC_TRUST_REVOKED_AFTER_TEST: PASS");
 }catch(error){
+  try{
+    const diagnostics=await Promise.all([caller,callee].filter(Boolean).map(async(phone,index)=>
+      phone.evaluate(async()=>({
+        rtc:await window.__rtcDiagnostic?.(),
+        voiceTransportConnected:window.EZERO_VOICE_TRANSPORT?.connected?.()===true,
+        peerTransportConnected:window.EZERO_PEER_PROFILE_TRANSPORT?.connected?.()===true,
+        voicePanelHidden:document.getElementById("modernVoicePanel")?.hidden,
+        voiceReceivedHidden:document.getElementById("ezeroVoiceReceived")?.hidden,
+        incomingButtonHidden:document.getElementById("ezeroVoiceOpenIncoming")?.hidden,
+        voiceStatus:document.getElementById("ezeroVoiceStatus")?.textContent||"",
+        incomingButtonText:document.getElementById("ezeroVoiceOpenIncoming")?.textContent||"",
+        dataChannelMessages:(window.__callEvents||[]).filter(x=>x.name==="rtc-datachannel-message").slice(-24)
+      }))
+    ));
+    console.error("PR156_SAFE_VOICE_DIAGNOSTICS",JSON.stringify(diagnostics));
+  }catch(diagnosticError){
+    console.error("PR156_SAFE_VOICE_DIAGNOSTICS_UNAVAILABLE",String(diagnosticError));
+  }
   console.error("PR156_LIVE_SAVED_FRIEND_ASSERTION_FAILED",error?.stack||String(error));
   throw error;
 }finally{
