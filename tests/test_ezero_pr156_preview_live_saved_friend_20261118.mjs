@@ -22,6 +22,73 @@ async function createPhone(label){
   await context.addInitScript(()=>{
     window.__mediaCalls=[];
     window.__oneInvite="";
+    window.__callEvents=[];
+    window.__rtcPeers=[];
+    const safeDetail=value=>{
+      if(!value||typeof value!=="object")return {};
+      const out={};
+      for(const key of ["stage","state","gathering","connected","type","direction","kind","code"])
+        if(typeof value[key]==="string"||typeof value[key]==="boolean")out[key]=value[key];
+      if(value.counts&&typeof value.counts==="object")
+        out.candidateCounts={host:value.counts.host||0,srflx:value.counts.srflx||0,prflx:value.counts.prflx||0,relay:value.counts.relay||0};
+      return out;
+    };
+    for(const name of ["ezero:call-status","ezero:ice-diagnostic","ezero:channel-state","ezero:signal-ready","ezero:auto-signal-error"])
+      document.addEventListener(name,e=>window.__callEvents.push({name,detail:safeDetail(e.detail),at:Date.now()}));
+    const NativePeer=window.RTCPeerConnection;
+    if(NativePeer)window.RTCPeerConnection=new Proxy(NativePeer,{construct(target,args){
+      const pc=Reflect.construct(target,args);
+      window.__rtcPeers.push(pc);
+      const record=()=>window.__callEvents.push({name:"rtc-state",detail:{
+        connectionState:pc.connectionState,iceConnectionState:pc.iceConnectionState,
+        signalingState:pc.signalingState,iceGatheringState:pc.iceGatheringState,
+        localDescription:!!pc.localDescription,remoteDescription:!!pc.remoteDescription
+      },at:Date.now()});
+      for(const event of ["connectionstatechange","iceconnectionstatechange","signalingstatechange","icegatheringstatechange"])
+        pc.addEventListener(event,record);
+      pc.addEventListener("icecandidate",e=>{
+        if(e.candidate)window.__callEvents.push({name:"rtc-candidate",detail:{type:e.candidate.type||"unknown"},at:Date.now()});
+      });
+      pc.addEventListener("datachannel",e=>{
+        const dc=e.channel;
+        window.__callEvents.push({name:"rtc-datachannel",detail:{label:dc.label,state:dc.readyState},at:Date.now()});
+        dc.addEventListener("open",()=>window.__callEvents.push({name:"rtc-datachannel-open",detail:{label:dc.label},at:Date.now()}));
+        dc.addEventListener("close",()=>window.__callEvents.push({name:"rtc-datachannel-close",detail:{label:dc.label},at:Date.now()}));
+      });
+      const originalCreate=pc.createDataChannel.bind(pc);
+      pc.createDataChannel=(...params)=>{
+        const dc=originalCreate(...params);
+        window.__callEvents.push({name:"rtc-datachannel-created",detail:{label:dc.label},at:Date.now()});
+        dc.addEventListener("open",()=>window.__callEvents.push({name:"rtc-datachannel-open",detail:{label:dc.label},at:Date.now()}));
+        dc.addEventListener("close",()=>window.__callEvents.push({name:"rtc-datachannel-close",detail:{label:dc.label},at:Date.now()}));
+        return dc;
+      };
+      return pc;
+    }});
+    window.__rtcDiagnostic=async()=>{
+      const rows=[];
+      for(const pc of window.__rtcPeers){
+        let stats=[];
+        try{
+          const report=await pc.getStats();
+          for(const item of report.values()){
+            if(item.type==="candidate-pair"&&(item.selected||item.nominated&&item.state==="succeeded"))
+              stats.push({type:item.type,state:item.state,selected:!!item.selected,nominated:!!item.nominated,
+                currentRoundTripTime:item.currentRoundTripTime||null});
+          }
+          const local=[...report.values()].filter(x=>x.type==="local-candidate").map(x=>x.candidateType);
+          const remote=[...report.values()].filter(x=>x.type==="remote-candidate").map(x=>x.candidateType);
+          rows.push({connectionState:pc.connectionState,iceConnectionState:pc.iceConnectionState,
+            signalingState:pc.signalingState,iceGatheringState:pc.iceGatheringState,
+            localDescription:!!pc.localDescription,remoteDescription:!!pc.remoteDescription,
+            localCandidateTypes:[...new Set(local)],remoteCandidateTypes:[...new Set(remote)],
+            dataChannels:[...pc.getSenders()].map(x=>x.track?.kind||"no-track"),selectedPairs:stats});
+        }catch(_){rows.push({connectionState:pc.connectionState,iceConnectionState:pc.iceConnectionState,
+          signalingState:pc.signalingState,iceGatheringState:pc.iceGatheringState});}
+      }
+      return {events:window.__callEvents.slice(-80),peers:rows,
+        mediaRequests:window.__mediaCalls.map(x=>({audio:!!x.audio,video:!!x.video}))};
+    };
     document.addEventListener("ezero:auto-invite-ready",e=>{
       window.__oneInvite=e.detail?.link||"";
     });
@@ -111,8 +178,18 @@ async function acceptDeliveredInvite(kind){
   assert.match(await callee.locator("#ezeroOneIncomingHeading").innerText(),
     kind==="audio"?/آنے والی آڈیو کال/:/آنے والی ویڈیو کال/);
   await callee.locator("#ezeroAutoAccept").click();
-  await Promise.all([caller,callee].map(p=>p.waitForFunction(()=>
-    window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true,{timeout:60000})));
+  try{
+    await Promise.all([caller,callee].map(p=>p.waitForFunction(()=>
+      window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true,undefined,{timeout:60000})));
+  }catch(error){
+    const diagnostics=await Promise.all([caller,callee].map(async(p,index)=>({
+      phone:index===0?"caller":"callee",
+      state:await p.evaluate(()=>window.__rtcDiagnostic?.()||({events:window.__callEvents||[]})),
+      callStatus:await p.locator("#ezeroOneCallProgress").textContent().catch(()=>"")
+    })));
+    console.log("PR156_WEBRTC_FAILURE_DIAGNOSTIC",JSON.stringify(diagnostics));
+    throw error;
+  }
 }
 try{
   caller=await createPhone("CALLER");
