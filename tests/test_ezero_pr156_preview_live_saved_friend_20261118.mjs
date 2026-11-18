@@ -70,7 +70,7 @@ async function completeProfile(page,name){
 }
 async function waitDisconnected(){
   await Promise.all([caller,callee].map(p=>p.waitForFunction(()=>
-    window.EZERO_VOICE_TRANSPORT?.connected()===false,{timeout:20000})));
+    window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===false,{timeout:20000})));
 }
 async function openRecipientInbox(){
   await callee.evaluate(()=>{
@@ -112,7 +112,7 @@ async function acceptDeliveredInvite(kind){
     kind==="audio"?/آنے والی آڈیو کال/:/آنے والی ویڈیو کال/);
   await callee.locator("#ezeroAutoAccept").click();
   await Promise.all([caller,callee].map(p=>p.waitForFunction(()=>
-    window.EZERO_VOICE_TRANSPORT?.connected()===true,{timeout:60000})));
+    window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true,{timeout:60000})));
 }
 try{
   caller=await createPhone("CALLER");
@@ -156,7 +156,7 @@ try{
   await completeProfile(callee,"Second Phone");
   await callee.locator("#ezeroAutoAccept").click();
   await Promise.all([caller,callee].map(p=>p.waitForFunction(()=>
-    window.EZERO_VOICE_TRANSPORT?.connected()===true,{timeout:60000})));
+    window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true,{timeout:60000})));
   for(const [phone,name] of [[caller,"Second Phone"],[callee,"First Phone"]]){
     await phone.waitForFunction(friendName=>JSON.parse(
       localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1")||"[]"
