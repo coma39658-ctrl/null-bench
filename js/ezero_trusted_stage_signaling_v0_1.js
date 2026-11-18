@@ -311,6 +311,8 @@
     const mode=incoming.mode||"audio";
     if(mode!=="audio"&&mode!=="video")return signalError("bad");
     window.EZERO_ACTIVE_CALL_MODE=mode;window.EZERO_SELECTED_CALL_MODE=mode;
+    const modeRadio=document.querySelector('input[name="mode"][value="'+mode+'"]');
+    if(modeRadio){modeRadio.checked=true;modeRadio.dispatchEvent(new Event("change",{bubbles:true}));}
     session={role:"guest",room:incoming.room,guestToken:incoming.guestToken,mode};
     $("ezeroAutoIncoming").hidden=true;
     set("connecting");
@@ -381,7 +383,10 @@
     openInvite(link){
       if(session||window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true)return false;
       const next=invitation(link,false);if(!next)return false;
-      incoming=next;openedInvite();return true;
+      incoming=next;window.EZERO_SELECTED_CALL_MODE=next.mode;
+      const modeRadio=document.querySelector('input[name="mode"][value="'+next.mode+'"]');
+      if(modeRadio){modeRadio.checked=true;modeRadio.dispatchEvent(new Event("change",{bubbles:true}));}
+      openedInvite();return true;
     },
     accept,decline:declineIncoming
   });
