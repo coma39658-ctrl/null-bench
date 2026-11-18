@@ -8,17 +8,21 @@ console.log('PASS language preference runtime regression test');
 const permanentQrRun=spawnSync(process.execPath,['tests/test_ezero_permanent_identity_qr_staging_20261118.cjs'],{encoding:'utf8'});
 if(permanentQrRun.status!==0)throw new Error('Permanent QR runtime test failed:\n'+permanentQrRun.stdout+'\n'+permanentQrRun.stderr);
 console.log('PASS permanent QR runtime regression test');
-for(const file of ['js/ezero_saved_friend_stage_engine_v0_1.js','js/ezero_secure_connect_modern_evidence_stage_v0_1.js','js/ezero_permanent_identity_qr_staging_20261118.js','js/ezero_simple_home_staging_20261113.js','tests/test_ezero_audio_chat_voice_languages_20261106.mjs']){
+for(const file of ['js/ezero_saved_friend_stage_engine_v0_1.js','js/ezero_secure_connect_modern_evidence_stage_v0_1.js','js/ezero_permanent_identity_qr_staging_20261118.js','js/ezero_simple_home_staging_20261113.js','tests/test_ezero_audio_chat_voice_languages_20261106.mjs','tests/test_ezero_contact_first_call_20261106.mjs']){
  const check=spawnSync(process.execPath,['--check',file],{encoding:'utf8'});
  if(check.status!==0)throw new Error('JavaScript syntax check failed for '+file+':\n'+check.stdout+'\n'+check.stderr);
 }
 console.log('PASS JavaScript syntax checks for call, QR and voice-note modules');
+const videoModeRun=spawnSync(process.execPath,['tests/test_ezero_public_video_mode_preservation_20261106.cjs'],{encoding:'utf8'});
+if(videoModeRun.status!==0)throw new Error('Video-mode preservation test failed:\n'+videoModeRun.stdout+'\n'+videoModeRun.stderr);
+console.log('PASS selected and locked audio/video mode regression test');
 const page=fs.readFileSync('ezero_trusted_friends_staging_20261106.html','utf8');
 const js=fs.readFileSync('js/ezero_simple_home_staging_20261113.js','utf8');
 const css=fs.readFileSync('css/ezero_simple_home_staging_20261113.css','utf8');
 const identityEngine=fs.readFileSync('js/ezero_saved_friend_stage_engine_v0_1.js','utf8');
 const permanentQr=fs.readFileSync('js/ezero_permanent_identity_qr_staging_20261118.js','utf8');
 const modernEvidence=fs.readFileSync('js/ezero_secure_connect_modern_evidence_stage_v0_1.js','utf8');
+const signaling=fs.readFileSync('js/ezero_trusted_stage_signaling_v0_1.js','utf8');
 const checks=[
  ['new CSS is referenced',()=>assert.match(page,/css\/ezero_simple_home_staging_20261113\.css/)],
  ['new JS is referenced',()=>assert.match(page,/js\/ezero_simple_home_staging_20261113\.js/)],
@@ -34,6 +38,7 @@ const checks=[
  ['voice notes are chunked into bounded encrypted DataChannel frames',()=>{assert.match(identityEngine,/chunkSize=12000/);assert.match(identityEngine,/m\.kind==="voice-chunk"/);assert.match(identityEngine,/m\.kind==="voice-abort"/);}],
  ['multiple received voice notes are queued with bounded memory and expiry',()=>{assert.match(modernEvidence,/incomingQueue\.push/);assert.match(modernEvidence,/incomingQueue\.length\+\(incoming\?1:0\)>=10/);assert.match(modernEvidence,/expiresAt:Date\.now\(\)\+600000/);}],
  ['voice-note payload is bounded to 256 KiB',()=>{assert.match(modernEvidence,/256\*1024/);assert.match(identityEngine,/encoded\.length>350000/);}],
+ ['audio/video mode is frozen and video cannot silently downgrade',()=>{assert.match(identityEngine,/CALL_MODE_MISMATCH/);assert.match(identityEngine,/VIDEO_TRACK_REQUIRED/);assert.match(identityEngine,/remoteVideoGuardTimer=setTimeout/);assert.match(identityEngine,/remoteVideoReady/);assert.match(signaling,/session\.mode/);assert.match(signaling,/window\.EZERO_ACTIVE_CALL_MODE=mode/);assert.match(modernEvidence,/callModeLocked/);}],
 
  ['original WebRTC signaling is retained',()=>assert.match(page,/ezero_trusted_stage_signaling_v0_1\.js/)],
  ['original saved friend dock is retained',()=>assert.match(page,/id="ezeroContactFirstDock"/)],
