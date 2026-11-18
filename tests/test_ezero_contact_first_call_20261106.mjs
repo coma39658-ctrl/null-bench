@@ -11,7 +11,48 @@ const browser=await chromium.launch({headless:true,
     "--use-fake-ui-for-media-stream"]});
 const contexts=[];
 const rooms=new Map();
+const ownerSockets=new Map(),trustedPeers=new Map(),pendingCalls=new Map();
 let offers=0,answers=0;
+function mockTrusted(ws){
+  const target=new URL(ws.url()).pathname.split("/").pop();
+  if(!/^[a-f0-9]{64}$/.test(target))throw Error("Bad trusted-inbox target");
+  const opened=Date.now();
+  ws.send(JSON.stringify({t:"challenge",target,nonce:"A".repeat(32),opened,expires:opened+20000}));
+  let role="",ownFp="";
+  ws.onMessage(payload=>{
+    const m=JSON.parse(payload);
+    if(m.t==="hello"){
+      role=m.role;ownFp=m.fp;
+      if(!["owner","caller"].includes(role)||!/^[a-f0-9]{64}$/.test(ownFp||"")||
+         typeof m.pub!=="string"||typeof m.sig!=="string")throw Error("Bad trusted-inbox hello");
+      if(role==="owner"){
+        if(ownFp!==target)throw Error("Owner target mismatch");
+        ownerSockets.set(ownFp,ws);
+      }else if(ownFp===target)throw Error("Self-call in trusted inbox");
+      ws.send(JSON.stringify({t:"ready",role}));
+    }else if(role==="owner"&&m.t==="trust"){
+      const peers=trustedPeers.get(ownFp)||new Set();peers.add(m.fp);trustedPeers.set(ownFp,peers);
+      ws.send(JSON.stringify({t:"trust-updated",fp:m.fp,trusted:true}));
+    }else if(role==="owner"&&m.t==="untrust"){
+      const peers=trustedPeers.get(ownFp)||new Set();peers.delete(m.fp);trustedPeers.set(ownFp,peers);
+      ws.send(JSON.stringify({t:"trust-updated",fp:m.fp,trusted:false}));
+    }else if(role==="caller"&&m.t==="call"){
+      if(!/^[a-f0-9]{32}$/.test(m.callId||"")||!["audio","video"].includes(m.kind)||
+         typeof m.invite!=="string")throw Error("Bad trusted call");
+      if(!trustedPeers.get(target)?.has(ownFp)){
+        ws.send(JSON.stringify({t:"error",code:"FRIEND_NOT_TRUSTED"}));return;
+      }
+      const owner=ownerSockets.get(target);
+      if(!owner){ws.send(JSON.stringify({t:"error",code:"OWNER_OFFLINE"}));return;}
+      pendingCalls.set(m.callId,ws);
+      owner.send(JSON.stringify({t:"incoming",from:ownFp,callId:m.callId,kind:m.kind,invite:m.invite}));
+    }else if(role==="owner"&&m.t==="received"){
+      const caller=pendingCalls.get(m.callId);
+      caller?.send(JSON.stringify({t:"delivered-to-active-tab",callId:m.callId}));
+      pendingCalls.delete(m.callId);
+    }
+  });
+}
 function mockSocket(ws){
   const id=ws.url().slice(service.length);
   if(!/^[A-Za-z0-9_-]{32}$/.test(id))throw Error("Bad room");
@@ -55,13 +96,9 @@ async function createPhone(name){
   });
   contexts.push(context);
   await context.routeWebSocket(service+"**",mockSocket);
-  // Never touch the live Cloudflare trusted inbox in this test.
-  // First QR and second selected-contact video use isolated WebRTC signaling.
-  await context.routeWebSocket(trustedInbox+"**",socket=>{
-    socket.onMessage(()=>socket.send(JSON.stringify({
-      t:"error",code:"TEST_NETWORK_DELIVERY_DISABLED"
-    })));
-  });
+  // Deterministic mock for the isolated PR156 Trusted Inbox. It verifies
+  // bilateral trust before relaying an incoming call; no live Worker is touched.
+  await context.routeWebSocket(trustedInbox+"/v1/trusted/**",mockTrusted);
   // Preserve the exact allowed public HTTPS Origin while reading candidate
   // files ONLY from the local CI server; public Pages is never modified.
   await context.route("**/*",async route=>{
