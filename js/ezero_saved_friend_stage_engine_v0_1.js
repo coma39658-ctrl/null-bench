@@ -585,6 +585,8 @@
     p.ondatachannel=e=>attachChannel(e.channel);
     const radioMode=document.querySelector('input[name="mode"]:checked')?.value||"audio";
     const requestedMode=window.EZERO_ACTIVE_CALL_MODE||window.EZERO_SELECTED_CALL_MODE||radioMode;
+    if(requestedMode!=="audio"&&requestedMode!=="video")throw Error("CALL_MODE_MISMATCH");
+    window.EZERO_ACTIVE_CALL_MODE=requestedMode;
     localStream=await navigator.mediaDevices.getUserMedia(mediaConstraints());
     if(peer!==p){localStream.getTracks().forEach(track=>track.stop());return;}
     if(requestedMode==="video"&&localStream.getVideoTracks().length===0){
