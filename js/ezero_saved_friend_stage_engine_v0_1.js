@@ -400,7 +400,8 @@
   async function confirmFriend(value,source="paste") {
     const el=$("identityPeerStatus");
     try {
-      const r=await verifyInvite(value || $("friendIdInput").value);
+      const candidate=String(value || $("friendIdInput").value || "").trim();
+      const r=await verifyInvite(candidate);
       if(r.fingerprint===identity?.fingerprint)throw Error("SELF_ID");
       const other=peer?.__ezeroPeerFP;
       if(other && other!==r.fingerprint)throw Error("FP_MISMATCH_CALL");
@@ -414,7 +415,7 @@
         if(source==="scan")scanMessage("fingerprintOnly","warning");
       }
       document.dispatchEvent(new CustomEvent("ezero:friend-verification",{
-        detail:{ok:true,signed:r.verified,permanent:r.permanent===true,fingerprint:r.fingerprint,source}
+        detail:{ok:true,signed:r.verified,permanent:r.permanent===true,fingerprint:r.fingerprint,token:r.permanent?candidate:"",source}
       }));
       return true;
     }catch(error){
