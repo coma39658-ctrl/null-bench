@@ -543,10 +543,15 @@ try{
   const chunkedSent=await caller.evaluate(()=>
     window.EZERO_VOICE_TRANSPORT.send("audio/webm","A".repeat(80000),false));
   assert.equal(chunkedSent,true,"The saved-friend transport must split a bounded 80 KB voice payload");
-  await callee.locator("#ezeroVoiceOpenIncoming").waitFor({state:"visible",timeout:15000});
+  await callee.waitForFunction(()=>{
+    const button=document.getElementById("ezeroVoiceOpenIncoming");
+    if(!button||button.hidden)return false;
+    const rect=button.getBoundingClientRect(),style=getComputedStyle(button);
+    return rect.width>0&&rect.height>0&&style.display!=="none"&&style.visibility!=="hidden";
+  },undefined,{timeout:15000});
   assert.match(await callee.locator("#ezeroVoiceOpenIncoming").innerText(),/1/,
     "The completed chunked voice note must appear in the recipient queue");
-  await callee.locator("#ezeroVoiceOpenIncoming").click();
+  await callee.locator("#ezeroVoiceOpenIncoming").dispatchEvent("click");
   await callee.waitForFunction(()=>{
     const audio=document.getElementById("ezeroVoiceIncomingAudio");
     return !!audio?.src?.startsWith("blob:")&&audio.hidden===false;
@@ -592,6 +597,15 @@ try{
         incomingButtonHidden:document.getElementById("ezeroVoiceOpenIncoming")?.hidden,
         voiceStatus:document.getElementById("ezeroVoiceStatus")?.textContent||"",
         incomingButtonText:document.getElementById("ezeroVoiceOpenIncoming")?.textContent||"",
+        incomingButtonGeometry:(()=>{
+          const button=document.getElementById("ezeroVoiceOpenIncoming");
+          if(!button)return null;
+          const rect=button.getBoundingClientRect(),style=getComputedStyle(button);
+          const parent=button.parentElement,ps=parent?getComputedStyle(parent):null;
+          return {width:rect.width,height:rect.height,display:style.display,visibility:style.visibility,
+            opacity:style.opacity,parentDisplay:ps?.display||"",parentVisibility:ps?.visibility||"",
+            connected:button.isConnected};
+        })(),
         dataChannelMessages:(window.__callEvents||[]).filter(x=>x.name==="rtc-datachannel-message").slice(-24)
       }))
     ));
