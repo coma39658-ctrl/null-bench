@@ -31,7 +31,7 @@ const control={async saveAfterConsent(){
  }else await store.save(row.keys,row.spki,row.fingerprint);
  return true;
 }};
-function boot(){
+function boot(origin="https://ezero-test.example"){
  const home=new Element("section");
  const root={querySelector:s=>s===".ezero-simple-home"?home:null};
  const elements=new Map();
@@ -42,7 +42,7 @@ function boot(){
    qrcode:()=>({addData:s=>{lastQr=s;},make(){},createSvgTag:()=>"<svg></svg>"})};
  const navigator={clipboard:{writeText:async()=>{}}};
  new Function("document","window","location","crypto","TextEncoder","btoa","atob","navigator",
-   source)(document,window,{origin:"https://ezero-test.example"},crypto,TextEncoder,
+   source)(document,window,{origin},crypto,TextEncoder,
    s=>Buffer.from(s,"binary").toString("base64"),s=>Buffer.from(s,"base64").toString("binary"),navigator);
  return {home,elements,window};
 }
@@ -62,11 +62,19 @@ function boot(){
  assert.equal(parts[1],row.spki);
  assert.equal(parts[2],row.fingerprint);
  await app.window.EZERO_PERMANENT_IDENTITY_QR.verify(row,parts[3]);
+ const parsed=await app.window.EZERO_PERMANENT_IDENTITY_QR.verifyToken(token1);
+ assert.equal(parsed.permanent,true);
+ assert.equal(parsed.fingerprint,row.fingerprint);
+ await assert.rejects(()=>app.window.EZERO_PERMANENT_IDENTITY_QR.verifyToken(token1),
+   "Permanent QR must not validate after changing origin");
  await store.save(row.keys,row.spki,row.fingerprint);
  assert.equal(row.permanentProof,parts[3],"Saving a friend later must not erase the permanent proof");
  app=boot();
  await new Promise(resolve=>setImmediate(resolve));
  assert.equal(lastQr,token1,"The same QR payload must survive reload unchanged");
+ const otherOrigin=boot("https://different-origin.example");
+ await assert.rejects(()=>otherOrigin.window.EZERO_PERMANENT_IDENTITY_QR.verifyToken(token1),
+   "Origin-bound identity QR must reject a different site origin");
  const changed=parts[3][0]==="A"?"B":"A";
  await assert.rejects(()=>app.window.EZERO_PERMANENT_IDENTITY_QR.verify(row,changed+parts[3].slice(1)),
    "Tampered permanent signature must fail closed");
