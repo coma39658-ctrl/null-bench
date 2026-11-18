@@ -24,12 +24,14 @@ async function createPhone(label){
     window.__oneInvite="";
     window.__callEvents=[];
     window.__wsEvents=[];
+    window.__trustedInboxSockets=[];
     const NativeWebSocket=window.WebSocket;
     window.WebSocket=new Proxy(NativeWebSocket,{construct(target,args){
       const ws=Reflect.construct(target,args);
       const raw=String(args[0]||"");
       const kind=raw.includes("/v1/trusted/")?"trusted-inbox":
         raw.includes("/v1/rooms/")?"signaling":"other";
+      if(kind==="trusted-inbox")window.__trustedInboxSockets.push(ws);
       const record=event=>window.__wsEvents.push({
         kind,event,readyState:ws.readyState,at:Date.now()
       });
@@ -176,44 +178,21 @@ async function waitDisconnected(){
     window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===false,{timeout:20000})));
 }
 async function openRecipientInbox(){
-  await callee.evaluate(()=>{
-    // Keep the online marker sticky across repeat calls. An already-open
-    // Trusted Inbox does not emit a second "inbox-online" event just because
-    // another call is about to start.
-    const lastInboxEvent=[...(window.__wsEvents||[])].reverse()
-      .find(event=>event.kind==="trusted-inbox");
-    // The socket can already be open before this test helper attaches its
-    // listener. Derive the test marker from the latest observed socket state,
-    // not from a missing second "inbox-online" event.
-    if(lastInboxEvent?.event==="open"&&lastInboxEvent.readyState===1)
-      window.__inboxOnline=true;
-    else if(window.__inboxOnline!==true) window.__inboxOnline=false;
-    window.__trustEvents=[];
-    window.EZERO_TRUSTED_FRIEND_LAB.on("inbox-online",()=>{window.__inboxOnline=true;});
-    window.EZERO_TRUSTED_FRIEND_LAB.on("trust-updated",e=>
-      window.__trustEvents.push(e.detail));
-  });
   const inboxSnapshot=await callee.evaluate(()=>({
     status:document.getElementById("ezeroTrustedStatus")?.textContent||"",
     statusKind:document.getElementById("ezeroTrustedStatus")?.dataset.status||"",
     incomingHidden:document.getElementById("ezeroTrustedIncoming")?.hidden,
+    trustedInboxSockets:(window.__trustedInboxSockets||[]).map(ws=>ws.readyState),
     sockets:window.__wsEvents?.slice(-20)||[]
   }));
   console.log("PR156_INBOX_STATE_BEFORE_REPEAT_VIDEO",JSON.stringify(inboxSnapshot));
-  // Do not click Enable here: permanent-QR Save Friend must already have
-  // activated this foreground inbox after the user's explicit consent.
-  try{
-    await callee.waitForFunction(()=>window.__inboxOnline===true||
-      document.getElementById("ezeroTrustedStatus")?.textContent.includes("کال وصول کرنے کے لیے تیار"),
-      undefined,{timeout:30000});
-  }catch(error){
-    console.log("PR156_INBOX_STATE_AFTER_WAIT",JSON.stringify(await callee.evaluate(()=>({
-      status:document.getElementById("ezeroTrustedStatus")?.textContent||"",
-      statusKind:document.getElementById("ezeroTrustedStatus")?.dataset.status||"",
-      sockets:window.__wsEvents?.slice(-30)||[]
-    }))));
-    throw error;
-  }
+  // The live socket is authoritative. UI status can be overwritten by a
+  // permission/cooldown notice while the authenticated inbox remains open.
+  await callee.waitForFunction(()=>(
+    window.__trustedInboxSockets||[]
+  ).some(ws=>ws.readyState===WebSocket.OPEN)||
+    document.getElementById("ezeroTrustedStatus")?.textContent.includes("کال وصول کرنے کے لیے تیار"),
+    undefined,{timeout:15000});
 }
 async function acceptDeliveredInvite(kind){
   await callee.locator("#ezeroTrustedIncoming").waitFor({state:"visible",timeout:35000});
