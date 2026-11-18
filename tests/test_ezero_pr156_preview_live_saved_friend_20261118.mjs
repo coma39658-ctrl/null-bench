@@ -90,6 +90,8 @@ async function acceptDeliveredInvite(kind){
   await callee.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:15000});
   assert.equal(await callee.evaluate(()=>window.__mediaCalls.length),mediaCallsBeforeReview,
     "Reviewing the inbox invitation must not add a new camera or microphone request");
+  assert.equal(await callee.evaluate(()=>window.EZERO_SELECTED_CALL_MODE),kind,
+    "The reviewed invitation must retain its authenticated audio/video mode");
   assert.match(await callee.locator("#ezeroOneIncomingHeading").innerText(),
     kind==="audio"?/آنے والی آڈیو کال/:/آنے والی ویڈیو کال/);
   await callee.locator("#ezeroAutoAccept").click();
@@ -298,6 +300,15 @@ try{
   console.log("PR156_PERMANENT_QR_STABLE_AFTER_DIRECT_AUDIO_VIDEO: PASS");
   await caller.locator("#hangup").click();
   await waitDisconnected();
+  for(const phone of [caller,callee]){
+    const modes=await phone.evaluate(()=>({
+      active:window.EZERO_ACTIVE_CALL_MODE,
+      selected:window.EZERO_SELECTED_CALL_MODE
+    }));
+    assert.equal(modes.active,null);
+    assert.equal(modes.selected,null,
+      "A completed video call must not leave a stale selected mode for the next call");
+  }
 
   // Explicitly revoke the synthetic caller from the recipient's staging inbox.
   await openRecipientInbox();
