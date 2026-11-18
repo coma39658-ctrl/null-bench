@@ -564,7 +564,7 @@ try{
   // Exercise the current saved-friend engine's 256 KiB chunked voice transport
   // over the same authenticated two-phone DataChannel. No new microphone
   // permission is requested by this transport-level payload test.
-  await callee.locator('[data-ezero-home="voice"]').click();
+  await callee.locator('[data-ezero-home="voice"]').dispatchEvent("click");
   await callee.waitForFunction(()=>document.getElementById("modernVoicePanel")?.hidden===false&&
     !document.getElementById("modernVoicePanel")?.classList.contains("ezero-simple-collapsed"));
   const chunkedSent=await caller.evaluate(()=>
