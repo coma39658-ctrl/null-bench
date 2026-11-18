@@ -448,12 +448,17 @@
     stopScanner();scanMessage("scanStopped");checkMessage("scanStopped");
   });
   $("scanQR").addEventListener("click",async()=>{
-    if(!window.BarcodeDetector || !navigator.mediaDevices?.getUserMedia){
+    const nativeAvailable=typeof window.BarcodeDetector==="function";
+    const fallbackAvailable=typeof window.jsQR==="function";
+    if((!nativeAvailable&&!fallbackAvailable)||!navigator.mediaDevices?.getUserMedia){
       scanMessage("qrUnsupported","error");checkMessage("qrUnsupported","error");return;
     }
     stopScanner();const gen=scanGeneration;
     try{
-      const detector=new BarcodeDetector({formats:["qr_code"]});
+      let detector=nativeAvailable?new BarcodeDetector({formats:["qr_code"]}):null;
+      const decodeCanvas=document.createElement("canvas");
+      const decodeContext=decodeCanvas.getContext("2d",{willReadFrequently:true});
+      if(!decodeContext)throw Error("QR_CANVAS_UNAVAILABLE");
       scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
       if(gen!==scanGeneration||document.hidden){stopScanner();return;}
       $("scanVideo").srcObject=scanStream;$("scanVideo").hidden=false;
@@ -469,10 +474,29 @@
       const frame=async()=>{
         if(gen!==scanGeneration||!scanStream)return;
         try{
-          const codes=await detector.detect($("scanVideo"));
+          let code="";
+          if(detector){
+            try{
+              const codes=await detector.detect($("scanVideo"));
+              code=String(codes?.[0]?.rawValue||"");
+            }catch(_){detector=null;}
+          }
+          if(!code&&typeof window.jsQR==="function"){
+            const video=$("scanVideo");
+            const vw=video.videoWidth||640,vh=video.videoHeight||480;
+            const scale=Math.min(1,720/Math.max(vw,vh));
+            const width=Math.max(1,Math.round(vw*scale)),height=Math.max(1,Math.round(vh*scale));
+            if(decodeCanvas.width!==width||decodeCanvas.height!==height){
+              decodeCanvas.width=width;decodeCanvas.height=height;
+            }
+            decodeContext.fillStyle="#ffffff";
+            decodeContext.fillRect(0,0,width,height);
+            decodeContext.drawImage(video,0,0,width,height);
+            const pixels=decodeContext.getImageData(0,0,width,height);
+            code=String(window.jsQR(pixels.data,width,height,{inversionAttempts:"attemptBoth"})?.data||"");
+          }
           framesFailed=0;
-          if(codes.length){
-            const code=String(codes[0].rawValue||"");
+          if(code){
             stopScanner();
             if(!code.startsWith("EZERO1.")&&!code.startsWith("EZERO2.")){
               scanMessage("qrWrongType","error");checkMessage("qrWrongType","error");
