@@ -301,9 +301,12 @@ document.addEventListener("ezero:channel-state",e=>{
 });
 function stopMic(){
  if(limitTimer){clearTimeout(limitTimer);limitTimer=null;}
+ if(voiceTimerInterval){clearInterval(voiceTimerInterval);voiceTimerInterval=null;}
  if(recorder?.state==="recording"){try{recorder.stop();}catch(_){}}
  if(micStream){micStream.getTracks().forEach(tr=>tr.stop());micStream=null;}
  $("ezeroVoiceStop").hidden=true;$("ezeroVoiceRecord").disabled=false;
+ const elapsed=Math.max(0,Math.min(6,Math.floor((Date.now()-voiceStartedAt)/1000)));
+ if($("ezeroVoiceTimer"))$("ezeroVoiceTimer").textContent="00:"+String(elapsed).padStart(2,"0")+" / 00:06";
 }
 function clearDraft(){
  if(draftUrl){URL.revokeObjectURL(draftUrl);draftUrl=null;}
@@ -360,6 +363,13 @@ $("ezeroVoiceRecord").addEventListener("click",async()=>{
   };
   recorder.start();
   $("ezeroVoiceRecord").disabled=true;$("ezeroVoiceStop").hidden=false;
+  voiceStartedAt=Date.now();
+  if($("ezeroVoiceTimer"))$("ezeroVoiceTimer").textContent="00:00 / 00:06";
+  if(voiceTimerInterval)clearInterval(voiceTimerInterval);
+  voiceTimerInterval=setInterval(()=>{
+    const elapsed=Math.max(0,Math.min(6,Math.floor((Date.now()-voiceStartedAt)/1000)));
+    if($("ezeroVoiceTimer"))$("ezeroVoiceTimer").textContent="00:"+String(elapsed).padStart(2,"0")+" / 00:06";
+  },250);
   voiceStatus("recording");
   limitTimer=setTimeout(stopMic,6000);
  }catch(_){stopMic();voiceStatus("permission");}
