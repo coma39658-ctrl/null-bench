@@ -511,6 +511,30 @@ try{
     assert.equal(tracks.remote,1);
   }
   console.log("PR156_SAVED_FRIEND_DIRECT_VIDEO_REAL_INBOX_ACCEPT_AND_LIVE_TRACKS: PASS");
+
+  // Exercise the current saved-friend engine's 256 KiB chunked voice transport
+  // over the same authenticated two-phone DataChannel. No new microphone
+  // permission is requested by this transport-level payload test.
+  for(const phone of [caller,callee]){
+    await phone.locator('[data-modern-select="voice"]').click();
+    await phone.waitForFunction(()=>document.getElementById("modernVoicePanel")?.hidden===false);
+  }
+  const chunkedSent=await caller.evaluate(()=>
+    window.EZERO_VOICE_TRANSPORT.send("audio/webm","A".repeat(80000),false));
+  assert.equal(chunkedSent,true,"The saved-friend transport must split a bounded 80 KB voice payload");
+  await callee.locator("#ezeroVoiceOpenIncoming").waitFor({state:"visible",timeout:15000});
+  assert.match(await callee.locator("#ezeroVoiceOpenIncoming").innerText(),/1/,
+    "The completed chunked voice note must appear in the recipient queue");
+  await callee.locator("#ezeroVoiceOpenIncoming").click();
+  await callee.waitForFunction(()=>{
+    const audio=document.getElementById("ezeroVoiceIncomingAudio");
+    return !!audio?.src?.startsWith("blob:")&&audio.hidden===false;
+  },undefined,{timeout:10000});
+  for(const phone of [caller,callee]){
+    assert.equal(await phone.evaluate(()=>window.EZERO_PEER_PROFILE_TRANSPORT?.connected()),true,
+      "Chunked voice delivery must not close the authenticated call");
+  }
+  console.log("PR156_TWO_PHONE_CHUNKED_VOICE_80KB_DELIVERY_WITHOUT_CALL_DROP: PASS");
   const permanentAfterVideo=await caller.evaluate(async()=>
     (await window.EZERO_PERMANENT_IDENTITY_QR.createAfterConsent()).token);
   assert.equal(permanentAfterVideo,callerPermanent,
