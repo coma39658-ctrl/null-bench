@@ -100,7 +100,15 @@ try{
     "Audio call belongs beside the selected saved friend");
   assert.equal(await caller.locator("#ezeroContactVideo").isVisible(),true,
     "Video call belongs beside the selected saved friend");
+  await caller.locator('.ezero-simple-home [data-ezero-home="add"]').click();
+  assert.equal(await caller.locator("#ezeroAutoPilot").isVisible(),true,
+    "Add Friend must reveal the QR invitation generator");
+  assert.equal(await caller.locator("#ezeroOneJoinPanel").isVisible(),true,
+    "Add Friend must also reveal the QR scanner for the receiving phone");
+  assert.equal(await caller.locator("#ezeroOneScanInvite").isVisible(),true,
+    "The QR scan action must be reachable from Add Friend");
   assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),0);
+  console.log("PR156_SIMPLE_HOME_AND_SINGLE_QR_ENTRY: PASS");
   await caller.locator('[data-modern-select="audio"]').click();
   assert.equal(await caller.evaluate(()=>window.__oneInvite),"",
     "No invite or media before the first-time profile is complete");
