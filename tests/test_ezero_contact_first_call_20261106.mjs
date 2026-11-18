@@ -238,7 +238,9 @@ try{
   assert.match(audioInvite,/mode=audio#room=/);
   assert.equal(await caller.locator("#ezeroOneQrBox").isHidden(),true,
     "Direct audio calls do not display a pairing QR");
-  await callee.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:15000});
+  await callee.locator("#ezeroTrustedIncoming").waitFor({state:"visible",timeout:15000});
+  await callee.locator("#ezeroTrustedIncoming button").first().click();
+  await callee.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:10000});
   await callee.locator("#ezeroAutoAccept").click();
   await Promise.all([caller,callee].map(phone=>phone.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===true,{timeout:45000})));
@@ -294,7 +296,9 @@ try{
   assert.ok(callerMedia?.video&&callerMedia?.audio,
     "Selected-contact video call must explicitly request camera AND mic");
   assert.equal(await caller.locator("#ezeroSelectedFriendName").innerText(),"Second Phone");
-  await callee.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:12000});
+  await callee.locator("#ezeroTrustedIncoming").waitFor({state:"visible",timeout:15000});
+  await callee.locator("#ezeroTrustedIncoming button").first().click();
+  await callee.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:10000});
   assert.equal(await callee.locator("#ezeroOneIncomingHeading").innerText(),
     "📹 آنے والی ویڈیو کال — قبول کریں؟");
   assert.equal(await callee.evaluate(()=>window.__mediaCalls.length),0);
