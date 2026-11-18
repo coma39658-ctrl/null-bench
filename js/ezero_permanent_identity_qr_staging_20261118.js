@@ -10,9 +10,9 @@ const store=window.EZERO_DEVICE_IDENTITY_STORE;
 const control=window.EZERO_DEVICE_IDENTITY_CONTROL;
 if(!root||!home||!store||!control)return;
 const words={
- ur:{title:"میرا مستقل QR",help:"یہ آپ کی مستقل ڈیجیٹل شناخت ہے۔ پہلی بار محفوظ کرنے پر نجی کلید اسی براؤزر کے محفوظ اسٹوریج میں رہے گی؛ QR میں صرف عوامی شناخت ہوگی۔",create:"میرا مستقل QR بنائیں",copy:"SHA-256 فنگرپرنٹ کاپی کریں",copyId:"مستقل شناختی کوڈ کاپی کریں",scan:"دوست کا مستقل QR اسکین کریں",gallery:"گیلری سے QR پڑھیں",galleryWorking:"تصویر میں QR تلاش ہو رہا ہے…",galleryError:"اس تصویر میں درست مستقل E-ZERO QR نہیں ملا۔",ready:"مستقل QR تیار ہے؛ اسی شناخت کو دوبارہ استعمال کریں۔",working:"محفوظ شناخت بن رہی ہے…",missing:"مستقل شناخت ابھی محفوظ نہیں۔ بٹن دبانے سے اسی موبائل کے براؤزر میں شناخت محفوظ ہوگی۔",error:"مستقل QR تیار نہیں ہوا۔ محفوظ اسٹوریج یا براؤزر سپورٹ چیک کریں۔",copied:"فنگرپرنٹ کاپی ہوگیا۔",copyFail:"فنگرپرنٹ کاپی نہیں ہوسکا۔"},
- en:{title:"My permanent QR",help:"This is your lasting digital identity. On first creation, the private key stays in this browser's protected storage; the QR contains public identity only.",create:"Create my permanent QR",copy:"Copy SHA-256 fingerprint",copyId:"Copy permanent identity code",scan:"Scan friend's permanent QR",gallery:"Scan QR from gallery",galleryWorking:"Reading the QR image…",galleryError:"No valid permanent E-ZERO QR was found in this image.",ready:"Permanent QR is ready. Reuse this same identity.",working:"Securing your device identity…",missing:"No permanent identity is saved yet. Tap the button to store this device identity in this browser.",error:"Permanent QR could not be created. Check secure browser storage and support.",copied:"Fingerprint copied.",copyFail:"Could not copy fingerprint."},
- ar:{title:"رمز QR الدائم الخاص بي",help:"هذه هويتك الرقمية الثابتة. عند الإنشاء الأول يبقى المفتاح الخاص في التخزين المحمي للمتصفح؛ ويحتوي QR على الهوية العامة فقط.",create:"إنشاء رمز QR الدائم",copy:"نسخ بصمة SHA-256",copyId:"نسخ رمز الهوية الدائم",scan:"مسح QR الدائم للصديق",gallery:"قراءة QR من المعرض",galleryWorking:"جارٍ قراءة صورة QR…",galleryError:"لم يتم العثور على رمز E-ZERO دائم صالح في الصورة.",ready:"رمز QR الدائم جاهز؛ استخدم الهوية نفسها دائماً.",working:"جارٍ حفظ هوية الجهاز…",missing:"لم تُحفظ هوية دائمة بعد. اضغط الزر لحفظ هوية هذا الهاتف في المتصفح.",error:"تعذر إنشاء QR الدائم. تحقق من التخزين الآمن ودعم المتصفح.",copied:"تم نسخ البصمة.",copyFail:"تعذر نسخ البصمة."}
+ ur:{title:"میرا مستقل QR",help:"یہ آپ کی مستقل ڈیجیٹل شناخت ہے۔ پہلی بار محفوظ کرنے پر نجی کلید اسی براؤزر کے محفوظ اسٹوریج میں رہے گی؛ QR میں صرف عوامی شناخت ہوگی۔",create:"میرا مستقل QR بنائیں",copy:"SHA-256 فنگرپرنٹ کاپی کریں",copyId:"مستقل شناختی کوڈ کاپی کریں",scan:"دوست کا مستقل QR اسکین کریں",gallery:"گیلری سے QR پڑھیں",galleryWorking:"تصویر میں QR تلاش ہو رہا ہے…",galleryError:"اس تصویر میں درست مستقل E-ZERO QR نہیں ملا۔",ready:"مستقل QR تیار ہے؛ اسی شناخت کو دوبارہ استعمال کریں۔",working:"محفوظ شناخت بن رہی ہے…",missing:"مستقل شناخت ابھی محفوظ نہیں۔ بٹن دبانے سے اسی موبائل کے براؤزر میں شناخت محفوظ ہوگی۔",error:"مستقل QR تیار نہیں ہوا۔ محفوظ اسٹوریج یا براؤزر سپورٹ چیک کریں۔",copied:"فنگرپرنٹ کاپی ہوگیا۔",copyFail:"فنگرپرنٹ کاپی نہیں ہوسکا۔",friendName:"دوست کا نام",saveFriend:"✓ دوست محفوظ کریں اور کال کی اجازت دیں",verified:"✓ مستقل QR درست ہے۔ اب دوست کا نام لکھ کر محفوظ کریں۔",saved:"دوست اس فون میں محفوظ ہوگیا۔",trustRequested:"دوست محفوظ؛ آنے والی کال کی اجازت کی درخواست بھیج دی گئی۔ دونوں صفحات کھلے رکھیں۔",savedCallsOff:"دوست محفوظ ہے، مگر آنے والی کال کی اجازت فعال نہیں ہوئی۔ دوستوں میں دوبارہ فعال کریں۔",self:"اپنے ہی QR کو دوست کے طور پر شامل نہیں کیا جاسکتا۔",saveError:"دوست محفوظ نہیں ہوا۔ براؤزر اسٹوریج چیک کریں۔"},
+ en:{title:"My permanent QR",help:"This is your lasting digital identity. On first creation, the private key stays in this browser's protected storage; the QR contains public identity only.",create:"Create my permanent QR",copy:"Copy SHA-256 fingerprint",copyId:"Copy permanent identity code",scan:"Scan friend's permanent QR",gallery:"Scan QR from gallery",galleryWorking:"Reading the QR image…",galleryError:"No valid permanent E-ZERO QR was found in this image.",ready:"Permanent QR is ready. Reuse this same identity.",working:"Securing your device identity…",missing:"No permanent identity is saved yet. Tap the button to store this device identity in this browser.",error:"Permanent QR could not be created. Check secure browser storage and support.",copied:"Fingerprint copied.",copyFail:"Could not copy fingerprint.",friendName:"Friend name on this phone",saveFriend:"✓ Save friend & allow calls",verified:"✓ Permanent QR verified. Enter a local name and save this friend.",saved:"Friend saved on this phone.",trustRequested:"Friend saved; incoming-call permission request sent. Keep both app pages open.",savedCallsOff:"Friend saved, but incoming-call permission is not active. Enable it from Friends.",self:"You cannot add your own QR as a friend.",saveError:"Friend could not be saved. Check browser storage."},
+ ar:{title:"رمز QR الدائم الخاص بي",help:"هذه هويتك الرقمية الثابتة. عند الإنشاء الأول يبقى المفتاح الخاص في التخزين المحمي للمتصفح؛ ويحتوي QR على الهوية العامة فقط.",create:"إنشاء رمز QR الدائم",copy:"نسخ بصمة SHA-256",copyId:"نسخ رمز الهوية الدائم",scan:"مسح QR الدائم للصديق",gallery:"قراءة QR من المعرض",galleryWorking:"جارٍ قراءة صورة QR…",galleryError:"لم يتم العثور على رمز E-ZERO دائم صالح في الصورة.",ready:"رمز QR الدائم جاهز؛ استخدم الهوية نفسها دائماً.",working:"جارٍ حفظ هوية الجهاز…",missing:"لم تُحفظ هوية دائمة بعد. اضغط الزر لحفظ هوية هذا الهاتف في المتصفح.",error:"تعذر إنشاء QR الدائم. تحقق من التخزين الآمن ودعم المتصفح.",copied:"تم نسخ البصمة.",copyFail:"تعذر نسخ البصمة.",friendName:"اسم الصديق على هذا الهاتف",saveFriend:"✓ حفظ الصديق والسماح بالمكالمات",verified:"✓ تم التحقق من QR الدائم. اكتب اسماً محلياً ثم احفظ الصديق.",saved:"تم حفظ الصديق على هذا الهاتف.",trustRequested:"تم حفظ الصديق وإرسال طلب السماح بالمكالمات الواردة. أبقِ الصفحتين مفتوحتين.",savedCallsOff:"تم حفظ الصديق لكن استقبال المكالمات غير مفعّل. فعّله من قائمة الأصدقاء.",self:"لا يمكنك إضافة رمزك أنت كصديق.",saveError:"تعذر حفظ الصديق. تحقق من تخزين المتصفح."}
 };
 const t=k=>(words[document.documentElement.lang]||words.ur)[k];
 const card=document.createElement("section");card.id="ezeroPermanentQrCard";card.className="ezero-permanent-qr-card";
@@ -26,8 +26,14 @@ const copyId=document.createElement("button");copyId.type="button";copyId.id="ez
 const scan=document.createElement("button");scan.type="button";scan.id="ezeroScanPermanentFriendQr";scan.hidden=true;
 const gallery=document.createElement("button");gallery.type="button";gallery.id="ezeroGalleryPermanentFriendQr";gallery.hidden=true;
 const fileInput=document.createElement("input");fileInput.type="file";fileInput.accept="image/*";fileInput.hidden=true;
+const friendForm=document.createElement("div");friendForm.id="ezeroPermanentFriendSaveForm";friendForm.hidden=true;
+const friendNameLabel=document.createElement("label");friendNameLabel.htmlFor="ezeroPermanentFriendName";
+const friendName=document.createElement("input");friendName.id="ezeroPermanentFriendName";friendName.type="text";friendName.maxLength=40;friendName.autocomplete="off";
+const saveFriendButton=document.createElement("button");saveFriendButton.type="button";saveFriendButton.id="ezeroSavePermanentFriend";
+friendForm.append(friendNameLabel,friendName,saveFriendButton);
 const status=document.createElement("p");status.id="ezeroPermanentQrStatus";status.setAttribute("role","status");status.setAttribute("aria-live","polite");
-card.append(heading,help,create,qr,fingerprint,copy,copyId,scan,gallery,fileInput,status);home.append(card);
+card.append(heading,help,create,qr,fingerprint,copy,copyId,scan,gallery,fileInput,friendForm,status);home.append(card);
+let pendingFriend=null;
 let currentToken="";
 const encoder=new TextEncoder();
 const hex=b=>Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,"0")).join("");
@@ -90,7 +96,7 @@ async function load(){
  }catch(_){status.textContent=t("error");}
 }
 heading.textContent=t("title");help.textContent=t("help");create.textContent=t("create");copy.textContent=t("copy");
-copyId.textContent=t("copyId");scan.textContent=t("scan");gallery.textContent=t("gallery");
+copyId.textContent=t("copyId");scan.textContent=t("scan");gallery.textContent=t("gallery");friendNameLabel.textContent=t("friendName");saveFriendButton.textContent=t("saveFriend");
 create.addEventListener("click",async()=>{
  create.disabled=true;status.textContent=t("working");
  try{
@@ -144,6 +150,7 @@ document.getElementById("language")?.addEventListener("change",()=>{
  heading.textContent=t("title");help.textContent=t("help");
  create.textContent=t("create");copy.textContent=t("copy");
  copyId.textContent=t("copyId");scan.textContent=t("scan");gallery.textContent=t("gallery");
+ friendNameLabel.textContent=t("friendName");saveFriendButton.textContent=t("saveFriend");
  if(!qr.hidden)status.textContent=t("ready");
  else if(!create.hidden)status.textContent=t("missing");
 });
@@ -158,13 +165,72 @@ async function verifyToken(token){
  await verifyProof(row,parts[3]);
  return {version:2,fingerprint:parts[2],spki:parts[1],verified:true,permanent:true};
 }
+async function saveFriend(token,name){
+ const verified=await verifyToken(token);
+ const local=await store.read();
+ if(!local)throw Error("LOCAL_IDENTITY_NOT_SAVED");
+ if(local.fingerprint===verified.fingerprint)throw Error("SELF_ID");
+ if(window.EZERO_FRIEND_ACCESS?.isBlocked?.(verified.fingerprint)===true)throw Error("FRIEND_BLOCKED");
+ const clean=String(name||"").trim().replace(/[\\u0000-\\u001f\\u007f]/g,"").replace(/\\s+/g," ").slice(0,40);
+ if(!clean)throw Error("FRIEND_NAME_REQUIRED");
+ let items=[];
+ try{
+   const raw=JSON.parse(localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1")||"[]");
+   if(!Array.isArray(raw))throw Error("BAD_FRIEND_STORE");
+   items=raw.filter(x=>x&&/^[a-f0-9]{64}$/.test(x.fp)&&typeof x.name==="string"&&x.name.trim().length>0&&x.name.length<=40);
+ }catch(_){throw Error("FRIEND_STORE_UNAVAILABLE");}
+ const existing=items.find(x=>x.fp===verified.fingerprint);
+ if(existing?.spki&&existing.spki!==verified.spki)throw Error("FRIEND_KEY_CHANGED");
+ const next=items.filter(x=>x.fp!==verified.fingerprint);
+ next.unshift({fp:verified.fingerprint,spki:verified.spki,identityVersion:2,
+   name:clean,profileName:"",nickname:true});
+ if(next.length>50)next.length=50;
+ try{localStorage.setItem("ezero_secure_connect_staging_fingerprints_v0_1",JSON.stringify(next));}
+ catch(_){throw Error("FRIEND_STORE_UNAVAILABLE");}
+ document.dispatchEvent(new CustomEvent("ezero:friend-local-saved",{
+   detail:{fp:verified.fingerprint,permanentQr:true}
+ }));
+ let trustRequested=false;
+ const lab=window.EZERO_TRUSTED_FRIEND_LAB;
+ if(lab?.enabled?.()===true){
+   try{await lab.openOwnerInbox();await lab.setFriendTrust(verified.fingerprint,true);trustRequested=true;}
+   catch(_){trustRequested=false;}
+ }
+ return {saved:true,fingerprint:verified.fingerprint,trustRequested};
+}
+document.addEventListener("ezero:friend-verification",async event=>{
+ const detail=event.detail||{};
+ if(detail.ok!==true||detail.permanent!==true||typeof detail.token!=="string"){
+   if(detail.source==="scan"||detail.source==="paste"){pendingFriend=null;friendForm.hidden=true;}
+   return;
+ }
+ try{
+   const verified=await verifyToken(detail.token);
+   if(verified.fingerprint!==detail.fingerprint)throw Error("FINGERPRINT_MISMATCH");
+   pendingFriend={token:detail.token,fingerprint:verified.fingerprint};
+   friendName.value="";
+   friendForm.hidden=false;
+   status.textContent=t("verified");
+ }catch(_){pendingFriend=null;friendForm.hidden=true;status.textContent=t("error");}
+});
+saveFriendButton.addEventListener("click",async()=>{
+ if(!pendingFriend){status.textContent=t("error");return;}
+ saveFriendButton.disabled=true;
+ try{
+   const result=await saveFriend(pendingFriend.token,friendName.value);
+   friendForm.hidden=true;pendingFriend=null;
+   status.textContent=result.trustRequested?t("trustRequested"):t("savedCallsOff");
+ }catch(error){
+   status.textContent=String(error?.message)==="SELF_ID"?t("self"):t("saveError");
+ }finally{saveFriendButton.disabled=false;}
+});
 window.EZERO_PERMANENT_IDENTITY_QR=Object.freeze({
  async createAfterConsent(){
    const saved=await control.saveAfterConsent();
    if(saved!==true)throw Error("DEVICE_IDENTITY_SAVE_FAILED");
    return tokenForSavedIdentity();
  },
- verify:verifyProof,verifyToken
+ verify:verifyProof,verifyToken,saveFriend
 });
 void load();
 })();
