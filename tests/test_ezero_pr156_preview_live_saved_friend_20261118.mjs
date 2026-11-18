@@ -609,8 +609,9 @@ try{
   await openRecipientInbox();
   await callee.locator("#ezeroTrustedList .ezero-trusted-friend-row button")
     .filter({hasText:"اجازت ہٹائیں"}).click();
-  await callee.waitForFunction(fp=>Array.isArray(window.__trustEvents)&&window.__trustEvents.some(e=>
-    e.fp===fp&&e.trusted===false),callerFingerprint,{timeout:20000});
+  await callee.waitForFunction(()=>Array.isArray(window.__wsEvents)&&window.__wsEvents.some(e=>
+    e.kind==="trusted-inbox"&&e.event==="message"&&e.messageType==="trust-updated"&&e.trusted===false),
+    undefined,{timeout:20000});
   console.log("PR156_SYNTHETIC_TRUST_REVOKED_AFTER_TEST: PASS");
 }catch(error){
   try{
