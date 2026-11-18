@@ -140,6 +140,55 @@ try{
   assert.notEqual(callerFingerprint,calleeFingerprint);
   console.log("PR156_FIRST_QR_PAIRING_AND_MUTUAL_LOCAL_SAVE: PASS");
 
+  // Permanent device QR regression: both users must explicitly scan and save
+  // the other's reusable EZERO2 identity. This runs before direct saved-friend calls.
+  const callerPermanent=await caller.evaluate(async()=>
+    (await window.EZERO_PERMANENT_IDENTITY_QR.createAfterConsent()).token);
+  const calleePermanent=await callee.evaluate(async()=>
+    (await window.EZERO_PERMANENT_IDENTITY_QR.createAfterConsent()).token);
+  assert.match(callerPermanent,/^EZERO2\./);
+  assert.match(calleePermanent,/^EZERO2\./);
+  assert.notEqual(callerPermanent.split(".")[2],calleePermanent.split(".")[2]);
+  await Promise.all([caller,callee].map(p=>p.locator("#ezeroPermanentQr svg")
+    .waitFor({state:"visible",timeout:15000})));
+  const callerPermanentImage=await caller.locator("#ezeroPermanentQr svg").screenshot();
+  const calleePermanentImage=await callee.locator("#ezeroPermanentQr svg").screenshot();
+  async function scanPermanentGallery(receiver,image,name){
+    await receiver.locator("#ezeroGalleryPermanentFriendQr").click();
+    await receiver.locator("#ezeroPermanentQrCard input[type=file]").setInputFiles({
+      name:"friend-permanent-identity.png",mimeType:"image/png",buffer:image
+    });
+    await receiver.locator("#ezeroPermanentFriendSaveForm").waitFor({
+      state:"visible",timeout:20000
+    });
+    await receiver.locator("#ezeroPermanentFriendName").fill(name);
+    await receiver.locator("#ezeroSavePermanentFriend").click();
+    await receiver.waitForFunction(()=>
+      document.getElementById("ezeroPermanentQrStatus")?.textContent.includes("اجازت"),
+      undefined,{timeout:30000});
+  }
+  await scanPermanentGallery(caller,calleePermanentImage,"Second Phone");
+  await scanPermanentGallery(callee,callerPermanentImage,"First Phone");
+  const callerPermanentFp=callerPermanent.split(".")[2];
+  const calleePermanentFp=calleePermanent.split(".")[2];
+  for(const [phone,fp,name] of [
+    [caller,calleePermanentFp,"Second Phone"],
+    [callee,callerPermanentFp,"First Phone"]
+  ]){
+    const contact=await phone.evaluate(fp=>JSON.parse(
+      localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1")||"[]"
+    ).find(row=>row.fp===fp),fp);
+    assert.ok(contact,"Each device must save the other permanent fingerprint");
+    assert.equal(contact.identityVersion,2);
+    assert.equal(contact.name,name);
+    assert.equal(contact.profileName,name,
+      "Permanent QR save must preserve the already verified remote profile");
+    assert.equal(contact.nickname,false,
+      "Saving a permanent QR must not silently replace a verified profile with a nickname");
+  }
+  console.log("PR156_PERMANENT_QR_GALLERY_MUTUAL_SAVE_PROFILE_PRESERVED: PASS");
+
+
   await caller.locator("#hangup").click();
   await waitDisconnected();
 
