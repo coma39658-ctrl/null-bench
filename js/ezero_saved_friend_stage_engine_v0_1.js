@@ -232,7 +232,7 @@
   let currentLang = "ur", identityPromise = null, identity = null, expectedPeerFingerprint = null;
   let peer = null, channel = null, localStream = null, remoteStream = null, role = null;
   const voiceTransfers=new Map();
-  let remoteVideoTrackReady=false,remoteVideoGuardTimer=null;
+  let remoteVideoTrackReady=false,remoteVideoGuardTimer=null,peerDisconnectGuardTimer=null;
   let incoming = null, unreadExpiry = null, viewedExpiry = null, scanStream = null, scanTimeout = null, scanGeneration = 0;
   let micMuted = false, cameraMuted = false;
   const me = key => (langs[currentLang] || {})[key] || $("fallbackNever") || null;
@@ -596,10 +596,25 @@
     p.onconnectionstatechange=()=>{
       if(peer!==p)return;
       emitIce();
-      if(p.connectionState==="connected")status("connected",p.__ezeroPeerFP?.slice(0,16));
-      else if(p.connectionState==="failed")status("iceNoRoute");
-      else if(p.connectionState==="disconnected")status("offline","disconnected");
-      else if(p.connectionState==="connecting")status("iceChecking");
+      if(p.connectionState==="connected"){
+        if(peerDisconnectGuardTimer){clearTimeout(peerDisconnectGuardTimer);peerDisconnectGuardTimer=null;}
+        status("connected",p.__ezeroPeerFP?.slice(0,16));
+      }else if(p.connectionState==="failed"){
+        if(peerDisconnectGuardTimer){clearTimeout(peerDisconnectGuardTimer);peerDisconnectGuardTimer=null;}
+        status("iceNoRoute");
+      }else if(p.connectionState==="disconnected"){
+        status("offline");
+        if(peerDisconnectGuardTimer)clearTimeout(peerDisconnectGuardTimer);
+        // Give transient mobile-network handoffs 15 seconds to recover. Do not
+        // claim reconnection or silently restart a call when the path is lost.
+        peerDisconnectGuardTimer=setTimeout(()=>{
+          peerDisconnectGuardTimer=null;
+          if(peer===p&&p.connectionState==="disconnected")status("offline","recovery window expired; hang up and retry");
+        },15000);
+      }else if(p.connectionState==="connecting"){
+        if(peerDisconnectGuardTimer){clearTimeout(peerDisconnectGuardTimer);peerDisconnectGuardTimer=null;}
+        status("iceChecking");
+      }
     };
     p.oniceconnectionstatechange=()=>{
       if(peer!==p)return;
@@ -927,6 +942,7 @@
   function hardHangup(show=true) {
     clearVoiceTransfers();
     if(remoteVideoGuardTimer){clearTimeout(remoteVideoGuardTimer);remoteVideoGuardTimer=null;}
+    if(peerDisconnectGuardTimer){clearTimeout(peerDisconnectGuardTimer);peerDisconnectGuardTimer=null;}
     remoteVideoTrackReady=false;
     window.EZERO_ACTIVE_CALL_MODE=null;
     window.EZERO_SELECTED_CALL_MODE=null;
