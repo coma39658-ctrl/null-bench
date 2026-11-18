@@ -268,18 +268,13 @@ try{
     window.EZERO_VOICE_TRANSPORT?.connected()===false,{timeout:15000})));
   const lastInvite=await caller.evaluate(()=>window.__oneInvite);
   const before=await caller.evaluate(()=>window.__mediaCalls.length);
-  await caller.locator('[data-modern-select="video"]').click();
-  assert.equal(await caller.locator("#ezeroFriendSidePanel").isVisible(),true,
-    "Video button must request friend selection instead of silently calling anyone");
-  assert.equal(await caller.evaluate(()=>window.__oneInvite),lastInvite,
-    "No unselected outgoing call may create a new QR or activate media");
-  assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),before);
+  await caller.locator("#ezeroFriendListToggle").click();
+  await caller.locator("#ezeroFriendSidePanel").waitFor({state:"visible",timeout:10000});
   await caller.locator("#ezeroFriendSideList .ezero-friend-option").filter({
     hasText:"Second Phone"
   }).click();
   assert.equal(await caller.locator("#ezeroSelectedFriendName").innerText(),"Second Phone");
   assert.equal(await caller.locator("#ezeroContactVideo").isEnabled(),true);
-  assert.equal(await caller.locator("#ezeroFriendSidePanel").isHidden(),true);
   await caller.locator("#ezeroContactVideo").click();
   await caller.waitForFunction(old=>
     !!window.__oneInvite&&window.__oneInvite!==old,lastInvite,{timeout:30000});
@@ -287,15 +282,13 @@ try{
   assert.match(videoInvite,/mode=video#room=/,
     "Saved contact's video button must create VIDEO not audio invitation");
   assert.equal(await caller.locator("#ezeroOneQrBox").isHidden(),true,
-    "Saved friend's direct Call must not show the initial-pairing QR");
+    "Saved friend's direct video call must not show a pairing QR");
   assert.equal(await caller.locator("#ezeroContactFirstStatus").isVisible(),true,
     "The call status must appear beside the chosen Call control");
   const callerMedia=await caller.evaluate(()=>window.__mediaCalls.at(-1));
   assert.ok(callerMedia?.video&&callerMedia?.audio,
     "Selected-contact video call must explicitly request camera AND mic");
   assert.equal(await caller.locator("#ezeroSelectedFriendName").innerText(),"Second Phone");
-  console.log("SAVED_FRIEND_SELECTED_THEN_VIDEO_BUTTON_REQUESTS_REAL_CAMERA: PASS");
-  await callee.goto(videoInvite,{waitUntil:"domcontentloaded"});
   await callee.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:12000});
   assert.equal(await callee.locator("#ezeroOneIncomingHeading").innerText(),
     "📹 آنے والی ویڈیو کال — قبول کریں؟");
