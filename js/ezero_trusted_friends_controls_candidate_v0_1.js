@@ -199,6 +199,14 @@
   live.setAttribute("aria-live","polite");
   root.append(head,note,enable,list,received,live);
   status("idle");paint();
+  // The permanent-QR Save Friend action can open the owner inbox itself
+  // after the user explicitly taps "Save friend & allow calls". Keep this
+  // page's foreground gate in sync with that authenticated, consented event;
+  // otherwise packets arrive at the socket but the UI silently drops them.
+  api.on("inbox-online",()=>{
+    active=true;
+    status("ownerOn");
+  });
   api.on("incoming",e=>{
     const packet=e.detail;
     // A hidden/background tab must not claim the user saw a call prompt.
