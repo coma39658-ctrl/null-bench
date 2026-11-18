@@ -11,11 +11,17 @@ console.log('PASS permanent QR runtime regression test');
 const page=fs.readFileSync('ezero_trusted_friends_staging_20261106.html','utf8');
 const js=fs.readFileSync('js/ezero_simple_home_staging_20261113.js','utf8');
 const css=fs.readFileSync('css/ezero_simple_home_staging_20261113.css','utf8');
+const identityEngine=fs.readFileSync('js/ezero_saved_friend_stage_engine_v0_1.js','utf8');
+const permanentQr=fs.readFileSync('js/ezero_permanent_identity_qr_staging_20261118.js','utf8');
 const checks=[
  ['new CSS is referenced',()=>assert.match(page,/css\/ezero_simple_home_staging_20261113\.css/)],
  ['new JS is referenced',()=>assert.match(page,/js\/ezero_simple_home_staging_20261113\.js/)],
  ['language preference script is referenced',()=>assert.match(page,/js\/ezero_language_preference_staging_20261118\.js/)],
  ['permanent QR script and stylesheet are referenced',()=>{assert.match(page,/js\/ezero_permanent_identity_qr_staging_20261118\.js/);assert.match(page,/css\/ezero_permanent_identity_qr_staging_20261118\.css/);}],
+ ['EZERO2 is verified separately from expiring call invitations',()=>{assert.match(identityEngine,/EZERO2\\\\\./);assert.match(identityEngine,/verifyToken\(raw\)/);assert.match(permanentQr,/async function verifyToken/);}],
+ ['camera scanner accepts permanent identity QR',()=>assert.match(identityEngine,/!code\.startsWith\("EZERO2\."\)/)],
+ ['gallery QR is decoded locally without uploading the image',()=>{assert.match(permanentQr,/createImageBitmap\(file\)/);assert.match(permanentQr,/new BarcodeDetector/);assert.match(permanentQr,/file\.size>8\*1024\*1024/);assert.doesNotMatch(permanentQr,/fetch\(|XMLHttpRequest/);}],
+ ['permanent identity text can be copied for remote pairing',()=>assert.match(permanentQr,/ezeroCopyPermanentIdentity/)],
  ['original WebRTC signaling is retained',()=>assert.match(page,/ezero_trusted_stage_signaling_v0_1\.js/)],
  ['original saved friend dock is retained',()=>assert.match(page,/id="ezeroContactFirstDock"/)],
  ['Arabic, Urdu and English strings',()=>{for(const x of ['ur:','ar:','en:'])assert.ok(js.includes(x));}],
