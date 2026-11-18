@@ -49,6 +49,7 @@ app.select("chat");
 assert.equal(radios.audio.checked,true,"Chat must preserve an audio selection as well");
 assert.equal(buttons.find(b=>b.dataset.modernSelect==="chat").pressed,"true");
 window.EZERO_ACTIVE_CALL_MODE="video";
+app.select("video");
 app.select("audio");
 assert.equal(radios.video.checked,true,"An active video call cannot be changed to audio");
 assert.equal(window.EZERO_SELECTED_CALL_MODE,"video","The active mode remains locked");
