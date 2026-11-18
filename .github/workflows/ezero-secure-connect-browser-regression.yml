@@ -1,0 +1,43 @@
+name: E-ZERO Secure Connect Browser Regression
+
+on:
+  push:
+    branches:
+      - ezero-pr156-render-preview-20261116
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  browser-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout isolated staging branch
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Start local static test server
+        run: |
+          python3 -m http.server 8769 --bind 127.0.0.1 --directory . >/tmp/ezero-http.log 2>&1 &
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:8769/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ezero-http.log
+          exit 1
+      - name: Run mode-lock unit regression
+        run: node tests/test_ezero_public_video_mode_preservation_20261106.cjs
+      - name: Run two-phone saved-friend audio/video regression
+        run: node tests/test_ezero_contact_first_call_20261106.mjs
+      - name: Run two-phone voice-note, queue and chunking regression
+        run: node tests/test_ezero_audio_chat_voice_languages_20261106.mjs
