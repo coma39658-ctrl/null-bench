@@ -83,9 +83,15 @@ function boot(origin="https://ezero-test.example"){
  app=boot();
  await new Promise(resolve=>setImmediate(resolve));
  assert.equal(lastQr,token1,"The same QR payload must survive reload unchanged");
- const otherOrigin=boot("https://different-origin.example");
- await assert.rejects(()=>otherOrigin.window.EZERO_PERMANENT_IDENTITY_QR.verifyToken(token1),
-   "Origin-bound identity QR must reject a different site origin");
+ const otherOrigin=boot("https://different-preview-host.example");
+ await assert.doesNotReject(()=>otherOrigin.window.EZERO_PERMANENT_IDENTITY_QR.verifyToken(token1),
+   "The same permanent app identity must verify across staging and production hostnames");
+ const wrongOriginMessage=["EZERO-PERMANENT-IDENTITY-1","https://attacker.example",parts[1],parts[2]].join("\\n");
+ const wrongOriginSignature=await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},row.keys.privateKey,
+   new TextEncoder().encode(wrongOriginMessage));
+ const wrongOriginToken=["EZERO2",parts[1],parts[2],encode(wrongOriginSignature)].join(".");
+ await assert.rejects(()=>app.window.EZERO_PERMANENT_IDENTITY_QR.verifyToken(wrongOriginToken),
+   "A signature bound to a different application origin must fail");
  const changed=parts[3][0]==="A"?"B":"A";
  await assert.rejects(()=>app.window.EZERO_PERMANENT_IDENTITY_QR.verify(row,changed+parts[3].slice(1)),
    "Tampered permanent signature must fail closed");
