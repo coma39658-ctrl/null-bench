@@ -1,7 +1,7 @@
 name: E-ZERO Contact-First Audio/Video Sidebar QA
 on:
   push:
-    branches: [ezero-contact-first-video-sidebar-20261106,ezero-contact-first-release-20261106]
+    branches: [ezero-contact-first-video-sidebar-20261106,ezero-contact-first-release-20261106,ezero-pr156-render-preview-20261116]
   pull_request:
     branches: [main,ezero-public-true-video-path-20261106]
     paths:
