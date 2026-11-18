@@ -522,7 +522,7 @@ try{
   // Exercise the current saved-friend engine's 256 KiB chunked voice transport
   // over the same authenticated two-phone DataChannel. No new microphone
   // permission is requested by this transport-level payload test.
-  await callee.locator('[data-modern-select="voice"]').click();
+  await callee.locator('[data-modern-select="voice"]').dispatchEvent("click");
   await callee.waitForFunction(()=>document.getElementById("modernVoicePanel")?.hidden===false);
   const chunkedSent=await caller.evaluate(()=>
     window.EZERO_VOICE_TRANSPORT.send("audio/webm","A".repeat(80000),false));
