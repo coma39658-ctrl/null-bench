@@ -149,7 +149,8 @@ async function openRecipientInbox(){
     window.EZERO_TRUSTED_FRIEND_LAB.on("trust-updated",e=>
       window.__trustEvents.push(e.detail));
   });
-  await callee.locator("#ezeroTrustedEnable").click();
+  // Do not click Enable here: permanent-QR Save Friend must already have
+  // activated this foreground inbox after the user's explicit consent.
   await callee.waitForFunction(()=>window.__inboxOnline===true||
     document.getElementById("ezeroTrustedStatus")?.textContent.includes("کال وصول کرنے کے لیے تیار"),
     undefined,{timeout:30000});
