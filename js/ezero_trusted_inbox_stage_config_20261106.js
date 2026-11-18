@@ -5,6 +5,6 @@
  */
 window.EZERO_TRUSTED_INBOX_CONFIG=Object.freeze({
   enabled:true,
-  websocketOrigin:"wss://ezero-trusted-inbox-pr156-preview-v2.coma39658.workers.dev",
-  version:"0.1-pr156-preview-v2"
+  websocketOrigin:"wss://ezero-trusted-friends-inbox-staging.coma39658.workers.dev",
+  version:"0.1-pre-release-test"
 });
