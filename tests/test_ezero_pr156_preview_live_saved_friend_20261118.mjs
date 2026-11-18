@@ -93,9 +93,8 @@ async function createPhone(label){
       window.__oneInvite=e.detail?.link||"";
     });
     const original=navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
-    window.__testOriginalGetUserMedia=original;
     window.__cameraTrackStopCount=0;
-    navigator.mediaDevices.getUserMedia=async args=>{
+    const wrappedGetUserMedia=async args=>{
       window.__mediaCalls.push(args);
       const stream=await original(args);
       for(const track of stream.getTracks()){
@@ -107,6 +106,8 @@ async function createPhone(label){
       }
       return stream;
     };
+    window.__testGetUserMediaWrapper=wrappedGetUserMedia;
+    navigator.mediaDevices.getUserMedia=wrappedGetUserMedia;
   });
   const page=await context.newPage();
   page.on("pageerror",e=>console.error(label+"_PAGE_ERROR",e.message));
@@ -387,7 +388,7 @@ try{
   // Restore the test's permission-denial stub before the later call test.
   // Keep the original recorder wrapper so subsequent media requests remain observable.
   await callee.evaluate(()=>{
-    navigator.mediaDevices.getUserMedia=window.__testOriginalGetUserMedia;
+    navigator.mediaDevices.getUserMedia=window.__testGetUserMediaWrapper;
   });
 
   const callerPermanentFp=callerPermanent.split(".")[2];
