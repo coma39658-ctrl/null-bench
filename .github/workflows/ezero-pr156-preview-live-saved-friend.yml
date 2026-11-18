@@ -26,7 +26,16 @@ jobs:
         run: |
           set -euo pipefail
           PAGE="https://ezero-save-friend-pr156-preview-v2.onrender.com/ezero_trusted_friends_staging_20261106.html"
-          curl --fail --silent --show-error --retry 8 --retry-delay 3 "$PAGE" -o /tmp/ezero-pr156-page.html
+          EXPECTED_SHA="${GITHUB_SHA:0:12}"
+          for attempt in $(seq 1 20); do
+            curl --fail --silent --show-error "$PAGE" -o /tmp/ezero-pr156-page.html || true
+            if grep -Fq "SHA: $EXPECTED_SHA" /tmp/ezero-pr156-page.html; then
+              break
+            fi
+            sleep 3
+          done
+          grep -Fq "SHA: $EXPECTED_SHA" /tmp/ezero-pr156-page.html
+          grep -Fq 'ezero_permanent_identity_qr_staging_20261118.js?build=' /tmp/ezero-pr156-page.html
           grep -Fq 'wss://ezero-browser-signaling-pr156-preview-v2.coma39658.workers.dev' /tmp/ezero-pr156-page.html
           grep -Fq 'wss://ezero-trusted-inbox-pr156-preview-v2.coma39658.workers.dev' /tmp/ezero-pr156-page.html
           curl --fail --silent --show-error 'https://ezero-save-friend-pr156-preview-v2.onrender.com/js/ezero_trusted_inbox_stage_config_20261106.js' | grep -Fq 'enabled:true'
