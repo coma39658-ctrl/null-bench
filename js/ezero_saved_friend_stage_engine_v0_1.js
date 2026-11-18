@@ -770,9 +770,10 @@
     busy=true;
     ["createOffer","acceptOffer","applyAnswer"].forEach(id=>$(id).disabled=true);
     try{await fn();}catch(error) {
-      const msg=String(error?.name||error?.message||"ERROR").slice(0,85);
+      const msg=String(error?.message||"").slice(0,85);
+      const name=String(error?.name||"");
       const stage=msg.includes("VIDEO_TRACK_REQUIRED")?"videoTrackMissing":
-        /NotAllowedError|NotFoundError|NotReadableError|OverconstrainedError/.test(msg)
+        /NotAllowedError|NotFoundError|NotReadableError|OverconstrainedError/.test(name+" "+msg)
         ? "micDenied" : msg.includes("OFFER_REQUIRED") ? "missingOffer" :
           msg.includes("FRIEND_ID_MISMATCH") ? "fingerprintMismatch" : "signalInvalid";
       status(stage,msg);
