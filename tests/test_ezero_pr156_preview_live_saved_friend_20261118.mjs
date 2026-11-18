@@ -470,7 +470,7 @@ try{
   await openRecipientInbox();
   await callee.locator("#ezeroTrustedList .ezero-trusted-friend-row button")
     .filter({hasText:"اجازت دیں"}).click();
-  await callee.waitForFunction(fp=>window.__trustEvents.some(e=>
+  await callee.waitForFunction(fp=>Array.isArray(window.__trustEvents)&&window.__trustEvents.some(e=>
     e.fp===fp&&e.trusted===true),callerFingerprint,{timeout:20000});
   console.log("PR156_REAL_TRUSTED_INBOX_OWNER_AND_EXPLICIT_FRIEND_TRUST: PASS");
 
@@ -573,7 +573,7 @@ try{
   await openRecipientInbox();
   await callee.locator("#ezeroTrustedList .ezero-trusted-friend-row button")
     .filter({hasText:"اجازت ہٹائیں"}).click();
-  await callee.waitForFunction(fp=>window.__trustEvents.some(e=>
+  await callee.waitForFunction(fp=>Array.isArray(window.__trustEvents)&&window.__trustEvents.some(e=>
     e.fp===fp&&e.trusted===false),callerFingerprint,{timeout:20000});
   console.log("PR156_SYNTHETIC_TRUST_REVOKED_AFTER_TEST: PASS");
 }catch(error){
