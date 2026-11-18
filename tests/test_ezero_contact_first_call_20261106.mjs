@@ -179,7 +179,8 @@ try{
   await completeFirstTimeProfile(caller,"First Phone");
   await completeFirstTimeProfile(callee,"Second Phone");
   await Promise.all([caller,callee].map(async phone=>{
-    await phone.locator("#ezeroCreatePermanentQr").click();
+    const create=phone.locator("#ezeroCreatePermanentQr");
+    if(await create.isVisible())await create.click();
     await phone.locator("#ezeroPermanentQr").waitFor({state:"visible",timeout:12000});
   }));
   const [callerIdentity,calleeIdentity]=await Promise.all([caller,callee].map(phone=>
