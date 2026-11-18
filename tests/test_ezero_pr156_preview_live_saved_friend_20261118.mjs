@@ -161,7 +161,10 @@ async function waitDisconnected(){
 }
 async function openRecipientInbox(){
   await callee.evaluate(()=>{
-    window.__inboxOnline=false;
+    // Keep the online marker sticky across repeat calls. An already-open
+    // Trusted Inbox does not emit a second "inbox-online" event just because
+    // another call is about to start.
+    if(window.__inboxOnline!==true) window.__inboxOnline=false;
     window.__trustEvents=[];
     window.EZERO_TRUSTED_FRIEND_LAB.on("inbox-online",()=>{window.__inboxOnline=true;});
     window.EZERO_TRUSTED_FRIEND_LAB.on("trust-updated",e=>
