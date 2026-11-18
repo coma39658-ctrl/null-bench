@@ -168,13 +168,14 @@
 </section>
 <section id="modernVoicePanel" class="modern-workspace" hidden>
   <h2 class="modern-panel-title" data-modern="voicePanel">وائس میسج</h2>
-  <p class="modern-panel-help" data-modern="voiceHelp">6 سیکنڈ تک اپنی آواز ریکارڈ کریں۔ Send دبانے سے پہلے دوسرے فون کو نہیں جائے گی؛ کال ریکارڈ نہیں ہوگی۔</p>
+  <p class="modern-panel-help" data-modern="voiceHelp">60 سیکنڈ تک اپنی آواز ریکارڈ کریں۔ Send دبانے سے پہلے دوسرے فون کو نہیں جائے گی؛ کال ریکارڈ نہیں ہوگی۔</p>
   <div class="modern-voice-actions">
     <button type="button" id="ezeroVoiceRecord" data-modern="record">🎙️ ریکارڈ کریں</button>
     <button type="button" id="ezeroVoiceStop" class="secondary" hidden data-modern="stop">■ ریکارڈنگ بند</button>
     <button type="button" id="ezeroVoiceSend" disabled data-modern="sendVoice">↗ وائس میسج بھیجیں</button>
     <button type="button" id="ezeroVoiceClear" class="secondary" disabled data-modern="discard">✕ حذف کریں</button>
   </div>
+  <output id="ezeroVoiceTimer" class="modern-status" aria-live="off">00:00 / 01:00</output>
   <label class="ezero-evidence-voice-consent">
   <input id="ezeroVoiceAllowDownload" type="checkbox">
   وصول کرنے والا یہ وائس میسج اپنے فون میں ڈاؤن لوڈ کر سکے؟
