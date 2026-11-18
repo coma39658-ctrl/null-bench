@@ -106,13 +106,14 @@
   let localOffer="",answerSent=false;
   const active=()=>session&&session.ws?.readyState===WebSocket.OPEN;
   function closeRoom(notify=true){
-    if(!session)return;
+    if(!session){window.EZERO_ACTIVE_CALL_MODE=null;return;}
     const ws=session.ws;
     if(notify&&ws?.readyState===WebSocket.OPEN){
       try{ws.send(JSON.stringify({t:"leave"}));}catch(_){}
     }
     try{ws?.close(1000,"finished");}catch(_){}
     session=null;localOffer="";answerSent=false;
+    window.EZERO_ACTIVE_CALL_MODE=null;
     $("ezeroAutoShare").disabled=true;
   }
   // When the user explicitly requests a NEW QR after a completed call,
@@ -241,7 +242,7 @@
     // and inbox script: do not route this trial through the production c.html.
     const u=new URL(isLab?"./ezero_trusted_friends_staging_20261106.html":location.href,location.href);
     u.hash="room="+session.room+"."+session.guestToken;
-    const mode=document.querySelector('input[name="mode"]:checked')?.value||"audio";
+    const mode=session.mode||"audio";
     u.searchParams.set("mode",mode);
     return u.href;
   };
@@ -271,9 +272,12 @@
       $("hangup").click();
     }
     document.dispatchEvent(new CustomEvent("ezero:auto-call-starting"));
+    const mode=document.querySelector('input[name="mode"]:checked')?.value||"audio";
+    if(mode!=="audio"&&mode!=="video")return signalError("bad");
+    window.EZERO_ACTIVE_CALL_MODE=mode;window.EZERO_SELECTED_CALL_MODE=mode;
     const room=random(24),hostToken=random(32),guestToken=random(32);
     if(!ROOM.test(room)||!TOKEN.test(hostToken)||!TOKEN.test(guestToken))return signalError("bad");
-    session={role:"host",room,hostToken,guestToken,offerForwarded:false,peerJoined:false};
+    session={role:"host",room,hostToken,guestToken,mode,offerForwarded:false,peerJoined:false};
     // Show a pending QR immediately; it is not shareable/usable until signaling
     // is ready and the signed SDP offer has been produced.
     document.dispatchEvent(new CustomEvent("ezero:auto-invite-preview",{detail:{link:shareLink()}}));
@@ -282,7 +286,7 @@
       await connectSocket(session);
       chooseStun();
       document.dispatchEvent(new CustomEvent("ezero:call-intent",{detail:{
-        direction:"outgoing",kind:document.querySelector('input[name="mode"]:checked')?.value||"audio"
+        direction:"outgoing",kind:session.mode
       }}));
       // Reuse the existing signed WebRTC call engine. Nothing is silently
       // transmitted to a peer; the offer is relayed only after guest joins.
@@ -298,7 +302,10 @@
   }
   async function accept(){
     if(session||!incoming)return;
-    session={role:"guest",room:incoming.room,guestToken:incoming.guestToken};
+    const mode=new URLSearchParams(location.search).get("mode")||"audio";
+    if(mode!=="audio"&&mode!=="video")return signalError("bad");
+    window.EZERO_ACTIVE_CALL_MODE=mode;window.EZERO_SELECTED_CALL_MODE=mode;
+    session={role:"guest",room:incoming.room,guestToken:incoming.guestToken,mode};
     $("ezeroAutoIncoming").hidden=true;
     set("connecting");
     try{await connectSocket(session);}
@@ -325,18 +332,20 @@
   document.addEventListener("ezero:call-status",event=>{
     if(!session)return;
     const stage=event.detail?.stage;
-    if(stage==="connected"&&window.EZERO_PEER_PROFILE_TRANSPORT?.connected()){
+    const videoReady=session.mode!=="video"||
+      window.EZERO_PEER_PROFILE_TRANSPORT?.remoteVideoReady?.()===true;
+    if(stage==="connected"&&window.EZERO_PEER_PROFILE_TRANSPORT?.connected()&&videoReady){
       set("finished","connected");
-    }else if(["micDenied","iceNoRoute","signalInvalid","fingerprintMismatch"].includes(stage)){
+    }else if(["micDenied","iceNoRoute","signalInvalid","fingerprintMismatch","videoTrackMissing"].includes(stage)){
       set(stage==="iceNoRoute"?"noRoute":"bad","error");
-      // Fail closed and release the stale room so the next explicit call tap
-      // can create a fresh request. No background retry or auto capture.
       if(!window.EZERO_PEER_PROFILE_TRANSPORT?.connected())closeRoom();
     }else if(stage==="idle")closeRoom();
   });
   document.addEventListener("ezero:channel-state",event=>{
     if(!session)return;
-    if(event.detail?.connected&&window.EZERO_PEER_PROFILE_TRANSPORT?.connected())
+    const videoReady=session.mode!=="video"||
+      window.EZERO_PEER_PROFILE_TRANSPORT?.remoteVideoReady?.()===true;
+    if(event.detail?.connected&&window.EZERO_PEER_PROFILE_TRANSPORT?.connected()&&videoReady)
       set("finished","connected");
   });
   $("ezeroAutoStart").addEventListener("click",start);
