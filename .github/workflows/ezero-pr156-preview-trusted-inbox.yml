@@ -1,0 +1,67 @@
+name: E-ZERO PR156 isolated Trusted Inbox deploy and live smoke
+on:
+  push:
+    branches: [ezero-pr156-render-preview-20261116]
+    paths:
+      - 'signaling/cloudflare/src/trusted_inbox_pr156_preview_v2.js'
+      - 'signaling/cloudflare/wrangler.trusted-pr156-preview-v2.jsonc'
+      - 'tests/ezero_pr156_preview_trusted_inbox_origin_contract_20261118.cjs'
+      - 'tests/ezero_pr156_preview_trusted_inbox_live_smoke_20261118.mjs'
+      - '.github/workflows/ezero-pr156-preview-trusted-inbox.yml'
+permissions:
+  contents: read
+concurrency:
+  group: ezero-pr156-preview-trusted-inbox
+  cancel-in-progress: false
+jobs:
+  deploy-isolated-preview-inbox:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify isolated origin and signed challenge contracts
+        run: |
+          set -euo pipefail
+          node --check tests/ezero_pr156_preview_trusted_inbox_origin_contract_20261118.cjs
+          node tests/ezero_pr156_preview_trusted_inbox_origin_contract_20261118.cjs
+          node --check tests/ezero_pr156_preview_trusted_inbox_live_smoke_20261118.mjs
+          grep -Fq 'const ORIGIN="https://ezero-save-friend-pr156-preview-v2.onrender.com"' signaling/cloudflare/src/trusted_inbox_pr156_preview_v2.js
+          grep -Fq '"PUBLIC_ORIGIN": "https://ezero-save-friend-pr156-preview-v2.onrender.com"' signaling/cloudflare/wrangler.trusted-pr156-preview-v2.jsonc
+      - name: Verify isolated Cloudflare credentials exist without printing them
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          test -n "$CF_TOKEN" || { echo "::error::Cloudflare API token is not configured"; exit 1; }
+          test -n "$CF_ACCOUNT" || { echo "::error::Cloudflare account ID is not configured"; exit 1; }
+      - name: Deploy only the isolated PR156 preview inbox Worker
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: signaling/cloudflare
+          command: deploy --config wrangler.trusted-pr156-preview-v2.jsonc
+      - name: Verify deployed health and strict origin gates
+        run: |
+          set -euo pipefail
+          BASE="https://ezero-trusted-inbox-pr156-preview-v2.coma39658.workers.dev"
+          FP=$(printf 'a%.0s' {1..64})
+          curl --fail --silent --show-error --retry 5 --retry-delay 2 "$BASE/health" | grep -F '"purpose":"trusted-inbox-staging"'
+          CODE=$(curl --silent --output /dev/null --write-out "%{http_code}" "$BASE/v1/trusted/$FP")
+          test "$CODE" = "403"
+          CODE=$(curl --silent --output /dev/null --write-out "%{http_code}" -H "Origin: https://invalid.test" "$BASE/v1/trusted/$FP")
+          test "$CODE" = "403"
+          CODE=$(curl --silent --output /dev/null --write-out "%{http_code}" -H "Origin: https://ezero-save-friend-pr156-preview-v2.onrender.com" "$BASE/v1/trusted/$FP")
+          test "$CODE" = "426"
+          echo "PR156_PREVIEW_TRUSTED_INBOX_ORIGIN_GATES: PASS"
+      - name: Verify real signed owner handshake (no call, no saved contact)
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts --no-audit --no-fund ws@8
+          node tests/ezero_pr156_preview_trusted_inbox_live_smoke_20261118.mjs
