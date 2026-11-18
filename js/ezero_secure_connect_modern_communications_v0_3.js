@@ -10,7 +10,7 @@ ar:{"inviteEmpty":"لم يتم إدخال رابط دعوة حقيقي. انسخ
 };
 const t=k=>(trans[document.documentElement.lang]||trans.ur)[k]||k;
 let current="audio", recorder=null, micStream=null, limitTimer=null, voiceTimerInterval=null, voiceStartedAt=0, draft=null, draftUrl=null,
-  incoming=null, incomingUrl=null, incomingTimeout=null, recId=0, lastVoiceStatus="voiceIdle";
+  incoming=null, incomingQueue=[], incomingUrl=null, incomingTimeout=null, recId=0, lastVoiceStatus="voiceIdle";
 const pick=(selector)=>document.querySelector(selector);
 function moveOriginal(){
   const media=$("mediaTitle")?.closest("section.card");
@@ -313,10 +313,36 @@ function clearDraft(){
  draft=null;$("ezeroVoicePreview").pause();$("ezeroVoicePreview").removeAttribute("src");
  $("ezeroVoiceDraft").hidden=true;$("ezeroVoiceSend").disabled=true;$("ezeroVoiceClear").disabled=true;
 }
+function renderIncomingQueue(){
+ const now=Date.now();
+ incomingQueue=incomingQueue.filter(item=>item.expiresAt>now);
+ const count=incomingQueue.length;
+ $("ezeroVoiceReceived").hidden=count===0&&!incoming;
+ $("ezeroVoiceOpenIncoming").hidden=count===0;
+ $("ezeroVoiceOpenIncoming").textContent=count>1?t("playVoice")+" ("+count+")":t("playVoice");
+ $("ezeroVoiceIncomingAudio").hidden=!incoming;
+}
+function scheduleIncomingExpiry(){
+ if(incomingTimeout){clearTimeout(incomingTimeout);incomingTimeout=null;}
+ const deadlines=incomingQueue.map(item=>item.expiresAt);
+ if(incoming)deadlines.push(incoming.expiresAt);
+ if(!deadlines.length)return;
+ incomingTimeout=setTimeout(()=>{
+   const now=Date.now();
+   incomingQueue=incomingQueue.filter(item=>item.expiresAt>now);
+   if(incoming&&incoming.expiresAt<=now){
+     if(incomingUrl){URL.revokeObjectURL(incomingUrl);incomingUrl=null;}
+     $("ezeroVoiceIncomingAudio").pause();$("ezeroVoiceIncomingAudio").removeAttribute("src");
+     incoming=null;$("ezeroVoiceIncomingAudio").hidden=true;
+   }
+   renderIncomingQueue();scheduleIncomingExpiry();
+ },Math.max(100,Math.min(...deadlines)-Date.now()+20));
+}
 function clearIncoming(){
  if(incomingTimeout){clearTimeout(incomingTimeout);incomingTimeout=null;}
  if(incomingUrl){URL.revokeObjectURL(incomingUrl);incomingUrl=null;}
- incoming=null;$("ezeroVoiceIncomingAudio").pause();$("ezeroVoiceIncomingAudio").removeAttribute("src");
+ incoming=null;incomingQueue=[];
+ $("ezeroVoiceIncomingAudio").pause();$("ezeroVoiceIncomingAudio").removeAttribute("src");
  $("ezeroVoiceIncomingAudio").hidden=true;$("ezeroVoiceOpenIncoming").hidden=false;$("ezeroVoiceReceived").hidden=true;
 }
 function voiceStatus(key){lastVoiceStatus=key;$("ezeroVoiceStatus").textContent=t(key);}
@@ -397,30 +423,32 @@ $("ezeroVoiceSend").addEventListener("click",async()=>{
 });
 document.addEventListener("ezero:voice-note-received",e=>{
  const d=e.detail;
- if(!d||typeof d.audio!=="string"||d.audio.length>32000||!["audio/webm","audio/mp4","audio/ogg"].includes(d.mime))return;
- clearIncoming();
- incoming={audio:d.audio,mime:d.mime};
- $("ezeroVoiceReceived").hidden=false;voiceStatus("received");
- incomingTimeout=setTimeout(clearIncoming,600000);
+ if(!d||typeof d.audio!=="string"||d.audio.length>32000||d.audio.length%4!==0||
+    !["audio/webm","audio/mp4","audio/ogg"].includes(d.mime)||!/^[A-Za-z0-9+/=]+$/.test(d.audio)||
+    !/^[a-f0-9]{32}$/.test(d.id))return;
+ if(incomingQueue.length+(incoming?1:0)>=10)return;
+ if(incoming?.id===d.id||incomingQueue.some(item=>item.id===d.id))return;
+ incomingQueue.push({id:d.id,audio:d.audio,mime:d.mime,expiresAt:Date.now()+600000});
+ renderIncomingQueue();scheduleIncomingExpiry();voiceStatus("received");
 });
 $("ezeroVoiceOpenIncoming").addEventListener("click",()=>{
- if(!incoming)return;
+ if(!incomingQueue.length)return;
  try{
-   const b=atob(incoming.audio);
+   const next=incomingQueue.shift();
+   const b=atob(next.audio);
    if(b.length>24000)throw Error("TOO_LARGE");
+   if(incomingUrl){URL.revokeObjectURL(incomingUrl);incomingUrl=null;}
+   $("ezeroVoiceIncomingAudio").pause();$("ezeroVoiceIncomingAudio").removeAttribute("src");
    const raw=Uint8Array.from(b,c=>c.charCodeAt(0));
-   const blob=new Blob([raw],{type:incoming.mime});
-   incomingUrl=URL.createObjectURL(blob);
+   const blob=new Blob([raw],{type:next.mime});
+   incomingUrl=URL.createObjectURL(blob);incoming=next;
    $("ezeroVoiceIncomingAudio").src=incomingUrl;
    $("ezeroVoiceIncomingAudio").hidden=false;
-   $("ezeroVoiceOpenIncoming").hidden=true;
-   incoming=null;
    $("ezeroVoiceIncomingAudio").play().catch(()=>{});
-   if(incomingTimeout)clearTimeout(incomingTimeout);
-   incomingTimeout=setTimeout(clearIncoming,300000);
- }catch(_){clearIncoming();voiceStatus("invalid");}
+   renderIncomingQueue();scheduleIncomingExpiry();
+ }catch(_){voiceStatus("invalid");renderIncomingQueue();}
 });
-$("ezeroVoiceIncomingAudio").addEventListener("ended",()=>{clearIncoming();voiceStatus("expired");});
+$("ezeroVoiceIncomingAudio").addEventListener("ended",()=>{voiceStatus("received");});
 document.addEventListener("visibilitychange",()=>{if(document.hidden){++recId;stopMic();}});
 window.addEventListener("pagehide",()=>{++recId;stopMic();clearDraft();clearIncoming();});
 })();
