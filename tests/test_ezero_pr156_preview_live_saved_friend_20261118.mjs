@@ -169,13 +169,34 @@ try{
   await Promise.all([caller,callee].map(p=>p.locator("#ezeroPermanentQr svg")
     .waitFor({state:"visible",timeout:15000})));
   const callerPermanentImage=await caller.locator("#ezeroPermanentQr svg").screenshot();
-  async function scanPermanentCamera(receiver,token,name){
+  async function scanPermanentCamera(receiver,token,name,image){
     const before=await receiver.evaluate(()=>window.__mediaCalls.length);
-    await receiver.evaluate(token=>{
-      window.BarcodeDetector=class {
-        async detect(){return [{rawValue:token}];}
+    const imageDataUrl="data:image/png;base64,"+image.toString("base64");
+    await receiver.evaluate(async({token,imageDataUrl})=>{
+      // Exercise the actual bundled jsQR decoder in the camera frame loop:
+      // the fake camera frame is replaced with a real screenshot of the peer QR.
+      window.BarcodeDetector=undefined;
+      const image=new Image();image.src=imageDataUrl;await image.decode();
+      const video=document.getElementById("ezeroPermanentFriendQrCamera");
+      Object.defineProperty(video,"videoWidth",{configurable:true,get:()=>image.naturalWidth});
+      Object.defineProperty(video,"videoHeight",{configurable:true,get:()=>image.naturalHeight});
+      const originalGetContext=HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext=function(...args){
+        const context=originalGetContext.apply(this,args);
+        if(context&&!context.__ezeroCameraQrPatch){
+          const draw=context.drawImage.bind(context);
+          context.drawImage=(source,x,y,w,h)=>{
+            context.fillStyle="#ffffff";context.fillRect(0,0,w,h);
+            draw(image,x,y,w,h);
+          };
+          context.__ezeroCameraQrPatch=true;
+        }
+        return context;
       };
-    },token);
+      const realDecoder=window.jsQR;
+      window.__cameraJsQrCalls=0;
+      window.jsQR=(...args)=>{window.__cameraJsQrCalls++;return realDecoder(...args);};
+    },{token,imageDataUrl});
     await receiver.locator("#ezeroScanPermanentFriendQr").click();
     await receiver.locator("#ezeroPermanentFriendSaveForm").waitFor({
       state:"visible",timeout:20000
@@ -193,6 +214,8 @@ try{
     assert.equal(cameraState.stopHidden,true);
     assert.equal(cameraState.streamCleared,true,
       "Camera stream must be stopped and detached after successful scan");
+    assert.ok(await receiver.evaluate(()=>window.__cameraJsQrCalls>0),
+      "The real local jsQR decoder must read the peer's QR through the camera frame loop");
     await receiver.locator("#ezeroPermanentFriendName").fill(name);
     await receiver.locator("#ezeroSavePermanentFriend").click();
     await receiver.waitForFunction(()=>
@@ -213,7 +236,7 @@ try{
       document.getElementById("ezeroPermanentQrStatus")?.textContent.includes("اجازت"),
       undefined,{timeout:30000});
   }
-  await scanPermanentCamera(caller,calleePermanent,"Second Phone");
+  await scanPermanentCamera(caller,calleePermanent,"Second Phone",calleePermanentImage);
   await scanPermanentGallery(callee,callerPermanentImage,"First Phone");
   const callerPermanentFp=callerPermanent.split(".")[2];
   const calleePermanentFp=calleePermanent.split(".")[2];
