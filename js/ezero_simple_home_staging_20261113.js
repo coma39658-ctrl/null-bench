@@ -75,19 +75,21 @@ panel.addEventListener("click",event=>{
  if(action==="scan"||action==="gallery"){const workspace=find(["ezeroOneJoinPanel"]);if(workspace){workspace.hidden=false;workspace.classList.remove("ezero-simple-collapsed");workspace.scrollIntoView({block:"start",behavior:"instant"});}if(action==="scan"){const scanner=find(["ezeroOneScanInvite"]);if(scanner){scanner.click();panel.querySelector("#ezeroSimpleStatus").textContent="کیمرہ اسکینر کھولنے کی درخواست بھیج دی گئی ہے۔";}else panel.querySelector("#ezeroSimpleStatus").textContent="اسکینر بٹن اس ورژن میں موجود نہیں؛ اسے بحال کرنا ضروری ہے۔";}else{const picker=find(["ezeroOneImageScan","ezeroOneGalleryInvite"]);if(picker)picker.click();else panel.querySelector("#ezeroSimpleStatus").textContent="گیلری QR آپشن دستیاب نہیں۔";}return;}
  if(action==="friends"){find(["ezeroFriendListToggle"])?.click();dock?.scrollIntoView({block:"nearest"});return;}
  if(action==="add"){
-   // One obvious entry point for first-time pairing. It opens the existing
-   // isolated invitation workflow; no extra QR/call controls on the home.
+   // One obvious Add Friend entry reveals both sides of first-time pairing:
+   // generate/show my call QR on one phone, scan the friend's QR on the other.
+   // The user explicitly presses the QR-create or camera-scan button.
    const start=find(["ezeroAutoStart"]);
    const workspace=start?.closest("section");
+   const join=find(["ezeroOneJoinPanel"]);
    if(workspace){
      workspace.hidden=false;workspace.classList.remove("ezero-simple-collapsed");
      show(workspace);
-     if(start&&!start.disabled){
-       panel.querySelector("#ezeroSimpleStatus").textContent="دوست شامل کرنے کے لیے ایک عارضی QR دعوت تیار کریں۔";
-       start.click();
-     }else{
-       panel.querySelector("#ezeroSimpleStatus").textContent="پہلے اپنی پروفائل محفوظ کریں؛ پھر QR دعوت بنائیں۔";
-     }
+     if(join){join.hidden=false;join.classList.remove("ezero-simple-collapsed");}
+     panel.querySelector("#ezeroSimpleStatus").textContent=
+       "پہلا فون «محفوظ دعوت بنائیں» دبائے؛ دوسرا فون «دوست کی کال QR اسکین کریں» دبائے۔";
+   }else if(join){
+     show(join);
+     panel.querySelector("#ezeroSimpleStatus").textContent="دوست کا کال QR اسکین کریں۔";
    }else{
      panel.querySelector("#ezeroSimpleStatus").textContent="دوست شامل کرنے کا QR مرحلہ دستیاب نہیں۔";
    }
