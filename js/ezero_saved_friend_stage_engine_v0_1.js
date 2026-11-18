@@ -641,8 +641,7 @@
       document.dispatchEvent(new CustomEvent("ezero:channel-state",{detail:{connected:true}}));
     };
     c.onclose=()=>{
-      for(const transfer of voiceTransfers.values())clearTimeout(transfer.timer);
-      voiceTransfers.clear();
+      clearVoiceTransfers();
       $("sendMessage").disabled=true;$("messageStatus").textContent=t("notConnected");
       document.dispatchEvent(new CustomEvent("ezero:channel-state",{detail:{connected:false}}));
     };
@@ -917,7 +916,17 @@
     };
     countdown();
   });
+  function clearVoiceTransfers() {
+    // Hangup detaches the DataChannel close handler before closing it, so
+    // pending chunk timers must be cleared synchronously here as well.
+    for(const transfer of voiceTransfers.values()){
+      if(transfer?.timer)clearTimeout(transfer.timer);
+    }
+    voiceTransfers.clear();
+  }
   function hardHangup(show=true) {
+    const pendingVoiceTransfers=voiceTransfers.size;
+    clearVoiceTransfers();
     if(remoteVideoGuardTimer){clearTimeout(remoteVideoGuardTimer);remoteVideoGuardTimer=null;}
     remoteVideoTrackReady=false;
     window.EZERO_ACTIVE_CALL_MODE=null;
