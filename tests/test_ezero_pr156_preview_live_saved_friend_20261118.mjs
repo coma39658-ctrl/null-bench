@@ -60,7 +60,10 @@ async function waitDisconnected(){
 async function openRecipientInbox(){
   await callee.evaluate(()=>{
     window.__inboxOnline=false;
+    window.__trustEvents=[];
     window.EZERO_TRUSTED_FRIEND_LAB.on("inbox-online",()=>{window.__inboxOnline=true;});
+    window.EZERO_TRUSTED_FRIEND_LAB.on("trust-updated",e=>
+      window.__trustEvents.push(e.detail));
   });
   await callee.locator("#ezeroTrustedEnable").click();
   await callee.waitForFunction(()=>window.__inboxOnline===true,{timeout:30000});
@@ -122,11 +125,6 @@ try{
   await caller.locator("#hangup").click();
   await waitDisconnected();
 
-  await callee.evaluate(()=>{
-    window.__trustEvents=[];
-    window.EZERO_TRUSTED_FRIEND_LAB.on("trust-updated",e=>
-      window.__trustEvents.push(e.detail));
-  });
   await openRecipientInbox();
   await callee.locator("#ezeroTrustedList .ezero-trusted-friend-row button")
     .filter({hasText:"اجازت دیں"}).click();
