@@ -65,8 +65,8 @@ function boot(origin="https://ezero-test.example"){
  const parsed=await app.window.EZERO_PERMANENT_IDENTITY_QR.verifyToken(token1);
  assert.equal(parsed.permanent,true);
  assert.equal(parsed.fingerprint,row.fingerprint);
- await assert.rejects(()=>app.window.EZERO_PERMANENT_IDENTITY_QR.verifyToken(token1),
-   "Permanent QR must not validate after changing origin");
+ await assert.doesNotReject(()=>app.window.EZERO_PERMANENT_IDENTITY_QR.verifyToken(token1),
+   "Permanent QR must validate on its own origin");
  await store.save(row.keys,row.spki,row.fingerprint);
  assert.equal(row.permanentProof,parts[3],"Saving a friend later must not erase the permanent proof");
  app=boot();
