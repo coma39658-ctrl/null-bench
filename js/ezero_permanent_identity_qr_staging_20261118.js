@@ -125,16 +125,35 @@ gallery.addEventListener("click",()=>fileInput.click());
 fileInput.addEventListener("change",async()=>{
  const file=fileInput.files?.[0];fileInput.value="";
  if(!file)return;
- if(file.size>8*1024*1024||!window.BarcodeDetector||typeof createImageBitmap!=="function"){
+ if(file.size>8*1024*1024||typeof createImageBitmap!=="function"){
    status.textContent=t("galleryError");return;
  }
  status.textContent=t("galleryWorking");
  let bitmap=null;
  try{
    bitmap=await createImageBitmap(file);
-   const detector=new BarcodeDetector({formats:["qr_code"]});
-   const codes=await detector.detect(bitmap);
-   const value=String(codes[0]?.rawValue||"");
+   let value="";
+   if(typeof window.BarcodeDetector==="function"){
+     try{
+       const detector=new BarcodeDetector({formats:["qr_code"]});
+       const codes=await detector.detect(bitmap);
+       value=String(codes[0]?.rawValue||"");
+     }catch(_){value="";}
+   }
+   // Android/browser fallback: decode locally with the already bundled jsQR.
+   // Bound canvas dimensions and composite transparent screenshots on white.
+   if(!value&&typeof window.jsQR==="function"){
+     const scale=Math.min(1,1600/Math.max(bitmap.width,bitmap.height));
+     const canvas=document.createElement("canvas");
+     canvas.width=Math.max(1,Math.round(bitmap.width*scale));
+     canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+     const ctx=canvas.getContext("2d",{willReadFrequently:true});
+     if(!ctx)throw Error("CANVAS_UNAVAILABLE");
+     ctx.fillStyle="#ffffff";ctx.fillRect(0,0,canvas.width,canvas.height);
+     ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+     const pixels=ctx.getImageData(0,0,canvas.width,canvas.height);
+     value=String(window.jsQR(pixels.data,canvas.width,canvas.height,{inversionAttempts:"attemptBoth"})?.data||"");
+   }
    if(!value.startsWith("EZERO2."))throw Error("NO_PERMANENT_QR");
    const identityCard=root.querySelector(".identity-card");
    if(identityCard){identityCard.hidden=false;identityCard.classList.remove("ezero-simple-collapsed");}
