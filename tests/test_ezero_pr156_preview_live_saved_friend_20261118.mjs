@@ -52,6 +52,12 @@ async function completeProfile(page,name){
   await page.waitForFunction(()=>document.getElementById("ezeroProfileFirstStatus")?.dataset.state==="ready",
     undefined,{timeout:15000});
   assert.equal(await page.locator("#ezeroProfileMissingReminder").isHidden(),true);
+  // The user explicitly creates their own durable QR after profile consent.
+  if(await page.locator("#ezeroPermanentQr svg").count()===0){
+    await page.locator("#ezeroCreatePermanentQr").click();
+  }
+  await page.waitForFunction(()=>document.getElementById("ezeroPermanentQr")?.querySelector("svg"),
+    undefined,{timeout:20000});
 }
 async function waitDisconnected(){
   await Promise.all([caller,callee].map(p=>p.waitForFunction(()=>
