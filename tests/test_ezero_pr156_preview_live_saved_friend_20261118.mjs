@@ -41,6 +41,19 @@ async function createPhone(label){
         reason:String(event.reason||"").slice(0,80),wasClean:event.wasClean,at:Date.now()
       }));
       ws.addEventListener("error",()=>record("error"));
+      ws.addEventListener("message",event=>{
+        let message={};try{message=JSON.parse(String(event.data));}catch(_){}
+        window.__wsEvents.push({kind,event:"message",messageType:String(message.t||"unknown").slice(0,40),
+          code:String(message.code||"").slice(0,50),trusted:typeof message.trusted==="boolean"?message.trusted:null,
+          at:Date.now()});
+      });
+      const originalSend=ws.send.bind(ws);
+      ws.send=(data)=>{
+        let message={};try{message=JSON.parse(String(data));}catch(_){}
+        window.__wsEvents.push({kind,event:"send",messageType:String(message.t||"unknown").slice(0,40),
+          at:Date.now()});
+        return originalSend(data);
+      };
       return ws;
     }});
     window.__rtcPeers=[];
@@ -480,8 +493,19 @@ try{
   await openRecipientInbox();
   await callee.locator("#ezeroTrustedList .ezero-trusted-friend-row button")
     .filter({hasText:"اجازت دیں"}).click();
-  await callee.waitForFunction(fp=>Array.isArray(window.__trustEvents)&&window.__trustEvents.some(e=>
-    e.fp===fp&&e.trusted===true),callerFingerprint,{timeout:20000});
+  try{
+    await callee.waitForFunction(fp=>Array.isArray(window.__trustEvents)&&window.__trustEvents.some(e=>
+      e.fp===fp&&e.trusted===true),callerFingerprint,{timeout:20000});
+  }catch(error){
+    const trustDiagnostic=await callee.evaluate(()=>({
+      trustEvents:window.__trustEvents||[],
+      sockets:window.__wsEvents?.filter(e=>e.kind==="trusted-inbox").slice(-30)||[],
+      status:document.getElementById("ezeroTrustedStatus")?.textContent||"",
+      ownerSocketStates:(window.__trustedInboxSockets||[]).map(ws=>ws.readyState)
+    }));
+    console.error("PR156_TRUST_ACK_FAILURE_DIAGNOSTIC",JSON.stringify(trustDiagnostic));
+    throw error;
+  }
   console.log("PR156_REAL_TRUSTED_INBOX_OWNER_AND_EXPLICIT_FRIEND_TRUST: PASS");
 
   await caller.locator("#ezeroFriendListToggle").click();
