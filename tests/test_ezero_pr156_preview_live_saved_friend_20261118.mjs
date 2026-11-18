@@ -283,6 +283,11 @@ try{
   await caller.waitForFunction(()=>document.getElementById("ezeroPermanentFriendQrCamera")?.srcObject===null);
   assert.ok(await caller.evaluate(()=>window.__cameraTrackStopCount)>hiddenBefore,
     "Backgrounding the page must stop all camera tracks");
+  // Restore the simulated foreground state before continuing the same page.
+  await caller.evaluate(()=>{
+    Object.defineProperty(document,"hidden",{configurable:true,value:false});
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
   console.log("PR156_CAMERA_BACKGROUND_STOPS_TRACKS: PASS");
 
   const exitBefore=await caller.evaluate(()=>window.__cameraTrackStopCount);
