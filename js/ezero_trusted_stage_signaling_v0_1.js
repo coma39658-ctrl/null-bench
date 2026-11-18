@@ -81,14 +81,20 @@
     const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(token));
     return Array.from(new Uint8Array(b),v=>v.toString(16).padStart(2,"0")).join("");
   };
-  const invitation=()=>{
-    const h=/^#room=([A-Za-z0-9_-]{32})\.([A-Za-z0-9_-]{43})$/.exec(location.hash);
+  const invitation=(href=location.href,consume=false)=>{
+    let u;try{u=new URL(href,location.href);}catch(_){return null;}
+    if(u.origin!==location.origin||u.pathname!==location.pathname)return null;
+    const h=/^#room=([A-Za-z0-9_-]{32})\.([A-Za-z0-9_-]{43})$/.exec(u.hash);
     if(!h)return null;
-    const safe=new URL(location.href);safe.hash="";
-    try{history.replaceState(null,"",safe.href);}catch(_){}
-    return {room:h[1],guestToken:h[2]};
+    const mode=u.searchParams.get("mode")||"audio";
+    if(mode!=="audio"&&mode!=="video")return null;
+    if(consume){
+      const safe=new URL(location.href);safe.hash="";
+      try{history.replaceState(null,"",safe.href);}catch(_){}
+    }
+    return {room:h[1],guestToken:h[2],mode};
   };
-  const incoming=invitation();
+  let incoming=invitation(location.href,true);
   // A second QR link can arrive on the *same page* as a new #room fragment.
   // Browsers do not rerun deferred scripts on same-document hash navigation.
   // Re-enter once only after the previous call is fully ended; on reload
@@ -302,7 +308,7 @@
   }
   async function accept(){
     if(session||!incoming)return;
-    const mode=new URLSearchParams(location.search).get("mode")||"audio";
+    const mode=incoming.mode||"audio";
     if(mode!=="audio"&&mode!=="video")return signalError("bad");
     window.EZERO_ACTIVE_CALL_MODE=mode;window.EZERO_SELECTED_CALL_MODE=mode;
     session={role:"guest",room:incoming.room,guestToken:incoming.guestToken,mode};
@@ -350,10 +356,11 @@
   });
   $("ezeroAutoStart").addEventListener("click",start);
   $("ezeroAutoAccept").addEventListener("click",accept);
-  $("ezeroAutoDecline").addEventListener("click",()=>{
-    closeRoom();
+  function declineIncoming(){
+    closeRoom();incoming=null;
     $("ezeroAutoIncoming").hidden=true;set("rejected");
-  });
+  }
+  $("ezeroAutoDecline").addEventListener("click",declineIncoming);
   $("ezeroAutoShare").addEventListener("click",async()=>{
     const link=shareLink();
     if(!link||!localOffer)return set("bad","error");
@@ -370,6 +377,14 @@
   });
   window.addEventListener("pagehide",()=>closeRoom());
   $("language").addEventListener("change",updateLanguage);
+  window.EZERO_AUTO_CALL=Object.freeze({
+    openInvite(link){
+      if(session||window.EZERO_PEER_PROFILE_TRANSPORT?.connected()===true)return false;
+      const next=invitation(link,false);if(!next)return false;
+      incoming=next;openedInvite();return true;
+    },
+    accept,decline:declineIncoming
+  });
   box.hidden=false;
   updateLanguage();
   if(incoming)openedInvite();
