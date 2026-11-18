@@ -158,6 +158,18 @@ try{
   await callee.locator("#ezeroAutoAccept").click();
   await Promise.all([caller,callee].map(p=>p.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===true,{timeout:45000})));
+  for(const phone of [caller,callee]){
+    const mode=await phone.evaluate(()=>({
+      active:window.EZERO_ACTIVE_CALL_MODE,
+      selected:window.EZERO_SELECTED_CALL_MODE,
+      videoTracks:document.getElementById("localVideo").srcObject?.getVideoTracks().length||0,
+      requestedVideo:window.__mediaCalls.at(-1)?.video||false
+    }));
+    assert.equal(mode.active,"audio");
+    assert.equal(mode.selected,"audio");
+    assert.equal(mode.videoTracks,0,"Audio calls must not capture camera video");
+    assert.equal(mode.requestedVideo,false,"Audio calls must request video:false");
+  }
   // Signed offer/answer and receiver Accept now save each verified friend
   // automatically; do not regress to a second manual Save Friend operation.
   for(const [phone,friendName] of [[caller,"Second Phone"],[callee,"First Phone"]]){
@@ -212,6 +224,10 @@ try{
   await Promise.all([caller,callee].map(p=>p.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===true,{timeout:45000})));
   for(const phone of [caller,callee]){
+    assert.equal(await phone.evaluate(()=>window.EZERO_ACTIVE_CALL_MODE),"video",
+      "The accepted session must preserve the requested video mode");
+    assert.equal(await phone.evaluate(()=>window.EZERO_PEER_PROFILE_TRANSPORT.remoteVideoReady()),true,
+      "A video call is not connected until a remote video track is live");
     await phone.waitForFunction(()=>document.body.classList.contains("ezero-video-connected")&&
       document.getElementById("remoteVideo")?.srcObject?.getVideoTracks?.()
       .some(t=>t.readyState==="live"),{timeout:12000});
@@ -222,8 +238,12 @@ try{
       remote:document.getElementById("remoteVideo").srcObject?.getVideoTracks().filter(x=>x.readyState==="live").length||0
     }));
     assert.equal(liveTracks.local,1);assert.equal(liveTracks.remote,1);
+    await phone.locator('[data-modern-select="audio"]').click();
+    assert.equal(await phone.evaluate(()=>window.EZERO_ACTIVE_CALL_MODE),"video",
+      "A live video call cannot be silently switched to audio");
+    assert.equal(await phone.evaluate(()=>document.querySelector('input[name="mode"]:checked')?.value),"video");
   }
-  console.log("SELECTED_CONTACT_TWO_PHONE_VIDEO_VISIBLE_AND_LIVE_TRACKS: PASS");
+  console.log("SELECTED_CONTACT_TWO_PHONE_VIDEO_MODE_LOCK_AND_LIVE_TRACKS: PASS");
   await caller.locator("#hangup").click();
   await callee.waitForFunction(()=>{
     const s=document.getElementById("localVideo")?.srcObject;
