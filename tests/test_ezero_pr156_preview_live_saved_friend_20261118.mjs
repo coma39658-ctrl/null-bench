@@ -628,9 +628,17 @@ try{
           if(!button)return null;
           const rect=button.getBoundingClientRect(),style=getComputedStyle(button);
           const parent=button.parentElement,ps=parent?getComputedStyle(parent):null;
+          const ancestors=[];let node=button;
+          while(node&&ancestors.length<8){
+            const cs=getComputedStyle(node),box=node.getBoundingClientRect();
+            ancestors.push({tag:node.tagName,id:node.id||"",className:typeof node.className==="string"?node.className:"",
+              hidden:!!node.hidden,display:cs.display,visibility:cs.visibility,width:box.width,height:box.height,
+              cssWidth:cs.width,position:cs.position});
+            node=node.parentElement;
+          }
           return {width:rect.width,height:rect.height,display:style.display,visibility:style.visibility,
             opacity:style.opacity,parentDisplay:ps?.display||"",parentVisibility:ps?.visibility||"",
-            connected:button.isConnected};
+            ancestors,connected:button.isConnected};
         })(),
         dataChannelMessages:(window.__callEvents||[]).filter(x=>x.name==="rtc-datachannel-message").slice(-24)
       }))
