@@ -558,9 +558,9 @@
         event.track.addEventListener("ended",()=>{
           remoteVideoTrackReady=false;
           if(window.EZERO_ACTIVE_CALL_MODE==="video"){
+            hardHangup(false);
             status("videoTrackMissing");
             document.dispatchEvent(new CustomEvent("ezero:call-status",{detail:{stage:"videoTrackMissing"}}));
-            hardHangup(false);
           }
         },{once:true});
         if(p.connectionState==="connected")
@@ -596,9 +596,9 @@
     if(requestedMode==="video"){
       remoteVideoGuardTimer=setTimeout(()=>{
         if(peer===p&&!remoteVideoTrackReady){
+          hardHangup(false);
           status("videoTrackMissing");
           document.dispatchEvent(new CustomEvent("ezero:call-status",{detail:{stage:"videoTrackMissing"}}));
-          hardHangup(false);
         }
       },20000);
     }
