@@ -23,6 +23,27 @@ async function createPhone(label){
     window.__mediaCalls=[];
     window.__oneInvite="";
     window.__callEvents=[];
+    window.__wsEvents=[];
+    const NativeWebSocket=window.WebSocket;
+    window.WebSocket=new Proxy(NativeWebSocket,{construct(target,args){
+      const ws=Reflect.construct(target,args);
+      const raw=String(args[0]||"");
+      const kind=raw.includes("/v1/trusted/")?"trusted-inbox":
+        raw.includes("/v1/rooms/")?"signaling":"other";
+      const record=event=>window.__wsEvents.push({
+        kind,event,readyState:ws.readyState,
+        code:event==="close"?arguments[0]?.code:undefined,
+        reason:event==="close"?String(arguments[0]?.reason||"").slice(0,80):undefined,
+        at:Date.now()
+      });
+      ws.addEventListener("open",()=>record("open"));
+      ws.addEventListener("close",event=>window.__wsEvents.push({
+        kind,event:"close",readyState:ws.readyState,code:event.code,
+        reason:String(event.reason||"").slice(0,80),wasClean:event.wasClean,at:Date.now()
+      }));
+      ws.addEventListener("error",()=>record("error"));
+      return ws;
+    }});
     window.__rtcPeers=[];
     const safeDetail=value=>{
       if(!value||typeof value!=="object")return {};
@@ -149,11 +170,27 @@ async function openRecipientInbox(){
     window.EZERO_TRUSTED_FRIEND_LAB.on("trust-updated",e=>
       window.__trustEvents.push(e.detail));
   });
+  const inboxSnapshot=await callee.evaluate(()=>({
+    status:document.getElementById("ezeroTrustedStatus")?.textContent||"",
+    statusKind:document.getElementById("ezeroTrustedStatus")?.dataset.status||"",
+    incomingHidden:document.getElementById("ezeroTrustedIncoming")?.hidden,
+    sockets:window.__wsEvents?.slice(-20)||[]
+  }));
+  console.log("PR156_INBOX_STATE_BEFORE_REPEAT_VIDEO",JSON.stringify(inboxSnapshot));
   // Do not click Enable here: permanent-QR Save Friend must already have
   // activated this foreground inbox after the user's explicit consent.
-  await callee.waitForFunction(()=>window.__inboxOnline===true||
-    document.getElementById("ezeroTrustedStatus")?.textContent.includes("کال وصول کرنے کے لیے تیار"),
-    undefined,{timeout:30000});
+  try{
+    await callee.waitForFunction(()=>window.__inboxOnline===true||
+      document.getElementById("ezeroTrustedStatus")?.textContent.includes("کال وصول کرنے کے لیے تیار"),
+      undefined,{timeout:30000});
+  }catch(error){
+    console.log("PR156_INBOX_STATE_AFTER_WAIT",JSON.stringify(await callee.evaluate(()=>({
+      status:document.getElementById("ezeroTrustedStatus")?.textContent||"",
+      statusKind:document.getElementById("ezeroTrustedStatus")?.dataset.status||"",
+      sockets:window.__wsEvents?.slice(-30)||[]
+    }))));
+    throw error;
+  }
 }
 async function acceptDeliveredInvite(kind){
   await callee.locator("#ezeroTrustedIncoming").waitFor({state:"visible",timeout:35000});
