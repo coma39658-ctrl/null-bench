@@ -351,14 +351,15 @@ try{
   const secondAudio=await callee.locator("#ezeroVoiceIncomingAudio").evaluate(el=>el.src);
   assert.notEqual(secondAudio,firstAudio.src,"Each queued note must open as its own audio blob");
   await callee.locator("#ezeroVoiceOpenIncoming").waitFor({state:"hidden",timeout:5000});
-  // Exercise multi-chunk delivery with an 80 KB encoded payload; every
-  // DataChannel frame stays below the browser's message-size limit.
-  const chunkedSent=await caller.evaluate(()=>window.EZERO_VOICE_TRANSPORT.send("audio/webm","A".repeat(80000),false));
-  assert.equal(chunkedSent,true,"Large notes must be split into bounded chunks");
-  await callee.locator("#ezeroVoiceOpenIncoming").waitFor({state:"visible",timeout:12000});
+  // This legacy one-request fixture intentionally has a single-frame voice
+  // transport. It must reject oversized data rather than exceed its 32 KB
+  // per-message contract. Chunking is exercised against the current saved-
+  // friend staging engine in the separate PR156 live two-phone test.
+  const oversizedSent=await caller.evaluate(()=>window.EZERO_VOICE_TRANSPORT.send("audio/webm","A".repeat(80000),false));
+  assert.equal(oversizedSent,false,"Legacy transport must fail closed on oversized unchunked notes");
   assert.equal(await caller.evaluate(()=>window.EZERO_VOICE_TRANSPORT?.connected()),true,
-    "Voice message must not close the existing authenticated call");
-  console.log("TWO_PHONE_VOICE_NOTE_TIMER_QUEUE_AND_CHUNKED_DELIVERY: PASS");  // A privacy boundary: muting during a connected call must never cause a
+    "Rejecting an oversized voice note must not close the existing authenticated call");
+  console.log("LEGACY_VOICE_TRANSPORT_REJECTS_OVERSIZED_PAYLOAD: PASS");  // A privacy boundary: muting during a connected call must never cause a
   // new microphone permission request or background recording for a note.
   await caller.locator("#ezeroInCallClose").click();
   await caller.locator("#muteMic").click();
