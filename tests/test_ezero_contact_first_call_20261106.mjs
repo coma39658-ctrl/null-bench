@@ -243,6 +243,7 @@ try{
   await callee.locator("#ezeroTrustedIncoming button").first().click();
   assert.equal(callee.url(),audioInboxUrl,"Incoming-call review must not reload or disconnect the trusted inbox");
   await callee.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:10000});
+  assert.equal(await callee.evaluate(()=>document.querySelector('input[name="mode"]:checked')?.value),"audio");
   await callee.locator("#ezeroAutoAccept").click();
   await Promise.all([caller,callee].map(phone=>phone.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===true,{timeout:45000})));
@@ -305,6 +306,8 @@ try{
   await callee.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:10000});
   assert.equal(await callee.locator("#ezeroOneIncomingHeading").innerText(),
     "📹 آنے والی ویڈیو کال — قبول کریں؟");
+  assert.equal(await callee.evaluate(()=>document.querySelector('input[name="mode"]:checked')?.value),"video",
+    "Incoming video invitation must select video media before Accept");
   assert.equal(await callee.evaluate(()=>window.__mediaCalls.length),0);
   await callee.locator("#ezeroAutoAccept").click();
   await Promise.all([caller,callee].map(p=>p.waitForFunction(()=>
