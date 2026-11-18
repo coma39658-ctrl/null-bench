@@ -4,6 +4,8 @@ on:
     branches: [ezero-pr156-render-preview-20261116]
     paths:
       - 'tests/test_ezero_pr156_preview_live_saved_friend_20261118.mjs'
+      - 'tests/ezero_saved_friend_hangup_cleanup_contract_20261118.mjs'
+      - 'js/ezero_saved_friend_stage_engine_v0_1.js'
       - '.github/workflows/ezero-pr156-preview-live-saved-friend.yml'
 permissions:
   contents: read
@@ -50,5 +52,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          node --check tests/ezero_pr156_preview_live_saved_friend_20261118.mjs 2>/dev/null || true
           node --check tests/test_ezero_pr156_preview_live_saved_friend_20261118.mjs
+          node tests/ezero_saved_friend_hangup_cleanup_contract_20261118.mjs
           node tests/test_ezero_pr156_preview_live_saved_friend_20261118.mjs
