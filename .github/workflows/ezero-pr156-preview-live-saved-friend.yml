@@ -25,10 +25,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          PAGE="https://ezero-save-friend-pr156-preview-v2.onrender.com/ezero_trusted_friends_staging_20261106.html"
+          PAGE="https://ezero-save-friend-pr156-preview-v2.onrender.com/ezero_trusted_friends_staging_20261106.html?verify=${GITHUB_SHA}"
           EXPECTED_SHA="${GITHUB_SHA:0:12}"
           for attempt in $(seq 1 20); do
-            curl --fail --silent --show-error "$PAGE" -o /tmp/ezero-pr156-page.html || true
+            curl --fail --silent --show-error -H "Cache-Control: no-cache" -H "Pragma: no-cache" "$PAGE" -o /tmp/ezero-pr156-page.html || true
             if grep -Fq "SHA: $EXPECTED_SHA" /tmp/ezero-pr156-page.html; then
               break
             fi
