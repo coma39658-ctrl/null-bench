@@ -25,6 +25,10 @@ const modernEvidence=fs.readFileSync('js/ezero_secure_connect_modern_evidence_st
 const signaling=fs.readFileSync('js/ezero_trusted_stage_signaling_v0_1.js','utf8');
 const signalingConfig=fs.readFileSync('js/ezero_auto_signaling_lab_config_20261106.js','utf8');
 const trustedInboxConfig=fs.readFileSync('js/ezero_trusted_inbox_stage_config_20261106.js','utf8');
+const builtRoot='dist_ezero_secure_app_two_phone_staging/';
+const builtPage=fs.readFileSync(builtRoot+'ezero_trusted_friends_staging_20261106.html','utf8');
+const builtSignalingConfig=fs.readFileSync(builtRoot+'js/ezero_auto_signaling_lab_config_20261106.js','utf8');
+const builtTrustedInboxConfig=fs.readFileSync(builtRoot+'js/ezero_trusted_inbox_stage_config_20261106.js','utf8');
 const trustedControls=fs.readFileSync('js/ezero_trusted_friends_controls_candidate_v0_1.js','utf8');
 const checks=[
  ['new CSS is referenced',()=>assert.match(page,/css\/ezero_simple_home_staging_20261113\.css/)],
@@ -42,7 +46,7 @@ const checks=[
  ['multiple received voice notes are queued with bounded memory and expiry',()=>{assert.match(modernEvidence,/incomingQueue\.push/);assert.match(modernEvidence,/incomingQueue\.length\+\(incoming\?1:0\)>=10/);assert.match(modernEvidence,/expiresAt:Date\.now\(\)\+600000/);}],
  ['voice-note payload is bounded to 256 KiB',()=>{assert.match(modernEvidence,/256\*1024/);assert.match(identityEngine,/encoded\.length>350000/);}],
  ['audio/video mode is frozen and video cannot silently downgrade',()=>{assert.match(identityEngine,/CALL_MODE_MISMATCH/);assert.match(identityEngine,/VIDEO_TRACK_REQUIRED/);assert.match(identityEngine,/remoteVideoGuardTimer=setTimeout/);assert.match(identityEngine,/remoteVideoReady/);assert.match(signaling,/session\.mode/);assert.match(signaling,/window\.EZERO_ACTIVE_CALL_MODE=mode/);assert.match(signaling,/modeRadio\.checked=true/);assert.match(modernEvidence,/callModeLocked/);}],
- ['staging uses only isolated PR156 WebSocket Workers',()=>{assert.match(signalingConfig,/ezero-browser-signaling-pr156-preview-v2/);assert.match(trustedInboxConfig,/ezero-trusted-inbox-pr156-preview-v2/);assert.doesNotMatch(page,/ezero-browser-signaling-pilot|ezero-trusted-friends-inbox-staging/);}],
+ ['Render-built staging uses only isolated PR156 WebSocket Workers',()=>{assert.match(signalingConfig,/ezero-browser-signaling-pilot/);assert.match(trustedInboxConfig,/ezero-trusted-friends-inbox-staging/);assert.match(builtSignalingConfig,/ezero-browser-signaling-pr156-preview-v2/);assert.match(builtTrustedInboxConfig,/ezero-trusted-inbox-pr156-preview-v2/);assert.match(builtPage,/ezero-browser-signaling-pr156-preview-v2/);assert.match(builtPage,/ezero-trusted-inbox-pr156-preview-v2/);assert.doesNotMatch(builtPage,/ezero-browser-signaling-pilot|ezero-trusted-friends-inbox-staging/);}],
  ['trusted incoming calls open in-place without dropping the owner inbox',()=>{assert.match(signaling,/openInvite\(link\)/);assert.match(trustedControls,/window\.EZERO_AUTO_CALL\?\.openInvite/);assert.doesNotMatch(trustedControls,/window\.location\.assign\(selected\.invite\)/);}],
 
  ['original WebRTC signaling is retained',()=>assert.match(page,/ezero_trusted_stage_signaling_v0_1\.js/)],
