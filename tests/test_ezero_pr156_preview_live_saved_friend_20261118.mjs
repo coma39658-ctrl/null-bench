@@ -90,6 +90,16 @@ async function acceptDeliveredInvite(kind){
 try{
   caller=await createPhone("CALLER");
   assert.equal(await caller.locator("#ezeroContactFirstDock").isVisible(),true);
+  assert.equal(await caller.locator(".ezero-simple-home").isVisible(),true,
+    "The compact messenger home must be the visible entry point");
+  const homeActions=await caller.locator(".ezero-simple-home [data-ezero-home]")
+    .evaluateAll(nodes=>nodes.map(node=>node.dataset.ezeroHome).sort());
+  assert.deepEqual(homeActions,["add","chat","friends","voice"],
+    "Home must not duplicate call or QR controls");
+  assert.equal(await caller.locator("#ezeroContactAudio").isVisible(),true,
+    "Audio call belongs beside the selected saved friend");
+  assert.equal(await caller.locator("#ezeroContactVideo").isVisible(),true,
+    "Video call belongs beside the selected saved friend");
   assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),0);
   await caller.locator('[data-modern-select="audio"]').click();
   assert.equal(await caller.evaluate(()=>window.__oneInvite),"",
