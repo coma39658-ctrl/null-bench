@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-18  
 **Applies to:** isolated staging branch `ezero-pr156-render-preview-20261116`  
-**Status:** Isolated staging implementation present; automated acceptance coverage is in progress; physical-device and mutual-consent end-to-end validation remain pending.
+**Status:** Isolated staging implementation and automated two-browser acceptance passed on 2026-11-18 (GitHub Actions run 17). Physical Android devices, production-domain deployment, background notifications, and real-network/device compatibility remain unverified.
 
 ## Non-negotiable user requirement
 
@@ -60,6 +60,25 @@ The QR identity remains stable for the lifetime of its associated public/private
 The isolated staging implementation now creates a separate versioned `EZERO2` permanent public-identity payload using an opt-in non-extractable P-256 key in same-origin IndexedDB. It derives SHA-256 over the public SPKI key and signs a canonical envelope. The existing short-lived `EZERO1` call invitation remains separate. Camera and gallery scanners verify the permanent token locally before exposing the explicit local Save Friend action; QR images are not uploaded. The gallery path was corrected on 2026-11-18 to use the same permanent-identity verifier and save form as camera scanning, rather than the legacy temporary-ID verifier.
 
 **Origin continuity update (2026-11-18):** the staging implementation now signs against the stable existing application origin `https://coma39658-ctrl.github.io` rather than `location.origin`. The unit test must prove the same key/QR verifies from a different preview hostname and rejects a signature bound to an unrelated origin. This canonical app identifier must be retained by any production port; changing it later requires a versioned migration/re-pairing plan. Also, the present Save Friend implementation writes the peer locally and requests trusted-inbox permission where available; this alone is not proof that both devices completed a mutually accepted pairing and both saved each other. A two-sided signed challenge/acceptance handshake and rollback behavior must be demonstrated before declaring mutual pairing complete.
+
+## Automated staging evidence (2026-11-18)
+
+The Render staging build and its source/runtime contracts passed. The two-browser Chromium acceptance workflow passed in GitHub Actions run 17 (`44290577716`) against the exact deployed staging commit.
+
+Observed passes:
+- Stable permanent identity token and SHA-256 proof; cross-deployment-host verification with an unrelated-origin signature rejected
+- Camera scanner frame loop decoded a real peer QR image through the locally bundled jsQR decoder; camera permission was requested only after the explicit scan tap, and media tracks were stopped/detached after decoding
+- Gallery scanner decoded a peer QR screenshot locally; the image was not uploaded
+- Both browser devices scanned and explicitly saved the other's permanent identity; both trusted-inbox permissions were established
+- Existing local profile name was preserved when the permanent QR identity was saved over an existing contact
+- Saved-friend audio call delivered through the live trusted inbox, was explicitly reviewed and accepted, and reached real WebRTC connection
+- Saved-friend video call retained video mode, showed the correct incoming-video label, and established live local and remote video tracks
+- Permanent QR payload remained identical after audio and video calls; selected media mode was cleared on hangup
+- Synthetic trust was revoked at test end
+
+Evidence boundary: these are automated Chromium browser contexts with synthetic WebRTC media and a mocked camera stream whose frame pixels were supplied from a real QR screenshot. This validates the local decode/frame-processing path, not the physical Android camera sensor. It is not a real-phone test, production deployment, independent security audit, large-scale load test, or legal approval.
+
+Remaining physical-device gate: one consolidated test on two real Android phones must verify actual camera scanning, gallery import, permission prompts, mutual save, direct audio/video calls without another QR, hangup/reconnect, and behavior on mobile data/Wi-Fi. Production remains untouched.
 
 ## Release boundary
 
