@@ -171,7 +171,7 @@ async function saveFriend(token,name){
  if(!local)throw Error("LOCAL_IDENTITY_NOT_SAVED");
  if(local.fingerprint===verified.fingerprint)throw Error("SELF_ID");
  if(window.EZERO_FRIEND_ACCESS?.isBlocked?.(verified.fingerprint)===true)throw Error("FRIEND_BLOCKED");
- const clean=String(name||"").trim().replace(/[\\u0000-\\u001f\\u007f]/g,"").replace(/\\s+/g," ").slice(0,40);
+ const clean=String(name||"").trim().replace(/[\u0000-\u001f\u007f]/g,"").replace(/\s+/g," ").slice(0,40);
  if(!clean)throw Error("FRIEND_NAME_REQUIRED");
  let items=[];
  try{
