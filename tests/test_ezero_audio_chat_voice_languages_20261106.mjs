@@ -316,27 +316,49 @@ try{
   await caller.locator("#ezeroVoiceRecord").click();
   await caller.locator("#ezeroVoiceStop").waitFor({state:"visible",timeout:7000});
   await caller.waitForTimeout(1250);
+  assert.match(await caller.locator("#ezeroVoiceTimer").innerText(),/00:01/,
+    "The recording timer must show elapsed time");
   await caller.locator("#ezeroVoiceStop").click();
   await caller.locator("#ezeroVoiceDraft").waitFor({state:"visible",timeout:10000});
   assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),mediaCountBefore,
     "Recording a voice note must not reopen the physical microphone during a call");
   assert.equal(await caller.locator("#ezeroVoiceSend").isEnabled(),true);
   await caller.locator("#ezeroVoiceSend").click();
+  // Send a second note before the recipient opens the first: neither may be
+  // overwritten by the next message.
+  await caller.locator("#ezeroVoiceRecord").click();
+  await caller.locator("#ezeroVoiceStop").waitFor({state:"visible",timeout:7000});
+  await caller.waitForTimeout(1100);
+  await caller.locator("#ezeroVoiceStop").click();
+  await caller.locator("#ezeroVoiceDraft").waitFor({state:"visible",timeout:10000});
+  await caller.locator("#ezeroVoiceSend").click();
   assert.equal(await callee.locator("#ezeroInCallVoiceTab").isVisible(),true,
     "Recipient can switch from chat to voice within the same drawer");
   await callee.locator("#ezeroInCallVoiceTab").click();
-  await callee.locator("#ezeroVoiceReceived").waitFor({state:"visible",timeout:12000});
-  assert.equal(await callee.locator("#ezeroVoiceOpenIncoming").isVisible(),true);
+  await callee.locator("#ezeroVoiceOpenIncoming").waitFor({state:"visible",timeout:12000});
+  assert.match(await callee.locator("#ezeroVoiceOpenIncoming").innerText(),/2/,
+    "Two voice notes must be queued rather than overwriting each other");
   await callee.locator("#ezeroVoiceOpenIncoming").click();
-  const incomingAudio=await callee.locator("#ezeroVoiceIncomingAudio").evaluate(el=>({
-    hasBlobUrl:el.src.startsWith("blob:"),hidden:el.hidden
+  const firstAudio=await callee.locator("#ezeroVoiceIncomingAudio").evaluate(el=>({
+    src:el.src,hasBlobUrl:el.src.startsWith("blob:"),hidden:el.hidden
   }));
-  assert.equal(incomingAudio.hasBlobUrl,true);
-  assert.equal(incomingAudio.hidden,false);
+  assert.equal(firstAudio.hasBlobUrl,true);
+  assert.equal(firstAudio.hidden,false);
+  await callee.locator("#ezeroVoiceOpenIncoming").waitFor({state:"visible",timeout:5000});
+  assert.match(await callee.locator("#ezeroVoiceOpenIncoming").innerText(),/1/,
+    "The second note remains queued after opening the first");
+  await callee.locator("#ezeroVoiceOpenIncoming").click();
+  const secondAudio=await callee.locator("#ezeroVoiceIncomingAudio").evaluate(el=>el.src);
+  assert.notEqual(secondAudio,firstAudio.src,"Each queued note must open as its own audio blob");
+  await callee.locator("#ezeroVoiceOpenIncoming").waitFor({state:"hidden",timeout:5000});
+  // Exercise multi-chunk delivery with an 80 KB encoded payload; every
+  // DataChannel frame stays below the browser's message-size limit.
+  const chunkedSent=await caller.evaluate(()=>window.EZERO_VOICE_TRANSPORT.send("audio/webm","A".repeat(80000),false));
+  assert.equal(chunkedSent,true,"Large notes must be split into bounded chunks");
+  await callee.locator("#ezeroVoiceOpenIncoming").waitFor({state:"visible",timeout:12000});
   assert.equal(await caller.evaluate(()=>window.EZERO_VOICE_TRANSPORT?.connected()),true,
     "Voice message must not close the existing authenticated call");
-  console.log("TWO_PHONE_VOICE_NOTE_RECORD_CLONE_SEND_RECEIVE_USER_OPENS: PASS");
-  // A privacy boundary: muting during a connected call must never cause a
+  console.log("TWO_PHONE_VOICE_NOTE_TIMER_QUEUE_AND_CHUNKED_DELIVERY: PASS");  // A privacy boundary: muting during a connected call must never cause a
   // new microphone permission request or background recording for a note.
   await caller.locator("#ezeroInCallClose").click();
   await caller.locator("#muteMic").click();
