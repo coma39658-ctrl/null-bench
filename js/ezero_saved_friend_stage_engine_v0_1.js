@@ -919,7 +919,9 @@
   });
   function hardHangup(show=true) {
     if(remoteVideoGuardTimer){clearTimeout(remoteVideoGuardTimer);remoteVideoGuardTimer=null;}
-    remoteVideoTrackReady=false;window.EZERO_ACTIVE_CALL_MODE=null;
+    remoteVideoTrackReady=false;
+    window.EZERO_ACTIVE_CALL_MODE=null;
+    window.EZERO_SELECTED_CALL_MODE=null;
     stopScanner();
     document.dispatchEvent(new CustomEvent("ezero:channel-state",{detail:{connected:false}}));
     if(channel){channel.onmessage=channel.onopen=channel.onclose=null;try{channel.close();}catch(_){}channel=null;}
