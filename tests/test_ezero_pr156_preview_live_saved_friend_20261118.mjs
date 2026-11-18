@@ -108,7 +108,7 @@ try{
   assert.equal(await caller.locator("#ezeroOneScanInvite").isVisible(),true,
     "The QR scan action must be reachable from Add Friend");
   assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),0);
-  console.log("PR156_SIMPLE_HOME_AND_SINGLE_QR_ENTRY: PASS");
+  console.log("PR156_SIMPLE_HOME_SINGLE_CALL_CONTROLS_AND_TWO_SIDED_QR_ENTRY: PASS");
   await caller.locator('[data-modern-select="audio"]').click();
   assert.equal(await caller.evaluate(()=>window.__oneInvite),"",
     "No invite or media before the first-time profile is complete");
