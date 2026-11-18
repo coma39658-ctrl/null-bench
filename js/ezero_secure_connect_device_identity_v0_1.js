@@ -61,16 +61,28 @@
     r.keys.privateKey.algorithm?.namedCurve==="P-256"&&
     r.keys.privateKey.usages?.includes("sign")&&
     r.keys.publicKey.algorithm?.name==="ECDSA"&&
-    r.keys.publicKey.usages?.includes("verify");
+    r.keys.publicKey.usages?.includes("verify")&&
+    (r.permanentProof===undefined||
+      (typeof r.permanentProof==="string"&&/^[A-Za-z0-9_-]{80,120}$/.test(r.permanentProof)));
   window.EZERO_DEVICE_IDENTITY_STORE=Object.freeze({
     async read(){
       const row=await transaction("readonly","get");
       return validRecord(row)?row:null;
     },
     async save(keys,spki,fingerprint){
-      const row={v:1,keys,spki,fingerprint};
+      const current=await transaction("readonly","get");
+      const sameIdentity=current?.spki===spki&&current?.fingerprint===fingerprint;
+      const row={v:1,keys,spki,fingerprint,
+        ...(sameIdentity&&current?.permanentProof?{permanentProof:current.permanentProof}:{})};
       if(!validRecord(row))throw Error("INVALID_DEVICE_IDENTITY");
       return transaction("readwrite","put",row);
+    },
+    async savePermanentProof(proof){
+      if(typeof proof!=="string"||!/^[A-Za-z0-9_-]{80,120}$/.test(proof))
+        throw Error("INVALID_PERMANENT_PROOF");
+      const current=await transaction("readonly","get");
+      if(!validRecord(current))throw Error("DEVICE_IDENTITY_NOT_SAVED");
+      return transaction("readwrite","put",{...current,permanentProof:proof});
     },
     async forget(){return transaction("readwrite","delete");}
   });
