@@ -206,13 +206,14 @@ fileInput.addEventListener("change",async()=>{
      value=String(window.jsQR(pixels.data,canvas.width,canvas.height,{inversionAttempts:"attemptBoth"})?.data||"");
    }
    if(!value.startsWith("EZERO2."))throw Error("NO_PERMANENT_QR");
-   const identityCard=root.querySelector(".identity-card");
-   if(identityCard){identityCard.hidden=false;identityCard.classList.remove("ezero-simple-collapsed");}
-   document.getElementById("chooseRemote")?.click();
-   const input=document.getElementById("friendIdInput");
-   if(!input)throw Error("VERIFY_UI_UNAVAILABLE");
-   input.value=value;
-   document.getElementById("verifyFriend")?.click();
+   // Keep gallery pairing on the same permanent-identity path as camera scan.
+   // Never route an EZERO2 identity into the legacy temporary-ID verifier.
+   const verified=await verifyToken(value);
+   pendingFriend={token:value,fingerprint:verified.fingerprint};
+   friendName.value="";
+   friendForm.hidden=false;
+   status.textContent=t("verified");
+   friendName.focus();
  }catch(_){status.textContent=t("galleryError");}
  finally{try{bitmap?.close();}catch(_){}}
 });
