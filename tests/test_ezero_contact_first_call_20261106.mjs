@@ -174,26 +174,68 @@ try{
   assert.equal(await caller.locator("#ezeroFriendSideList .ezero-friend-option").count(),0);
   await caller.locator("#ezeroFriendSideClose").click();
   console.log("CONTACT_FIRST_EMPTY_LIST_NO_MEDIA_OR_FAKE_FRIEND: PASS");
-  // The first ever call still uses real explicit QR/accept, no saved friend.
-  await caller.locator('[data-modern-select="audio"]').click();
-  assert.equal(await caller.evaluate(()=>window.__oneInvite),"",
-    "Unsaved name/photo must not create a QR or start calling");
-  assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),0);
-  await completeFirstTimeProfile(caller,"First Phone");
-  await caller.locator('[data-modern-select="audio"]').click();
-  await caller.waitForFunction(()=>!!window.__oneInvite,{timeout:12000});
-  const first=await caller.evaluate(()=>window.__oneInvite);
-  assert.match(first,/mode=audio#room=/);
+  // Pair both phones once with their permanent signed EZERO2 identities.
   const callee=await createPhone("CONTACT_CALLEE");
-  await callee.goto(first,{waitUntil:"domcontentloaded"});
-  await callee.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:12000});
-  assert.equal(await callee.evaluate(()=>window.__mediaCalls.length),0);
-  await callee.locator("#ezeroAutoAccept").click();
-  assert.equal(await callee.evaluate(()=>window.__mediaCalls.length),0,
-    "Incoming call requires recipient profile and explicit consent");
+  await completeFirstTimeProfile(caller,"First Phone");
   await completeFirstTimeProfile(callee,"Second Phone");
+  await Promise.all([caller,callee].map(async phone=>{
+    await phone.locator("#ezeroCreatePermanentQr").click();
+    await phone.locator("#ezeroPermanentQr").waitFor({state:"visible",timeout:12000});
+  }));
+  const [callerIdentity,calleeIdentity]=await Promise.all([caller,callee].map(phone=>
+    phone.evaluate(()=>window.EZERO_PERMANENT_IDENTITY_QR.createAfterConsent())));
+  assert.notEqual(callerIdentity.fingerprint,calleeIdentity.fingerprint);
+  for(const [phone,peerIdentity,friendName] of [
+    [caller,calleeIdentity,"Second Phone"],[callee,callerIdentity,"First Phone"]
+  ]){
+    await phone.evaluate(peer=>document.dispatchEvent(new CustomEvent("ezero:friend-verification",{
+      detail:{ok:true,permanent:true,token:peer.token,fingerprint:peer.fingerprint,source:"scan"}
+    })),peerIdentity);
+    await phone.locator("#ezeroPermanentFriendSaveForm").waitFor({state:"visible",timeout:10000});
+    await phone.locator("#ezeroPermanentFriendName").fill(friendName);
+    await phone.locator("#ezeroSavePermanentFriend").click();
+    await phone.waitForFunction(fp=>JSON.parse(
+      localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1")||"[]"
+    ).some(peer=>peer.fp===fp&&peer.identityVersion===2&&peer.nickname===true&&
+      typeof peer.spki==="string"&&peer.spki.length>50),peerIdentity.fingerprint,{timeout:15000});
+  }
+  const waitForTrust=async()=>{
+    const until=Date.now()+12000;
+    while(Date.now()<until){
+      if(trustedPeers.get(callerIdentity.fingerprint)?.has(calleeIdentity.fingerprint)&&
+         trustedPeers.get(calleeIdentity.fingerprint)?.has(callerIdentity.fingerprint))return;
+      await new Promise(resolve=>setTimeout(resolve,50));
+    }
+    throw Error("Bilateral permanent-friend trust was not established");
+  };
+  await waitForTrust();
+  // A hundred direct-call preparations must not create or reveal another QR.
+  const repeated=await caller.evaluate(fp=>{
+    for(let i=0;i<100;i++)
+      if(window.EZERO_TRUSTED_SAVED_CALL?.prepare(fp,i%2?"audio":"video")!==true)return false;
+    return true;
+  },calleeIdentity.fingerprint);
+  assert.equal(repeated,true,"Saved friend must remain directly callable after 100 preparations");
+  assert.equal(await caller.evaluate(()=>window.__oneInvite),"",
+    "Preparing repeated saved-friend calls must not create a new invitation QR");
+  assert.equal(await caller.locator("#ezeroOneQrBox").isHidden(),true,
+    "A saved friend never needs the pairing QR again");
+  await caller.locator("#ezeroFriendListToggle").click();
+  await caller.locator("#ezeroFriendSidePanel").waitFor({state:"visible",timeout:10000});
+  await caller.locator("#ezeroFriendSideList .ezero-friend-option").filter({
+    hasText:"Second Phone"
+  }).click();
+  assert.equal(await caller.locator("#ezeroSelectedFriendName").innerText(),"Second Phone");
+  assert.equal(await caller.locator("#ezeroContactAudio").isEnabled(),true);
+  await caller.locator("#ezeroContactAudio").click();
+  await caller.waitForFunction(()=>!!window.__oneInvite,{timeout:20000});
+  const audioInvite=await caller.evaluate(()=>window.__oneInvite);
+  assert.match(audioInvite,/mode=audio#room=/);
+  assert.equal(await caller.locator("#ezeroOneQrBox").isHidden(),true,
+    "Direct audio calls do not display a pairing QR");
+  await callee.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:15000});
   await callee.locator("#ezeroAutoAccept").click();
-  await Promise.all([caller,callee].map(p=>p.waitForFunction(()=>
+  await Promise.all([caller,callee].map(phone=>phone.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===true,{timeout:45000})));
   for(const phone of [caller,callee]){
     const mode=await phone.evaluate(()=>({
@@ -207,21 +249,22 @@ try{
     assert.equal(mode.videoTracks,0,"Audio calls must not capture camera video");
     assert.equal(mode.requestedVideo,false,"Audio calls must request video:false");
   }
-  // Signed offer/answer and receiver Accept now save each verified friend
-  // automatically; do not regress to a second manual Save Friend operation.
-  for(const [phone,friendName] of [[caller,"Second Phone"],[callee,"First Phone"]]){
-    await phone.waitForFunction(name=>JSON.parse(
-      localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1")||"[]"
-    ).some(peer=>peer.profileName===name&&peer.nickname===false),friendName,{timeout:25000});
+  for(const [phone,friendFp,friendName] of [
+    [caller,calleeIdentity.fingerprint,"Second Phone"],
+    [callee,callerIdentity.fingerprint,"First Phone"]
+  ]){
     const saved=await phone.evaluate(()=>JSON.parse(
       localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1")||"[]"
     ));
     assert.equal(saved.length,1);
-    assert.equal(saved[0].name,friendName);
-    assert.ok(saved[0].avatar?.startsWith("data:image/jpeg;base64,"));
+    assert.equal(saved[0].fp,friendFp);
+    assert.equal(saved[0].name,friendName,"Local friend name must survive the call");
+    assert.equal(saved[0].nickname,true,"Verified profile must not overwrite the user's local name");
+    assert.ok(saved[0].spki,"Permanent public key must remain pinned after calling");
   }
+  console.log("TWO_PHONE_PERMANENT_QR_PAIR_DIRECT_AUDIO_100_CALLS_NO_RESCAN: PASS");
   await caller.locator("#hangup").click();
-  await Promise.all([caller,callee].map(p=>p.waitForFunction(()=>
+  await Promise.all([caller,callee].map(phone=>phone.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===false,{timeout:15000})));
   const lastInvite=await caller.evaluate(()=>window.__oneInvite);
   const before=await caller.evaluate(()=>window.__mediaCalls.length);
