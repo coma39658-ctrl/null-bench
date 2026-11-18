@@ -333,7 +333,10 @@ try{
       remote:document.getElementById("remoteVideo").srcObject?.getVideoTracks().filter(x=>x.readyState==="live").length||0
     }));
     assert.equal(liveTracks.local,1);assert.equal(liveTracks.remote,1);
-    await phone.locator('[data-modern-select="audio"]').click();
+    // The live remote-video surface intentionally covers the collapsed
+    // mode picker. Dispatch the guarded control event directly to verify that
+    // even a programmatic stale audio action cannot downgrade an active video call.
+    await phone.locator('[data-modern-select="audio"]').evaluate(node=>node.click());
     assert.equal(await phone.evaluate(()=>window.EZERO_ACTIVE_CALL_MODE),"video",
       "A live video call cannot be silently switched to audio");
     assert.equal(await phone.evaluate(()=>document.querySelector('input[name="mode"]:checked')?.value),"video");
