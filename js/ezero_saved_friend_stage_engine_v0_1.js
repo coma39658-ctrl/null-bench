@@ -356,10 +356,16 @@
   }
   async function verifyInvite(value) {
     const supplied = value.trim();
-    // The app can receive an ID forwarded inside a message with a short heading.
-    // Only the exact signed-token grammar is extracted; verification is unchanged.
+    // Permanent identity is a separate, non-expiring public-key QR. Call
+    // invitations remain short-lived EZERO1 session material.
+    const permanent = supplied.match(/EZERO2\.[A-Za-z0-9_-]{50,240}\.[0-9a-f]{64}\.[A-Za-z0-9_-]{80,120}/);
     const found = supplied.match(/EZERO1\.[A-Za-z0-9_-]+\.[0-9a-f]{64}\.[0-9a-f]{24}\.\d{13}\.[A-Za-z0-9_-]+/);
-    const raw = found ? found[0] : supplied;
+    const raw = permanent ? permanent[0] : (found ? found[0] : supplied);
+    if (raw.startsWith("EZERO2.")) {
+      const verified = await window.EZERO_PERMANENT_IDENTITY_QR?.verifyToken(raw);
+      if (!verified?.verified) throw Error("BAD_PERMANENT_SIGNATURE");
+      return {fingerprint:verified.fingerprint,verified:true,permanent:true};
+    }
     if (/^[0-9a-fA-F]{64}$/.test(raw)) return {fingerprint:raw.toLowerCase(),verified:false};
     if (raw.length > 1300) throw Error("BAD_SIZE");
     const parts = raw.split(".");
@@ -388,7 +394,7 @@
   const idErrors = {
     BAD_SIZE:"qrInvalid",BAD_ID:"qrInvalid",BAD_ENCODING:"qrInvalid",BAD_KEY:"qrInvalid",
     EXPIRED_ID:"qrExpired",BAD_SIGNATURE:"qrSignatureBad",FP_MISMATCH:"qrMismatch",
-    BAD_SIGNATURE_ENCODING:"qrSignatureBad",SELF_ID:"qrSelf",
+    BAD_SIGNATURE_ENCODING:"qrSignatureBad",BAD_PERMANENT_SIGNATURE:"qrSignatureBad",SELF_ID:"qrSelf",
     FP_MISMATCH_CALL:"fingerprintMismatch"
   };
   async function confirmFriend(value,source="paste") {
@@ -408,7 +414,7 @@
         if(source==="scan")scanMessage("fingerprintOnly","warning");
       }
       document.dispatchEvent(new CustomEvent("ezero:friend-verification",{
-        detail:{ok:true,signed:r.verified,fingerprint:r.fingerprint,source}
+        detail:{ok:true,signed:r.verified,permanent:r.permanent===true,fingerprint:r.fingerprint,source}
       }));
       return true;
     }catch(error){
@@ -465,7 +471,7 @@
           if(codes.length){
             const code=String(codes[0].rawValue||"");
             stopScanner();
-            if(!code.startsWith("EZERO1.")){
+            if(!code.startsWith("EZERO1.")&&!code.startsWith("EZERO2.")){
               scanMessage("qrWrongType","error");checkMessage("qrWrongType","error");
               document.dispatchEvent(new CustomEvent("ezero:friend-verification",{
                 detail:{ok:false,reason:"qrWrongType",source:"scan"}
