@@ -925,7 +925,6 @@
     voiceTransfers.clear();
   }
   function hardHangup(show=true) {
-    const pendingVoiceTransfers=voiceTransfers.size;
     clearVoiceTransfers();
     if(remoteVideoGuardTimer){clearTimeout(remoteVideoGuardTimer);remoteVideoGuardTimer=null;}
     remoteVideoTrackReady=false;
