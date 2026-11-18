@@ -196,7 +196,7 @@ try{
     "Saved contact's video button must create VIDEO not audio invitation");
   assert.equal(await caller.locator("#ezeroOneQrBox").isHidden(),true,
     "Saved friend's direct Call must not show the initial-pairing QR");
-  assert.equal(await caller.locator("#ezeroInlineCallResult").isVisible(),true,
+  assert.equal(await caller.locator("#ezeroContactFirstStatus").isVisible(),true,
     "The call status must appear beside the chosen Call control");
   const callerMedia=await caller.evaluate(()=>window.__mediaCalls.at(-1));
   assert.ok(callerMedia?.video&&callerMedia?.audio,
