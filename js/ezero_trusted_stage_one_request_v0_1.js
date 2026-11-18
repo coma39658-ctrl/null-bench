@@ -172,7 +172,11 @@
   function jumpIncoming(){
     if(!hasIncoming())return;
     incomingShell.hidden=false;
-    const type=new URLSearchParams(location.search).get("mode")==="video"?"video":"audio";
+    // A trusted-inbox invite may be opened in-place without changing the
+    // page URL. Prefer the mode from the validated invite, not stale location.search.
+    const selectedMode=window.EZERO_SELECTED_CALL_MODE;
+    const queryMode=new URLSearchParams(location.search).get("mode");
+    const type=selectedMode==="video"||(!selectedMode&&queryMode==="video")?"video":"audio";
     $("ezeroOneIncomingHeading").textContent=type==="video"?
       "📹 آنے والی ویڈیو کال — قبول کریں؟":"📞 آنے والی آڈیو کال — قبول کریں؟";
     // Incoming Accept/Decline remain next to the on-screen Scan action.
