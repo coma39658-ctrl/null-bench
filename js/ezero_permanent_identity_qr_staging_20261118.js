@@ -10,9 +10,9 @@ const store=window.EZERO_DEVICE_IDENTITY_STORE;
 const control=window.EZERO_DEVICE_IDENTITY_CONTROL;
 if(!root||!home||!store||!control)return;
 const words={
- ur:{title:"میرا مستقل QR",help:"یہ آپ کی مستقل ڈیجیٹل شناخت ہے۔ پہلی بار محفوظ کرنے پر نجی کلید اسی براؤزر کے محفوظ اسٹوریج میں رہے گی؛ QR میں صرف عوامی شناخت ہوگی۔",create:"میرا مستقل QR بنائیں",copy:"SHA-256 فنگرپرنٹ کاپی کریں",copyId:"مستقل شناختی کوڈ کاپی کریں",scan:"دوست کا مستقل QR اسکین کریں",gallery:"گیلری سے QR پڑھیں",galleryWorking:"تصویر میں QR تلاش ہو رہا ہے…",galleryError:"اس تصویر میں درست مستقل E-ZERO QR نہیں ملا۔",ready:"مستقل QR تیار ہے؛ اسی شناخت کو دوبارہ استعمال کریں۔",working:"محفوظ شناخت بن رہی ہے…",missing:"مستقل شناخت ابھی محفوظ نہیں۔ بٹن دبانے سے اسی موبائل کے براؤزر میں شناخت محفوظ ہوگی۔",error:"مستقل QR تیار نہیں ہوا۔ محفوظ اسٹوریج یا براؤزر سپورٹ چیک کریں۔",copied:"فنگرپرنٹ کاپی ہوگیا۔",copyFail:"فنگرپرنٹ کاپی نہیں ہوسکا۔",friendName:"دوست کا نام",saveFriend:"✓ دوست محفوظ کریں اور کال کی اجازت دیں",verified:"✓ مستقل QR درست ہے۔ اب دوست کا نام لکھ کر محفوظ کریں۔",saved:"دوست اس فون میں محفوظ ہوگیا۔",trustRequested:"دوست محفوظ؛ آنے والی کال کی اجازت کی درخواست بھیج دی گئی۔ دونوں صفحات کھلے رکھیں۔",savedCallsOff:"دوست محفوظ ہے، مگر آنے والی کال کی اجازت فعال نہیں ہوئی۔ دوستوں میں دوبارہ فعال کریں۔",self:"اپنے ہی QR کو دوست کے طور پر شامل نہیں کیا جاسکتا۔",saveError:"دوست محفوظ نہیں ہوا۔ براؤزر اسٹوریج چیک کریں۔"},
- en:{title:"My permanent QR",help:"This is your lasting digital identity. On first creation, the private key stays in this browser's protected storage; the QR contains public identity only.",create:"Create my permanent QR",copy:"Copy SHA-256 fingerprint",copyId:"Copy permanent identity code",scan:"Scan friend's permanent QR",gallery:"Scan QR from gallery",galleryWorking:"Reading the QR image…",galleryError:"No valid permanent E-ZERO QR was found in this image.",ready:"Permanent QR is ready. Reuse this same identity.",working:"Securing your device identity…",missing:"No permanent identity is saved yet. Tap the button to store this device identity in this browser.",error:"Permanent QR could not be created. Check secure browser storage and support.",copied:"Fingerprint copied.",copyFail:"Could not copy fingerprint.",friendName:"Friend name on this phone",saveFriend:"✓ Save friend & allow calls",verified:"✓ Permanent QR verified. Enter a local name and save this friend.",saved:"Friend saved on this phone.",trustRequested:"Friend saved; incoming-call permission request sent. Keep both app pages open.",savedCallsOff:"Friend saved, but incoming-call permission is not active. Enable it from Friends.",self:"You cannot add your own QR as a friend.",saveError:"Friend could not be saved. Check browser storage."},
- ar:{title:"رمز QR الدائم الخاص بي",help:"هذه هويتك الرقمية الثابتة. عند الإنشاء الأول يبقى المفتاح الخاص في التخزين المحمي للمتصفح؛ ويحتوي QR على الهوية العامة فقط.",create:"إنشاء رمز QR الدائم",copy:"نسخ بصمة SHA-256",copyId:"نسخ رمز الهوية الدائم",scan:"مسح QR الدائم للصديق",gallery:"قراءة QR من المعرض",galleryWorking:"جارٍ قراءة صورة QR…",galleryError:"لم يتم العثور على رمز E-ZERO دائم صالح في الصورة.",ready:"رمز QR الدائم جاهز؛ استخدم الهوية نفسها دائماً.",working:"جارٍ حفظ هوية الجهاز…",missing:"لم تُحفظ هوية دائمة بعد. اضغط الزر لحفظ هوية هذا الهاتف في المتصفح.",error:"تعذر إنشاء QR الدائم. تحقق من التخزين الآمن ودعم المتصفح.",copied:"تم نسخ البصمة.",copyFail:"تعذر نسخ البصمة.",friendName:"اسم الصديق على هذا الهاتف",saveFriend:"✓ حفظ الصديق والسماح بالمكالمات",verified:"✓ تم التحقق من QR الدائم. اكتب اسماً محلياً ثم احفظ الصديق.",saved:"تم حفظ الصديق على هذا الهاتف.",trustRequested:"تم حفظ الصديق وإرسال طلب السماح بالمكالمات الواردة. أبقِ الصفحتين مفتوحتين.",savedCallsOff:"تم حفظ الصديق لكن استقبال المكالمات غير مفعّل. فعّله من قائمة الأصدقاء.",self:"لا يمكنك إضافة رمزك أنت كصديق.",saveError:"تعذر حفظ الصديق. تحقق من تخزين المتصفح."}
+ ur:{title:"میرا مستقل QR",help:"یہ آپ کی مستقل ڈیجیٹل شناخت ہے۔ پہلی بار محفوظ کرنے پر نجی کلید اسی براؤزر کے محفوظ اسٹوریج میں رہے گی؛ QR میں صرف عوامی شناخت ہوگی۔",create:"میرا مستقل QR بنائیں",copy:"SHA-256 فنگرپرنٹ کاپی کریں",copyId:"مستقل شناختی کوڈ کاپی کریں",scan:"دوست کا مستقل QR اسکین کریں",gallery:"گیلری سے QR پڑھیں",cameraDenied:"کیمرے کی اجازت نہیں ملی؛ براؤزر کی Site settings میں Camera کی اجازت دیں۔",cameraError:"کیمرہ شروع نہیں ہو سکا؛ دوسری ایپ کا کیمرہ بند کرکے دوبارہ کوشش کریں۔",cameraMissing:"اس فون پر کیمرہ دستیاب نہیں۔",cameraActive:"کیمرہ کھل گیا ہے؛ دوست کا مستقل QR سامنے رکھیں۔",cameraStop:"اسکین بند کریں",galleryWorking:"تصویر میں QR تلاش ہو رہا ہے…",galleryError:"اس تصویر میں درست مستقل E-ZERO QR نہیں ملا۔",ready:"مستقل QR تیار ہے؛ اسی شناخت کو دوبارہ استعمال کریں۔",working:"محفوظ شناخت بن رہی ہے…",missing:"مستقل شناخت ابھی محفوظ نہیں۔ بٹن دبانے سے اسی موبائل کے براؤزر میں شناخت محفوظ ہوگی۔",error:"مستقل QR تیار نہیں ہوا۔ محفوظ اسٹوریج یا براؤزر سپورٹ چیک کریں۔",copied:"فنگرپرنٹ کاپی ہوگیا۔",copyFail:"فنگرپرنٹ کاپی نہیں ہوسکا۔",friendName:"دوست کا نام",saveFriend:"✓ دوست محفوظ کریں اور کال کی اجازت دیں",verified:"✓ مستقل QR درست ہے۔ اب دوست کا نام لکھ کر محفوظ کریں۔",saved:"دوست اس فون میں محفوظ ہوگیا۔",trustRequested:"دوست محفوظ؛ آنے والی کال کی اجازت کی درخواست بھیج دی گئی۔ دونوں صفحات کھلے رکھیں۔",savedCallsOff:"دوست محفوظ ہے، مگر آنے والی کال کی اجازت فعال نہیں ہوئی۔ دوستوں میں دوبارہ فعال کریں۔",self:"اپنے ہی QR کو دوست کے طور پر شامل نہیں کیا جاسکتا۔",saveError:"دوست محفوظ نہیں ہوا۔ براؤزر اسٹوریج چیک کریں۔"},
+ en:{title:"My permanent QR",help:"This is your lasting digital identity. On first creation, the private key stays in this browser's protected storage; the QR contains public identity only.",create:"Create my permanent QR",copy:"Copy SHA-256 fingerprint",copyId:"Copy permanent identity code",scan:"Scan friend's permanent QR",gallery:"Scan QR from gallery",cameraDenied:"Camera permission was denied. Allow Camera in browser site settings.",cameraError:"The camera could not start. Close other camera apps and retry.",cameraMissing:"No camera is available on this phone.",cameraActive:"Camera is open. Point it at your friend’s permanent QR.",cameraStop:"Stop scanning",galleryWorking:"Reading the QR image…",galleryError:"No valid permanent E-ZERO QR was found in this image.",ready:"Permanent QR is ready. Reuse this same identity.",working:"Securing your device identity…",missing:"No permanent identity is saved yet. Tap the button to store this device identity in this browser.",error:"Permanent QR could not be created. Check secure browser storage and support.",copied:"Fingerprint copied.",copyFail:"Could not copy fingerprint.",friendName:"Friend name on this phone",saveFriend:"✓ Save friend & allow calls",verified:"✓ Permanent QR verified. Enter a local name and save this friend.",saved:"Friend saved on this phone.",trustRequested:"Friend saved; incoming-call permission request sent. Keep both app pages open.",savedCallsOff:"Friend saved, but incoming-call permission is not active. Enable it from Friends.",self:"You cannot add your own QR as a friend.",saveError:"Friend could not be saved. Check browser storage."},
+ ar:{title:"رمز QR الدائم الخاص بي",help:"هذه هويتك الرقمية الثابتة. عند الإنشاء الأول يبقى المفتاح الخاص في التخزين المحمي للمتصفح؛ ويحتوي QR على الهوية العامة فقط.",create:"إنشاء رمز QR الدائم",copy:"نسخ بصمة SHA-256",copyId:"نسخ رمز الهوية الدائم",scan:"مسح QR الدائم للصديق",gallery:"قراءة QR من المعرض",cameraDenied:"تم رفض إذن الكاميرا. اسمح بالكاميرا من إعدادات الموقع في المتصفح.",cameraError:"تعذر تشغيل الكاميرا. أغلق تطبيقات الكاميرا الأخرى ثم أعد المحاولة.",cameraMissing:"لا توجد كاميرا متاحة على هذا الهاتف.",cameraActive:"الكاميرا مفتوحة؛ وجّهها نحو رمز QR الدائم للصديق.",cameraStop:"إيقاف المسح",galleryWorking:"جارٍ قراءة صورة QR…",galleryError:"لم يتم العثور على رمز E-ZERO دائم صالح في الصورة.",ready:"رمز QR الدائم جاهز؛ استخدم الهوية نفسها دائماً.",working:"جارٍ حفظ هوية الجهاز…",missing:"لم تُحفظ هوية دائمة بعد. اضغط الزر لحفظ هوية هذا الهاتف في المتصفح.",error:"تعذر إنشاء QR الدائم. تحقق من التخزين الآمن ودعم المتصفح.",copied:"تم نسخ البصمة.",copyFail:"تعذر نسخ البصمة.",friendName:"اسم الصديق على هذا الهاتف",saveFriend:"✓ حفظ الصديق والسماح بالمكالمات",verified:"✓ تم التحقق من QR الدائم. اكتب اسماً محلياً ثم احفظ الصديق.",saved:"تم حفظ الصديق على هذا الهاتف.",trustRequested:"تم حفظ الصديق وإرسال طلب السماح بالمكالمات الواردة. أبقِ الصفحتين مفتوحتين.",savedCallsOff:"تم حفظ الصديق لكن استقبال المكالمات غير مفعّل. فعّله من قائمة الأصدقاء.",self:"لا يمكنك إضافة رمزك أنت كصديق.",saveError:"تعذر حفظ الصديق. تحقق من تخزين المتصفح."}
 };
 const t=k=>(words[document.documentElement.lang]||words.ur)[k];
 const card=document.createElement("section");card.id="ezeroPermanentQrCard";card.className="ezero-permanent-qr-card";
@@ -24,6 +24,8 @@ const fingerprint=document.createElement("output");fingerprint.id="ezeroPermanen
 const copy=document.createElement("button");copy.type="button";copy.id="ezeroCopyPermanentFingerprint";copy.hidden=true;
 const copyId=document.createElement("button");copyId.type="button";copyId.id="ezeroCopyPermanentIdentity";copyId.hidden=true;
 const scan=document.createElement("button");scan.type="button";scan.id="ezeroScanPermanentFriendQr";scan.hidden=true;
+const camera=document.createElement("video");camera.id="ezeroPermanentFriendQrCamera";camera.hidden=true;camera.muted=true;camera.playsInline=true;camera.setAttribute("aria-label","Scan friend permanent QR with camera");camera.style.cssText="display:block;width:100%;max-width:420px;max-height:55vh;object-fit:contain;border-radius:14px;background:#111;margin:10px auto";
+const stopScan=document.createElement("button");stopScan.type="button";stopScan.id="ezeroStopPermanentFriendQrCamera";stopScan.hidden=true;
 const gallery=document.createElement("button");gallery.type="button";gallery.id="ezeroGalleryPermanentFriendQr";gallery.hidden=true;
 const fileInput=document.createElement("input");fileInput.type="file";fileInput.accept="image/*";fileInput.hidden=true;
 const friendForm=document.createElement("div");friendForm.id="ezeroPermanentFriendSaveForm";friendForm.hidden=true;
@@ -32,7 +34,7 @@ const friendName=document.createElement("input");friendName.id="ezeroPermanentFr
 const saveFriendButton=document.createElement("button");saveFriendButton.type="button";saveFriendButton.id="ezeroSavePermanentFriend";
 friendForm.append(friendNameLabel,friendName,saveFriendButton);
 const status=document.createElement("p");status.id="ezeroPermanentQrStatus";status.setAttribute("role","status");status.setAttribute("aria-live","polite");
-card.append(heading,help,create,qr,fingerprint,copy,copyId,scan,gallery,fileInput,friendForm,status);home.append(card);
+card.append(heading,help,create,qr,fingerprint,copy,copyId,scan,camera,stopScan,gallery,fileInput,friendForm,status);home.append(card);
 let pendingFriend=null;
 let currentToken="";
 const encoder=new TextEncoder();
@@ -96,7 +98,7 @@ async function load(){
  }catch(_){status.textContent=t("error");}
 }
 heading.textContent=t("title");help.textContent=t("help");create.textContent=t("create");copy.textContent=t("copy");
-copyId.textContent=t("copyId");scan.textContent=t("scan");gallery.textContent=t("gallery");friendNameLabel.textContent=t("friendName");saveFriendButton.textContent=t("saveFriend");
+copyId.textContent=t("copyId");scan.textContent=t("scan");stopScan.textContent=t("cameraStop");gallery.textContent=t("gallery");friendNameLabel.textContent=t("friendName");saveFriendButton.textContent=t("saveFriend");
 create.addEventListener("click",async()=>{
  create.disabled=true;status.textContent=t("working");
  try{
@@ -114,14 +116,60 @@ copyId.addEventListener("click",async()=>{
  try{await navigator.clipboard.writeText(currentToken);status.textContent=t("copied");}
  catch(_){status.textContent=t("copyFail");}
 });
-function revealIdentityScanner(){
- const identityCard=root.querySelector(".identity-card");
- if(identityCard){identityCard.hidden=false;identityCard.classList.remove("ezero-simple-collapsed");}
- document.getElementById("chooseNearby")?.click();
- document.getElementById("scanQR")?.click();
+let cameraStream=null,cameraLoop=0,cameraGeneration=0;
+function stopPermanentCamera(){
+ cameraGeneration++;if(cameraLoop)clearTimeout(cameraLoop);cameraLoop=0;
+ if(cameraStream){cameraStream.getTracks().forEach(track=>track.stop());cameraStream=null;}
+ camera.pause();camera.srcObject=null;camera.hidden=true;stopScan.hidden=true;scan.disabled=false;
 }
-scan.addEventListener("click",revealIdentityScanner);
+stopScan.addEventListener("click",()=>{stopPermanentCamera();status.textContent=t("ready");});
+scan.addEventListener("click",async()=>{
+ if(!currentToken){status.textContent=t("missing");create.focus();return;}
+ if(!navigator.mediaDevices?.getUserMedia){status.textContent=t("cameraMissing");return;}
+ stopPermanentCamera();const generation=cameraGeneration;
+ scan.disabled=true;status.textContent=t("cameraActive");
+ try{
+  cameraStream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"}}});
+  if(generation!==cameraGeneration||document.hidden){stopPermanentCamera();return;}
+  camera.srcObject=cameraStream;camera.hidden=false;stopScan.hidden=false;
+  await camera.play();
+  const canvas=document.createElement("canvas"),ctx=canvas.getContext("2d",{willReadFrequently:true});
+  if(!ctx)throw Error("CANVAS");
+  let detector=null;
+  if(typeof window.BarcodeDetector==="function"){try{detector=new BarcodeDetector({formats:["qr_code"]});}catch(_){detector=null;}}
+  const frame=async()=>{
+   if(generation!==cameraGeneration||!cameraStream)return;
+   try{
+    let value="";
+    if(detector){try{const found=await detector.detect(camera);value=String(found?.[0]?.rawValue||"");}catch(_){detector=null;}}
+    if(!value&&typeof window.jsQR==="function"&&camera.videoWidth>0){
+     const scale=Math.min(1,1000/Math.max(camera.videoWidth,camera.videoHeight));
+     const w=Math.max(1,Math.round(camera.videoWidth*scale)),h=Math.max(1,Math.round(camera.videoHeight*scale));
+     if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
+     ctx.drawImage(camera,0,0,w,h);const pixels=ctx.getImageData(0,0,w,h);
+     value=String(window.jsQR(pixels.data,w,h,{inversionAttempts:"attemptBoth"})?.data||"");
+    }
+    if(value){
+     stopPermanentCamera();
+     if(!value.startsWith("EZERO2.")){status.textContent=t("galleryError");return;}
+     const verified=await verifyToken(value);
+     pendingFriend={token:value,fingerprint:verified.fingerprint};friendName.value="";friendForm.hidden=false;
+     status.textContent=t("verified");friendName.focus();return;
+    }
+   }catch(_){/* Keep scanning; transient frame decode errors are not camera failures. */}
+   if(generation===cameraGeneration)cameraLoop=setTimeout(frame,220);
+  };
+  cameraLoop=setTimeout(frame,250);
+ }catch(error){
+  stopPermanentCamera();
+  const name=String(error?.name||"");
+  status.textContent=name==="NotAllowedError"||name==="SecurityError"?t("cameraDenied"):
+   name==="NotFoundError"?t("cameraMissing"):t("cameraError");
+ }
+});
 gallery.addEventListener("click",()=>fileInput.click());
+document.addEventListener("visibilitychange",()=>{if(document.hidden)stopPermanentCamera();});
+window.addEventListener("pagehide",stopPermanentCamera);
 fileInput.addEventListener("change",async()=>{
  const file=fileInput.files?.[0];fileInput.value="";
  if(!file)return;
@@ -168,7 +216,7 @@ fileInput.addEventListener("change",async()=>{
 document.getElementById("language")?.addEventListener("change",()=>{
  heading.textContent=t("title");help.textContent=t("help");
  create.textContent=t("create");copy.textContent=t("copy");
- copyId.textContent=t("copyId");scan.textContent=t("scan");gallery.textContent=t("gallery");
+ copyId.textContent=t("copyId");scan.textContent=t("scan");stopScan.textContent=t("cameraStop");gallery.textContent=t("gallery");
  friendNameLabel.textContent=t("friendName");saveFriendButton.textContent=t("saveFriend");
  if(!qr.hidden)status.textContent=t("ready");
  else if(!create.hidden)status.textContent=t("missing");
