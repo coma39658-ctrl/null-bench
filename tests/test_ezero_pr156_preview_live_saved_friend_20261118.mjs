@@ -148,6 +148,16 @@ async function createPhone(label){
   const page=await context.newPage();
   page.on("pageerror",e=>console.error(label+"_PAGE_ERROR",e.message));
   await page.goto(pageUrl,{waitUntil:"domcontentloaded"});
+  await page.waitForFunction(()=>!!window.EZERO_TRUSTED_FRIEND_LAB?.on,undefined,{timeout:15000});
+  // Observe the actual authenticated inbox event emitted by the browser client.
+  // The old test waited on an uninitialized __trustEvents array and could time out
+  // even when the explicit allow/revoke request succeeded.
+  await page.evaluate(()=>{
+    window.__trustEvents=[];
+    window.EZERO_TRUSTED_FRIEND_LAB.on("trust-updated",event=>{
+      if(event?.detail)window.__trustEvents.push(event.detail);
+    });
+  });
   await page.waitForFunction(()=>document.getElementById("myFingerprint")?.textContent.length===64,
     undefined,{timeout:20000});
   return page;
