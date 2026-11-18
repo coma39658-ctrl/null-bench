@@ -455,7 +455,8 @@
     }
     stopScanner();const gen=scanGeneration;
     try{
-      let detector=nativeAvailable?new BarcodeDetector({formats:["qr_code"]}):null;
+      let detector=null;
+      if(nativeAvailable){try{detector=new BarcodeDetector({formats:["qr_code"]});}catch(_){detector=null;}}
       const decodeCanvas=document.createElement("canvas");
       const decodeContext=decodeCanvas.getContext("2d",{willReadFrequently:true});
       if(!decodeContext)throw Error("QR_CANVAS_UNAVAILABLE");
