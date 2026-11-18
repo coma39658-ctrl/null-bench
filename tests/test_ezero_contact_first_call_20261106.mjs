@@ -210,6 +210,10 @@ try{
     throw Error("Bilateral permanent-friend trust was not established");
   };
   await waitForTrust();
+  await Promise.all([caller,callee].map(phone=>phone.waitForFunction(()=>
+    document.getElementById("ezeroTrustedStatus")?.textContent.includes("کال وصول کرنے کے لیے تیار"),
+    undefined,{timeout:15000})));
+  console.log("CONTACT_FIRST_QR_SAVE_AUTO_ACTIVATES_FOREGROUND_INBOX: PASS");
   // A hundred direct-call preparations must not create or reveal another QR.
   const repeated=await caller.evaluate(fp=>{
     for(let i=0;i<100;i++){
