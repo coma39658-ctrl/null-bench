@@ -3,7 +3,7 @@ const fs=require("node:fs");
 const crypto=require("node:crypto").webcrypto;
 const source=fs.readFileSync("js/ezero_permanent_identity_qr_staging_20261118.js","utf8");
 class Element{
-  constructor(tag,register){this.tag=tag;this._register=register;this.children=[];this.listeners={};this.hidden=false;this.attributes={};this.textContent="";this.innerHTML="";}
+  constructor(tag,register){this.tag=tag;this._register=register;this.children=[];this.listeners={};this.hidden=false;this.attributes={};this.textContent="";this.innerHTML="";this.style={cssText:""};this.disabled=false;this.value="";this.files=[];}
   set id(value){this._id=value;this._register?.(value,this);}
   get id(){return this._id||"";}
   append(...nodes){this.children.push(...nodes);}
