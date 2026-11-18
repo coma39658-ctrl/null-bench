@@ -5,6 +5,7 @@ on:
     paths:
       - 'tests/test_ezero_pr156_preview_live_saved_friend_20261118.mjs'
       - 'tests/ezero_saved_friend_hangup_cleanup_contract_20261118.mjs'
+      - 'tests/ezero_saved_friend_reconnect_cleanup_contract_20261118.mjs'
       - 'js/ezero_saved_friend_stage_engine_v0_1.js'
       - '.github/workflows/ezero-pr156-preview-live-saved-friend.yml'
 permissions:
@@ -54,4 +55,5 @@ jobs:
           set -euo pipefail
           node --check tests/test_ezero_pr156_preview_live_saved_friend_20261118.mjs
           node tests/ezero_saved_friend_hangup_cleanup_contract_20261118.mjs
+          node tests/ezero_saved_friend_reconnect_cleanup_contract_20261118.mjs
           node tests/test_ezero_pr156_preview_live_saved_friend_20261118.mjs
