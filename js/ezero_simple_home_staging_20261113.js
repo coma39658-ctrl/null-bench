@@ -7,9 +7,9 @@ if(!root)return;
 const heading=root.querySelector(".ezero-unified-heading");
 if(!heading)return;
 const labels={
- ur:{search:"دوست تلاش کریں",add:"دوست کو مستقل QR سے شامل کریں",friends:"میرے دوست",audio:"آڈیو کال",video:"ویڈیو کال",chat:"چیٹ",voice:"وائس میسج",myqr:"میرا مستقل QR",scan:"دوست کا QR اسکین کریں",gallery:"گیلری سے QR پڑھیں",more:"مزید سہولتیں",back:"واپس",hint:"دونوں فون ایک بار ایک دوسرے کا مستقل QR اسکین کرکے دوست محفوظ کریں؛ پھر فہرست سے براہِ راست کال کریں۔",status:"یہ تجرباتی ورژن ہے۔ کال وصول کرنے کے لیے دوسرے فون پر صفحہ کھلا ہونا ضروری ہوسکتا ہے۔"},
- ar:{search:"ابحث عن صديق",add:"إضافة صديق عبر QR الدائم",friends:"أصدقائي",audio:"مكالمة صوتية",video:"مكالمة فيديو",chat:"دردشة",voice:"رسالة صوتية",myqr:"رمز QR الدائم",scan:"مسح QR الصديق",gallery:"قراءة QR من المعرض",more:"المزيد",back:"رجوع",hint:"يمسح الهاتفان رمز QR الدائم لبعضهما مرة واحدة ويحفظان الصديق؛ بعد ذلك اتصل من القائمة مباشرة.",status:"نسخة تجريبية؛ قد يلزم إبقاء الصفحة مفتوحة لتلقي المكالمات."},
- en:{search:"Find a friend",add:"Add friend with permanent QR",friends:"My friends",audio:"Audio call",video:"Video call",chat:"Chat",voice:"Voice note",myqr:"My permanent QR",scan:"Scan friend QR",gallery:"Scan QR from gallery",more:"More options",back:"Back",hint:"Both phones scan and save each other’s permanent QR once; then call directly from Friends.",status:"Experimental: the recipient may need to keep this page open."}
+ ur:{search:"دوست تلاش کریں",add:"دوست کو مستقل QR سے شامل کریں",friends:"میرے دوست",audio:"آڈیو کال",video:"ویڈیو کال",chat:"چیٹ",voice:"وائس میسج",myqr:"میرا مستقل QR",scan:"دوست کا QR اسکین کریں",gallery:"گیلری سے QR پڑھیں",more:"مزید سہولتیں",back:"واپس",hint:"دونوں فون ایک بار ایک دوسرے کا مستقل QR اسکین کرکے دوست محفوظ کریں؛ پھر فہرست سے براہِ راست کال کریں۔",status:"یہ تجرباتی ورژن ہے۔ کال وصول کرنے کے لیے دوسرے فون پر صفحہ کھلا ہونا ضروری ہوسکتا ہے۔",qrFirst:"پہلے اپنا مستقل QR بنائیں؛ پھر دوست کا QR اسکین کرکے اسے محفوظ کریں۔",myqrHint:"یہ آپ کی مستقل شناخت ہے؛ پہلی بار بنانے کے بعد یہی QR برقرار رہے گا۔",missingQr:"مستقل QR کا حصہ دستیاب نہیں؛ اس صفحے کو تازہ کریں۔"},
+ ar:{search:"ابحث عن صديق",add:"إضافة صديق عبر QR الدائم",friends:"أصدقائي",audio:"مكالمة صوتية",video:"مكالمة فيديو",chat:"دردشة",voice:"رسالة صوتية",myqr:"رمز QR الدائم",scan:"مسح QR الصديق",gallery:"قراءة QR من المعرض",more:"المزيد",back:"رجوع",hint:"يمسح الهاتفان رمز QR الدائم لبعضهما مرة واحدة ويحفظان الصديق؛ بعد ذلك اتصل من القائمة مباشرة.",status:"نسخة تجريبية؛ قد يلزم إبقاء الصفحة مفتوحة لتلقي المكالمات.",qrFirst:"أنشئ رمز QR الدائم أولاً، ثم امسح رمز صديقك واحفظه.",myqrHint:"هذه هويتك الدائمة؛ سيبقى الرمز نفسه بعد الإنشاء الأول.",missingQr:"ميزة QR الدائم غير متاحة؛ حدّث الصفحة."},
+ en:{search:"Find a friend",add:"Add friend with permanent QR",friends:"My friends",audio:"Audio call",video:"Video call",chat:"Chat",voice:"Voice note",myqr:"My permanent QR",scan:"Scan friend QR",gallery:"Scan QR from gallery",more:"More options",back:"Back",hint:"Both phones scan and save each other’s permanent QR once; then call directly from Friends.",status:"Experimental: the recipient may need to keep this page open.",qrFirst:"Create your permanent QR first, then scan and save your friend's QR.",myqrHint:"This is your permanent identity; the same QR remains after first creation.",missingQr:"The permanent QR feature is unavailable; refresh this page."}
 };
 const panel=document.createElement("section");
 panel.className="ezero-simple-home";panel.setAttribute("aria-label","E-ZERO Secure App quick actions");
@@ -73,7 +73,7 @@ panel.addEventListener("click",event=>{
  if(action==="more"){show(null);return;}
  if(action==="myqr"){
     const card=document.getElementById("ezeroPermanentQrCard");
-    if(card){card.scrollIntoView({block:"nearest",behavior:"instant"});panel.querySelector("#ezeroSimpleStatus").textContent="یہ آپ کی مستقل شناخت ہے؛ پہلی بار بنانے کے بعد یہی QR برقرار رہے گا۔";}
+    if(card){card.scrollIntoView({block:"nearest",behavior:"instant"});panel.querySelector("#ezeroSimpleStatus").textContent=lang().myqrHint;}
     return;
   }
   if(action==="scan"||action==="gallery"){const workspace=find(["ezeroOneJoinPanel"]);if(workspace){workspace.hidden=false;workspace.classList.remove("ezero-simple-collapsed");workspace.scrollIntoView({block:"start",behavior:"instant"});}if(action==="scan"){const scanner=find(["ezeroOneScanInvite"]);if(scanner){scanner.click();panel.querySelector("#ezeroSimpleStatus").textContent="کیمرہ اسکینر کھولنے کی درخواست بھیج دی گئی ہے۔";}else panel.querySelector("#ezeroSimpleStatus").textContent="اسکینر بٹن اس ورژن میں موجود نہیں؛ اسے بحال کرنا ضروری ہے۔";}else{const picker=find(["ezeroOneImageScan","ezeroOneGalleryInvite"]);if(picker)picker.click();else panel.querySelector("#ezeroSimpleStatus").textContent="گیلری QR آپشن دستیاب نہیں۔";}return;}
@@ -85,11 +85,10 @@ panel.addEventListener("click",event=>{
     if(card)card.scrollIntoView({block:"nearest",behavior:"instant"});
     if(scan&&!scan.hidden){scan.click();}
     else if(create&&!create.hidden){
-      panel.querySelector("#ezeroSimpleStatus").textContent=
-        "پہلے اپنا مستقل QR بنائیں؛ پھر دوست کا QR اسکین کرکے اسے محفوظ کریں۔";
+      panel.querySelector("#ezeroSimpleStatus").textContent=lang().qrFirst;
       create.focus();
     }else{
-      panel.querySelector("#ezeroSimpleStatus").textContent="مستقل QR کا حصہ دستیاب نہیں؛ اس صفحے کو تازہ کریں۔";
+      panel.querySelector("#ezeroSimpleStatus").textContent=lang().missingQr;
     }
     return;
   }
