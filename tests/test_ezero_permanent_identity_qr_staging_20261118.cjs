@@ -40,9 +40,9 @@ function boot(origin="https://ezero-test.example"){
    createElement:tag=>new Element(tag,(id,el)=>elements.set(id,el))};
  const window={EZERO_DEVICE_IDENTITY_STORE:store,EZERO_DEVICE_IDENTITY_CONTROL:control,
    qrcode:()=>({addData:s=>{lastQr=s;},make(){},createSvgTag:()=>"<svg></svg>"})};
- const savedEvents=[],trustCalls=[],listeners={};
+ const savedEvents=[],trustCalls=[],listeners={},pendingEvents=[];
  document.addEventListener=(type,fn)=>{(listeners[type]??=[]).push(fn);};
- document.dispatchEvent=event=>{for(const fn of listeners[event.type]||[])fn(event);return true;};
+ document.dispatchEvent=event=>{for(const fn of listeners[event.type]||[]){const result=fn(event);if(result?.then)pendingEvents.push(result);}return true;};
  const local={};
  const localStorage={getItem:k=>local[k]??null,setItem:(k,v)=>{local[k]=String(v);}};
  const lab={enabled:()=>true,async openOwnerInbox(){trustCalls.push("open");return true;},
@@ -54,7 +54,7 @@ function boot(origin="https://ezero-test.example"){
  new Function("document","window","location","crypto","TextEncoder","btoa","atob","navigator","localStorage","CustomEvent",
    source)(document,window,{origin},crypto,TextEncoder,
    s=>Buffer.from(s,"binary").toString("base64"),s=>Buffer.from(s,"base64").toString("binary"),navigator,localStorage,TestCustomEvent);
- return {home,elements,window,document,localStorage,local,savedEvents,trustCalls,TestCustomEvent};
+ return {home,elements,window,document,localStorage,local,savedEvents,trustCalls,TestCustomEvent,pendingEvents};
 }
 (async()=>{
  let app=boot();
@@ -100,7 +100,7 @@ function boot(origin="https://ezero-test.example"){
  app.document.dispatchEvent(new app.TestCustomEvent("ezero:friend-verification",{detail:{
    ok:true,permanent:true,fingerprint:friendFp,token:friendToken,source:"scan"
  }}));
- await new Promise(resolve=>setImmediate(resolve));
+ await Promise.all(app.pendingEvents.splice(0));
  assert.equal(app.elements.get("ezeroPermanentFriendSaveForm").hidden,false,
    "A verified permanent QR reveals the explicit Save Friend action");
  app.elements.get("ezeroPermanentFriendName").value="  Friend   One  ";
