@@ -3,7 +3,7 @@ import {chromium} from "playwright";
 
 const base="http://127.0.0.1:8769/";
 const pagePath="ezero_secure_connect_one_request_lab_20261106.html";
-const service="wss://ezero-browser-signaling-pr156-preview-v2.coma39658.workers.dev/v1/rooms/";
+const service="wss://ezero-browser-signaling-pilot.coma39658.workers.dev/v1/rooms/";
 const browser=await chromium.launch({headless:true,
   args:["--no-sandbox","--use-fake-device-for-media-stream",
     "--use-fake-ui-for-media-stream"]});
