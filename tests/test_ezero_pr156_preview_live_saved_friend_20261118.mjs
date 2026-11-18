@@ -152,7 +152,36 @@ try{
   await Promise.all([caller,callee].map(p=>p.locator("#ezeroPermanentQr svg")
     .waitFor({state:"visible",timeout:15000})));
   const callerPermanentImage=await caller.locator("#ezeroPermanentQr svg").screenshot();
-  const calleePermanentImage=await callee.locator("#ezeroPermanentQr svg").screenshot();
+  async function scanPermanentCamera(receiver,token,name){
+    const before=await receiver.evaluate(()=>window.__mediaCalls.length);
+    await receiver.evaluate(token=>{
+      window.BarcodeDetector=class {
+        async detect(){return [{rawValue:token}];}
+      };
+    },token);
+    await receiver.locator("#ezeroScanPermanentFriendQr").click();
+    await receiver.locator("#ezeroPermanentFriendSaveForm").waitFor({
+      state:"visible",timeout:20000
+    });
+    const cameraState=await receiver.evaluate(()=>({
+      mediaCalls:window.__mediaCalls.length,
+      cameraHidden:document.getElementById("ezeroPermanentFriendQrCamera")?.hidden,
+      stopHidden:document.getElementById("ezeroStopPermanentFriendQrCamera")?.hidden,
+      streamCleared:document.getElementById("ezeroPermanentFriendQrCamera")?.srcObject===null
+    }));
+    assert.equal(cameraState.mediaCalls,before+1,
+      "The permanent camera must request media only after the scan button is tapped");
+    assert.equal(cameraState.cameraHidden,true,
+      "Camera preview must close after a QR is decoded");
+    assert.equal(cameraState.stopHidden,true);
+    assert.equal(cameraState.streamCleared,true,
+      "Camera stream must be stopped and detached after successful scan");
+    await receiver.locator("#ezeroPermanentFriendName").fill(name);
+    await receiver.locator("#ezeroSavePermanentFriend").click();
+    await receiver.waitForFunction(()=>
+      document.getElementById("ezeroPermanentQrStatus")?.textContent.includes("اجازت"),
+      undefined,{timeout:30000});
+  }
   async function scanPermanentGallery(receiver,image,name){
     await receiver.locator("#ezeroGalleryPermanentFriendQr").click();
     await receiver.locator("#ezeroPermanentQrCard input[type=file]").setInputFiles({
@@ -167,7 +196,7 @@ try{
       document.getElementById("ezeroPermanentQrStatus")?.textContent.includes("اجازت"),
       undefined,{timeout:30000});
   }
-  await scanPermanentGallery(caller,calleePermanentImage,"Second Phone");
+  await scanPermanentCamera(caller,calleePermanent,"Second Phone");
   await scanPermanentGallery(callee,callerPermanentImage,"First Phone");
   const callerPermanentFp=callerPermanent.split(".")[2];
   const calleePermanentFp=calleePermanent.split(".")[2];
@@ -186,7 +215,7 @@ try{
     assert.equal(contact.nickname,false,
       "Saving a permanent QR must not silently replace a verified profile with a nickname");
   }
-  console.log("PR156_PERMANENT_QR_GALLERY_MUTUAL_SAVE_PROFILE_PRESERVED: PASS");
+  console.log("PR156_PERMANENT_QR_CAMERA_GALLERY_MUTUAL_SAVE_PROFILE_PRESERVED: PASS");
 
 
   await caller.locator("#hangup").click();
