@@ -158,14 +158,14 @@
 </section>
 <section id="modernVoicePanel" class="modern-workspace" hidden>
   <h2 class="modern-panel-title" data-modern="voicePanel">وائس میسج</h2>
-  <p class="modern-panel-help" data-modern="voiceHelp">60 سیکنڈ تک اپنی آواز ریکارڈ کریں۔ Send دبانے سے پہلے دوسرے فون کو نہیں جائے گی؛ کال ریکارڈ نہیں ہوگی۔</p>
+  <p class="modern-panel-help" data-modern="voiceHelp">6 سیکنڈ تک اپنی آواز ریکارڈ کریں۔ Send دبانے سے پہلے دوسرے فون کو نہیں جائے گی؛ کال ریکارڈ نہیں ہوگی۔</p>
   <div class="modern-voice-actions">
     <button type="button" id="ezeroVoiceRecord" data-modern="record">🎙️ ریکارڈ کریں</button>
     <button type="button" id="ezeroVoiceStop" class="secondary" hidden data-modern="stop">■ ریکارڈنگ بند</button>
     <button type="button" id="ezeroVoiceSend" disabled data-modern="sendVoice">↗ وائس میسج بھیجیں</button>
     <button type="button" id="ezeroVoiceClear" class="secondary" disabled data-modern="discard">✕ حذف کریں</button>
   </div>
-  <output id="ezeroVoiceTimer" class="modern-status" aria-live="off">00:00 / 01:00</output>
+  <output id="ezeroVoiceTimer" class="modern-status" aria-live="off">00:00 / 00:06</output>
   <div id="ezeroVoiceDraft" hidden><p data-modern="preview">یہ آواز ابھی صرف اس فون پر ہے؛ خودکار شیئر نہیں ہوئی۔</p><audio id="ezeroVoicePreview" class="modern-voice-audio" controls preload="none" aria-label="Local voice note preview"></audio></div>
   <div id="ezeroVoiceReceived" hidden><p data-modern="incomingVoice">دوست کا عارضی وائس میسج موصول ہوا۔</p><button type="button" id="ezeroVoiceOpenIncoming" class="primary" data-modern="playVoice">🎧 ایک بار سنیں</button><audio id="ezeroVoiceIncomingAudio" class="modern-voice-audio" controls preload="none" hidden aria-label="Received voice note"></audio></div>
   <p id="ezeroVoiceStatus" class="modern-status" role="status" aria-live="polite">وائس میسج بھیجنے کے لیے دو فون جوڑیں۔</p>
