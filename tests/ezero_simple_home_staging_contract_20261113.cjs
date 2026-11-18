@@ -8,7 +8,7 @@ console.log('PASS language preference runtime regression test');
 const permanentQrRun=spawnSync(process.execPath,['tests/test_ezero_permanent_identity_qr_staging_20261118.cjs'],{encoding:'utf8'});
 if(permanentQrRun.status!==0)throw new Error('Permanent QR runtime test failed:\n'+permanentQrRun.stdout+'\n'+permanentQrRun.stderr);
 console.log('PASS permanent QR runtime regression test');
-for(const file of ['js/ezero_saved_friend_stage_engine_v0_1.js','js/ezero_trusted_stage_signaling_v0_1.js','js/ezero_secure_connect_modern_evidence_stage_v0_1.js','js/ezero_permanent_identity_qr_staging_20261118.js','js/ezero_simple_home_staging_20261113.js','tests/test_ezero_public_video_mode_preservation_20261106.cjs','tests/test_ezero_audio_chat_voice_languages_20261106.mjs','tests/test_ezero_contact_first_call_20261106.mjs']){
+for(const file of ['js/ezero_saved_friend_stage_engine_v0_1.js','js/ezero_trusted_stage_signaling_v0_1.js','js/ezero_auto_signaling_lab_config_20261106.js','js/ezero_trusted_inbox_stage_config_20261106.js','js/ezero_secure_connect_modern_evidence_stage_v0_1.js','js/ezero_permanent_identity_qr_staging_20261118.js','js/ezero_simple_home_staging_20261113.js','tests/test_ezero_public_video_mode_preservation_20261106.cjs','tests/test_ezero_audio_chat_voice_languages_20261106.mjs','tests/test_ezero_contact_first_call_20261106.mjs']){
  const check=spawnSync(process.execPath,['--check',file],{encoding:'utf8'});
  if(check.status!==0)throw new Error('JavaScript syntax check failed for '+file+':\n'+check.stdout+'\n'+check.stderr);
 }
@@ -23,6 +23,8 @@ const identityEngine=fs.readFileSync('js/ezero_saved_friend_stage_engine_v0_1.js
 const permanentQr=fs.readFileSync('js/ezero_permanent_identity_qr_staging_20261118.js','utf8');
 const modernEvidence=fs.readFileSync('js/ezero_secure_connect_modern_evidence_stage_v0_1.js','utf8');
 const signaling=fs.readFileSync('js/ezero_trusted_stage_signaling_v0_1.js','utf8');
+const signalingConfig=fs.readFileSync('js/ezero_auto_signaling_lab_config_20261106.js','utf8');
+const trustedInboxConfig=fs.readFileSync('js/ezero_trusted_inbox_stage_config_20261106.js','utf8');
 const checks=[
  ['new CSS is referenced',()=>assert.match(page,/css\/ezero_simple_home_staging_20261113\.css/)],
  ['new JS is referenced',()=>assert.match(page,/js\/ezero_simple_home_staging_20261113\.js/)],
@@ -39,6 +41,7 @@ const checks=[
  ['multiple received voice notes are queued with bounded memory and expiry',()=>{assert.match(modernEvidence,/incomingQueue\.push/);assert.match(modernEvidence,/incomingQueue\.length\+\(incoming\?1:0\)>=10/);assert.match(modernEvidence,/expiresAt:Date\.now\(\)\+600000/);}],
  ['voice-note payload is bounded to 256 KiB',()=>{assert.match(modernEvidence,/256\*1024/);assert.match(identityEngine,/encoded\.length>350000/);}],
  ['audio/video mode is frozen and video cannot silently downgrade',()=>{assert.match(identityEngine,/CALL_MODE_MISMATCH/);assert.match(identityEngine,/VIDEO_TRACK_REQUIRED/);assert.match(identityEngine,/remoteVideoGuardTimer=setTimeout/);assert.match(identityEngine,/remoteVideoReady/);assert.match(signaling,/session\.mode/);assert.match(signaling,/window\.EZERO_ACTIVE_CALL_MODE=mode/);assert.match(modernEvidence,/callModeLocked/);}],
+ ['staging uses only isolated PR156 WebSocket Workers',()=>{assert.match(signalingConfig,/ezero-browser-signaling-pr156-preview-v2/);assert.match(trustedInboxConfig,/ezero-trusted-inbox-pr156-preview-v2/);assert.doesNotMatch(page,/ezero-browser-signaling-pilot|ezero-trusted-friends-inbox-staging/);}],
 
  ['original WebRTC signaling is retained',()=>assert.match(page,/ezero_trusted_stage_signaling_v0_1\.js/)],
  ['original saved friend dock is retained',()=>assert.match(page,/id="ezeroContactFirstDock"/)],
