@@ -3,7 +3,9 @@ const fs=require("node:fs");
 const crypto=require("node:crypto").webcrypto;
 const source=fs.readFileSync("js/ezero_permanent_identity_qr_staging_20261118.js","utf8");
 class Element{
-  constructor(tag){this.tag=tag;this.children=[];this.listeners={};this.hidden=false;this.attributes={};this.textContent="";this.innerHTML="";}
+  constructor(tag,register){this.tag=tag;this._register=register;this.children=[];this.listeners={};this.hidden=false;this.attributes={};this.textContent="";this.innerHTML="";}
+  set id(value){this._id=value;this._register?.(value,this);}
+  get id(){return this._id||"";}
   append(...nodes){this.children.push(...nodes);}
   replaceChildren(...nodes){this.children=[...nodes];}
   setAttribute(k,v){this.attributes[k]=v;}
@@ -34,7 +36,7 @@ function boot(){
  const root={querySelector:s=>s===".ezero-simple-home"?home:null};
  const elements=new Map();
  const document={getElementById:id=>id==="ezeroUnifiedCard"?root:(elements.get(id)||null),
-   createElement:tag=>{const el=new Element(tag);elements.set(el.id,el);return el;}};
+   createElement:tag=>new Element(tag,(id,el)=>elements.set(id,el))};
  const window={EZERO_DEVICE_IDENTITY_STORE:store,EZERO_DEVICE_IDENTITY_CONTROL:control,
    qrcode:()=>({addData:s=>{lastQr=s;},make(){},createSvgTag:()=>"<svg></svg>"})};
  const navigator={clipboard:{writeText:async()=>{}}};
