@@ -188,11 +188,23 @@ async function openRecipientInbox(){
   console.log("PR156_INBOX_STATE_BEFORE_REPEAT_VIDEO",JSON.stringify(inboxSnapshot));
   // The live socket is authoritative. UI status can be overwritten by a
   // permission/cooldown notice while the authenticated inbox remains open.
-  await callee.waitForFunction(()=>(
-    window.__trustedInboxSockets||[]
-  ).some(ws=>ws.readyState===WebSocket.OPEN)||
-    document.getElementById("ezeroTrustedStatus")?.textContent.includes("کال وصول کرنے کے لیے تیار"),
-    undefined,{timeout:15000});
+  try{
+    await callee.waitForFunction(()=>(
+      window.__trustedInboxSockets||[]
+    ).some(ws=>ws.readyState===WebSocket.OPEN)||
+      document.getElementById("ezeroTrustedStatus")?.textContent.includes("کال وصول کرنے کے لیے تیار"),
+      undefined,{timeout:15000});
+  }catch(error){
+    const failure=await callee.evaluate(()=>({
+      status:document.getElementById("ezeroTrustedStatus")?.textContent||"",
+      statusKind:document.getElementById("ezeroTrustedStatus")?.dataset.status||"",
+      inboxSockets:(window.__trustedInboxSockets||[]).map((ws,index)=>({index,readyState:ws.readyState,url:(()=>{try{return new URL(ws.url).pathname}catch(_){return "invalid"}})()})),
+      events:window.__wsEvents?.slice(-30)||[],
+      inboxRows:document.getElementById("ezeroTrustedIncoming")?.innerText||""
+    }));
+    console.error("PR156_INBOX_REOPEN_FAILURE_DIAGNOSTIC",JSON.stringify(failure));
+    throw error;
+  }
 }
 async function acceptDeliveredInvite(kind){
   await callee.locator("#ezeroTrustedIncoming").waitFor({state:"visible",timeout:35000});
