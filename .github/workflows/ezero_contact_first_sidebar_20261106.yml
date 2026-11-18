@@ -13,6 +13,9 @@ on:
       - '.github/workflows/ezero_contact_first_sidebar_20261106.yml'
 permissions:
   contents: read
+concurrency:
+  group: ezero-pr156-contact-first-regression
+  cancel-in-progress: true
 jobs:
   contacts-then-video:
     runs-on: ubuntu-22.04
