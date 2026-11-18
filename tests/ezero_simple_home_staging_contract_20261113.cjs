@@ -8,11 +8,17 @@ console.log('PASS language preference runtime regression test');
 const permanentQrRun=spawnSync(process.execPath,['tests/test_ezero_permanent_identity_qr_staging_20261118.cjs'],{encoding:'utf8'});
 if(permanentQrRun.status!==0)throw new Error('Permanent QR runtime test failed:\n'+permanentQrRun.stdout+'\n'+permanentQrRun.stderr);
 console.log('PASS permanent QR runtime regression test');
+for(const file of ['js/ezero_saved_friend_stage_engine_v0_1.js','js/ezero_secure_connect_modern_evidence_stage_v0_1.js','js/ezero_permanent_identity_qr_staging_20261118.js','js/ezero_simple_home_staging_20261113.js','tests/test_ezero_audio_chat_voice_languages_20261106.mjs']){
+ const check=spawnSync(process.execPath,['--check',file],{encoding:'utf8'});
+ if(check.status!==0)throw new Error('JavaScript syntax check failed for '+file+':\n'+check.stdout+'\n'+check.stderr);
+}
+console.log('PASS JavaScript syntax checks for call, QR and voice-note modules');
 const page=fs.readFileSync('ezero_trusted_friends_staging_20261106.html','utf8');
 const js=fs.readFileSync('js/ezero_simple_home_staging_20261113.js','utf8');
 const css=fs.readFileSync('css/ezero_simple_home_staging_20261113.css','utf8');
 const identityEngine=fs.readFileSync('js/ezero_saved_friend_stage_engine_v0_1.js','utf8');
 const permanentQr=fs.readFileSync('js/ezero_permanent_identity_qr_staging_20261118.js','utf8');
+const modernEvidence=fs.readFileSync('js/ezero_secure_connect_modern_evidence_stage_v0_1.js','utf8');
 const checks=[
  ['new CSS is referenced',()=>assert.match(page,/css\/ezero_simple_home_staging_20261113\.css/)],
  ['new JS is referenced',()=>assert.match(page,/js\/ezero_simple_home_staging_20261113\.js/)],
@@ -24,6 +30,11 @@ const checks=[
  ['permanent identity text can be copied for remote pairing',()=>assert.match(permanentQr,/ezeroCopyPermanentIdentity/)],
  ['verified permanent QR offers explicit local friend save and trust',()=>{assert.match(permanentQr,/ezero:friend-verification/);assert.match(permanentQr,/ezero:friend-local-saved/);assert.match(permanentQr,/setFriendTrust/);assert.match(permanentQr,/nickname:true/);}],
  ['saved friend public key survives verified-call profile updates',()=>assert.match(fs.readFileSync('js/ezero_profile_first_verified_friends_v0_1.js','utf8'),/identitySpki/)],
+ ['voice notes have a visible elapsed timer and 60-second ceiling',()=>{assert.match(page,/ezeroVoiceTimer/);assert.match(modernEvidence,/setTimeout\(stopMic,60000\)/);assert.match(modernEvidence,/60 سیکنڈ/);}],
+ ['voice notes are chunked into bounded encrypted DataChannel frames',()=>{assert.match(identityEngine,/chunkSize=12000/);assert.match(identityEngine,/m\.kind==="voice-chunk"/);assert.match(identityEngine,/m\.kind==="voice-abort"/);}],
+ ['multiple received voice notes are queued with bounded memory and expiry',()=>{assert.match(modernEvidence,/incomingQueue\.push/);assert.match(modernEvidence,/incomingQueue\.length\+\(incoming\?1:0\)>=10/);assert.match(modernEvidence,/expiresAt:Date\.now\(\)\+600000/);}],
+ ['voice-note payload is bounded to 256 KiB',()=>{assert.match(modernEvidence,/256\*1024/);assert.match(identityEngine,/encoded\.length>350000/);}],
+
  ['original WebRTC signaling is retained',()=>assert.match(page,/ezero_trusted_stage_signaling_v0_1\.js/)],
  ['original saved friend dock is retained',()=>assert.match(page,/id="ezeroContactFirstDock"/)],
  ['Arabic, Urdu and English strings',()=>{for(const x of ['ur:','ar:','en:'])assert.ok(js.includes(x));}],
