@@ -26,9 +26,18 @@ async function createPhone(label){
       window.__oneInvite=e.detail?.link||"";
     });
     const original=navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
-    navigator.mediaDevices.getUserMedia=args=>{
+    window.__cameraTrackStopCount=0;
+    navigator.mediaDevices.getUserMedia=async args=>{
       window.__mediaCalls.push(args);
-      return original(args);
+      const stream=await original(args);
+      for(const track of stream.getTracks()){
+        const stop=track.stop.bind(track);
+        track.stop=()=>{
+          if(track.readyState!=="ended")window.__cameraTrackStopCount++;
+          return stop();
+        };
+      }
+      return stream;
     };
   });
   const page=await context.newPage();
@@ -223,6 +232,8 @@ try{
     assert.equal(cameraState.stopHidden,true);
     assert.equal(cameraState.streamCleared,true,
       "Camera stream must be stopped and detached after successful scan");
+    assert.ok(await receiver.evaluate(()=>window.__cameraTrackStopCount>=1),
+      "Every acquired camera track must be stopped after successful scan");
     assert.ok(await receiver.evaluate(()=>window.__cameraJsQrCalls>0),
       "The real local jsQR decoder must read the peer's QR through the camera frame loop");
     await receiver.locator("#ezeroPermanentFriendName").fill(name);
@@ -247,6 +258,51 @@ try{
   }
   await scanPermanentCamera(caller,calleePermanent,"Second Phone",calleePermanentImage);
   await scanPermanentGallery(callee,callerPermanentImage,"First Phone");
+
+  // Camera lifecycle regressions: explicit cancel, tab background and page exit.
+  async function openCamera(receiver){
+    await receiver.locator("#ezeroScanPermanentFriendQr").click();
+    await receiver.waitForFunction(()=>!!document.getElementById("ezeroPermanentFriendQrCamera")?.srcObject,
+      undefined,{timeout:15000});
+    assert.equal(await receiver.locator("#ezeroPermanentFriendQrCamera").isVisible(),true);
+  }
+  const cancelBefore=await caller.evaluate(()=>window.__cameraTrackStopCount);
+  await openCamera(caller);
+  await caller.locator("#ezeroStopPermanentFriendQrCamera").click();
+  await caller.waitForFunction(()=>document.getElementById("ezeroPermanentFriendQrCamera")?.srcObject===null);
+  assert.ok(await caller.evaluate(()=>window.__cameraTrackStopCount)>cancelBefore,
+    "Manual cancel must stop all camera tracks");
+  console.log("PR156_CAMERA_CANCEL_STOPS_TRACKS: PASS");
+
+  const hiddenBefore=await caller.evaluate(()=>window.__cameraTrackStopCount);
+  await openCamera(caller);
+  await caller.evaluate(()=>{
+    Object.defineProperty(document,"hidden",{configurable:true,value:true});
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+  await caller.waitForFunction(()=>document.getElementById("ezeroPermanentFriendQrCamera")?.srcObject===null);
+  assert.ok(await caller.evaluate(()=>window.__cameraTrackStopCount)>hiddenBefore,
+    "Backgrounding the page must stop all camera tracks");
+  console.log("PR156_CAMERA_BACKGROUND_STOPS_TRACKS: PASS");
+
+  const exitBefore=await caller.evaluate(()=>window.__cameraTrackStopCount);
+  await openCamera(caller);
+  await caller.evaluate(()=>window.dispatchEvent(new Event("pagehide")));
+  await caller.waitForFunction(()=>document.getElementById("ezeroPermanentFriendQrCamera")?.srcObject===null);
+  assert.ok(await caller.evaluate(()=>window.__cameraTrackStopCount)>exitBefore,
+    "Page exit must stop all camera tracks");
+  console.log("PR156_CAMERA_PAGEHIDE_STOPS_TRACKS: PASS");
+
+  // Permission denial must be translated and must not leave an active camera.
+  await callee.evaluate(()=>{
+    navigator.mediaDevices.getUserMedia=async()=>{throw Object.assign(new Error("denied"),{name:"NotAllowedError"});};
+  });
+  await callee.locator("#ezeroScanPermanentFriendQr").click();
+  await callee.waitForFunction(()=>document.getElementById("ezeroPermanentQrStatus")?.textContent.includes("کیمرے کی اجازت نہیں ملی"),
+    undefined,{timeout:10000});
+  assert.equal(await callee.locator("#ezeroPermanentFriendQrCamera").isVisible(),false);
+  console.log("PR156_CAMERA_PERMISSION_DENIED_LOCALIZED_AND_CLOSED: PASS");
+
   const callerPermanentFp=callerPermanent.split(".")[2];
   const calleePermanentFp=calleePermanent.split(".")[2];
   for(const [phone,fp,name] of [
