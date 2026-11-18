@@ -66,7 +66,9 @@ async function openRecipientInbox(){
       window.__trustEvents.push(e.detail));
   });
   await callee.locator("#ezeroTrustedEnable").click();
-  await callee.waitForFunction(()=>window.__inboxOnline===true,{timeout:30000});
+  await callee.waitForFunction(()=>window.__inboxOnline===true||
+    document.getElementById("ezeroTrustedStatus")?.textContent.includes("کال وصول کرنے کے لیے تیار"),
+    undefined,{timeout:30000});
 }
 async function acceptDeliveredInvite(kind){
   await callee.locator("#ezeroTrustedIncoming").waitFor({state:"visible",timeout:35000});
@@ -139,6 +141,8 @@ try{
   calleeFingerprint=await callee.locator("#myFingerprint").innerText();
   assert.notEqual(callerFingerprint,calleeFingerprint);
   console.log("PR156_FIRST_QR_PAIRING_AND_MUTUAL_LOCAL_SAVE: PASS");
+  await caller.locator("#hangup").click();
+  await waitDisconnected();
 
   // Permanent device QR regression: both users must explicitly scan and save
   // the other's reusable EZERO2 identity. This runs before direct saved-friend calls.
@@ -217,9 +221,6 @@ try{
   }
   console.log("PR156_PERMANENT_QR_CAMERA_GALLERY_MUTUAL_SAVE_PROFILE_PRESERVED: PASS");
 
-
-  await caller.locator("#hangup").click();
-  await waitDisconnected();
 
   await openRecipientInbox();
   await callee.locator("#ezeroTrustedList .ezero-trusted-friend-row button")
