@@ -336,6 +336,10 @@ try{
   }
   await scanPermanentCamera(caller,calleePermanent,"Second Phone",calleePermanentImage);
   await scanPermanentGallery(callee,callerPermanentImage,"First Phone");
+  await Promise.all([caller,callee].map(phone=>phone.waitForFunction(()=>
+    document.getElementById("ezeroTrustedStatus")?.textContent.includes("کال وصول کرنے کے لیے تیار"),
+    undefined,{timeout:15000})));
+  console.log("PR156_QR_SAVE_ACTIVATES_TRUSTED_INBOX_UI_ON_BOTH_PHONES: PASS");
 
   // Camera lifecycle regressions: explicit cancel, tab background and page exit.
   async function openCamera(receiver){
