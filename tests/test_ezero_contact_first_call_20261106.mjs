@@ -212,8 +212,12 @@ try{
   await waitForTrust();
   // A hundred direct-call preparations must not create or reveal another QR.
   const repeated=await caller.evaluate(fp=>{
-    for(let i=0;i<100;i++)
+    for(let i=0;i<100;i++){
       if(window.EZERO_TRUSTED_SAVED_CALL?.prepare(fp,i%2?"audio":"video")!==true)return false;
+      // Simulate the completed/aborted call lifecycle before preparing the
+      // next one; no invitation URL or QR is created by preparation itself.
+      document.dispatchEvent(new CustomEvent("ezero:call-status",{detail:{stage:"idle"}}));
+    }
     return true;
   },calleeIdentity.fingerprint);
   assert.equal(repeated,true,"Saved friend must remain directly callable after 100 preparations");
@@ -263,7 +267,7 @@ try{
     assert.equal(saved[0].nickname,true,"Verified profile must not overwrite the user's local name");
     assert.ok(saved[0].spki,"Permanent public key must remain pinned after calling");
   }
-  console.log("TWO_PHONE_PERMANENT_QR_PAIR_DIRECT_AUDIO_100_CALLS_NO_RESCAN: PASS");
+  console.log("TWO_PHONE_PERMANENT_QR_PAIR_DIRECT_AUDIO_100_PREPARATIONS_NO_RESCAN: PASS");
   await caller.locator("#hangup").click();
   await Promise.all([caller,callee].map(phone=>phone.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===false,{timeout:15000})));
