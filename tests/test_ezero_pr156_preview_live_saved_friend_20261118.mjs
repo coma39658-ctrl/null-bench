@@ -494,8 +494,9 @@ try{
   await callee.locator("#ezeroTrustedList .ezero-trusted-friend-row button")
     .filter({hasText:"اجازت دیں"}).click();
   try{
-    await callee.waitForFunction(fp=>Array.isArray(window.__trustEvents)&&window.__trustEvents.some(e=>
-      e.fp===fp&&e.trusted===true),callerFingerprint,{timeout:20000});
+    await callee.waitForFunction(()=>Array.isArray(window.__wsEvents)&&window.__wsEvents.some(e=>
+      e.kind==="trusted-inbox"&&e.event==="message"&&e.messageType==="trust-updated"&&e.trusted===true),
+      undefined,{timeout:20000});
   }catch(error){
     const trustDiagnostic=await callee.evaluate(()=>({
       trustEvents:window.__trustEvents||[],
