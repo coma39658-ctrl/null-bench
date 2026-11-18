@@ -47,7 +47,7 @@ async function createPhone(label){
     const safeDetail=value=>{
       if(!value||typeof value!=="object")return {};
       const out={};
-      for(const key of ["stage","state","gathering","connected","type","direction","kind","code"])
+      for(const key of ["stage","state","gathering","connected","type","direction","kind","code","key"])
         if(typeof value[key]==="string"||typeof value[key]==="boolean")out[key]=value[key];
       if(value.counts&&typeof value.counts==="object")
         out.candidateCounts={host:value.counts.host||0,srflx:value.counts.srflx||0,prflx:value.counts.prflx||0,relay:value.counts.relay||0};
