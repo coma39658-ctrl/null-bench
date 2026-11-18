@@ -61,8 +61,29 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: signaling/cloudflare
           command: deploy --config wrangler.pr156-preview-v2-20261116.jsonc
-      - name: Verify deployed Worker health
+      - name: Verify deployed Worker health using the account's actual workers.dev subdomain
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
-          BASE="https://ezero-browser-signaling-pr156-preview-v2.coma39658.workers.dev"
-          curl --fail --silent --show-error --retry 5 --retry-delay 2 "$BASE/v1/health" | grep -F '"purpose":"signaling-only"'
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer $CF_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT/workers/subdomain" \
+            -o /tmp/workers-subdomain.json
+          SUBDOMAIN="$(node -e "const r=require('/tmp/workers-subdomain.json'); if(!r.success || !r.result?.subdomain) process.exit(2); process.stdout.write(r.result.subdomain)")"
+          BASE="https://ezero-browser-signaling-pr156-preview-v2.$SUBDOMAIN.workers.dev"
+          echo "Checking isolated Worker health at $BASE/v1/health"
+          for attempt in $(seq 1 10); do
+            CODE="$(curl --silent --show-error -o /tmp/worker-health.json -w '%{http_code}' "$BASE/v1/health" || true)"
+            if [ "$CODE" = "200" ] && grep -Fq '"purpose":"signaling-only"' /tmp/worker-health.json; then
+              cat /tmp/worker-health.json
+              echo "PR156_PREVIEW_WORKER_HEALTH: PASS"
+              exit 0
+            fi
+            echo "Health attempt $attempt returned HTTP $CODE"
+            cat /tmp/worker-health.json || true
+            sleep 3
+          done
+          echo "::error::Isolated Worker health did not return the expected signaling-only response"
+          exit 1
