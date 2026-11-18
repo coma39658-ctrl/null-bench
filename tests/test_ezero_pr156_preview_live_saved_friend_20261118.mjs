@@ -169,6 +169,7 @@ try{
   await Promise.all([caller,callee].map(p=>p.locator("#ezeroPermanentQr svg")
     .waitFor({state:"visible",timeout:15000})));
   const callerPermanentImage=await caller.locator("#ezeroPermanentQr svg").screenshot();
+  const calleePermanentImage=await callee.locator("#ezeroPermanentQr svg").screenshot();
   async function scanPermanentCamera(receiver,token,name,image){
     const before=await receiver.evaluate(()=>window.__mediaCalls.length);
     const imageDataUrl="data:image/png;base64,"+image.toString("base64");
