@@ -107,14 +107,20 @@ try{
     "Add Friend must reveal the QR invitation generator");
   assert.equal(await caller.locator("#ezeroOneJoinPanel").isVisible(),true,
     "Add Friend must also reveal the QR scanner for the receiving phone");
-  assert.equal(await caller.locator("#ezeroOneScanInvite").isVisible(),true,
-    "The QR scan action must be reachable from Add Friend");
+  assert.equal(await caller.locator("#ezeroCreatePermanentQr").isVisible(),true,
+    "Add Friend must expose the permanent identity setup before scanning");
+  assert.equal(await caller.locator("#ezeroOneScanInvite").isVisible(),false,
+    "The temporary call-invite scanner must not be presented as the permanent identity QR");
   assert.equal(await caller.evaluate(()=>window.__mediaCalls.length),0);
   console.log("PR156_SIMPLE_HOME_SINGLE_CALL_CONTROLS_AND_TWO_SIDED_QR_ENTRY: PASS");
   await caller.locator('[data-modern-select="audio"]').click();
   assert.equal(await caller.evaluate(()=>window.__oneInvite),"",
     "No invite or media before the first-time profile is complete");
   await completeProfile(caller,"First Phone");
+  await caller.waitForFunction(()=>document.getElementById("ezeroPermanentQr")?.querySelector("svg"),
+    undefined,{timeout:20000});
+  assert.equal(await caller.locator("#ezeroScanPermanentFriendQr").isVisible(),true,
+    "After the device identity is consent-saved, Add Friend exposes the permanent QR camera scanner");
   await caller.locator('[data-modern-select="audio"]').click();
   await caller.waitForFunction(()=>!!window.__oneInvite,undefined,{timeout:30000});
   const firstInvite=await caller.evaluate(()=>window.__oneInvite);
