@@ -104,8 +104,10 @@
       incoming=null;paintIncoming();
       // This is an EXPLICIT user click and only opens the existing
       // validated invitation. The next page still requires Accept.
-      if(api.safeInvite(selected.invite,selected.kind))
-        window.location.assign(selected.invite);
+      if(api.safeInvite(selected.invite,selected.kind)){
+        if(window.EZERO_AUTO_CALL?.openInvite(selected.invite)!==true)
+          status("failed",true);
+      }
     });
     const dismiss=button(t("dismiss"),()=>{incoming=null;paintIncoming();});
     view.append(heading,review,dismiss);
