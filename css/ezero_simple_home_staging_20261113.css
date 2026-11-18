@@ -13,3 +13,25 @@
 .ezero-simple-collapsed{display:none!important}
 @media(max-width:420px){.ezero-simple-actions{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(prefers-reduced-motion:reduce){.ezero-simple-home *{scroll-behavior:auto!important}}
+
+
+/* 2026-11-18: clean consumer home — calls live only beside the selected friend. */
+.ezero-simple-home{display:grid;gap:.65rem;padding:1rem;background:#fff;color:#183b2c;border:1px solid #dce8df;border-radius:18px;box-shadow:0 4px 18px rgba(15,50,30,.06)}
+.ezero-simple-home .ezero-simple-hint{color:#355647;margin:0;line-height:1.55}
+.ezero-simple-search-label{font-size:.88rem;font-weight:600;color:#294b3a}
+#ezeroSimpleSearch{width:100%;min-height:46px;border:1px solid #d1ded5;border-radius:12px;padding:.65rem .8rem;font:inherit;background:#f8fbf8;color:#173a2a}
+.ezero-simple-tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem}
+.ezero-simple-home button{min-height:48px;background:#f2f7f3;color:#17452f;border:1px solid #d1e1d5;border-radius:12px;font:inherit}
+.ezero-simple-tiles button{flex-direction:row;justify-content:center;gap:.5rem}
+.ezero-simple-actions{grid-template-columns:repeat(2,minmax(0,1fr));margin:0}
+.ezero-simple-call-hint{margin:0;color:#5b7063;font-size:.82rem;line-height:1.5}
+#ezeroContactFirstDock{margin-top:.7rem}
+.ezero-contact-first-bar{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.ezero-contact-call-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}
+.ezero-contact-call-actions button{min-height:54px;font-weight:700;font-size:1rem;border-radius:14px}
+#ezeroContactAudio{background:#eaf5ee;color:#145331;border:1px solid #b9d8c2}
+#ezeroContactVideo{background:#edf3fb;color:#174a78;border:1px solid #c4d7eb}
+#ezeroDeleteSelectedFriend{min-height:42px}
+#ezeroSelectedFriendRename,#ezeroBlockSelectedFriend,#ezeroFreshQrToggle,#ezeroFreshQrModes{display:none!important}
+.ezero-simple-home .ezero-simple-more{background:transparent;border:0;color:#536c5d;text-decoration:underline;min-height:40px}
+@media(max-width:420px){.ezero-simple-home{padding:.8rem}.ezero-contact-call-actions button{min-height:50px}}
