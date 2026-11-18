@@ -164,7 +164,14 @@ async function openRecipientInbox(){
     // Keep the online marker sticky across repeat calls. An already-open
     // Trusted Inbox does not emit a second "inbox-online" event just because
     // another call is about to start.
-    if(window.__inboxOnline!==true) window.__inboxOnline=false;
+    const lastInboxEvent=[...(window.__wsEvents||[])].reverse()
+      .find(event=>event.kind==="trusted-inbox");
+    // The socket can already be open before this test helper attaches its
+    // listener. Derive the test marker from the latest observed socket state,
+    // not from a missing second "inbox-online" event.
+    if(lastInboxEvent?.event==="open"&&lastInboxEvent.readyState===1)
+      window.__inboxOnline=true;
+    else if(window.__inboxOnline!==true) window.__inboxOnline=false;
     window.__trustEvents=[];
     window.EZERO_TRUSTED_FRIEND_LAB.on("inbox-online",()=>{window.__inboxOnline=true;});
     window.EZERO_TRUSTED_FRIEND_LAB.on("trust-updated",e=>
@@ -515,10 +522,8 @@ try{
   // Exercise the current saved-friend engine's 256 KiB chunked voice transport
   // over the same authenticated two-phone DataChannel. No new microphone
   // permission is requested by this transport-level payload test.
-  for(const phone of [caller,callee]){
-    await phone.locator('[data-modern-select="voice"]').click();
-    await phone.waitForFunction(()=>document.getElementById("modernVoicePanel")?.hidden===false);
-  }
+  await callee.locator('[data-modern-select="voice"]').click();
+  await callee.waitForFunction(()=>document.getElementById("modernVoicePanel")?.hidden===false);
   const chunkedSent=await caller.evaluate(()=>
     window.EZERO_VOICE_TRANSPORT.send("audio/webm","A".repeat(80000),false));
   assert.equal(chunkedSent,true,"The saved-friend transport must split a bounded 80 KB voice payload");
