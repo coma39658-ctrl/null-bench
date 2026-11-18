@@ -5,6 +5,9 @@ const {spawnSync}=require('node:child_process');
 const languageRun=spawnSync(process.execPath,['tests/test_ezero_language_preference_staging_20261118.cjs'],{encoding:'utf8'});
 if(languageRun.status!==0)throw new Error('Language preference runtime test failed:\n'+languageRun.stdout+'\n'+languageRun.stderr);
 console.log('PASS language preference runtime regression test');
+const permanentQrRun=spawnSync(process.execPath,['tests/test_ezero_permanent_identity_qr_staging_20261118.cjs'],{encoding:'utf8'});
+if(permanentQrRun.status!==0)throw new Error('Permanent QR runtime test failed:\n'+permanentQrRun.stdout+'\n'+permanentQrRun.stderr);
+console.log('PASS permanent QR runtime regression test');
 const page=fs.readFileSync('ezero_trusted_friends_staging_20261106.html','utf8');
 const js=fs.readFileSync('js/ezero_simple_home_staging_20261113.js','utf8');
 const css=fs.readFileSync('css/ezero_simple_home_staging_20261113.css','utf8');
@@ -12,6 +15,7 @@ const checks=[
  ['new CSS is referenced',()=>assert.match(page,/css\/ezero_simple_home_staging_20261113\.css/)],
  ['new JS is referenced',()=>assert.match(page,/js\/ezero_simple_home_staging_20261113\.js/)],
  ['language preference script is referenced',()=>assert.match(page,/js\/ezero_language_preference_staging_20261118\.js/)],
+ ['permanent QR script and stylesheet are referenced',()=>{assert.match(page,/js\/ezero_permanent_identity_qr_staging_20261118\.js/);assert.match(page,/css\/ezero_permanent_identity_qr_staging_20261118\.css/);}],
  ['original WebRTC signaling is retained',()=>assert.match(page,/ezero_trusted_stage_signaling_v0_1\.js/)],
  ['original saved friend dock is retained',()=>assert.match(page,/id="ezeroContactFirstDock"/)],
  ['Arabic, Urdu and English strings',()=>{for(const x of ['ur:','ar:','en:'])assert.ok(js.includes(x));}],
