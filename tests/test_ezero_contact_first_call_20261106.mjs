@@ -171,7 +171,7 @@ try{
     assert.equal(saved[0].name,friendName);
     assert.ok(saved[0].avatar?.startsWith("data:image/jpeg;base64,"));
   }
-  await caller.locator("#modernHangup").click();
+  await caller.locator("#hangup").click();
   await Promise.all([caller,callee].map(p=>p.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===false,{timeout:15000})));
   const lastInvite=await caller.evaluate(()=>window.__oneInvite);
