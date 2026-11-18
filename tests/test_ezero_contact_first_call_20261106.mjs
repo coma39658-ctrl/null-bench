@@ -304,6 +304,7 @@ try{
     "Selected-contact video call must explicitly request camera AND mic");
   assert.equal(await caller.locator("#ezeroSelectedFriendName").innerText(),"Second Phone");
   await callee.locator("#ezeroTrustedIncoming").waitFor({state:"visible",timeout:15000});
+  const calleeMediaBeforeVideoReview=await callee.evaluate(()=>window.__mediaCalls.length);
   const videoInboxUrl=callee.url();
   await callee.locator("#ezeroTrustedIncoming button").first().click();
   assert.equal(callee.url(),videoInboxUrl,"Repeated incoming video review must remain in-place");
@@ -312,7 +313,8 @@ try{
     "📹 آنے والی ویڈیو کال — قبول کریں؟");
   assert.equal(await callee.evaluate(()=>document.querySelector('input[name="mode"]:checked')?.value),"video",
     "Incoming video invitation must select video media before Accept");
-  assert.equal(await callee.evaluate(()=>window.__mediaCalls.length),0);
+  assert.equal(await callee.evaluate(()=>window.__mediaCalls.length),calleeMediaBeforeVideoReview,
+    "Reviewing an incoming video invitation must not request camera or microphone before Accept");
   await callee.locator("#ezeroAutoAccept").click();
   await Promise.all([caller,callee].map(p=>p.waitForFunction(()=>
     window.EZERO_VOICE_TRANSPORT?.connected()===true,{timeout:45000})));
