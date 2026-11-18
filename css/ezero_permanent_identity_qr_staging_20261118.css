@@ -1,0 +1,8 @@
+.ezero-permanent-qr-card{margin:12px 0;padding:12px;border:1px solid #b6c9bf;border-radius:14px;background:#f4f8f5;color:#17382b;text-align:start}
+.ezero-permanent-qr-card h2{font-size:1.05rem;margin:0 0 6px}
+.ezero-permanent-qr-card p{font-size:.9rem;line-height:1.6;margin:6px 0}
+.ezero-permanent-qr-card button{border:0;border-radius:10px;padding:10px 14px;background:#0b4935;color:#fff;font:inherit}
+#ezeroPermanentQr{display:flex;justify-content:center;align-items:center;margin:10px auto;max-width:260px;background:#fff;padding:8px;border-radius:10px}
+#ezeroPermanentQr svg{display:block;width:100%;height:auto;max-width:244px}
+#ezeroPermanentFingerprint{display:block;overflow-wrap:anywhere;font:12px/1.5 monospace}
+#ezeroPermanentQrStatus{min-height:1.4em}
