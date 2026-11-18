@@ -542,7 +542,7 @@
       if(peer!==p||!event.candidate)return;
       const candidate=event.candidate;
       const kind=candidate.type||
-        /(?:^|\\s)typ\\s(host|srflx|prflx|relay)(?:\\s|$)/.exec(candidate.candidate||"")?.[1];
+        /(?:^|\s)typ\s(host|srflx|prflx|relay)(?:\s|$)/.exec(candidate.candidate||"")?.[1];
       if(Object.hasOwn(iceCounts,kind))iceCounts[kind]=Math.min(999,iceCounts[kind]+1);
       emitIce();
     });
