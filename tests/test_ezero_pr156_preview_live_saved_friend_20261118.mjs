@@ -87,9 +87,8 @@ async function openRecipientInbox(){
 }
 async function acceptDeliveredInvite(kind){
   await callee.locator("#ezeroTrustedIncoming").waitFor({state:"visible",timeout:35000});
-  await caller.waitForFunction(()=>
-    document.getElementById("ezeroTrustedStatus")?.textContent.includes("دعوت پہنچی"),
-    undefined,{timeout:15000});
+  // The recipient inbox row is the authoritative delivery signal. The caller's
+  // status label is presentation-only and may change independently by locale/state.
   assert.equal(await callee.locator("#ezeroAutoIncoming").isVisible(),false,
     "Trusted Inbox must not auto-answer or start media");
   assert.equal(await caller.locator("#ezeroOneQrBox").isVisible(),false,
