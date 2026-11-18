@@ -88,6 +88,14 @@ async function acceptDeliveredInvite(kind){
   const mediaCallsBeforeReview=await callee.evaluate(()=>window.__mediaCalls.length);
   await callee.locator("#ezeroTrustedIncoming button").filter({hasText:"دعوت کھولیں"}).click();
   await callee.locator("#ezeroAutoIncoming").waitFor({state:"visible",timeout:15000});
+  const incomingModeDebug=await callee.evaluate(()=>({
+    selected:window.EZERO_SELECTED_CALL_MODE,active:window.EZERO_ACTIVE_CALL_MODE,
+    heading:document.getElementById("ezeroOneIncomingHeading")?.textContent,
+    inviteHidden:document.getElementById("ezeroAutoIncoming")?.hidden,
+    shellHidden:document.getElementById("ezeroOneIncomingShell")?.hidden,
+    radio:document.querySelector('input[name="mode"]:checked')?.value
+  }));
+  console.log("PR156_INCOMING_MODE_DIAGNOSTIC",JSON.stringify(incomingModeDebug));
   assert.equal(await callee.evaluate(()=>window.__mediaCalls.length),mediaCallsBeforeReview,
     "Reviewing the inbox invitation must not add a new camera or microphone request");
   assert.equal(await callee.evaluate(()=>window.EZERO_SELECTED_CALL_MODE),kind,
