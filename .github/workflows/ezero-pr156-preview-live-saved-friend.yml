@@ -52,7 +52,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --check tests/ezero_pr156_preview_live_saved_friend_20261118.mjs 2>/dev/null || true
           node --check tests/test_ezero_pr156_preview_live_saved_friend_20261118.mjs
           node tests/ezero_saved_friend_hangup_cleanup_contract_20261118.mjs
           node tests/test_ezero_pr156_preview_live_saved_friend_20261118.mjs
