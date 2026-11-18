@@ -22,6 +22,8 @@ const checks=[
  ['camera scanner accepts permanent identity QR',()=>assert.match(identityEngine,/!code\.startsWith\("EZERO2\."\)/)],
  ['gallery QR is decoded locally without uploading the image',()=>{assert.match(permanentQr,/createImageBitmap\(file\)/);assert.match(permanentQr,/new BarcodeDetector/);assert.match(permanentQr,/file\.size>8\*1024\*1024/);assert.doesNotMatch(permanentQr,/fetch\(|XMLHttpRequest/);}],
  ['permanent identity text can be copied for remote pairing',()=>assert.match(permanentQr,/ezeroCopyPermanentIdentity/)],
+ ['verified permanent QR offers explicit local friend save and trust',()=>{assert.match(permanentQr,/ezero:friend-verification/);assert.match(permanentQr,/ezero:friend-local-saved/);assert.match(permanentQr,/setFriendTrust/);assert.match(permanentQr,/nickname:true/);}],
+ ['saved friend public key survives verified-call profile updates',()=>assert.match(fs.readFileSync('js/ezero_profile_first_verified_friends_v0_1.js','utf8'),/identitySpki/)],
  ['original WebRTC signaling is retained',()=>assert.match(page,/ezero_trusted_stage_signaling_v0_1\.js/)],
  ['original saved friend dock is retained',()=>assert.match(page,/id="ezeroContactFirstDock"/)],
  ['Arabic, Urdu and English strings',()=>{for(const x of ['ur:','ar:','en:'])assert.ok(js.includes(x));}],
@@ -33,7 +35,7 @@ const checks=[
  ['simple search forwards to existing friends search',()=>{assert.match(js,/ezeroFriendSideSearch/);assert.match(js,/dispatchEvent\(new Event\("input"/);}],
  ['incoming call panels stay visible',()=>{assert.match(js,/ezeroOneJoinPanel/);assert.match(js,/ezeroTrustedFriendsLab/);}],
  ['saved friends are selected through the existing contact drawer',()=>{assert.match(js,/ezeroFriendListToggle/);assert.match(js,/ezeroFriendSideSearch/);}],
- ['single Add Friend entry opens the existing QR invitation flow',()=>{assert.match(js,/if\(action===\"add\"\)/);assert.match(js,/ezeroAutoStart/);assert.match(js,/پہلا فون/);}],
+ ['single Add Friend entry opens permanent QR scan flow',()=>{assert.match(js,/if\(action==="add"\)/);assert.match(js,/ezeroScanPermanentFriendQr/);assert.match(js,/ezeroCreatePermanentQr/);assert.doesNotMatch(js,/پہلا فون/);}],
  ['pending call QR appears before signaling and is marked unusable until verified',()=>{const signal=fs.readFileSync('js/ezero_trusted_stage_signaling_v0_1.js','utf8');const one=fs.readFileSync('js/ezero_trusted_stage_one_request_v0_1.js','utf8');assert.ok(signal.indexOf('ezero:auto-invite-preview')<signal.indexOf('await connectSocket(session)'));assert.match(one,/ezero:auto-invite-preview/);assert.match(one,/copyBtn\.disabled=!ready/);assert.match(one,/ezero:auto-signal-error/);}],
  ['original advanced options are not deleted',()=>assert.match(js,/ezero-simple-more/)]
 ];
