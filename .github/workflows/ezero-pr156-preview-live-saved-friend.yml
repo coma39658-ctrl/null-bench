@@ -1,0 +1,45 @@
+name: E-ZERO PR156 live saved-friend audio/video acceptance
+on:
+  push:
+    branches: [ezero-pr156-render-preview-20261116]
+    paths:
+      - 'tests/test_ezero_pr156_preview_live_saved_friend_20261118.mjs'
+      - '.github/workflows/ezero-pr156-preview-live-saved-friend.yml'
+permissions:
+  contents: read
+concurrency:
+  group: ezero-pr156-live-saved-friend
+  cancel-in-progress: false
+jobs:
+  two-browser-live-preview:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify the deployed Render preview contains isolated Worker origins
+        shell: bash
+        run: |
+          set -euo pipefail
+          PAGE="https://ezero-save-friend-pr156-preview-v2.onrender.com/ezero_trusted_friends_staging_20261106.html"
+          curl --fail --silent --show-error --retry 8 --retry-delay 3 "$PAGE" -o /tmp/ezero-pr156-page.html
+          grep -Fq 'wss://ezero-browser-signaling-pr156-preview-v2.coma39658.workers.dev' /tmp/ezero-pr156-page.html
+          grep -Fq 'wss://ezero-trusted-inbox-pr156-preview-v2.coma39658.workers.dev' /tmp/ezero-pr156-page.html
+          curl --fail --silent --show-error 'https://ezero-save-friend-pr156-preview-v2.onrender.com/js/ezero_trusted_inbox_stage_config_20261106.js' | grep -Fq 'enabled:true'
+          echo "PR156_RENDER_PREVIEW_ORIGIN_AND_WORKER_ASSETS: PASS"
+      - name: Install isolated Chromium media test runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.57.0
+          npx playwright install --with-deps chromium --only-shell
+      - name: Test QR pairing, saved-friend audio/video, real inbox delivery and explicit accept
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check tests/test_ezero_pr156_preview_live_saved_friend_20261118.mjs
+          node tests/test_ezero_pr156_preview_live_saved_friend_20261118.mjs
