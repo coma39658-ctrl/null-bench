@@ -86,7 +86,7 @@ function boot(origin="https://ezero-test.example"){
  const otherOrigin=boot("https://different-preview-host.example");
  await assert.doesNotReject(()=>otherOrigin.window.EZERO_PERMANENT_IDENTITY_QR.verifyToken(token1),
    "The same permanent app identity must verify across staging and production hostnames");
- const wrongOriginMessage=["EZERO-PERMANENT-IDENTITY-1","https://attacker.example",parts[1],parts[2]].join("\\n");
+ const wrongOriginMessage=["EZERO-PERMANENT-IDENTITY-1","https://attacker.example",parts[1],parts[2]].join("\n");
  const wrongOriginSignature=await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},row.keys.privateKey,
    new TextEncoder().encode(wrongOriginMessage));
  const wrongOriginToken=["EZERO2",parts[1],parts[2],encode(wrongOriginSignature)].join(".");
