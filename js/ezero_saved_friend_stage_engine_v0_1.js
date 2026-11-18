@@ -232,6 +232,7 @@
   let currentLang = "ur", identityPromise = null, identity = null, expectedPeerFingerprint = null;
   let peer = null, channel = null, localStream = null, remoteStream = null, role = null;
   const voiceTransfers=new Map();
+  let remoteVideoTrackReady=false,remoteVideoGuardTimer=null;
   let incoming = null, unreadExpiry = null, viewedExpiry = null, scanStream = null, scanTimeout = null, scanGeneration = 0;
   let micMuted = false, cameraMuted = false;
   const me = key => (langs[currentLang] || {})[key] || $("fallbackNever") || null;
@@ -512,28 +513,29 @@
     return "hd";
   }
   function mediaConstraints() {
-    const useVideo = document.querySelector('input[name="mode"]:checked').value === "video";
-    const requested = quality();
-    const profiles = {saver:[640,360,15],hd:[1280,720,30],full:[1920,1080,30]};
-    const v = profiles[requested] || profiles.hd;
+    const radioMode=document.querySelector('input[name="mode"]:checked')?.value||"audio";
+    const requestedMode=window.EZERO_ACTIVE_CALL_MODE||window.EZERO_SELECTED_CALL_MODE||radioMode;
+    if(requestedMode!==radioMode)throw Error("CALL_MODE_MISMATCH");
+    const requested=quality();
+    const profiles={saver:[640,360,15],hd:[1280,720,30],full:[1920,1080,30]};
+    const v=profiles[requested]||profiles.hd;
     return {audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},
-      video:useVideo?{facingMode:{ideal:"user"},width:{ideal:v[0]},height:{ideal:v[1]},frameRate:{ideal:v[2],max:v[2]}}:false};
+      video:requestedMode==="video"?{facingMode:{ideal:"user"},width:{ideal:v[0]},height:{ideal:v[1]},frameRate:{ideal:v[2],max:v[2]}}:false};
   }
   async function initPeer() {
-    if (peer) throw Error("HANGUP_FIRST");
-    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia || !window.RTCPeerConnection) throw Error("WEBRTC_UNAVAILABLE");
+    if(peer)throw Error("HANGUP_FIRST");
+    if(!window.isSecureContext||!navigator.mediaDevices?.getUserMedia||!window.RTCPeerConnection)
+      throw Error("WEBRTC_UNAVAILABLE");
     await identityPromise;
-    const cfg = {iceServers:$("enableStun").checked?[{urls:"stun:stun.cloudflare.com:3478"}]:[]};
-    const p = new RTCPeerConnection(cfg);peer=p;
-    // Never export raw ICE candidates, IPs, SDP or room tokens. This bounded
-    // transient diagnostic only reports candidate CATEGORY counts and states
-    // to the active page, to distinguish no-route from signaling or camera.
+    const cfg={iceServers:$("enableStun").checked?[{urls:"stun:stun.cloudflare.com:3478"}]:[]};
+    const p=new RTCPeerConnection(cfg);peer=p;
+    remoteVideoTrackReady=false;
+    if(remoteVideoGuardTimer){clearTimeout(remoteVideoGuardTimer);remoteVideoGuardTimer=null;}
     const iceCounts={host:0,srflx:0,prflx:0,relay:0};
     const emitIce=()=>{
       if(peer!==p)return;
       document.dispatchEvent(new CustomEvent("ezero:ice-diagnostic",{
-        detail:{state:p.iceConnectionState,gathering:p.iceGatheringState,
-          counts:{...iceCounts}}
+        detail:{state:p.iceConnectionState,gathering:p.iceGatheringState,counts:{...iceCounts}}
       }));
     };
     p.addEventListener("icecandidate",event=>{
@@ -541,39 +543,65 @@
       const candidate=event.candidate;
       const kind=candidate.type||
         /(?:^|\\s)typ\\s(host|srflx|prflx|relay)(?:\\s|$)/.exec(candidate.candidate||"")?.[1];
-      if(Object.hasOwn(iceCounts,kind))
-        iceCounts[kind]=Math.min(999,iceCounts[kind]+1);
+      if(Object.hasOwn(iceCounts,kind))iceCounts[kind]=Math.min(999,iceCounts[kind]+1);
       emitIce();
     });
     p.addEventListener("icegatheringstatechange",emitIce);
-    remoteStream=new MediaStream(); $("remoteVideo").srcObject=remoteStream;
-    p.ontrack = event => {
-      if (peer !== p) return;
-      if (event.streams?.[0]) { $("remoteVideo").srcObject=event.streams[0]; remoteStream=event.streams[0]; }
-      else {remoteStream.addTrack(event.track);}
-      $("remoteVideo").play().catch(() => { $("playRemote").disabled=false; });
+    remoteStream=new MediaStream();$("remoteVideo").srcObject=remoteStream;
+    p.ontrack=event=>{
+      if(peer!==p)return;
+      if(event.streams?.[0]){$("remoteVideo").srcObject=event.streams[0];remoteStream=event.streams[0];}
+      else remoteStream.addTrack(event.track);
+      if(event.track?.kind==="video"){
+        remoteVideoTrackReady=true;
+        if(remoteVideoGuardTimer){clearTimeout(remoteVideoGuardTimer);remoteVideoGuardTimer=null;}
+        event.track.addEventListener("ended",()=>{
+          remoteVideoTrackReady=false;
+          if(window.EZERO_ACTIVE_CALL_MODE==="video"){
+            status("videoTrackMissing");
+            document.dispatchEvent(new CustomEvent("ezero:call-status",{detail:{stage:"videoTrackMissing"}}));
+            hardHangup(false);
+          }
+        },{once:true});
+        if(p.connectionState==="connected")
+          document.dispatchEvent(new CustomEvent("ezero:call-status",{detail:{stage:"connected"}}));
+      }
+      $("remoteVideo").play().catch(()=>$("playRemote").disabled=false);
     };
     p.onconnectionstatechange=()=>{
       if(peer!==p)return;
       emitIce();
-      if(p.connectionState==="connected") status("connected",p.__ezeroPeerFP?.slice(0,16));
-      else if(p.connectionState==="failed") status("iceNoRoute");
-      else if(p.connectionState==="disconnected") status("offline","disconnected");
-      else if(p.connectionState==="connecting") status("iceChecking");
+      if(p.connectionState==="connected")status("connected",p.__ezeroPeerFP?.slice(0,16));
+      else if(p.connectionState==="failed")status("iceNoRoute");
+      else if(p.connectionState==="disconnected")status("offline","disconnected");
+      else if(p.connectionState==="connecting")status("iceChecking");
     };
     p.oniceconnectionstatechange=()=>{
       if(peer!==p)return;
       emitIce();
-      // ICE 'failed' means there is no viable network route for this exact peer attempt.
-      // Without a provisioned TURN relay we must not promise universal connectivity.
-      if(p.iceConnectionState==="failed") status("iceNoRoute");
-      else if(p.iceConnectionState==="checking") status("iceChecking");
+      if(p.iceConnectionState==="failed")status("iceNoRoute");
+      else if(p.iceConnectionState==="checking")status("iceChecking");
     };
     p.ondatachannel=e=>attachChannel(e.channel);
+    const radioMode=document.querySelector('input[name="mode"]:checked')?.value||"audio";
+    const requestedMode=window.EZERO_ACTIVE_CALL_MODE||window.EZERO_SELECTED_CALL_MODE||radioMode;
     localStream=await navigator.mediaDevices.getUserMedia(mediaConstraints());
-    if(peer!==p){localStream.getTracks().forEach(x=>x.stop());return;}
+    if(peer!==p){localStream.getTracks().forEach(track=>track.stop());return;}
+    if(requestedMode==="video"&&localStream.getVideoTracks().length===0){
+      localStream.getTracks().forEach(track=>track.stop());localStream=null;
+      throw Error("VIDEO_TRACK_REQUIRED");
+    }
     $("localVideo").srcObject=localStream;
     localStream.getTracks().forEach(track=>p.addTrack(track,localStream));
+    if(requestedMode==="video"){
+      remoteVideoGuardTimer=setTimeout(()=>{
+        if(peer===p&&!remoteVideoTrackReady){
+          status("videoTrackMissing");
+          document.dispatchEvent(new CustomEvent("ezero:call-status",{detail:{stage:"videoTrackMissing"}}));
+          hardHangup(false);
+        }
+      },20000);
+    }
     micMuted=false;cameraMuted=false;
     $("muteMic").disabled=false;$("toggleCamera").disabled=localStream.getVideoTracks().length===0;
     role="peer";
@@ -743,7 +771,8 @@
     ["createOffer","acceptOffer","applyAnswer"].forEach(id=>$(id).disabled=true);
     try{await fn();}catch(error) {
       const msg=String(error?.name||error?.message||"ERROR").slice(0,85);
-      const stage=/NotAllowedError|NotFoundError|NotReadableError|OverconstrainedError/.test(msg)
+      const stage=msg.includes("VIDEO_TRACK_REQUIRED")?"videoTrackMissing":
+        /NotAllowedError|NotFoundError|NotReadableError|OverconstrainedError/.test(msg)
         ? "micDenied" : msg.includes("OFFER_REQUIRED") ? "missingOffer" :
           msg.includes("FRIEND_ID_MISMATCH") ? "fingerprintMismatch" : "signalInvalid";
       status(stage,msg);
@@ -861,6 +890,8 @@
     countdown();
   });
   function hardHangup(show=true) {
+    if(remoteVideoGuardTimer){clearTimeout(remoteVideoGuardTimer);remoteVideoGuardTimer=null;}
+    remoteVideoTrackReady=false;window.EZERO_ACTIVE_CALL_MODE=null;
     stopScanner();
     document.dispatchEvent(new CustomEvent("ezero:channel-state",{detail:{connected:false}}));
     if(channel){channel.onmessage=channel.onopen=channel.onclose=null;try{channel.close();}catch(_){}channel=null;}
@@ -883,6 +914,8 @@
     connected:()=>!!channel&&channel.readyState==="open" &&
       peer?.connectionState==="connected" &&
       /^[a-f0-9]{64}$/.test(peer?.__ezeroPeerFP||""),
+    remoteVideoReady:()=>remoteVideoTrackReady&&!!peer&&
+      peer.getReceivers().some(receiver=>receiver.track?.kind==="video"&&receiver.track.readyState==="live"),
     peerFingerprint:()=>!!channel&&channel.readyState==="open" &&
       peer?.connectionState==="connected"?peer.__ezeroPeerFP||"": "",
     send:(name,avatar)=>{
