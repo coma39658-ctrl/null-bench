@@ -92,7 +92,11 @@ panel.addEventListener("click",event=>{
     }
     return;
   }
-  const feature=root.querySelector('[data-modern-select="'+action+'"]');
+  if(action==="chat"||action==="voice"){
+   const workspace=document.getElementById(action==="voice"?"modernVoicePanel":"modernChatPanel");
+   if(workspace)show(workspace);
+ }
+ const feature=root.querySelector('[data-modern-select="'+action+'"]');
  feature?.click();
 });
 simpleSearch.addEventListener("input",()=>{
