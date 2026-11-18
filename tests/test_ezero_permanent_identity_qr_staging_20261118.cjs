@@ -101,7 +101,7 @@ function boot(origin="https://ezero-test.example"){
  const friendBytes=new Uint8Array(await crypto.subtle.exportKey("spki",friendKeys.publicKey));
  const friendSpki=encode(friendBytes);
  const friendFp=Buffer.from(await crypto.subtle.digest("SHA-256",friendBytes)).toString("hex");
- const message=["EZERO-PERMANENT-IDENTITY-1","https://ezero-test.example",friendSpki,friendFp].join("\n");
+ const message=["EZERO-PERMANENT-IDENTITY-1","https://coma39658-ctrl.github.io",friendSpki,friendFp].join("\n");
  const friendSig=await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},friendKeys.privateKey,new TextEncoder().encode(message));
  const friendToken=["EZERO2",friendSpki,friendFp,encode(friendSig)].join(".");
  app.document.dispatchEvent(new app.TestCustomEvent("ezero:friend-verification",{detail:{
