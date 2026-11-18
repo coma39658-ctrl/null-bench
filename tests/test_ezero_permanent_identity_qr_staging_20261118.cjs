@@ -40,11 +40,21 @@ function boot(origin="https://ezero-test.example"){
    createElement:tag=>new Element(tag,(id,el)=>elements.set(id,el))};
  const window={EZERO_DEVICE_IDENTITY_STORE:store,EZERO_DEVICE_IDENTITY_CONTROL:control,
    qrcode:()=>({addData:s=>{lastQr=s;},make(){},createSvgTag:()=>"<svg></svg>"})};
+ const savedEvents=[],trustCalls=[],listeners={};
+ document.addEventListener=(type,fn)=>{(listeners[type]??=[]).push(fn);};
+ document.dispatchEvent=event=>{for(const fn of listeners[event.type]||[])fn(event);return true;};
+ const local={};
+ const localStorage={getItem:k=>local[k]??null,setItem:(k,v)=>{local[k]=String(v);}};
+ const lab={enabled:()=>true,async openOwnerInbox(){trustCalls.push("open");return true;},
+   async setFriendTrust(fp,allowed){trustCalls.push({fp,allowed});return true;}};
+ window.EZERO_TRUSTED_FRIEND_LAB=lab;
  const navigator={clipboard:{writeText:async()=>{}}};
- new Function("document","window","location","crypto","TextEncoder","btoa","atob","navigator",
+ class TestCustomEvent{constructor(type,opts){this.type=type;this.detail=opts?.detail;}}
+ document.addEventListener("ezero:friend-local-saved",event=>savedEvents.push(event.detail));
+ new Function("document","window","location","crypto","TextEncoder","btoa","atob","navigator","localStorage","CustomEvent",
    source)(document,window,{origin},crypto,TextEncoder,
-   s=>Buffer.from(s,"binary").toString("base64"),s=>Buffer.from(s,"base64").toString("binary"),navigator);
- return {home,elements,window};
+   s=>Buffer.from(s,"binary").toString("base64"),s=>Buffer.from(s,"base64").toString("binary"),navigator,localStorage,TestCustomEvent);
+ return {home,elements,window,document,localStorage,local,savedEvents,trustCalls,TestCustomEvent};
 }
 (async()=>{
  let app=boot();
@@ -78,5 +88,31 @@ function boot(origin="https://ezero-test.example"){
  const changed=parts[3][0]==="A"?"B":"A";
  await assert.rejects(()=>app.window.EZERO_PERMANENT_IDENTITY_QR.verify(row,changed+parts[3].slice(1)),
    "Tampered permanent signature must fail closed");
- console.log("EZERO_PERMANENT_QR_CONSENT_STABLE_RELOAD_SHA256_SIGNATURE_TAMPER: PASS");
+ await assert.rejects(()=>app.window.EZERO_PERMANENT_IDENTITY_QR.saveFriend(token1,"Myself"),
+   /SELF_ID/,"A user cannot save their own QR as a friend");
+ const friendKeys=await crypto.subtle.generateKey({name:"ECDSA",namedCurve:"P-256"},false,["sign","verify"]);
+ const friendBytes=new Uint8Array(await crypto.subtle.exportKey("spki",friendKeys.publicKey));
+ const friendSpki=encode(friendBytes);
+ const friendFp=Buffer.from(await crypto.subtle.digest("SHA-256",friendBytes)).toString("hex");
+ const message=["EZERO-PERMANENT-IDENTITY-1","https://ezero-test.example",friendSpki,friendFp].join("\\n");
+ const friendSig=await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},friendKeys.privateKey,new TextEncoder().encode(message));
+ const friendToken=["EZERO2",friendSpki,friendFp,encode(friendSig)].join(".");
+ app.document.dispatchEvent(new app.TestCustomEvent("ezero:friend-verification",{detail:{
+   ok:true,permanent:true,fingerprint:friendFp,token:friendToken,source:"scan"
+ }}));
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(app.elements.get("ezeroPermanentFriendSaveForm").hidden,false,
+   "A verified permanent QR reveals the explicit Save Friend action");
+ app.elements.get("ezeroPermanentFriendName").value="  Friend   One  ";
+ await app.elements.get("ezeroSavePermanentFriend").listeners.click[0]();
+ const friends=JSON.parse(app.localStorage.getItem("ezero_secure_connect_staging_fingerprints_v0_1"));
+ assert.equal(friends[0].fp,friendFp);
+ assert.equal(friends[0].spki,friendSpki);
+ assert.equal(friends[0].identityVersion,2);
+ assert.equal(friends[0].name,"Friend One");
+ assert.equal(friends[0].nickname,true);
+ assert.equal(app.trustCalls[0],"open");
+ assert.deepEqual(app.trustCalls[1],{fp:friendFp,allowed:true});
+ assert.equal(app.savedEvents[0].fp,friendFp);
+ console.log("EZERO_PERMANENT_QR_CONSENT_STABLE_RELOAD_SIGNATURE_GALLERY_SAVE_TRUST: PASS");
 })().catch(error=>{console.error(error);process.exitCode=1;});
