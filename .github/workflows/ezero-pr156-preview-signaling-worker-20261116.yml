@@ -4,6 +4,7 @@ on:
     branches: [ezero-pr156-render-preview-20261116]
     paths:
       - 'signaling/cloudflare/src/worker.js'
+      - 'tests/test_ezero_pr156_preview_worker_smoke_20261118.mjs'
       - 'signaling/cloudflare/wrangler.pr156-preview-v2-20261116.jsonc'
       - '.github/workflows/ezero-pr156-preview-signaling-worker-20261116.yml'
 permissions:
@@ -87,3 +88,10 @@ jobs:
           done
           echo "::error::Isolated Worker health did not return the expected signaling-only response"
           exit 1
+      - name: Live two-peer signaling smoke test
+        env:
+          EZERO_WS_MODULE: /tmp/ezero-pr156-smoke/node_modules/ws
+        run: |
+          set -euo pipefail
+          npm install --prefix /tmp/ezero-pr156-smoke --no-save --no-package-lock ws@8
+          node tests/test_ezero_pr156_preview_worker_smoke_20261118.mjs
