@@ -4,9 +4,9 @@
 Source is the PR staging branch, not the public GitHub Pages deployment.
 Only the explicit call-page dependencies, its privacy page, icons and one CSS
 background are published. No .git, repo docs, secrets, test logs or home site.
-The Trusted Inbox is deliberately disabled for this different site origin:
-its existing signed challenge uses the GitHub Pages origin. QR room signaling
-and signed WebRTC are retained unchanged.
+The Trusted Inbox and QR room signaling use separate isolated Cloudflare Workers.
+This build rewrites only this preview's Worker origins; production GitHub Pages
+and its signaling configuration remain untouched.
 """
 from __future__ import annotations
 
@@ -24,6 +24,7 @@ ROOT = Path(__file__).resolve().parents[1]
 # Fail the staging build if the new signed-inbox browser/Worker origin contract drifts.
 subprocess.run(["node", "tests/ezero_trusted_inbox_staging_origin_contract_20261113.cjs"], cwd=ROOT, check=True)
 subprocess.run(["node", "tests/ezero_inbox_scale_isolation_contract_20261113.cjs"], cwd=ROOT, check=True)
+subprocess.run(["node", "tests/ezero_pr156_preview_trusted_inbox_origin_contract_20261118.cjs"], cwd=ROOT, check=True)
 OUT = ROOT / "dist_ezero_secure_app_two_phone_staging"
 CALL = "ezero_trusted_friends_staging_20261106.html"
 PRIVACY = "ezero_secure_connect_privacy_v0_2.html"
@@ -88,14 +89,11 @@ def put(path: Path) -> None:
         data = (json.dumps(cfg, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
     if relative == "js/ezero_trusted_inbox_stage_config_20261106.js":
         cfg = data.decode("utf-8")
-        needle = "enabled:true"
-        if cfg.count(needle) != 1:
-            raise RuntimeError("Unexpected trusted-inbox configuration: fail closed")
-        cfg = cfg.replace(needle, "enabled:false", 1)
         old_inbox = "wss://ezero-trusted-friends-inbox-staging.coma39658.workers.dev"
-        new_inbox = "wss://ezero-trusted-inbox-simple-home-stage.coma39658.workers.dev"
-        if cfg.count(old_inbox) != 1:
-            raise RuntimeError("Unexpected inbox Worker source: fail closed")
+        new_inbox = "wss://ezero-trusted-inbox-pr156-preview-v2.coma39658.workers.dev"
+        if cfg.count("enabled:true") != 1 or cfg.count(old_inbox) != 1:
+            raise RuntimeError("Unexpected trusted-inbox configuration: fail closed")
+        # Enable only the separately deployed Worker whose Origin is this Render preview.
         cfg = cfg.replace(old_inbox, new_inbox, 1)
         data = cfg.encode("utf-8")
     if relative == "js/ezero_auto_signaling_lab_config_20261106.js":
@@ -130,7 +128,7 @@ if call_html.count(old_ws) != 1:
 call_html = call_html.replace(old_ws, new_ws, 1)
 # Permit only the isolated signed-inbox Worker on the Render preview CSP.
 old_inbox = "wss://ezero-trusted-friends-inbox-staging.coma39658.workers.dev"
-new_inbox = "wss://ezero-trusted-inbox-simple-home-stage.coma39658.workers.dev"
+new_inbox = "wss://ezero-trusted-inbox-pr156-preview-v2.coma39658.workers.dev"
 if call_html.count(old_inbox) != 1:
     raise RuntimeError("Unexpected inbox CSP: fail closed")
 call_html = call_html.replace(old_inbox, new_inbox, 1)
@@ -156,7 +154,7 @@ notice = (
     '<strong>🧪 E-ZERO Secure App — دو فونوں کے لیے ٹیسٹ ورژن</strong> '
     '<span>یہ عوامی پروڈکشن ورژن نہیں ہے۔ SHA: '
     + html.escape(short)
-    + ' · QR کال آزمائیں؛ محفوظ دوست کا Cloudflare Inbox یہاں الگ origin کی وجہ سے بند ہے۔ '
+    + ' · محفوظ دوست کے لیے الگ Preview Inbox موجود ہے؛ کال کی کامیابی صرف حقیقی WebRTC کنکشن سے ثابت ہوگی۔ '
     'نام اور تصویر صرف آپ کی اجازت کے بعد verified WebRTC رابطے پر شیئر ہوتی ہیں۔'
     '</span></aside>')
 call_html = call_html[:body.end()] + "\n" + notice + call_html[body.end():]
@@ -205,7 +203,7 @@ landing = """<!doctype html><html lang="ur" dir="rtl"><head>
 # Browser-accessible, non-secret deployment diagnostic. Never reports a call as working.
 diagnostic = """<!doctype html><html lang="ur" dir="rtl"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src 'self' https://ezero-trusted-inbox-simple-home-stage.coma39658.workers.dev; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src 'self' https://ezero-trusted-inbox-pr156-preview-v2.coma39658.workers.dev; base-uri 'none'">
 <meta name="robots" content="noindex,nofollow"><title>E-ZERO Inbox Diagnostic</title></head>
 <body style="background:#102b22;color:#fff;font:17px system-ui;padding:24px">
 <h1>E-ZERO Inbox — سرور جانچ</h1><p id="result">جانچ شروع نہیں ہوئی</p>
@@ -216,7 +214,7 @@ diagnostic = """<!doctype html><html lang="ur" dir="rtl"><head><meta charset="ut
 (OUT / "inbox-health-staging.html").write_text(diagnostic, encoding="utf-8")
 health_js = """document.getElementById('check').addEventListener('click',async()=>{
 const el=document.getElementById('result');el.textContent='سرور چیک ہو رہا ہے…';
-try{const response=await fetch('https://ezero-trusted-inbox-simple-home-stage.coma39658.workers.dev/health',{cache:'no-store',signal:AbortSignal.timeout(8000)});
+try{const response=await fetch('https://ezero-trusted-inbox-pr156-preview-v2.coma39658.workers.dev/health',{cache:'no-store',signal:AbortSignal.timeout(8000)});
 const data=await response.json();
 el.textContent=response.ok&&data.purpose==='trusted-inbox-staging'?'سرور نے درست جواب دیا؛ WebSocket اور کال ابھی غیر تصدیق شدہ ہیں':'سرور کا جواب غیر متوقع ہے: '+response.status;
 }catch(e){el.textContent='براؤزر سے سرور کی تصدیق نہیں ہوئی (نیٹ ورک یا CORS)';}
@@ -243,13 +241,13 @@ if not (OUT / "js/ezero_profile_first_verified_friends_v0_1.js").is_file():
     raise RuntimeError("Profile gating missing")
 if not (OUT / "secure-connect-staging.webmanifest").is_file():
     raise RuntimeError("Isolated manifest missing")
-if "enabled:false" not in (OUT / "js/ezero_trusted_inbox_stage_config_20261106.js").read_text():
-    raise RuntimeError("Production-origin inbox must be disabled on preview")
+if "enabled:true" not in (OUT / "js/ezero_trusted_inbox_stage_config_20261106.js").read_text():
+    raise RuntimeError("Isolated PR156 preview inbox must remain enabled")
 if "wss://ezero-browser-signaling-render-test.coma39658.workers.dev" not in (OUT / "js/ezero_auto_signaling_lab_config_20261106.js").read_text():
     raise RuntimeError("New Render-origin staging signaling Worker not bound")
-if "wss://ezero-trusted-inbox-simple-home-stage.coma39658.workers.dev" not in (OUT / CALL).read_text():
+if "wss://ezero-trusted-inbox-pr156-preview-v2.coma39658.workers.dev" not in (OUT / CALL).read_text():
     raise RuntimeError("Isolated signed inbox WSS missing from browser CSP")
-if "wss://ezero-trusted-inbox-simple-home-stage.coma39658.workers.dev" not in (OUT / "js/ezero_trusted_inbox_stage_config_20261106.js").read_text():
+if "wss://ezero-trusted-inbox-pr156-preview-v2.coma39658.workers.dev" not in (OUT / "js/ezero_trusted_inbox_stage_config_20261106.js").read_text():
     raise RuntimeError("Isolated signed inbox WSS missing from browser config")
 if "wss://ezero-browser-signaling-render-test.coma39658.workers.dev" not in (OUT / CALL).read_text():
     raise RuntimeError("Render-origin WSS missing from preview Content Security Policy")
