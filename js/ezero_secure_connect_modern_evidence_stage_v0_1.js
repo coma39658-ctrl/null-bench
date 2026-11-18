@@ -437,7 +437,9 @@ $("ezeroVoiceSend").addEventListener("click",async()=>{
  try{
    const bytes=new Uint8Array(await draft.blob.arrayBuffer());
    if(bytes.length>256*1024)throw Error("TOO_LARGE");
-   let binary="";for(let i=0;i<bytes.length;i++)binary+=String.fromCharCode(bytes[i]);
+   let binary="";
+   for(let offset=0;offset<bytes.length;offset+=0x8000)
+     binary+=String.fromCharCode(...bytes.subarray(offset,offset+0x8000));
    const good=window.EZERO_VOICE_TRANSPORT.send(draft.mime,btoa(binary),
        $("ezeroVoiceAllowDownload")?.checked===true);
    if(!good){voiceStatus("sendFail");return;}
