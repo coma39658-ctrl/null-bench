@@ -35,10 +35,11 @@ function boot(origin="https://ezero-test.example"){
  const home=new Element("section");
  const root={querySelector:s=>s===".ezero-simple-home"?home:null};
  const elements=new Map();
- const document={documentElement:{lang:"ur",dir:"rtl"},
+ const document={hidden:false,documentElement:{lang:"ur",dir:"rtl"},
    getElementById:id=>id==="ezeroUnifiedCard"?root:(elements.get(id)||null),
    createElement:tag=>new Element(tag,(id,el)=>elements.set(id,el))};
  const window={EZERO_DEVICE_IDENTITY_STORE:store,EZERO_DEVICE_IDENTITY_CONTROL:control,
+   addEventListener(){},removeEventListener(){},
    qrcode:()=>({addData:s=>{lastQr=s;},make(){},createSvgTag:()=>"<svg></svg>"})};
  const savedEvents=[],trustCalls=[],listeners={},pendingEvents=[];
  document.addEventListener=(type,fn)=>{(listeners[type]??=[]).push(fn);};
