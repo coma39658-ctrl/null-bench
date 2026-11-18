@@ -18,7 +18,7 @@ const checks=[
  ['simple search forwards to existing friends search',()=>{assert.match(js,/ezeroFriendSideSearch/);assert.match(js,/dispatchEvent\(new Event\("input"/);}],
  ['incoming call panels stay visible',()=>{assert.match(js,/ezeroOneJoinPanel/);assert.match(js,/ezeroTrustedFriendsLab/);}],
  ['saved friends are selected through the existing contact drawer',()=>{assert.match(js,/ezeroFriendListToggle/);assert.match(js,/ezeroFriendSideSearch/);}],
- ['single Add Friend entry opens the existing QR invitation flow',()=>{assert.match(js,/if\(action===\"add\"\)/);assert.match(js,/ezeroAutoStart/);assert.match(js,/دوست شامل کرنے کے لیے ایک عارضی QR دعوت تیار کریں/);}],
+ ['single Add Friend entry opens the existing QR invitation flow',()=>{assert.match(js,/if\(action===\"add\"\)/);assert.match(js,/ezeroAutoStart/);assert.match(js,/پہلا فون/);}],
  ['pending call QR appears before signaling and is marked unusable until verified',()=>{const signal=fs.readFileSync('js/ezero_trusted_stage_signaling_v0_1.js','utf8');const one=fs.readFileSync('js/ezero_trusted_stage_one_request_v0_1.js','utf8');assert.ok(signal.indexOf('ezero:auto-invite-preview')<signal.indexOf('await connectSocket(session)'));assert.match(one,/ezero:auto-invite-preview/);assert.match(one,/copyBtn\.disabled=!ready/);assert.match(one,/ezero:auto-signal-error/);}],
  ['original advanced options are not deleted',()=>assert.match(js,/ezero-simple-more/)]
 ];
