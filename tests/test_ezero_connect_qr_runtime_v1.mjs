@@ -11,7 +11,15 @@ try {
   const result = await page.evaluate(async () => {
     const payload = "EZERO1." + "A".repeat(420);
     const svg = window.EZERO_QR.encodeSvg(payload);
-    const file = new File([svg], "ezero-invite.svg", { type: "image/svg+xml" });
+    const bitmap = await createImageBitmap(new Blob([svg], { type: "image/svg+xml" }));
+    const canvas = document.createElement("canvas");
+    canvas.width = 512;
+    canvas.height = 512;
+    const context = canvas.getContext("2d");
+    context.drawImage(bitmap, 0, 0, 512, 512);
+    bitmap.close?.();
+    const png = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+    const file = new File([png], "ezero-invite.png", { type: "image/png" });
     const decoded = await window.EZERO_QR.decodeImageFile(file);
     return {
       svgStartsCorrectly: svg.startsWith("<svg"),
