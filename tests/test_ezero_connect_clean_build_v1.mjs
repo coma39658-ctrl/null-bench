@@ -182,7 +182,7 @@ try {
     });
   });
   await page.locator("#requestCameraPermission").click();
-  await page.waitForFunction(() => document.querySelector("#qrScanStatus").textContent.includes("Camera permission is blocked"));
+  await page.waitForFunction(() => /Camera permission is blocked|کیمرہ اجازت بند ہے/.test(document.querySelector("#qrScanStatus").textContent));
   await page.locator("#createMyQr").click();
   await page.waitForFunction(() => !document.querySelector("#myQrDisplay").hidden);
   const qrPngDataUrl = await page.evaluate(async () => {
