@@ -96,10 +96,55 @@
     });
   });
 
+  function showIdentity(info, existing) {
+    $("identityState").textContent = translations[language].identitySaved;
+    $("identityStatus").textContent = existing ? translations[language].identityExisting : translations[language].identitySaved;
+    $("identityStatus").dataset.kind = "ok";
+    $("identityFingerprint").textContent = info.fingerprint;
+    $("identityFingerprintWrap").hidden = false;
+    $("createIdentity").disabled = true;
+    $("identityConsent").disabled = true;
+  }
+
+  async function initializeIdentity() {
+    const api = window.EZERO_CONNECT_IDENTITY;
+    if (!api) {
+      $("identityStatus").textContent = translations[language].identityError;
+      $("identityStatus").dataset.kind = "error";
+      return;
+    }
+    try {
+      const saved = await api.load();
+      if (saved) showIdentity(saved, true);
+    } catch (_) {
+      $("identityStatus").textContent = translations[language].identityError;
+      $("identityStatus").dataset.kind = "error";
+    }
+  }
+
+  $("createIdentity").addEventListener("click", async () => {
+    if (!$("identityConsent").checked) {
+      $("identityStatus").textContent = translations[language].identityNoConsent;
+      $("identityStatus").dataset.kind = "error";
+      return;
+    }
+    $("createIdentity").disabled = true;
+    $("identityStatus").textContent = "…";
+    try {
+      const result = await window.EZERO_CONNECT_IDENTITY.createAfterConsent(true);
+      showIdentity(result, result.alreadyExisted);
+    } catch (_) {
+      $("identityStatus").textContent = translations[language].identityError;
+      $("identityStatus").dataset.kind = "error";
+      $("createIdentity").disabled = false;
+    }
+  });
+
   // Safety invariant: the clean-build preview has no contact database, no
   // signaling transport and no media access. Calls remain disabled until
   // verified services are implemented and release-gated.
   $("audioCall").disabled = true;
   $("videoCall").disabled = true;
   renderLanguage();
+  initializeIdentity();
 })();
