@@ -61,6 +61,13 @@ function boot(origin="https://ezero-test.example"){
  let app=boot();
  await new Promise(resolve=>setImmediate(resolve));
  assert.equal(row,null,"Page load must not persist a new identity without consent");
+ const scan=app.elements.get("ezeroScanPermanentFriendQr");
+ const gallery=app.elements.get("ezeroGalleryPermanentFriendQr");
+ assert.ok(scan&&!scan.hidden,"Friend QR scanner is available before this phone creates its own QR");
+ assert.ok(gallery&&!gallery.hidden,"Gallery QR picker is available before this phone creates its own QR");
+ await scan.listeners.click[0]();
+ assert.match(app.elements.get("ezeroPermanentQrStatus").textContent,/کیمرہ دستیاب نہیں/,
+   "Scanner action reaches camera capability checks instead of being blocked by missing local QR");
  const create=app.elements.get("ezeroCreatePermanentQr");
  assert.ok(create,"Permanent QR action is present");
  await create.listeners.click[0]();
