@@ -110,6 +110,7 @@ export async function verifyHandshake(hello, attachment, room, now = Date.now())
     throw new Error("HELLO_FIELDS_INVALID");
   }
   if (attachment.challengeExpiresAt <= now) throw new Error("HELLO_CHALLENGE_EXPIRED");
+  if (attachment.origin !== room.origin || attachment.roomId !== room.roomId || !["host", "guest"].includes(attachment.role)) throw new Error("HELLO_ROOM_BINDING_INVALID");
   const digest = await crypto.subtle.digest("SHA-256", decodeBase64url(hello.publicKeySpki));
   if (toFingerprint(digest) !== hello.fingerprint) throw new Error("HELLO_FINGERPRINT_MISMATCH");
   const signed = handshakePayload({
@@ -224,7 +225,8 @@ export class EzeroConnectRoom {
       challengeExpiresAt,
       messageTimes: []
     });
-    await this.ctx.storage.setAlarm(challengeExpiresAt);
+    const existingRoom = await this.ctx.storage.get("room");
+    await this.ctx.storage.setAlarm(existingRoom?.expiresAt || challengeExpiresAt);
     safeSend(server, { type: "challenge", roomId, role, challenge, challengeExpiresAt });
     return new Response(null, { status: 101, webSocket: client });
   }
@@ -241,8 +243,9 @@ export class EzeroConnectRoom {
       if (!attachment) { safeClose(ws); return; }
 
       if (attachment.state === "PENDING") {
+        const helloKeys = Object.keys(parsed || {}).sort().join(",");
         if (!parsed || typeof parsed !== "object" ||
-            Object.keys(parsed).some(key => !["type", "inviteCode", "inviteNonce", "fingerprint", "publicKeySpki", "signature"].includes(key)) ||
+            !["fingerprint,inviteCode,inviteNonce,publicKeySpki,signature,type", "fingerprint,inviteNonce,publicKeySpki,signature,type"].includes(helloKeys) ||
             parsed.type !== "hello" || typeof parsed.inviteNonce !== "string") {
           safeClose(ws, 1008, "hello required");
           return;
