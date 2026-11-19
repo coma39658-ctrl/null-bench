@@ -90,5 +90,7 @@ jobs:
         run: node tests/test_ezero_connect_clean_build_v1.mjs
       - name: Verify QR generation and gallery-image roundtrip
         run: node tests/test_ezero_connect_qr_runtime_v1.mjs
-      - name: Verify mutual approval and encrypted trusted-contact vault\n        run: node tests/test_ezero_connect_trust_v1.mjs\n      - name: State evidence boundary
+      - name: Verify mutual approval and encrypted trusted-contact vault
+        run: node tests/test_ezero_connect_trust_v1.mjs
+      - name: State evidence boundary
         run: echo 'CLEAN_MOBILE_UI_IDENTITY_QR_AND_TWO_PROFILE_TRUST_TESTS_ONLY_NO_LIVE_SIGNALING_NO_PHYSICAL_PHONE_OR_CALL_PROOF'
