@@ -71,3 +71,10 @@ A static comparison was performed between the approved visual preview and the le
 - It emits `ezero:friend-local-saved` and `ezero:friend-local-removed`.
 
 **Conclusion:** the legacy controller is not a drop-in script for the visual preview. Loading it on the preview would fail because required DOM nodes and call/identity adapters are absent. The next implementation must add a deliberate UI adapter and wire it to existing call events; it must not simply append the old script tag. This is a concrete integration blocker identified before any risky code change.
+
+
+## Additional call-history event gap found (2026-11-20)
+
+A follow-up source inspection found that the Saved Friends people controller listens for `ezero:call-intent` to populate call direction and media kind before recording a completed call. The inspected legacy call engine emits `ezero:signal-ready`, `ezero:channel-state`, `ezero:call-status`, and profile events, but does not emit `ezero:call-intent`. The inspected direct-call foreground client sends the selected audio/video mode to its signaling socket, while the inspected people controller still has no demonstrated event bridge from that path.
+
+Therefore the current passing Saved Friends test evidence does **not** prove that the local completed-call history is populated correctly. Do not add a guessed event listener or claim call history works. During adapter implementation, define a narrow, explicit call-intent contract at the call-control boundary (without changing media negotiation), and add tests for incoming/outgoing audio/video metadata before enabling history.
