@@ -57,3 +57,17 @@ The contacts-then-video job records contact selection before media permission, a
 ## Release truth
 
 This branch is **not** a functioning production messenger. The public visual preview remains a visual/navigation preview. The Saved Friends test evidence is valuable and repeatable, but it is not evidence of live Cloudflare Worker delivery or physical-phone operation. Production remains untouched.
+
+
+## DOM and event-contract compatibility inspection (2026-11-20)
+
+A static comparison was performed between the approved visual preview and the legacy Saved Friends candidate.
+
+- The visual preview contains only two HTML IDs; the Saved Friends controller requires 14 IDs.
+- All 14 required controller IDs exist in the legacy staging page, but none of them exist in the visual preview.
+- The controller expects these IDs: `ezeroPeopleHub`, `ezeroPeopleList`, `ezeroFriendSavePanel`, `ezeroSaveConnectedFriend`, `ezeroFriendSaveName`, `ezeroPeopleSearch`, `ezeroPeerAvatar`, `ezeroHistoryConsent`, `ezeroHistoryClear`, `ezeroPeopleStatus`, `ezeroPeerDisplayName`, `ezeroFriendSaveHelp`, `ezeroFriendSaveStatus`, and `language`.
+- It also consumes these document events: `ezero:call-intent`, `ezero:channel-state`, `ezero:call-status`, and `ezero:profile-received`.
+- It expects `window.EZERO_PEER_PROFILE_TRANSPORT` methods `connected()` and `peerFingerprint()`, plus `window.EZERO_DEVICE_IDENTITY_CONTROL.saveAfterConsent()`.
+- It emits `ezero:friend-local-saved` and `ezero:friend-local-removed`.
+
+**Conclusion:** the legacy controller is not a drop-in script for the visual preview. Loading it on the preview would fail because required DOM nodes and call/identity adapters are absent. The next implementation must add a deliberate UI adapter and wire it to existing call events; it must not simply append the old script tag. This is a concrete integration blocker identified before any risky code change.
