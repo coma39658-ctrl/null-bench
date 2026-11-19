@@ -3,6 +3,7 @@
   "name": "ezero-connect-signal-staging-20261120",
   "main": "worker.mjs",
   "compatibility_date": "2026-11-20",
+  "workers_dev": false,
   "durable_objects": {
     "bindings": [
       { "name": "ROOMS", "class_name": "EzeroConnectRoom" }
