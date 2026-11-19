@@ -11,7 +11,7 @@
       privacy:"آپ کی پرائیویسی", privacyText:"کیمرہ اور مائیک صرف آپ کے واضح بٹن دبانے کے بعد مانگے جائیں گے۔ اس پیش نظارہ میں ابھی کوئی کال، پیغام یا دوست محفوظ نہیں کیا جاتا۔",
       footer:"نیا نظام — محفوظ تعمیراتی Preview، ابھی عوامی کال سروس نہیں۔",
       dialogTitle:"دوست شامل کریں", dialogText:"QR شناخت، محفوظ رابطہ اور دونوں طرف منظوری کا نیا نظام ابھی تعمیر کے مرحلے میں ہے۔ اس Preview میں QR یا رابطہ بھیجنے کا جھوٹا دعویٰ نہیں کیا جائے گا۔",
-      close:"بند کریں", searchEmpty:"اس تلاش کے لیے کوئی محفوظ دوست موجود نہیں۔", identityTitle:"اس فون کی محفوظ شناخت", identityState:"ابھی نہیں بنی", identityExplain:"آپ کی منظوری کے بعد اس فون پر ایک نجی شناختی کلید بنے گی۔ نجی کلید اسی ڈیوائس میں رہے گی؛ صرف عوامی شناختی فنگرپرنٹ دکھایا جائے گا۔", identityConsent:"میں اس فون پر غیر قابلِ برآمد نجی کلید بنانے اور اسے مقامی طور پر محفوظ کرنے کی اجازت دیتا/دیتی ہوں۔", identityButton:"اپنی محفوظ شناخت بنائیں", identityStatus:"بغیر اجازت کوئی شناخت نہیں بنائی جائے گی۔", fingerprint:"عوامی شناختی فنگرپرنٹ", identitySaved:"اس فون کی شناخت محفوظ ہو گئی۔", identityExisting:"اس فون کی پہلے سے محفوظ شناخت مل گئی۔", identityNoConsent:"پہلے اجازت والے خانے پر نشان لگائیں۔", identityError:"شناخت محفوظ نہیں ہو سکی۔ محفوظ کنکشن یا براؤزر اسٹوریج چیک کریں۔"
+      close:"بند کریں", searchEmpty:"اس تلاش کے لیے کوئی محفوظ دوست موجود نہیں۔", identityTitle:"اس فون کی محفوظ شناخت", identityState:"ابھی نہیں بنی", identityExplain:"آپ کی منظوری کے بعد اس فون پر ایک نجی شناختی کلید بنے گی۔ نجی کلید اسی ڈیوائس میں رہے گی؛ صرف عوامی شناختی فنگرپرنٹ دکھایا جائے گا۔", identityConsent:"میں اس فون پر غیر قابلِ برآمد نجی کلید بنانے اور اسے مقامی طور پر محفوظ کرنے کی اجازت دیتا/دیتی ہوں۔", identityButton:"اپنی محفوظ شناخت بنائیں", identityStatus:"بغیر اجازت کوئی شناخت نہیں بنائی جائے گی۔", fingerprint:"عوامی شناختی فنگرپرنٹ", identitySaved:"اس فون کی شناخت محفوظ ہو گئی۔", identityExisting:"اس فون کی پہلے سے محفوظ شناخت مل گئی۔", identityNoConsent:"پہلے اجازت والے خانے پر نشان لگائیں۔", identityError:"شناخت محفوظ نہیں ہو سکی۔ محفوظ کنکشن یا براؤزر اسٹوریج چیک کریں۔", qrTitle:"محفوظ QR رابطہ", qrExplain:"پہلی بار دوست سے محفوظ رابطے کے لیے عارضی QR بنائیں یا دوست کا QR اسکین کریں۔ QR صرف 90 سیکنڈ کے لیے کارآمد ہوگا۔", createQr:"میرا QR بنائیں", scanQr:"دوست کا QR اسکین کریں", galleryQr:"گیلری سے QR تصویر منتخب کریں", stopScanner:"اسکین بند کریں", qrNeedIdentity:"QR بنانے یا اسکین کرنے سے پہلے اس فون کی محفوظ شناخت بنائیں۔", qrReady:"آپ کا QR تیار ہے؛ یہ 90 سیکنڈ بعد ختم ہو جائے گا۔", qrVerified:"QR کی دستخطی تصدیق کامیاب ہے۔ اگلے مرحلے میں دونوں طرف منظوری ہوگی۔", qrInvalid:"یہ QR درست یا قابلِ اعتماد نہیں، یا اس کی مدت ختم ہو چکی ہے۔", qrCameraError:"کیمرہ شروع نہیں ہو سکا۔ براؤزر کی اجازت چیک کریں۔", qrGalleryError:"اس تصویر میں قابلِ تصدیق E-ZERO QR نہیں ملا۔", qrExpired:"یہ QR ختم ہو گیا۔ نیا QR بنائیں۔", qrSeconds:"باقی وقت: {n} سیکنڈ"
     },
     en: {
       welcome:"Hello 👋", sub:"Your friends, all in one place", quick:"Quick contact", hint:"Choose a friend",
@@ -22,7 +22,7 @@
       privacy:"Your privacy", privacyText:"Camera and microphone access will only be requested after your explicit action. This preview does not save contacts or send calls or messages.",
       footer:"New system — clean-build preview; public calling is not available yet.",
       dialogTitle:"Add a friend", dialogText:"The new QR identity, secure connection and mutual-approval flow is still being built. This preview will not pretend to scan a QR code or send an invite.",
-      close:"Close", searchEmpty:"No saved friend matches this search.", identityTitle:"This device identity", identityState:"Not created", identityExplain:"After your consent, this device creates a private signing key. The private key stays on this device; only its public fingerprint is shown.", identityConsent:"I consent to creating a non-extractable private key and saving it locally on this device.", identityButton:"Create secure device identity", identityStatus:"No identity will be created without your consent.", fingerprint:"Public identity fingerprint", identitySaved:"This device identity has been saved.", identityExisting:"An existing identity for this device was found.", identityNoConsent:"Please tick the consent box first.", identityError:"Identity could not be saved. Check secure connection and browser storage."
+      close:"Close", searchEmpty:"No saved friend matches this search.", identityTitle:"This device identity", identityState:"Not created", identityExplain:"After your consent, this device creates a private signing key. The private key stays on this device; only its public fingerprint is shown.", identityConsent:"I consent to creating a non-extractable private key and saving it locally on this device.", identityButton:"Create secure device identity", identityStatus:"No identity will be created without your consent.", fingerprint:"Public identity fingerprint", identitySaved:"This device identity has been saved.", identityExisting:"An existing identity for this device was found.", identityNoConsent:"Please tick the consent box first.", identityError:"Identity could not be saved. Check secure connection and browser storage.", qrTitle:"Secure QR connection", qrExplain:"Create a temporary QR for a first secure connection, or scan your friend’s QR. The QR expires after 90 seconds.", createQr:"Create my QR", scanQr:"Scan friend QR", galleryQr:"Choose QR image from gallery", stopScanner:"Stop scanning", qrNeedIdentity:"Create this device’s secure identity before making or scanning a QR.", qrReady:"Your QR is ready and expires in 90 seconds.", qrVerified:"QR signature verified. Both people must approve in the next step.", qrInvalid:"This QR is invalid, untrusted, already used, or expired.", qrCameraError:"Could not start the camera. Check browser permission.", qrGalleryError:"No verifiable E-ZERO QR was found in this image.", qrExpired:"This QR has expired. Create a new one.", qrSeconds:"Expires in {n} seconds"
     },
     ar: {
       welcome:"مرحباً 👋", sub:"أصدقاؤك في مكان واحد", quick:"اتصال سريع", hint:"اختر صديقاً",
@@ -33,7 +33,7 @@
       privacy:"خصوصيتك", privacyText:"لن نطلب إذن الكاميرا والميكروفون إلا بعد إجراء صريح منك. هذه المعاينة لا تحفظ جهات اتصال ولا تجري مكالمات أو ترسل رسائل.",
       footer:"النظام الجديد — معاينة بناء نظيف؛ خدمة الاتصال العامة غير متاحة بعد.",
       dialogTitle:"إضافة صديق", dialogText:"يجري بناء نظام هوية QR والاتصال الآمن والموافقة المتبادلة. لن تدّعي هذه المعاينة مسح رمز أو إرسال دعوة.",
-      close:"إغلاق", searchEmpty:"لا يوجد صديق محفوظ يطابق هذا البحث.", identityTitle:"هوية هذا الجهاز", identityState:"لم تُنشأ بعد", identityExplain:"بعد موافقتك، ينشئ هذا الجهاز مفتاح توقيع خاصاً. يبقى المفتاح الخاص على هذا الجهاز، ويُعرض فقط البصمة العامة.", identityConsent:"أوافق على إنشاء مفتاح خاص غير قابل للتصدير وحفظه محلياً على هذا الجهاز.", identityButton:"إنشاء هوية آمنة للجهاز", identityStatus:"لن يتم إنشاء أي هوية دون موافقتك.", fingerprint:"بصمة الهوية العامة", identitySaved:"تم حفظ هوية هذا الجهاز.", identityExisting:"تم العثور على هوية محفوظة مسبقاً لهذا الجهاز.", identityNoConsent:"يرجى تحديد مربع الموافقة أولاً.", identityError:"تعذر حفظ الهوية. تحقق من الاتصال الآمن ومساحة تخزين المتصفح."
+      close:"إغلاق", searchEmpty:"لا يوجد صديق محفوظ يطابق هذا البحث.", identityTitle:"هوية هذا الجهاز", identityState:"لم تُنشأ بعد", identityExplain:"بعد موافقتك، ينشئ هذا الجهاز مفتاح توقيع خاصاً. يبقى المفتاح الخاص على هذا الجهاز، ويُعرض فقط البصمة العامة.", identityConsent:"أوافق على إنشاء مفتاح خاص غير قابل للتصدير وحفظه محلياً على هذا الجهاز.", identityButton:"إنشاء هوية آمنة للجهاز", identityStatus:"لن يتم إنشاء أي هوية دون موافقتك.", fingerprint:"بصمة الهوية العامة", identitySaved:"تم حفظ هوية هذا الجهاز.", identityExisting:"تم العثور على هوية محفوظة مسبقاً لهذا الجهاز.", identityNoConsent:"يرجى تحديد مربع الموافقة أولاً.", identityError:"تعذر حفظ الهوية. تحقق من الاتصال الآمن ومساحة تخزين المتصفح.", qrTitle:"اتصال QR آمن", qrExplain:"أنشئ رمز QR مؤقتاً للاتصال الأول الآمن أو امسح رمز صديقك. تنتهي صلاحية الرمز بعد 90 ثانية.", createQr:"إنشاء رمز QR الخاص بي", scanQr:"مسح رمز الصديق", galleryQr:"اختيار صورة QR من المعرض", stopScanner:"إيقاف المسح", qrNeedIdentity:"أنشئ هوية آمنة لهذا الجهاز قبل إنشاء رمز QR أو مسحه.", qrReady:"رمز QR جاهز وتنتهي صلاحيته بعد 90 ثانية.", qrVerified:"تم التحقق من توقيع QR. يجب أن يوافق الطرفان في الخطوة التالية.", qrInvalid:"رمز QR غير صالح أو غير موثوق أو مستخدم أو منتهي الصلاحية.", qrCameraError:"تعذر تشغيل الكاميرا. تحقق من إذن المتصفح.", qrGalleryError:"لم يتم العثور على رمز E-ZERO QR قابل للتحقق في هذه الصورة.", qrExpired:"انتهت صلاحية رمز QR. أنشئ رمزاً جديداً.", qrSeconds:"الوقت المتبقي: {n} ثانية"
     }
   };
   let language = "ur";
@@ -49,7 +49,7 @@
       audioLabel:t.audio,videoLabel:t.video,callStatus:t.callStatus,peopleTitle:t.people,
       addFriend:t.add,emptyAdd:t.add,searchFriends:null,tabFriends:t.friends,tabChats:t.chats,
       tabCalls:t.calls,emptyTitle:t.empty,emptyText:t.emptyText,privacyTitle:t.privacy,
-      privacyText:t.privacyText,footerStatus:t.footer,identityTitle:t.identityTitle,identityExplain:t.identityExplain,identityConsentText:t.identityConsent,createIdentity:t.identityButton,identityState:t.identityState,fingerprintLabel:t.fingerprint,dialogTitle:t.dialogTitle,
+      privacyText:t.privacyText,footerStatus:t.footer,identityTitle:t.identityTitle,identityExplain:t.identityExplain,identityConsentText:t.identityConsent,createIdentity:t.identityButton,identityState:t.identityState,fingerprintLabel:t.fingerprint,qrTitle:t.qrTitle,qrExplain:t.qrExplain,createMyQrLabel:t.createQr,scanFriendQrLabel:t.scanQr,chooseGalleryQr:t.galleryQr,stopQrScanner:t.stopScanner,dialogTitle:t.dialogTitle,
       dialogText:t.dialogText,closeDialog:t.close
     };
     for (const [id,value] of Object.entries(map)) if (value !== null && $(id)) $(id).textContent = value;
@@ -104,6 +104,9 @@
     $("identityFingerprint").textContent = info.fingerprint;
     $("identityFingerprintWrap").hidden = false;
     $("createIdentity").disabled = true;
+    $("createMyQr").disabled = false;
+    $("scanFriendQr").disabled = false;
+    $("chooseGalleryQr").disabled = false;
     $("identityConsent").disabled = true;
   }
 
@@ -139,6 +142,112 @@
       $("identityStatus").dataset.kind = "error";
       $("createIdentity").disabled = false;
     }
+  });
+
+
+  let activeInvite = null;
+  let inviteTimer = null;
+  let stopCameraScan = null;
+
+  function setQrStatus(message, kind) {
+    $("qrScanStatus").textContent = message;
+    $("qrScanStatus").dataset.kind = kind || "";
+  }
+
+  function stopQrCamera() {
+    if (stopCameraScan) {
+      stopCameraScan();
+      stopCameraScan = null;
+    }
+    $("qrScannerVideo").hidden = true;
+    $("stopQrScanner").hidden = true;
+    $("qrScannerVideo").srcObject = null;
+  }
+
+  function clearActiveQr() {
+    if (inviteTimer) clearInterval(inviteTimer);
+    inviteTimer = null;
+    activeInvite = null;
+    $("myQrDisplay").hidden = true;
+    $("myQrImage").replaceChildren();
+    $("qrCountdown").textContent = "";
+  }
+
+  async function acceptScannedCode(code) {
+    stopQrCamera();
+    try {
+      const verified = await window.EZERO_CONNECT_INVITES.verifyInvite(code);
+      setQrStatus(translations[language].qrVerified + " " + verified.inviterFingerprint, "ok");
+    } catch (_) {
+      setQrStatus(translations[language].qrInvalid, "error");
+    }
+  }
+
+  $("createMyQr").addEventListener("click", async () => {
+    clearActiveQr();
+    try {
+      if (!window.EZERO_CONNECT_INVITES || !window.EZERO_QR) throw new Error("QR_RUNTIME_UNAVAILABLE");
+      const invite = await window.EZERO_CONNECT_INVITES.createInvite();
+      const svgText = window.EZERO_QR.encodeSvg(invite.inviteCode);
+      const parsed = new DOMParser().parseFromString(svgText, "image/svg+xml");
+      const svg = parsed.documentElement;
+      if (parsed.querySelector("parsererror") || svg.localName !== "svg" ||
+          svg.querySelector("script,foreignObject") ||
+          [...svg.querySelectorAll("*")].some(node => [...node.attributes].some(attr => /^on/i.test(attr.name)))) {
+        throw new Error("QR_SVG_UNSAFE");
+      }
+      svg.setAttribute("role", "img");
+      svg.setAttribute("aria-label", "E-ZERO one-time connection QR");
+      $("myQrImage").replaceChildren(document.importNode(svg, true));
+      $("myQrDisplay").hidden = false;
+      activeInvite = invite;
+      setQrStatus(translations[language].qrReady, "ok");
+      const updateExpiry = () => {
+        const remaining = Math.max(0, Math.ceil((invite.expiresAt - Date.now()) / 1000));
+        $("qrCountdown").textContent = translations[language].qrSeconds.replace("{n}", String(remaining));
+        $("myQrExpiry").textContent = $("qrCountdown").textContent;
+        if (remaining <= 0) {
+          clearActiveQr();
+          setQrStatus(translations[language].qrExpired, "error");
+        }
+      };
+      updateExpiry();
+      inviteTimer = setInterval(updateExpiry, 1000);
+    } catch (_) {
+      setQrStatus(translations[language].qrInvalid, "error");
+    }
+  });
+
+  $("scanFriendQr").addEventListener("click", async () => {
+    stopQrCamera();
+    try {
+      if (!window.EZERO_QR) throw new Error("QR_RUNTIME_UNAVAILABLE");
+      $("qrScannerVideo").hidden = false;
+      $("stopQrScanner").hidden = false;
+      stopCameraScan = await window.EZERO_QR.startCamera($("qrScannerVideo"), code => acceptScannedCode(code));
+    } catch (_) {
+      stopQrCamera();
+      setQrStatus(translations[language].qrCameraError, "error");
+    }
+  });
+
+  $("stopQrScanner").addEventListener("click", stopQrCamera);
+  $("chooseGalleryQr").addEventListener("click", () => $("qrGalleryFile").click());
+  $("qrGalleryFile").addEventListener("change", async () => {
+    const file = $("qrGalleryFile").files?.[0];
+    if (!file) return;
+    try {
+      const code = await window.EZERO_QR.decodeImageFile(file);
+      await acceptScannedCode(code);
+    } catch (_) {
+      setQrStatus(translations[language].qrGalleryError, "error");
+    } finally {
+      $("qrGalleryFile").value = "";
+    }
+  });
+  window.addEventListener("pagehide", () => {
+    stopQrCamera();
+    clearActiveQr();
   });
 
   // Safety invariant: the clean-build preview has no contact database, no
