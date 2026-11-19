@@ -114,5 +114,41 @@
     return { fingerprint: saved.fingerprint, createdAt: saved.createdAt, alreadyExisted: false };
   }
 
-  globalThis.EZERO_CONNECT_IDENTITY = Object.freeze({ load, createAfterConsent });
+
+  function stableCanonical(value) {
+    if (value === null || typeof value === "string" || typeof value === "boolean") return JSON.stringify(value);
+    if (typeof value === "number" && Number.isFinite(value)) return JSON.stringify(value);
+    if (Array.isArray(value)) return "[" + value.map(stableCanonical).join(",") + "]";
+    if (typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype) {
+      return "{" + Object.keys(value).sort().map(key => JSON.stringify(key) + ":" + stableCanonical(value[key])).join(",") + "}";
+    }
+    throw new Error("CANONICAL_PAYLOAD_INVALID");
+  }
+
+  function toBase64Url(bytes) {
+    let binary = "";
+    for (const byte of new Uint8Array(bytes)) binary += String.fromCharCode(byte);
+    return btoa(binary).replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/g, "");
+  }
+
+  async function getPublicIdentity() {
+    const record = validateRecord(await readRecord());
+    const metadata = await publicMetadata(record.publicKey);
+    if (metadata.fingerprint !== record.fingerprint) throw new Error("IDENTITY_FINGERPRINT_MISMATCH");
+    return {
+      algorithm: "ECDSA-P256-SHA256",
+      fingerprint: record.fingerprint,
+      publicKeySpki: toBase64Url(metadata.publicSpki)
+    };
+  }
+
+  async function signCanonical(payload) {
+    const record = validateRecord(await readRecord());
+    const canonical = stableCanonical(payload);
+    const bytes = new TextEncoder().encode(canonical);
+    const signature = await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, record.privateKey, bytes);
+    return toBase64Url(signature);
+  }
+
+  globalThis.EZERO_CONNECT_IDENTITY = Object.freeze({ load, createAfterConsent, getPublicIdentity, signCanonical });
 })();
