@@ -31,6 +31,7 @@ The Worker stores only room metadata, public keys/fingerprints, role and expiry.
 - Max ICE candidate: 2 KiB.
 - Max SDP string: 12 KiB.
 - Per-socket rate: 20 messages per rolling second.
+- Hashed-IP admission limits: 8 host-room attempts/minute and 20 guest-handshake attempts/minute, enforced by separate Durable Objects; raw IP addresses are not persisted.
 - One host and one guest per room.
 
 ## Deployment boundary
