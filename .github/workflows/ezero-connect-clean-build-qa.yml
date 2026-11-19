@@ -8,6 +8,7 @@ on:
       - 'ezero-connect.webmanifest'
       - 'js/ezero_connect_app_v1.js'
       - 'js/ezero_connect_identity_v1.js'
+      - 'js/ezero_connect_invite_v1.js'
       - 'tests/test_ezero_connect_clean_build_v1.mjs'
       - '.github/workflows/ezero-connect-clean-build-qa.yml'
   push:
@@ -36,7 +37,7 @@ jobs:
         with:
           node-version: '22'
       - name: Check JavaScript syntax
-        run: node --check js/ezero_connect_app_v1.js && node --check js/ezero_connect_identity_v1.js && node --check tests/test_ezero_connect_clean_build_v1.mjs
+        run: node --check js/ezero_connect_app_v1.js && node --check js/ezero_connect_identity_v1.js && node --check js/ezero_connect_invite_v1.js && node --check tests/test_ezero_connect_clean_build_v1.mjs
       - name: Install isolated browser test dependency
         run: npm install --no-save --ignore-scripts playwright@1.57.0
       - name: Install Chromium
