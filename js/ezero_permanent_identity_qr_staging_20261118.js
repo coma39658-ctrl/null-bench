@@ -23,10 +23,10 @@ const qr=document.createElement("div");qr.id="ezeroPermanentQr";qr.hidden=true;q
 const fingerprint=document.createElement("output");fingerprint.id="ezeroPermanentFingerprint";fingerprint.hidden=true;
 const copy=document.createElement("button");copy.type="button";copy.id="ezeroCopyPermanentFingerprint";copy.hidden=true;
 const copyId=document.createElement("button");copyId.type="button";copyId.id="ezeroCopyPermanentIdentity";copyId.hidden=true;
-const scan=document.createElement("button");scan.type="button";scan.id="ezeroScanPermanentFriendQr";scan.hidden=true;
+const scan=document.createElement("button");scan.type="button";scan.id="ezeroScanPermanentFriendQr";scan.hidden=false;
 const camera=document.createElement("video");camera.id="ezeroPermanentFriendQrCamera";camera.hidden=true;camera.muted=true;camera.playsInline=true;camera.setAttribute("aria-label","Scan friend permanent QR with camera");camera.style.cssText="display:block;width:100%;max-width:420px;max-height:55vh;object-fit:contain;border-radius:14px;background:#111;margin:10px auto";
 const stopScan=document.createElement("button");stopScan.type="button";stopScan.id="ezeroStopPermanentFriendQrCamera";stopScan.hidden=true;
-const gallery=document.createElement("button");gallery.type="button";gallery.id="ezeroGalleryPermanentFriendQr";gallery.hidden=true;
+const gallery=document.createElement("button");gallery.type="button";gallery.id="ezeroGalleryPermanentFriendQr";gallery.hidden=false;
 const fileInput=document.createElement("input");fileInput.type="file";fileInput.accept="image/*";fileInput.hidden=true;
 const friendForm=document.createElement("div");friendForm.id="ezeroPermanentFriendSaveForm";friendForm.hidden=true;
 const friendNameLabel=document.createElement("label");friendNameLabel.htmlFor="ezeroPermanentFriendName";
@@ -128,7 +128,8 @@ function stopPermanentCamera(){
 }
 stopScan.addEventListener("click",()=>{stopPermanentCamera();status.textContent=t("ready");});
 scan.addEventListener("click",async()=>{
- if(!currentToken){status.textContent=t("missing");create.focus();return;}
+ // Scanning a friend QR must not depend on this phone having generated
+ // its own QR first. The scanned token is independently signature-verified.
  if(!navigator.mediaDevices?.getUserMedia){status.textContent=t("cameraMissing");return;}
  stopPermanentCamera();const generation=cameraGeneration;
  scan.disabled=true;status.textContent=t("cameraActive");
