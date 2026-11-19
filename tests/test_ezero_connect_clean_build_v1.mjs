@@ -12,6 +12,8 @@ const inviteJs = await readFile("js/ezero_connect_invite_v1.js", "utf8");
 const trustJs = await readFile("js/ezero_connect_trust_v1.js", "utf8");
 assert.match(html, /E-ZERO Connect/);
 assert.match(html, /js\/ezero_connect_app_v1\.js/);
+assert.match(html, /id="requestCameraPermission"/);
+assert.match(js, /requestCameraPermission.*addEventListener/);
 assert.doesNotMatch(html, /ezero_trusted_friends_staging|ezero_saved_friend_stage|ezero_saved_friend_stage_engine/);
 assert.doesNotMatch(js, /getUserMedia|RTCPeerConnection|WebSocket|localStorage|indexedDB/);
 assert.ok(html.includes("js/ezero_connect_identity_v1.js"));
@@ -170,6 +172,18 @@ try {
   await page.waitForFunction(() => Boolean(window.EZERO_QR));
   assert.equal(await page.locator("#createMyQr").isDisabled(), false);
   assert.equal(await page.locator("#scanFriendQr").isDisabled(), false);
+  assert.equal(await page.locator("#requestCameraPermission").isDisabled(), false);
+  assert.equal(await page.locator("#requestCameraPermission").isVisible(), true);
+  await page.evaluate(() => {
+    const original = window.EZERO_QR;
+    window.EZERO_QR = Object.freeze({
+      ...original,
+      startCamera: async () => { throw new DOMException("permission denied", "NotAllowedError"); }
+    });
+  });
+  await page.locator("#requestCameraPermission").click();
+  await page.waitForFunction(() => document.querySelector("#qrScanStatus").textContent.includes("Camera permission is blocked"));
+  await page.evaluate(() => { window.EZERO_QR = undefined; });
   await page.locator("#createMyQr").click();
   await page.waitForFunction(() => !document.querySelector("#myQrDisplay").hidden);
   const qrPngDataUrl = await page.evaluate(async () => {
