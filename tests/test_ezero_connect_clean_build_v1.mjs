@@ -170,14 +170,13 @@ try {
   await page.locator("#createMyQr").click();
   await page.waitForFunction(() => !document.querySelector("#myQrDisplay").hidden);
   const qrPngDataUrl = await page.evaluate(async () => {
-    const svg = document.querySelector("#myQrImage svg").outerHTML;
-    const bitmap = await createImageBitmap(new Blob([svg], { type: "image/svg+xml" }));
+    const image = document.querySelector("#myQrImage img");
+    await image.decode();
     const canvas = document.createElement("canvas");
     canvas.width = 512;
     canvas.height = 512;
     const context = canvas.getContext("2d");
-    context.drawImage(bitmap, 0, 0, 512, 512);
-    bitmap.close?.();
+    context.drawImage(image, 0, 0, 512, 512);
     const png = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
     return await new Promise(resolve => {
       const reader = new FileReader();
