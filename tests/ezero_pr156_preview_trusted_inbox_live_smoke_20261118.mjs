@@ -124,17 +124,17 @@ async function liveSignedOwnerHandshake(){
   assert.equal((await cooldown).code,"COOLDOWN");
   console.log("PASS: fresh call rejected by live 30-second cooldown");
 
+  const activeClosed=expectClose(replaySession.ws,"active-caller-revocation");
   const revokeAck=waitMessage(ownerSession.ws,m=>m.t==="trust-updated"||m.t==="error","trust-revoke");
   send(ownerSession.ws,{t:"untrust",fp:caller.fp});
   const revoked=await revokeAck;
   assert.equal(revoked.t,"trust-updated");assert.equal(revoked.trusted,false);
-  const activeClose=await expectClose(replaySession.ws,"active-caller-revocation");
+  const activeClose=await activeClosed;
   assert.equal(activeClose.code,1000);
   console.log("PASS: owner revocation persisted and closed active caller socket");
 
-  const retry=await connect(caller,target,"caller");
-  assert.equal(retry.answer.t,"error");
-  retry.ws.close();
+  await assert.rejects(()=>connect(caller,target,"caller"),/CLOSED_ready-caller_1008/,
+    "Revoked identity must be refused during the next handshake");
   console.log("PASS: revoked caller cannot authenticate again");
   ownerSession.ws.close();
   console.log("STAGING_SECURITY_SMOKE_PASS: synthetic trust revoked; no real contact or media data used");
