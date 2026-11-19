@@ -9,6 +9,9 @@ on:
       - 'js/ezero_connect_app_v1.js'
       - 'js/ezero_connect_identity_v1.js'
       - 'js/ezero_connect_invite_v1.js'
+      - 'scripts/ezero_connect_qr_entry_v1.js'
+      - 'package.json'
+      - 'tests/test_ezero_connect_qr_runtime_v1.mjs'
       - 'tests/test_ezero_connect_clean_build_v1.mjs'
       - '.github/workflows/ezero-connect-clean-build-qa.yml'
   push:
@@ -37,9 +40,11 @@ jobs:
         with:
           node-version: '22'
       - name: Check JavaScript syntax
-        run: node --check js/ezero_connect_app_v1.js && node --check js/ezero_connect_identity_v1.js && node --check js/ezero_connect_invite_v1.js && node --check tests/test_ezero_connect_clean_build_v1.mjs
+        run: node --check js/ezero_connect_app_v1.js && node --check js/ezero_connect_identity_v1.js && node --check js/ezero_connect_invite_v1.js && node --check scripts/ezero_connect_qr_entry_v1.js && node --check tests/test_ezero_connect_clean_build_v1.mjs && node --check tests/test_ezero_connect_qr_runtime_v1.mjs
       - name: Install isolated browser test dependency
-        run: npm install --no-save --ignore-scripts playwright@1.57.0
+        run: npm install --no-audit --no-fund --ignore-scripts playwright@1.57.0 qr@0.7.2 esbuild@0.25.12
+      - name: Build locally hosted QR runtime
+        run: npm run build:ezero-qr
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Serve only on loopback
@@ -55,5 +60,7 @@ jobs:
           exit 1
       - name: Test clean mobile shell behavior and no-legacy boundary
         run: node tests/test_ezero_connect_clean_build_v1.mjs
+      - name: Verify QR generation and gallery-image roundtrip
+        run: node tests/test_ezero_connect_qr_runtime_v1.mjs
       - name: State evidence boundary
-        run: echo 'CLEAN_MOBILE_UI_AND_LOCAL_DEVICE_KEY_TESTS_ONLY_NO_LIVE_QR_NO_SIGNALING_NO_PHYSICAL_PHONE_OR_CALL_PROOF'
+        run: echo 'CLEAN_MOBILE_UI_LOCAL_IDENTITY_AND_QR_TESTS_ONLY_NO_LIVE_SIGNALING_NO_PHYSICAL_PHONE_OR_CALL_PROOF'
