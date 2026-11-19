@@ -134,7 +134,7 @@ export async function verifyHandshake(hello, attachment, room, now = Date.now())
       throw new Error("HELLO_GUEST_IDENTITY_MISMATCH");
     }
   }
-  return { fingerprint: hello.fingerprint, publicKeySpki: hello.publicKeySpki };
+  return { fingerprint: hello.fingerprint, publicKeySpki: hello.publicKeySpki, proof: { payload: signed, signature: hello.signature } };
 }
 
 export function validateSignalMessage(raw, now = Date.now()) {
@@ -315,6 +315,9 @@ export class EzeroConnectRoom {
         if (attachment.role === "guest") {
           room.guestFingerprint = verified.fingerprint;
           room.guestPublicKeySpki = verified.publicKeySpki;
+          room.guestHandshake = verified.proof;
+        } else {
+          room.hostHandshake = verified.proof;
         }
         await this.ctx.storage.put("room", room);
         await this.removePendingChallenge(attachment.challenge, room.expiresAt);
@@ -326,7 +329,7 @@ export class EzeroConnectRoom {
         attachment.messageTimes = [];
         ws.serializeAttachment(attachment);
         safeSend(ws, { type: "hello-accepted", role: attachment.role, roomId: room.roomId, expiresAt: room.expiresAt });
-        this.notifyPeerReady();
+        await this.notifyPeerReady();
         return;
       }
 
@@ -374,7 +377,7 @@ export class EzeroConnectRoom {
     }
   }
 
-  notifyPeerReady() {
+  async notifyPeerReady() {
     const sockets = this.ctx.getWebSockets();
     const host = sockets.find(ws => ws.readyState === 1 && ws.deserializeAttachment()?.state === "AUTHENTICATED" && ws.deserializeAttachment()?.role === "host");
     const guest = sockets.find(ws => ws.readyState === 1 && ws.deserializeAttachment()?.state === "AUTHENTICATED" && ws.deserializeAttachment()?.role === "guest");
@@ -385,10 +388,21 @@ export class EzeroConnectRoom {
       }
       return;
     }
+    const room = await this.ctx.storage.get("room");
     const h = host.deserializeAttachment();
     const g = guest.deserializeAttachment();
-    safeSend(host, { type: "peer-ready", peerFingerprint: g.fingerprint, peerPublicKeySpki: g.publicKeySpki });
-    safeSend(guest, { type: "peer-ready", peerFingerprint: h.fingerprint, peerPublicKeySpki: h.publicKeySpki });
+    safeSend(host, {
+      type: "peer-ready",
+      peerFingerprint: g.fingerprint,
+      peerPublicKeySpki: g.publicKeySpki,
+      peerHandshake: room?.guestHandshake || null
+    });
+    safeSend(guest, {
+      type: "peer-ready",
+      peerFingerprint: h.fingerprint,
+      peerPublicKeySpki: h.publicKeySpki,
+      peerHandshake: room?.hostHandshake || null
+    });
   }
 
   async closeRoom(reason = "closed") {
