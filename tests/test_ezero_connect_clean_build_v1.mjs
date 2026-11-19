@@ -45,6 +45,19 @@ try {
   assert.match(await page.locator("#emptyTitle").innerText(), /No saved friend matches/);
 
   assert.equal(await page.locator("#identityFingerprintWrap").isVisible(), false);
+  const emptyIdentity = await page.evaluate(async () => {
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open("ezero-connect-device-identity", 1);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    return await new Promise((resolve, reject) => {
+      const request = db.transaction("device-keys", "readonly").objectStore("device-keys").get("primary-device");
+      request.onsuccess = () => resolve(request.result === undefined);
+      request.onerror = () => reject(request.error);
+    });
+  });
+  assert.equal(emptyIdentity, true);
   await page.locator("#createIdentity").click();
   assert.match(await page.locator("#identityStatus").innerText(), /Please tick|پہلے اجازت/);
   assert.equal(await page.locator("#identityFingerprintWrap").isVisible(), false);
@@ -66,6 +79,22 @@ try {
     });
   });
   assert.deepEqual(keyPolicy, { extractable: false, type: "private", algorithm: "ECDSA", curve: "P-256" });
+  const signatureValid = await page.evaluate(async () => {
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open("ezero-connect-device-identity", 1);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const record = await new Promise((resolve, reject) => {
+      const request = db.transaction("device-keys", "readonly").objectStore("device-keys").get("primary-device");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const challenge = new TextEncoder().encode("E-ZERO Connect device identity proof v1");
+    const signature = await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, record.privateKey, challenge);
+    return crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, record.publicKey, signature, challenge);
+  });
+  assert.equal(signatureValid, true);
   await page.reload();
   await page.waitForFunction(() => document.querySelector("#identityFingerprint").textContent.length > 30);
   assert.equal(await page.locator("#identityFingerprint").innerText(), fingerprint);
