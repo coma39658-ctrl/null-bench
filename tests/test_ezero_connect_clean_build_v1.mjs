@@ -13,7 +13,7 @@ assert.match(html, /js\/ezero_connect_app_v1\.js/);
 assert.doesNotMatch(html, /ezero_trusted_friends_staging|ezero_saved_friend_stage|ezero_saved_friend_stage_engine/);
 assert.doesNotMatch(js, /getUserMedia|RTCPeerConnection|WebSocket|localStorage|indexedDB/);
 assert.ok(html.includes("js/ezero_connect_identity_v1.js"));
-assert.doesNotMatch(identityJs, /localStorage|sessionStorage|fetch\\(|WebSocket|RTCPeerConnection|getUserMedia/);
+assert.ok(!["localStorage","sessionStorage","fetch(","WebSocket","RTCPeerConnection","getUserMedia"].some(token => identityJs.includes(token)));
 assert.match(identityJs, /extractable !== false/);
 assert.match(identityJs, /EXPLICIT_CONSENT_REQUIRED/);
 assert.doesNotMatch(html, /احمد|سارہ|محمد|فاطمہ|sample profile/i);
