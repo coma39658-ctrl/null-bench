@@ -8,7 +8,7 @@ const root=$("ezeroUnifiedCard");
 const home=root?.querySelector(".ezero-simple-home");
 const store=window.EZERO_DEVICE_IDENTITY_STORE;
 const control=window.EZERO_DEVICE_IDENTITY_CONTROL;
-if(!root||!home||!store||!control)return;
+if(!root||!home)return;
 const words={
  ur:{title:"میرا مستقل QR",help:"یہ آپ کی مستقل ڈیجیٹل شناخت ہے۔ پہلی بار محفوظ کرنے پر نجی کلید اسی براؤزر کے محفوظ اسٹوریج میں رہے گی؛ QR میں صرف عوامی شناخت ہوگی۔",create:"میرا مستقل QR بنائیں",copy:"SHA-256 فنگرپرنٹ کاپی کریں",copyId:"مستقل شناختی کوڈ کاپی کریں",scan:"دوست کا مستقل QR اسکین کریں",gallery:"گیلری سے QR پڑھیں",cameraDenied:"کیمرے کی اجازت نہیں ملی؛ براؤزر کی Site settings میں Camera کی اجازت دیں۔",cameraError:"کیمرہ شروع نہیں ہو سکا؛ دوسری ایپ کا کیمرہ بند کرکے دوبارہ کوشش کریں۔",cameraMissing:"اس فون پر کیمرہ دستیاب نہیں۔",cameraActive:"کیمرہ کھل گیا ہے؛ دوست کا مستقل QR سامنے رکھیں۔",cameraStop:"اسکین بند کریں",galleryWorking:"تصویر میں QR تلاش ہو رہا ہے…",galleryError:"اس تصویر میں درست مستقل E-ZERO QR نہیں ملا۔",invalidQr:"یہ QR درست یا قابلِ تصدیق E-ZERO شناخت نہیں ہے۔",ready:"مستقل QR تیار ہے؛ اسی شناخت کو دوبارہ استعمال کریں۔",working:"محفوظ شناخت بن رہی ہے…",missing:"مستقل شناخت ابھی محفوظ نہیں۔ بٹن دبانے سے اسی موبائل کے براؤزر میں شناخت محفوظ ہوگی۔",error:"مستقل QR تیار نہیں ہوا۔ محفوظ اسٹوریج یا براؤزر سپورٹ چیک کریں۔",copied:"فنگرپرنٹ کاپی ہوگیا۔",copyFail:"فنگرپرنٹ کاپی نہیں ہوسکا۔",friendName:"دوست کا نام",saveFriend:"✓ دوست محفوظ کریں اور کال کی اجازت دیں",verified:"✓ مستقل QR درست ہے۔ اب دوست کا نام لکھ کر محفوظ کریں۔",saved:"دوست اس فون میں محفوظ ہوگیا۔",trustRequested:"دوست محفوظ؛ آنے والی کال کی اجازت کی درخواست بھیج دی گئی۔ دونوں صفحات کھلے رکھیں۔",savedCallsOff:"دوست محفوظ ہے، مگر آنے والی کال کی اجازت فعال نہیں ہوئی۔ دوستوں میں دوبارہ فعال کریں۔",self:"اپنے ہی QR کو دوست کے طور پر شامل نہیں کیا جاسکتا۔",saveError:"دوست محفوظ نہیں ہوا۔ براؤزر اسٹوریج چیک کریں۔"},
  en:{title:"My permanent QR",help:"This is your lasting digital identity. On first creation, the private key stays in this browser's protected storage; the QR contains public identity only.",create:"Create my permanent QR",copy:"Copy SHA-256 fingerprint",copyId:"Copy permanent identity code",scan:"Scan friend's permanent QR",gallery:"Scan QR from gallery",cameraDenied:"Camera permission was denied. Allow Camera in browser site settings.",cameraError:"The camera could not start. Close other camera apps and retry.",cameraMissing:"No camera is available on this phone.",cameraActive:"Camera is open. Point it at your friend’s permanent QR.",cameraStop:"Stop scanning",galleryWorking:"Reading the QR image…",galleryError:"No valid permanent E-ZERO QR was found in this image.",invalidQr:"This QR is not a valid or verifiable E-ZERO identity.",ready:"Permanent QR is ready. Reuse this same identity.",working:"Securing your device identity…",missing:"No permanent identity is saved yet. Tap the button to store this device identity in this browser.",error:"Permanent QR could not be created. Check secure browser storage and support.",copied:"Fingerprint copied.",copyFail:"Could not copy fingerprint.",friendName:"Friend name on this phone",saveFriend:"✓ Save friend & allow calls",verified:"✓ Permanent QR verified. Enter a local name and save this friend.",saved:"Friend saved on this phone.",trustRequested:"Friend saved; incoming-call permission request sent. Keep both app pages open.",savedCallsOff:"Friend saved, but incoming-call permission is not active. Enable it from Friends.",self:"You cannot add your own QR as a friend.",saveError:"Friend could not be saved. Check browser storage."},
@@ -95,6 +95,7 @@ function render(result){
 }
 async function load(){
  try{
+   if(!store||typeof store.read!=="function")throw Error("DEVICE_IDENTITY_STORE_NOT_LOADED");
    const row=await store.read();
    if(!row){status.textContent=t("missing");return;}
    status.textContent=t("working");
@@ -110,6 +111,8 @@ copyId.textContent=t("copyId");scan.textContent=t("scan");stopScan.textContent=t
 create.addEventListener("click",async()=>{
  create.disabled=true;status.textContent=t("working");
  try{
+   if(!store||typeof store.read!=="function")throw Error("DEVICE_IDENTITY_STORE_NOT_LOADED");
+   if(!control||typeof control.saveAfterConsent!=="function")throw Error("DEVICE_IDENTITY_CONTROL_NOT_LOADED");
    const saved=await control.saveAfterConsent();
    if(saved!==true)throw Error("DEVICE_IDENTITY_SAVE_FAILED");
    render(await tokenForSavedIdentity());
@@ -311,6 +314,8 @@ saveFriendButton.addEventListener("click",async()=>{
 });
 window.EZERO_PERMANENT_IDENTITY_QR=Object.freeze({
  async createAfterConsent(){
+   if(!control||typeof control.saveAfterConsent!=="function")throw Error("DEVICE_IDENTITY_CONTROL_NOT_LOADED");
+   if(!store||typeof store.read!=="function")throw Error("DEVICE_IDENTITY_STORE_NOT_LOADED");
    const saved=await control.saveAfterConsent();
    if(saved!==true)throw Error("DEVICE_IDENTITY_SAVE_FAILED");
    return tokenForSavedIdentity();
