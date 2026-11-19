@@ -8,6 +8,8 @@ on:
       - 'tests/ezero_pr156_preview_trusted_inbox_origin_contract_20261118.cjs'
       - 'tests/ezero_pr156_preview_trusted_inbox_live_smoke_20261118.mjs'
       - 'tests/ezero_pr156_trusted_inbox_replay_revocation_contract_20261119.cjs'
+      - 'tests/ezero_pr156_preview_trusted_inbox_ordered_runner_20261119.cjs'
+      - 'docs/EZERO_PR156_TRUSTED_INBOX_TEST_RUNBOOK_20261119.md'
       - '.github/workflows/ezero-pr156-preview-trusted-inbox.yml'
 permissions:
   contents: read
@@ -77,4 +79,4 @@ jobs:
         run: |
           set -euo pipefail
           npm install --no-save --ignore-scripts --no-audit --no-fund ws@8
-          node tests/ezero_pr156_preview_trusted_inbox_live_smoke_20261118.mjs
+          node tests/ezero_pr156_preview_trusted_inbox_ordered_runner_20261119.cjs
