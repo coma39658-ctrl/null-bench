@@ -11,6 +11,7 @@ const ORIGIN="https://ezero-save-friend-pr156-preview-v2.onrender.com";
 const ROOT="https://ezero-trusted-inbox-pr156-preview-v2.coma39658.workers.dev";
 const FINGERPRINT=/^[a-f0-9]{64}$/;
 const TIMEOUT=12000;
+const sockets=new Set();
 const wait=(ms)=>new Promise(resolve=>setTimeout(resolve,ms));
 
 async function httpStatus(path,origin){
@@ -50,6 +51,8 @@ function makeIdentity(){
 async function connect(identity,target,role){
   const ws=new WebSocket(ROOT.replace(/^https:/,"wss:")+"/v1/trusted/"+target,
     {origin:ORIGIN,handshakeTimeout:TIMEOUT,perMessageDeflate:false});
+  sockets.add(ws);
+  ws.once("close",()=>sockets.delete(ws));
   await new Promise((resolve,reject)=>{
     const timer=setTimeout(()=>reject(Error("CONNECT_TIMEOUT_"+role)),TIMEOUT);
     ws.once("open",()=>{clearTimeout(timer);resolve();});
@@ -70,14 +73,14 @@ async function connect(identity,target,role){
   return {ws,answer};
 }
 function send(ws,value){ws.send(JSON.stringify(value));}
-function invite(callId){
+function invite(){
   const room=Buffer.alloc(24,0x5a).toString("base64url");
   const secret=Buffer.alloc(32,0x6b).toString("base64url");
   return "https://ezero-save-friend-pr156-preview-v2.onrender.com/ezero_trusted_friends_staging_20261106.html?mode=audio#room="+room+"."+secret;
 }
-async function expectClose(ws,label){
-  await new Promise((resolve,reject)=>{
-    const timer=setTimeout(()=>{try{ws.terminate();}catch(_){};reject(Error("NOT_CLOSED_"+label));},TIMEOUT);
+function expectClose(ws,label){
+  return new Promise((resolve,reject)=>{
+    const timer=setTimeout(()=>reject(Error("NOT_CLOSED_"+label)),TIMEOUT);
     ws.once("close",(code,reason)=>{clearTimeout(timer);resolve({code,reason:reason.toString()});});
     ws.once("error",error=>{clearTimeout(timer);reject(error);});
   });
@@ -101,7 +104,7 @@ async function liveSignedOwnerHandshake(){
   assert.deepEqual(first.answer,{t:"ready",role:"caller"});
   const callId="11111111111111111111111111111111";
   const incoming=waitMessage(ownerSession.ws,m=>m.t==="incoming","incoming-call");
-  send(first.ws,{t:"call",callId,kind:"audio",invite:invite(callId)});
+  send(first.ws,{t:"call",callId,kind:"audio",invite:invite()});
   const packet=await incoming;
   assert.equal(packet.callId,callId);assert.equal(packet.from,caller.fp);assert.equal(packet.kind,"audio");
   const receipt=waitMessage(first.ws,m=>m.t==="delivered-to-active-tab"||m.t==="error","delivery-receipt");
@@ -109,18 +112,18 @@ async function liveSignedOwnerHandshake(){
   const delivered=await receipt;
   assert.deepEqual(delivered,{t:"delivered-to-active-tab",callId});
   console.log("PASS: invitation reached active owner tab and exact receipt returned");
-  first.ws.close();await wait(TIMEOUT>1000?250:100);
+  first.ws.close();await wait(250);
 
   const replaySession=await connect(caller,target,"caller");
   assert.equal(replaySession.answer.t,"ready");
   const replay=waitMessage(replaySession.ws,m=>m.t==="error","replay-error");
-  send(replaySession.ws,{t:"call",callId,kind:"audio",invite:invite(callId)});
+  send(replaySession.ws,{t:"call",callId,kind:"audio",invite:invite()});
   assert.equal((await replay).code,"REPLAY");
   console.log("PASS: same call ID rejected by live replay window");
 
   const cooldown=waitMessage(replaySession.ws,m=>m.t==="error","cooldown-error");
   const freshCall="22222222222222222222222222222222";
-  send(replaySession.ws,{t:"call",callId:freshCall,kind:"audio",invite:invite(freshCall)});
+  send(replaySession.ws,{t:"call",callId:freshCall,kind:"audio",invite:invite()});
   assert.equal((await cooldown).code,"COOLDOWN");
   console.log("PASS: fresh call rejected by live 30-second cooldown");
 
@@ -136,8 +139,16 @@ async function liveSignedOwnerHandshake(){
   await assert.rejects(()=>connect(caller,target,"caller"),/CLOSED_ready-caller_1008/,
     "Revoked identity must be refused during the next handshake");
   console.log("PASS: revoked caller cannot authenticate again");
-  ownerSession.ws.close();
   console.log("STAGING_SECURITY_SMOKE_PASS: synthetic trust revoked; no real contact or media data used");
+}
+async function cleanup(){
+  for(const ws of sockets){
+    try{ws.close(1000,"test-cleanup");}catch(_){}
+  }
+  await wait(300);
+  for(const ws of sockets){
+    try{ws.terminate();}catch(_){}
+  }
 }
 async function main(){
   assert.equal(await httpStatus("/",ORIGIN),404,"Unknown route must remain non-discoverable");
@@ -150,5 +161,7 @@ async function main(){
   console.log("PASS: HTTP transport bypass rejected (426)");
   await liveSignedOwnerHandshake();
 }
-main().catch(error=>{console.error("STAGING_SECURITY_SMOKE_FAIL",error.stack||error.message);
-  process.exitCode=1;});
+main().catch(error=>{
+  console.error("STAGING_SECURITY_SMOKE_FAIL",error.stack||error.message);
+  process.exitCode=1;
+}).finally(cleanup);
