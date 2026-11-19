@@ -193,6 +193,44 @@ function safeClose(ws, code = 1008, reason = "connection rejected") {
   } catch (_) {}
 }
 
+export class EzeroConnectRateLimit {
+  constructor(ctx) {
+    this.ctx = ctx;
+  }
+
+  async fetch(request) {
+    const url = new URL(request.url);
+    const bucket = url.searchParams.get("bucket");
+    const now = Date.now();
+    const policy = bucket === "room" ? { limit: 8, windowMs: 60_000 } : { limit: 20, windowMs: 60_000 };
+    const current = await this.ctx.storage.get("window");
+    const window = current && now - current.startedAt < policy.windowMs
+      ? current
+      : { startedAt: now, count: 0 };
+    if (window.count >= policy.limit) {
+      return new Response("Rate limited", { status: 429, headers: { "Retry-After": String(Math.max(1, Math.ceil((window.startedAt + policy.windowMs - now) / 1000))) } });
+    }
+    window.count += 1;
+    await this.ctx.storage.put("window", window);
+    await this.ctx.storage.setAlarm(window.startedAt + policy.windowMs);
+    return new Response("OK", { status: 200 });
+  }
+
+  async alarm() {
+    await this.ctx.storage.deleteAll();
+  }
+}
+
+async function enforceIpRateLimit(env, request, bucket) {
+  const ip = request.headers.get("CF-Connecting-IP");
+  if (!ip) return false;
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("ezero-connect-rate-v1:" + ip + ":" + bucket));
+  const name = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
+  const id = env.RATE_LIMITER.idFromName(name);
+  const response = await env.RATE_LIMITER.get(id).fetch("https://rate-limit.internal/");
+  return response.status === 200;
+}
+
 export class EzeroConnectRoom {
   constructor(ctx, env) {
     this.ctx = ctx;
@@ -476,6 +514,8 @@ export default {
     if (!match || !["host", "guest"].includes(url.searchParams.get("role"))) {
       return new Response("Not found", { status: 404 });
     }
+    const bucket = url.searchParams.get("role") === "host" ? "room" : "handshake";
+    if (!await enforceIpRateLimit(env, request, bucket)) return new Response("Rate limited", { status: 429, headers: { "Cache-Control": "no-store" } });
     const id = env.ROOMS.idFromName(match[1]);
     return env.ROOMS.get(id).fetch(request);
   }
