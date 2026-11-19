@@ -316,6 +316,7 @@ export class EzeroConnectRoom {
         let room = await this.ctx.storage.get("room");
         const now = Date.now();
         if (!room) {
+          if (attachment.role !== "host") { safeClose(ws, 1008, "host must initialize room first"); return; }
           if (typeof parsed.inviteCode !== "string") { safeClose(ws, 1008, "signed invite required"); return; }
           const invite = await verifyInviteCode(parsed.inviteCode, this.env.PUBLIC_ORIGIN, attachment.roomId, now);
           if (parsed.inviteNonce !== invite.nonce) { safeClose(ws, 1008, "invite nonce mismatch"); return; }
