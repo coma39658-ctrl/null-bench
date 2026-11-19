@@ -199,6 +199,22 @@ export class EzeroConnectRoom {
     this.env = env;
   }
 
+  async scheduleAlarm(roomExpiresAt) {
+    const pending = await this.ctx.storage.get("pendingChallenges") || {};
+    const deadlines = Object.values(pending).filter(value => Number.isSafeInteger(value) && value > Date.now());
+    if (Number.isSafeInteger(roomExpiresAt) && roomExpiresAt > Date.now()) deadlines.push(roomExpiresAt);
+    if (deadlines.length) await this.ctx.storage.setAlarm(Math.min(...deadlines));
+    else await this.ctx.storage.deleteAlarm();
+  }
+
+  async removePendingChallenge(challenge, roomExpiresAt) {
+    const pending = await this.ctx.storage.get("pendingChallenges") || {};
+    delete pending[challenge];
+    if (Object.keys(pending).length) await this.ctx.storage.put("pendingChallenges", pending);
+    else await this.ctx.storage.delete("pendingChallenges");
+    await this.scheduleAlarm(roomExpiresAt);
+  }
+
   async fetch(request) {
     const url = new URL(request.url);
     const roomId = url.pathname.split("/").pop() || "";
@@ -211,8 +227,17 @@ export class EzeroConnectRoom {
     if (!/^[A-Za-z0-9_-]{32}$/.test(roomId) || !["host", "guest"].includes(role)) {
       return new Response("Room or role invalid", { status: 400 });
     }
+    const now = Date.now();
+    const existingPending = this.ctx.getWebSockets().some(ws => {
+      const state = ws.deserializeAttachment();
+      return state?.state === "PENDING" && state.role === role && state.challengeExpiresAt > now;
+    });
+    if (existingPending) return new Response("Role handshake already pending", { status: 409 });
     const challenge = randomBase64url(32);
-    const challengeExpiresAt = Date.now() + CHALLENGE_TTL_MS;
+    const challengeExpiresAt = now + CHALLENGE_TTL_MS;
+    const pendingChallenges = await this.ctx.storage.get("pendingChallenges") || {};
+    pendingChallenges[challenge] = challengeExpiresAt;
+    await this.ctx.storage.put("pendingChallenges", pendingChallenges);
     const pair = new WebSocketPair();
     const [client, server] = Object.values(pair);
     this.ctx.acceptWebSocket(server);
@@ -226,7 +251,7 @@ export class EzeroConnectRoom {
       messageTimes: []
     });
     const existingRoom = await this.ctx.storage.get("room");
-    await this.ctx.storage.setAlarm(existingRoom?.expiresAt || challengeExpiresAt);
+    await this.scheduleAlarm(existingRoom?.expiresAt);
     safeSend(server, { type: "challenge", roomId, role, challenge, challengeExpiresAt });
     return new Response(null, { status: 101, webSocket: client });
   }
@@ -292,7 +317,7 @@ export class EzeroConnectRoom {
           room.guestPublicKeySpki = verified.publicKeySpki;
         }
         await this.ctx.storage.put("room", room);
-        await this.ctx.storage.setAlarm(room.expiresAt);
+        await this.removePendingChallenge(attachment.challenge, room.expiresAt);
         attachment.state = "AUTHENTICATED";
         attachment.fingerprint = verified.fingerprint;
         attachment.publicKeySpki = verified.publicKeySpki;
@@ -376,6 +401,10 @@ export class EzeroConnectRoom {
 
   async webSocketClose(ws, code, reason) {
     const attachment = ws.deserializeAttachment();
+    if (attachment?.state === "PENDING") {
+      const room = await this.ctx.storage.get("room");
+      await this.removePendingChallenge(attachment.challenge, room?.expiresAt);
+    }
     if (attachment?.state === "AUTHENTICATED") {
       const peer = this.ctx.getWebSockets().find(other => {
         if (other === ws || other.readyState !== 1) return false;
@@ -394,7 +423,23 @@ export class EzeroConnectRoom {
   }
 
   async alarm() {
-    await this.closeRoom("expired");
+    const now = Date.now();
+    const pending = await this.ctx.storage.get("pendingChallenges") || {};
+    for (const [challenge, expiresAt] of Object.entries(pending)) {
+      if (expiresAt <= now) {
+        const ws = this.ctx.getWebSockets().find(socket => socket.deserializeAttachment()?.challenge === challenge);
+        if (ws) safeClose(ws, 1008, "handshake challenge expired");
+        delete pending[challenge];
+      }
+    }
+    if (Object.keys(pending).length) await this.ctx.storage.put("pendingChallenges", pending);
+    else await this.ctx.storage.delete("pendingChallenges");
+    const room = await this.ctx.storage.get("room");
+    if (room && room.expiresAt <= now) {
+      await this.closeRoom("expired");
+      return;
+    }
+    await this.scheduleAlarm(room?.expiresAt);
   }
 }
 
