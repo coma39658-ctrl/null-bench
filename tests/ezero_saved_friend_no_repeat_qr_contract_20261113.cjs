@@ -27,6 +27,19 @@ const cases=[
  ['inbox config remains explicitly staging',()=>assert.match(config,/pre-release-test/)],
  ['recipient must accept before saving friend',()=>assert.match(profile,/pairIntent\.role==="recipient"&&d\.signalType!=="offer"/)]
 ];
+cases.push(
+ ['permanent QR scanner UI does not depend on local identity store',()=>{
+   const qr=read('js/ezero_permanent_identity_qr_staging_20261118.js');
+   assert.match(qr,/if\(!root\|\|!home\)return/);
+   assert.doesNotMatch(qr,/if\(!root\|\|!home\|\|!store\|\|!control\)return/);
+   assert.match(qr,/DEVICE_IDENTITY_STORE_NOT_LOADED/);
+   assert.match(qr,/ezeroScanPermanentFriendQr/);
+   assert.match(qr,/ezeroGalleryPermanentFriendQr/);
+ }],
+ ['saved-friend foreground inbox remains explicitly experimental',()=>{
+   assert.match(inbox,/EXPERIMENTAL; not loaded by public site, not deployed/);
+ }]
+);
 let failed=0;
 for(const [name,fn] of cases){try{fn();console.log('PASS',name)}catch(e){failed++;console.error('FAIL',name,e.message)}}
 console.log('Source contracts:',cases.length-failed,'PASS,',failed,'FAIL');
