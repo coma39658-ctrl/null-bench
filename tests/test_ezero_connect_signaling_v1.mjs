@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import {
   stableCanonical,
   verifyInviteCode,
@@ -117,4 +118,12 @@ assert.throws(() => validateSignalMessage(JSON.stringify({ type: "call-invite", 
 assert.throws(() => validateSignalMessage(JSON.stringify({ type: "offer", sentAt: now - 60_000, payload: { sdp: "v=0" } }), now), /SIGNAL_MESSAGE_INVALID/);
 assert.throws(() => validateSignalMessage("x".repeat(17_000), now), /SIGNAL_MESSAGE_TOO_LARGE/);
 
+const workerSource = await readFile("signaling/ezero-connect-v1/worker.mjs", "utf8");
+assert.match(workerSource, /new WebSocketPair\(/);
+assert.match(workerSource, /acceptWebSocket\(/);
+assert.match(workerSource, /serializeAttachment\(/);
+assert.match(workerSource, /storage\.put\("room", room\)/);
+assert.match(workerSource, /storage\.put\("pendingChallenges", pendingChallenges\)/);
+assert.doesNotMatch(workerSource, /storage\.put\(["'](?:messages|sdp|ice|payload)["']/i);
+assert.doesNotMatch(workerSource, /console\.(?:log|info|warn|error)\(/);
 console.log("EZERO_SIGNALING_INVITE_HANDSHAKE_MESSAGE_GATES_PASS");
