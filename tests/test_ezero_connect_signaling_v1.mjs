@@ -5,7 +5,8 @@ import {
   verifyInviteCode,
   handshakePayload,
   verifyHandshake,
-  validateSignalMessage
+  validateSignalMessage,
+  EzeroConnectRateLimit
 } from "../signaling/ezero-connect-v1/worker.mjs";
 
 const encoder = new TextEncoder();
@@ -127,3 +128,24 @@ assert.match(workerSource, /storage\.put\("pendingChallenges", pendingChallenges
 assert.doesNotMatch(workerSource, /storage\.put\(["'](?:messages|sdp|ice|payload)["']/i);
 assert.doesNotMatch(workerSource, /console\.(?:log|info|warn|error)\(/);
 console.log("EZERO_SIGNALING_INVITE_HANDSHAKE_MESSAGE_GATES_PASS");
+
+const rateState = new Map();
+const rateContext = {
+  storage: {
+    async get(key) { return rateState.get(key); },
+    async put(key, value) { rateState.set(key, value); },
+    async setAlarm(value) { rateState.set("alarm", value); },
+    async deleteAll() { rateState.clear(); }
+  }
+};
+const rateLimiter = new EzeroConnectRateLimit(rateContext);
+for (let i = 0; i < 8; i++) assert.equal((await rateLimiter.fetch(new Request("https://rate-limit.internal/?bucket=room"))).status, 200);
+const blockedRoom = await rateLimiter.fetch(new Request("https://rate-limit.internal/?bucket=room"));
+assert.equal(blockedRoom.status, 429);
+assert.ok(Number(blockedRoom.headers.get("Retry-After")) > 0);
+await rateLimiter.alarm();
+for (let i = 0; i < 20; i++) assert.equal((await rateLimiter.fetch(new Request("https://rate-limit.internal/?bucket=handshake"))).status, 200);
+assert.equal((await rateLimiter.fetch(new Request("https://rate-limit.internal/?bucket=handshake"))).status, 429);
+
+console.log("EZERO_SIGNALING_HASHED_IP_RATE_LIMIT_CONTRACT_PASS");
+
