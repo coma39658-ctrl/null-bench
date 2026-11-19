@@ -5,6 +5,8 @@ on:
     paths:
       - 'signaling/cloudflare/src/trusted_inbox_pr156_preview_v2.js'
       - 'signaling/cloudflare/wrangler.trusted-pr156-preview-v2.jsonc'
+      - 'js/ezero_trusted_inbox_stage_config_20261106.js'
+      - 'ezero_trusted_friends_staging_20261106.html'
       - 'tests/ezero_pr156_preview_trusted_inbox_origin_contract_20261118.cjs'
       - 'tests/ezero_pr156_preview_trusted_inbox_live_smoke_20261118.mjs'
       - 'tests/ezero_pr156_trusted_inbox_replay_revocation_contract_20261119.cjs'
