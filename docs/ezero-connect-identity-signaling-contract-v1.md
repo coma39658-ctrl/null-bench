@@ -16,11 +16,11 @@ Status: design contract for clean implementation; not a security certification.
 The QR carries a versioned, short-lived invite envelope:
 - protocol version and exact allowed origin;
 - inviter public key and fingerprint;
-- cryptographically random one-time room identifier and guest secret;
+- cryptographically random one-time room identifier;
 - creation and expiry timestamps (maximum lifetime 90 seconds for the QR invitation);
 - signed canonical payload.
 
-The receiving device verifies the signature, origin, fingerprint, expiry, and replay status before presenting the approval screen. The QR is single-use. A QR scan is not consent and must never auto-answer a call.
+The receiving device verifies the signature, origin, fingerprint, expiry, and replay status before presenting the approval screen. The QR is single-use. The invite contains no unused bearer secret; the live signaling handshake is separately signed by each device key. A QR scan is not consent and must never auto-answer a call.
 
 ## 3. Mutual trust
 
@@ -35,7 +35,7 @@ The receiving device verifies the signature, origin, fingerprint, expiry, and re
 
 - Use a dedicated Cloudflare Worker and Durable Object namespace, separate from unrelated E-ZERO services.
 - Enforce exact `Origin`, HTTPS/WSS only, strict payload sizes, message allowlist, per-IP/per-room rate limits and room expiry.
-- Room secrets are random and scoped to one room and one role. Store only cryptographic hashes and expiry metadata.
+- No bearer room secret is placed in the QR. Room access is authenticated with short-lived signed challenges bound to the device public key, role, room ID and invite nonce.
 - Forward only offer/answer/ICE/hangup messages; never persist SDP, ICE candidates, chat, audio, video, profile photos or contact lists.
 - A room expires after at most 10 minutes. QR invite expiry remains shorter (90 seconds).
 - Close duplicate role connections and all sockets on expiry/revocation.
