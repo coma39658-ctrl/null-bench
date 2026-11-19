@@ -169,12 +169,26 @@ try {
   assert.equal(await page.locator("#scanFriendQr").isDisabled(), false);
   await page.locator("#createMyQr").click();
   await page.waitForFunction(() => !document.querySelector("#myQrDisplay").hidden);
-  const qrSvg = await page.locator("#myQrImage svg").evaluate(node => node.outerHTML);
-  assert.match(qrSvg, /<svg[\s>]/);
+  const qrPngDataUrl = await page.evaluate(async () => {
+    const svg = document.querySelector("#myQrImage svg").outerHTML;
+    const bitmap = await createImageBitmap(new Blob([svg], { type: "image/svg+xml" }));
+    const canvas = document.createElement("canvas");
+    canvas.width = 512;
+    canvas.height = 512;
+    const context = canvas.getContext("2d");
+    context.drawImage(bitmap, 0, 0, 512, 512);
+    bitmap.close?.();
+    const png = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+    return await new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(png);
+    });
+  });
   await page.locator("#qrGalleryFile").setInputFiles({
-    name: "ezero-invite.svg",
-    mimeType: "image/svg+xml",
-    buffer: Buffer.from(qrSvg)
+    name: "ezero-invite.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(qrPngDataUrl.split(",")[1], "base64")
   });
   await page.waitForFunction(() => !document.querySelector("#qrScanStatus").textContent.includes("آپ کا QR تیار ہے") && !document.querySelector("#qrScanStatus").textContent.includes("Your QR is ready") && !document.querySelector("#qrScanStatus").textContent.includes("رمز QR جاهز"));
   assert.match(await page.locator("#qrScanStatus").innerText(), /QR signature verified|دستخطی تصدیق کامیاب|تم التحقق من توقيع/);
