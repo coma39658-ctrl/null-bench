@@ -7,6 +7,7 @@ on:
       - 'signaling/cloudflare/wrangler.trusted-pr156-preview-v2.jsonc'
       - 'tests/ezero_pr156_preview_trusted_inbox_origin_contract_20261118.cjs'
       - 'tests/ezero_pr156_preview_trusted_inbox_live_smoke_20261118.mjs'
+      - 'tests/ezero_pr156_trusted_inbox_replay_revocation_contract_20261119.cjs'
       - '.github/workflows/ezero-pr156-preview-trusted-inbox.yml'
 permissions:
   contents: read
@@ -24,11 +25,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify isolated origin and signed challenge contracts
+      - name: Verify isolated origin, replay and revocation contracts
         run: |
           set -euo pipefail
           node --check tests/ezero_pr156_preview_trusted_inbox_origin_contract_20261118.cjs
           node tests/ezero_pr156_preview_trusted_inbox_origin_contract_20261118.cjs
+          node --check tests/ezero_pr156_trusted_inbox_replay_revocation_contract_20261119.cjs
+          node tests/ezero_pr156_trusted_inbox_replay_revocation_contract_20261119.cjs
           node --check tests/ezero_pr156_preview_trusted_inbox_live_smoke_20261118.mjs
           grep -Fq 'const ORIGIN="https://ezero-save-friend-pr156-preview-v2.onrender.com"' signaling/cloudflare/src/trusted_inbox_pr156_preview_v2.js
           grep -Fq '"PUBLIC_ORIGIN": "https://ezero-save-friend-pr156-preview-v2.onrender.com"' signaling/cloudflare/wrangler.trusted-pr156-preview-v2.jsonc
