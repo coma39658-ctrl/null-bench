@@ -4,7 +4,7 @@ import {chromium} from "playwright";
 const base="http://127.0.0.1:8769/";
 const pagePath="ezero_trusted_friends_staging_20261106.html";
 const publicOrigin="https://coma39658-ctrl.github.io/null-bench/";
-const trustedInbox="wss://ezero-trusted-friends-inbox-staging.coma39658.workers.dev";
+const trustedInbox="wss://ezero-trusted-inbox-pr156-preview-v2.coma39658.workers.dev";
 const service="wss://ezero-browser-signaling-pilot.coma39658.workers.dev/v1/rooms/";
 const browser=await chromium.launch({headless:true,
   args:["--no-sandbox","--use-fake-device-for-media-stream",
