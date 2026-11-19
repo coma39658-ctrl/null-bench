@@ -121,11 +121,13 @@ try {
   assert.equal(expiredResult, "INVITE_EXPIRED_OR_TIME_INVALID");
 
   const tamperedCode = await page.evaluate((code) => {
-    const raw = atob(code.slice(7).replaceAll("-", "+").replaceAll("_", "/") + "=".repeat((4 - (code.length - 7) % 4) % 4));
-    const envelope = JSON.parse(raw);
+    const padded = code.slice(7).replaceAll("-", "+").replaceAll("_", "/") + "=".repeat((4 - (code.length - 7) % 4) % 4);
+    const binary = atob(padded);
+    const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+    const envelope = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
     const first = envelope.payload.roomId[0];
     envelope.payload.roomId = (first === "A" ? "B" : "A") + envelope.payload.roomId.slice(1);
-    return "EZERO1." + btoa(JSON.stringify(envelope)).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
+    return "EZERO1." + btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(envelope)))).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
   }, invite.inviteCode);
   const tamperResult = await page.evaluate(async code => {
     try { await window.EZERO_CONNECT_INVITES.verifyInvite(code); return "ACCEPTED"; }
