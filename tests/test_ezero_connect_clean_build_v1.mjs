@@ -8,11 +8,14 @@ assert.match(landing, /href="\.\/ezero-connect-app\.html"/);
 assert.doesNotMatch(landing, /ezero_trusted_friends_staging_20261106\.html/);
 const js = await readFile("js/ezero_connect_app_v1.js", "utf8");
 const identityJs = await readFile("js/ezero_connect_identity_v1.js", "utf8");
+const inviteJs = await readFile("js/ezero_connect_invite_v1.js", "utf8");
 assert.match(html, /E-ZERO Connect/);
 assert.match(html, /js\/ezero_connect_app_v1\.js/);
 assert.doesNotMatch(html, /ezero_trusted_friends_staging|ezero_saved_friend_stage|ezero_saved_friend_stage_engine/);
 assert.doesNotMatch(js, /getUserMedia|RTCPeerConnection|WebSocket|localStorage|indexedDB/);
 assert.ok(html.includes("js/ezero_connect_identity_v1.js"));
+assert.ok(html.includes("js/ezero_connect_invite_v1.js"));
+assert.ok(!["fetch(","WebSocket","localStorage","sessionStorage"].some(token => inviteJs.includes(token)));
 assert.ok(!["localStorage","sessionStorage","fetch(","WebSocket","RTCPeerConnection","getUserMedia"].some(token => identityJs.includes(token)));
 assert.match(identityJs, /extractable !== false/);
 assert.match(identityJs, /EXPLICIT_CONSENT_REQUIRED/);
@@ -95,6 +98,48 @@ try {
     return crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, record.publicKey, signature, challenge);
   });
   assert.equal(signatureValid, true);
+
+  const invite = await page.evaluate(async () => window.EZERO_CONNECT_INVITES.createInvite());
+  assert.ok(invite.inviteCode.startsWith("EZERO1."));
+  assert.equal(invite.roomId.length, 32);
+  const expiredResult = await page.evaluate(async ({ code, now }) => {
+    try { await window.EZERO_CONNECT_INVITES.verifyInvite(code, now); return "ACCEPTED"; }
+    catch (error) { return error.message; }
+  }, { code: invite.inviteCode, now: invite.expiresAt + 1 });
+  assert.equal(expiredResult, "INVITE_EXPIRED_OR_TIME_INVALID");
+
+  const tamperedCode = await page.evaluate((code) => {
+    const raw = atob(code.slice(7).replaceAll("-", "+").replaceAll("_", "/") + "=".repeat((4 - (code.length - 7) % 4) % 4));
+    const envelope = JSON.parse(raw);
+    const first = envelope.payload.guestSecret[0];
+    envelope.payload.guestSecret = (first === "A" ? "B" : "A") + envelope.payload.guestSecret.slice(1);
+    return "EZERO1." + btoa(JSON.stringify(envelope)).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
+  }, invite.inviteCode);
+  const tamperResult = await page.evaluate(async code => {
+    try { await window.EZERO_CONNECT_INVITES.verifyInvite(code); return "ACCEPTED"; }
+    catch (error) { return error.message; }
+  }, tamperedCode);
+  assert.equal(tamperResult, "INVITE_SIGNATURE_INVALID");
+
+  const verifiedInvite = await page.evaluate(async code => window.EZERO_CONNECT_INVITES.verifyInvite(code), invite.inviteCode);
+  assert.equal(verifiedInvite.roomId, invite.roomId);
+  assert.equal(verifiedInvite.inviterFingerprint, fingerprint);
+  assert.match(verifiedInvite.guestProof, /^[a-f0-9]{64}$/);
+  const replayResult = await page.evaluate(async code => {
+    try { await window.EZERO_CONNECT_INVITES.verifyInvite(code); return "ACCEPTED"; }
+    catch (error) { return error.message; }
+  }, invite.inviteCode);
+  assert.equal(replayResult, "INVITE_REPLAYED");
+
+  const hostProofs = await page.evaluate(roomId => window.EZERO_CONNECT_INVITES.takeHostProofs(roomId), invite.roomId);
+  assert.match(hostProofs.hostProof, /^[a-f0-9]{64}$/);
+  assert.match(hostProofs.guestProof, /^[a-f0-9]{64}$/);
+  const hostReplay = await page.evaluate(roomId => {
+    try { window.EZERO_CONNECT_INVITES.takeHostProofs(roomId); return "ACCEPTED"; }
+    catch (error) { return error.message; }
+  }, invite.roomId);
+  assert.equal(hostReplay, "INVITE_HOST_SESSION_EXPIRED");
+
   await page.reload();
   await page.waitForFunction(() => document.querySelector("#identityFingerprint").textContent.length > 30);
   assert.equal(await page.locator("#identityFingerprint").innerText(), fingerprint);
