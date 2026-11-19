@@ -28,7 +28,7 @@ The Worker issues a fresh random challenge for each WebSocket role. Each device 
 
 The Worker derives SHA-256(public SPKI) and verifies that it matches the supplied fingerprint, then verifies the ECDSA P-256 signature. It does not accept a display name, QR image, room ID or fingerprint alone as authentication.
 
-The guest's public key is forwarded to the host for verification and mutual-consent flow. The Worker does not mark a relationship trusted; only the clients can verify both signatures on the Stage 4 relationship transcript and save after local approval.
+The guest's public key and signed handshake proof are forwarded to the host; the host can independently verify that the guest device key signed the challenge. The Worker does not mark a relationship trusted; only the clients can verify both signatures on the Stage 4 relationship transcript and save after local approval. The Worker remains part of the signaling trust boundary; users who need protection against a malicious relay should compare the displayed safety number through a separate trusted channel before saving.
 
 ## Allowlisted message types
 
