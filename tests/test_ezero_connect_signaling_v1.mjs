@@ -78,9 +78,10 @@ const hostHello = {
   publicKeySpki: host.publicKeySpki,
   signature: await sign(host.privateKey, hostSignedChallenge)
 };
-assert.deepEqual(await verifyHandshake(hostHello, attachmentHost, room, now), {
-  fingerprint: host.fingerprint, publicKeySpki: host.publicKeySpki
-});
+const verifiedHostHandshake = await verifyHandshake(hostHello, attachmentHost, room, now);
+assert.equal(verifiedHostHandshake.fingerprint, host.fingerprint);
+assert.deepEqual(verifiedHostHandshake.proof.payload, hostSignedChallenge);
+assert.equal(verifiedHostHandshake.proof.signature, hostHello.signature);
 
 const attachmentGuest = {
   state: "PENDING", roomId, role: "guest", origin,
@@ -97,7 +98,10 @@ const guestHello = {
   publicKeySpki: guest.publicKeySpki,
   signature: await sign(guest.privateKey, guestSignedChallenge)
 };
-assert.equal((await verifyHandshake(guestHello, attachmentGuest, room, now)).fingerprint, guest.fingerprint);
+const verifiedGuestHandshake = await verifyHandshake(guestHello, attachmentGuest, room, now);
+assert.equal(verifiedGuestHandshake.fingerprint, guest.fingerprint);
+assert.deepEqual(verifiedGuestHandshake.proof.payload, guestSignedChallenge);
+assert.equal(verifiedGuestHandshake.proof.signature, guestHello.signature);
 await assert.rejects(() => verifyHandshake(guestHello, { ...attachmentGuest, challenge: "wrong" }, room, now), /HELLO_SIGNATURE_INVALID/);
 await assert.rejects(() => verifyHandshake(guestHello, { ...attachmentGuest, challengeExpiresAt: now - 1 }, room, now), /HELLO_CHALLENGE_EXPIRED/);
 await assert.rejects(() => verifyHandshake({ ...guestHello, inviteNonce: "wrong" }, attachmentGuest, room, now), /HELLO_FIELDS_INVALID/);
