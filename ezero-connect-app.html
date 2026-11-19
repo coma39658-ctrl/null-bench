@@ -69,6 +69,20 @@ header{height:76px;display:flex;align-items:center;justify-content:space-between
       <button class="primary" id="emptyAdd" type="button">＋ دوست شامل کریں</button>
     </div>
   </section>
+  <section class="panel" aria-labelledby="identityTitle">
+    <div class="panel-head"><strong id="identityTitle">اس فون کی محفوظ شناخت</strong><span class="muted" id="identityState">ابھی نہیں بنی</span></div>
+    <p class="muted" id="identityExplain">آپ کی منظوری کے بعد اس فون پر ایک نجی شناختی کلید بنے گی۔ نجی کلید اسی ڈیوائس میں رہے گی؛ صرف عوامی شناختی فنگرپرنٹ دکھایا جائے گا۔</p>
+    <label class="muted" style="display:flex;align-items:flex-start;gap:9px;line-height:1.8;margin:12px 0">
+      <input id="identityConsent" type="checkbox" style="margin-top:4px;accent-color:#174c39">
+      <span id="identityConsentText">میں اس فون پر غیر قابلِ برآمد نجی کلید بنانے اور اسے مقامی طور پر محفوظ کرنے کی اجازت دیتا/دیتی ہوں۔</span>
+    </label>
+    <button class="primary" id="createIdentity" type="button">اپنی محفوظ شناخت بنائیں</button>
+    <div class="status" id="identityStatus" role="status" aria-live="polite">بغیر اجازت کوئی شناخت نہیں بنائی جائے گی۔</div>
+    <div id="identityFingerprintWrap" hidden style="margin-top:10px">
+      <div class="muted" id="fingerprintLabel">عوامی شناختی فنگرپرنٹ</div>
+      <code id="identityFingerprint" style="display:block;direction:ltr;overflow-wrap:anywhere;font-size:11px;margin-top:6px;color:#174c39"></code>
+    </div>
+  </section>
   <section class="panel">
     <div class="panel-head"><strong id="privacyTitle">آپ کی پرائیویسی</strong><span class="muted">E-ZERO</span></div>
     <p class="muted" id="privacyText">کیمرہ اور مائیک صرف آپ کے واضح بٹن دبانے کے بعد مانگے جائیں گے۔ اس پیش نظارہ میں ابھی کوئی کال، پیغام یا دوست محفوظ نہیں کیا جاتا۔</p>
