@@ -9,9 +9,11 @@ on:
       - 'js/ezero_connect_app_v1.js'
       - 'js/ezero_connect_identity_v1.js'
       - 'js/ezero_connect_invite_v1.js'
+      - 'js/ezero_connect_trust_v1.js'
       - 'scripts/ezero_connect_qr_entry_v1.js'
       - 'package.json'
       - 'tests/test_ezero_connect_qr_runtime_v1.mjs'
+      - 'tests/test_ezero_connect_trust_v1.mjs'
       - 'tests/test_ezero_connect_clean_build_v1.mjs'
       - '.github/workflows/ezero-connect-clean-build-qa.yml'
   push:
@@ -64,7 +66,7 @@ jobs:
         with:
           node-version: '22'
       - name: Check JavaScript syntax
-        run: node --check js/ezero_connect_app_v1.js && node --check js/ezero_connect_identity_v1.js && node --check js/ezero_connect_invite_v1.js && node --check scripts/ezero_connect_qr_entry_v1.js && node --check tests/test_ezero_connect_clean_build_v1.mjs && node --check tests/test_ezero_connect_qr_runtime_v1.mjs
+        run: node --check js/ezero_connect_app_v1.js && node --check js/ezero_connect_identity_v1.js && node --check js/ezero_connect_invite_v1.js && node --check js/ezero_connect_trust_v1.js && node --check scripts/ezero_connect_qr_entry_v1.js && node --check tests/test_ezero_connect_clean_build_v1.mjs && node --check tests/test_ezero_connect_qr_runtime_v1.mjs && node --check tests/test_ezero_connect_trust_v1.mjs
       - name: Install isolated browser test dependency
         run: npm install --no-save --no-audit --no-fund --ignore-scripts playwright@1.57.0 qr@0.7.2 esbuild@0.25.12
       - name: Build locally hosted QR runtime
@@ -86,5 +88,5 @@ jobs:
         run: node tests/test_ezero_connect_clean_build_v1.mjs
       - name: Verify QR generation and gallery-image roundtrip
         run: node tests/test_ezero_connect_qr_runtime_v1.mjs
-      - name: State evidence boundary
-        run: echo 'CLEAN_MOBILE_UI_LOCAL_IDENTITY_AND_QR_TESTS_ONLY_NO_LIVE_SIGNALING_NO_PHYSICAL_PHONE_OR_CALL_PROOF'
+      - name: Verify mutual approval and encrypted trusted-contact vault\n        run: node tests/test_ezero_connect_trust_v1.mjs\n      - name: State evidence boundary
+        run: echo 'CLEAN_MOBILE_UI_IDENTITY_QR_AND_TWO_PROFILE_TRUST_TESTS_ONLY_NO_LIVE_SIGNALING_NO_PHYSICAL_PHONE_OR_CALL_PROOF'
