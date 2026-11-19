@@ -3,6 +3,9 @@ import { chromium } from "playwright";
 import { readFile } from "node:fs/promises";
 
 const html = await readFile("ezero-connect-app.html", "utf8");
+const landing = await readFile("ezero-connect.html", "utf8");
+assert.match(landing, /href="\.\/ezero-connect-app\.html"/);
+assert.doesNotMatch(landing, /ezero_trusted_friends_staging_20261106\.html/);
 const js = await readFile("js/ezero_connect_app_v1.js", "utf8");
 assert.match(html, /E-ZERO Connect/);
 assert.match(html, /js\/ezero_connect_app_v1\.js/);
