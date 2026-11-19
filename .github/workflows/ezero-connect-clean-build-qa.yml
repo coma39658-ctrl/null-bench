@@ -35,6 +35,8 @@ on:
       - 'tests/test_ezero_connect_clean_build_v1.mjs'
       - 'tests/test_ezero_connect_trust_v1.mjs'
       - 'tests/test_ezero_connect_qr_runtime_v1.mjs'
+      - 'tests/test_ezero_connect_signaling_v1.mjs'
+      - 'signaling/ezero-connect-v1/**'
       - '.github/workflows/ezero-connect-clean-build-qa.yml'
 
 permissions:
