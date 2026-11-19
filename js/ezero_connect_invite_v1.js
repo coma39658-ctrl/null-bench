@@ -102,6 +102,7 @@
     if (inviteCode.length > MAX_CODE_CHARS) throw new Error("INVITE_TOO_LARGE");
     return {
       inviteCode,
+      origin: payload.origin,
       roomId,
       expiresAt: payload.expiresAt,
       inviterFingerprint: identity.fingerprint,
