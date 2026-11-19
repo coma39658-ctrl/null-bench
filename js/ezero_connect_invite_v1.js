@@ -5,7 +5,6 @@
   const MAX_CODE_CHARS = 8192;
   const DB_NAME = "ezero-connect-invite-replay";
   const DB_STORE = "used-nonces";
-  const hostSessions = new Map();
 
   function base64url(bytes) {
     let binary = "";
@@ -38,9 +37,6 @@
     return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
   }
 
-  async function secretProof(secret) {
-    return digestHex(decodeBase64url(secret, 32));
-  }
 
   function openReplayDb() {
     return new Promise((resolve, reject) => {
@@ -86,11 +82,8 @@
 
   async function createInvite() {
     if (!globalThis.crypto?.subtle || !globalThis.isSecureContext) throw new Error("SECURE_CRYPTO_CONTEXT_REQUIRED");
-    for (const [key, session] of hostSessions.entries()) if (session.expiresAt <= Date.now()) hostSessions.delete(key);
     const identity = await globalThis.EZERO_CONNECT_IDENTITY.getPublicIdentity();
     const roomId = base64url(crypto.getRandomValues(new Uint8Array(24)));
-    const hostSecret = base64url(crypto.getRandomValues(new Uint8Array(32)));
-    const guestSecret = base64url(crypto.getRandomValues(new Uint8Array(32)));
     const nonce = base64url(crypto.getRandomValues(new Uint8Array(24)));
     const issuedAt = Date.now();
     const payload = {
@@ -99,7 +92,6 @@
       inviterFingerprint: identity.fingerprint,
       inviterPublicKeySpki: identity.publicKeySpki,
       roomId,
-      guestSecret,
       issuedAt,
       expiresAt: issuedAt + TTL_MS,
       nonce
@@ -108,11 +100,6 @@
     const envelope = { payload, signature };
     const inviteCode = PREFIX + base64url(new TextEncoder().encode(stableCanonical(envelope)));
     if (inviteCode.length > MAX_CODE_CHARS) throw new Error("INVITE_TOO_LARGE");
-    hostSessions.set(roomId, {
-      hostProof: await secretProof(hostSecret),
-      guestProof: await secretProof(guestSecret),
-      expiresAt: payload.expiresAt
-    });
     return {
       inviteCode,
       roomId,
@@ -140,7 +127,7 @@
     const signature = envelope?.signature;
     if (!payload || typeof payload !== "object" || typeof signature !== "string") throw new Error("INVITE_FORMAT_INVALID");
     const keys = Object.keys(payload).sort().join(",");
-    if (keys !== ["expiresAt","guestSecret","inviterFingerprint","inviterPublicKeySpki","issuedAt","nonce","origin","roomId","v"].sort().join(",")) {
+    if (keys !== ["expiresAt","inviterFingerprint","inviterPublicKeySpki","issuedAt","nonce","origin","roomId","v"].sort().join(",")) {
       throw new Error("INVITE_FIELDS_INVALID");
     }
     if (payload.v !== 1 || payload.origin !== location.origin) throw new Error("INVITE_ORIGIN_OR_VERSION_INVALID");
@@ -150,7 +137,6 @@
       throw new Error("INVITE_EXPIRED_OR_TIME_INVALID");
     }
     decodeBase64url(payload.roomId, 24);
-    decodeBase64url(payload.guestSecret, 32);
     decodeBase64url(payload.nonce, 24);
     const spki = decodeBase64url(payload.inviterPublicKeySpki);
     const signatureBytes = decodeBase64url(signature, 64);
@@ -172,20 +158,9 @@
       roomId: payload.roomId,
       nonce: payload.nonce,
       issuedAt: payload.issuedAt,
-      guestProof: await secretProof(payload.guestSecret),
       expiresAt: payload.expiresAt
     };
   }
 
-  function takeHostProofs(roomId) {
-    const session = hostSessions.get(roomId);
-    if (!session || session.expiresAt <= Date.now()) {
-      hostSessions.delete(roomId);
-      throw new Error("INVITE_HOST_SESSION_EXPIRED");
-    }
-    hostSessions.delete(roomId);
-    return { hostProof: session.hostProof, guestProof: session.guestProof, expiresAt: session.expiresAt };
-  }
-
-  globalThis.EZERO_CONNECT_INVITES = Object.freeze({ createInvite, verifyInvite, takeHostProofs });
+  globalThis.EZERO_CONNECT_INVITES = Object.freeze({ createInvite, verifyInvite });
 })();
