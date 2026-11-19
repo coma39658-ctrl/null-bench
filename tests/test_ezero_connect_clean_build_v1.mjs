@@ -176,7 +176,7 @@ try {
     mimeType: "image/svg+xml",
     buffer: Buffer.from(qrSvg)
   });
-  await page.waitForFunction(() => document.querySelector("#qrScanStatus").dataset.kind === "ok");
+  await page.waitForFunction(() => !document.querySelector("#qrScanStatus").textContent.includes("آپ کا QR تیار ہے") && !document.querySelector("#qrScanStatus").textContent.includes("Your QR is ready") && !document.querySelector("#qrScanStatus").textContent.includes("رمز QR جاهز"));
   assert.match(await page.locator("#qrScanStatus").innerText(), /QR signature verified|دستخطی تصدیق کامیاب|تم التحقق من توقيع/);
   assert.equal(await page.evaluate(() => window.__ezeroMediaRequestCount), 0);
   assert.deepEqual(errors, []);
