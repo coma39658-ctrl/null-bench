@@ -18,7 +18,7 @@ Owner decision: the new clean-build application is the only product direction. T
 ## Current state
 
 - Stage 1: implementation and isolated mobile browser tests passed on the clean-build branch.
-- Stage 2: implementation is in progress. A local ECDSA P-256 device key is generated only after explicit checkbox + button consent; private key is non-extractable and persisted in IndexedDB. Its public fingerprint is displayed. CI must pass before marking this stage complete.
+- Stage 2: **PASS in isolated mobile Chromium CI.** A local ECDSA P-256 device key is generated only after explicit checkbox + button consent; private key is non-extractable and persisted in IndexedDB. Tests verified no key exists before consent, the key can sign and its public key verifies, the private key is non-extractable, and the same fingerprint survives reload. This is browser-test evidence, not physical Android-device proof.
 - Stages 3–10: planned; not yet implemented or verified.
 
 ## Release discipline
