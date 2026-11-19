@@ -123,8 +123,8 @@ try {
   const tamperedCode = await page.evaluate((code) => {
     const raw = atob(code.slice(7).replaceAll("-", "+").replaceAll("_", "/") + "=".repeat((4 - (code.length - 7) % 4) % 4));
     const envelope = JSON.parse(raw);
-    const first = envelope.payload.guestSecret[0];
-    envelope.payload.guestSecret = (first === "A" ? "B" : "A") + envelope.payload.guestSecret.slice(1);
+    const first = envelope.payload.roomId[0];
+    envelope.payload.roomId = (first === "A" ? "B" : "A") + envelope.payload.roomId.slice(1);
     return "EZERO1." + btoa(JSON.stringify(envelope)).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
   }, invite.inviteCode);
   const tamperResult = await page.evaluate(async code => {
