@@ -3,7 +3,8 @@ import decodeQR from "qr/decode.js";
 import { QRCanvas, frameLoop, rearCamera } from "qr/dom.js";
 
 async function decodeImageFile(file) {
-  if (!(file instanceof Blob) || !file.type.startsWith("image/") || file.size <= 0 || file.size > 8 * 1024 * 1024) {
+  const allowedTypes = new Set(["image/png", "image/jpeg", "image/webp", "image/avif", "image/gif", "image/bmp"]);
+  if (!(file instanceof Blob) || !allowedTypes.has(file.type.toLowerCase()) || file.size <= 0 || file.size > 8 * 1024 * 1024) {
     throw new Error("QR_IMAGE_FILE_INVALID");
   }
   let bitmap;
