@@ -114,7 +114,8 @@ try {
   const invite = await page.evaluate(async () => window.EZERO_CONNECT_INVITES.createInvite());
   assert.ok(invite.inviteCode.startsWith("EZERO1."));
   assert.equal(invite.roomId.length, 32);
-  assert.equal(invite.origin, location.origin);
+  const expectedOrigin = await page.evaluate(() => location.origin);
+  assert.equal(invite.origin, expectedOrigin);
   const expiredResult = await page.evaluate(async ({ code, now }) => {
     try { await window.EZERO_CONNECT_INVITES.verifyInvite(code, now); return "ACCEPTED"; }
     catch (error) { return error.message; }
