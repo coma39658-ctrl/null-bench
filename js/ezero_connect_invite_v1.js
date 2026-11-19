@@ -61,6 +61,14 @@
     return new Promise((resolve, reject) => {
       const tx = db.transaction(DB_STORE, "readwrite");
       const store = tx.objectStore(DB_STORE);
+      const cursor = store.openCursor();
+      cursor.onsuccess = () => {
+        const item = cursor.result;
+        if (item) {
+          if (item.value.expiresAt <= now) item.delete();
+          item.continue();
+        }
+      };
       const get = store.get(nonce);
       let accepted = false;
       get.onsuccess = () => {
@@ -78,6 +86,7 @@
 
   async function createInvite() {
     if (!globalThis.crypto?.subtle || !globalThis.isSecureContext) throw new Error("SECURE_CRYPTO_CONTEXT_REQUIRED");
+    for (const [key, session] of hostSessions.entries()) if (session.expiresAt <= Date.now()) hostSessions.delete(key);
     const identity = await globalThis.EZERO_CONNECT_IDENTITY.getPublicIdentity();
     const roomId = base64url(crypto.getRandomValues(new Uint8Array(24)));
     const hostSecret = base64url(crypto.getRandomValues(new Uint8Array(32)));
@@ -123,6 +132,7 @@
     } catch (_) {
       throw new Error("INVITE_FORMAT_INVALID");
     }
+    if (Object.keys(envelope || {}).sort().join(",") !== "payload,signature") throw new Error("INVITE_ENVELOPE_FIELDS_INVALID");
     const payload = envelope?.payload;
     const signature = envelope?.signature;
     if (!payload || typeof payload !== "object" || typeof signature !== "string") throw new Error("INVITE_FORMAT_INVALID");
