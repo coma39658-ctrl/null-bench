@@ -14,7 +14,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: ezero-pr156-preview-trusted-inbox
+  group: ezero-pr156-preview-trusted-inbox-ordered-v2
   cancel-in-progress: true
 jobs:
   deploy-isolated-preview-inbox:
