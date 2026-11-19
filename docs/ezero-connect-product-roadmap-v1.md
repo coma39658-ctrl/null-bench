@@ -91,3 +91,52 @@ Every feature in public release notes must be labelled **VERIFIED**, **STAGING**
 ## Current baseline note (2026-11-19)
 
 The current E-ZERO Connect page is a visual/navigation preview. It links to the existing Secure Connect staging page. The visual preview does not itself implement signup, messaging, push notifications, account recovery, or production calls. Keep the existing call engine and production entry flow unchanged while this roadmap is implemented in isolated branches and staging.
+
+
+## External research findings and integration decisions (2026-11-20)
+
+This section records reusable findings from official standards and platform documentation. These are design inputs, not proof that the corresponding E-ZERO features have shipped.
+
+### Authentication: adopt WebAuthn / passkeys
+
+- Use browser-native WebAuthn credentials as the preferred passwordless sign-in option where supported; keep a documented fallback for devices/browsers that cannot create or use passkeys.
+- Passkeys are scoped public-key credentials and user verification is mediated by the authenticator. Do not collect or store the user's biometric data or passkey private key.
+- Keep email optional. If email is used for recovery, treat it as a recovery channel, not the user's cryptographic identity.
+- Reference: W3C WebAuthn Level 3 Recommendation (2026-08-25): https://www.w3.org/TR/webauthn-3/
+
+### Messaging cryptography: evaluate established protocols, not custom crypto
+
+- Evaluate maintained, interoperable end-to-end encryption designs such as the Matrix Olm/Megolm model for one-to-one and group/device messaging, and compare implementation maturity, audit history, licensing, metadata exposure, key backup, and multi-device UX before selection.
+- Require device verification and visible warnings when a trusted contact's identity/device keys change.
+- Do not copy cryptographic code from an app or protocol without a license, security review, and compatibility assessment; do not claim E2EE until verified in the shipped data path.
+- References: Matrix E2EE implementation guide https://matrix.org/docs/guides/end-to-end-encryption-implementation-guide/ and Matrix security overview https://matrixdocs.github.io/docs/security/overview
+
+### Calls: design for difficult mobile networks
+
+- Keep the existing WebRTC call engine frozen while evaluating TURN relay as a controlled fallback for symmetric NAT, restrictive carrier networks, and firewalls.
+- TURN credentials must be short-lived and issued by a trusted server; never embed a long-lived TURN secret in browser JavaScript.
+- Measure direct peer connection vs relay use, call setup time, packet loss, relay bandwidth, and per-minute cost. Choose the lowest-cost route that meets reliability targets.
+- References: Cloudflare TURN overview https://developers.cloudflare.com/realtime/turn/what-is-turn/ ; Twilio NTS security guidance https://www.twilio.com/docs/stun-turn
+
+### Notifications: implement as opt-in web push, with capability checks
+
+- Use service-worker-based persistent notifications on supported browsers; request permission only after a clear user gesture and explanation.
+- Register and protect push subscription endpoints as secrets. Minimize notification payloads so message contents and sensitive contact details are not exposed on lock screens by default.
+- Detect unsupported browser/OS combinations and show a truthful fallback. A web push is not a guaranteed phone call and cannot guarantee ringing when the OS disables delivery, the device is off, or the browser/platform does not support the required behavior.
+- On iOS/iPadOS, web push is supported for Home Screen web apps on supported OS versions; verify installation and permission conditions in the target-device matrix.
+- References: Apple Web Push documentation https://developer.apple.com/documentation/usernotifications/sending-web-push-notifications-in-web-apps-and-browsers ; MDN Push API https://developer.mozilla.org/en-US/docs/Web/API/Push_API ; MDN Notifications API https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API
+
+### Security checklist: use OWASP MASVS as a verification baseline
+
+- Map E-ZERO controls to MASVS categories: authentication/authorization, secure storage, cryptography, network communication, platform interaction, code quality/resilience, and privacy.
+- Use MASVS/MASTG as a testing checklist, not as a certification claim. OWASP does not certify apps or vendors.
+- References: OWASP MASVS https://mas.owasp.org/MASVS/ and assessment guidance https://mas.owasp.org/MASVS/04-Assessment_and_Certification/
+
+### Third-party adoption rules
+
+- Prefer open standards and maintained libraries over copying proprietary application code or reverse engineering closed services.
+- Before adding any external SDK/service, record: purpose, data collected, data residency/region, retention, subprocessors, license, security posture, pricing/free-tier limits, exit/migration path, and whether it can be self-hosted.
+- Default to no third-party analytics or advertising SDKs. Do not send message content, contact lists, QR secrets, call media, or private keys to analytics providers.
+- No account creation, paid plan, accepting legal terms, or sharing personal data with an external provider without a separate explicit confirmation at that step.
+- Keep all new providers behind isolated staging configuration and feature flags; production stays unchanged until release gates pass.
+
