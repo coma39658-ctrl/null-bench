@@ -49,11 +49,12 @@
       audioLabel:t.audio,videoLabel:t.video,callStatus:t.callStatus,peopleTitle:t.people,
       addFriend:t.add,emptyAdd:t.add,searchFriends:null,tabFriends:t.friends,tabChats:t.chats,
       tabCalls:t.calls,emptyTitle:t.empty,emptyText:t.emptyText,privacyTitle:t.privacy,
-      privacyText:t.privacyText,footerStatus:t.footer,identityTitle:t.identityTitle,identityExplain:t.identityExplain,identityConsentText:t.identityConsent,createIdentity:t.identityButton,fingerprintLabel:t.fingerprint,dialogTitle:t.dialogTitle,
+      privacyText:t.privacyText,footerStatus:t.footer,identityTitle:t.identityTitle,identityExplain:t.identityExplain,identityConsentText:t.identityConsent,createIdentity:t.identityButton,identityState:t.identityState,fingerprintLabel:t.fingerprint,dialogTitle:t.dialogTitle,
       dialogText:t.dialogText,closeDialog:t.close
     };
     for (const [id,value] of Object.entries(map)) if (value !== null && $(id)) $(id).textContent = value;
     $("searchFriends").placeholder = t.search;
+    if ($("identityStatus") && !$("identityStatus").dataset.kind && $("identityFingerprintWrap").hidden) $("identityStatus").textContent = t.identityStatus;
     $("language").textContent = language === "ur" ? "اردو · EN · AR" : language === "en" ? "EN · AR · اردو" : "العربية · EN · اردو";
     document.querySelectorAll("[data-tab]").forEach((button) => {
       button.setAttribute("aria-selected", String(button.dataset.tab === activeTab));
