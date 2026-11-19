@@ -33,7 +33,7 @@ assert.doesNotMatch(worker,/\.put\([^\n]*(?:sdp|media|message|photo|recording)/i
 assert.match(worker,/MAX_FRIENDS=50, MAX_CLIENTS=8/);
 assert.match(worker,/now-session\.opened>HELLO_MS/,
   "Expired pending handshakes must be reaped");
-assert.match(smoke,/real signed owner handshake/i);
+assert.match(smoke,/liveSignedOwnerHandshake/);
 console.log("PASS: duplicate call replay is rejected for the bounded replay window");
 console.log("PASS: call cooldown and one-call-per-socket limits are enforced");
 console.log("PASS: trust revocation persists and closes active caller sockets");
