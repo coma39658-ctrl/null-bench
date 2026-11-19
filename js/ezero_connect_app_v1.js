@@ -188,17 +188,17 @@
     try {
       if (!window.EZERO_CONNECT_INVITES || !window.EZERO_QR) throw new Error("QR_RUNTIME_UNAVAILABLE");
       const invite = await window.EZERO_CONNECT_INVITES.createInvite();
-      const svgText = window.EZERO_QR.encodeSvg(invite.inviteCode);
-      const parsed = new DOMParser().parseFromString(svgText, "image/svg+xml");
-      const svg = parsed.documentElement;
-      if (parsed.querySelector("parsererror") || svg.localName !== "svg" ||
-          svg.querySelector("script,foreignObject") ||
-          [...svg.querySelectorAll("*")].some(node => [...node.attributes].some(attr => /^on/i.test(attr.name)))) {
-        throw new Error("QR_SVG_UNSAFE");
-      }
-      svg.setAttribute("role", "img");
-      svg.setAttribute("aria-label", "E-ZERO one-time connection QR");
-      $("myQrImage").replaceChildren(document.importNode(svg, true));
+      const imageUrl = window.EZERO_QR.encodeDataUrl(invite.inviteCode);
+      if (!imageUrl.startsWith("data:image/gif;base64,")) throw new Error("QR_DATA_URL_INVALID");
+      const image = document.createElement("img");
+      image.alt = "E-ZERO one-time connection QR";
+      image.width = 300;
+      image.height = 300;
+      image.style.width = "min(100%, 300px)";
+      image.style.height = "auto";
+      image.style.imageRendering = "pixelated";
+      image.src = imageUrl;
+      $("myQrImage").replaceChildren(image);
       $("myQrDisplay").hidden = false;
       activeInvite = invite;
       setQrStatus(translations[language].qrReady, "ok");
