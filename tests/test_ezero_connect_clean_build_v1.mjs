@@ -19,7 +19,7 @@ assert.ok(html.includes("js/ezero_qr_runtime_v1.js"));
 assert.ok(html.includes("js/ezero_connect_invite_v1.js"));
 assert.ok(html.includes("js/ezero_connect_trust_v1.js"));
 assert.ok(!["localStorage","sessionStorage","fetch(","WebSocket"].some(token => trustJs.includes(token)));
-assert.ok(!["fetch(","WebSocket","localStorage","sessionStorage"].some(token => inviteJs.includes(token)));
+assert.ok(!["fetch(","WebSocket","localStorage","sessionStorage","guestSecret","guestProof","takeHostProofs"].some(token => inviteJs.includes(token)));
 assert.ok(!["localStorage","sessionStorage","fetch(","WebSocket","RTCPeerConnection","getUserMedia"].some(token => identityJs.includes(token)));
 assert.match(identityJs, /extractable !== false/);
 assert.match(identityJs, /EXPLICIT_CONSENT_REQUIRED/);
