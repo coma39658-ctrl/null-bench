@@ -3,6 +3,7 @@ name: E-ZERO Connect Clean Build Shell QA
 on:
   pull_request:
     paths:
+      - 'ezero-connect.html'
       - 'ezero-connect-app.html'
       - 'ezero-connect.webmanifest'
       - 'js/ezero_connect_app_v1.js'
