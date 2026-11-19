@@ -147,21 +147,17 @@ try {
   const verifiedInvite = await page.evaluate(async code => window.EZERO_CONNECT_INVITES.verifyInvite(code), invite.inviteCode);
   assert.equal(verifiedInvite.roomId, invite.roomId);
   assert.equal(verifiedInvite.inviterFingerprint, fingerprint);
-  assert.match(verifiedInvite.guestProof, /^[a-f0-9]{64}$/);
+  assert.equal(verifiedInvite.nonce, invite.nonce);
+  assert.equal(verifiedInvite.issuedAt, invite.issuedAt);
+  assert.equal(Object.hasOwn(invite, "guestSecret"), false);
+  assert.equal(Object.hasOwn(verifiedInvite, "guestProof"), false);
   const replayResult = await page.evaluate(async code => {
     try { await window.EZERO_CONNECT_INVITES.verifyInvite(code); return "ACCEPTED"; }
     catch (error) { return error.message; }
   }, invite.inviteCode);
   assert.equal(replayResult, "INVITE_REPLAYED");
 
-  const hostProofs = await page.evaluate(roomId => window.EZERO_CONNECT_INVITES.takeHostProofs(roomId), invite.roomId);
-  assert.match(hostProofs.hostProof, /^[a-f0-9]{64}$/);
-  assert.match(hostProofs.guestProof, /^[a-f0-9]{64}$/);
-  const hostReplay = await page.evaluate(roomId => {
-    try { window.EZERO_CONNECT_INVITES.takeHostProofs(roomId); return "ACCEPTED"; }
-    catch (error) { return error.message; }
-  }, invite.roomId);
-  assert.equal(hostReplay, "INVITE_HOST_SESSION_EXPIRED");
+
 
   await page.reload();
   await page.waitForFunction(() => document.querySelector("#identityFingerprint").textContent.length > 30);
