@@ -12,7 +12,7 @@ assert.match(html, /E-ZERO Connect/);
 assert.match(html, /js\/ezero_connect_app_v1\.js/);
 assert.doesNotMatch(html, /ezero_trusted_friends_staging|ezero_saved_friend_stage|ezero_saved_friend_stage_engine/);
 assert.doesNotMatch(js, /getUserMedia|RTCPeerConnection|WebSocket|localStorage|indexedDB/);
-assert.match(html, /js\\/ezero_connect_identity_v1\\.js/);
+assert.ok(html.includes("js/ezero_connect_identity_v1.js"));
 assert.doesNotMatch(identityJs, /localStorage|sessionStorage|fetch\\(|WebSocket|RTCPeerConnection|getUserMedia/);
 assert.match(identityJs, /extractable !== false/);
 assert.match(identityJs, /EXPLICIT_CONSENT_REQUIRED/);
@@ -46,7 +46,7 @@ try {
 
   assert.equal(await page.locator("#identityFingerprintWrap").isVisible(), false);
   await page.locator("#createIdentity").click();
-  assert.match(await page.locator("#identityStatus").innerText(), /پہلے اجازت/);
+  assert.match(await page.locator("#identityStatus").innerText(), /Please tick|پہلے اجازت/);
   assert.equal(await page.locator("#identityFingerprintWrap").isVisible(), false);
   await page.locator("#identityConsent").check();
   await page.locator("#createIdentity").click();
