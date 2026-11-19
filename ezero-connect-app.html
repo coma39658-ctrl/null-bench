@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#103b2d">
+<meta name="description" content="E-ZERO Connect — سادہ، نجی رابطے کا نیا تجربہ۔">
+<title>E-ZERO Connect</title>
+<link rel="manifest" href="./ezero-connect.webmanifest">
+<style>
+:root{--forest:#103b2d;--forest2:#174c39;--mint:#d9f3e5;--paper:#f4f8f5;--ink:#18352a;--muted:#718278;--line:#e2ebe5;--white:#fff;--shadow:0 18px 50px rgba(15,52,38,.11)}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 90% 0,#e0f3e7 0,transparent 28%),var(--paper);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+button,input{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.45}
+.shell{max-width:760px;margin:auto;min-height:100dvh;padding:0 16px 30px}
+header{height:76px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:10px}.mark{width:42px;height:42px;border-radius:14px;background:linear-gradient(145deg,#1c684a,#0c3025);display:grid;place-items:center;color:#d8f6e4;font-weight:900;font-size:21px;box-shadow:0 8px 20px #103b2d22}
+.brand b{font-size:16px}.brand small{display:block;font-size:9px;color:#789083;letter-spacing:.16em;margin-top:3px}
+.lang{border:1px solid var(--line);background:white;border-radius:999px;padding:8px 12px;color:var(--forest);font-weight:750}
+.profile{display:flex;align-items:center;gap:12px;background:linear-gradient(120deg,#123e2e,#1d6345);border-radius:22px;padding:17px;color:white;box-shadow:var(--shadow)}
+.profile .face{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#ffffff20;border:1px solid #ffffff55;font-weight:900;font-size:18px}
+.profile h1{font-size:19px;margin:0 0 4px}.profile p{font-size:11px;color:#d0e7d7;margin:0}
+.panel{background:white;border:1px solid var(--line);border-radius:20px;padding:15px;margin-top:13px;box-shadow:0 6px 22px #18352a08}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.panel-head strong{font-size:14px}.muted{font-size:11px;color:var(--muted)}
+.primary,.secondary,.soft{border:0;border-radius:13px;padding:12px 15px;font-size:12px;font-weight:800}
+.primary{background:var(--forest);color:white}.secondary{background:#fff;color:var(--forest);border:1px solid #d8e7dc}.soft{background:#eaf6ed;color:#225b3b}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.action{display:flex;align-items:center;gap:10px;text-align:right;background:#eaf6ed;color:#225b3b;border:0;border-radius:15px;padding:13px;font-weight:850;font-size:12px}
+.action.video{background:#f1f3e7;color:#53632d}.action i{font-style:normal;width:34px;height:34px;border-radius:11px;background:#d4eddb;display:grid;place-items:center;font-size:17px}
+.search{width:100%;border:1px solid var(--line);border-radius:13px;padding:12px 14px;background:#f8fbf9;color:var(--ink);outline:none}.search:focus{border-color:#6fb28a;box-shadow:0 0 0 3px #d9f3e5}
+.tabs{display:flex;gap:6px;background:#f2f7f3;padding:5px;border-radius:14px}.tab{flex:1;border:0;border-radius:10px;padding:10px 6px;background:transparent;color:#728278;font-weight:800;font-size:11px}.tab[aria-selected="true"]{background:white;color:var(--forest);box-shadow:0 2px 8px #18352a12}
+.empty{text-align:center;padding:28px 12px 24px}.empty .symbol{width:58px;height:58px;border-radius:19px;margin:0 auto 12px;background:#eaf6ed;display:grid;place-items:center;font-size:25px}.empty b{display:block;font-size:14px;margin-bottom:6px}.empty p{font-size:11px;line-height:1.8;color:var(--muted);max-width:310px;margin:0 auto 15px}
+.status{font-size:11px;line-height:1.7;color:#6d7d73;min-height:20px;margin-top:10px}.status[data-kind="error"]{color:#a23b35}.status[data-kind="ok"]{color:#267346}
+.footer{text-align:center;color:#91a096;font-size:10px;padding:18px 0}
+.dialog-backdrop{position:fixed;inset:0;background:#0b2119a8;display:none;align-items:flex-end;justify-content:center;padding:14px;z-index:5}.dialog-backdrop.open{display:flex}.dialog{background:white;border-radius:22px 22px 18px 18px;padding:20px;width:min(100%,500px);box-shadow:var(--shadow)}.dialog h2{font-size:17px;margin:0 0 8px}.dialog p{font-size:12px;color:var(--muted);line-height:1.8}.dialog-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+@media(min-width:650px){.shell{padding-top:14px}.dialog-backdrop{align-items:center}.dialog{border-radius:22px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+<header>
+  <a class="brand" href="./ezero-connect.html" aria-label="E-ZERO Connect"><span class="mark">E</span><span><b>E-ZERO Connect</b><small>PRIVATE · SIMPLE · TOGETHER</small></span></a>
+  <button class="lang" id="language" type="button" aria-label="Change language">اردو · EN · AR</button>
+</header>
+<main>
+  <section class="profile" aria-label="Profile">
+    <div class="face" id="profileInitial">E</div>
+    <div><h1 id="welcomeTitle">السلام علیکم 👋</h1><p id="welcomeSub">آپ کے دوست، ایک ہی جگہ</p></div>
+  </section>
+  <section class="panel">
+    <div class="panel-head"><strong id="quickTitle">فوری رابطہ</strong><span class="muted" id="quickHint">دوست منتخب کریں</span></div>
+    <div class="actions">
+      <button class="action" id="audioCall" type="button" disabled><i>☎</i><span id="audioLabel">آڈیو کال</span></button>
+      <button class="action video" id="videoCall" type="button" disabled><i>▣</i><span id="videoLabel">ویڈیو کال</span></button>
+    </div>
+    <div class="status" id="callStatus" role="status" aria-live="polite">ابھی کوئی تصدیق شدہ دوست منتخب نہیں۔</div>
+  </section>
+  <section class="panel">
+    <div class="panel-head"><strong id="peopleTitle">آپ کے رابطے</strong><button class="secondary" id="addFriend" type="button">＋ دوست شامل کریں</button></div>
+    <input class="search" id="searchFriends" type="search" placeholder="دوست تلاش کریں" autocomplete="off" aria-label="Search friends">
+    <div class="tabs" role="tablist" aria-label="Contact sections">
+      <button class="tab" type="button" role="tab" aria-selected="true" data-tab="friends" id="tabFriends">دوست</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-tab="chats" id="tabChats">چیٹس</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-tab="calls" id="tabCalls">کالز</button>
+    </div>
+    <div class="empty" id="emptyState">
+      <div class="symbol">👥</div><b id="emptyTitle">ابھی کوئی دوست محفوظ نہیں</b>
+      <p id="emptyText">پہلی بار دوست سے جڑنے کے بعد، باہمی منظوری سے اسے یہاں محفوظ کیا جائے گا۔</p>
+      <button class="primary" id="emptyAdd" type="button">＋ دوست شامل کریں</button>
+    </div>
+  </section>
+  <section class="panel" aria-labelledby="identityTitle">
+    <div class="panel-head"><strong id="identityTitle">اس فون کی محفوظ شناخت</strong><span class="muted" id="identityState">ابھی نہیں بنی</span></div>
+    <p class="muted" id="identityExplain">آپ کی منظوری کے بعد اس فون پر ایک نجی شناختی کلید بنے گی۔ نجی کلید اسی ڈیوائس میں رہے گی؛ صرف عوامی شناختی فنگرپرنٹ دکھایا جائے گا۔</p>
+    <label class="muted" style="display:flex;align-items:flex-start;gap:9px;line-height:1.8;margin:12px 0">
+      <input id="identityConsent" type="checkbox" style="margin-top:4px;accent-color:#174c39">
+      <span id="identityConsentText">میں اس فون پر غیر قابلِ برآمد نجی کلید بنانے اور اسے مقامی طور پر محفوظ کرنے کی اجازت دیتا/دیتی ہوں۔</span>
+    </label>
+    <button class="primary" id="createIdentity" type="button">اپنی محفوظ شناخت بنائیں</button>
+    <div class="status" id="identityStatus" role="status" aria-live="polite">بغیر اجازت کوئی شناخت نہیں بنائی جائے گی۔</div>
+    <div id="identityFingerprintWrap" hidden style="margin-top:10px">
+      <div class="muted" id="fingerprintLabel">عوامی شناختی فنگرپرنٹ</div>
+      <code id="identityFingerprint" style="display:block;direction:ltr;overflow-wrap:anywhere;font-size:11px;margin-top:6px;color:#174c39"></code>
+    </div>
+  </section>
+  <section class="panel">
+    <div class="panel-head"><strong id="privacyTitle">آپ کی پرائیویسی</strong><span class="muted">E-ZERO</span></div>
+    <p class="muted" id="privacyText">کیمرہ اور مائیک صرف آپ کے واضح بٹن دبانے کے بعد مانگے جائیں گے۔ اس پیش نظارہ میں ابھی کوئی کال، پیغام یا دوست محفوظ نہیں کیا جاتا۔</p>
+  </section>
+</main>
+<footer class="footer" id="footerStatus">نیا نظام — محفوظ تعمیراتی Preview، ابھی عوامی کال سروس نہیں۔</footer>
+</div>
+<div class="dialog-backdrop" id="dialogBackdrop" role="presentation">
+  <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
+    <h2 id="dialogTitle">دوست شامل کریں</h2>
+    <p id="dialogText">QR شناخت، محفوظ رابطہ اور دونوں طرف منظوری کا نیا نظام ابھی تعمیر کے مرحلے میں ہے۔ اس Preview میں QR یا رابطہ بھیجنے کا جھوٹا دعویٰ نہیں کیا جائے گا۔</p>
+    <div class="status" id="dialogStatus" role="status" aria-live="polite"></div>
+    <div class="dialog-actions"><button class="secondary" id="closeDialog" type="button">بند کریں</button></div>
+  </section>
+</div>
+<script src="./js/ezero_connect_identity_v1.js" defer></script>
+<script src="./js/ezero_connect_invite_v1.js" defer></script>\n<script src="./js/ezero_connect_app_v1.js" defer></script>
+</body>
+</html>
