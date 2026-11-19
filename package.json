@@ -8,6 +8,7 @@
     "qr": "0.7.2"
   },
   "devDependencies": {
-    "esbuild": "0.25.12"
+    "esbuild": "0.25.12",
+    "wrangler": "4.165.0"
   }
 }
