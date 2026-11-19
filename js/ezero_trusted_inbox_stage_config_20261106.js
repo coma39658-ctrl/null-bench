@@ -1,5 +1,5 @@
 /* E-ZERO Trusted Friends external inbox STAGING gate (2026-11-19).
- * This preview endpoint is enabled only after the isolated PR156 Worker
+ * This pre-release-test preview endpoint is enabled only after the isolated PR156 Worker
  * passed origin, signed-handshake, replay, cooldown and revocation smoke tests.
  * Existing QR/WebRTC signaling remains on its separate endpoint.
  */
