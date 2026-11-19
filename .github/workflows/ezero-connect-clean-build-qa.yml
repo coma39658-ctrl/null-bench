@@ -7,6 +7,7 @@ on:
       - 'ezero-connect-app.html'
       - 'ezero-connect.webmanifest'
       - 'js/ezero_connect_app_v1.js'
+      - 'js/ezero_connect_identity_v1.js'
       - 'tests/test_ezero_connect_clean_build_v1.mjs'
       - '.github/workflows/ezero-connect-clean-build-qa.yml'
   push:
@@ -34,7 +35,7 @@ jobs:
         with:
           node-version: '22'
       - name: Check JavaScript syntax
-        run: node --check js/ezero_connect_app_v1.js && node --check tests/test_ezero_connect_clean_build_v1.mjs
+        run: node --check js/ezero_connect_app_v1.js && node --check js/ezero_connect_identity_v1.js && node --check tests/test_ezero_connect_clean_build_v1.mjs
       - name: Install isolated browser test dependency
         run: npm install --no-save --ignore-scripts playwright@1.57.0
       - name: Install Chromium
@@ -53,4 +54,4 @@ jobs:
       - name: Test clean mobile shell behavior and no-legacy boundary
         run: node tests/test_ezero_connect_clean_build_v1.mjs
       - name: State evidence boundary
-        run: echo 'CLEAN_MOBILE_UI_SHELL_ONLY_NO_LIVE_IDENTITY_NO_SIGNALING_NO_PHYSICAL_PHONE_OR_CALL_PROOF'
+        run: echo 'CLEAN_MOBILE_UI_AND_LOCAL_DEVICE_KEY_TESTS_ONLY_NO_LIVE_QR_NO_SIGNALING_NO_PHYSICAL_PHONE_OR_CALL_PROOF'
