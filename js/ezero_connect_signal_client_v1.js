@@ -65,9 +65,11 @@
     let rejectReady;
     const ready = new Promise((resolve, reject) => { resolveReady = resolve; rejectReady = reject; });
 
+    const subscribers = new Set();
+    if (typeof onEvent === "function") subscribers.add(onEvent);
     const emit = event => {
-      if (typeof onEvent === "function") {
-        try { onEvent(event); } catch (_) {}
+      for (const callback of subscribers) {
+        try { callback(event); } catch (_) {}
       }
     };
 
@@ -157,6 +159,11 @@
       ready,
       get authenticated() { return authenticated; },
       get closed() { return closed; },
+      subscribe(callback) {
+        if (typeof callback !== "function" || closed) throw new Error("SIGNAL_SUBSCRIBER_INVALID");
+        subscribers.add(callback);
+        return () => subscribers.delete(callback);
+      },
       send(type, payload = {}) {
         if (!authenticated || closed || socket.readyState !== WebSocket.OPEN) throw new Error("SIGNAL_NOT_CONNECTED");
         if (!ALLOWED_SEND.has(type) || !payload || typeof payload !== "object" || Array.isArray(payload)) {
