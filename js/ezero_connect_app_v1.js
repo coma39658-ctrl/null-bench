@@ -223,9 +223,8 @@
     stopQrCamera();
     const t = translations[language];
     try {
-      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
-        throw new Error("CAMERA_SECURE_CONTEXT_REQUIRED");
-      }
+      if (!window.isSecureContext) throw new Error("CAMERA_SECURE_CONTEXT_REQUIRED");
+      if (!navigator.mediaDevices) throw new Error("QR_CAMERA_UNSUPPORTED");
       if (!window.EZERO_QR) throw new Error("QR_RUNTIME_UNAVAILABLE");
       $("qrScannerVideo").hidden = false;
       $("stopQrScanner").hidden = false;
