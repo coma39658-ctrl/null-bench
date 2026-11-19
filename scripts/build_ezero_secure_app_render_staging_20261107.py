@@ -90,12 +90,10 @@ def put(path: Path) -> None:
         data = (json.dumps(cfg, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
     if relative == "js/ezero_trusted_inbox_stage_config_20261106.js":
         cfg = data.decode("utf-8")
-        old_inbox = "wss://ezero-trusted-friends-inbox-staging.coma39658.workers.dev"
         new_inbox = "wss://ezero-trusted-inbox-pr156-preview-v2.coma39658.workers.dev"
-        if cfg.count("enabled:true") != 1 or cfg.count(old_inbox) != 1:
+        if cfg.count("enabled:true") != 1 or cfg.count(new_inbox) != 1:
             raise RuntimeError("Unexpected trusted-inbox configuration: fail closed")
-        # Enable only the separately deployed Worker whose Origin is this Render preview.
-        cfg = cfg.replace(old_inbox, new_inbox, 1)
+        # The source config already points only to the isolated PR156 preview Worker.
         data = cfg.encode("utf-8")
     if relative == "js/ezero_auto_signaling_lab_config_20261106.js":
         # This preview uses a DIFFERENT Cloudflare Worker whose one allowed
@@ -130,9 +128,10 @@ call_html = call_html.replace(old_ws, new_ws, 1)
 # Permit only the isolated signed-inbox Worker on the Render preview CSP.
 old_inbox = "wss://ezero-trusted-friends-inbox-staging.coma39658.workers.dev"
 new_inbox = "wss://ezero-trusted-inbox-pr156-preview-v2.coma39658.workers.dev"
-if call_html.count(old_inbox) != 1:
+if call_html.count(old_inbox) != 1 or call_html.count(new_inbox) != 1:
     raise RuntimeError("Unexpected inbox CSP: fail closed")
-call_html = call_html.replace(old_inbox, new_inbox, 1)
+# Publish this Render preview with only the isolated PR156 inbox origin allowed.
+call_html = call_html.replace(old_inbox, "", 1)
 
 # Existing scripts and media engine are not changed; only the preview copies
 # of navigation, page metadata and incompatible inbox configuration differ.
