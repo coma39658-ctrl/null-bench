@@ -263,6 +263,7 @@ export class EzeroConnectRoom {
             roomId: attachment.roomId,
             origin: invite.origin,
             inviteNonce: invite.nonce,
+            inviteExpiresAt: invite.expiresAt,
             hostFingerprint: invite.inviterFingerprint,
             hostPublicKeySpki: invite.inviterPublicKeySpki,
             guestFingerprint: null,
@@ -273,6 +274,10 @@ export class EzeroConnectRoom {
         } else if (room.roomId !== attachment.roomId || room.origin !== attachment.origin ||
                    room.inviteNonce !== parsed.inviteNonce || room.expiresAt <= now) {
           safeClose(ws, 1008, "room state mismatch or expired");
+          return;
+        }
+        if (attachment.role === "guest" && !room.guestFingerprint && room.inviteExpiresAt <= now) {
+          safeClose(ws, 1008, "invite expired before guest joined");
           return;
         }
         const verified = await verifyHandshake(parsed, attachment, room, now);
