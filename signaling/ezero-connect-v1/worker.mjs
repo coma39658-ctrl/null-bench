@@ -397,6 +397,7 @@ export class EzeroConnectRoom {
       safeClose(ws, 1000, "room closed");
     }
     await this.ctx.storage.deleteAll();
+    await this.ctx.storage.deleteAlarm();
   }
 
   async webSocketClose(ws, code, reason) {
