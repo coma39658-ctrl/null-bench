@@ -78,3 +78,30 @@ A static comparison was performed between the approved visual preview and the le
 A follow-up source inspection found that the Saved Friends people controller listens for `ezero:call-intent` to populate call direction and media kind before recording a completed call. The inspected legacy call engine emits `ezero:signal-ready`, `ezero:channel-state`, `ezero:call-status`, and profile events, but does not emit `ezero:call-intent`. The inspected direct-call foreground client sends the selected audio/video mode to its signaling socket, while the inspected people controller still has no demonstrated event bridge from that path.
 
 Therefore the current passing Saved Friends test evidence does **not** prove that the local completed-call history is populated correctly. Do not add a guessed event listener or claim call history works. During adapter implementation, define a narrow, explicit call-intent contract at the call-control boundary (without changing media negotiation), and add tests for incoming/outgoing audio/video metadata before enabling history.
+
+
+## Product direction decision (2026-11-20)
+
+The owner has explicitly selected the new E-ZERO Connect interface as the sole future product direction. The legacy UI/controller is retained only as a recoverable archive and is not to be integrated, loaded, or used as the product foundation.
+
+- Archive refs created:
+  - `archive/ezero-legacy-saved-friends-20261120` → `373ab6266fe54fe894dea5d011f06acc1ffdd03b`
+  - `archive/ezero-connect-visual-preview-20261120` → `d8e1203bdc6fbc5e2f02ac8bad5a56ff3f4004c7`
+- The new product must preserve the approved visual design, but its functional implementation is a clean build with new UI components and explicit service contracts.
+- Do not import the legacy HTML, people controller, call dock, or its workflow as runtime dependencies.
+- Legacy source may be consulted only as historical evidence of prior requirements and test cases; new code must have independent implementation and tests.
+- The current `ezero-connect.html` is a visual-only preview, not a working messenger. It must not be publicly presented as a completed communication service until its controls are connected to verified identity, signaling, WebRTC, and messaging services.
+- Public release target is the new E-ZERO Connect product. Keep it in isolated staging until functional, security, privacy, accessibility, mobile, and physical-device release gates pass. Then publish the new entry point while retaining the archived legacy snapshot.
+
+## New-build acceptance gates
+
+1. New, clean application shell matching the approved preview (same palette, layout, density, and simple WhatsApp-like interaction model).
+2. New identity/trust service: explicit mutual consent, signed device identity, key mismatch/revocation fail-closed; no hidden identity assumptions.
+3. New signaling transport with authenticated, short-lived invites and scoped room authorization.
+4. New call controller that preserves explicit audio/video mode, asks for media only on a user-initiated call, and never auto-answers or silently downgrades.
+5. Saved friends reconnect only after a prior verified consent relationship; no QR loop for trusted contacts, but fresh QR remains available for first-time pairing/recovery.
+6. Text/image/voice messaging implemented as separately tested capabilities; do not show fake delivery/online/missed-call state.
+7. Push/background ringing only after actual platform-specific delivery tests; never promise ringing when device is off.
+8. CI tests across mobile browsers, security/contract checks, and real Android-to-Android tests across same and separate networks.
+9. Production publishing only after the above evidence is recorded and a rollback path is ready.
+
