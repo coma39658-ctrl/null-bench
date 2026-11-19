@@ -58,9 +58,9 @@ async function startCamera(video, onDecoded) {
   return stop;
 }
 
-function encodeSvg(text) {
+function encodeDataUrl(text) {
   if (typeof text !== "string" || text.length > 8192) throw new Error("QR_TEXT_INVALID");
-  return encodeQR(text, "svg", { ecc: "quartile", border: 4, scale: 6, optimize: true });
+  return encodeQR(text, "data-url", { ecc: "quartile", border: 4, scale: 6 });
 }
 
-globalThis.EZERO_QR = Object.freeze({ encodeSvg, decodeImageFile, startCamera });
+globalThis.EZERO_QR = Object.freeze({ encodeDataUrl, decodeImageFile, startCamera });
