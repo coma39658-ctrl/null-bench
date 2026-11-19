@@ -5,6 +5,7 @@
   const CONTACTS = "contacts";
   const VAULT = "vault";
   const VAULT_ID = "local-aes-gcm-key";
+  // Contact metadata is AES-GCM encrypted locally; the non-extractable vault key stays in IndexedDB.
 
   function stableCanonical(value) {
     if (value === null || typeof value === "string" || typeof value === "boolean") return JSON.stringify(value);
