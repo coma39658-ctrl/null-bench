@@ -63,7 +63,67 @@ jobs:
           set -euo pipefail
           git fetch --no-tags origin ezero-connect-clean-build-20261120 --depth=50
           git diff --name-only origin/ezero-connect-clean-build-20261120...HEAD > /tmp/ezero-qr-changes.txt
-          if grep -E '^js/.*(webrtc|call|media|signaling)' /tmp/ezero-qr-changes.txt; then
+          if grep -E '^js/(ezero_saved_friend_stage_engine_v0_1|ezero_trusted_stage_one_request_v0_1|ezero_contact_first_call_dock_v0_1)\\.js /tmp/ezero-qr-changes.txt; then
+            echo 'FROZEN_CALL_ENGINE_SOURCE_CHANGE_DETECTED'
+            exit 1
+          fi
+          echo 'FROZEN_CALL_ENGINE_UNMODIFIED; THIS IS NOT PROOF OF NEW_CALL_FUNCTIONALITY'
+  clean-mobile-shell:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: node --check js/ezero_connect_app_v1.js && node --check js/ezero_connect_identity_v1.js && node --check js/ezero_connect_invite_v1.js && node --check js/ezero_connect_trust_v1.js && node --check scripts/ezero_connect_qr_entry_v1.js && node --check signaling/ezero-connect-v1/worker.mjs && node --check js/ezero_connect_config_v1.js && node --check js/ezero_connect_signaling_client_v1.js && node --check tests/test_ezero_connect_signaling_v1.mjs && node --check tests/test_ezero_connect_signaling_local_v1.mjs && node --check tests/test_ezero_connect_clean_build_v1.mjs && node --check tests/test_ezero_connect_qr_runtime_v1.mjs && node --check tests/test_ezero_connect_trust_v1.mjs
+      - name: Install isolated browser test dependency
+        run: npm install --no-save --no-audit --no-fund --ignore-scripts playwright@1.57.0 qr@0.7.2 esbuild@0.25.12 wrangler@4.165.0
+      - name: Build locally hosted QR runtime
+        run: npm run build:ezero-qr
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Serve only on loopback
+        shell: bash
+        run: |
+          set -euo pipefail
+          nohup python3 -m http.server 8769 --bind 127.0.0.1 >/tmp/ezero-clean-build.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8769/ezero-connect-app.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ezero-clean-build.log
+          exit 1
+      - name: Test clean mobile shell behavior and no-legacy boundary
+        run: node tests/test_ezero_connect_clean_build_v1.mjs
+      - name: Start isolated local Durable Object Worker
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf 'PUBLIC_ORIGIN=http://127.0.0.1:8769\n' > signaling/ezero-connect-v1/.dev.vars
+          nohup npx wrangler dev --local --ip 127.0.0.1 --port 8787 --config signaling/ezero-connect-v1/wrangler.jsonc >/tmp/ezero-connect-worker.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8787/health >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ezero-connect-worker.log
+          exit 1
+      - name: Verify two-browser local Worker and mutual trust relay
+        run: node tests/test_ezero_connect_signaling_local_v1.mjs
+      - name: Verify QR generation and gallery-image roundtrip
+        run: node tests/test_ezero_connect_qr_runtime_v1.mjs
+      - name: Verify mutual approval and encrypted trusted-contact vault
+        run: node tests/test_ezero_connect_trust_v1.mjs
+      - name: Verify signed signaling handshake and message limits
+        run: node tests/test_ezero_connect_signaling_v1.mjs
+      - name: Validate Worker bundle without deployment
+        run: npx wrangler deploy --dry-run --outdir /tmp/ezero-connect-worker-dry-run --config signaling/ezero-connect-v1/wrangler.jsonc
+      - name: State evidence boundary
+        run: echo 'CLEAN_MOBILE_UI_IDENTITY_QR_AND_TWO_PROFILE_TRUST_TESTS_ONLY_NO_LIVE_SIGNALING_NO_PHYSICAL_PHONE_OR_CALL_PROOF'
+ /tmp/ezero-qr-changes.txt; then
             echo 'FROZEN_CALL_ENGINE_SOURCE_CHANGE_DETECTED'
             exit 1
           fi
