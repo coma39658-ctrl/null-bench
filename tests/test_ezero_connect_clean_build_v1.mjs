@@ -183,7 +183,6 @@ try {
   });
   await page.locator("#requestCameraPermission").click();
   await page.waitForFunction(() => document.querySelector("#qrScanStatus").textContent.includes("Camera permission is blocked"));
-  await page.evaluate(() => { window.EZERO_QR = undefined; });
   await page.locator("#createMyQr").click();
   await page.waitForFunction(() => !document.querySelector("#myQrDisplay").hidden);
   const qrPngDataUrl = await page.evaluate(async () => {
