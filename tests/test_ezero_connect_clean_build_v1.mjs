@@ -170,7 +170,7 @@ try {
   await page.locator("#createMyQr").click();
   await page.waitForFunction(() => !document.querySelector("#myQrDisplay").hidden);
   const qrSvg = await page.locator("#myQrImage svg").evaluate(node => node.outerHTML);
-  assert.match(qrSvg, /<svg[\\s>]/);
+  assert.match(qrSvg, /<svg[\s>]/);
   await page.locator("#qrGalleryFile").setInputFiles({
     name: "ezero-invite.svg",
     mimeType: "image/svg+xml",
