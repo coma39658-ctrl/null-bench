@@ -83,6 +83,23 @@ header{height:76px;display:flex;align-items:center;justify-content:space-between
       <code id="identityFingerprint" style="display:block;direction:ltr;overflow-wrap:anywhere;font-size:11px;margin-top:6px;color:#174c39"></code>
     </div>
   </section>
+  <section class="panel" aria-labelledby="qrTitle">
+    <div class="panel-head"><strong id="qrTitle">محفوظ QR رابطہ</strong><span class="muted" id="qrCountdown"></span></div>
+    <p class="muted" id="qrExplain">پہلی بار دوست سے محفوظ رابطے کے لیے عارضی QR بنائیں یا دوست کا QR اسکین کریں۔ QR صرف 90 سیکنڈ کے لیے کارآمد ہوگا۔</p>
+    <div class="actions">
+      <button class="action" id="createMyQr" type="button" disabled><i>▦</i><span id="createMyQrLabel">میرا QR بنائیں</span></button>
+      <button class="action video" id="scanFriendQr" type="button" disabled><i>⌕</i><span id="scanFriendQrLabel">دوست کا QR اسکین کریں</span></button>
+    </div>
+    <button class="secondary" id="chooseGalleryQr" type="button" disabled style="width:100%;margin-top:9px">گیلری سے QR تصویر منتخب کریں</button>
+    <input id="qrGalleryFile" type="file" accept="image/*" hidden>
+    <video id="qrScannerVideo" playsinline muted hidden style="width:100%;border-radius:14px;margin-top:12px;background:#102d22"></video>
+    <button class="secondary" id="stopQrScanner" type="button" hidden style="width:100%;margin-top:8px">اسکین بند کریں</button>
+    <div id="myQrDisplay" hidden style="text-align:center;padding:14px 4px 4px">
+      <div id="myQrImage" style="display:inline-block;max-width:100%;background:#fff;padding:10px;border-radius:14px"></div>
+      <div class="muted" id="myQrExpiry" style="margin-top:8px"></div>
+    </div>
+    <div class="status" id="qrScanStatus" role="status" aria-live="polite">QR بنانے یا اسکین کرنے سے پہلے اس فون کی محفوظ شناخت بنائیں۔</div>
+  </section>
   <section class="panel">
     <div class="panel-head"><strong id="privacyTitle">آپ کی پرائیویسی</strong><span class="muted">E-ZERO</span></div>
     <p class="muted" id="privacyText">کیمرہ اور مائیک صرف آپ کے واضح بٹن دبانے کے بعد مانگے جائیں گے۔ اس پیش نظارہ میں ابھی کوئی کال، پیغام یا دوست محفوظ نہیں کیا جاتا۔</p>
@@ -99,6 +116,7 @@ header{height:76px;display:flex;align-items:center;justify-content:space-between
   </section>
 </div>
 <script src="./js/ezero_connect_identity_v1.js" defer></script>
+<script src="./js/ezero_qr_runtime_v1.js" defer></script>
 <script src="./js/ezero_connect_invite_v1.js" defer></script>\n<script src="./js/ezero_connect_app_v1.js" defer></script>
 </body>
 </html>
