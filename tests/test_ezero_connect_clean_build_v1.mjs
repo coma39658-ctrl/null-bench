@@ -9,6 +9,7 @@ assert.doesNotMatch(landing, /ezero_trusted_friends_staging_20261106\.html/);
 const js = await readFile("js/ezero_connect_app_v1.js", "utf8");
 const identityJs = await readFile("js/ezero_connect_identity_v1.js", "utf8");
 const inviteJs = await readFile("js/ezero_connect_invite_v1.js", "utf8");
+const trustJs = await readFile("js/ezero_connect_trust_v1.js", "utf8");
 assert.match(html, /E-ZERO Connect/);
 assert.match(html, /js\/ezero_connect_app_v1\.js/);
 assert.doesNotMatch(html, /ezero_trusted_friends_staging|ezero_saved_friend_stage|ezero_saved_friend_stage_engine/);
@@ -16,6 +17,8 @@ assert.doesNotMatch(js, /getUserMedia|RTCPeerConnection|WebSocket|localStorage|i
 assert.ok(html.includes("js/ezero_connect_identity_v1.js"));
 assert.ok(html.includes("js/ezero_qr_runtime_v1.js"));
 assert.ok(html.includes("js/ezero_connect_invite_v1.js"));
+assert.ok(html.includes("js/ezero_connect_trust_v1.js"));
+assert.ok(!["localStorage","sessionStorage","fetch(","WebSocket"].some(token => trustJs.includes(token)));
 assert.ok(!["fetch(","WebSocket","localStorage","sessionStorage"].some(token => inviteJs.includes(token)));
 assert.ok(!["localStorage","sessionStorage","fetch(","WebSocket","RTCPeerConnection","getUserMedia"].some(token => identityJs.includes(token)));
 assert.match(identityJs, /extractable !== false/);
