@@ -99,7 +99,11 @@ async function load(){
    if(!row){status.textContent=t("missing");return;}
    status.textContent=t("working");
    render(await tokenForSavedIdentity());
- }catch(_){status.textContent=t("error");}
+ }catch(error){
+   const reason=String(error?.name||error?.message||"UNKNOWN").replace(/[^A-Za-z0-9_-]/g,"").slice(0,36)||"UNKNOWN";
+   console.error("[E-ZERO permanent QR restore]",error);
+   status.textContent=t("error")+" ["+reason+"]";
+ }
 }
 heading.textContent=t("title");help.textContent=t("help");create.textContent=t("create");copy.textContent=t("copy");
 copyId.textContent=t("copyId");scan.textContent=t("scan");stopScan.textContent=t("cameraStop");gallery.textContent=t("gallery");friendNameLabel.textContent=t("friendName");saveFriendButton.textContent=t("saveFriend");
@@ -109,7 +113,11 @@ create.addEventListener("click",async()=>{
    const saved=await control.saveAfterConsent();
    if(saved!==true)throw Error("DEVICE_IDENTITY_SAVE_FAILED");
    render(await tokenForSavedIdentity());
- }catch(_){status.textContent=t("error");}
+ }catch(error){
+   const reason=String(error?.name||error?.message||"UNKNOWN").replace(/[^A-Za-z0-9_-]/g,"").slice(0,36)||"UNKNOWN";
+   console.error("[E-ZERO permanent QR create]",error);
+   status.textContent=t("error")+" ["+reason+"]";
+ }
  finally{create.disabled=false;}
 });
 copy.addEventListener("click",async()=>{
