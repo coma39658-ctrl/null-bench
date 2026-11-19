@@ -20,7 +20,8 @@ Owner decision: the new clean-build application is the only product direction. T
 - Stage 1: implementation and isolated mobile browser tests passed on the clean-build branch.
 - Stage 2: **PASS in isolated mobile Chromium CI.** A local ECDSA P-256 device key is generated only after explicit checkbox + button consent; private key is non-extractable and persisted in IndexedDB. Tests verified no key exists before consent, the key can sign and its public key verifies, the private key is non-extractable, and the same fingerprint survives reload. This is browser-test evidence, not physical Android-device proof.
 - Stage 3: **cryptographic invite-envelope tests PASS in isolated mobile Chromium CI.** The signed one-time invite binds the inviter public-key fingerprint, exact site origin, random room ID, guest secret, nonce, issue time and 90-second expiry. Tests cover signature tampering, wrong origin, expiry, persistent replay rejection and one-time host proof retrieval. The QR image renderer, camera scanner and gallery-image scanner are still outstanding, so Stage 3 is not complete.
-- Stages 4–10: planned; not yet implemented or verified.
+- Stage 4: mutual-trust protocol is implemented in an isolated module. Both devices sign the same canonical transcript; saving requires two valid signatures and explicit local consent. Contact metadata is encrypted at rest with a non-extractable AES-GCM key stored locally; revoke/block/unblock fail closed. Two-profile regression tests are pending CI.
+- Stages 5–10: planned; not yet implemented or verified.
 
 ## Release discipline
 
