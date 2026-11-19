@@ -138,7 +138,7 @@
       throw new Error("TRUST_TRANSCRIPT_INVALID");
     }
     const participants = transcript.participants;
-    if (participants[0].fingerprint >= participants[1].fingerprint) throw new Error("TRUST_PARTICIPANT_ORDER_INVALID");
+    if (!(participants[0].fingerprint < participants[1].fingerprint)) throw new Error("TRUST_PARTICIPANT_ORDER_INVALID");
     for (const participant of participants) {
       if (!/^(?:[0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(participant.fingerprint)) {
         throw new Error("TRUST_PARTICIPANT_FINGERPRINT_INVALID");
@@ -160,7 +160,7 @@
     const participants = [
       { fingerprint: invite.inviterFingerprint, publicKeySpki: invite.inviterPublicKeySpki },
       { fingerprint: responderIdentity.fingerprint, publicKeySpki: responderIdentity.publicKeySpki }
-    ].sort((a, b) => a.fingerprint.localeCompare(b.fingerprint));
+    ].sort((a, b) => a.fingerprint < b.fingerprint ? -1 : a.fingerprint > b.fingerprint ? 1 : 0);
     if (participants[0].fingerprint === participants[1].fingerprint) throw new Error("TRUST_SELF_PAIRING_FORBIDDEN");
     const transcript = {
       v: 1,
