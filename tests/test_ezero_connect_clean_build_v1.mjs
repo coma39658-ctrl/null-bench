@@ -120,6 +120,17 @@ try {
     catch (error) { return error.message; }
   }, tamperedCode);
   assert.equal(tamperResult, "INVITE_SIGNATURE_INVALID");
+  const wrongOriginCode = await page.evaluate(code => {
+    const raw = atob(code.slice(7).replaceAll("-", "+").replaceAll("_", "/") + "=".repeat((4 - (code.length - 7) % 4) % 4));
+    const envelope = JSON.parse(raw);
+    envelope.payload.origin = "https://attacker.invalid";
+    return "EZERO1." + btoa(JSON.stringify(envelope)).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
+  }, invite.inviteCode);
+  const wrongOriginResult = await page.evaluate(async code => {
+    try { await window.EZERO_CONNECT_INVITES.verifyInvite(code); return "ACCEPTED"; }
+    catch (error) { return error.message; }
+  }, wrongOriginCode);
+  assert.equal(wrongOriginResult, "INVITE_ORIGIN_OR_VERSION_INVALID");
 
   const verifiedInvite = await page.evaluate(async code => window.EZERO_CONNECT_INVITES.verifyInvite(code), invite.inviteCode);
   assert.equal(verifiedInvite.roomId, invite.roomId);
