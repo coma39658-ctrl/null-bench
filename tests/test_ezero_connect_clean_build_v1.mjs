@@ -14,6 +14,7 @@ assert.match(html, /js\/ezero_connect_app_v1\.js/);
 assert.doesNotMatch(html, /ezero_trusted_friends_staging|ezero_saved_friend_stage|ezero_saved_friend_stage_engine/);
 assert.doesNotMatch(js, /getUserMedia|RTCPeerConnection|WebSocket|localStorage|indexedDB/);
 assert.ok(html.includes("js/ezero_connect_identity_v1.js"));
+assert.ok(html.includes("js/ezero_qr_runtime_v1.js"));
 assert.ok(html.includes("js/ezero_connect_invite_v1.js"));
 assert.ok(!["fetch(","WebSocket","localStorage","sessionStorage"].some(token => inviteJs.includes(token)));
 assert.ok(!["localStorage","sessionStorage","fetch(","WebSocket","RTCPeerConnection","getUserMedia"].some(token => identityJs.includes(token)));
@@ -28,6 +29,14 @@ try {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
   const errors = [];
   page.on("pageerror", error => errors.push(error.message));
+  await page.addInitScript(() => {
+    window.__ezeroMediaRequestCount = 0;
+    const media = navigator.mediaDevices;
+    if (media && media.getUserMedia) {
+      const original = media.getUserMedia.bind(media);
+      media.getUserMedia = (...args) => { window.__ezeroMediaRequestCount++; return original(...args); };
+    }
+  });
   await page.goto("http://127.0.0.1:8769/ezero-connect-app.html");
   await page.waitForSelector("#emptyState");
   assert.equal(await page.locator("#audioCall").isDisabled(), true);
@@ -155,6 +164,21 @@ try {
   await page.waitForFunction(() => document.querySelector("#identityFingerprint").textContent.length > 30);
   assert.equal(await page.locator("#identityFingerprint").innerText(), fingerprint);
   assert.equal(await page.locator("#createIdentity").isDisabled(), true);
+  await page.waitForFunction(() => Boolean(window.EZERO_QR));
+  assert.equal(await page.locator("#createMyQr").isDisabled(), false);
+  assert.equal(await page.locator("#scanFriendQr").isDisabled(), false);
+  await page.locator("#createMyQr").click();
+  await page.waitForFunction(() => !document.querySelector("#myQrDisplay").hidden);
+  const qrSvg = await page.locator("#myQrImage svg").evaluate(node => node.outerHTML);
+  assert.match(qrSvg, /<svg[\\s>]/);
+  await page.locator("#qrGalleryFile").setInputFiles({
+    name: "ezero-invite.svg",
+    mimeType: "image/svg+xml",
+    buffer: Buffer.from(qrSvg)
+  });
+  await page.waitForFunction(() => document.querySelector("#qrScanStatus").dataset.kind === "ok");
+  assert.match(await page.locator("#qrScanStatus").innerText(), /QR signature verified|دستخطی تصدیق کامیاب|تم التحقق من توقيع/);
+  assert.equal(await page.evaluate(() => window.__ezeroMediaRequestCount), 0);
   assert.deepEqual(errors, []);
 
   console.log("EZERO_CLEAN_BUILD_MOBILE_SHELL_TESTS_PASS");
