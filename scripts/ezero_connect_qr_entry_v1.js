@@ -3,7 +3,7 @@ import decodeQR from "qr/decode.js";
 import { QRCanvas, frameLoop, rearCamera } from "qr/dom.js";
 
 async function decodeImageFile(file) {
-  if (!(file instanceof Blob) || file.size <= 0 || file.size > 12 * 1024 * 1024) {
+  if (!(file instanceof Blob) || !file.type.startsWith("image/") || file.size <= 0 || file.size > 8 * 1024 * 1024) {
     throw new Error("QR_IMAGE_FILE_INVALID");
   }
   let bitmap;
@@ -13,7 +13,7 @@ async function decodeImageFile(file) {
     throw new Error("QR_IMAGE_DECODE_FAILED");
   }
   try {
-    const maxDimension = 4096;
+    const maxDimension = 2048;
     const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
     const width = Math.max(1, Math.round(bitmap.width * scale));
     const height = Math.max(1, Math.round(bitmap.height * scale));
@@ -47,7 +47,7 @@ async function startCamera(video, onDecoded) {
   cancelFrame = frameLoop(() => {
     if (stopped || busy) return;
     busy = true;
-    Promise.resolve(camera.readFrame(scanner)).then(decoded => {
+    Promise.resolve().then(() => camera.readFrame(scanner)).then(decoded => {
       if (decoded !== undefined && decoded !== null && !stopped) {
         stop();
         onDecoded(decoded);
