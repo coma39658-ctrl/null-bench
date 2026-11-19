@@ -53,27 +53,37 @@
     });
   }
 
+  let cachedVaultKey = null;
+  let vaultKeyPromise = null;
   async function readVaultKey(createIfMissing) {
-    const db = await openDb();
-    const existing = await new Promise((resolve, reject) => {
-      const request = db.transaction(VAULT, "readonly").objectStore(VAULT).get(VAULT_ID);
-      request.onsuccess = () => resolve(request.result?.key || null);
-      request.onerror = () => reject(new Error("TRUST_VAULT_READ_FAILED"));
-    });
-    if (existing || !createIfMissing) {
+    if (cachedVaultKey) return cachedVaultKey;
+    if (vaultKeyPromise) return vaultKeyPromise;
+    vaultKeyPromise = (async () => {
+      const db = await openDb();
+      const existing = await new Promise((resolve, reject) => {
+        const request = db.transaction(VAULT, "readonly").objectStore(VAULT).get(VAULT_ID);
+        request.onsuccess = () => resolve(request.result?.key || null);
+        request.onerror = () => reject(new Error("TRUST_VAULT_READ_FAILED"));
+      });
+      if (existing || !createIfMissing) {
+        db.close();
+        cachedVaultKey = existing;
+        return existing;
+      }
+      const key = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(VAULT, "readwrite");
+        tx.objectStore(VAULT).put({ id: VAULT_ID, key });
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(new Error("TRUST_VAULT_WRITE_FAILED"));
+        tx.onabort = () => reject(new Error("TRUST_VAULT_WRITE_ABORTED"));
+      });
       db.close();
-      return existing;
-    }
-    const key = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
-    await new Promise((resolve, reject) => {
-      const tx = db.transaction(VAULT, "readwrite");
-      tx.objectStore(VAULT).put({ id: VAULT_ID, key });
-      tx.oncomplete = resolve;
-      tx.onerror = () => reject(new Error("TRUST_VAULT_WRITE_FAILED"));
-      tx.onabort = () => reject(new Error("TRUST_VAULT_WRITE_ABORTED"));
-    });
-    db.close();
-    return key;
+      cachedVaultKey = key;
+      return key;
+    })();
+    try { return await vaultKeyPromise; }
+    finally { vaultKeyPromise = null; }
   }
 
   async function readEncryptedRecords() {
