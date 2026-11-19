@@ -29,6 +29,24 @@ permissions:
   contents: read
 
 jobs:
+  frozen-two-phone-contracts:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify the frozen legacy call-engine sources are untouched
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin ezero-connect-clean-build-20261120 --depth=50
+          git diff --name-only origin/ezero-connect-clean-build-20261120...HEAD > /tmp/ezero-qr-changes.txt
+          if grep -E '^js/.*(webrtc|call|media|signaling)' /tmp/ezero-qr-changes.txt; then
+            echo 'FROZEN_CALL_ENGINE_SOURCE_CHANGE_DETECTED'
+            exit 1
+          fi
+          echo 'FROZEN_CALL_ENGINE_UNMODIFIED; THIS IS NOT PROOF OF NEW_CALL_FUNCTIONALITY'
   clean-mobile-shell:
     runs-on: ubuntu-22.04
     timeout-minutes: 12
