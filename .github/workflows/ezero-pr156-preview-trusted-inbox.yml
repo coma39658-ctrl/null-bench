@@ -15,7 +15,7 @@ permissions:
   contents: read
 concurrency:
   group: ezero-pr156-preview-trusted-inbox
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   deploy-isolated-preview-inbox:
     runs-on: ubuntu-22.04
