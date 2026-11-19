@@ -117,7 +117,10 @@
       inviteCode,
       roomId,
       expiresAt: payload.expiresAt,
-      inviterFingerprint: identity.fingerprint
+      inviterFingerprint: identity.fingerprint,
+      inviterPublicKeySpki: identity.publicKeySpki,
+      issuedAt,
+      nonce
     };
   }
 
@@ -167,6 +170,8 @@
       inviterFingerprint: payload.inviterFingerprint,
       inviterPublicKeySpki: payload.inviterPublicKeySpki,
       roomId: payload.roomId,
+      nonce: payload.nonce,
+      issuedAt: payload.issuedAt,
       guestProof: await secretProof(payload.guestSecret),
       expiresAt: payload.expiresAt
     };
