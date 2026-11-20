@@ -5,6 +5,7 @@
 import ledger from "./android_binding_ledger_core_v1.cjs";
 import cryptoChecks from "./android_binding_crypto_v1.cjs";
 import stage4 from "./android_binding_stage4_primitives_v1.cjs";
+import retention from "./android_binding_retention_v1.cjs";
 
 const ORIGIN = cryptoChecks.ORIGIN;
 const FP = /^[0-9a-f]{64}$/;
@@ -22,8 +23,58 @@ export function createAndroidBindingLedgerClass(DurableObjectBase) {
     storageAdapter() {
       return {
         get: key => this.ctx.storage.get(key),
-        transaction: fn => this.ctx.storage.transaction(tx => fn(tx))
+        transaction: async fn => {
+          const result = await this.ctx.storage.transaction(async tx => fn({
+            get: key => tx.get(key),
+            put: async (key, value) => {
+              await tx.put(key, value);
+              const expiresAtEpochSeconds = retention.expiryForRecord(key, value);
+              if (expiresAtEpochSeconds !== null) {
+                const indexKey = retention.expiryIndexKey(expiresAtEpochSeconds, key);
+                await tx.put(indexKey, {targetKey:key, expiresAtEpochSeconds});
+              }
+            }
+          }));
+          await this.scheduleCleanupAlarm();
+          return result;
+        }
       };
+    }
+
+    async scheduleCleanupAlarm() {
+      const indexes = await this.ctx.storage.list({
+        prefix:retention.PREFIX,
+        limit:1
+      });
+      const first = indexes.entries().next();
+      if (first.done) {
+        await this.ctx.storage.deleteAlarm();
+        return;
+      }
+      const parsed = retention.parseExpiryIndex(first.value[0], first.value[1]);
+      if (!parsed) throw new Error("RETENTION_INDEX_INVALID");
+      const dueAt = parsed.expiresAtEpochSeconds * 1000;
+      await this.ctx.storage.setAlarm(Math.max(Date.now() + 1000, dueAt));
+    }
+
+    async alarm() {
+      const indexes = await this.ctx.storage.list({
+        prefix:retention.PREFIX,
+        limit:retention.MAX_ALARM_BATCH
+      });
+      const nowEpochSeconds = Math.floor(Date.now() / 1000);
+      await this.ctx.storage.transaction(async tx => {
+        for (const [indexKey, indexValue] of indexes) {
+          const parsed = retention.parseExpiryIndex(indexKey, indexValue);
+          if (!parsed || parsed.expiresAtEpochSeconds > nowEpochSeconds) break;
+          const current = await tx.get(parsed.targetKey);
+          if (retention.expiryForRecord(parsed.targetKey, current) === parsed.expiresAtEpochSeconds) {
+            await tx.delete(parsed.targetKey);
+          }
+          await tx.delete(indexKey);
+        }
+      });
+      await this.scheduleCleanupAlarm();
     }
 
     async verifiedOwner(input) {
