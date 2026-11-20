@@ -16,7 +16,7 @@ class MainActivity : Activity() {
         val message = TextView(this).apply {
             textSize = 18f
             setPadding(32, 48, 32, 32)
-            text = "E-ZERO Connect\\n\\nAndroid incoming-call host — isolated staging.\\nPush setup and secure WebRTC handoff are not active yet."
+            text = "E-ZERO Connect\n\nAndroid incoming-call host — isolated staging.\nPush setup and secure WebRTC handoff are not active yet."
         }
         setContentView(message)
         requestNotificationPermission()
@@ -47,6 +47,6 @@ class MainActivity : Activity() {
         }
         // Intentionally do not auto-answer or fabricate a connected-call state.
         (findViewById<android.view.ViewGroup>(android.R.id.content).getChildAt(0) as? TextView)?.text =
-            "E-ZERO Connect\\n\\n$status\\nCall reference: $callId"
+            "E-ZERO Connect\n\n$status\nCall reference: $callId"
     }
 }
