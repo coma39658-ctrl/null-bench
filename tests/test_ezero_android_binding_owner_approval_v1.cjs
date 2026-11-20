@@ -4,7 +4,7 @@ const fs=require("node:fs");
 const vm=require("node:vm");
 const source=fs.readFileSync("js/ezero_android_binding_owner_approval_v1.js","utf8");
 const fixtureText=fs.readFileSync("android/app/src/test/resources/ezero_android_browser_binding_golden_v1.properties","utf8");
-const fixture=Object.fromEntries(fixtureText.split(/\\r?\\n/).filter(Boolean).map(line=>{const i=line.indexOf("=");return [line.slice(0,i),line.slice(i+1)];}));
+const fixture=Object.fromEntries(fixtureText.split(/\\r?\n/).filter(Boolean).map(line=>{const i=line.indexOf("=");return [line.slice(0,i),line.slice(i+1)];}));
 
 const b64=b=>Buffer.from(b).toString("base64url");
 const fp=async b=>Buffer.from(await webcrypto.subtle.digest("SHA-256",b)).toString("hex");
@@ -18,17 +18,17 @@ const fp=async b=>Buffer.from(await webcrypto.subtle.digest("SHA-256",b)).toStri
  const ownerPublic=await webcrypto.subtle.importKey("spki",ownerSpki,{name:"ECDSA",namedCurve:"P-256"},false,["verify"]);
  const androidPublic=await webcrypto.subtle.importKey("spki",androidSpki,{name:"ECDSA",namedCurve:"P-256"},false,["verify"]);
  assert.equal(androidPublic.algorithm.namedCurve,"P-256");
- assert.equal(fixture["owner.canonical"],["EZERO-PERMANENT-IDENTITY-1",fixture.origin,fixture["owner.spki"],fixture["owner.fingerprint"]].join("\\n"));
+ assert.equal(fixture["owner.canonical"],["EZERO-PERMANENT-IDENTITY-1",fixture.origin,fixture["owner.spki"],fixture["owner.fingerprint"]].join("\n"));
  const ownerProofValid=await webcrypto.subtle.verify({name:"ECDSA",hash:"SHA-256"},ownerPublic,
    Buffer.from(fixture["owner.proof.p1363"],"base64url"),new TextEncoder().encode(fixture["owner.canonical"]));
  assert.equal(ownerProofValid,true,"shared permanent EZERO2 proof must verify in WebCrypto");
  assert.equal(fixture["request.canonical"],[
    "EZERO-ANDROID-BIND-1",fixture.origin,fixture["owner.fingerprint"],fixture["android.spki"],
    fixture["android.fingerprint"],fixture["request.nonce"],fixture["request.issued"],
-   fixture["request.expires"],"call-invite-only"].join("\\n"));
+   fixture["request.expires"],"call-invite-only"].join("\n"));
  const approvalValid=await webcrypto.subtle.verify({name:"ECDSA",hash:"SHA-256"},ownerPublic,
    Buffer.from(fixture["approval.signature.p1363"],"base64url"),
-   new TextEncoder().encode(fixture["approval.domain"]+"\\n"+fixture["request.canonical"]));
+   new TextEncoder().encode(fixture["approval.domain"]+"\n"+fixture["request.canonical"]));
  assert.equal(approvalValid,true,"shared owner approval signature must verify in WebCrypto");
  const fixtureContext={window:{},crypto:webcrypto,TextEncoder,Uint8Array,Date:{now:()=>1800000001000},
    atob:s=>Buffer.from(s,"base64").toString("binary"),btoa:s=>Buffer.from(s,"binary").toString("base64")};
