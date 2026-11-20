@@ -51,3 +51,8 @@ A successful build would only validate compilation. It would not validate push d
 3. Implement backend-signed, short-lived wake-up delivery and cancellation.
 4. Bind Accept to the existing signed WebRTC invite flow without changing the WebRTC engine.
 5. Test on two physical Android devices, including background, screen lock, reject, cancel, timeout and force-stop limitations.
+
+
+## Device enrollment and push contract
+
+See [DEVICE_REGISTRATION_AND_PUSH_CONTRACT.md](./DEVICE_REGISTRATION_AND_PUSH_CONTRACT.md) for the isolated staging design, enrollment ceremony, FCM payload allowlist, revocation/cancellation rules, and automated/physical acceptance gates. This is a preparation specification only; no registration API, FCM sender, or Worker deployment is active.
