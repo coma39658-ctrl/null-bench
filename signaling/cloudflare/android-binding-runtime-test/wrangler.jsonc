@@ -1,0 +1,21 @@
+{
+  "$schema": "https://unpkg.com/wrangler@4/config-schema.json",
+  "name": "ezero-android-binding-runtime-test-only",
+  "main": "../src/android_binding_durable_object_v1.mjs",
+  "compatibility_date": "2026-11-20",
+  "workers_dev": false,
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "ANDROID_BINDING_LEDGER",
+        "class_name": "AndroidBindingLedger"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1-test-only",
+      "new_sqlite_classes": ["AndroidBindingLedger"]
+    }
+  ]
+}
