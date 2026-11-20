@@ -58,22 +58,10 @@ export function createAndroidBindingLedgerClass(DurableObjectBase) {
     }
 
     async alarm() {
-      const indexes = await this.ctx.storage.list({
-        prefix:retention.PREFIX,
-        limit:retention.MAX_ALARM_BATCH
-      });
-      const nowEpochSeconds = Math.floor(Date.now() / 1000);
-      await this.ctx.storage.transaction(async tx => {
-        for (const [indexKey, indexValue] of indexes) {
-          const parsed = retention.parseExpiryIndex(indexKey, indexValue);
-          if (!parsed || parsed.expiresAtEpochSeconds > nowEpochSeconds) break;
-          const current = await tx.get(parsed.targetKey);
-          if (retention.expiryForRecord(parsed.targetKey, current) === parsed.expiresAtEpochSeconds) {
-            await tx.delete(parsed.targetKey);
-          }
-          await tx.delete(indexKey);
-        }
-      });
+      await retention.cleanupExpiredBatch(
+        this.ctx.storage,
+        Math.floor(Date.now() / 1000)
+      );
       await this.scheduleCleanupAlarm();
     }
 
