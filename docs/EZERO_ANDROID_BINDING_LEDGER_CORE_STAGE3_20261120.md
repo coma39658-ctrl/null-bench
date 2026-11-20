@@ -8,6 +8,8 @@ Status: **ISOLATED CORE + UNIT TESTS ONLY — NOT A WORKER, NOT DURABLE OBJECT D
 
 - Added `signaling/cloudflare/src/android_binding_ledger_core_v1.cjs`.
 - Added `tests/test_ezero_android_binding_ledger_core_v1.cjs`.
+- Added `signaling/cloudflare/src/android_binding_crypto_v1.cjs`, a pure WebCrypto verifier for the existing EZERO2 permanent owner proof and the domain-separated Android binding approval, using the same P-256 public key.
+- Added `tests/test_ezero_android_binding_crypto_v1.cjs` with generated P-256 test keys and real WebCrypto signatures; no private test key is stored in the repository.
 - Added a branch-scoped GitHub Actions workflow for the isolated core tests.
 - This is a storage-agnostic core intended to be called with Cloudflare Durable Object storage transactions later. It does not import the older PR156 inbox and does not use its `EZERO-TRUSTED-INBOX-1` format.
 
@@ -25,19 +27,20 @@ Status: **ISOLATED CORE + UNIT TESTS ONLY — NOT A WORKER, NOT DURABLE OBJECT D
 
 ## Critical trust boundary — not yet wired
 
-- `verifyOwnerApproval` is a required callback. A real Worker must independently validate the permanent EZERO2 owner proof, prove the owner SPKI fingerprint, and verify the ECDSA signature over `EZERO-ANDROID-BIND-APPROVAL-1\\n` plus the exact canonical request bytes. A client-provided “verified” flag is not acceptable.
+- `verifyOwnerApproval` is a required callback. The new pure WebCrypto helper implements EZERO2 proof and approval signature verification, but it is not yet wired into a Worker/DO entrypoint. A client-provided “verified” flag is never acceptable.
 - The challenge issuer must authenticate the existing EZERO2 owner identity before calling this core.
 - Revocation must authenticate a fresh owner-authorized action before calling this core.
-- The current tests use a deliberately simple verifier stub to test ledger state transitions; they do NOT prove ECDSA verification, EZERO2 proof validation, Cloudflare Durable Object transaction behavior, or network security.
+- Ledger state-transition tests use a deliberately simple verifier stub; the separate crypto tests use real generated P-256 keys and WebCrypto. Neither suite proves Cloudflare Durable Object transaction behavior or network security.
 - The test storage adapter serializes transactions in memory. A real Cloudflare Durable Object adapter and concurrency tests against a non-production staging namespace are still required.
 - Expired/consumed nonce retention and bounded cleanup must be designed before any live endpoint; the current core deliberately does not silently delete security records.
 
 ## Automated evidence — PASS
 
 - Isolated core workflow run [44760075595](https://github.com/coma39658-ctrl/null-bench/actions/runs/44760075595), commit `a6bccb21431140042c95aa183a5f7c443d95fd84`: completed successfully.
-- Node 22 test output: **8 passed, 0 failed**. It covers exact challenge shape/90-second lifetime, single-use consumption, concurrent replay, expiry boundary, verifier-failure behavior, revocation authorization, active-binding duplication, and canonical/origin tampering.
-- Evidence registry validator also ran on this branch commit [44760075610](https://github.com/coma39658-ctrl/null-bench/actions/runs/44760075610); its completion is tracked separately.
-- Important: these are core unit tests using a serialized in-memory storage adapter and a stubbed approval verifier. They do not prove Cloudflare Durable Object behavior or real ECDSA/EZERO2 proof verification.
+- Initial Node 22 core run [44760075595](https://github.com/coma39658-ctrl/null-bench/actions/runs/44760075595): **8 passed, 0 failed** for ledger state transitions.
+- A real WebCrypto test suite is now added to the same gate. It generates P-256 keys at runtime, verifies the exact EZERO2 permanent proof, checks that the Android approval is signed by the same owner key, rejects altered signatures and wrong owner keys, and exercises ledger consumption with that cryptographic verifier. Its new CI run is pending at the latest branch commit; do not mark those new crypto tests PASS until that run completes.
+- Evidence registry validator passed on the initial ledger commit [44760075610](https://github.com/coma39658-ctrl/null-bench/actions/runs/44760075610).
+- Important: ledger concurrency tests still use a serialized in-memory storage adapter. They do not prove Cloudflare Durable Object transaction behavior or a live network endpoint.
 
 ## Tests covered by the isolated gate
 
