@@ -6,6 +6,7 @@ on:
     paths:
       - "js/ezero_android_binding_owner_approval_v1.js"
       - "tests/test_ezero_android_binding_owner_approval_v1.cjs"
+      - "android/app/src/test/resources/ezero_android_browser_binding_golden_v1.properties"
       - "ezero_trusted_friends_staging_20261106.html"
       - ".github/workflows/ezero-browser-owner-binding-stage.yml"
   workflow_dispatch:
