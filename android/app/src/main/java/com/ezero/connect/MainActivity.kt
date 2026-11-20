@@ -46,7 +46,7 @@ class MainActivity : Activity() {
             else -> "Incoming call event received."
         }
         // Intentionally do not auto-answer or fabricate a connected-call state.
-        (findViewById<TextView>(android.R.id.content).getChildAt(0) as? TextView)?.text =
+        (findViewById<android.view.ViewGroup>(android.R.id.content).getChildAt(0) as? TextView)?.text =
             "E-ZERO Connect\\n\\n$status\\nCall reference: $callId"
     }
 }
