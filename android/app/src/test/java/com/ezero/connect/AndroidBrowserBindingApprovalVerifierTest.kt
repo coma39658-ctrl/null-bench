@@ -6,6 +6,7 @@ import java.security.KeyPairGenerator
 import java.security.Signature
 import java.security.spec.ECGenParameterSpec
 import java.util.Base64
+import java.util.Properties
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
@@ -115,6 +116,56 @@ class AndroidBrowserBindingApprovalVerifierTest {
                 valid, signature, scanned, now + 60L
             )
         }
+    }
+
+    @Test
+    fun verifiesSharedGoldenVectorAlsoConsumedByBrowserTests() {
+        val props = Properties().apply {
+            val stream = javaClass.getResourceAsStream("/ezero_android_browser_binding_golden_v1.properties")
+                ?: error("Missing shared golden vector")
+            stream.use { load(it) }
+        }
+        assertEquals("EZERO_ANDROID_BROWSER_BINDING_GOLDEN_V1", props.getProperty("fixture"))
+        val ownerSpki = props.getProperty("owner.spki")
+        val ownerFingerprint = props.getProperty("owner.fingerprint")
+        val ownerCanonical = props.getProperty("owner.canonical")
+        val ownerProof = props.getProperty("owner.proof.p1363")
+        assertEquals(
+            ownerCanonical,
+            listOf("EZERO-PERMANENT-IDENTITY-1", props.getProperty("origin"), ownerSpki, ownerFingerprint)
+                .joinToString("\\n")
+        )
+        val token = "EZERO2.$ownerSpki.$ownerFingerprint.$ownerProof"
+        val scanned = BrowserPermanentIdentityVerifier.verify(token)
+        val androidSpki = props.getProperty("android.spki")
+        val request = AndroidBrowserBindingProtocolV1.RequestFields(
+            origin = props.getProperty("origin"),
+            ownerFingerprint = ownerFingerprint,
+            androidPublicKeySpkiBase64Url = androidSpki,
+            androidFingerprint = props.getProperty("android.fingerprint"),
+            nonceBase64Url = props.getProperty("request.nonce"),
+            issuedAtEpochSeconds = props.getProperty("request.issued").toLong(),
+            expiresAtEpochSeconds = props.getProperty("request.expires").toLong()
+        )
+        val canonical = String(
+            AndroidBrowserBindingProtocolV1.canonicalRequest(request),
+            StandardCharsets.UTF_8
+        )
+        assertEquals(props.getProperty("request.canonical"), canonical)
+        assertEquals(
+            "EZERO-ANDROID-BIND-APPROVAL-1",
+            props.getProperty("approval.domain")
+        )
+        val verified = AndroidBrowserBindingApprovalVerifier.verify(
+            request,
+            props.getProperty("approval.signature.p1363"),
+            scanned,
+            request.issuedAtEpochSeconds + 1L
+        )
+        assertEquals(ownerFingerprint, verified.ownerFingerprint)
+        assertEquals(props.getProperty("android.fingerprint"), verified.androidFingerprint)
+        assertEquals(props.getProperty("request.nonce"), verified.nonceBase64Url)
+        assertEquals("call-invite-only", verified.capability)
     }
 
     @Test
