@@ -46,6 +46,7 @@ const fp=async b=>Buffer.from(await webcrypto.subtle.digest("SHA-256",b)).toStri
  const long=canonical.split("\n");long[7]=String(now+91);
  await assert.rejects(()=>api.approve(long.join("\n")),/REQUEST_EXPIRED_OR_INVALID/);
  window.confirm=()=>false;
- await assert.rejects(()=>api.approve(canonical),/OWNER_APPROVAL_DECLINED/);
+ const declineRequest=canonical.replace(parsed.nonce,b64(webcrypto.getRandomValues(new Uint8Array(24))));
+ await assert.rejects(()=>api.approve(declineRequest),/OWNER_APPROVAL_DECLINED/);
  console.log("EZERO2_SAME_OWNER_KEY_EXPLICIT_APPROVAL_SHORT_TTL_CALL_INVITE_ONLY: PASS");
 })().catch(error=>{console.error(error);process.exitCode=1;});
