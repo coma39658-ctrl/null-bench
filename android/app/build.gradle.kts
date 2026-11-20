@@ -7,6 +7,24 @@ if (file("google-services.json").exists()) {
     apply(plugin = "com.google.gms.google-services")
 }
 
+// Stable staging signing is supplied only through GitHub Actions Secrets.
+// Never commit a keystore or signing passwords to the repository.
+val stagingKeystorePath = System.getenv("EZERO_STAGING_KEYSTORE_PATH")
+val stagingStorePassword = System.getenv("EZERO_STAGING_STORE_PASSWORD")
+val stagingKeyAlias = System.getenv("EZERO_STAGING_KEY_ALIAS")
+val stagingKeyPassword = System.getenv("EZERO_STAGING_KEY_PASSWORD")
+val stagingSigningValues = listOf(
+    stagingKeystorePath,
+    stagingStorePassword,
+    stagingKeyAlias,
+    stagingKeyPassword
+)
+val stagingSigningConfigured = stagingSigningValues.all { !it.isNullOrBlank() }
+
+if (stagingSigningValues.any { !it.isNullOrBlank() } && !stagingSigningConfigured) {
+    throw GradleException("Incomplete E-ZERO staging signing configuration; all four signing environment values are required.")
+}
+
 android {
     namespace = "com.ezero.connect"
     compileSdk = 35
@@ -17,6 +35,26 @@ android {
         targetSdk = 35
         versionCode = 53
         versionName = "0.1.0-staging53"
+    }
+
+    signingConfigs {
+        if (stagingSigningConfigured) {
+            create("staging") {
+                storeFile = file(stagingKeystorePath!!)
+                storePassword = stagingStorePassword
+                keyAlias = stagingKeyAlias
+                keyPassword = stagingKeyPassword
+                storeType = "JKS"
+            }
+        }
+    }
+
+    buildTypes {
+        getByName("debug") {
+            if (stagingSigningConfigured) {
+                signingConfig = signingConfigs.getByName("staging")
+            }
+        }
     }
 
     compileOptions {
