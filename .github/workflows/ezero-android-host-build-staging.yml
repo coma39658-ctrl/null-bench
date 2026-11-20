@@ -24,20 +24,13 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-      - name: Configure preinstalled Android SDK
-        shell: bash
-        run: |
-          set -euo pipefail
-          SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
-          if [ ! -x "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
-            SDK_ROOT="/usr/local/lib/android/sdk"
-          fi
-          test -x "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
-          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
-          echo "$SDK_ROOT/platform-tools" >> "$GITHUB_PATH"
-          echo "$SDK_ROOT/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
-          yes | "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null
-          "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: 35
+          build-tools: 35.0.0
+          cmdline-tools: 11076708
+          accept-android-sdk-licenses: true
       - name: Set up Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
         with:
