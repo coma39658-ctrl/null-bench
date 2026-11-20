@@ -1,0 +1,34 @@
+name: E-ZERO Incoming Call Wake Interoperability Contract
+on:
+  push:
+    branches:
+      - ezero-incoming-call-wake-contract-stage5-20261120
+    paths:
+      - "android/app/src/main/java/com/ezero/connect/IncomingCallWakeSignatureVerifier.kt"
+      - "android/app/src/test/**"
+      - "android/call-wake-contract/**"
+      - ".github/workflows/ezero-incoming-call-wake-contract.yml"
+  pull_request:
+    branches:
+      - ezero-native-incoming-call-readiness-audit-20261120
+    paths:
+      - "android/app/src/main/java/com/ezero/connect/IncomingCallWakeSignatureVerifier.kt"
+      - "android/app/src/test/**"
+      - "android/call-wake-contract/**"
+      - ".github/workflows/ezero-incoming-call-wake-contract.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sender-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify server-side signer contract
+        run: node --test android/call-wake-contract/test/call_wake_signer_v1.test.cjs
+      - name: Verify Android canonical-byte golden vector
+        working-directory: android
+        run: ./gradlew :app:testDebugUnitTest --no-daemon
