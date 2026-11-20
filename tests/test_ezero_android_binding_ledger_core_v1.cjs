@@ -86,11 +86,8 @@ test("rejects owner signature verifier failure without consuming nonce", async (
   const args = {storage:x.storage, request:x.request, signatureBase64Url:signature,
     nowEpochSeconds:x.now+1, verifyOwnerApproval:async()=>false};
   await assert.rejects(consumeApproval(args), /OWNER_APPROVAL_INVALID/);
-  await assert.rejects(consumeApproval({...args, verifyOwnerApproval:verifier}), /CHALLENGE_NOT_ISSUED_OR_REPLAYED/).catch(async err => {
-    // The failed verification must leave the challenge available; the second
-    // call above is expected to succeed, so reaching this catch is a test bug.
-    throw err;
-  });
+  const accepted = await consumeApproval({...args, verifyOwnerApproval:verifier});
+  assert.equal(accepted.status, "active");
 });
 
 test("revokes an active binding and rejects unauthorized revocation", async () => {
