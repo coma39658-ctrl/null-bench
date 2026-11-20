@@ -26,6 +26,6 @@ jobs:
         with:
           node-version: "22"
       - name: Install isolated runtime test dependencies
-        run: npm install --no-audit --no-fund
+        run: npm install --legacy-peer-deps --no-audit --no-fund
       - name: Run real workerd Durable Object SQLite tests
         run: npm run test:runtime
