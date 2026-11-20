@@ -8,7 +8,7 @@ import cryptoChecks from "./android_binding_crypto_v1.cjs";
 const ORIGIN = cryptoChecks.ORIGIN;
 const FP = /^[0-9a-f]{64}$/;
 const REVOCATION_NONCE = /^[A-Za-z0-9_-]{32}$/;
-const rejection = error => ({status:"rejected", code: typeof error?.message === "string" ? error.message : "BINDING_OPERATION_FAILED"});
+const rejection = error => ({status:"rejected", code: typeof error?.message === "string" ? error.message : "BINDING_OPERATION_FAILED", ...(Number.isSafeInteger(error?.retryAfterEpochSeconds) ? {retryAfterEpochSeconds:error.retryAfterEpochSeconds} : {})});
 
 export function createAndroidBindingLedgerClass(DurableObjectBase) {
   return class AndroidBindingLedgerV1 extends DurableObjectBase {
