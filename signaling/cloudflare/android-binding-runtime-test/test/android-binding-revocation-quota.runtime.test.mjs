@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { env } from "cloudflare:workers";
 import { runInDurableObject } from "cloudflare:test";
+import stage4 from "../../src/android_binding_stage4_primitives_v1.cjs";
 
 const ORIGIN = "https://coma39658-ctrl.github.io";
 const b64url = bytes => {
@@ -27,7 +28,7 @@ async function makeOwner(label) {
     new TextEncoder().encode(statement)
   ));
   const id = env.ANDROID_BINDING_LEDGER.idFromName(
-    "ezero-android-binding-owner-" + ownerFingerprint
+    stage4.ownerDurableObjectName(ownerFingerprint)
   );
   return {
     pair, ownerFingerprint,
