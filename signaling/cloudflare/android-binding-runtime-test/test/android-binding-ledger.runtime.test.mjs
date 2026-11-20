@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { env } from "cloudflare:workers";
 import { evictDurableObject } from "cloudflare:test";
+import stage4 from "../../src/android_binding_stage4_primitives_v1.cjs";
 
 const ORIGIN = "https://coma39658-ctrl.github.io";
 const b64url = bytes => {
@@ -34,7 +35,7 @@ async function makeFixture(label) {
   const androidSpki = new Uint8Array(await crypto.subtle.exportKey("spki", androidPair.publicKey));
   const androidPublicKeySpkiBase64Url = b64url(androidSpki);
   const androidFingerprint = await fingerprint(androidSpki);
-  const id = env.ANDROID_BINDING_LEDGER.idFromName("runtime-" + label + "-" + b64url(crypto.getRandomValues(new Uint8Array(12))));
+  const id = env.ANDROID_BINDING_LEDGER.idFromName(stage4.ownerDurableObjectName(ownerFingerprint));
   const stub = env.ANDROID_BINDING_LEDGER.get(id);
   const ownerInput = { origin: ORIGIN, ownerSpkiBase64Url, ownerFingerprint,
     permanentProofBase64Url };
