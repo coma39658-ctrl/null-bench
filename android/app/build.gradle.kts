@@ -1,3 +1,8 @@
+import java.util.Base64
+import java.security.KeyFactory
+import java.security.spec.X509EncodedKeySpec
+import java.security.interfaces.ECPublicKey
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -33,14 +38,14 @@ if (wakePublicKeySpki.isNotEmpty()) {
         "Invalid E-ZERO wake public-key encoding; expected Base64 DER SubjectPublicKeyInfo."
     }
     val decoded = try {
-        java.util.Base64.getDecoder().decode(wakePublicKeySpki)
+        Base64.getDecoder().decode(wakePublicKeySpki)
     } catch (_: IllegalArgumentException) {
         throw GradleException("Invalid E-ZERO wake public-key Base64.")
     }
     val publicKey = try {
-        java.security.KeyFactory.getInstance("EC").generatePublic(
-            java.security.spec.X509EncodedKeySpec(decoded)
-        ) as java.security.interfaces.ECPublicKey
+        KeyFactory.getInstance("EC").generatePublic(
+            X509EncodedKeySpec(decoded)
+        ) as ECPublicKey
     } catch (_: Exception) {
         throw GradleException("E-ZERO wake key must be a valid EC SubjectPublicKeyInfo public key.")
     }
