@@ -38,7 +38,7 @@ test("owner partitioning and revocation are fail-closed", () => {
 });
 
 test("raw token and sensitive proof material never leave the protected boundary", () => {
-  assert.match(contract, /Never log request bodies, signatures, raw tokens, authorization headers/);
+  assert.match(contract, /never log request bodies, signatures, raw tokens, authorization headers/i);
   assert.match(contract, /Status endpoint never returns a raw push token/);
   assert.match(contract, /Never echo token, nonce after consumption, signature material/);
 });
