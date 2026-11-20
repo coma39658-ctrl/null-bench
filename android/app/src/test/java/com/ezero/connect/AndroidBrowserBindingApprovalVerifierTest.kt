@@ -7,6 +7,7 @@ import java.security.Signature
 import java.security.spec.ECGenParameterSpec
 import java.util.Base64
 import java.util.Properties
+import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
@@ -120,10 +121,14 @@ class AndroidBrowserBindingApprovalVerifierTest {
 
     @Test
     fun verifiesSharedGoldenVectorAlsoConsumedByBrowserTests() {
+        val fixtureRelativePath = "src/test/resources/ezero_android_browser_binding_golden_v1.properties"
+        val fixtureFile = listOf(
+            File(fixtureRelativePath),
+            File("app/$fixtureRelativePath"),
+            File("android/app/$fixtureRelativePath")
+        ).firstOrNull { it.isFile } ?: error("Missing shared golden vector test fixture")
         val props = Properties().apply {
-            val stream = javaClass.getResourceAsStream("/ezero_android_browser_binding_golden_v1.properties")
-                ?: error("Missing shared golden vector")
-            stream.use { load(it) }
+            fixtureFile.inputStream().use { load(it) }
         }
         assertEquals("EZERO_ANDROID_BROWSER_BINDING_GOLDEN_V1", props.getProperty("fixture"))
         val ownerSpki = props.getProperty("owner.spki")
@@ -133,7 +138,7 @@ class AndroidBrowserBindingApprovalVerifierTest {
         assertEquals(
             ownerCanonical,
             listOf("EZERO-PERMANENT-IDENTITY-1", props.getProperty("origin"), ownerSpki, ownerFingerprint)
-                .joinToString("\\n")
+                .joinToString("\n")
         )
         val token = "EZERO2.$ownerSpki.$ownerFingerprint.$ownerProof"
         val scanned = BrowserPermanentIdentityVerifier.verify(token)
