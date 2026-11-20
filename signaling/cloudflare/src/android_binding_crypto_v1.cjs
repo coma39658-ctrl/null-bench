@@ -62,7 +62,28 @@ async function verifyAndroidBindingApproval({ownerIdentity, canonicalRequest,
   return true;
 }
 
-async function verifyOwnerApprovalBundle({origin, ownerSpkiBase64Url, ownerFingerprint,
+
+async function verifyOwnerRevocation({ownerIdentity, androidFingerprint, nonce,
+  issuedAtEpochSeconds, signatureBase64Url, nowEpochSeconds, cryptoImpl = globalThis.crypto}) {
+  if (!ownerIdentity || ownerIdentity.origin !== ORIGIN ||
+      !FP.test(ownerIdentity.ownerFingerprint || "")) throw new Error("OWNER_IDENTITY_REQUIRED");
+  if (!FP.test(androidFingerprint || "")) throw new Error("INVALID_ANDROID_FINGERPRINT");
+  if (typeof nonce !== "string" || !/^[A-Za-z0-9_-]{32}$/.test(nonce))
+    throw new Error("INVALID_REVOCATION_NONCE");
+  if (!Number.isSafeInteger(issuedAtEpochSeconds) || !Number.isSafeInteger(nowEpochSeconds) ||
+      Math.abs(nowEpochSeconds - issuedAtEpochSeconds) > 90)
+    throw new Error("REVOCATION_AUTH_EXPIRED");
+  const signature = decode(signatureBase64Url, SIGNATURE, "REVOCATION_SIGNATURE");
+  if (signature.length !== 64) throw new Error("REVOCATION_SIGNATURE_SIZE");
+  const statement = ["EZERO-ANDROID-BIND-REVOKE-1", ORIGIN,
+    ownerIdentity.ownerFingerprint, androidFingerprint, nonce,
+    String(issuedAtEpochSeconds)].join("\\n");
+  const valid = await cryptoImpl.subtle.verify({name:"ECDSA", hash:"SHA-256"},
+    ownerIdentity.publicKey, signature, new TextEncoder().encode(statement));
+  if (!valid) throw new Error("OWNER_REVOCATION_SIGNATURE_INVALID");
+  return Object.freeze({statement, nonce, issuedAtEpochSeconds});
+}
+\nasync function verifyOwnerApprovalBundle({origin, ownerSpkiBase64Url, ownerFingerprint,
   permanentProofBase64Url, canonicalRequest, signatureBase64Url,
   cryptoImpl = globalThis.crypto}) {
   const ownerIdentity = await verifyPermanentOwnerProof({origin, ownerSpkiBase64Url,
@@ -73,4 +94,4 @@ async function verifyOwnerApprovalBundle({origin, ownerSpkiBase64Url, ownerFinge
 }
 
 module.exports = {ORIGIN, verifyPermanentOwnerProof,
-  verifyAndroidBindingApproval, verifyOwnerApprovalBundle};
+  verifyAndroidBindingApproval, verifyOwnerRevocation, verifyOwnerApprovalBundle};
