@@ -11,7 +11,6 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
-import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
@@ -188,8 +187,8 @@ class MainActivity : Activity() {
     companion object {
         private const val REQUEST_QR_IMAGE = 702
         private const val REQUEST_QR_CAMERA = 703
-        private const val GREEN_DARK = Color.rgb(52, 75, 53)
-        private const val TEXT_DARK = Color.rgb(36, 47, 38)
-        private const val TEXT_MUTED = Color.rgb(91, 103, 93)
+        private val GREEN_DARK = Color.rgb(52, 75, 53)
+        private val TEXT_DARK = Color.rgb(36, 47, 38)
+        private val TEXT_MUTED = Color.rgb(91, 103, 93)
     }
 }
