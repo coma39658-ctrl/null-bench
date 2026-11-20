@@ -18,6 +18,11 @@ jobs:
   debug-build:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      EZERO_STAGING_KEYSTORE_BASE64: ${{ secrets.EZERO_STAGING_KEYSTORE_BASE64 }}
+      EZERO_STAGING_STORE_PASSWORD: ${{ secrets.EZERO_STAGING_STORE_PASSWORD }}
+      EZERO_STAGING_KEY_ALIAS: ${{ secrets.EZERO_STAGING_KEY_ALIAS }}
+      EZERO_STAGING_KEY_PASSWORD: ${{ secrets.EZERO_STAGING_KEY_PASSWORD }}
     steps:
       - name: Checkout isolated staging branch
         uses: actions/checkout@v4
@@ -36,10 +41,34 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.9"
+      - name: Validate and provision stable staging signer
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in EZERO_STAGING_KEYSTORE_BASE64 EZERO_STAGING_STORE_PASSWORD EZERO_STAGING_KEY_ALIAS EZERO_STAGING_KEY_PASSWORD; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Missing required repository Actions secret: $name"
+              exit 1
+            fi
+          done
+          KEYSTORE="$RUNNER_TEMP/ezero-staging-signing.jks"
+          printf '%s' "$EZERO_STAGING_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE"
+          chmod 600 "$KEYSTORE"
+          keytool -list -keystore "$KEYSTORE" -storepass "$EZERO_STAGING_STORE_PASSWORD" -alias "$EZERO_STAGING_KEY_ALIAS" >/dev/null
+          echo "EZERO_STAGING_KEYSTORE_PATH=$KEYSTORE" >> "$GITHUB_ENV"
+          echo "Stable staging signer validated."
       - name: Run Android unit tests
         run: gradle -p android :app:testDebugUnitTest
-      - name: Compile debug APK
+      - name: Compile APK with stable staging signature
         run: gradle -p android :app:assembleDebug
+      - name: Verify APK signer and application ID
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          apksigner verify --verbose "$APK"
+          aapt dump badging "$APK" | grep -F "package: name='com.ezero.connect.staging53'"
+          echo "APK signature and staging application ID verified."
       - name: Upload debug APK (compile artifact only)
         uses: actions/upload-artifact@v4
         with:
