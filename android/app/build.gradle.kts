@@ -1,3 +1,8 @@
+import java.util.Base64
+import java.security.KeyFactory
+import java.security.spec.X509EncodedKeySpec
+import java.security.interfaces.ECPublicKey
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -7,7 +12,7 @@ if (file("google-services.json").exists()) {
     apply(plugin = "com.google.gms.google-services")
 }
 
-// Stable staging signing is supplied only through GitHub Actions Secrets.
+// Stable staging APK signing is supplied only through GitHub Actions Secrets.
 // Never commit a keystore or signing passwords to the repository.
 val stagingKeystorePath = System.getenv("EZERO_STAGING_KEYSTORE_PATH")
 val stagingStorePassword = System.getenv("EZERO_STAGING_STORE_PASSWORD")
@@ -25,9 +30,37 @@ if (stagingSigningValues.any { !it.isNullOrBlank() } && !stagingSigningConfigure
     throw GradleException("Incomplete E-ZERO staging signing configuration; all four signing environment values are required.")
 }
 
+// This is a PUBLIC verification key only. Its matching private key must remain
+// in the isolated sender's secret store and must never enter the APK/repository.
+val wakePublicKeySpki = System.getenv("EZERO_CALL_WAKE_STAGING_PUBLIC_KEY_SPKI_BASE64").orEmpty().trim()
+if (wakePublicKeySpki.isNotEmpty()) {
+    require(Regex("^[A-Za-z0-9+/]+={0,2}$").matches(wakePublicKeySpki)) {
+        "Invalid E-ZERO wake public-key encoding; expected Base64 DER SubjectPublicKeyInfo."
+    }
+    val decoded = try {
+        Base64.getDecoder().decode(wakePublicKeySpki)
+    } catch (_: IllegalArgumentException) {
+        throw GradleException("Invalid E-ZERO wake public-key Base64.")
+    }
+    val publicKey = try {
+        KeyFactory.getInstance("EC").generatePublic(
+            X509EncodedKeySpec(decoded)
+        ) as ECPublicKey
+    } catch (_: Exception) {
+        throw GradleException("E-ZERO wake key must be a valid EC SubjectPublicKeyInfo public key.")
+    }
+    require(publicKey.params.curve.field.fieldSize == 256) {
+        "E-ZERO wake key must use a 256-bit EC curve."
+    }
+}
+
 android {
     namespace = "com.ezero.connect"
     compileSdk = 35
+
+    buildFeatures {
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId = "com.ezero.connect.staging53"
@@ -35,6 +68,11 @@ android {
         targetSdk = 35
         versionCode = 54
         versionName = "0.1.0-staging54"
+        buildConfigField(
+            "String",
+            "EZERO_CALL_WAKE_STAGING_PUBLIC_KEY_SPKI_BASE64",
+            "\"$wakePublicKeySpki\""
+        )
     }
 
     signingConfigs {
