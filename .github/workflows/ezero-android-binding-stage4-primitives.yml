@@ -1,0 +1,22 @@
+name: E-ZERO Android Binding Stage 4 — Owner Partition Primitives
+on:
+  push:
+    branches:
+      - ezero-android-binding-stage4-part1-owner-partition-20261120
+    paths:
+      - "signaling/cloudflare/src/android_binding_stage4_primitives_v1.cjs"
+      - "signaling/cloudflare/android-binding-runtime-test/test/stage4-primitives.test.cjs"
+      - ".github/workflows/ezero-android-binding-stage4-primitives.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pure-primitives:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run deterministic owner partition and UTC quota window tests
+        run: node --test signaling/cloudflare/android-binding-runtime-test/test/stage4-primitives.test.cjs
