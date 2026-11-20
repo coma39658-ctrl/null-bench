@@ -1,0 +1,37 @@
+name: E-ZERO Android Binding Stage 4 — Bounded Retention Runtime Gate
+on:
+  push:
+    branches:
+      - ezero-android-binding-stage4-part3-retention-cleanup-20261120
+    paths:
+      - "signaling/cloudflare/src/android_binding_retention_v1.cjs"
+      - "signaling/cloudflare/src/android_binding_durable_object_adapter_v1.mjs"
+      - "signaling/cloudflare/android-binding-runtime-test/**"
+      - ".github/workflows/ezero-android-binding-stage4-retention.yml"
+  pull_request:
+    branches:
+      - ezero-android-binding-stage4-part2-challenge-quota-20261120
+    paths:
+      - "signaling/cloudflare/src/android_binding_retention_v1.cjs"
+      - "signaling/cloudflare/src/android_binding_durable_object_adapter_v1.mjs"
+      - "signaling/cloudflare/android-binding-runtime-test/**"
+      - ".github/workflows/ezero-android-binding-stage4-retention.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bounded-retention:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: signaling/cloudflare/android-binding-runtime-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install isolated runtime test dependencies
+        run: npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Run workerd Durable Object and retention tests
+        run: npm run test:runtime
