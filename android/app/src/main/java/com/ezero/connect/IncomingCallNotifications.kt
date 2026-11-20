@@ -40,7 +40,10 @@ object IncomingCallNotifications {
             .setAutoCancel(false)
             .setTimeoutAfter((expiresAt - System.currentTimeMillis()).coerceAtMost(120_000L))
             .setContentIntent(content)
-            .setStyle(NotificationCompat.CallStyle.forIncomingCall(person, reject, accept))
+            .setStyle(
+                NotificationCompat.CallStyle.forIncomingCall(person, reject, accept)
+                    .setIsVideo(mode == "VIDEO")
+            )
 
         // Android 14+ may deny full-screen intents. Use one only when system policy allows it.
         if (Build.VERSION.SDK_INT < 34 || manager.canUseFullScreenIntent()) {
