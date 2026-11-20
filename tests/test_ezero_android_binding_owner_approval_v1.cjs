@@ -18,7 +18,7 @@ const fp=async b=>Buffer.from(await webcrypto.subtle.digest("SHA-256",b)).toStri
  const canonical=["EZERO-ANDROID-BIND-1","https://coma39658-ctrl.github.io",ownerFp,b64(androidSpki),androidFp,b64(webcrypto.getRandomValues(new Uint8Array(24))),String(now),String(now+60),"call-invite-only"].join("\n");
  const store={async read(){return {fingerprint:ownerFp,spki:b64(ownerSpki),permanentProof:proof,keys:ownerKeys};}};
  let confirmCalls=0;
- const window={EZERO_DEVICE_IDENTITY_STORE:store,confirm:()=>{confirmCalls++;return true;}};
+ const window={EZERO_DEVICE_IDENTITY_STORE:store,confirm:()=>{confirmCalls++;return true;},EZERO_PERMANENT_IDENTITY_QR:{async verify(row,proof){const ok=await webcrypto.subtle.verify({name:"ECDSA",hash:"SHA-256"},ownerKeys.publicKey,Buffer.from(proof,"base64url"),new TextEncoder().encode(proofMessage));if(!ok)throw Error("BAD_PERMANENT_PROOF");return true;}}};
  const context={window,crypto:webcrypto,TextEncoder,Uint8Array,Date,atob:s=>Buffer.from(s,"base64").toString("binary"),btoa:s=>Buffer.from(s,"binary").toString("base64")};
  vm.runInNewContext(source,context);
  const api=window.EZERO_ANDROID_BINDING_OWNER_APPROVAL_V1;
