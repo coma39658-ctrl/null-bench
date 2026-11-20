@@ -3,7 +3,10 @@ package com.ezero.connect
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.Signature
+import java.util.Base64
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -40,6 +43,14 @@ class IncomingCallWakeSignatureVerifierTest {
         assertTrue(
             IncomingCallWakeSignatureVerifier.verify(data(), pair.public, signed(), nowMillis)
         )
+    }
+
+    @Test fun loadsOnlyValidP256SpkiPublicKey() {
+        val encoded = Base64.getEncoder().encodeToString(pair.public.encoded)
+        assertNotNull(IncomingCallWakeSignatureVerifier.loadPinnedPublicKey(encoded))
+        assertNull(IncomingCallWakeSignatureVerifier.loadPinnedPublicKey(""))
+        assertNull(IncomingCallWakeSignatureVerifier.loadPinnedPublicKey("not-base64!"))
+        assertNull(IncomingCallWakeSignatureVerifier.loadPinnedPublicKey(Base64.getEncoder().encodeToString(byteArrayOf(1, 2, 3))))
     }
 
     @Test fun rejectsModifiedCallFields() {
@@ -92,5 +103,6 @@ class IncomingCallWakeSignatureVerifierTest {
 
     @Test fun rejectsUnsignedOrUnpinnedProductionWakeup() {
         assertFalse(IncomingCallWakeSignatureVerifier.verify(data()))
+        assertNull(IncomingCallWakeSignatureVerifier.loadPinnedPublicKey(""))
     }
 }
