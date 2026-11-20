@@ -54,9 +54,14 @@ jobs:
           KEYSTORE="$RUNNER_TEMP/ezero-staging-signing.jks"
           printf '%s' "$EZERO_STAGING_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE"
           chmod 600 "$KEYSTORE"
-          keytool -list -keystore "$KEYSTORE" -storepass "$EZERO_STAGING_STORE_PASSWORD" -alias "$EZERO_STAGING_KEY_ALIAS" >/dev/null
+          EXPECTED_CERT_SHA256="485840df5305af07a78973fa6b573a440c6001f175e415b57724904f1d6c74f8"
+          KEY_CERT_SHA256="$(keytool -list -v -keystore "$KEYSTORE" -storepass "$EZERO_STAGING_STORE_PASSWORD" -alias "$EZERO_STAGING_KEY_ALIAS" | awk -F': ' '/SHA256:/ {print $2; exit}' | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+          if [[ "$KEY_CERT_SHA256" != "$EXPECTED_CERT_SHA256" ]]; then
+            echo "::error::Staging keystore certificate fingerprint does not match the approved v2 certificate."
+            exit 1
+          fi
           echo "EZERO_STAGING_KEYSTORE_PATH=$KEYSTORE" >> "$GITHUB_ENV"
-          echo "Stable staging signer validated."
+          echo "Stable staging signer validated; expected certificate fingerprint matches."
       - name: Run Android unit tests
         run: gradle -p android :app:testDebugUnitTest
       - name: Compile APK with stable staging signature
@@ -71,8 +76,14 @@ jobs:
           test -x "$APKSIGNER"
           test -x "$AAPT"
           "$APKSIGNER" verify --verbose "$APK"
+          EXPECTED_CERT_SHA256="485840df5305af07a78973fa6b573a440c6001f175e415b57724904f1d6c74f8"
+          APK_CERT_SHA256="$("$APKSIGNER" verify --print-certs "$APK" | awk -F': ' '/Signer #1 certificate SHA-256 digest:/ {print $2; exit}' | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+          if [[ "$APK_CERT_SHA256" != "$EXPECTED_CERT_SHA256" ]]; then
+            echo "::error::APK signer certificate fingerprint does not match the approved v2 staging certificate."
+            exit 1
+          fi
           "$AAPT" dump badging "$APK" | grep -F "package: name='com.ezero.connect.staging53'"
-          echo "APK signature and staging application ID verified."
+          echo "APK signature, exact certificate fingerprint, and staging application ID verified."
       - name: Upload debug APK (compile artifact only)
         uses: actions/upload-artifact@v4
         with:
