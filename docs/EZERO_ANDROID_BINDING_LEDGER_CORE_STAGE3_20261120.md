@@ -38,7 +38,7 @@ Status: **ISOLATED CORE + UNIT TESTS ONLY — NOT A WORKER, NOT DURABLE OBJECT D
 
 - Isolated core workflow run [44760075595](https://github.com/coma39658-ctrl/null-bench/actions/runs/44760075595), commit `a6bccb21431140042c95aa183a5f7c443d95fd84`: completed successfully.
 - Initial Node 22 core run [44760075595](https://github.com/coma39658-ctrl/null-bench/actions/runs/44760075595): **8 passed, 0 failed** for ledger state transitions.
-- A real WebCrypto test suite is now added to the same gate. It generates P-256 keys at runtime, verifies the exact EZERO2 permanent proof, checks that the Android approval is signed by the same owner key, rejects altered signatures and wrong owner keys, and exercises ledger consumption with that cryptographic verifier. Its new CI run is pending at the latest branch commit; do not mark those new crypto tests PASS until that run completes.
+- The real WebCrypto suite passed in run [44760514194](https://github.com/coma39658-ctrl/null-bench/actions/runs/44760514194), commit `03e4e7d50fd309e134d840b6e183306dd562c7c5`: **13 passed, 0 failed** across the ledger and crypto suites. It generates P-256 keys at runtime, verifies the exact EZERO2 permanent proof, checks that the Android approval is signed by the same owner key, rejects altered signatures and wrong owner keys, and exercises ledger consumption with that cryptographic verifier.
 - Evidence registry validator passed on the initial ledger commit [44760075610](https://github.com/coma39658-ctrl/null-bench/actions/runs/44760075610).
 - Important: ledger concurrency tests still use a serialized in-memory storage adapter. They do not prove Cloudflare Durable Object transaction behavior or a live network endpoint.
 
