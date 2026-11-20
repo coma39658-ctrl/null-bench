@@ -1,0 +1,31 @@
+name: E-ZERO Android Binding Ledger — workerd Runtime Gate
+on:
+  push:
+    branches:
+      - ezero-android-binding-runtime-test-20261120
+    paths:
+      - "signaling/cloudflare/src/android_binding_ledger_core_v1.cjs"
+      - "signaling/cloudflare/src/android_binding_crypto_v1.cjs"
+      - "signaling/cloudflare/src/android_binding_durable_object_adapter_v1.mjs"
+      - "signaling/cloudflare/src/android_binding_durable_object_v1.mjs"
+      - "signaling/cloudflare/android-binding-runtime-test/**"
+      - ".github/workflows/ezero-android-binding-runtime-test.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  workerd-durable-object-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: signaling/cloudflare/android-binding-runtime-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install isolated runtime test dependencies
+        run: npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Run real workerd Durable Object SQLite tests
+        run: npm run test:runtime
