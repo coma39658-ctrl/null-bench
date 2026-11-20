@@ -39,6 +39,15 @@ class MainActivity : Activity() {
         layout.addView(galleryButton, LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
         ))
+        val cameraButton = Button(this).apply {
+            text = "Scan friend's permanent QR with camera"
+            setOnClickListener {
+                startActivityForResult(Intent(this@MainActivity, QrCameraScanActivity::class.java), REQUEST_QR_CAMERA)
+            }
+        }
+        layout.addView(cameraButton, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        ))
         setContentView(layout)
 
         val telecomReady = AndroidTelecomRegistration.register(this)
@@ -56,7 +65,13 @@ class MainActivity : Activity() {
     @Deprecated("Uses the platform document picker result for API 24 compatibility")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode != REQUEST_QR_IMAGE || resultCode != RESULT_OK) return
+        if (resultCode != RESULT_OK) return
+        if (requestCode == REQUEST_QR_CAMERA) {
+            val token = data?.getStringExtra(QrCameraScanActivity.EXTRA_QR_TEXT)
+            verifyScannedToken(token)
+            return
+        }
+        if (requestCode != REQUEST_QR_IMAGE) return
         val uri = data?.data ?: return
         var bitmap: Bitmap? = null
         try {
@@ -72,8 +87,17 @@ class MainActivity : Activity() {
                 bitmap = BitmapFactory.decodeStream(stream, null, options)
             }
             val decoded = requireNotNull(bitmap) { "IMAGE_DECODE_FAILED" }
-            val token = BrowserQrImageReader.read(decoded)
-            val verified = BrowserPermanentIdentityVerifier.verify(token)
+            verifyScannedToken(BrowserQrImageReader.read(decoded))
+        } catch (_: Exception) {
+            statusView.text = "QR not verified. Choose a clear E-ZERO permanent QR image."
+        } finally {
+            bitmap?.recycle()
+        }
+    }
+
+    private fun verifyScannedToken(token: String?) {
+        try {
+            val verified = BrowserPermanentIdentityVerifier.verify(requireNotNull(token) { "QR_EMPTY" })
             statusView.text = buildString {
                 append("E-ZERO permanent QR verified.\n")
                 append("Fingerprint: ")
@@ -81,9 +105,7 @@ class MainActivity : Activity() {
                 append("\n\nThis only verifies the QR signature. Friend enrollment and call permission are not active.")
             }
         } catch (_: Exception) {
-            statusView.text = "QR not verified. Choose a clear E-ZERO permanent QR image."
-        } finally {
-            bitmap?.recycle()
+            statusView.text = "QR not verified. Use a clear, valid E-ZERO permanent QR."
         }
     }
 
@@ -108,5 +130,6 @@ class MainActivity : Activity() {
 
     companion object {
         private const val REQUEST_QR_IMAGE = 702
+        private const val REQUEST_QR_CAMERA = 703
     }
 }
