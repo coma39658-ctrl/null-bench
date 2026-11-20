@@ -12,30 +12,13 @@ class IncomingCallMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         // Call wake-ups must be data-only and high priority. Notification payloads
         // can be displayed by Android without this validation path.
-        val data = message.data
-        val callId = data["call_id"] ?: return
-        val mode = data["mode"] ?: return
-        val expiresAt = data["expires_at"]?.toLongOrNull() ?: return
-        val callerAlias = data["caller_alias"] ?: "E-ZERO friend"
-
-        val now = System.currentTimeMillis()
-        if (!CALL_ID.matches(callId) ||
-            (mode != "AUDIO" && mode != "VIDEO") ||
-            expiresAt <= now ||
-            expiresAt > now + MAX_FUTURE_MS
-        ) return
-
+        val payload = IncomingCallPayload.parse(message.data) ?: return
         IncomingCallNotifications.show(
             context = this,
-            callId = callId,
-            mode = mode,
-            callerAlias = callerAlias.take(48),
-            expiresAt = expiresAt
+            callId = payload.callId,
+            mode = payload.mode,
+            callerAlias = payload.callerAlias,
+            expiresAt = payload.expiresAt
         )
-    }
-
-    private companion object {
-        val CALL_ID = Regex("^[A-Za-z0-9_-]{8,128}$")
-        const val MAX_FUTURE_MS = 120_000L
     }
 }
