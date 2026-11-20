@@ -4,7 +4,7 @@ const fs=require("node:fs");
 const vm=require("node:vm");
 const source=fs.readFileSync("js/ezero_android_binding_owner_approval_v1.js","utf8");
 const fixtureText=fs.readFileSync("android/app/src/test/resources/ezero_android_browser_binding_golden_v1.properties","utf8");
-const fixture=Object.fromEntries(fixtureText.split(/\\r?\n/).filter(Boolean).map(line=>{const i=line.indexOf("=");return [line.slice(0,i),line.slice(i+1)];}));
+const fixture=Object.fromEntries(fixtureText.split(/\r?\n/).filter(Boolean).map(line=>{const i=line.indexOf("=");return [line.slice(0,i),line.slice(i+1)];}));
 
 const b64=b=>Buffer.from(b).toString("base64url");
 const fp=async b=>Buffer.from(await webcrypto.subtle.digest("SHA-256",b)).toString("hex");
