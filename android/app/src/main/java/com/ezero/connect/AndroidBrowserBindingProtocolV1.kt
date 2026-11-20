@@ -114,7 +114,7 @@ internal object AndroidBrowserBindingProtocolV1 {
     }
 
     private fun requireSingleLine(value: String, label: String) {
-        require(value.isNotEmpty() && value.none { it == '\\n' || it == '\\r' || it.code < 0x20 }) {
+        require(value.isNotEmpty() && value.none { it == '\n' || it == '\r' || it.code < 0x20 }) {
             "Invalid $label"
         }
     }
