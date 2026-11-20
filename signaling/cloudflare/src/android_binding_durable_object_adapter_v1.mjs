@@ -1,0 +1,109 @@
+/* Durable Object adapter for Android binding ledger V1.
+ * Exported as a factory so the adapter contract can be unit-tested in Node.
+ * No Worker route, namespace binding, migration, or deployment is added here.
+ */
+import ledger from "./android_binding_ledger_core_v1.cjs";
+import cryptoChecks from "./android_binding_crypto_v1.cjs";
+
+const ORIGIN = cryptoChecks.ORIGIN;
+const FP = /^[0-9a-f]{64}$/;
+const REVOCATION_NONCE = /^[A-Za-z0-9_-]{32}$/;
+
+export function createAndroidBindingLedgerClass(DurableObjectBase) {
+  return class AndroidBindingLedgerV1 extends DurableObjectBase {
+    constructor(ctx, env) {
+      super(ctx, env);
+      this.ctx = ctx;
+      this.env = env;
+    }
+
+    storageAdapter() {
+      return {
+        get: key => this.ctx.storage.get(key),
+        transaction: fn => this.ctx.storage.transaction(tx => fn(tx))
+      };
+    }
+
+    async verifiedOwner(input) {
+      if (!input || input.origin !== ORIGIN) throw new Error("OWNER_ORIGIN_REQUIRED");
+      const identity = await cryptoChecks.verifyPermanentOwnerProof({
+        origin: input.origin,
+        ownerSpkiBase64Url: input.ownerSpkiBase64Url,
+        ownerFingerprint: input.ownerFingerprint,
+        permanentProofBase64Url: input.permanentProofBase64Url
+      });
+      return identity;
+    }
+
+    // RPC method only; it is not reachable over HTTP until a separately
+    // reviewed Worker route and namespace binding are deliberately added.
+    async issueChallenge(input) {
+      const owner = await this.verifiedOwner(input);
+      return ledger.issueChallenge({
+        storage: this.storageAdapter(),
+        ownerFingerprint: owner.ownerFingerprint,
+        androidPublicKeySpkiBase64Url: input.androidPublicKeySpkiBase64Url,
+        androidFingerprint: input.androidFingerprint,
+        nowEpochSeconds: Math.floor(Date.now() / 1000)
+      });
+    }
+
+    async consumeApproval(input) {
+      const owner = await this.verifiedOwner(input);
+      if (input.request?.ownerFingerprint !== owner.ownerFingerprint)
+        throw new Error("OWNER_REQUEST_MISMATCH");
+      return ledger.consumeApproval({
+        storage: this.storageAdapter(),
+        request: input.request,
+        signatureBase64Url: input.signatureBase64Url,
+        nowEpochSeconds: Math.floor(Date.now() / 1000),
+        verifyOwnerApproval: async ({canonical}) =>
+          cryptoChecks.verifyOwnerApprovalBundle({
+            origin: ORIGIN,
+            ownerSpkiBase64Url: input.ownerSpkiBase64Url,
+            ownerFingerprint: owner.ownerFingerprint,
+            permanentProofBase64Url: input.permanentProofBase64Url,
+            canonicalRequest: canonical,
+            signatureBase64Url: input.signatureBase64Url
+          })
+      });
+    }
+
+    async revokeBinding(input) {
+      const owner = await this.verifiedOwner(input);
+      if (!FP.test(input.androidFingerprint || "") ||
+          !REVOCATION_NONCE.test(input.nonce || ""))
+        throw new Error("INVALID_REVOCATION_FIELDS");
+      const now = Math.floor(Date.now() / 1000);
+      const replayKey = "android-bind:v1:revocation:" +
+        owner.ownerFingerprint + ":" + input.androidFingerprint + ":" + input.nonce;
+      return ledger.revokeBinding({
+        storage: this.storageAdapter(),
+        ownerFingerprint: owner.ownerFingerprint,
+        androidFingerprint: input.androidFingerprint,
+        nowEpochSeconds: now,
+        authorizeOwner: async tx => {
+          await cryptoChecks.verifyOwnerRevocation({
+            ownerIdentity: owner,
+            androidFingerprint: input.androidFingerprint,
+            nonce: input.nonce,
+            issuedAtEpochSeconds: input.issuedAtEpochSeconds,
+            signatureBase64Url: input.signatureBase64Url,
+            nowEpochSeconds: now
+          });
+          if (await tx.get(replayKey)) return false;
+          await tx.put(replayKey, {status:"consumed", consumedAtEpochSeconds:now});
+          return true;
+        }
+      });
+    }
+
+    async isBindingActive(input) {
+      return ledger.isBindingActive({
+        storage: this.storageAdapter(),
+        ownerFingerprint: input.ownerFingerprint,
+        androidFingerprint: input.androidFingerprint
+      });
+    }
+  };
+}
