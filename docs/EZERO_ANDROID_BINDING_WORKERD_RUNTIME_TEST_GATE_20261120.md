@@ -28,6 +28,7 @@ This branch adds a separate test-only project using Cloudflare's Workers Vitest 
 4. Verify a consumed approval cannot be replayed after eviction.
 5. Revoke with a fresh owner-key signature and verify revocation replay fails.
 6. Reject a forged permanent owner proof before challenge creation.
+7. Expected denials return an explicit rejected-status RPC result with a machine-readable code, preventing expected replay/validation denials from surfacing as unhandled isolate-level promise rejections.
 
 All keys are generated for the test and never committed. No real identity, user QR, or contact data is used.
 
