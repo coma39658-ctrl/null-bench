@@ -10,6 +10,7 @@ const b64=b=>Buffer.from(b).toString("base64url");
 const fp=async b=>Buffer.from(await webcrypto.subtle.digest("SHA-256",b)).toString("hex");
 
 (async()=>{
+ {
  assert.equal(fixture.fixture,"EZERO_ANDROID_BROWSER_BINDING_GOLDEN_V1");
  const ownerSpki=Buffer.from(fixture["owner.spki"],"base64url");
  const androidSpki=Buffer.from(fixture["android.spki"],"base64url");
@@ -37,6 +38,7 @@ const fp=async b=>Buffer.from(await webcrypto.subtle.digest("SHA-256",b)).toStri
  assert.equal(fixtureParsed.ownerFp,fixture["owner.fingerprint"]);
  assert.equal(fixtureParsed.androidFp,fixture["android.fingerprint"]);
  assert.equal(fixtureParsed.capability,"call-invite-only");
+ }
 
  const ownerKeys=await webcrypto.subtle.generateKey({name:"ECDSA",namedCurve:"P-256"},false,["sign","verify"]);
  const ownerSpki=new Uint8Array(await webcrypto.subtle.exportKey("spki",ownerKeys.publicKey));
