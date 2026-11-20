@@ -4,7 +4,7 @@ Date: 2026-11-20
 Branch: `ezero-android-binding-runtime-test-20261120`
 Target PR base: `ezero-android-binding-ledger-stage3-20261120`
 
-Status: **TEST HARNESS ADDED — WAITING FOR CI. NO DEPLOYMENT.**
+Status: **LOCAL WORKERD / SQLITE RUNTIME GATE PASS — NO REMOTE DEPLOYMENT.**
 
 ## Why this gate exists
 
@@ -32,6 +32,12 @@ This branch adds a separate test-only project using Cloudflare's Workers Vitest 
 
 All keys are generated for the test and never committed. No real identity, user QR, or contact data is used.
 
+## Verified CI evidence
+
+- Runtime workflow [44762036360](https://github.com/coma39658-ctrl/null-bench/actions/runs/44762036360), commit `ec2b1b7c85234735f928384bb1ccb7c83dcd15df`: **3 passed, 0 failed, 0 unhandled errors** inside Cloudflare's local workerd runtime.
+- Evidence Registry Validator [44762072122](https://github.com/coma39658-ctrl/null-bench/actions/runs/44762072122), final documentation commit `d4883ef9da5a5a6ec94a40a009e7b9b0007a4eca`: PASS.
+- The runtime tests exercise the actual Durable Object class with SQLite-backed local storage, simultaneous RPC replay, eviction/restart persistence, and owner-signed revocation.
+
 ## Explicit boundaries
 
 - This is local workerd/SQLite runtime testing, not a Cloudflare account deployment or real remote namespace.
@@ -42,4 +48,4 @@ All keys are generated for the test and never committed. No real identity, user 
 
 ## Next gate after CI
 
-If the runtime gate passes, inspect and record actual SQLite-backed persistence and concurrency evidence. Then review resource bounds, challenge/revocation record retention, and per-owner rate limiting before proposing a remote staging namespace. Do not expose a public route until a separate security review and explicit release gate.
+The local workerd gate is now passing. Next review resource bounds, challenge/revocation record retention, durable cleanup, and per-owner rate limiting. Then prepare a dedicated remote staging namespace plan with explicit account/permission checks. Do not expose a public route or deploy a remote namespace until a separate security review and explicit release gate.
