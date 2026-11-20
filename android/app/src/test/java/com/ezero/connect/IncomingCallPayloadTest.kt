@@ -44,10 +44,8 @@ class IncomingCallPayloadTest {
         assertNotNull(IncomingCallPayload.parse(valid(expiresAt = (now + 120_000L).toString()), now))
     }
 
-    @Test fun sanitizesAndBoundsCallerAlias() {
-        val parsed = IncomingCallPayload.parse(valid(alias = "  Alice\n\u0000  Smith  "), now)
-        assertEquals("Alice Smith", parsed?.callerAlias)
-        assertEquals(48, IncomingCallPayload.parse(valid(alias = "A".repeat(60)), now)?.callerAlias?.length)
-        assertEquals("E-ZERO friend", IncomingCallPayload.parse(valid(alias = "\u0000  "), now)?.callerAlias)
+    @Test fun neverTrustsCallerAliasFromPushPayload() {
+        assertEquals("E-ZERO friend", IncomingCallPayload.parse(valid(alias = "Trusted-looking Alice"), now)?.callerAlias)
+        assertEquals("E-ZERO friend", IncomingCallPayload.parse(valid(alias = "<spoofed>\u0000"), now)?.callerAlias)
     }
 }
