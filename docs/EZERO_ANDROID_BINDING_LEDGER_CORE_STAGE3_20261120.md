@@ -8,8 +8,12 @@ Status: **ISOLATED CORE + UNIT TESTS ONLY — NOT A WORKER, NOT DURABLE OBJECT D
 
 - Added `signaling/cloudflare/src/android_binding_ledger_core_v1.cjs`.
 - Added `tests/test_ezero_android_binding_ledger_core_v1.cjs`.
-- Added `signaling/cloudflare/src/android_binding_crypto_v1.cjs`, a pure WebCrypto verifier for the existing EZERO2 permanent owner proof and the domain-separated Android binding approval, using the same P-256 public key.
+- Added `signaling/cloudflare/src/android_binding_crypto_v1.cjs`, a pure WebCrypto verifier for the existing EZERO2 permanent owner proof, domain-separated Android binding approval, and fresh owner-signed revocation authorization, using the same P-256 public key.
+- Added `signaling/cloudflare/src/android_binding_durable_object_adapter_v1.mjs`, a storage adapter factory that delegates ledger transactions to a Durable Object storage transaction.
+- Added `signaling/cloudflare/src/android_binding_durable_object_v1.mjs`, an isolated Cloudflare Durable Object class export. It is deliberately not referenced by a Worker entrypoint, Wrangler config, namespace binding, or migration.
+- The adapter exposes RPC-style methods for challenge issuance, approval consumption, revocation, and active-binding checks. Each verifies the permanent EZERO2 proof; approvals and revocations require fresh ECDSA signatures from that same owner key. Revocation nonce consumption and binding revocation occur inside the same storage transaction.
 - Added `tests/test_ezero_android_binding_crypto_v1.cjs` with generated P-256 test keys and real WebCrypto signatures; no private test key is stored in the repository.
+- Added `tests/test_ezero_android_binding_durable_object_adapter_v1.mjs` to exercise the adapter contract, owner proof, challenge/approval, concurrent replay, and owner-authorized revocation against a transaction-serializing test storage implementation.
 - Added a branch-scoped GitHub Actions workflow for the isolated core tests.
 - This is a storage-agnostic core intended to be called with Cloudflare Durable Object storage transactions later. It does not import the older PR156 inbox and does not use its `EZERO-TRUSTED-INBOX-1` format.
 
@@ -31,7 +35,7 @@ Status: **ISOLATED CORE + UNIT TESTS ONLY — NOT A WORKER, NOT DURABLE OBJECT D
 - The challenge issuer must authenticate the existing EZERO2 owner identity before calling this core.
 - Revocation must authenticate a fresh owner-authorized action before calling this core.
 - Ledger state-transition tests use a deliberately simple verifier stub; the separate crypto tests use real generated P-256 keys and WebCrypto. Neither suite proves Cloudflare Durable Object transaction behavior or network security.
-- The test storage adapter serializes transactions in memory. A real Cloudflare Durable Object adapter and concurrency tests against a non-production staging namespace are still required.
+- The test storage adapter serializes transactions in memory. The adapter and class export are now implemented, but the current Node integration tests use a transaction-serializing fake storage. A Cloudflare workerd/Miniflare Durable Object test and a real isolated staging namespace test are still required.
 - Expired/consumed nonce retention and bounded cleanup must be designed before any live endpoint; the current core deliberately does not silently delete security records.
 
 ## Automated evidence — PASS
@@ -56,7 +60,7 @@ Status: **ISOLATED CORE + UNIT TESTS ONLY — NOT A WORKER, NOT DURABLE OBJECT D
 ## Explicitly not done
 
 - No Worker route or API endpoint.
-- No Durable Object class, namespace binding, migration, or deployment.
+- The Durable Object class export exists but is not registered: no namespace binding, Wrangler migration, or deployment.
 - No integration with the existing Trusted Inbox candidate.
 - No Android UI/contact-vault integration, enrollment, contact sync, calls, messages, media, background delivery, or push notifications.
 - No website, Render, Cloudflare, production, or release APK changes.
@@ -64,8 +68,8 @@ Status: **ISOLATED CORE + UNIT TESTS ONLY — NOT A WORKER, NOT DURABLE OBJECT D
 
 ## Next gate
 
-1. Run the isolated core test workflow and correct any failures.
-2. Implement an entirely separate staging Durable Object adapter with atomic storage transactions, no public route initially.
-3. Add Worker-side EZERO2 proof and ECDSA approval verification using the same canonical bytes and exact origin.
+1. Run the expanded isolated CI gate for the Durable Object adapter and correct any failures.
+2. Add a Cloudflare workerd/Miniflare test harness that exercises actual Durable Object SQLite storage transactions and concurrent RPC calls.
+3. Review and add a dedicated, non-production Wrangler config and namespace migration only after the actual DO runtime tests pass; do not add a public Worker route yet.
 4. Add Cloudflare staging integration tests for concurrent replay, expiry, revocation, owner/device mismatch, and fail-closed behavior.
 5. Only after those pass, consider an authenticated staging endpoint. Keep it disconnected from app UI, contacts, and the live call engine until separately gated.
