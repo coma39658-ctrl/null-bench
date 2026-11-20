@@ -12,7 +12,7 @@ on:
       - ".github/workflows/ezero-incoming-call-wake-contract.yml"
   pull_request:
     branches:
-      - ezero-native-incoming-call-readiness-audit-20261120
+      - ezero-incoming-call-wake-contract-stage5-20261120
     paths:
       - "android/app/build.gradle.kts"
       - "android/app/src/main/java/com/ezero/connect/IncomingCallWakeSignatureVerifier.kt"
