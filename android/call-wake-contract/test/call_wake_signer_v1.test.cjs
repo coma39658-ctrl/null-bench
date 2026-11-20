@@ -63,3 +63,12 @@ test("rejects malformed version, mode, call ID and nonce", () => {
   assert.throws(() => canonicalWakeBytes({...fields, call_id: "short"}), /INVALID_CALL_ID/);
   assert.throws(() => canonicalWakeBytes({...fields, nonce: "tiny"}), /INVALID_NONCE/);
 });
+
+test("a signature cannot be verified with a different public key", () => {
+  const signer = crypto.generateKeyPairSync("ec", { namedCurve: "prime256v1" });
+  const other = crypto.generateKeyPairSync("ec", { namedCurve: "prime256v1" });
+  const payload = signCallWakeV1(fields, signer.privateKey, now);
+  assert.equal(crypto.verify("sha256", canonicalWakeBytes(fields), {
+    key: other.publicKey, dsaEncoding: "der"
+  }, Buffer.from(payload.server_sig, "base64url")), false);
+});
