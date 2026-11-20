@@ -19,6 +19,7 @@ internal object IncomingCallWakeSignatureVerifier {
     private const val PINNED_STAGING_PUBLIC_KEY_SPKI_BASE64 = ""
 
     private val NONCE = Regex("^[A-Za-z0-9_-]{16,128}$")
+    private const val MAX_WAKE_LIFETIME_MS = 120_000L
 
     fun verify(data: Map<String, String>): Boolean {
         val pinned = PINNED_STAGING_PUBLIC_KEY_SPKI_BASE64
@@ -43,7 +44,8 @@ internal object IncomingCallWakeSignatureVerifier {
     internal fun verify(
         data: Map<String, String>,
         publicKey: PublicKey,
-        signatureBytes: ByteArray
+        signatureBytes: ByteArray,
+        nowMillis: Long = System.currentTimeMillis()
     ): Boolean {
         val wakeVersion = data["wake_v"] ?: return false
         val callId = data["call_id"] ?: return false
@@ -54,7 +56,9 @@ internal object IncomingCallWakeSignatureVerifier {
         if (wakeVersion != "1") return false
         if (!Regex("^[A-Za-z0-9_-]{8,128}$").matches(callId)) return false
         if (mode != "AUDIO" && mode != "VIDEO") return false
-        if (expiresAt.toLongOrNull() == null) return false
+        val expiryMillis = expiresAt.toLongOrNull() ?: return false
+        if (expiryMillis <= nowMillis) return false
+        if (expiryMillis - nowMillis > MAX_WAKE_LIFETIME_MS) return false
         if (!NONCE.matches(nonce)) return false
         if (signatureBytes.isEmpty() || signatureBytes.size > 256) return false
 
