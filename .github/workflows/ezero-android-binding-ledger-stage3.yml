@@ -5,6 +5,8 @@ on:
       - ezero-android-binding-ledger-stage3-20261120
     paths:
       - "signaling/cloudflare/src/android_binding_ledger_core_v1.cjs"
+      - "signaling/cloudflare/src/android_binding_crypto_v1.cjs"
+      - "tests/test_ezero_android_binding_crypto_v1.cjs"
       - "tests/test_ezero_android_binding_ledger_core_v1.cjs"
       - "docs/EZERO_ANDROID_BINDING_LEDGER_CORE_STAGE3_20261120.md"
       - ".github/workflows/ezero-android-binding-ledger-stage3.yml"
@@ -21,4 +23,4 @@ jobs:
         with:
           node-version: "22"
       - name: Test atomic nonce consumption, expiry, scope, and revocation
-        run: node --test tests/test_ezero_android_binding_ledger_core_v1.cjs
+        run: node --test tests/test_ezero_android_binding_ledger_core_v1.cjs tests/test_ezero_android_binding_crypto_v1.cjs
