@@ -10,7 +10,9 @@
 
     <application
         android:allowBackup="false"
+        android:icon="@drawable/ic_ezero_launcher"
         android:label="E-ZERO Connect"
+        android:roundIcon="@drawable/ic_ezero_launcher"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
         <activity
