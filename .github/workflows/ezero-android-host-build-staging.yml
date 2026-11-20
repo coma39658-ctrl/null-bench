@@ -19,10 +19,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      EZERO_STAGING_KEYSTORE_BASE64: ${{ secrets.EZERO_STAGING_KEYSTORE_BASE64 }}
-      EZERO_STAGING_STORE_PASSWORD: ${{ secrets.EZERO_STAGING_STORE_PASSWORD }}
-      EZERO_STAGING_KEY_ALIAS: ${{ secrets.EZERO_STAGING_KEY_ALIAS }}
-      EZERO_STAGING_KEY_PASSWORD: ${{ secrets.EZERO_STAGING_KEY_PASSWORD }}
+      EZERO_STAGING_KEYSTORE_BASE64: ${{ secrets.STAGING_KEYSTORE_BASE64 }}
+      EZERO_STAGING_STORE_PASSWORD: ${{ secrets.STAGING_KEYSTORE_PASSWORD }}
+      EZERO_STAGING_KEY_ALIAS: ${{ secrets.STAGING_KEY_ALIAS }}
+      EZERO_STAGING_KEY_PASSWORD: ${{ secrets.STAGING_KEY_PASSWORD }}
     steps:
       - name: Checkout isolated staging branch
         uses: actions/checkout@v4

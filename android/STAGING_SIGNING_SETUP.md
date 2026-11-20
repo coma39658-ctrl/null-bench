@@ -7,10 +7,10 @@ It does not change production signing or the existing installed app.
 
 Create these four repository Actions secrets in **Settings → Secrets and variables → Actions → New repository secret**:
 
-- `EZERO_STAGING_KEYSTORE_BASE64`: base64 encoding of the JKS keystore bytes
-- `EZERO_STAGING_STORE_PASSWORD`: JKS store password
-- `EZERO_STAGING_KEY_ALIAS`: alias inside the JKS keystore
-- `EZERO_STAGING_KEY_PASSWORD`: private-key password
+- `STAGING_KEYSTORE_BASE64`: base64 encoding of the JKS keystore bytes
+- `STAGING_KEYSTORE_PASSWORD`: JKS store password
+- `STAGING_KEY_ALIAS`: alias inside the JKS keystore
+- `STAGING_KEY_PASSWORD`: private-key password
 
 Never commit the JKS file, put passwords in source code, or paste any secret into a chat or issue. Keep an offline backup of the JKS file and its passwords. Losing this key means future APKs cannot update an installation signed by it.
 
@@ -36,7 +36,7 @@ To prepare the base64 secret without printing it to the terminal:
 base64 -w 0 "$HOME/ezero-staging-signing.jks" > "$HOME/ezero-staging-signing.base64"
 ```
 
-Copy the contents of that file directly into the GitHub secret field for `EZERO_STAGING_KEYSTORE_BASE64`. Enter the two passwords into their respective secret fields and `ezero-staging` for the alias. Do not send these values to anyone.
+Copy the contents of that file directly into the GitHub secret field for `STAGING_KEYSTORE_BASE64`. Enter the two passwords into their respective secret fields and `ezero-staging` for the alias. Do not send these values to anyone.
 
 ## Build gate
 
