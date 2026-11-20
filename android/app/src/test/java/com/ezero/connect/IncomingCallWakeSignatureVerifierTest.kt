@@ -8,6 +8,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class IncomingCallWakeSignatureVerifierTest {
+    private val nowMillis = 1_800_000_000_000L
     private val pair: KeyPair by lazy {
         KeyPairGenerator.getInstance("EC").apply { initialize(256) }.generateKeyPair()
     }
@@ -16,7 +17,7 @@ class IncomingCallWakeSignatureVerifierTest {
         "wake_v" to "1",
         "call_id" to "call_12345678",
         "mode" to "AUDIO",
-        "expires_at" to "1800000030000",
+        "expires_at" to "1800000090000",
         "nonce" to "nonce_1234567890"
     )
 
@@ -37,7 +38,7 @@ class IncomingCallWakeSignatureVerifierTest {
 
     @Test fun acceptsValidServerSignature() {
         assertTrue(
-            IncomingCallWakeSignatureVerifier.verify(data(), pair.public, signed())
+            IncomingCallWakeSignatureVerifier.verify(data(), pair.public, signed(), nowMillis)
         )
     }
 
@@ -45,33 +46,48 @@ class IncomingCallWakeSignatureVerifierTest {
         val signature = signed()
         val modified = data().toMutableMap().apply { put("mode", "VIDEO") }
         assertFalse(
-            IncomingCallWakeSignatureVerifier.verify(modified, pair.public, signature)
+            IncomingCallWakeSignatureVerifier.verify(modified, pair.public, signature, nowMillis)
         )
     }
 
     @Test fun rejectsModifiedSignature() {
         val signature = signed().also { it[it.lastIndex] = (it.last().toInt() xor 1).toByte() }
         assertFalse(
-            IncomingCallWakeSignatureVerifier.verify(data(), pair.public, signature)
+            IncomingCallWakeSignatureVerifier.verify(data(), pair.public, signature, nowMillis)
         )
     }
 
     @Test fun rejectsUnknownVersionMissingNonceAndInvalidMode() {
         assertFalse(
             IncomingCallWakeSignatureVerifier.verify(
-                data() + ("wake_v" to "2"), pair.public, signed()
+                data() + ("wake_v" to "2"), pair.public, signed(), nowMillis
             )
         )
         assertFalse(
             IncomingCallWakeSignatureVerifier.verify(
-                data() - "nonce", pair.public, signed()
+                data() - "nonce", pair.public, signed(), nowMillis
             )
         )
         assertFalse(
             IncomingCallWakeSignatureVerifier.verify(
-                data() + ("mode" to "TEXT"), pair.public, signed()
+                data() + ("mode" to "TEXT"), pair.public, signed(), nowMillis
             )
         )
+    }
+
+    @Test fun rejectsExpiredWakeup() {
+        val expired = data() + ("expires_at" to (nowMillis - 1).toString())
+        assertFalse(IncomingCallWakeSignatureVerifier.verify(expired, pair.public, signed(expired), nowMillis))
+    }
+
+    @Test fun rejectsWakeupBeyond120Seconds() {
+        val tooFar = data() + ("expires_at" to (nowMillis + 120_001).toString())
+        assertFalse(IncomingCallWakeSignatureVerifier.verify(tooFar, pair.public, signed(tooFar), nowMillis))
+    }
+
+    @Test fun acceptsWakeupAt120SecondBoundary() {
+        val boundary = data() + ("expires_at" to (nowMillis + 120_000).toString())
+        assertTrue(IncomingCallWakeSignatureVerifier.verify(boundary, pair.public, signed(boundary), nowMillis))
     }
 
     @Test fun rejectsUnsignedOrUnpinnedProductionWakeup() {
