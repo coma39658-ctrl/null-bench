@@ -65,7 +65,8 @@ Android proof-of-possession must sign the server challenge and the same enrollme
 - The current incoming notification is not backed by a verified invite fetch.
 - Accept opens the host activity only; it does not establish WebRTC or a Telecom call.
 - Reject dismisses the local notification only; it does not cancel a remote invite.
-- Android QR scanning/rendering and browser approval UI are not implemented for this bridge.
+- Android gallery QR decoding and a CameraX live-preview scanner are now implemented in isolated staging; decoded content is still only passed to the existing cryptographic verifier. Physical camera scan behavior has not yet been confirmed on a device.
+- Browser approval UI and Android QR rendering for the enrollment request are not implemented.
 - No physical-device end-to-end push or locked-screen ringing result is established.
 
 ## 7. Acceptance tests before implementation can be called complete
@@ -83,7 +84,7 @@ Android proof-of-possession must sign the server challenge and the same enrollme
 
 ## 8. Safe next implementation order
 
-1. Add Android QR camera/gallery decoding and public identity display, without changing the browser identity implementation.
+1. Validate the new Android camera/gallery QR scanner on supported physical devices and retain cryptographic verification as a separate mandatory step.
 2. Add strict parsing and verification for the browser permanent QR envelope, with test vectors shared from the existing browser implementation.
 3. Implement the signed enrollment transcript and browser approval UI in isolated staging only.
 4. Add a staging backend with nonce/replay storage and pinned-key verification; keep all secrets outside source control.
