@@ -29,7 +29,7 @@ object IncomingCallNotifications {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.sym_action_call)
             .setContentTitle(if (mode == "VIDEO") "Incoming video call" else "Incoming audio call")
             .setContentText(callerAlias)
@@ -40,9 +40,13 @@ object IncomingCallNotifications {
             .setAutoCancel(false)
             .setTimeoutAfter((expiresAt - System.currentTimeMillis()).coerceAtMost(120_000L))
             .setContentIntent(content)
-            .setFullScreenIntent(content, true)
             .setStyle(NotificationCompat.CallStyle.forIncomingCall(person, reject, accept))
-            .build()
+
+        // Android 14+ may deny full-screen intents. Use one only when system policy allows it.
+        if (Build.VERSION.SDK_INT < 34 || manager.canUseFullScreenIntent()) {
+            builder.setFullScreenIntent(content, true)
+        }
+        val notification = builder.build()
 
         // Android 13+ requires runtime permission. Never crash if permission is absent.
         if (NotificationManagerCompat.from(context).areNotificationsEnabled()) {
