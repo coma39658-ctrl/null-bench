@@ -36,10 +36,13 @@ const fp=async b=>Buffer.from(await webcrypto.subtle.digest("SHA-256",b)).toStri
    Buffer.from(signature.signatureBase64Url,"base64url"),
    new TextEncoder().encode("EZERO-ANDROID-BIND-APPROVAL-1\n"+canonical));
  assert.equal(valid,true,"signature must verify under the exact same EZERO2 owner public key");
+ await assert.rejects(()=>api.approve(canonical),/CHALLENGE_REPLAYED/,"The same owner nonce must not be approved twice in one browser session");
  await assert.rejects(()=>api.approve(canonical.replace("call-invite-only","contacts-sync")),/REQUEST_SCOPE_MISMATCH/);
  await assert.rejects(()=>api.approve(canonical.replace(ownerFp,"0".repeat(64))),/OWNER_KEY_NOT_ENROLLED/);
  const expired=canonical.split("\n");expired[7]=String(now-1);
  await assert.rejects(()=>api.approve(expired.join("\n")),/REQUEST_EXPIRED_OR_INVALID/);
+ const boundary=canonical.split("\n");boundary[7]=String(now);
+ await assert.rejects(()=>api.approve(boundary.join("\n")),/REQUEST_EXPIRED_OR_INVALID/);
  const long=canonical.split("\n");long[7]=String(now+91);
  await assert.rejects(()=>api.approve(long.join("\n")),/REQUEST_EXPIRED_OR_INVALID/);
  window.confirm=()=>false;
