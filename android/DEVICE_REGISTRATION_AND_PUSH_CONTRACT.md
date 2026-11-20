@@ -1,6 +1,6 @@
 # E-ZERO Android Device Registration & Push Contract
 
-Status: PREPARATION SPECIFICATION ONLY — no endpoint, FCM sender, device enrollment, or Worker deployment is implemented by this document.
+Status: PREPARATION SPECIFICATION. A local Android Keystore P-256 key primitive and SHA-256 public-key fingerprint helper now exist in staging. No enrollment API, root approval, FCM token registration, FCM sender, signed wake verification, or Worker deployment is active.
 
 Scope: isolated branch `ezero-android-incoming-call-ringtone-staging-20261120`. The public QR/WebRTC engine, public site, and production Workers remain unchanged.
 
@@ -11,7 +11,7 @@ Scope: isolated branch `ezero-android-incoming-call-ringtone-staging-20261120`. 
 - `IncomingCallMessagingService.onNewToken` does not register a token anywhere.
 - The PR156 Trusted Inbox candidate authenticates browser P-256 identities, enforces saved-friend trust/replay/cooldown, and delivers only to an already-connected owner browser tab. Its own source comment explicitly says there is no offline delivery.
 - Browser identity private keys are non-exportable WebCrypto keys in browser-origin IndexedDB. They are not available to the native Android app.
-- Android Telecom registration is only capability registration. It does not create an incoming call or bridge to WebRTC.
+- Android Telecom registration is only capability registration. It does not create an incoming call or bridge to WebRTC. The new Android Keystore helper is local key storage/signing groundwork only; no device is enrolled or trusted by creating this key.
 - Therefore the existing browser identity and the Android installation must NOT be treated as the same device identity without a deliberate authenticated linking ceremony.
 
 ## 2. Required identity model
@@ -32,7 +32,7 @@ Do not silently copy a browser private key into Android storage, reuse a fingerp
 
 ## 3. Enrollment protocol (must be implemented before token registration)
 
-1. Android generates its non-exportable signing key and obtains an FCM token only after Firebase configuration is present.
+1. Android generates its non-exportable signing key using `AndroidInstallationIdentity.getOrCreatePublicIdentity()` and can sign bounded canonical challenge bytes with `sign(...)`. The helper exposes only public SPKI Base64 and its SHA-256 fingerprint. This local primitive is not yet called by the app UI or network layer. Obtain an FCM token only after Firebase configuration is present.
 2. Android requests a short-lived enrollment challenge from the isolated backend using its public key and proof-of-possession signature.
 3. The existing trusted browser identity displays a one-time QR/code (target lifetime 90 seconds). The browser signs an explicit approval statement binding the exact Android public-key fingerprint, challenge nonce, intended root identity, and expiry.
 4. Backend verifies both proofs, one-time nonce, origin/audience, expiry and replay state; it then creates the device binding. The browser must show the user which device was approved.
@@ -99,4 +99,4 @@ Record device model, Android version, app build SHA, permission state, network s
 
 ## 9. Explicit non-goals / release guard
 
-This specification does not authorize or perform Firebase project changes, secret creation, Worker deployment, public-site changes, production changes, app-store publication, or release signing. Those remain separate gates. Until enrollment, backend sender, signed wake verification, invite handoff and physical acceptance all pass, status remains **NOT ACTIVE / NOT VERIFIED**.
+This specification does not authorize or perform Firebase project changes, secret creation, Worker deployment, public-site changes, production changes, app-store publication, or release signing. Those remain separate gates. Until root-approved enrollment, backend sender, signed wake verification, invite handoff and physical acceptance all pass, status remains **NOT ACTIVE / NOT VERIFIED**. The Android Keystore key helper alone does not change that status.
