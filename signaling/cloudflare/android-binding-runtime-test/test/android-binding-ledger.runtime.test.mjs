@@ -130,4 +130,35 @@ describe("E-ZERO Android Binding Ledger — real workerd Durable Object runtime"
     });
     expect(result).toMatchObject({status:"rejected", code:"OWNER_PERMANENT_PROOF_INVALID"});
   });
+  it("enforces the per-owner five-challenge rolling-window quota atomically and does not charge invalid owner proof", async () => {
+    const f = await makeFixture("challenge-quota");
+    const forged = await f.stub.issueChallenge({
+      ...f.ownerInput,
+      permanentProofBase64Url: "A".repeat(86),
+      androidPublicKeySpkiBase64Url: f.androidPublicKeySpkiBase64Url,
+      androidFingerprint: f.androidFingerprint
+    });
+    expect(forged).toMatchObject({status:"rejected", code:"OWNER_PERMANENT_PROOF_INVALID"});
+
+    const issued = [];
+    for (let i = 0; i < 5; i++) {
+      issued.push(await f.stub.issueChallenge({
+        ...f.ownerInput,
+        androidPublicKeySpkiBase64Url: f.androidPublicKeySpkiBase64Url,
+        androidFingerprint: f.androidFingerprint
+      }));
+    }
+    expect(issued.every(x => x.status === "issued")).toBe(true);
+
+    const limited = await f.stub.issueChallenge({
+      ...f.ownerInput,
+      androidPublicKeySpkiBase64Url: f.androidPublicKeySpkiBase64Url,
+      androidFingerprint: f.androidFingerprint
+    });
+    expect(limited.status).toBe("rejected");
+    expect(limited.code).toBe("RATE_LIMITED");
+    expect(Number.isSafeInteger(limited.retryAfterEpochSeconds)).toBe(true);
+    expect(limited.retryAfterEpochSeconds).toBeGreaterThan(Math.floor(Date.now() / 1000));
+  });
+
 });
