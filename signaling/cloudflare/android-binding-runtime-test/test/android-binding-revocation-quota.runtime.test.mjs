@@ -67,13 +67,29 @@ describe("E-ZERO Android Binding Stage 4 Part 4 — revocation quota and owner i
       }
     });
 
-    const requests = await Promise.all(devices.map(async (androidFingerprint, i) =>
+    const requests = await Promise.all(devices.map(androidFingerprint =>
       signedRevocation(owner, androidFingerprint,
         b64url(crypto.getRandomValues(new Uint8Array(24))), now)
     ));
+
+    // An invalid signature must be rejected before it can consume quota.
+    const forged = {...requests[0],
+      signatureBase64Url: requests[0].signatureBase64Url.slice(0, -1) +
+        (requests[0].signatureBase64Url.endsWith("A") ? "B" : "A")};
+    expect(await owner.stub.revokeBinding(forged)).toMatchObject({
+      status:"rejected", code:"OWNER_REVOCATION_SIGNATURE_INVALID"
+    });
+
     const results = await Promise.all(requests.map(input => owner.stub.revokeBinding(input)));
     expect(results.filter(x => x.status === "revoked")).toHaveLength(5);
     expect(results.filter(x => x.status === "rejected" && x.code === "RATE_LIMITED")).toHaveLength(1);
+
+    // Replaying a previously consumed owner action is rejected before quota accounting.
+    const successfulIndex = results.findIndex(x => x.status === "revoked");
+    expect(successfulIndex).toBeGreaterThanOrEqual(0);
+    expect(await owner.stub.revokeBinding(requests[successfulIndex])).toMatchObject({
+      status:"rejected", code:"OWNER_REVOCATION_AUTH_REQUIRED"
+    });
 
     const states = await Promise.all(devices.map(androidFingerprint =>
       owner.stub.isBindingActive({ownerFingerprint:owner.ownerFingerprint, androidFingerprint})
