@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
 import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -25,7 +26,10 @@ object IncomingCallNotifications {
         val reject = actionPendingIntent(context, CallActionReceiver.ACTION_REJECT, callId, 2)
         val content = PendingIntent.getActivity(
             context, 3,
-            Intent(context, MainActivity::class.java).putExtra(CallActionReceiver.EXTRA_CALL_ID, callId),
+            Intent(context, MainActivity::class.java).apply {
+                data = Uri.parse("ezero://incoming/$callId")
+                putExtra(CallActionReceiver.EXTRA_CALL_ID, callId)
+            },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
@@ -91,6 +95,9 @@ object IncomingCallNotifications {
     ): PendingIntent {
         val intent = Intent(context, CallActionReceiver::class.java).apply {
             this.action = action
+            // PendingIntent identity includes the data URI, not extras. Make each
+            // call/action pair unique so one call cannot overwrite another's buttons.
+            data = Uri.parse("ezero://call/$callId/$action")
             putExtra(CallActionReceiver.EXTRA_ACTION, action)
             putExtra(CallActionReceiver.EXTRA_CALL_ID, callId)
         }
