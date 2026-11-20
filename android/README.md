@@ -4,7 +4,7 @@ This is a native Android notification host scaffold. It is deliberately separate
 
 ## Current status
 - Native Android project scaffold and incoming-call notification lifecycle are staged here.
-- Incoming FCM data is parsed by a dedicated strict validator; deterministic unit tests cover IDs, call modes, expiry boundaries and caller-alias sanitization.
+- Incoming FCM data is parsed by a dedicated strict validator; deterministic unit tests cover IDs, call modes, expiry boundaries and ensure caller identity is never trusted from push data.
 - The staging CI now runs Android unit tests before compiling the debug APK.
 - AndroidX Core-Telecom 1.0.0 and `MANAGE_OWN_CALLS` are added; the app registers audio/video capabilities with Android Telecom on supported devices.
 - Telecom registration is groundwork only: no incoming Telecom call is created until signed invite verification and the existing WebRTC answer/reject handoff are integrated.
@@ -25,9 +25,9 @@ Expected fields:
 - `call_id`: opaque ID, 8–128 URL-safe characters
 - `mode`: `AUDIO` or `VIDEO`
 - `expires_at`: Unix epoch milliseconds, no more than 120 seconds in the future
-- `caller_alias`: short, server-verified display alias
+- `caller_alias`: ignored by the Android client; caller display name must be resolved from a locally trusted identity only after the signed invite is authenticated
 
-The backend must authenticate the caller's signed request, verify saved-friend trust, replay window, expiry, cooldown and rate limits BEFORE sending FCM. The client-side checks here are defensive validation only; they do not replace backend signature/trust verification. Do not put SDP, media, message text, photos, recordings, private keys or long-lived auth tokens in FCM payloads.
+The backend must authenticate the caller's signed request, verify saved-friend trust, replay window, expiry, cooldown and rate limits BEFORE sending FCM. The client-side checks here are defensive validation only; they do not replace backend signature/trust verification. Push payload fields are wake-up hints only and must never be treated as proof of caller identity. Do not put SDP, media, message text, photos, recordings, private keys or long-lived auth tokens in FCM payloads.
 
 ## Android behavior
 - Core-Telecom registration declares baseline VoIP plus video-call capability on Android 8.0+; devices below API 26 report unavailable.
