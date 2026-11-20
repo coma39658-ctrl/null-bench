@@ -1,0 +1,24 @@
+name: E-ZERO Browser Owner-Key Binding — Isolated Gate
+on:
+  push:
+    branches:
+      - ezero-android-package-isolated-staging53-20261120
+    paths:
+      - "js/ezero_android_binding_owner_approval_v1.js"
+      - "tests/test_ezero_android_binding_owner_approval_v1.cjs"
+      - "ezero_trusted_friends_staging_20261106.html"
+      - ".github/workflows/ezero-browser-owner-binding-stage.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  owner-key-approval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Test same EZERO2 owner key, explicit consent, scope and expiry
+        run: node tests/test_ezero_android_binding_owner_approval_v1.cjs
