@@ -4,8 +4,9 @@ import { evictDurableObject } from "cloudflare:test";
 
 const ORIGIN = "https://coma39658-ctrl.github.io";
 const b64url = bytes => {
+  const view = bytes instanceof ArrayBuffer ? new Uint8Array(bytes) : bytes;
   let raw = "";
-  for (const b of bytes) raw += String.fromCharCode(b);
+  for (const b of view) raw += String.fromCharCode(b);
   return btoa(raw).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 };
 const hex = bytes => Array.from(bytes, b => b.toString(16).padStart(2, "0")).join("");
