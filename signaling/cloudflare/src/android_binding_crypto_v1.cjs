@@ -77,7 +77,7 @@ async function verifyOwnerRevocation({ownerIdentity, androidFingerprint, nonce,
   if (signature.length !== 64) throw new Error("REVOCATION_SIGNATURE_SIZE");
   const statement = ["EZERO-ANDROID-BIND-REVOKE-1", ORIGIN,
     ownerIdentity.ownerFingerprint, androidFingerprint, nonce,
-    String(issuedAtEpochSeconds)].join("\\n");
+    String(issuedAtEpochSeconds)].join("\n");
   const valid = await cryptoImpl.subtle.verify({name:"ECDSA", hash:"SHA-256"},
     ownerIdentity.publicKey, signature, new TextEncoder().encode(statement));
   if (!valid) throw new Error("OWNER_REVOCATION_SIGNATURE_INVALID");
