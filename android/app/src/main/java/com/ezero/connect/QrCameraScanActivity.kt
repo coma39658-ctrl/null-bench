@@ -8,13 +8,13 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.BarcodeFormat
@@ -33,9 +33,19 @@ class QrCameraScanActivity : ComponentActivity() {
     private lateinit var previewView: PreviewView
     private lateinit var cameraExecutor: ExecutorService
     private val delivered = AtomicBoolean(false)
+    private val cameraPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) startCamera() else {
+            setResult(RESULT_CANCELED)
+            finish()
+        }
+    }
     private val reader = MultiFormatReader().apply {
-        setHints(mapOf(DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE),
-            DecodeHintType.TRY_HARDER to true))
+        setHints(mapOf(
+            DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE),
+            DecodeHintType.TRY_HARDER to true
+        ))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,7 +56,7 @@ class QrCameraScanActivity : ComponentActivity() {
             scaleType = PreviewView.ScaleType.FILL_CENTER
         }
         val message = TextView(this).apply {
-            text = "E-ZERO QR scanner\nFriend's permanent QR کو کیمرے کے سامنے رکھیں"
+            text = "E-ZERO QR scanner\\nFriend's permanent QR کو کیمرے کے سامنے رکھیں"
             textSize = 18f
             gravity = Gravity.CENTER
             setPadding(24, 24, 24, 24)
@@ -62,17 +72,7 @@ class QrCameraScanActivity : ComponentActivity() {
         })
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
             PackageManager.PERMISSION_GRANTED) startCamera()
-        else ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), REQUEST_CAMERA)
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_CAMERA && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
-            startCamera()
-        } else {
-            setResult(RESULT_CANCELED)
-            finish()
-        }
+        else cameraPermission.launch(Manifest.permission.CAMERA)
     }
 
     private fun startCamera() {
@@ -150,7 +150,6 @@ class QrCameraScanActivity : ComponentActivity() {
 
     companion object {
         const val EXTRA_QR_TEXT = "com.ezero.connect.EXTRA_QR_TEXT"
-        private const val REQUEST_CAMERA = 811
         private const val MAX_FRAME_PIXELS = 8_000_000L
     }
 }
