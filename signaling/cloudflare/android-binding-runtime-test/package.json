@@ -1,0 +1,12 @@
+{
+  "name": "ezero-android-binding-runtime-test",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:runtime": "vitest run --reporter=verbose"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "1.8.5",
+    "vitest": "^4.1.0"
+  }
+}
