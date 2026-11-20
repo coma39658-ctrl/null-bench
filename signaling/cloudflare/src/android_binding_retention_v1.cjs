@@ -45,6 +45,7 @@ function parseExpiryIndex(key, value) {
   if (!target.startsWith("android-bind:v1:challenge:") &&
       !target.startsWith("android-bind:v1:revocation:") &&
       !target.startsWith("android-bind:v1:quota:")) return null;
+  if (key !== expiryIndexKey(value.expiresAtEpochSeconds, target)) return null;
   return {targetKey:target, expiresAtEpochSeconds:value.expiresAtEpochSeconds};
 }
 
