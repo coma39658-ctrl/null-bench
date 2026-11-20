@@ -1,25 +1,44 @@
 package com.ezero.connect
 
-import android.Manifest
 import android.app.Activity
 import android.content.Intent
-import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import android.Manifest
+import android.content.pm.PackageManager
 
 class MainActivity : Activity() {
     private lateinit var statusView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        statusView = TextView(this).apply {
-            textSize = 18f
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
             setPadding(32, 48, 32, 32)
         }
-        setContentView(statusView)
+        statusView = TextView(this).apply { textSize = 18f }
+        val galleryButton = Button(this).apply {
+            text = "Verify friend's permanent QR from gallery"
+            setOnClickListener {
+                val pick = Intent(Intent.ACTION_GET_CONTENT).apply { type = "image/*" }
+                @Suppress("DEPRECATION")
+                startActivityForResult(Intent.createChooser(pick, "Choose QR image"), REQUEST_QR_IMAGE)
+            }
+        }
+        layout.addView(statusView, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        ))
+        layout.addView(galleryButton, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        ))
+        setContentView(layout)
 
         val telecomReady = AndroidTelecomRegistration.register(this)
         statusView.text = buildString {
@@ -27,15 +46,33 @@ class MainActivity : Activity() {
             append("\nAndroid Telecom registration: ")
             append(if (telecomReady) "registered" else "unavailable on this device")
             append("\nPush setup and secure WebRTC handoff are not active yet.")
+            append("\n\nA verified QR is identity evidence only; it does not enroll or trust a friend.")
         }
         requestNotificationPermission()
         showPendingCall(intent)
     }
 
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        setIntent(intent)
-        showPendingCall(intent)
+    @Deprecated("Uses the platform document picker result for API 24 compatibility")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != REQUEST_QR_IMAGE || resultCode != RESULT_OK) return
+        val uri = data?.data ?: return
+        try {
+            contentResolver.openInputStream(uri).use { stream ->
+                val bitmap = BitmapFactory.decodeStream(stream) ?: error("IMAGE_DECODE_FAILED")
+                val token = BrowserQrImageReader.read(bitmap)
+                val verified = BrowserPermanentIdentityVerifier.verify(token)
+                statusView.text = buildString {
+                    append("E-ZERO permanent QR verified.\n")
+                    append("Fingerprint: ")
+                    append(verified.fingerprintSha256)
+                    append("\n\nThis only verifies the QR signature. Friend enrollment and call permission are not active.")
+                }
+                bitmap.recycle()
+            }
+        } catch (_: Exception) {
+            statusView.text = "QR not verified. Choose a clear E-ZERO permanent QR image."
+        }
     }
 
     private fun requestNotificationPermission() {
@@ -54,7 +91,10 @@ class MainActivity : Activity() {
             CallActionReceiver.ACTION_REJECT -> "Call rejected."
             else -> "Incoming call event received."
         }
-        // Intentionally do not auto-answer or fabricate a connected-call state.
         statusView.text = "E-ZERO Connect\n\n$status\nCall reference: $callId"
+    }
+
+    companion object {
+        private const val REQUEST_QR_IMAGE = 702
     }
 }
