@@ -8,6 +8,7 @@
  const REQUEST_DOMAIN="EZERO-ANDROID-BIND-1";
  const APPROVAL_DOMAIN="EZERO-ANDROID-BIND-APPROVAL-1";
  const encoder=new TextEncoder();
+ const approvedNonces=new Set();
  const decode=s=>{
    if(typeof s!=="string"||! /^[A-Za-z0-9_-]{40,240}$/.test(s))throw Error("BAD_BASE64URL");
    const raw=atob(s.replace(/-/g,"+").replace(/_/g,"/")+"=".repeat((4-s.length%4)%4));
@@ -25,13 +26,15 @@
    if(!/^[A-Za-z0-9_-]{40,240}$/.test(androidSpki)||!/^[A-Za-z0-9_-]{16,128}$/.test(nonce))throw Error("BAD_KEY_OR_NONCE");
    if(!/^(0|[1-9][0-9]*)$/.test(issuedText)||!/^(0|[1-9][0-9]*)$/.test(expiresText))throw Error("BAD_TIME");
    const issued=Number(issuedText),expires=Number(expiresText),now=Math.floor(Date.now()/1000);
-   if(!Number.isSafeInteger(issued)||!Number.isSafeInteger(expires)||expires<=issued||expires-issued>90||issued>now+30||expires<now)throw Error("REQUEST_EXPIRED_OR_INVALID");
+   if(!Number.isSafeInteger(issued)||!Number.isSafeInteger(expires)||expires<=issued||expires-issued>90||issued>now+30||expires<=now)throw Error("REQUEST_EXPIRED_OR_INVALID");
    const rebuilt=[protocol,origin,ownerFp,androidSpki,androidFp,nonce,issuedText,expiresText,capability].join("\n");
    if(rebuilt!==canonical)throw Error("NON_CANONICAL_REQUEST");
    return {origin,ownerFp,androidSpki,androidFp,nonce,issued,expires,capability};
  }
  async function approveAndroidBindingRequest(canonicalRequest){
    const request=parseCanonicalRequest(canonicalRequest);
+   const nonceKey=request.ownerFp+":"+request.nonce;
+   if(approvedNonces.has(nonceKey))throw Error("CHALLENGE_REPLAYED");
    const store=window.EZERO_DEVICE_IDENTITY_STORE;
    const qr=window.EZERO_PERMANENT_IDENTITY_QR;
    if(!store||typeof store.read!=="function"||!qr||typeof qr.verify!=="function")throw Error("OWNER_IDENTITY_API_UNAVAILABLE");
@@ -47,6 +50,7 @@
    if(typeof window.confirm!=="function"||window.confirm(message)!==true)throw Error("OWNER_APPROVAL_DECLINED");
    const bytes=encoder.encode(APPROVAL_DOMAIN+"\n"+canonicalRequest);
    const signature=await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},owner.keys.privateKey,bytes);
+   approvedNonces.add(nonceKey);
    return Object.freeze({
      protocol:APPROVAL_DOMAIN,
      origin:request.origin,
