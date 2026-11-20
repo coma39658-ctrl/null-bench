@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - ezero-android-incoming-call-ringtone-staging-20261120
+      - ezero-android-home-icon-staging-20261120
     paths:
       - "android/**"
       - ".github/workflows/ezero-android-host-build-staging.yml"
