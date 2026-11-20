@@ -83,7 +83,7 @@ async function verifyOwnerRevocation({ownerIdentity, androidFingerprint, nonce,
   if (!valid) throw new Error("OWNER_REVOCATION_SIGNATURE_INVALID");
   return Object.freeze({statement, nonce, issuedAtEpochSeconds});
 }
-\nasync function verifyOwnerApprovalBundle({origin, ownerSpkiBase64Url, ownerFingerprint,
+async function verifyOwnerApprovalBundle({origin, ownerSpkiBase64Url, ownerFingerprint,
   permanentProofBase64Url, canonicalRequest, signatureBase64Url,
   cryptoImpl = globalThis.crypto}) {
   const ownerIdentity = await verifyPermanentOwnerProof({origin, ownerSpkiBase64Url,
