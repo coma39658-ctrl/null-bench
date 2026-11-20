@@ -12,6 +12,9 @@ const FP = /^[0-9a-f]{64}$/;
 const B64URL = /^[A-Za-z0-9_-]+$/;
 const NONCE = /^[A-Za-z0-9_-]{32}$/;
 const MAX_TTL_SECONDS = 90;
+const {fixedUtcWindow, quotaCounterKey} = require("./android_binding_stage4_primitives_v1.cjs");
+const CHALLENGE_10M_LIMIT = 5;
+const CHALLENGE_UTC_DAY_LIMIT = 20;
 
 function assertFingerprint(value, label) {
   if (typeof value !== "string" || !FP.test(value)) throw new Error("INVALID_" + label);
@@ -72,6 +75,30 @@ async function issueChallenge({storage, ownerFingerprint, androidPublicKeySpkiBa
   const key = challengeKey(ownerFingerprint, nonce);
   await storage.transaction(async tx => {
     if (await tx.get(key)) throw new Error("NONCE_COLLISION");
+
+    // Both counters and challenge insertion share one transaction. The caller
+    // must verify the permanent EZERO2 owner proof before entering this core.
+    const tenMinuteWindow = fixedUtcWindow(nowEpochSeconds, 600);
+    const utcDayWindow = fixedUtcWindow(nowEpochSeconds, 86400);
+    const tenMinuteKey = quotaCounterKey(ownerFingerprint, "challenge-10m", tenMinuteWindow);
+    const utcDayKey = quotaCounterKey(ownerFingerprint, "challenge-utc-day", utcDayWindow);
+    const tenMinute = await tx.get(tenMinuteKey) || {count:0};
+    const utcDay = await tx.get(utcDayKey) || {count:0};
+
+    if (tenMinute.count >= CHALLENGE_10M_LIMIT ||
+        utcDay.count >= CHALLENGE_UTC_DAY_LIMIT) {
+      const retryAfterEpochSeconds = tenMinute.count >= CHALLENGE_10M_LIMIT
+        ? tenMinuteWindow.retryAfterEpochSeconds
+        : utcDayWindow.retryAfterEpochSeconds;
+      const error = new Error("RATE_LIMITED");
+      error.retryAfterEpochSeconds = retryAfterEpochSeconds;
+      throw error;
+    }
+
+    await tx.put(tenMinuteKey, {count:tenMinute.count + 1,
+      windowEndsAtEpochSeconds:tenMinuteWindow.endEpochSeconds});
+    await tx.put(utcDayKey, {count:utcDay.count + 1,
+      windowEndsAtEpochSeconds:utcDayWindow.endEpochSeconds});
     await tx.put(key, {status:"issued", canonical, ownerFingerprint, androidFingerprint,
       issuedAtEpochSeconds, expiresAtEpochSeconds});
   });
