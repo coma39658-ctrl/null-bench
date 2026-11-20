@@ -66,8 +66,12 @@ jobs:
         run: |
           set -euo pipefail
           APK="android/app/build/outputs/apk/debug/app-debug.apk"
-          apksigner verify --verbose "$APK"
-          aapt dump badging "$APK" | grep -F "package: name='com.ezero.connect.staging53'"
+          APKSIGNER="$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          AAPT="$ANDROID_HOME/build-tools/35.0.0/aapt"
+          test -x "$APKSIGNER"
+          test -x "$AAPT"
+          "$APKSIGNER" verify --verbose "$APK"
+          "$AAPT" dump badging "$APK" | grep -F "package: name='com.ezero.connect.staging53'"
           echo "APK signature and staging application ID verified."
       - name: Upload debug APK (compile artifact only)
         uses: actions/upload-artifact@v4
