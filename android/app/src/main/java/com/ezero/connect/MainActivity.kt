@@ -2,6 +2,7 @@ package com.ezero.connect
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -13,6 +14,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
@@ -20,6 +22,7 @@ import androidx.core.content.ContextCompat
 
 class MainActivity : Activity() {
     private lateinit var statusView: TextView
+    private lateinit var friendsList: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,11 +85,22 @@ class MainActivity : Activity() {
         statusParams.topMargin = dp(20)
         root.addView(statusCard, statusParams)
 
+        root.addView(label("محفوظ دوست", 17f, TEXT_DARK, true).apply {
+            setPadding(0, dp(22), 0, dp(8))
+        })
+        friendsList = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(14), dp(12), dp(14), dp(12))
+            background = rounded(Color.WHITE, 16)
+        }
+        root.addView(friendsList, matchWrap())
+
         root.addView(label("آڈیو، ویڈیو کال اور چیٹ کے بٹن اس وقت فعال نہیں ہیں۔", 12f, TEXT_MUTED, false).apply {
             setPadding(0, dp(14), 0, 0)
         })
 
         setContentView(root)
+        showSavedFriends()
         AndroidTelecomRegistration.register(this)
         requestNotificationPermission()
         showPendingCall(intent)
@@ -159,9 +173,62 @@ class MainActivity : Activity() {
     private fun verifyScannedToken(token: String?) {
         try {
             val verified = BrowserPermanentIdentityVerifier.verify(requireNotNull(token) { "QR_EMPTY" })
-            statusView.text = "E-ZERO QR تصدیق کامیاب۔\nFingerprint: ${verified.fingerprintSha256}\nدوست محفوظ کرنا اور کال کی اجازت ابھی فعال نہیں۔"
+            val nameInput = EditText(this).apply {
+                hint = "دوست کا نام"
+                inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS
+                maxLines = 1
+            }
+            AlertDialog.Builder(this)
+                .setTitle("تصدیق شدہ E-ZERO دوست")
+                .setMessage("QR کی مستقل شناخت اور دستخط درست ہیں۔ دوست کو صرف آپ کی منظوری سے محفوظ کیا جائے گا۔")
+                .setView(nameInput)
+                .setNegativeButton("منسوخ", null)
+                .setPositiveButton("محفوظ کریں") { _, _ ->
+                    try {
+                        FriendContactStore(this).save(
+                            nameInput.text.toString(),
+                            verified.fingerprintSha256,
+                            verified.publicKeySpkiBase64Url
+                        )
+                        statusView.text = "دوست اس فون میں محفوظ ہو گیا۔\nFingerprint: ${verified.fingerprintSha256}"
+                        showSavedFriends()
+                    } catch (_: Exception) {
+                        statusView.text = "دوست محفوظ نہیں ہو سکا۔ درست نام درج کریں اور دوبارہ کوشش کریں۔"
+                    }
+                }
+                .show()
         } catch (_: Exception) {
             statusView.text = "QR کی تصدیق نہیں ہو سکی۔ درست E-ZERO مستقل QR استعمال کریں۔"
+        }
+    }
+
+    private fun showSavedFriends() {
+        friendsList.removeAllViews()
+        val contacts = try { FriendContactStore(this).all() } catch (_: Exception) { emptyList() }
+        if (contacts.isEmpty()) {
+            friendsList.addView(label("ابھی کوئی دوست محفوظ نہیں۔", 13f, TEXT_MUTED, false))
+            return
+        }
+        contacts.forEach { contact ->
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                setPadding(0, dp(6), 0, dp(6))
+            }
+            val details = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+            details.addView(label(contact.name, 15f, TEXT_DARK, true))
+            details.addView(label(contact.fingerprintSha256.take(16) + "…", 11f, TEXT_MUTED, false))
+            row.addView(details, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            row.addView(actionButton("حذف", Color.rgb(150, 55, 55)) {
+                AlertDialog.Builder(this)
+                    .setMessage("کیا ${contact.name} کو محفوظ دوستوں سے حذف کرنا ہے؟")
+                    .setNegativeButton("واپس", null)
+                    .setPositiveButton("حذف کریں") { _, _ ->
+                        FriendContactStore(this).delete(contact.fingerprintSha256)
+                        showSavedFriends()
+                    }.show()
+            }, LinearLayout.LayoutParams(dp(84), dp(44)))
+            friendsList.addView(row, matchWrap())
         }
     }
 
