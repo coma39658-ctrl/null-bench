@@ -30,8 +30,16 @@ Status: **ISOLATED CORE + UNIT TESTS ONLY — NOT A WORKER, NOT DURABLE OBJECT D
 - Revocation must authenticate a fresh owner-authorized action before calling this core.
 - The current tests use a deliberately simple verifier stub to test ledger state transitions; they do NOT prove ECDSA verification, EZERO2 proof validation, Cloudflare Durable Object transaction behavior, or network security.
 - The test storage adapter serializes transactions in memory. A real Cloudflare Durable Object adapter and concurrency tests against a non-production staging namespace are still required.
+- Expired/consumed nonce retention and bounded cleanup must be designed before any live endpoint; the current core deliberately does not silently delete security records.
 
-## Tests intended for the isolated gate
+## Automated evidence — PASS
+
+- Isolated core workflow run [44760075595](https://github.com/coma39658-ctrl/null-bench/actions/runs/44760075595), commit `a6bccb21431140042c95aa183a5f7c443d95fd84`: completed successfully.
+- Node 22 test output: **8 passed, 0 failed**. It covers exact challenge shape/90-second lifetime, single-use consumption, concurrent replay, expiry boundary, verifier-failure behavior, revocation authorization, active-binding duplication, and canonical/origin tampering.
+- Evidence registry validator also ran on this branch commit [44760075610](https://github.com/coma39658-ctrl/null-bench/actions/runs/44760075610); its completion is tracked separately.
+- Important: these are core unit tests using a serialized in-memory storage adapter and a stubbed approval verifier. They do not prove Cloudflare Durable Object behavior or real ECDSA/EZERO2 proof verification.
+
+## Tests covered by the isolated gate
 
 - Canonical nine-line challenge and 90-second lifetime.
 - Successful single-use approval and replay rejection.
