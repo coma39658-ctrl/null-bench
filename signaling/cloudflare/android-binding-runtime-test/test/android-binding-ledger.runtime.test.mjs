@@ -62,12 +62,13 @@ describe("E-ZERO Android Binding Ledger — real workerd Durable Object runtime"
     const signatureBase64Url = await approve(f, request);
     const input = { ...f.ownerInput, request, signatureBase64Url };
 
-    const attempts = await Promise.allSettled([
+    const attempts = await Promise.all([
       f.stub.consumeApproval(input),
       f.stub.consumeApproval(input)
     ]);
-    expect(attempts.filter(x => x.status === "fulfilled")).toHaveLength(1);
-    expect(attempts.filter(x => x.status === "rejected")).toHaveLength(1);
+    expect(attempts.filter(x => x.status === "active")).toHaveLength(1);
+    expect(attempts.filter(x => x.status === "rejected" &&
+      x.code === "CHALLENGE_NOT_ISSUED_OR_REPLAYED")).toHaveLength(1);
     expect(await f.stub.isBindingActive({
       ownerFingerprint: f.ownerFingerprint,
       androidFingerprint: f.androidFingerprint
@@ -78,7 +79,8 @@ describe("E-ZERO Android Binding Ledger — real workerd Durable Object runtime"
       ownerFingerprint: f.ownerFingerprint,
       androidFingerprint: f.androidFingerprint
     })).toBe(true);
-    await expect(f.stub.consumeApproval(input)).rejects.toThrow(/CHALLENGE_NOT_ISSUED_OR_REPLAYED/);
+    const replay = await f.stub.consumeApproval(input);
+    expect(replay).toMatchObject({status:"rejected", code:"CHALLENGE_NOT_ISSUED_OR_REPLAYED"});
   });
 
   it("requires a fresh owner signature for revocation and prevents revocation replay", async () => {
@@ -114,16 +116,18 @@ describe("E-ZERO Android Binding Ledger — real workerd Durable Object runtime"
       ownerFingerprint: f.ownerFingerprint,
       androidFingerprint: f.androidFingerprint
     })).toBe(false);
-    await expect(f.stub.revokeBinding(revokeInput)).rejects.toThrow();
+    const replay = await f.stub.revokeBinding(revokeInput);
+    expect(replay.status).toBe("rejected");
   });
 
   it("rejects a forged EZERO2 permanent owner proof before creating a challenge", async () => {
     const f = await makeFixture("forged");
-    await expect(f.stub.issueChallenge({
+    const result = await f.stub.issueChallenge({
       ...f.ownerInput,
       permanentProofBase64Url: "A".repeat(86),
       androidPublicKeySpkiBase64Url: f.androidPublicKeySpkiBase64Url,
       androidFingerprint: f.androidFingerprint
-    })).rejects.toThrow(/OWNER_PERMANENT_PROOF_INVALID|INVALID_OWNER_PROOF/);
+    });
+    expect(result).toMatchObject({status:"rejected", code:"OWNER_PERMANENT_PROOF_INVALID"});
   });
 });
