@@ -6,6 +6,7 @@ on:
     paths:
       - "signaling/cloudflare/src/android_binding_ledger_core_v1.cjs"
       - "tests/test_ezero_android_binding_ledger_core_v1.cjs"
+      - "docs/EZERO_ANDROID_BINDING_LEDGER_CORE_STAGE3_20261120.md"
       - ".github/workflows/ezero-android-binding-ledger-stage3.yml"
   workflow_dispatch:
 permissions:
