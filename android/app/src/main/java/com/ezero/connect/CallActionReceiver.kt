@@ -11,6 +11,8 @@ class CallActionReceiver : BroadcastReceiver() {
         if (action != ACTION_ACCEPT && action != ACTION_REJECT) return
 
         IncomingCallNotifications.cancel(context, callId)
+        if (action == ACTION_REJECT) return
+
         val open = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
             putExtra(EXTRA_ACTION, action)
