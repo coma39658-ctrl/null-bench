@@ -5,17 +5,20 @@ on:
       - ezero-incoming-call-wake-contract-stage5-20261120
       - ezero-incoming-call-wake-key-pin-config-stage6-20261120
       - ezero-incoming-call-fcm-enrollment-design-stage7-20261120
+      - ezero-incoming-call-enrollment-endpoint-contract-stage8-20261120
     paths:
       - "android/app/build.gradle.kts"
       - "android/app/src/main/java/com/ezero/connect/IncomingCallWakeSignatureVerifier.kt"
       - "android/app/src/test/**"
       - "android/call-wake-contract/**"
       - "android/EZERO_INCOMING_CALL_FCM_ENROLLMENT_DESIGN_GATE_STAGE7_20261120.md"
+      - "android/EZERO_INCOMING_CALL_ENROLLMENT_ENDPOINT_CONTRACT_STAGE8_20261120.md"
       - ".github/workflows/ezero-incoming-call-wake-contract.yml"
   pull_request:
     branches:
       - ezero-incoming-call-wake-contract-stage5-20261120
       - ezero-incoming-call-wake-key-pin-config-stage6-20261120
+      - ezero-incoming-call-fcm-enrollment-design-stage7-20261120
     paths:
       - "android/app/build.gradle.kts"
       - "android/app/src/main/java/com/ezero/connect/IncomingCallWakeSignatureVerifier.kt"
@@ -37,6 +40,8 @@ jobs:
         run: node --test android/call-wake-contract/test/call_wake_signer_v1.test.cjs
       - name: Verify Stage 7 FCM enrollment design guardrails
         run: node --test android/call-wake-contract/test/fcm_enrollment_design_gate_stage7.test.cjs
+      - name: Verify Stage 8 enrollment endpoint contract guardrails
+        run: node --test android/call-wake-contract/test/enrollment_endpoint_contract_stage8.test.cjs
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
