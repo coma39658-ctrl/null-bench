@@ -4,6 +4,8 @@ This is a native Android notification host scaffold. It is deliberately separate
 
 ## Current status
 - Native Android project scaffold and incoming-call notification lifecycle are staged here.
+- Incoming FCM data is parsed by a dedicated strict validator; deterministic unit tests cover IDs, call modes, expiry boundaries and caller-alias sanitization.
+- The staging CI now runs Android unit tests before compiling the debug APK.
 - FCM project configuration is not present. Push delivery is therefore NOT active.
 - The signed E-ZERO wake-up API and existing WebRTC invite handoff are not yet integrated.
 - Accept currently opens the host activity with a pending-call marker; it does not claim to connect a call.
@@ -40,7 +42,7 @@ gradle :app:assembleDebug
 A successful build would only validate compilation. It would not validate push delivery, ringtone audibility, lock-screen behavior, or WebRTC handoff.
 
 ## Next implementation gates
-1. Configure Firebase app and verify token lifecycle without logging tokens.
+1. Configure Firebase app and verify token lifecycle without logging tokens. The Android Firebase app config (`google-services.json`) is still required before FCM can initialize.
 2. Implement authenticated device registration against an isolated backend.
 3. Implement backend-signed, short-lived wake-up delivery and cancellation.
 4. Bind Accept to the existing signed WebRTC invite flow without changing the WebRTC engine.
