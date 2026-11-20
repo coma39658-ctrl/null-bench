@@ -4,11 +4,12 @@
  */
 import ledger from "./android_binding_ledger_core_v1.cjs";
 import cryptoChecks from "./android_binding_crypto_v1.cjs";
+import stage4 from "./android_binding_stage4_primitives_v1.cjs";
 
 const ORIGIN = cryptoChecks.ORIGIN;
 const FP = /^[0-9a-f]{64}$/;
 const REVOCATION_NONCE = /^[A-Za-z0-9_-]{32}$/;
-const rejection = error => ({status:"rejected", code: typeof error?.message === "string" ? error.message : "BINDING_OPERATION_FAILED"});
+const rejection = error => ({status:"rejected", code: typeof error?.message === "string" ? error.message : "BINDING_OPERATION_FAILED", ...(Number.isSafeInteger(error?.retryAfterEpochSeconds) ? {retryAfterEpochSeconds:error.retryAfterEpochSeconds} : {})});
 
 export function createAndroidBindingLedgerClass(DurableObjectBase) {
   return class AndroidBindingLedgerV1 extends DurableObjectBase {
@@ -102,7 +103,19 @@ export function createAndroidBindingLedgerClass(DurableObjectBase) {
               signatureBase64Url: input.signatureBase64Url,
               nowEpochSeconds: now
             });
+            // A replay is rejected before quota accounting. Only a fresh,
+            // cryptographically valid owner action consumes a revocation slot.
             if (await tx.get(replayKey)) return false;
+            const window = stage4.fixedUtcWindow(now, 600);
+            const quotaKey = stage4.quotaCounterKey(owner.ownerFingerprint, "revocation-10m", window);
+            const quota = await tx.get(quotaKey) || {count:0};
+            if (quota.count >= 5) {
+              const error = new Error("RATE_LIMITED");
+              error.retryAfterEpochSeconds = window.retryAfterEpochSeconds;
+              throw error;
+            }
+            await tx.put(quotaKey, {count:quota.count + 1,
+              windowEndsAtEpochSeconds:window.endEpochSeconds});
             await tx.put(replayKey, {status:"consumed", consumedAtEpochSeconds:now});
             return true;
           }

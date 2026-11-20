@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { env } from "cloudflare:workers";
 import { evictDurableObject } from "cloudflare:test";
+import stage4 from "../../src/android_binding_stage4_primitives_v1.cjs";
 
 const ORIGIN = "https://coma39658-ctrl.github.io";
 const b64url = bytes => {
@@ -34,7 +35,7 @@ async function makeFixture(label) {
   const androidSpki = new Uint8Array(await crypto.subtle.exportKey("spki", androidPair.publicKey));
   const androidPublicKeySpkiBase64Url = b64url(androidSpki);
   const androidFingerprint = await fingerprint(androidSpki);
-  const id = env.ANDROID_BINDING_LEDGER.idFromName("runtime-" + label + "-" + b64url(crypto.getRandomValues(new Uint8Array(12))));
+  const id = env.ANDROID_BINDING_LEDGER.idFromName(stage4.ownerDurableObjectName(ownerFingerprint));
   const stub = env.ANDROID_BINDING_LEDGER.get(id);
   const ownerInput = { origin: ORIGIN, ownerSpkiBase64Url, ownerFingerprint,
     permanentProofBase64Url };
@@ -130,4 +131,35 @@ describe("E-ZERO Android Binding Ledger — real workerd Durable Object runtime"
     });
     expect(result).toMatchObject({status:"rejected", code:"OWNER_PERMANENT_PROOF_INVALID"});
   });
+  it("enforces the per-owner five-challenge rolling-window quota atomically and does not charge invalid owner proof", async () => {
+    const f = await makeFixture("challenge-quota");
+    const forged = await f.stub.issueChallenge({
+      ...f.ownerInput,
+      permanentProofBase64Url: "A".repeat(86),
+      androidPublicKeySpkiBase64Url: f.androidPublicKeySpkiBase64Url,
+      androidFingerprint: f.androidFingerprint
+    });
+    expect(forged).toMatchObject({status:"rejected", code:"OWNER_PERMANENT_PROOF_INVALID"});
+
+    const issued = [];
+    for (let i = 0; i < 5; i++) {
+      issued.push(await f.stub.issueChallenge({
+        ...f.ownerInput,
+        androidPublicKeySpkiBase64Url: f.androidPublicKeySpkiBase64Url,
+        androidFingerprint: f.androidFingerprint
+      }));
+    }
+    expect(issued.every(x => x.status === "issued")).toBe(true);
+
+    const limited = await f.stub.issueChallenge({
+      ...f.ownerInput,
+      androidPublicKeySpkiBase64Url: f.androidPublicKeySpkiBase64Url,
+      androidFingerprint: f.androidFingerprint
+    });
+    expect(limited.status).toBe("rejected");
+    expect(limited.code).toBe("RATE_LIMITED");
+    expect(Number.isSafeInteger(limited.retryAfterEpochSeconds)).toBe(true);
+    expect(limited.retryAfterEpochSeconds).toBeGreaterThan(Math.floor(Date.now() / 1000));
+  });
+
 });
