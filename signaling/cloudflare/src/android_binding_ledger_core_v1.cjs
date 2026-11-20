@@ -125,11 +125,12 @@ async function revokeBinding({storage, ownerFingerprint, androidFingerprint,
   if (!storage || typeof storage.transaction !== "function") throw new Error("ATOMIC_STORAGE_REQUIRED");
   assertFingerprint(ownerFingerprint, "OWNER_FINGERPRINT");
   assertFingerprint(androidFingerprint, "ANDROID_FINGERPRINT");
-  if (typeof authorizeOwner !== "function" || await authorizeOwner() !== true)
+  if (typeof authorizeOwner !== "function")
     throw new Error("OWNER_REVOCATION_AUTH_REQUIRED");
   if (!Number.isSafeInteger(nowEpochSeconds) || nowEpochSeconds < 0) throw new Error("INVALID_NOW");
   const key = bindingKey(ownerFingerprint, androidFingerprint);
   return storage.transaction(async tx => {
+    if (await authorizeOwner(tx) !== true) throw new Error("OWNER_REVOCATION_AUTH_REQUIRED");
     const current = await tx.get(key);
     if (!current || current.status !== "active") throw new Error("BINDING_NOT_ACTIVE");
     const revoked = {...current, status:"revoked", revokedAtEpochSeconds:nowEpochSeconds};
