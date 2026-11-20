@@ -113,6 +113,7 @@ class MainActivity : Activity() {
 
         setContentView(root)
         showSavedFriends()
+        showLocalInstallationIdentity()
         AndroidTelecomRegistration.register(this)
         requestNotificationPermission()
         showPendingCall(intent)
@@ -241,6 +242,21 @@ class MainActivity : Activity() {
                     }.show()
             }, LinearLayout.LayoutParams(dp(84), dp(44)))
             friendsList.addView(row, matchWrap())
+        }
+    }
+
+    /**
+     * Prepare this installation's non-exportable P-256 identity locally.
+     * No network request, enrollment, contact sync, or server storage occurs.
+     */
+    private fun showLocalInstallationIdentity() {
+        try {
+            val identity = AndroidInstallationIdentity.getOrCreatePublicIdentity()
+            statusView.text = statusView.text.toString() +
+                "\n\nاس فون کی محفوظ شناخت تیار ہے۔\nFingerprint: ${identity.fingerprintSha256}"
+        } catch (_: Exception) {
+            statusView.text = statusView.text.toString() +
+                "\n\nاس فون کی محفوظ شناخت تیار نہیں ہو سکی۔"
         }
     }
 
