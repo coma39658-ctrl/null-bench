@@ -4,6 +4,7 @@
  */
 import ledger from "./android_binding_ledger_core_v1.cjs";
 import cryptoChecks from "./android_binding_crypto_v1.cjs";
+import stage4 from "./android_binding_stage4_primitives_v1.cjs";
 
 const ORIGIN = cryptoChecks.ORIGIN;
 const FP = /^[0-9a-f]{64}$/;
@@ -105,10 +106,8 @@ export function createAndroidBindingLedgerClass(DurableObjectBase) {
             // A replay is rejected before quota accounting. Only a fresh,
             // cryptographically valid owner action consumes a revocation slot.
             if (await tx.get(replayKey)) return false;
-            const {fixedUtcWindow, quotaCounterKey} =
-              await import("./android_binding_stage4_primitives_v1.cjs");
-            const window = fixedUtcWindow(now, 600);
-            const quotaKey = quotaCounterKey(owner.ownerFingerprint, "revocation-10m", window);
+            const window = stage4.fixedUtcWindow(now, 600);
+            const quotaKey = stage4.quotaCounterKey(owner.ownerFingerprint, "revocation-10m", window);
             const quota = await tx.get(quotaKey) || {count:0};
             if (quota.count >= 5) {
               const error = new Error("RATE_LIMITED");
