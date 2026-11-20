@@ -106,10 +106,12 @@ class QrCameraScanActivity : ComponentActivity() {
             val height = image.height
             val rowStride = plane.rowStride
             val pixelStride = plane.pixelStride
-            val sourceBytes = plane.buffer
+            if (width <= 0 || height <= 0 || width.toLong() * height.toLong() > MAX_FRAME_PIXELS) return
+            val sourceBytes = plane.buffer.duplicate()
+            val bufferPosition = sourceBytes.position()
             val yuv = ByteArray(width * height)
             for (row in 0 until height) {
-                val rowStart = row * rowStride
+                val rowStart = bufferPosition + row * rowStride
                 val outStart = row * width
                 for (col in 0 until width) {
                     yuv[outStart + col] = sourceBytes.get(rowStart + col * pixelStride)
@@ -149,5 +151,6 @@ class QrCameraScanActivity : ComponentActivity() {
     companion object {
         const val EXTRA_QR_TEXT = "com.ezero.connect.EXTRA_QR_TEXT"
         private const val REQUEST_CAMERA = 811
+        private const val MAX_FRAME_PIXELS = 8_000_000L
     }
 }
