@@ -48,4 +48,27 @@ function parseExpiryIndex(key, value) {
   return {targetKey:target, expiresAtEpochSeconds:value.expiresAtEpochSeconds};
 }
 
-module.exports = {PREFIX, MAX_ALARM_BATCH, expiryForRecord, expiryIndexKey, parseExpiryIndex};
+async function cleanupExpiredBatch(storage, nowEpochSeconds) {
+  if (!storage || typeof storage.list !== "function" ||
+      typeof storage.transaction !== "function" ||
+      !Number.isSafeInteger(nowEpochSeconds) || nowEpochSeconds < 0)
+    throw new Error("INVALID_RETENTION_STORAGE_OR_TIME");
+  const indexes = await storage.list({prefix:PREFIX, limit:MAX_ALARM_BATCH});
+  let deleted = 0;
+  await storage.transaction(async tx => {
+    for (const [indexKey, indexValue] of indexes) {
+      const parsed = parseExpiryIndex(indexKey, indexValue);
+      if (!parsed || parsed.expiresAtEpochSeconds > nowEpochSeconds) break;
+      const current = await tx.get(parsed.targetKey);
+      if (expiryForRecord(parsed.targetKey, current) === parsed.expiresAtEpochSeconds) {
+        await tx.delete(parsed.targetKey);
+      }
+      await tx.delete(indexKey);
+      deleted += 1;
+    }
+  });
+  return Object.freeze({deleted, batchLimit:MAX_ALARM_BATCH});
+}
+
+module.exports = {PREFIX, MAX_ALARM_BATCH, expiryForRecord, expiryIndexKey,
+  parseExpiryIndex, cleanupExpiredBatch};
