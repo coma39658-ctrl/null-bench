@@ -102,7 +102,21 @@ export function createAndroidBindingLedgerClass(DurableObjectBase) {
               signatureBase64Url: input.signatureBase64Url,
               nowEpochSeconds: now
             });
+            // A replay is rejected before quota accounting. Only a fresh,
+            // cryptographically valid owner action consumes a revocation slot.
             if (await tx.get(replayKey)) return false;
+            const {fixedUtcWindow, quotaCounterKey} =
+              await import("./android_binding_stage4_primitives_v1.cjs");
+            const window = fixedUtcWindow(now, 600);
+            const quotaKey = quotaCounterKey(owner.ownerFingerprint, "revocation-10m", window);
+            const quota = await tx.get(quotaKey) || {count:0};
+            if (quota.count >= 5) {
+              const error = new Error("RATE_LIMITED");
+              error.retryAfterEpochSeconds = window.retryAfterEpochSeconds;
+              throw error;
+            }
+            await tx.put(quotaKey, {count:quota.count + 1,
+              windowEndsAtEpochSeconds:window.endEpochSeconds});
             await tx.put(replayKey, {status:"consumed", consumedAtEpochSeconds:now});
             return true;
           }
