@@ -6,6 +6,8 @@ This is a native Android notification host scaffold. It is deliberately separate
 - Native Android project scaffold and incoming-call notification lifecycle are staged here.
 - Incoming FCM data is parsed by a dedicated strict validator; deterministic unit tests cover IDs, call modes, expiry boundaries and caller-alias sanitization.
 - The staging CI now runs Android unit tests before compiling the debug APK.
+- AndroidX Core-Telecom 1.0.0 and `MANAGE_OWN_CALLS` are added; the app registers audio/video capabilities with Android Telecom on supported devices.
+- Telecom registration is groundwork only: no incoming Telecom call is created until signed invite verification and the existing WebRTC answer/reject handoff are integrated.
 - FCM project configuration is not present. Push delivery is therefore NOT active.
 - The signed E-ZERO wake-up API and existing WebRTC invite handoff are not yet integrated.
 - Accept currently opens the host activity with a pending-call marker; it does not claim to connect a call.
@@ -28,6 +30,8 @@ Expected fields:
 The backend must authenticate the caller's signed request, verify saved-friend trust, replay window, expiry, cooldown and rate limits BEFORE sending FCM. The client-side checks here are defensive validation only; they do not replace backend signature/trust verification. Do not put SDP, media, message text, photos, recordings, private keys or long-lived auth tokens in FCM payloads.
 
 ## Android behavior
+- Core-Telecom registration declares baseline VoIP plus video-call capability on Android 8.0+; devices below API 26 report unavailable.
+- Registration does not answer, ring, or establish media by itself. The next gate is wiring Telecom callbacks to the verified E-ZERO invite lifecycle.
 - Android 13+: request notification permission at runtime.
 - Incoming call uses a high-importance notification channel and AndroidX CallStyle.
 - Accept and Reject are explicit actions. There is no auto-answer.
