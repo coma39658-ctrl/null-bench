@@ -14,6 +14,7 @@ Status: **BROWSER SIGNER + ANDROID VERIFIER IMPLEMENTED; AUTOMATED GATES RUNNING
 - Signature input is domain separated as `EZERO-ANDROID-BIND-APPROVAL-1\n` followed by the exact canonical request bytes.
 - A browser-session nonce set rejects a second approval of the same owner/nonce pair. This is a local defense only; the future server must enforce durable atomic single-use consumption across sessions and devices.
 - Added `AndroidBrowserBindingApprovalVerifier.kt`. It checks the exact scanned EZERO2 owner fingerprint, fixed origin, Android SPKI fingerprint, P-256 key type, expiry and 90-second maximum, nonce shape, domain-separated signature, and returns a verification result only. It does not enroll or save the Android installation.
+- Added one shared test-only golden vector at `android/app/src/test/resources/ezero_android_browser_binding_golden_v1.properties`. It contains only test public keys/signatures and canonical bytes, explicitly marked test-only; both Node/WebCrypto and Kotlin/JCA tests consume the same vector. It is not a production identity or key.
 
 ## Automated evidence
 
