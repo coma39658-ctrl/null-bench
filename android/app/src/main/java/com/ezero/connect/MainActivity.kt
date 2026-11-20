@@ -5,6 +5,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
@@ -69,6 +70,17 @@ class MainActivity : Activity() {
         val cameraParams = matchWrap()
         cameraParams.topMargin = dp(10)
         root.addView(cameraButton, cameraParams)
+
+        val websiteButton = actionButton("ویب سائٹ ورژن کھولیں", GREEN_DARK) {
+            try {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(WEBSITE_URL)))
+            } catch (_: Exception) {
+                statusView.text = "ویب سائٹ نہیں کھل سکی۔ انٹرنیٹ کنکشن چیک کریں۔"
+            }
+        }
+        val websiteParams = matchWrap()
+        websiteParams.topMargin = dp(10)
+        root.addView(websiteButton, websiteParams)
 
         val statusCard = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -254,6 +266,7 @@ class MainActivity : Activity() {
     companion object {
         private const val REQUEST_QR_IMAGE = 702
         private const val REQUEST_QR_CAMERA = 703
+        private const val WEBSITE_URL = "https://ezero-connect-public-preview.onrender.com/ezero-connect-app.html"
         private val GREEN_DARK = Color.rgb(52, 75, 53)
         private val TEXT_DARK = Color.rgb(36, 47, 38)
         private val TEXT_MUTED = Color.rgb(91, 103, 93)
