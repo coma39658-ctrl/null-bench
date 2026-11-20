@@ -65,13 +65,7 @@ class MainActivity : Activity() {
                 requireNotNull(stream) { "IMAGE_OPEN_FAILED" }
                 BitmapFactory.decodeStream(stream, null, bounds)
             }
-            require(bounds.outWidth > 0 && bounds.outHeight > 0) { "IMAGE_DECODE_FAILED" }
-            var sample = 1
-            while (bounds.outWidth.toLong() / sample * (bounds.outHeight.toLong() / sample) > MAX_DECODE_PIXELS ||
-                maxOf(bounds.outWidth, bounds.outHeight) / sample > MAX_DIMENSION
-            ) {
-                sample *= 2
-            }
+            val sample = QrImageDecodePolicy.sampleSize(bounds.outWidth, bounds.outHeight)
             val options = BitmapFactory.Options().apply { inSampleSize = sample }
             contentResolver.openInputStream(uri).use { stream ->
                 requireNotNull(stream) { "IMAGE_OPEN_FAILED" }
@@ -114,7 +108,5 @@ class MainActivity : Activity() {
 
     companion object {
         private const val REQUEST_QR_IMAGE = 702
-        private const val MAX_DECODE_PIXELS = 8_000_000L
-        private const val MAX_DIMENSION = 4096
     }
 }
