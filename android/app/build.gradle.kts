@@ -12,11 +12,11 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.ezero.connect"
+        applicationId = "com.ezero.connect.staging53"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0-staging"
+        versionCode = 53
+        versionName = "0.1.0-staging53"
     }
 
     compileOptions {
