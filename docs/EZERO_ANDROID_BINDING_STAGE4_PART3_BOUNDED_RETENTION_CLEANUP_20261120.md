@@ -32,7 +32,7 @@ Permanent binding records are never added to the expiry index.
 
 The runtime test suite includes retention-policy tests for all temporary record types, a 101-record backlog split across two batches, permanent binding preservation, future-record preservation, and stale-index safety. The existing workerd/SQLite suite also exercises the adapter transaction path that creates the expiry indexes.
 
-A green CI run is required before this part can be considered passed. These tests are not physical-device tests and do not authorize integration or deployment.
+The PR CI gates are green: four retention helper tests passed, and the existing four real workerd/SQLite Durable Object tests passed. Those workerd tests exercise the adapter transaction path that writes expiry indexes and schedules alarms. The cleanup-batch algorithm itself is currently tested against a bounded in-memory storage fixture; the alarm firing/deletion path has not yet been independently exercised against a real SQLite-backed Durable Object alarm. That remains an explicit follow-up verification gap. These tests are not physical-device tests and do not authorize integration or deployment.
 
 ## Release boundary
 
