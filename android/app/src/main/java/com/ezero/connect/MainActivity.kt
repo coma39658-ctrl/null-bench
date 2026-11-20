@@ -11,14 +11,23 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
 class MainActivity : Activity() {
+    private lateinit var statusView: TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val message = TextView(this).apply {
+        statusView = TextView(this).apply {
             textSize = 18f
             setPadding(32, 48, 32, 32)
-            text = "E-ZERO Connect\n\nAndroid incoming-call host — isolated staging.\nPush setup and secure WebRTC handoff are not active yet."
         }
-        setContentView(message)
+        setContentView(statusView)
+
+        val telecomReady = AndroidTelecomRegistration.register(this)
+        statusView.text = buildString {
+            append("E-ZERO Connect\n\nAndroid incoming-call host — isolated staging.")
+            append("\nAndroid Telecom registration: ")
+            append(if (telecomReady) "registered" else "unavailable on this device")
+            append("\nPush setup and secure WebRTC handoff are not active yet.")
+        }
         requestNotificationPermission()
         showPendingCall(intent)
     }
@@ -46,7 +55,6 @@ class MainActivity : Activity() {
             else -> "Incoming call event received."
         }
         // Intentionally do not auto-answer or fabricate a connected-call state.
-        (findViewById<android.view.ViewGroup>(android.R.id.content).getChildAt(0) as? TextView)?.text =
-            "E-ZERO Connect\n\n$status\nCall reference: $callId"
+        statusView.text = "E-ZERO Connect\n\n$status\nCall reference: $callId"
     }
 }
