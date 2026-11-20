@@ -2,6 +2,7 @@ package com.ezero.connect
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
@@ -57,21 +58,38 @@ class MainActivity : Activity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode != REQUEST_QR_IMAGE || resultCode != RESULT_OK) return
         val uri = data?.data ?: return
+        var bitmap: Bitmap? = null
         try {
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             contentResolver.openInputStream(uri).use { stream ->
-                val bitmap = BitmapFactory.decodeStream(stream) ?: error("IMAGE_DECODE_FAILED")
-                val token = BrowserQrImageReader.read(bitmap)
-                val verified = BrowserPermanentIdentityVerifier.verify(token)
-                statusView.text = buildString {
-                    append("E-ZERO permanent QR verified.\n")
-                    append("Fingerprint: ")
-                    append(verified.fingerprintSha256)
-                    append("\n\nThis only verifies the QR signature. Friend enrollment and call permission are not active.")
-                }
-                bitmap.recycle()
+                requireNotNull(stream) { "IMAGE_OPEN_FAILED" }
+                BitmapFactory.decodeStream(stream, null, bounds)
+            }
+            require(bounds.outWidth > 0 && bounds.outHeight > 0) { "IMAGE_DECODE_FAILED" }
+            var sample = 1
+            while (bounds.outWidth.toLong() / sample * (bounds.outHeight.toLong() / sample) > MAX_DECODE_PIXELS ||
+                maxOf(bounds.outWidth, bounds.outHeight) / sample > MAX_DIMENSION
+            ) {
+                sample *= 2
+            }
+            val options = BitmapFactory.Options().apply { inSampleSize = sample }
+            contentResolver.openInputStream(uri).use { stream ->
+                requireNotNull(stream) { "IMAGE_OPEN_FAILED" }
+                bitmap = BitmapFactory.decodeStream(stream, null, options)
+            }
+            val decoded = requireNotNull(bitmap) { "IMAGE_DECODE_FAILED" }
+            val token = BrowserQrImageReader.read(decoded)
+            val verified = BrowserPermanentIdentityVerifier.verify(token)
+            statusView.text = buildString {
+                append("E-ZERO permanent QR verified.\n")
+                append("Fingerprint: ")
+                append(verified.fingerprintSha256)
+                append("\n\nThis only verifies the QR signature. Friend enrollment and call permission are not active.")
             }
         } catch (_: Exception) {
             statusView.text = "QR not verified. Choose a clear E-ZERO permanent QR image."
+        } finally {
+            bitmap?.recycle()
         }
     }
 
@@ -96,5 +114,7 @@ class MainActivity : Activity() {
 
     companion object {
         private const val REQUEST_QR_IMAGE = 702
+        private const val MAX_DECODE_PIXELS = 8_000_000L
+        private const val MAX_DIMENSION = 4096
     }
 }
