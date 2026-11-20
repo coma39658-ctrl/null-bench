@@ -76,7 +76,7 @@ test("rejects approval signature tampering and a different owner key",async()=>{
     androidPublicKeySpkiBase64Url:android.spki64,androidFingerprint:android.fingerprint,
     nowEpochSeconds:1800000000,cryptoImpl:webcrypto});
   const signature=await signedApproval(owner,request);
-  const altered=signature.slice(0,-1)+(signature.endsWith("A")?"B":"A");
+  const altered=(signature.startsWith("A")?"B":"A")+signature.slice(1);
   const args={origin:ORIGIN,ownerSpkiBase64Url:owner.spki64,ownerFingerprint:owner.fingerprint,
     permanentProofBase64Url:owner.proof,canonicalRequest:request.canonical,cryptoImpl:webcrypto};
   await assert.rejects(verifyOwnerApprovalBundle({...args,signatureBase64Url:altered}),/INVALID_APPROVAL_SIGNATURE|OWNER_APPROVAL_SIGNATURE_INVALID/);
