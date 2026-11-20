@@ -20,6 +20,7 @@ import com.google.zxing.BinaryBitmap
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.DecodeHintType
 import com.google.zxing.MultiFormatReader
+import com.google.zxing.LuminanceSource
 import com.google.zxing.PlanarYUVLuminanceSource
 import com.google.zxing.ReaderException
 import com.google.zxing.common.HybridBinarizer
@@ -114,11 +115,11 @@ class QrCameraScanActivity : ComponentActivity() {
                     yuv[outStart + col] = sourceBytes.get(rowStart + col * pixelStride)
                 }
             }
-            var source: PlanarYUVLuminanceSource? =
+            var source: LuminanceSource =
                 PlanarYUVLuminanceSource(yuv, width, height, 0, 0, width, height, false)
             val turns = (image.imageInfo.rotationDegrees / 90) % 4
-            repeat(turns) { source = source?.rotateCounterClockwise() }
-            val bitmap = BinaryBitmap(HybridBinarizer(requireNotNull(source)))
+            repeat(turns) { source = source.rotateCounterClockwise() }
+            val bitmap = BinaryBitmap(HybridBinarizer(source))
             val result = try {
                 reader.decodeWithState(bitmap)
             } catch (_: ReaderException) {
