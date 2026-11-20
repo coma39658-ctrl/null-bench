@@ -10,8 +10,11 @@ class IncomingCallMessagingService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
-        // Call wake-ups must be data-only and high priority. Notification payloads
-        // can be displayed by Android without this validation path.
+        // Only data-only, server-signed wake-ups may create an actionable alert.
+        // Until a reviewed staging public key is pinned, verification fails closed.
+        if (message.notification != null) return
+        if (!IncomingCallWakeSignatureVerifier.verify(message.data)) return
+
         val payload = IncomingCallPayload.parse(message.data) ?: return
         IncomingCallNotifications.show(
             context = this,
