@@ -19,7 +19,7 @@ jobs:
       - name: Check out the exact green E-ZERO source
         uses: actions/checkout@v4
         with:
-          ref: 583e3914e88ae90f3c468191702893568baf1fdf
+          ref: 955fae745c15830231719caa48c1262a438eae11
           path: ezero-source
 
       - name: Require staging-only Cloudflare credentials
@@ -40,7 +40,7 @@ jobs:
 
       - name: Record staging target
         run: |
-          echo "Source commit: 583e3914e88ae90f3c468191702893568baf1fdf"
+          echo "Source commit: 955fae745c15830231719caa48c1262a438eae11"
           echo "Worker name: ezero-connect-signal-staging-20261120"
-          echo "Allowed browser origin: https://coma39658-ctrl.github.io"
+          echo "Allowed browser origin: https://ezero-connect-live-clean-staging-20261121.onrender.com"
           echo "Use the exact workers.dev hostname printed by Wrangler above; do not infer or substitute a hostname."
