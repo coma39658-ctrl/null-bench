@@ -38,3 +38,23 @@ Branch: `ezero-connect-scalable-friends-profile-staging-20261121`
 ## Release rule
 
 This is a staging-only design baseline. No public release, production replacement, or claim of completed profile/list functionality until implementation and all required tests pass.
+
+## Messaging requirements — text and voice
+
+- Add a simple chat composer for each selected, verified friend: a text input, Send action, and a clearly separate press-to-record voice-message action.
+- Text messages must be plain text only in the first implementation; enforce a bounded message size, render with textContent (never HTML), and show sender and local timestamp.
+- Voice messages require an explicit user gesture to request microphone permission and start recording. Provide recording state, stop/cancel, playback preview, and explicit Send; never record in the background or auto-send.
+- Use feature detection for MediaRecorder and supported audio MIME types. If recording is unsupported or permission is denied, show a clear explanation and keep text chat available.
+- Bind every conversation to the selected trusted relationship ID and remote device fingerprint. Reject incoming message/voice payloads unless they arrive over the authenticated, encrypted peer session for that exact relationship.
+- Encrypt message text and voice blobs before local persistence using a non-extractable device-held key. Keep message content and voice media off the signaling service; signaling may carry only the minimum session-routing metadata needed to establish the peer channel.
+- Show honest message states: local-only/draft, sending, delivered only after an authenticated peer acknowledgement, and failed. Never label a message delivered merely because it was queued or submitted locally. If the peer is offline, explain that live delivery is unavailable; do not imply server-side store-and-forward exists unless implemented and separately secured.
+- Voice media must be size/duration bounded, validated on receipt, and stored encrypted. Do not autoplay incoming audio. Playback and deletion are explicit user actions.
+- Do not request microphone permission on page load. Do not alter the existing audio/video call engine or its permission flow; chat voice recording is a separate, user-initiated capability.
+- Add multilingual Urdu/English/Arabic labels and accessible status announcements. Keep the composer compact and avoid adding unnecessary setup steps.
+
+## Messaging validation gates
+
+- Text: verify trusted-contact-only routing, correct conversation association, safe text rendering (including HTML-like input), message size limits, timestamps, and honest delivery/failure states.
+- Voice: verify explicit permission flow, start/stop/cancel/preview/send, MIME fallback, permission-denied and unsupported-browser behavior, duration/size bounds, encrypted persistence, and no autoplay.
+- Security: reject forged, replayed, malformed, oversized, unencrypted, or wrong-relationship incoming messages; verify acknowledgements are authenticated by the intended peer.
+- Regression: all existing QR, trust, saved-friend, and audio/video calling tests must remain green. No production deploy until staging tests and real two-device checks pass.
