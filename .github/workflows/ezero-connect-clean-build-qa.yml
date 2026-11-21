@@ -7,6 +7,7 @@ on:
       - 'ezero-connect-app.html'
       - 'ezero-connect.webmanifest'
       - 'js/ezero_connect_app_v1.js'
+      - 'js/ezero_connect_saved_friends_ui_v1.js'
       - 'js/ezero_connect_identity_v1.js'
       - 'js/ezero_connect_invite_v1.js'
       - 'js/ezero_connect_trust_v1.js'
@@ -20,12 +21,14 @@ on:
       - 'js/ezero_connect_signaling_client_v1.js'
       - 'signaling/ezero-connect-v1/**'
       - 'tests/test_ezero_connect_clean_build_v1.mjs'
+      - 'tests/test_ezero_connect_saved_friends_ui_v1.mjs'
       - '.github/workflows/ezero-connect-clean-build-qa.yml'
   push:
     branches:
       - ezero-connect-clean-build-20261120
       - ezero-connect-qr-renderer-20261120
       - ezero-connect-client-20261120
+      - ezero-connect-pr154-friend-retention-clean-20261121
     paths:
       - 'ezero-connect.html'
       - 'ezero-connect-app.html'
@@ -99,6 +102,8 @@ jobs:
           exit 1
       - name: Test clean mobile shell behavior and no-legacy boundary
         run: node tests/test_ezero_connect_clean_build_v1.mjs
+      - name: Test saved friend name retention and same-tab selection on clean UI
+        run: node tests/test_ezero_connect_saved_friends_ui_v1.mjs
       - name: Start isolated local Durable Object Worker
         shell: bash
         run: |
