@@ -11,6 +11,16 @@ try {
     await page.addInitScript(() => {
       window.EZERO_CONNECT_CONFIG = { signalingUrl: "ws://127.0.0.1:8787" };
       window.__mediaCalls = 0;
+      window.__wsTrace = [];
+      const NativeWebSocket = window.WebSocket;
+      window.WebSocket = class extends NativeWebSocket {
+        constructor(...args) {
+          super(...args);
+          this.addEventListener("message", event => window.__wsTrace.push({ direction: "in", data: event.data }));
+          const originalSend = this.send.bind(this);
+          this.send = data => { window.__wsTrace.push({ direction: "out", data }); return originalSend(data); };
+        }
+      };
       document.addEventListener("ezero:invite-created", event => { window.__ezeroPairInviteCode = event.detail?.invite?.inviteCode || null; });
       const media = navigator.mediaDevices;
       if (media?.getUserMedia) {
@@ -54,10 +64,18 @@ try {
 
   await host.locator("#pairingFriendName").fill("Phone B");
   await host.locator("#pairingAction").click();
-  await guest.waitForFunction(() => {
-    const el = document.querySelector("#pairingStatus");
-    return el.dataset.kind === "error" || el.textContent.includes("محفوظ کرنا چاہتا");
-  }, null, { timeout: 15000 });
+  try {
+    await guest.waitForFunction(() => {
+      const el = document.querySelector("#pairingStatus");
+      return el.dataset.kind === "error" || el.textContent.includes("محفوظ کرنا چاہتا");
+    }, null, { timeout: 15000 });
+  } catch (error) {
+    const diagnostics = await Promise.all([host, guest].map(page => page.evaluate(() => ({
+      status: document.querySelector("#pairingStatus")?.textContent,
+      wsTrace: window.__wsTrace
+    }))));
+    throw new Error("Pairing relay diagnostic timeout: " + JSON.stringify(diagnostics) + " | " + error.message);
+  }
   const guestPairingStatus = await guest.locator("#pairingStatus").textContent();
   assert.ok(guestPairingStatus.includes("محفوظ کرنا چاہتا"),
     "Guest did not receive/verify pairing request. Guest status: " + guestPairingStatus +
