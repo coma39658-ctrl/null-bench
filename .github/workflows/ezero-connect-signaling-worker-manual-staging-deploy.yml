@@ -1,0 +1,43 @@
+name: E-ZERO Connect Signaling Worker — Manual Staging Deploy
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ezero-connect-signaling-staging-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy-staging:
+    name: Deploy isolated E-ZERO signaling Worker
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out this branch
+        uses: actions/checkout@v4
+
+      - name: Require staging-only Cloudflare credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::Missing CLOUDFLARE_API_TOKEN repository secret"; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "::error::Missing CLOUDFLARE_ACCOUNT_ID repository secret"; exit 1; }
+
+      - name: Deploy staging Worker and Durable Object migration
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: signaling/ezero-connect-v1
+          command: deploy --config wrangler.jsonc
+
+      - name: Print staging endpoint
+        run: |
+          echo "Worker name: ezero-connect-signal-staging-20261120"
+          echo "workers.dev endpoint: https://ezero-connect-signal-staging-20261120.<your-workers-subdomain>.workers.dev"
+          echo "Allowed browser origin: https://coma39658-ctrl.github.io"
+          echo "Next step: verify the exact deployed workers.dev hostname, then pin it in the clean app config."
