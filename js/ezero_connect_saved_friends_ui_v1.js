@@ -2,14 +2,16 @@
   "use strict";
   const $ = id => document.getElementById(id);
   const KEY = "ezero_connect_selected_friend_tab_v1";
+  const PAGE_SIZE = 40;
   const copy = {
-    ur: { selected:"منتخب دوست", empty:"ابھی کوئی محفوظ دوست نہیں۔ پہلے باہمی منظوری مکمل کریں۔", unavailable:"محفوظ دوستوں کی فہرست ابھی دستیاب نہیں۔", saved:"محفوظ دوست", callPending:"دوست منتخب ہے؛ کال سروس ابھی منسلک نہیں۔" },
-    en: { selected:"Selected friend", empty:"No saved friends yet. Complete mutual approval first.", unavailable:"Saved friends are temporarily unavailable.", saved:"Saved friend", callPending:"Friend selected; calling service is not connected yet." },
-    ar: { selected:"الصديق المحدد", empty:"لا يوجد أصدقاء محفوظون بعد. أكمل الموافقة المتبادلة أولاً.", unavailable:"قائمة الأصدقاء المحفوظين غير متاحة مؤقتاً.", saved:"صديق محفوظ", callPending:"تم اختيار الصديق؛ خدمة الاتصال غير متصلة بعد." }
+    ur: { selected:"منتخب دوست", empty:"ابھی کوئی محفوظ دوست نہیں۔ پہلے باہمی منظوری مکمل کریں۔", unavailable:"محفوظ دوستوں کی فہرست ابھی دستیاب نہیں۔", saved:"محفوظ دوست", callPending:"دوست منتخب ہے؛ کال سروس ابھی منسلک نہیں۔", more:"مزید دوست دکھائیں", shown:"دکھائے گئے", of:"از", searchEmpty:"اس تلاش میں کوئی دوست نہیں ملا۔" },
+    en: { selected:"Selected friend", empty:"No saved friends yet. Complete mutual approval first.", unavailable:"Saved friends are temporarily unavailable.", saved:"Saved friend", callPending:"Friend selected; calling service is not connected yet.", more:"Show more friends", shown:"Shown", of:"of", searchEmpty:"No friends match this search." },
+    ar: { selected:"الصديق المحدد", empty:"لا يوجد أصدقاء محفوظون بعد. أكمل الموافقة المتبادلة أولاً.", unavailable:"قائمة الأصدقاء المحفوظين غير متاحة مؤقتاً.", saved:"صديق محفوظ", callPending:"تم اختيار الصديق؛ خدمة الاتصال غير متصلة بعد.", more:"عرض المزيد من الأصدقاء", shown:"المعروض", of:"من", searchEmpty:"لا يوجد أصدقاء يطابقون البحث." }
   };
   let contacts = [];
   let selected = null;
   let language = "ur";
+  let pageCount = 1;
 
   function validFingerprint(value) {
     return typeof value === "string" && /^(?:[0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(value);
@@ -41,14 +43,17 @@
       const name = String(c.displayName || "").trim();
       return !query || name.toLocaleLowerCase().includes(query) || c.remoteFingerprint.toLocaleLowerCase().includes(query);
     });
+    const maxRows = Math.max(PAGE_SIZE, pageCount * PAGE_SIZE);
+    const page = visible.slice(0, maxRows);
     root.hidden = false;
     if (!visible.length) {
       const p = document.createElement("p");
       p.className = "muted";
-      p.textContent = trusted.length ? (copy[language] || copy.ur).empty : t.empty;
+      p.textContent = trusted.length ? t.searchEmpty : t.empty;
       root.append(p);
     } else {
-      for (const contact of visible) {
+      const fragment = document.createDocumentFragment();
+      for (const contact of page) {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "ezero-saved-friend" + (contact.remoteFingerprint === selected ? " is-selected" : "");
@@ -73,10 +78,27 @@
           render();
           const status = $("callStatus");
           if (status) status.textContent = (copy[language] || copy.ur).callPending;
-          document.dispatchEvent(new CustomEvent("ezero:friend-selected", { detail: { fingerprint: selected } }));
+          document.dispatchEvent(new CustomEvent("ezero:friend-selected", { detail: { fingerprint: selected, relationshipId: contact.relationshipId || null } }));
         });
-        root.append(button);
+        fragment.append(button);
       }
+      root.append(fragment);
+      const footer = document.createElement("div");
+      footer.className = "muted";
+      footer.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 2px";
+      const count = document.createElement("span");
+      count.textContent = t.shown + " " + page.length + " " + t.of + " " + visible.length;
+      footer.append(count);
+      if (page.length < visible.length) {
+        const more = document.createElement("button");
+        more.type = "button";
+        more.id = "loadMoreFriends";
+        more.className = "secondary";
+        more.textContent = t.more;
+        more.addEventListener("click", () => { pageCount += 1; render(); });
+        footer.append(more);
+      }
+      root.append(footer);
     }
     const chosen = trusted.find(c => c.remoteFingerprint === selected);
     if (chosen && $("callStatus")) $("callStatus").textContent = t.selected + ": " + (chosen.displayName || "E-ZERO friend") + " — " + t.callPending;
@@ -92,6 +114,7 @@
     try {
       contacts = await api.listTrustedContacts();
       selected = readSelection();
+      pageCount = 1;
       render();
       return contacts.slice();
     } catch (_) {
@@ -109,7 +132,7 @@
   }
   document.addEventListener("ezero:friend-local-saved", refresh);
   document.addEventListener("ezero:friend-local-removed", refresh);
-  $("searchFriends")?.addEventListener("input", render);
+  $("searchFriends")?.addEventListener("input", () => { pageCount = 1; render(); });
   $("language")?.addEventListener("click", () => {
     language = language === "ur" ? "en" : language === "en" ? "ar" : "ur";
     render();
