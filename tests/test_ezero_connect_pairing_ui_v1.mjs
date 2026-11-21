@@ -11,6 +11,7 @@ try {
     await page.addInitScript(() => {
       window.EZERO_CONNECT_CONFIG = { signalingUrl: "ws://127.0.0.1:8787" };
       window.__mediaCalls = 0;
+      document.addEventListener("ezero:invite-created", event => { window.__ezeroPairInviteCode = event.detail?.invite?.inviteCode || null; });
       const media = navigator.mediaDevices;
       if (media?.getUserMedia) {
         const original = media.getUserMedia.bind(media);
@@ -33,26 +34,12 @@ try {
 
   await host.locator("#createMyQr").click();
   await host.waitForFunction(() => document.querySelector("#myQrDisplay").hidden === false);
-  const invite = await host.evaluate(() => window.__unused || null).catch(() => null);
-  const inviteCode = await host.evaluate(async () => {
-    const image = document.querySelector("#myQrImage img");
-    if (!image) throw new Error("HOST_QR_IMAGE_MISSING");
-    return window.__testInviteCode || null;
-  });
-  // Recreate the active host invite from the UI's QR flow through the app event observer.
-  // The invite code itself is captured from the generated event, not decoded from pixels.
-  const code = await host.evaluate(() => window.__ezeroPairInviteCode || null);
-  if (!code) {
-    // Test-only observer installed after the click is too late; use the signed QR payload
-    // through a one-shot event hook on a fresh invite and start both roles via the same UI events.
-    const newInvite = await host.evaluate(() => window.EZERO_CONNECT_INVITES.createInvite());
-    await host.evaluate(inv => {
-      document.dispatchEvent(new CustomEvent("ezero:invite-created", { detail: { invite: inv } }));
-      window.__ezeroPairInviteCode = inv.inviteCode;
-    }, newInvite);
-  }
+  await host.waitForFunction(() => Boolean(window.__ezeroPairInviteCode), { timeout: 5000 });
   const activeCode = await host.evaluate(() => window.__ezeroPairInviteCode);
-  assert.ok(activeCode && activeCode.startsWith("EZERO1."), "host invite code should be signed and available");
+  assert.ok(activeCode.startsWith("EZERO1."), "the displayed host QR should contain a signed invite");
+
+  const hostIdentity = await host.evaluate(() => window.EZERO_CONNECT_IDENTITY.getPublicIdentity());
+  const guestIdentity = await guest.evaluate(() => window.EZERO_CONNECT_IDENTITY.getPublicIdentity());
 
   const verified = await guest.evaluate(async codeValue => {
     const metadata = await window.EZERO_CONNECT_INVITES.verifyInvite(codeValue);
@@ -82,7 +69,8 @@ try {
 
   const savedHost = await host.evaluate(() => window.EZERO_CONNECT_TRUST.listTrustedContacts());
   const savedGuest = await guest.evaluate(() => window.EZERO_CONNECT_TRUST.listTrustedContacts());
-  assert.equal(savedHost[0].remoteFingerprint, verified.inviterFingerprint === savedHost[0].remoteFingerprint ? savedHost[0].remoteFingerprint : savedHost[0].remoteFingerprint);
+  assert.equal(savedHost[0].remoteFingerprint, guestIdentity.fingerprint);
+  assert.equal(savedGuest[0].remoteFingerprint, hostIdentity.fingerprint);
   assert.equal(savedHost[0].displayName, "Phone B");
   assert.equal(savedGuest[0].displayName, "Phone A");
   assert.equal(await host.evaluate(() => window.__mediaCalls), 0);
