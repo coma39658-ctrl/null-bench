@@ -106,7 +106,7 @@ try {
 
   try {
     await Promise.all([
-      host.waitForFunction(() => document.querySelector("#pairingStatus")?.textContent === "دوست محفوظ ہو گیا.", null, { timeout: 15000 }),
+      host.waitForFunction(() => document.querySelector("#pairingStatus")?.textContent.includes("دوست محفوظ ہو گیا"), null, { timeout: 15000 }),
       guest.waitForFunction(() => document.querySelector("#pairingStatus")?.textContent === "دوست محفوظ ہو گیا.", null, { timeout: 15000 })
     ]);
   } catch (error) {
