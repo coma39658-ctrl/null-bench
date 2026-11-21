@@ -178,6 +178,7 @@
     try {
       const verified = await window.EZERO_CONNECT_INVITES.verifyInvite(code);
       setQrStatus(translations[language].qrVerified + " " + verified.inviterFingerprint, "ok");
+      document.dispatchEvent(new CustomEvent("ezero:invite-verified", { detail: { verified, inviteCode: code } }));
     } catch (_) {
       setQrStatus(translations[language].qrInvalid, "error");
     }
@@ -201,6 +202,7 @@
       $("myQrImage").replaceChildren(image);
       $("myQrDisplay").hidden = false;
       activeInvite = invite;
+      document.dispatchEvent(new CustomEvent("ezero:invite-created", { detail: { invite } }));
       setQrStatus(translations[language].qrReady, "ok");
       const updateExpiry = () => {
         const remaining = Math.max(0, Math.ceil((invite.expiresAt - Date.now()) / 1000));
