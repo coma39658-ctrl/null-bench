@@ -58,3 +58,24 @@ This is a staging-only design baseline. No public release, production replacemen
 - Voice: verify explicit permission flow, start/stop/cancel/preview/send, MIME fallback, permission-denied and unsupported-browser behavior, duration/size bounds, encrypted persistence, and no autoplay.
 - Security: reject forged, replayed, malformed, oversized, unencrypted, or wrong-relationship incoming messages; verify acknowledgements are authenticated by the intended peer.
 - Regression: all existing QR, trust, saved-friend, and audio/video calling tests must remain green. No production deploy until staging tests and real two-device checks pass.
+
+## Integration audit — 2026-11-21
+
+The clean QR/mobile shell was inspected before any wiring change.
+
+- `ezero-connect-app.html` currently loads the clean identity, QR, trust, signaling-client, app, saved-friends, and pairing modules. It does not contain the DOM contract required by `ezero_secure_connect_peer_profile_staging_v0_1.js`; that profile module is not wired into this shell.
+- The staged profile module currently persists its local profile in `localStorage`. This does not meet the encrypted-at-rest profile requirement above, so it must not be loaded as-is or described as complete.
+- The clean shell's app controller explicitly keeps audio/video call buttons disabled until its verified services are implemented and release-gated. The clean-build QA workflow also states that its checks are not proof of live signaling, physical-phone operation, or calls.
+- The older experimental WebRTC page contains a DataChannel and experimental one-view text/voice paths, but it is a separate manual-SDP lab, not the clean QR/mutual-approval app. Its transport does not establish the required trusted relationship binding for persistent chat. It must not be copied into the clean shell as if it were a production-ready transport.
+- The signaling client's `session.send` is a relay API. It is not an end-to-end encrypted message channel; message bodies, profile photos, and voice media must not be sent through it.
+
+### Safe implementation sequence
+
+1. Add an encrypted local profile store to the clean shell (IndexedDB + AES-GCM + non-extractable device-held key), with own-name/avatar editing and initials fallback. Keep profile local until the user explicitly opts in.
+2. Add selected trusted-friend profile display using only the existing encrypted contact record and stable relationship/fingerprint association. Do not accept profile fields from signaling relays.
+3. Establish a separate authenticated WebRTC DataChannel adapter that checks the selected trusted relationship and both device fingerprints before any profile or chat payload is accepted.
+4. Add text messages with bounded payloads, safe text rendering, encrypted local persistence, and authenticated delivery acknowledgements.
+5. Add explicit-action voice recording, preview/cancel/send, bounded audio payloads, encrypted persistence, and authenticated acknowledgements.
+6. Extend the clean-build QA workflow with focused tests for each new module. Preserve the existing QR/trust tests and frozen call-engine sources. Only then proceed to staging browser/two-device validation.
+
+No app source, production service, or public deployment was changed by this audit. This entry records the verified integration boundary so the experimental modules are not accidentally mistaken for features already integrated into the clean app.
