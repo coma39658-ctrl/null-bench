@@ -91,6 +91,7 @@
     let peer = null;
     let helloAccepted = false;
     let challengeUsed = false;
+    const pendingRelays = [];
     let timeout = null;
     const listeners = new Map();
     let resolveReady;
@@ -205,10 +206,19 @@
             inviterPublicKeySpki: inviteMetadata.inviterPublicKeySpki
           });
           emit("peer-ready", peer);
+          for (const queued of pendingRelays.splice(0)) {
+            if (queued.fromFingerprint !== peer.fingerprint) throw new Error("SIGNAL_RELAY_SENDER_INVALID");
+            emit("message", queued.message);
+          }
           return;
         }
         if (data.type === "relay") {
-          if (!peer || data.fromFingerprint !== peer.fingerprint) throw new Error("SIGNAL_RELAY_SENDER_INVALID");
+          if (!peer) {
+            if (pendingRelays.length >= 8) throw new Error("SIGNAL_RELAY_QUEUE_LIMIT");
+            pendingRelays.push(data);
+            return;
+          }
+          if (data.fromFingerprint !== peer.fingerprint) throw new Error("SIGNAL_RELAY_SENDER_INVALID");
           emit("message", data.message);
           return;
         }
