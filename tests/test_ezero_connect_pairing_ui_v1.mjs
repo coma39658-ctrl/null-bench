@@ -104,21 +104,37 @@ try {
   await guest.locator("#pairingFriendName").fill("Phone A");
   await guest.locator("#pairingAction").click();
 
-  await host.waitForFunction(async () => {
-    const list = await window.EZERO_CONNECT_TRUST.listTrustedContacts();
-    return list.some(c => c.displayName === "Phone B" && c.status === "TRUSTED");
-  }, { timeout: 15000 });
-  await guest.waitForFunction(async () => {
-    const list = await window.EZERO_CONNECT_TRUST.listTrustedContacts();
-    return list.some(c => c.displayName === "Phone A" && c.status === "TRUSTED");
-  }, { timeout: 15000 });
+  try {
+    await Promise.all([
+      host.waitForFunction(async () => {
+        const list = await window.EZERO_CONNECT_TRUST.listTrustedContacts();
+        return list.some(c => c.displayName === "Phone B" && c.status === "TRUSTED");
+      }, null, { timeout: 15000 }),
+      guest.waitForFunction(async () => {
+        const list = await window.EZERO_CONNECT_TRUST.listTrustedContacts();
+        return list.some(c => c.displayName === "Phone A" && c.status === "TRUSTED");
+      }, null, { timeout: 15000 })
+    ]);
+  } catch (error) {
+    const state = await Promise.all([host, guest].map(async (page) => page.evaluate(async () => ({
+      status: document.querySelector("#pairingStatus")?.textContent,
+      statusKind: document.querySelector("#pairingStatus")?.dataset.kind,
+      contacts: await window.EZERO_CONNECT_TRUST.listTrustedContacts(),
+      wsTrace: window.__wsTrace
+    }))));
+    throw new Error("Mutual save diagnostic failed: " + JSON.stringify(state) + " | " + error.message);
+  }
 
-  const savedHost = await host.evaluate(() => window.EZERO_CONNECT_TRUST.listTrustedContacts());
-  const savedGuest = await guest.evaluate(() => window.EZERO_CONNECT_TRUST.listTrustedContacts());
-  assert.equal(savedHost[0].remoteFingerprint, guestIdentity.fingerprint);
-  assert.equal(savedGuest[0].remoteFingerprint, hostIdentity.fingerprint);
-  assert.equal(savedHost[0].displayName, "Phone B");
-  assert.equal(savedGuest[0].displayName, "Phone A");
+  const [savedHost, savedGuest] = await Promise.all([
+    host.evaluate(() => window.EZERO_CONNECT_TRUST.listTrustedContacts()),
+    guest.evaluate(() => window.EZERO_CONNECT_TRUST.listTrustedContacts())
+  ]);
+  const hostSavedFriend = savedHost.find(c => c.displayName === "Phone B" && c.status === "TRUSTED");
+  const guestSavedFriend = savedGuest.find(c => c.displayName === "Phone A" && c.status === "TRUSTED");
+  assert.ok(hostSavedFriend, "Host did not persist Phone B. Contacts: " + JSON.stringify(savedHost));
+  assert.ok(guestSavedFriend, "Guest did not persist Phone A. Contacts: " + JSON.stringify(savedGuest));
+  assert.equal(hostSavedFriend.remoteFingerprint, guestIdentity.fingerprint);
+  assert.equal(guestSavedFriend.remoteFingerprint, hostIdentity.fingerprint);
   assert.equal(await host.evaluate(() => window.__mediaCalls), 0);
   assert.equal(await guest.evaluate(() => window.__mediaCalls), 0);
   assert.equal(await host.locator("#audioCall").isDisabled(), true);
