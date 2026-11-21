@@ -54,7 +54,14 @@ try {
 
   await host.locator("#pairingFriendName").fill("Phone B");
   await host.locator("#pairingAction").click();
-  await guest.waitForFunction(() => document.querySelector("#pairingStatus").textContent.includes("محفوظ کرنا چاہتا"), { timeout: 15000 });
+  await guest.waitForFunction(() => {
+    const el = document.querySelector("#pairingStatus");
+    return el.dataset.kind === "error" || el.textContent.includes("محفوظ کرنا چاہتا");
+  }, null, { timeout: 15000 });
+  const guestPairingStatus = await guest.locator("#pairingStatus").textContent();
+  assert.ok(guestPairingStatus.includes("محفوظ کرنا چاہتا"),
+    "Guest did not receive/verify pairing request. Guest status: " + guestPairingStatus +
+    " | Host status: " + await host.locator("#pairingStatus").textContent());
   await guest.locator("#pairingFriendName").fill("Phone A");
   await guest.locator("#pairingAction").click();
 
