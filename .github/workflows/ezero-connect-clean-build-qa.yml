@@ -8,6 +8,7 @@ on:
       - 'ezero-connect.webmanifest'
       - 'js/ezero_connect_app_v1.js'
       - 'js/ezero_connect_saved_friends_ui_v1.js'
+      - 'js/ezero_connect_pairing_ui_v1.js'
       - 'js/ezero_connect_identity_v1.js'
       - 'js/ezero_connect_invite_v1.js'
       - 'js/ezero_connect_trust_v1.js'
@@ -22,6 +23,7 @@ on:
       - 'signaling/ezero-connect-v1/**'
       - 'tests/test_ezero_connect_clean_build_v1.mjs'
       - 'tests/test_ezero_connect_saved_friends_ui_v1.mjs'
+      - 'tests/test_ezero_connect_pairing_ui_v1.mjs'
       - '.github/workflows/ezero-connect-clean-build-qa.yml'
   push:
     branches:
@@ -82,7 +84,7 @@ jobs:
         with:
           node-version: '22'
       - name: Check JavaScript syntax
-        run: node --check js/ezero_connect_app_v1.js && node --check js/ezero_connect_identity_v1.js && node --check js/ezero_connect_invite_v1.js && node --check js/ezero_connect_trust_v1.js && node --check scripts/ezero_connect_qr_entry_v1.js && node --check signaling/ezero-connect-v1/worker.mjs && node --check js/ezero_connect_config_v1.js && node --check js/ezero_connect_signaling_client_v1.js && node --check tests/test_ezero_connect_signaling_v1.mjs && node --check tests/test_ezero_connect_signaling_local_v1.mjs && node --check tests/test_ezero_connect_clean_build_v1.mjs && node --check tests/test_ezero_connect_qr_runtime_v1.mjs && node --check tests/test_ezero_connect_trust_v1.mjs
+        run: node --check js/ezero_connect_app_v1.js && node --check js/ezero_connect_identity_v1.js && node --check js/ezero_connect_invite_v1.js && node --check js/ezero_connect_trust_v1.js && node --check scripts/ezero_connect_qr_entry_v1.js && node --check signaling/ezero-connect-v1/worker.mjs && node --check js/ezero_connect_config_v1.js && node --check js/ezero_connect_signaling_client_v1.js && node --check js/ezero_connect_pairing_ui_v1.js && node --check tests/test_ezero_connect_pairing_ui_v1.mjs && node --check tests/test_ezero_connect_signaling_v1.mjs && node --check tests/test_ezero_connect_signaling_local_v1.mjs && node --check tests/test_ezero_connect_clean_build_v1.mjs && node --check tests/test_ezero_connect_qr_runtime_v1.mjs && node --check tests/test_ezero_connect_trust_v1.mjs
       - name: Install isolated browser test dependency
         run: npm install --no-save --no-audit --no-fund --ignore-scripts playwright@1.57.0 qr@0.7.2 esbuild@0.25.12 wrangler@4.165.0
       - name: Build locally hosted QR runtime
@@ -118,6 +120,8 @@ jobs:
           exit 1
       - name: Verify two-browser local Worker and mutual trust relay
         run: node tests/test_ezero_connect_signaling_local_v1.mjs
+      - name: Verify clean UI QR to mutual approval and saved friend flow
+        run: node tests/test_ezero_connect_pairing_ui_v1.mjs
       - name: Verify QR generation and gallery-image roundtrip
         run: node tests/test_ezero_connect_qr_runtime_v1.mjs
       - name: Verify mutual approval and encrypted trusted-contact vault
