@@ -55,6 +55,7 @@
   let remoteName = "";
   let localConsent = false;
   let busy = false;
+  let pendingMessages = [];
 
   function t(key) { return (words[lang] || words.ur)[key] || words.ur[key] || key; }
   function status(message, kind) {
@@ -105,6 +106,7 @@
 
   async function start(roleValue, inviteCode, metadata) {
     closeSession();
+    pendingMessages = [];
     const api = window.EZERO_CONNECT_SIGNALING;
     if (!api || !window.EZERO_CONNECT_TRUST || !window.EZERO_CONNECT_IDENTITY) {
       show(roleValue, t("notReady")); $("pairingAction").disabled = true; return;
@@ -114,6 +116,7 @@
       session = api.connect({ role: roleValue, inviteCode, inviteMetadata: metadata });
       session.on("peer-ready", async remote => {
         peer = remote;
+        for (const queued of pendingMessages.splice(0)) void handleMessage(queued);
         if (role !== "host") { status(t("guestWait")); return; }
         try {
           const local = await window.EZERO_CONNECT_IDENTITY.getPublicIdentity();
@@ -132,6 +135,10 @@
 
   async function handleMessage(message) {
     if (!message || !message.type || !message.payload) return;
+    if (message.type === "trust-request" && role === "guest" && !peer) {
+      pendingMessages.push(message);
+      return;
+    }
     const p = message.payload;
     try {
       if (message.type === "trust-request" && role === "guest") {
