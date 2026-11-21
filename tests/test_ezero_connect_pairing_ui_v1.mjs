@@ -58,6 +58,7 @@ try {
   }, activeCode);
 
   await host.waitForFunction(() => document.querySelector("#pairingPanel").hidden === false &&
+    document.querySelector("#pairingStatus").textContent.includes("محفوظ کنکشن بن گیا") &&
     document.querySelector("#pairingAction").disabled === false, { timeout: 20000 });
   await guest.waitForFunction(() => document.querySelector("#pairingPanel").hidden === false &&
     document.querySelector("#pairingStatus").textContent.includes("انتظار"), { timeout: 20000 });
