@@ -62,8 +62,28 @@ try {
   await guest.waitForFunction(() => document.querySelector("#pairingPanel").hidden === false &&
     document.querySelector("#pairingStatus").textContent.includes("انتظار"), { timeout: 20000 });
 
+  await host.evaluate(() => {
+    window.__pairingClickObserved = false;
+    document.querySelector("#pairingAction").addEventListener("click", () => {
+      window.__pairingClickObserved = true;
+    }, true);
+  });
   await host.locator("#pairingFriendName").fill("Phone B");
   await host.locator("#pairingAction").click();
+  await host.waitForTimeout(300);
+  const hostActionDiagnostic = await host.evaluate(() => ({
+    clickObserved: window.__pairingClickObserved,
+    disabled: document.querySelector("#pairingAction")?.disabled,
+    buttonText: document.querySelector("#pairingAction")?.textContent,
+    nameValue: document.querySelector("#pairingFriendName")?.value,
+    status: document.querySelector("#pairingStatus")?.textContent,
+    statusKind: document.querySelector("#pairingStatus")?.dataset.kind,
+    outgoingTrustRequest: window.__wsTrace.some(item => item.direction === "out" && String(item.data).includes('"trust-request"'))
+  }));
+  if (!hostActionDiagnostic.outgoingTrustRequest) {
+    throw new Error("Host did not emit trust-request after approval click: " + JSON.stringify(hostActionDiagnostic) +
+      " | " + JSON.stringify(await host.evaluate(() => window.__wsTrace)));
+  }
   try {
     await guest.waitForFunction(() => {
       const el = document.querySelector("#pairingStatus");
