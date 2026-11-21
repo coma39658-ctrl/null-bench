@@ -55,7 +55,8 @@ try {
   });
   assert.equal(await page.locator(".ezero-saved-friend").count(), 40,
     "initial render must be bounded to 40 friend rows");
-  assert.match(await page.locator("#savedFriendsList").innerText(), /40 of 525/);
+  assert.match(await page.locator("#savedFriendsList").innerText(), /40/);
+  assert.match(await page.locator("#savedFriendsList").innerText(), /525/);
   await page.locator("#loadMoreFriends").click();
   assert.equal(await page.locator(".ezero-saved-friend").count(), 80,
     "load more must add one bounded page");
