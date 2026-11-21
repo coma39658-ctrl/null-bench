@@ -13,6 +13,6 @@
     { "tag": "v1", "new_sqlite_classes": ["EzeroConnectRoom"] }
   ],
   "vars": {
-    "PUBLIC_ORIGIN": "https://coma39658-ctrl.github.io"
+    "PUBLIC_ORIGIN": "https://ezero-connect-clean-preview-20261120.onrender.com"
   }
 }
