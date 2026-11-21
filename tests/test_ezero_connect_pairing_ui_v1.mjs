@@ -106,23 +106,17 @@ try {
 
   try {
     await Promise.all([
-      host.waitForFunction(async () => {
-        const list = await window.EZERO_CONNECT_TRUST.listTrustedContacts();
-        return list.some(c => c.displayName === "Phone B" && c.status === "TRUSTED");
-      }, null, { timeout: 15000 }),
-      guest.waitForFunction(async () => {
-        const list = await window.EZERO_CONNECT_TRUST.listTrustedContacts();
-        return list.some(c => c.displayName === "Phone A" && c.status === "TRUSTED");
-      }, null, { timeout: 15000 })
+      host.waitForFunction(() => document.querySelector("#pairingStatus")?.textContent === "دوست محفوظ ہو گیا.", null, { timeout: 15000 }),
+      guest.waitForFunction(() => document.querySelector("#pairingStatus")?.textContent === "دوست محفوظ ہو گیا.", null, { timeout: 15000 })
     ]);
   } catch (error) {
-    const state = await Promise.all([host, guest].map(async (page) => page.evaluate(async () => ({
+    const state = await Promise.all([host, guest].map(async page => page.evaluate(async () => ({
       status: document.querySelector("#pairingStatus")?.textContent,
       statusKind: document.querySelector("#pairingStatus")?.dataset.kind,
       contacts: await window.EZERO_CONNECT_TRUST.listTrustedContacts(),
       wsTrace: window.__wsTrace
     }))));
-    throw new Error("Mutual save diagnostic failed: " + JSON.stringify(state) + " | " + error.message);
+    throw new Error("Save completion diagnostic: " + JSON.stringify(state) + " | " + error.message);
   }
 
   const [savedHost, savedGuest] = await Promise.all([
