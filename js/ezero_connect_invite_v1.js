@@ -2,6 +2,9 @@
   "use strict";
   const PREFIX = "EZERO1.";
   const TTL_MS = 90_000;
+  // Device wall clocks can drift. This client-side allowance only lets a signed
+  // invite reach the signaling service; the service still enforces the exact 90s expiry.
+  const CLOCK_SKEW_TOLERANCE_MS = 5 * 60_000;
   const MAX_CODE_CHARS = 8192;
   const DB_NAME = "ezero-connect-invite-replay";
   const DB_STORE = "used-nonces";
@@ -132,7 +135,8 @@
     }
     if (payload.v !== 1 || payload.origin !== location.origin) throw new Error("INVITE_ORIGIN_OR_VERSION_INVALID");
     if (!Number.isSafeInteger(payload.issuedAt) || !Number.isSafeInteger(payload.expiresAt) ||
-        payload.expiresAt <= now || payload.issuedAt > now + 30_000 ||
+        payload.expiresAt <= now - CLOCK_SKEW_TOLERANCE_MS ||
+        payload.issuedAt > now + CLOCK_SKEW_TOLERANCE_MS ||
         payload.expiresAt - payload.issuedAt > TTL_MS || payload.issuedAt > payload.expiresAt) {
       throw new Error("INVITE_EXPIRED_OR_TIME_INVALID");
     }
