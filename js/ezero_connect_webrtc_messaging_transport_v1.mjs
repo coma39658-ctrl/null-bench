@@ -36,14 +36,14 @@ export function createWebRTCMessagingTransport({
   messagingFactory = createMessagingController,
   trustApi = globalThis.EZERO_CONNECT_TRUST,
   identityApi = globalThis.EZERO_CONNECT_IDENTITY,
-  onMessage = async () => {},
+  onMessage = null,
   onState = () => {}
 } = {}) {
   if (!signalingSession?.on || !signalingSession?.send ||
       typeof relationshipId !== "string" || !/^[a-f0-9]{64}$/.test(relationshipId) ||
       typeof localFingerprint !== "string" || typeof remoteFingerprint !== "string" ||
       localFingerprint === remoteFingerprint || typeof RTCPeerConnectionImpl !== "function" ||
-      typeof messagingFactory !== "function" || typeof onMessage !== "function") {
+      typeof messagingFactory !== "function" || (onMessage !== null && typeof onMessage !== "function")) {
     fail("WEBRTC_MESSAGING_TRANSPORT_INPUT_INVALID");
   }
   const validatedIceServers = validateIceServers(iceServers);
@@ -52,8 +52,10 @@ export function createWebRTCMessagingTransport({
   const messaging = messagingFactory({ trustApi, identityApi, onState: value => emit(value.state, value) });
   const subscribers = new Set();
   const unsubscribeMessage = messaging.subscribe(async message => {
-    await onMessage(message);
-    for (const subscriber of [...subscribers]) await subscriber(message);
+    let delivered = false;
+    if (onMessage) { await onMessage(message); delivered = true; }
+    for (const subscriber of [...subscribers]) { await subscriber(message); delivered = true; }
+    if (!delivered) throw new Error("WEBRTC_MESSAGING_NO_RECEIVER");
   });
   let closed = false;
   let started = false;
