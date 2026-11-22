@@ -12,7 +12,12 @@ try {
     Object.defineProperty(window, "EZERO_CONNECT_TRUST", {
       configurable: true,
       get() { return this.__testTrust; },
-      set(value) { this.__testTrust = Object.assign({}, value, { listTrustedContacts: async () => this.__testContacts }); }
+      set(value) { this.__testTrust = Object.assign({}, value, {
+        listTrustedContacts: async () => this.__testContacts,
+        getTrustedFriendProfile: async relationshipId => relationshipId === "rel-1"
+          ? { bytes: new Uint8Array([0xff, 0xd8, 0xff, 0xd9]) }
+          : { bytes: null }
+      }); }
     });
   }, contacts);
   await page.goto("http://127.0.0.1:8769/ezero-connect-app.html", { waitUntil: "domcontentloaded" });
@@ -20,6 +25,9 @@ try {
   await page.evaluate(() => window.EZERO_CONNECT_CONTACTS_UI.refresh());
   assert.equal(await page.locator(".ezero-saved-friend").count(), 1);
   assert.equal(await page.locator(".ezero-saved-friend strong").textContent(), "Friend One");
+  await page.waitForSelector(".ezero-saved-friend img[alt=\"Verified friend's saved profile photo\"]");
+  assert.match(await page.locator(".ezero-saved-friend img").getAttribute("src"), /^blob:/,
+    "verified friend's encrypted saved DP must render in the saved-friends list");
   await page.locator(".ezero-saved-friend").click();
   assert.equal(await page.evaluate(() => window.EZERO_CONNECT_CONTACTS_UI.getSelected()), fp);
   assert.equal(await page.evaluate(() => sessionStorage.getItem("ezero_connect_selected_friend_tab_v1")), fp);
