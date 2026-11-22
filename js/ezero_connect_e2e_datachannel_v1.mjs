@@ -4,6 +4,7 @@ import {
 
 const MAX_WIRE_CHARS = 700_000;
 const ACK_TIMEOUT_MS = 30_000;
+const MAX_PAYLOAD_BYTES = Math.floor((MAX_FRAME_BYTES - 1024) * 3 / 4);
 const encoder = new TextEncoder();
 const decoder = new TextDecoder("utf-8", { fatal: true });
 
@@ -190,7 +191,7 @@ export function createE2EDataChannelSession({
     if (closed || !secureChannel) fail("E2E_DATA_SESSION_NOT_READY");
     if (!["text", "voice"].includes(type)) fail("E2E_DATA_TYPE_INVALID");
     const payload = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
-    if (!payload.length || payload.length > MAX_FRAME_BYTES - 256) fail("E2E_DATA_PAYLOAD_SIZE_INVALID");
+    if (!payload.length || payload.length > MAX_PAYLOAD_BYTES) fail("E2E_DATA_PAYLOAD_SIZE_INVALID");
     const messageId = randomId();
     const envelope = encoder.encode(JSON.stringify({ messageId, payload: b64u(payload) }));
     const frame = await secureChannel.encrypt(type, envelope);
