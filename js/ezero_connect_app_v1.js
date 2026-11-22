@@ -149,6 +149,10 @@
   let activeInvite = null;
   let inviteTimer = null;
   let stopCameraScan = null;
+  let nativeScanStream = null;
+  let nativeScanFrame = 0;
+  let nativeScanDetector = null;
+  let scanResultAccepted = false;
 
   function setQrStatus(message, kind) {
     $("qrScanStatus").textContent = message;
@@ -156,13 +160,53 @@
   }
 
   function stopQrCamera() {
+    if (nativeScanFrame) cancelAnimationFrame(nativeScanFrame);
+    nativeScanFrame = 0;
+    if (nativeScanStream) {
+      for (const track of nativeScanStream.getTracks()) track.stop();
+      nativeScanStream = null;
+    }
     if (stopCameraScan) {
-      stopCameraScan();
+      try { stopCameraScan(); } catch (_) {}
       stopCameraScan = null;
     }
-    $("qrScannerVideo").hidden = true;
+    const video = $("qrScannerVideo");
+    video.pause?.();
+    video.srcObject = null;
+    video.hidden = true;
     $("stopQrScanner").hidden = true;
-    $("qrScannerVideo").srcObject = null;
+    scanResultAccepted = false;
+  }
+
+  async function startNativeQrScanner(video) {
+    if (!("BarcodeDetector" in window) || !navigator.mediaDevices?.getUserMedia) return false;
+    const supported = await window.BarcodeDetector.getSupportedFormats();
+    if (!supported.includes("qr_code")) return false;
+    nativeScanDetector = new window.BarcodeDetector({ formats: ["qr_code"] });
+    nativeScanStream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    video.srcObject = nativeScanStream;
+    video.hidden = false;
+    await video.play();
+    const scanFrame = async () => {
+      if (!nativeScanStream || scanResultAccepted) return;
+      try {
+        const codes = await nativeScanDetector.detect(video);
+        const value = codes.find(item => typeof item.rawValue === "string" && item.rawValue.startsWith("EZERO1."))?.rawValue;
+        if (value) {
+          scanResultAccepted = true;
+          await acceptScannedCode(value);
+          return;
+        }
+      } catch (_) {
+        // Keep the camera active; transient frame decode errors are recoverable.
+      }
+      if (nativeScanStream && !scanResultAccepted) nativeScanFrame = requestAnimationFrame(scanFrame);
+    };
+    nativeScanFrame = requestAnimationFrame(scanFrame);
+    return true;
   }
 
   function clearActiveQr() {
@@ -223,11 +267,23 @@
 
   $("scanFriendQr").addEventListener("click", async () => {
     stopQrCamera();
+    const video = $("qrScannerVideo");
     try {
-      if (!window.EZERO_QR) throw new Error("QR_RUNTIME_UNAVAILABLE");
-      $("qrScannerVideo").hidden = false;
+      video.hidden = false;
       $("stopQrScanner").hidden = false;
-      stopCameraScan = await window.EZERO_QR.startCamera($("qrScannerVideo"), code => acceptScannedCode(code));
+      video.setAttribute("playsinline", "");
+      video.setAttribute("autoplay", "");
+      video.muted = true;
+      // Prefer Android Chrome's native QR decoder; use the bundled decoder only
+      // when native BarcodeDetector is unavailable on this browser.
+      const nativeStarted = await startNativeQrScanner(video);
+      if (!nativeStarted) {
+        if (!window.EZERO_QR?.startCamera) throw new Error("QR_DECODER_UNAVAILABLE");
+        stopCameraScan = await window.EZERO_QR.startCamera(video, code => {
+          if (typeof code === "string" && code.startsWith("EZERO1.")) void acceptScannedCode(code);
+        });
+      }
+      setQrStatus("کیمرہ QR تلاش کر رہا ہے؛ کوڈ کو فریم کے درمیان رکھیں۔", "ok");
     } catch (_) {
       stopQrCamera();
       setQrStatus(translations[language].qrCameraError, "error");
