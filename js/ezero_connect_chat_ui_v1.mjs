@@ -151,6 +151,8 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
   }
   async function receive(message, relationshipId, fingerprint, generation) {
     if (!message || !(message.bytes instanceof Uint8Array)) throw new Error("CHAT_INBOUND_FRAME_INVALID");
+    // Ignore late frames from a previously selected friend before rendering any message type.
+    if (generation !== connectionGeneration || relationshipId !== currentRelationshipId || fingerprint !== currentFingerprint) return;
     if (message.type === "text") {
       const decoded = decoder.decode(message.bytes);
       addMessage(t("received"), decoded, "received");
