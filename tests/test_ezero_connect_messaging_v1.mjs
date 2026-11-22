@@ -1,7 +1,5 @@
 import assert from "node:assert/strict";
-import { webcrypto } from "node:crypto";
 import { createMessagingController } from "../js/ezero_connect_messaging_v1.mjs";
-globalThis.crypto = webcrypto;
 const enc = new TextEncoder();
 const b64u = bytes => Buffer.from(bytes).toString("base64url");
 function canonical(v) {
