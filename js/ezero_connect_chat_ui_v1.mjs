@@ -70,6 +70,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
   let voiceUrl = null;
   let stopLimit = null;
   let friendAvatarUrl = null;
+  let profileSyncPromise = null;
   const shareProfileButton = document.createElement("button");
   shareProfileButton.type = "button";
   shareProfileButton.className = "secondary";
@@ -258,6 +259,8 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
   }
 
   async function sendCurrentProfileIfChanged(force) {
+    if (profileSyncPromise) return profileSyncPromise;
+    profileSyncPromise = (async () => {
     if (!secure() || !currentRelationshipId || !currentFingerprint) return false;
     const bytes = await getOwnProfileBytes();
     if (!bytes) return false;
@@ -273,6 +276,9 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     if (activeSession !== session || relationshipId !== currentRelationshipId || fingerprint !== currentFingerprint) return false;
     await trust.setTrustedFriendProfileSharedHash(relationshipId, fingerprint, hash);
     return true;
+    })();
+    try { return await profileSyncPromise; }
+    finally { profileSyncPromise = null; }
   }
 
   shareProfileButton.addEventListener("click", async () => {
