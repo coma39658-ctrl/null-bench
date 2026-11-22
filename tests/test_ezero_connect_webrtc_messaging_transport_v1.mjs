@@ -70,10 +70,11 @@ class FakePeerConnection {
 
 const signaling = pairSignaling();
 const secureAttach = [];
+const fakeMessagingSessions = [];
 function fakeMessagingFactory() {
   let state = "disconnected";
   let receiver = null;
-  return {
+  const api = {
     subscribe(fn) { receiver = fn; return () => { receiver = null; }; },
     async attach({ relationshipId, channel, role }) {
       assert.match(relationshipId, /^[a-f0-9]{64}$/);
@@ -85,6 +86,8 @@ function fakeMessagingFactory() {
     get state() { return state; },
     get receiver() { return receiver; }
   };
+  fakeMessagingSessions.push(api);
+  return api;
 }
 
 const relationshipId = "a".repeat(64);
@@ -110,6 +113,13 @@ const [left, right] = await Promise.all([initiator.ready, responderReady]);
 assert.equal(left.state, "secure");
 assert.equal(right.state, "secure");
 assert.deepEqual(secureAttach.sort(), ["initiator", "responder"]);
+await assert.rejects(() => fakeMessagingSessions[0].receiver({ messageId: "no-listener" }), /WEBRTC_MESSAGING_NO_RECEIVER/);
+let received = false;
+const unsubscribe = initiator.subscribe(async message => { received = message.messageId === "delivered"; });
+await fakeMessagingSessions[0].receiver({ messageId: "delivered" });
+assert.equal(received, true);
+unsubscribe();
+
 assert.ok(states.includes("offer-sent"));
 assert.ok(states.includes("answer-sent"));
 initiator.close();
