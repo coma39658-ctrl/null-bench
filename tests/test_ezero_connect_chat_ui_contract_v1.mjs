@@ -32,6 +32,8 @@ assert.match(session, /transport\.sendVoice\(bytes\)/);
 assert.match(ui, /sendProfile\(bytes\)/);
 assert.match(ui, /message\.type === "profile"/);
 assert.match(ui, /saveTrustedFriendProfile\(relationshipId, fingerprint, bytes\)/);
+assert.match(ui, /receive\(message, relationshipId, fingerprint, generation\)/);
+assert.match(ui, /await globalThis\.EZERO_CONNECT_TRUST\.saveTrustedFriendProfile\(relationshipId, fingerprint, bytes\);\s*\/\/ Persist under the original relationship[\s\S]*?if \(generation !== connectionGeneration \|\| relationshipId !== currentRelationshipId \|\| fingerprint !== currentFingerprint\) return;/);
 assert.match(ui, /getTrustedFriendProfile\(relationshipId, fingerprint\)/);
 assert.match(ui, /setTrustedFriendProfileSharedHash/);
 assert.match(ui, /ezero:local-profile-updated/);
