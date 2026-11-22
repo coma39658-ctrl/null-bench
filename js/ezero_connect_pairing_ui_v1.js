@@ -5,7 +5,7 @@
   panel.className = "panel";
   panel.id = "pairingPanel";
   panel.hidden = true;
-  panel.innerHTML = '<div class="panel-head"><strong id="pairingTitle">محفوظ دوست بنائیں</strong><span class="muted" id="pairingRole"></span></div><p class="muted" id="pairingStatus" role="status" aria-live="polite"></p><label class="muted" id="pairingNameLabel" for="pairingFriendName">دوست کا نام</label><input class="search" id="pairingFriendName" maxlength="64" autocomplete="name" style="margin:8px 0" placeholder="دوست کا نام"><button class="primary" id="pairingAction" type="button" style="width:100%">منظوری دیں</button><button class="secondary" id="pairingCancel" type="button" style="width:100%;margin-top:8px">منسوخ کریں</button>';
+  panel.innerHTML = '<div class="panel-head"><strong id="pairingTitle">محفوظ دوست بنائیں</strong><span class="muted" id="pairingRole"></span></div><ol class="pairing-steps" id="pairingSteps" aria-label="رابطے کے مراحل"><li data-step="qr"><span class="step-mark">○</span><span>QR اسکین</span><small>انتظار</small></li><li data-step="identity"><span class="step-mark">○</span><span>شناخت کی تصدیق</span><small>انتظار</small></li><li data-step="peer"><span class="step-mark">○</span><span>دونوں فون منسلک</span><small>انتظار</small></li><li data-step="approval"><span class="step-mark">○</span><span>باہمی منظوری</span><small>انتظار</small></li><li data-step="saved"><span class="step-mark">○</span><span>دوست محفوظ</span><small>انتظار</small></li></ol><p class="muted" id="pairingStatus" role="status" aria-live="polite"></p><label class="muted" id="pairingNameLabel" for="pairingFriendName">دوست کا نام</label><input class="search" id="pairingFriendName" maxlength="64" autocomplete="name" style="margin:8px 0" placeholder="دوست کا نام"><button class="primary" id="pairingAction" type="button" style="width:100%">منظوری دیں</button><button class="secondary" id="pairingCancel" type="button" style="width:100%;margin-top:8px">منسوخ کریں</button>';
   const qrPanel = $("qrScanStatus")?.closest(".panel");
   if (qrPanel) qrPanel.append(panel);
 
@@ -58,6 +58,24 @@
   let pendingMessages = [];
 
   function t(key) { return (words[lang] || words.ur)[key] || words.ur[key] || key; }
+  const stepLabels = {
+    ur: {done:"مکمل", waiting:"انتظار", active:"جاری", failed:"خرابی"},
+    en: {done:"Done", waiting:"Waiting", active:"In progress", failed:"Error"},
+    ar: {done:"مكتمل", waiting:"انتظار", active:"جارٍ", failed:"خطأ"}
+  };
+  const completedSteps = new Set();
+  function setStep(name, state) {
+    const item = panel.querySelector('[data-step="' + name + '"]');
+    if (!item) return;
+    item.dataset.state = state;
+    item.querySelector(".step-mark").textContent = state === "done" ? "✓" : state === "failed" ? "✕" : state === "active" ? "…" : "○";
+    item.querySelector("small").textContent = (stepLabels[lang] || stepLabels.ur)[state] || state;
+  }
+  function resetSteps() {
+    completedSteps.clear();
+    for (const name of ["qr","identity","peer","approval","saved"]) setStep(name, "waiting");
+  }
+  function markDone(name) { completedSteps.add(name); setStep(name, "done"); }
   function status(message, kind) {
     $("pairingStatus").textContent = message;
     $("pairingStatus").dataset.kind = kind || "";
@@ -65,9 +83,12 @@
   function show(roleValue, message) {
     role = roleValue;
     panel.hidden = false;
+    resetSteps();
     $("pairingRole").textContent = roleValue === "host" ? t("host") : t("guest");
     $("pairingTitle").textContent = t("title");
     status(message || t("waiting"));
+    if (roleValue === "guest") { markDone("qr"); markDone("identity"); }
+    else setStep("qr", "active");
   }
   function closeSession() {
     if (session) { try { session.close(); } catch (_) {} }
@@ -96,7 +117,11 @@
   }
   function fail(error) {
     busy = false;
-    status(t("error") + (error?.message ? " (" + error.message + ")" : ""), "error");
+    const code = String(error?.message || "UNKNOWN_ERROR");
+    const reason = ({PAIRING_REQUEST_INVALID:"دوسرے فون کی درخواست یا دستخط کی تصدیق درست نہیں۔",PAIRING_GUEST_APPROVAL_INVALID:"دوسرے فون کی منظوری کی تصدیق ناکام ہوئی۔",PAIRING_HOST_APPROVAL_INVALID:"پہلے فون کی منظوری کی تصدیق ناکام ہوئی۔",PAIRING_FRIEND_NAME_REQUIRED:"دوست کا نام موجود نہیں۔",PAIRING_STATE_INVALID:"رابطے کا مرحلہ درست نہیں؛ دونوں فون دوبارہ جوڑیں۔",INVITE_EXPIRED_OR_TIME_INVALID:"QR کی مدت ختم یا فون کا وقت مختلف ہے۔",INVITE_REPLAYED:"یہ QR پہلے استعمال ہو چکا ہے؛ نیا QR بنائیں۔"}[code] || "تفصیل: " + code);
+    const failedStep = completedSteps.has("approval") ? "saved" : completedSteps.has("peer") ? "approval" : "peer";
+    setStep(failedStep, "failed");
+    status(t("error") + " وجہ: " + reason, "error");
     $("pairingAction").disabled = true;
   }
   function refreshContacts() {
@@ -116,12 +141,15 @@
       session = api.connect({ role: roleValue, inviteCode, inviteMetadata: metadata });
       session.on("peer-ready", async remote => {
         peer = remote;
+        markDone("peer");
         for (const queued of pendingMessages.splice(0)) void handleMessage(queued);
         if (role !== "host") { status(t("guestWait")); return; }
         try {
           const local = await window.EZERO_CONNECT_IDENTITY.getPublicIdentity();
           transcript = (await window.EZERO_CONNECT_TRUST.buildTranscript(invite, remote, Date.now())).transcript;
           localApproval = await window.EZERO_CONNECT_TRUST.signApproval(transcript);
+          markDone("identity");
+          setStep("approval", "active");
           status(t("peer"));
           controls(t("hostName"), t("hostAction"), true);
         } catch (error) { fail(error); }
@@ -149,6 +177,8 @@
             !await window.EZERO_CONNECT_TRUST.verifyApproval(p.transcript, p.approval)) throw new Error("PAIRING_REQUEST_INVALID");
         transcript = p.transcript;
         remoteApproval = p.approval;
+        markDone("peer");
+        setStep("approval", "active");
         status(t("request"), "ok");
         controls(t("guestName"), t("guestAction"), true);
         return;
@@ -164,6 +194,8 @@
           transcript, localApproval, remoteApproval, displayName: name, explicitConsent: localConsent
         });
         session.send("trust-approval", { transcript, approval: localApproval, stage: "host-saved" });
+        markDone("approval");
+        markDone("saved");
         status(t("hostSaved"), "ok");
         $("pairingAction").disabled = true;
         refreshContacts();
@@ -177,6 +209,8 @@
           transcript, localApproval, remoteApproval: p.approval,
           displayName: remoteName, explicitConsent: true
         });
+        markDone("approval");
+        markDone("saved");
         status(t("guestSaved"), "ok");
         $("pairingAction").disabled = true;
         refreshContacts();
@@ -216,6 +250,7 @@
     if (["ur","en","ar"].includes(value)) lang = value;
     if (role) $("pairingRole").textContent = role === "host" ? t("host") : t("guest");
     $("pairingTitle").textContent = t("title");
+    for (const item of panel.querySelectorAll(".pairing-steps li")) { const state = item.dataset.state || "waiting"; item.querySelector("small").textContent = (stepLabels[lang] || stepLabels.ur)[state] || state; }
     $("pairingCancel").textContent = t("cancel");
   });
 
