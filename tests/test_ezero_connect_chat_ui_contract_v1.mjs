@@ -31,6 +31,10 @@ assert.match(session, /transport\.sendText\(text\)/);
 assert.match(session, /transport\.sendVoice\(bytes\)/);
 assert.match(ui, /sendProfile\(bytes\)/);
 assert.match(ui, /message\.type === "profile"/);
+assert.match(ui, /saveTrustedFriendProfile\(relationshipId, fingerprint, bytes\)/);
+assert.match(ui, /getTrustedFriendProfile\(relationshipId, fingerprint\)/);
+assert.match(ui, /setTrustedFriendProfileSharedHash/);
+assert.match(ui, /ezero:local-profile-updated/);
 assert.match(ui, /140 \* 1024/);
 assert.match(session, /transport\.sendProfile\(bytes\)/);
 
@@ -39,5 +43,5 @@ console.log("PASS text and voice send require an established secure session");
 console.log("PASS microphone is requested only by the explicit record button");
 console.log("PASS voice recording is bounded, cancellable, and not auto-sent");
 console.log("PASS Delivered label is applied only after the send promise confirms authenticated receipt");
-console.log("PASS profile image sharing is user-triggered, JPEG-only, size-bounded, and rendered only after E2E delivery");
+console.log("PASS verified friend DP is encrypted at rest, restored on selection, replaced on update, and auto-synced after a local photo change");
 console.log("BOUNDARY: static UI contract only; no live browser media, real peer, network, or Android notification proof");
