@@ -123,7 +123,7 @@ export class EzeroConnectRendezvous {
     const [client, server] = Object.values(pair);
     this.ctx.acceptWebSocket(server);
     server.serializeAttachment({ state: "PENDING", relationshipId, challenge, challengeExpiresAt, messageTimes: [] });
-    send(server, { type: "challenge", challenge, challengeExpiresAt });
+    await this.ctx.storage.setAlarm(challengeExpiresAt);\n    send(server, { type: "challenge", challenge, challengeExpiresAt });
     return new Response(null, { status: 101, webSocket: client });
   }
 
@@ -134,7 +134,7 @@ export class EzeroConnectRendezvous {
       if (state.state === "PENDING") {
         let envelope;
         try { envelope = JSON.parse(raw); } catch (_) { return close(ws, 1007, "invalid proof"); }
-        if (!envelope || Object.keys(envelope).join(",") !== "type,proof" || envelope.type !== "proof") return close(ws, 1008, "proof required");
+        if (!envelope || Object.keys(envelope).sort().join(",") !== "proof,type" || envelope.type !== "proof") return close(ws, 1008, "proof required");
         const identity = await verifyReconnectProof(envelope.proof, state.relationshipId, state.challenge, state.challengeExpiresAt);
         const duplicate = this.ctx.getWebSockets().some(other => {
           if (other === ws || other.readyState !== 1) return false;
