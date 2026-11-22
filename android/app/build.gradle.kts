@@ -30,11 +30,11 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.ezero.connect.staging53"
+        applicationId = "com.ezero.connect.staging75"
         minSdk = 24
         targetSdk = 35
-        versionCode = 54
-        versionName = "0.1.0-staging54"
+        versionCode = 75
+        versionName = "0.1.0-staging75"
     }
 
     signingConfigs {

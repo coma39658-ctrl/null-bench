@@ -1,6 +1,6 @@
 # E-ZERO isolated staging APK signing
 
-This configuration is for the isolated `com.ezero.connect.staging53` application only.
+This configuration is for the isolated `com.ezero.connect.staging75` application only.
 It does not change production signing or the existing installed app.
 
 ## Required GitHub Actions repository secrets

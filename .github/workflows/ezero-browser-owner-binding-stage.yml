@@ -2,7 +2,7 @@ name: E-ZERO Browser Owner-Key Binding — Isolated Gate
 on:
   push:
     branches:
-      - ezero-android-package-isolated-staging53-20261120
+      - ezero-android-package-isolated-staging75-20261122
     paths:
       - "js/ezero_android_binding_owner_approval_v1.js"
       - "tests/test_ezero_android_binding_owner_approval_v1.cjs"

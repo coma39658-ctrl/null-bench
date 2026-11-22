@@ -30,7 +30,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="ezero-connect-staging53" android:host="open" />
+                <data android:scheme="ezero-connect-staging75" android:host="open" />
             </intent-filter>
         </activity>
 
