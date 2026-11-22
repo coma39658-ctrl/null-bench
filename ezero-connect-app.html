@@ -33,7 +33,7 @@ header{height:76px;display:flex;align-items:center;justify-content:space-between
 .footer{text-align:center;color:#91a096;font-size:10px;padding:18px 0}
 .ezero-saved-friend.is-selected{border-color:#3d8b61!important;background:#eff8f1!important;box-shadow:0 0 0 2px #d9f3e5}
 .dialog-backdrop{position:fixed;inset:0;background:#0b2119a8;display:none;align-items:flex-end;justify-content:center;padding:14px;z-index:5}.dialog-backdrop.open{display:flex}.dialog{background:white;border-radius:22px 22px 18px 18px;padding:20px;width:min(100%,500px);box-shadow:var(--shadow)}.dialog h2{font-size:17px;margin:0 0 8px}.dialog p{font-size:12px;color:var(--muted);line-height:1.8}.dialog-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
-@media(min-width:650px){.shell{padding-top:14px}.dialog-backdrop{align-items:center}.dialog{border-radius:22px}}
+.chat-panel{margin-top:12px}.chat-messages{max-height:280px;overflow:auto;padding:5px;background:#fbfdfb;border:1px solid var(--line);border-radius:14px}.chat-compose{display:flex;gap:8px;margin-top:10px}.chat-compose input{min-width:0;flex:1}.chat-tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.chat-tools button{flex:1;min-width:110px}.chat-voice-preview{width:100%;margin-top:9px}.chat-message.sent{margin-inline-start:12%;background:#eaf6ed!important}@media(min-width:650px){.shell{padding-top:14px}.dialog-backdrop{align-items:center}.dialog{border-radius:22px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 </style>
 </head>
@@ -74,6 +74,23 @@ header{height:76px;display:flex;align-items:center;justify-content:space-between
       <button class="tab" type="button" role="tab" aria-selected="false" data-tab="calls" id="tabCalls">کالز</button>
     </div>
     <div id="savedFriendsList" aria-live="polite" style="margin-top:10px"></div>
+    <section class="panel chat-panel" id="chatPanel" hidden aria-labelledby="chatTitle">
+      <div class="panel-head"><strong id="chatTitle">محفوظ دوست کے ساتھ چیٹ</strong><span class="muted">E2E</span></div>
+      <div class="status" id="chatConnectionStatus" role="status" aria-live="polite">محفوظ دوست منتخب کریں۔</div>
+      <div class="chat-messages" id="chatMessages" aria-live="polite"></div>
+      <div class="chat-compose">
+        <input class="search" id="chatMessage" maxlength="8000" placeholder="محفوظ پیغام لکھیں…" autocomplete="off" disabled>
+        <button class="primary" id="sendChatMessage" type="button" disabled>بھیجیں</button>
+      </div>
+      <div class="chat-tools">
+        <button class="secondary" id="recordVoice" type="button" disabled>وائس ریکارڈ کریں</button>
+        <button class="secondary" id="stopVoice" type="button" disabled>ریکارڈنگ روکیں</button>
+        <button class="secondary" id="cancelVoice" type="button" hidden>منسوخ</button>
+        <button class="primary" id="sendVoice" type="button" disabled>وائس بھیجیں</button>
+      </div>
+      <audio class="chat-voice-preview" id="voicePreview" controls hidden></audio>
+      <p class="muted">مائیک صرف ریکارڈ بٹن دبانے پر کھلے گا۔ پیغامات اس صفحے کی عارضی یادداشت میں رہیں گے؛ Delivered صرف تصدیق شدہ وصولی پر دکھے گا۔</p>
+    </section>
     <div class="empty" id="emptyState">
       <div class="symbol">👥</div><b id="emptyTitle">ابھی کوئی دوست محفوظ نہیں</b>
       <p id="emptyText">پہلی بار دوست سے جڑنے کے بعد، باہمی منظوری سے اسے یہاں محفوظ کیا جائے گا۔</p>
@@ -136,5 +153,6 @@ header{height:76px;display:flex;align-items:center;justify-content:space-between
 <script src="./js/ezero_connect_app_v1.js" defer></script>
 <script src="./js/ezero_connect_saved_friends_ui_v1.js" defer></script>
 <script src="./js/ezero_connect_pairing_ui_v1.js" defer></script>
+<script type="module" src="./js/ezero_connect_chat_ui_v1.mjs"></script>
 </body>
 </html>
