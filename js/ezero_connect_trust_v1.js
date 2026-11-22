@@ -362,6 +362,7 @@
     verifyApproval,
     saveTrustedContact,
     listTrustedContacts,
+    getTrustedContact,
     canReconnect,
     revoke,
     block,
