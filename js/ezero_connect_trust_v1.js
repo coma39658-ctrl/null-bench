@@ -413,6 +413,18 @@
     return records.some(r => r.remoteFingerprint === remoteFingerprint && r.status === "TRUSTED");
   }
 
+  async function deleteFriendProfileRecord(relationshipId) {
+    const db = await openDb();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(FRIEND_PROFILES, "readwrite");
+      tx.objectStore(FRIEND_PROFILES).delete(relationshipId);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(new Error("TRUST_FRIEND_PROFILE_DELETE_FAILED"));
+      tx.onabort = () => reject(new Error("TRUST_FRIEND_PROFILE_DELETE_ABORTED"));
+    });
+    db.close();
+  }
+
   async function changeStatus(remoteFingerprint, status) {
     if (!["REVOKED", "BLOCKED"].includes(status)) throw new Error("TRUST_STATUS_INVALID");
     const records = await allContacts();
@@ -434,6 +446,7 @@
       });
     }
     db.close();
+    for (const record of changed) await deleteFriendProfileRecord(record.relationshipId);
     return true;
   }
 
