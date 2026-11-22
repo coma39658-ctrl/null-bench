@@ -274,26 +274,41 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     const generation = connectionGeneration;
     const syncId = relationshipId;
     if (!syncId) return false;
-    if (profileSyncPromises.has(syncId)) return profileSyncPromises.get(syncId);
+    const existing = profileSyncPromises.get(syncId);
+    if (existing) {
+      // Coalesce rapid profile edits, but never lose the newest saved photo.
+      existing.dirty = true;
+      return existing.promise;
+    }
+    const syncState = { dirty: false, promise: null };
     const promise = (async () => {
-    const stillCurrent = () => generation === connectionGeneration && relationshipId === currentRelationshipId && fingerprint === currentFingerprint && activeSession === session && secure();
-    if (!relationshipId || !fingerprint || !activeSession || !stillCurrent()) return false;
-    const bytes = await getOwnProfileBytes();
-    if (!bytes || !stillCurrent()) return false;
-    const digest = await crypto.subtle.digest("SHA-256", bytes);
-    const hash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
-    const trust = globalThis.EZERO_CONNECT_TRUST;
-    const previous = await trust.getTrustedFriendProfile(relationshipId, fingerprint);
-    if (!stillCurrent()) return false;
-    if (!force && previous.lastSharedHash === hash) return false;
-    await activeSession.sendProfile(bytes);
-    if (!stillCurrent()) return false;
-    await trust.setTrustedFriendProfileSharedHash(relationshipId, fingerprint, hash);
-    return true;
+      const stillCurrent = () => generation === connectionGeneration && relationshipId === currentRelationshipId && fingerprint === currentFingerprint && activeSession === session && secure();
+      if (!relationshipId || !fingerprint || !activeSession || !stillCurrent()) return false;
+      let shouldForce = Boolean(force);
+      let sent = false;
+      do {
+        syncState.dirty = false;
+        const bytes = await getOwnProfileBytes();
+        if (!bytes || !stillCurrent()) return sent;
+        const digest = await crypto.subtle.digest("SHA-256", bytes);
+        const hash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
+        const trust = globalThis.EZERO_CONNECT_TRUST;
+        const previous = await trust.getTrustedFriendProfile(relationshipId, fingerprint);
+        if (!stillCurrent()) return sent;
+        if (shouldForce || previous.lastSharedHash !== hash) {
+          await activeSession.sendProfile(bytes);
+          if (!stillCurrent()) return sent;
+          await trust.setTrustedFriendProfileSharedHash(relationshipId, fingerprint, hash);
+          sent = true;
+        }
+        shouldForce = false;
+      } while (syncState.dirty && stillCurrent());
+      return sent;
     })();
-    profileSyncPromises.set(syncId, promise);
+    syncState.promise = promise;
+    profileSyncPromises.set(syncId, syncState);
     try { return await promise; }
-    finally { if (profileSyncPromises.get(syncId) === promise) profileSyncPromises.delete(syncId); }
+    finally { if (profileSyncPromises.get(syncId) === syncState) profileSyncPromises.delete(syncId); }
   }
 
   shareProfileButton.addEventListener("click", async () => {
