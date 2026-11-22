@@ -4,7 +4,7 @@
   const STORE = "profile";
   const KEYS = "keys";
   const KEY_ID = "device-profile-aes-gcm";
-  const MAX_IMAGE_BYTES = 180 * 1024;
+  const MAX_IMAGE_BYTES = 135 * 1024;
   const $ = id => document.getElementById(id);
   let current = { displayName: "", avatarDataUrl: "" };
   let pendingAvatar = "";
