@@ -13,11 +13,11 @@ export function createTrustedFriendMessagingSession({
   RTCPeerConnectionImpl = globalThis.RTCPeerConnection,
   rendezvousFactory = createTrustedRendezvousClient,
   transportFactory = createWebRTCMessagingTransport,
-  onMessage = async () => {},
+  onMessage = null,
   onState = () => {}
 } = {}) {
   if (typeof relationshipId !== "string" || !/^[a-f0-9]{64}$/.test(relationshipId) ||
-      typeof onMessage !== "function" || typeof onState !== "function") fail("TRUSTED_FRIEND_SESSION_INPUT_INVALID");
+      (onMessage !== null && typeof onMessage !== "function") || typeof onState !== "function") fail("TRUSTED_FRIEND_SESSION_INPUT_INVALID");
 
   let closed = false;
   let transport = null;
@@ -83,8 +83,10 @@ export function createTrustedFriendMessagingSession({
         trustApi,
         identityApi,
         onMessage: async message => {
-          await onMessage(message);
-          for (const subscriber of [...subscribers]) await subscriber(message);
+          let delivered = false;
+          if (onMessage) { await onMessage(message); delivered = true; }
+          for (const subscriber of [...subscribers]) { await subscriber(message); delivered = true; }
+          if (!delivered) throw new Error("TRUSTED_FRIEND_NO_MESSAGE_RECEIVER");
         },
         onState: value => {
           emit("transport-" + value.state, value);
