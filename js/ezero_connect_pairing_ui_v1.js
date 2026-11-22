@@ -63,7 +63,19 @@
     en: {done:"Done", waiting:"Waiting", active:"In progress", failed:"Error"},
     ar: {done:"مكتمل", waiting:"انتظار", active:"جارٍ", failed:"خطأ"}
   };
+  const stepTitles = {
+    ur: {qr:"QR اسکین",identity:"شناخت کی تصدیق",peer:"دونوں فون منسلک",approval:"باہمی منظوری",saved:"دوست محفوظ"},
+    en: {qr:"QR scanned",identity:"Identity verified",peer:"Both phones connected",approval:"Mutual approval",saved:"Friend saved"},
+    ar: {qr:"تم مسح QR",identity:"تم التحقق من الهوية",peer:"اتصال الجهازين",approval:"الموافقة المتبادلة",saved:"تم حفظ الصديق"}
+  };
   const completedSteps = new Set();
+  function renderStepTitles() {
+    const titles = stepTitles[lang] || stepTitles.ur;
+    for (const [name, label] of Object.entries(titles)) {
+      const item = panel.querySelector('[data-step="' + name + '"]');
+      if (item) item.querySelector("span:not(.step-mark)").textContent = label;
+    }
+  }
   function setStep(name, state) {
     const item = panel.querySelector('[data-step="' + name + '"]');
     if (!item) return;
@@ -84,6 +96,7 @@
     role = roleValue;
     panel.hidden = false;
     resetSteps();
+    renderStepTitles();
     $("pairingRole").textContent = roleValue === "host" ? t("host") : t("guest");
     $("pairingTitle").textContent = t("title");
     status(message || t("waiting"));
@@ -141,6 +154,7 @@
       session = api.connect({ role: roleValue, inviteCode, inviteMetadata: metadata });
       session.on("peer-ready", async remote => {
         peer = remote;
+        markDone("qr");
         markDone("peer");
         for (const queued of pendingMessages.splice(0)) void handleMessage(queued);
         if (role !== "host") { status(t("guestWait")); return; }
@@ -250,6 +264,7 @@
     if (["ur","en","ar"].includes(value)) lang = value;
     if (role) $("pairingRole").textContent = role === "host" ? t("host") : t("guest");
     $("pairingTitle").textContent = t("title");
+    renderStepTitles();
     for (const item of panel.querySelectorAll(".pairing-steps li")) { const state = item.dataset.state || "waiting"; item.querySelector("small").textContent = (stepLabels[lang] || stepLabels.ur)[state] || state; }
     $("pairingCancel").textContent = t("cancel");
   });
