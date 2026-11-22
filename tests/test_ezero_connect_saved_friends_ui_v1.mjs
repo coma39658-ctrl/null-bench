@@ -9,12 +9,13 @@ try {
   const contacts = [{ relationshipId: "rel-1", remoteFingerprint: fp, displayName: "Friend One", status: "TRUSTED" }];
   await page.addInitScript(rows => {
     window.__testContacts = rows;
+    window.__avatarEnabled = true;
     Object.defineProperty(window, "EZERO_CONNECT_TRUST", {
       configurable: true,
       get() { return this.__testTrust; },
       set(value) { this.__testTrust = Object.assign({}, value, {
         listTrustedContacts: async () => this.__testContacts,
-        getTrustedFriendProfile: async relationshipId => relationshipId === "rel-1"
+        getTrustedFriendProfile: async relationshipId => window.__avatarEnabled && relationshipId === "rel-1"
           ? { bytes: new Uint8Array([0xff, 0xd8, 0xff, 0xd9]) }
           : { bytes: null }
       }); }
@@ -28,6 +29,20 @@ try {
   await page.waitForSelector(".ezero-saved-friend img[alt=\"Verified friend's saved profile photo\"]");
   assert.match(await page.locator(".ezero-saved-friend img").getAttribute("src"), /^blob:/,
     "verified friend's encrypted saved DP must render in the saved-friends list");
+  await page.evaluate(() => {
+    window.__avatarEnabled = false;
+    document.dispatchEvent(new CustomEvent("ezero:friend-profile-updated", {
+      detail: { relationshipId: "rel-1", fingerprint: window.__testContacts[0].remoteFingerprint }
+    }));
+  });
+  await page.waitForFunction(() => !document.querySelector(".ezero-saved-friend img"));
+  await page.evaluate(() => {
+    window.__avatarEnabled = true;
+    document.dispatchEvent(new CustomEvent("ezero:friend-profile-updated", {
+      detail: { relationshipId: "rel-1", fingerprint: window.__testContacts[0].remoteFingerprint }
+    }));
+  });
+  await page.waitForSelector(".ezero-saved-friend img");
   await page.locator(".ezero-saved-friend").click();
   assert.equal(await page.evaluate(() => window.EZERO_CONNECT_CONTACTS_UI.getSelected()), fp);
   assert.equal(await page.evaluate(() => sessionStorage.getItem("ezero_connect_selected_friend_tab_v1")), fp);
