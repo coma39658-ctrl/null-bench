@@ -1,3 +1,4 @@
+import { createTrustedRendezvousClient } from "../js/ezero_connect_rendezvous_client_v1.mjs";
 import assert from "node:assert/strict";
 import { verifyReconnectProof, RENDEZVOUS_LIMITS } from "../signaling/ezero-connect-v1/rendezvous.mjs";
 
@@ -46,6 +47,50 @@ await assert.rejects(() => verifyReconnectProof({ ...proof, approvals: [approval
 await assert.rejects(() => verifyReconnectProof({ ...proof, payload: { ...payload, relationshipId: "f".repeat(64) } }, relationshipId, payload.challenge, payload.challengeExpiresAt, now), /RENDEZVOUS_PROOF_BINDING_INVALID/);
 assert.equal(RENDEZVOUS_LIMITS.challengeTtlMs, 30_000);
 assert.equal(RENDEZVOUS_LIMITS.sessionTtlMs, 120_000);
+
+class FakeWebSocket2 {
+  constructor(url) { FakeWebSocket2.last = this; this.url = url; this.readyState = 0; this.handlers = new Map(); this.sent = []; queueMicrotask(() => { this.readyState = 1; this.dispatch("open", {}); }); }
+  addEventListener(name, fn) { if (!this.handlers.has(name)) this.handlers.set(name, []); this.handlers.get(name).push(fn); }
+  dispatch(name, value) { for (const fn of this.handlers.get(name) || []) fn(value); }
+  send(raw) { this.sent.push(JSON.parse(raw)); }
+  close() { this.readyState = 3; this.dispatch("close", {}); }
+}
+const trustApiForClient = {
+  async getTrustedContact(id) {
+    assert.equal(id, relationshipId);
+    return { relationshipId, remoteFingerprint, remotePublicKeySpki: participants.find(p => p.fingerprint === remoteFingerprint).publicKeySpki,
+      status: "TRUSTED", trustProof: { transcript, approvals: [approvalA, approvalB] } };
+  },
+  async verifyApproval(t, approval) { return t === transcript && [approvalA, approvalB].includes(approval); }
+};
+const identityApiForClient = {
+  async getPublicIdentity() { return { fingerprint: localFingerprint, publicKeySpki: participants.find(p => p.fingerprint === localFingerprint).publicKeySpki }; },
+  async signCanonical(value) { return sign(local.privateKey, value); }
+};
+const client = createTrustedRendezvousClient({
+  signalingUrl: "wss://example.invalid", relationshipId,
+  trustApi: trustApiForClient, identityApi: identityApiForClient, WebSocketImpl: FakeWebSocket2
+});
+const clientSocket = FakeWebSocket2.last;
+assert.equal(new URL(clientSocket.url).pathname, "/v1/rendezvous/" + relationshipId);
+await new Promise(resolve => setTimeout(resolve, 0));
+clientSocket.dispatch("message", { data: JSON.stringify({ type: "challenge", challenge: b64(new Uint8Array(32).fill(4)), challengeExpiresAt: Date.now() + 20_000 }) });
+await new Promise(resolve => setTimeout(resolve, 0));
+assert.equal(clientSocket.sent[0].type, "proof");
+clientSocket.dispatch("message", { data: JSON.stringify({ type: "authenticated", expiresAt: Date.now() + 120_000 }) });
+await client.ready;
+clientSocket.dispatch("message", { data: JSON.stringify({ type: "peer-ready", peerFingerprint: remoteFingerprint }) });
+assert.equal(client.state, "peer-ready");
+client.send("offer", { sdp: "v=0" });
+assert.equal(clientSocket.sent.at(-1).type, "offer");
+let relayed = false;
+client.on("message", message => { relayed = message.type === "answer" && message.fromFingerprint === remoteFingerprint; });
+clientSocket.dispatch("message", { data: JSON.stringify({ type: "relay", fromFingerprint: remoteFingerprint, message: { type: "answer", payload: { sdp: "v=0" } } }) });
+assert.equal(relayed, true);
+client.close();
+console.log("PASS browser client signs the server challenge using saved mutual trust");
+console.log("PASS client exposes the signalingSession on/send contract to WebRTC transport");
+
 console.log("PASS server verifies ECDSA proof-of-possession against saved transcript identity");
 console.log("PASS both mutual trust approvals are independently verified");
 console.log("PASS challenge, relationship and transcript are cryptographically bound");
