@@ -67,16 +67,19 @@ const identityApiForClient = {
   async getPublicIdentity() { return { fingerprint: localFingerprint, publicKeySpki: participants.find(p => p.fingerprint === localFingerprint).publicKeySpki }; },
   async signCanonical(value) { return sign(local.privateKey, value); }
 };
+const clientStates = [];
 const client = createTrustedRendezvousClient({
   signalingUrl: "wss://example.invalid", relationshipId,
-  trustApi: trustApiForClient, identityApi: identityApiForClient, WebSocketImpl: FakeWebSocket2
+  trustApi: trustApiForClient, identityApi: identityApiForClient, WebSocketImpl: FakeWebSocket2,
+  onState: value => clientStates.push(value)
 });
 const clientSocket = FakeWebSocket2.last;
 assert.equal(new URL(clientSocket.url).pathname, "/v1/rendezvous/" + relationshipId);
 await new Promise(resolve => setTimeout(resolve, 0));
 clientSocket.dispatch("message", { data: JSON.stringify({ type: "challenge", challenge: b64(new Uint8Array(32).fill(4)), challengeExpiresAt: Date.now() + 20_000 }) });
-await new Promise(resolve => setTimeout(resolve, 0));
-assert.equal(clientSocket.sent[0].type, "proof");
+await new Promise(resolve => setTimeout(resolve, 100));
+assert.equal(client.state, "proof-sent", JSON.stringify(clientStates));
+assert.equal(clientSocket.sent[0]?.type, "proof");
 clientSocket.dispatch("message", { data: JSON.stringify({ type: "authenticated", expiresAt: Date.now() + 120_000 }) });
 await client.ready;
 clientSocket.dispatch("message", { data: JSON.stringify({ type: "peer-ready", peerFingerprint: remoteFingerprint }) });
