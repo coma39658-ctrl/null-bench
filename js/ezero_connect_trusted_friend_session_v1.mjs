@@ -29,7 +29,7 @@ export function createTrustedFriendMessagingSession({
   ready.catch(() => {});
 
   function emit(state, detail = {}) {
-    try { onState(Object.freeze({ state, relationshipId, ...detail })); } catch (_) {}
+    try { onState(Object.freeze({ ...detail, state, relationshipId })); } catch (_) {}
   }
   function reject(error) {
     if (settled) return;
