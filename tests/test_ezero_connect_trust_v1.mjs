@@ -105,7 +105,8 @@ try {
   assert.equal(trustedPeerA.status, "TRUSTED");
   assert.equal(trustedPeerB.remoteFingerprint, identityA.fingerprint);
   assert.equal(trustedPeerB.remotePublicKeySpki, identityA.publicKeySpki);
-  assert.equal(Object.isFrozen(trustedPeerA), true);
+  const trustedPeerAFrozen = await a.evaluate(async id => Object.isFrozen(await window.EZERO_CONNECT_TRUST.getTrustedContact(id)), savedA.relationshipId);
+  assert.equal(trustedPeerAFrozen, true);
 
   const unknownRelationship = await a.evaluate(async () => {
     try { await window.EZERO_CONNECT_TRUST.getTrustedContact("0".repeat(64)); return "ACCEPTED"; }
