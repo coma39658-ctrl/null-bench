@@ -12,6 +12,8 @@ try {
   assert.equal(await page.locator("#myProfileEditor").isVisible(), true);
   await page.locator("#myProfileName").fill("Qamar Profile Test");
   await page.locator("#saveMyProfile").click();
+  await page.locator("#language").click();
+  assert.equal(await page.locator("#welcomeTitle").textContent(), "Qamar Profile Test");
   await page.waitForFunction(() => document.querySelector("#welcomeTitle").textContent === "Qamar Profile Test");
   assert.equal(await page.locator("#myProfileEditor").isVisible(), false);
 
