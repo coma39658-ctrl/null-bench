@@ -13,3 +13,6 @@
 Thumbs.db
 
 local_web_server.log
+
+# E-ZERO private Firebase configuration
+android/app/google-services.json

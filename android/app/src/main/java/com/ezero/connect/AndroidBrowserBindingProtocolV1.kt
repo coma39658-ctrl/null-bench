@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets
  */
 internal object AndroidBrowserBindingProtocolV1 {
     private const val PROTOCOL = "EZERO-ANDROID-BIND-1"
+    private const val EXPECTED_ORIGIN = "https://coma39658-ctrl.github.io"
     private const val CAPABILITY = "call-invite-only"
     private const val P256_COMPONENT_BYTES = 32
     private const val MAX_VALIDITY_SECONDS = 90L
@@ -32,7 +33,7 @@ internal object AndroidBrowserBindingProtocolV1 {
      * with separators/control characters are rejected rather than escaped.
      */
     fun canonicalRequest(fields: RequestFields): ByteArray {
-        require(fields.origin.startsWith("https://")) { "HTTPS origin required" }
+        require(fields.origin == EXPECTED_ORIGIN) { "Unexpected binding origin" }
         requireSingleLine(fields.origin, "origin")
         requireFingerprint(fields.ownerFingerprint, "owner fingerprint")
         requireBase64Url(fields.androidPublicKeySpkiBase64Url, "Android SPKI")

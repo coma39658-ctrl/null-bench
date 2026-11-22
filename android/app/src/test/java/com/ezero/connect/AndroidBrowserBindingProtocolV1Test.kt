@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets
 import java.security.KeyPairGenerator
 import java.security.Signature
 import java.security.spec.ECGenParameterSpec
+import java.util.Properties
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
@@ -11,7 +12,7 @@ import org.junit.Test
 
 class AndroidBrowserBindingProtocolV1Test {
     private fun validFields() = AndroidBrowserBindingProtocolV1.RequestFields(
-        origin = "https://ezero-save-friend-pr156-preview-v2.onrender.com",
+        origin = "https://coma39658-ctrl.github.io",
         ownerFingerprint = "a".repeat(64),
         androidPublicKeySpkiBase64Url = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQc",
         androidFingerprint = "b".repeat(64),
@@ -24,7 +25,7 @@ class AndroidBrowserBindingProtocolV1Test {
     fun canonicalRequestHasStableNineLineUtf8Encoding() {
         val expected = listOf(
             "EZERO-ANDROID-BIND-1",
-            "https://ezero-save-friend-pr156-preview-v2.onrender.com",
+            "https://coma39658-ctrl.github.io",
             "a".repeat(64),
             "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQc",
             "b".repeat(64),
@@ -35,6 +36,42 @@ class AndroidBrowserBindingProtocolV1Test {
         ).joinToString("\n").toByteArray(StandardCharsets.UTF_8)
 
         assertArrayEquals(expected, AndroidBrowserBindingProtocolV1.canonicalRequest(validFields()))
+    }
+
+    @Test
+    fun sharedGoldenFixtureMatchesCanonicalRequest() {
+        val properties = Properties()
+        val stream = javaClass.getResourceAsStream(
+            "/ezero_android_browser_binding_golden_v1.properties"
+        ) ?: error("Shared golden fixture missing")
+
+        stream.use { properties.load(it) }
+
+        val request = AndroidBrowserBindingProtocolV1.RequestFields(
+            origin = properties.getProperty("origin"),
+            ownerFingerprint = properties.getProperty("owner.fingerprint"),
+            androidPublicKeySpkiBase64Url = properties.getProperty("android.spki"),
+            androidFingerprint = properties.getProperty("android.fingerprint"),
+            nonceBase64Url = properties.getProperty("request.nonce"),
+            issuedAtEpochSeconds = properties.getProperty("request.issued").toLong(),
+            expiresAtEpochSeconds = properties.getProperty("request.expires").toLong()
+        )
+
+        val expected = properties.getProperty("request.canonical")
+        val actual = String(
+            AndroidBrowserBindingProtocolV1.canonicalRequest(request),
+            StandardCharsets.UTF_8
+        )
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun rejectsUnexpectedHttpsOrigin() {
+        assertThrows(IllegalArgumentException::class.java) {
+            AndroidBrowserBindingProtocolV1.canonicalRequest(
+                validFields().copy(origin = "https://attacker.example")
+            )
+        }
     }
 
     @Test
