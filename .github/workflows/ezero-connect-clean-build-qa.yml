@@ -37,6 +37,7 @@ on:
       - ezero-connect-qr-renderer-20261120
       - ezero-connect-client-20261120
       - ezero-connect-pr154-friend-retention-clean-20261121
+      - ezero-connect-scalable-friends-profile-staging-20261121
     paths:
       - 'ezero-connect.html'
       - 'ezero-connect-app.html'
@@ -54,6 +55,10 @@ on:
       - 'tests/test_ezero_connect_signaling_local_v1.mjs'
       - 'js/ezero_connect_config_v1.js'
       - 'js/ezero_connect_signaling_client_v1.js'
+      - 'js/ezero_connect_e2e_crypto_v1.mjs'
+      - 'tests/test_ezero_connect_e2e_crypto_v1.mjs'
+      - 'js/ezero_connect_e2e_datachannel_v1.mjs'
+      - 'tests/test_ezero_connect_e2e_datachannel_v1.mjs'
       - 'signaling/ezero-connect-v1/**'
       - '.github/workflows/ezero-connect-clean-build-qa.yml'
 
