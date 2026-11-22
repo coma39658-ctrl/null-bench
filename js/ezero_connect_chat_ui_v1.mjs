@@ -74,7 +74,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
   shareProfileButton.type = "button";
   shareProfileButton.className = "secondary";
   shareProfileButton.disabled = true;
-  shareProfileButton.textContent = t("shareProfile");
+  shareProfileButton.textContent = "اپنی DP محفوظ دوست کو بھیجیں";
   $("chatPanel").querySelector(".chat-tools")?.append(shareProfileButton);
   const friendAvatar = document.createElement("img");
   friendAvatar.alt = "Verified friend profile photo";
