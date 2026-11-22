@@ -290,7 +290,11 @@
       remoteFingerprint: record.remoteFingerprint,
       remotePublicKeySpki: record.remotePublicKeySpki,
       displayName: record.displayName,
-      status: record.status
+      status: record.status,
+      trustProof: Object.freeze({
+        transcript: record.transcript,
+        approvals: Object.freeze([record.localApproval, record.remoteApproval])
+      })
     });
   }
 
