@@ -46,7 +46,16 @@ header{height:76px;display:flex;align-items:center;justify-content:space-between
 <main>
   <section class="profile" aria-label="Profile">
     <div class="face" id="profileInitial">E</div>
-    <div><h1 id="welcomeTitle">السلام علیکم 👋</h1><p id="welcomeSub">آپ کے دوست، ایک ہی جگہ</p></div>
+    <div style="min-width:0;flex:1"><h1 id="welcomeTitle">السلام علیکم 👋</h1><p id="welcomeSub">آپ کے دوست، ایک ہی جگہ</p></div>
+    <button class="soft" id="editMyProfile" type="button" style="white-space:nowrap">پروفائل تبدیل کریں</button>
+  </section>
+  <section class="panel" id="myProfileEditor" hidden aria-label="Edit my profile">
+    <div class="panel-head"><strong>میری پروفائل</strong><span class="muted">صرف اس فون میں محفوظ</span></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><div id="myProfilePreview" class="face" style="width:54px;height:54px;border-radius:50%;background:#eaf6ed;color:#174c39;overflow:hidden">E</div><div style="flex:1"><label class="muted" for="myProfileName">آپ کا نام</label><input class="search" id="myProfileName" maxlength="48" autocomplete="name" placeholder="اپنا نام لکھیں"></div></div>
+    <label class="secondary" for="myProfilePhoto" style="display:block;text-align:center">گیلری سے پروفائل تصویر منتخب کریں</label><input id="myProfilePhoto" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+    <div class="actions" style="margin-top:10px"><button class="secondary" id="removeMyProfilePhoto" type="button">تصویر ہٹائیں</button><button class="primary" id="saveMyProfile" type="button">محفوظ کریں</button></div>
+    <button class="secondary" id="cancelMyProfile" type="button" style="width:100%;margin-top:8px">منسوخ</button>
+    <div class="status" id="myProfileStatus" role="status" aria-live="polite">نام اور تصویر صرف اس فون میں خفیہ صورت میں محفوظ ہوں گے۔</div>
   </section>
   <section class="panel">
     <div class="panel-head"><strong id="quickTitle">فوری رابطہ</strong><span class="muted" id="quickHint">دوست منتخب کریں</span></div>
@@ -122,7 +131,8 @@ header{height:76px;display:flex;align-items:center;justify-content:space-between
 <script src="./js/ezero_connect_invite_v1.js" defer></script>
 <script src="./js/ezero_connect_trust_v1.js" defer></script>
 <script src="./js/ezero_connect_config_v1.js" defer></script>
-<script src="./js/ezero_connect_signaling_client_v1.js" defer></script>\n<script src="./js/ezero_connect_app_v1.js" defer></script>
+<script src="./js/ezero_connect_signaling_client_v1.js" defer></script>\n<script src="./js/ezero_connect_local_profile_v1.js" defer></script>
+<script src="./js/ezero_connect_app_v1.js" defer></script>
 <script src="./js/ezero_connect_saved_friends_ui_v1.js" defer></script>
 <script src="./js/ezero_connect_pairing_ui_v1.js" defer></script>
 </body>
