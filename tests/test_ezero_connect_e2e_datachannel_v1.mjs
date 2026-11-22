@@ -76,7 +76,13 @@ assert.equal(new TextDecoder().decode(received[0].bytes), "Encrypted DataChannel
 const voice = Uint8Array.from([0, 1, 2, 3, 254, 255]);
 const voiceDelivered = await sessionA.send("voice", voice);
 assert.equal(voiceDelivered.status, "DELIVERED");
-assert.deepEqual([...received[1].bytes], [...voice]);\nconst jpeg = Uint8Array.from([0xff, 0xd8, 0xff, 0xd9]);\nconst profileDelivered = await sessionA.send("profile", jpeg);\nassert.equal(profileDelivered.status, "DELIVERED");\nassert.equal(received[2].type, "profile");\nassert.deepEqual([...received[2].bytes], [...jpeg]);\nawait assert.rejects(() => sessionA.send("profile", new Uint8Array(140 * 1024 + 1)), /E2E_DATA_PAYLOAD_SIZE_INVALID/);
+assert.deepEqual([...received[1].bytes], [...voice]);
+const jpeg = Uint8Array.from([0xff, 0xd8, 0xff, 0xd9]);
+const profileDelivered = await sessionA.send("profile", jpeg);
+assert.equal(profileDelivered.status, "DELIVERED");
+assert.equal(received[2].type, "profile");
+assert.deepEqual([...received[2].bytes], [...jpeg]);
+await assert.rejects(() => sessionA.send("profile", new Uint8Array(140 * 1024 + 1)), /E2E_DATA_PAYLOAD_SIZE_INVALID/);
 sessionA.close();
 assert.equal(sessionA.isSecure, false);
 
