@@ -63,7 +63,7 @@ export function createMessagingController({
     if (!active?.session.isSecure) throw new Error("E2E_MESSAGING_NOT_CONNECTED");
     return active.session.send("voice", bytes);
   }
-  function subscribe(handler) {
+  async function sendProfile(bytes) {\n    if (!(bytes instanceof Uint8Array) || !bytes.length || bytes.length > 140 * 1024) throw new Error("E2E_MESSAGING_PROFILE_INVALID");\n    if (!active?.session.isSecure) throw new Error("E2E_MESSAGING_NOT_CONNECTED");\n    return active.session.send("profile", bytes);\n  }\n  function subscribe(handler) {
     if (typeof handler !== "function") throw new Error("E2E_MESSAGING_SUBSCRIBER_INVALID");
     subscribers.add(handler);
     return () => subscribers.delete(handler);
@@ -75,7 +75,7 @@ export function createMessagingController({
     if (current) emitState("closed", { relationshipId: current.relationshipId });
   }
   return Object.freeze({
-    attach, sendText, sendVoice, subscribe, close,
+    attach, sendText, sendVoice, sendProfile, subscribe, close,
     get state() { return active?.session.isSecure ? "secure" : active ? "connecting" : "disconnected"; },
     get relationshipId() { return active?.relationshipId || null; }
   });
