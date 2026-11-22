@@ -1,0 +1,307 @@
+import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_friend_session_v1.mjs";
+
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const panel = $("chatPanel");
+  if (!panel) return;
+
+  const text = {
+    ur: {
+      title:"محفوظ دوست کے ساتھ چیٹ", waiting:"محفوظ کنکشن بن رہا ہے…",
+      peer:"دوست کے آن لائن ہونے کا انتظار ہے…", secure:"محفوظ چیٹ منسلک ہے",
+      unavailable:"یہ دوست محفوظ/تصدیق شدہ نہیں؛ چیٹ شروع نہیں کی گئی۔",
+      textPlaceholder:"محفوظ پیغام لکھیں…", send:"بھیجیں",
+      voice:"وائس ریکارڈ کریں", stop:"ریکارڈنگ روکیں", preview:"وائس سنیں",
+      cancel:"منسوخ", sendVoice:"وائس بھیجیں", micDenied:"مائیک کی اجازت نہیں ملی۔",
+      recording:"ریکارڈنگ جاری ہے — زیادہ سے زیادہ 12 سیکنڈ",
+      tooLarge:"وائس نوٹ حد سے بڑا ہے؛ مختصر ریکارڈ کریں۔",
+      sending:"بھیجا جا رہا ہے…", delivered:"محفوظ طور پر وصول ہونے کی تصدیق ہوئی",
+      failed:"وصولی کی تصدیق نہیں ملی؛ Delivered نہیں دکھایا گیا۔",
+      received:"موصول ہوا", notReady:"پہلے محفوظ دوست کے ساتھ کنکشن بننے دیں۔",
+      voiceIncoming:"وائس پیغام", error:"محفوظ چیٹ کنکشن دستیاب نہیں۔",
+      noRelation:"اس محفوظ دوست کا relationship ID دستیاب نہیں۔"
+    },
+    en: {
+      title:"Chat with saved friend", waiting:"Establishing secure connection…",
+      peer:"Waiting for your friend to come online…", secure:"Secure chat connected",
+      unavailable:"This friend is not verified and trusted; chat was not started.",
+      textPlaceholder:"Write an encrypted message…", send:"Send",
+      voice:"Record voice", stop:"Stop recording", preview:"Play voice",
+      cancel:"Cancel", sendVoice:"Send voice", micDenied:"Microphone permission was not granted.",
+      recording:"Recording — up to 12 seconds",
+      tooLarge:"Voice note is too large. Please record a shorter note.",
+      sending:"Sending…", delivered:"Authenticated receipt confirmed",
+      failed:"No authenticated receipt; not marked Delivered.",
+      received:"Received", voiceIncoming:"Voice message",
+      notReady:"Wait for a secure connection to the saved friend.",
+      error:"Secure chat connection is unavailable.",
+      noRelation:"The saved friend relationship ID is unavailable."
+    },
+    ar: {
+      title:"محادثة مع صديق محفوظ", waiting:"جارٍ إنشاء اتصال آمن…",
+      peer:"بانتظار اتصال صديقك…", secure:"تم الاتصال بالمحادثة الآمنة",
+      unavailable:"هذا الصديق غير موثّق؛ لم تبدأ المحادثة.",
+      textPlaceholder:"اكتب رسالة مشفّرة…", send:"إرسال",
+      voice:"تسجيل صوت", stop:"إيقاف التسجيل", preview:"تشغيل الصوت",
+      cancel:"إلغاء", sendVoice:"إرسال الصوت", micDenied:"لم يتم منح إذن الميكروفون.",
+      recording:"جارٍ التسجيل — حتى 12 ثانية",
+      tooLarge:"المقطع الصوتي كبير؛ سجّل مقطعاً أقصر.",
+      sending:"جارٍ الإرسال…", delivered:"تم تأكيد الاستلام الموثّق",
+      failed:"لم يصل تأكيد موثّق؛ لن تظهر حالة تم التسليم.",
+      received:"تم الاستلام", voiceIncoming:"رسالة صوتية",
+      notReady:"انتظر إنشاء اتصال آمن مع الصديق المحفوظ.",
+      error:"اتصال المحادثة الآمنة غير متاح.",
+      noRelation:"معرّف علاقة الصديق المحفوظ غير متاح."
+    }
+  };
+
+  let language = "ur";
+  let session = null;
+  let unsubscribe = null;
+  let currentFingerprint = null;
+  let recorder = null;
+  let stream = null;
+  let chunks = [];
+  let voiceBlob = null;
+  let voiceUrl = null;
+  let stopLimit = null;
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder("utf-8", { fatal: true });
+
+  const t = key => (text[language] || text.ur)[key] || text.ur[key] || key;
+  function status(message, kind = "") {
+    const node = $("chatConnectionStatus");
+    if (!node) return;
+    node.textContent = message;
+    node.dataset.kind = kind;
+  }
+  function secure() { return Boolean(session && session.state === "secure"); }
+  function controls() {
+    const connected = secure();
+    $("chatMessage").disabled = !connected;
+    $("sendChatMessage").disabled = !connected;
+    $("recordVoice").disabled = !connected || Boolean(recorder);
+    $("stopVoice").disabled = !recorder;
+    $("sendVoice").disabled = !connected || !voiceBlob;
+  }
+  function clearVoice() {
+    if (voiceUrl) URL.revokeObjectURL(voiceUrl);
+    voiceUrl = null;
+    voiceBlob = null;
+    $("voicePreview").removeAttribute("src");
+    $("voicePreview").hidden = true;
+    $("sendVoice").disabled = true;
+    $("cancelVoice").hidden = true;
+  }
+  function addMessage(label, body, kind = "received") {
+    const row = document.createElement("div");
+    row.className = "ezero-chat-message " + kind;
+    row.style.cssText = "margin:8px 0;padding:10px 12px;border-radius:13px;background:#f1f7f3;font-size:12px;overflow-wrap:anywhere";
+    const content = document.createElement("div");
+    content.textContent = body;
+    const state = document.createElement("small");
+    state.textContent = label;
+    state.style.cssText = "display:block;margin-top:5px;color:#718278;font-size:10px";
+    row.append(content, state);
+    $("chatMessages").append(row);
+    $("chatMessages").scrollTop = $("chatMessages").scrollHeight;
+    return state;
+  }
+  function releaseRecorder() {
+    if (stopLimit) clearTimeout(stopLimit);
+    stopLimit = null;
+    if (stream) for (const track of stream.getTracks()) track.stop();
+    stream = null;
+    recorder = null;
+    controls();
+  }
+  function closeSession() {
+    try { unsubscribe?.(); } catch (_) {}
+    unsubscribe = null;
+    try { session?.close(); } catch (_) {}
+    session = null;
+    currentFingerprint = null;
+    controls();
+  }
+  function receive(message) {
+    if (!message || !(message.bytes instanceof Uint8Array)) throw new Error("CHAT_INBOUND_FRAME_INVALID");
+    if (message.type === "text") {
+      const decoded = decoder.decode(message.bytes);
+      addMessage(t("received"), decoded, "received");
+      return;
+    }
+    if (message.type === "voice") {
+      const blob = new Blob([message.bytes], { type: "audio/webm" });
+      const url = URL.createObjectURL(blob);
+      const row = document.createElement("div");
+      row.className = "ezero-chat-message received";
+      row.style.cssText = "margin:8px 0;padding:10px 12px;border-radius:13px;background:#f1f7f3";
+      const label = document.createElement("div");
+      label.textContent = t("voiceIncoming");
+      const audio = document.createElement("audio");
+      audio.controls = true;
+      audio.src = url;
+      audio.style.width = "100%";
+      row.append(label, audio);
+      $("chatMessages").append(row);
+      $("chatMessages").scrollTop = $("chatMessages").scrollHeight;
+      audio.addEventListener("ended", () => URL.revokeObjectURL(url), { once: true });
+      return;
+    }
+    throw new Error("CHAT_INBOUND_TYPE_UNSUPPORTED");
+  }
+
+  async function connect(detail) {
+    const fingerprint = detail?.fingerprint;
+    const relationshipId = detail?.relationshipId;
+    if (!fingerprint || !relationshipId) {
+      closeSession();
+      panel.hidden = false;
+      status(t("noRelation"), "error");
+      return;
+    }
+    if (fingerprint === currentFingerprint && session) return;
+    closeSession();
+    currentFingerprint = fingerprint;
+    panel.hidden = false;
+    $("chatMessages").replaceChildren();
+    status(t("waiting"));
+    try {
+      session = createTrustedFriendMessagingSession({
+        relationshipId,
+        onState: value => {
+          if (currentFingerprint !== fingerprint) return;
+          if (value.state === "rendezvous-waiting-for-peer" || value.state === "rendezvous-peer-offline") {
+            status(t("peer"));
+          } else if (value.state === "transport-secure") {
+            status(t("secure"), "ok");
+            controls();
+          } else if (value.state === "error" || value.state === "transport-error") {
+            status(t("error"), "error");
+            controls();
+          }
+        }
+      });
+      unsubscribe = session.subscribe(receive);
+      controls();
+      await session.ready;
+      if (currentFingerprint !== fingerprint) return;
+      status(t("secure"), "ok");
+      controls();
+    } catch (_) {
+      if (currentFingerprint === fingerprint) {
+        status(t("error"), "error");
+        controls();
+      }
+    }
+  }
+
+  $("sendChatMessage").addEventListener("click", async () => {
+    const value = $("chatMessage").value.trim();
+    if (!value || !secure()) return;
+    $("sendChatMessage").disabled = true;
+    const receipt = addMessage(t("sending"), value, "sent");
+    try {
+      await session.sendText(value);
+      receipt.textContent = t("delivered");
+      $("chatMessage").value = "";
+    } catch (_) {
+      receipt.textContent = t("failed");
+    } finally { controls(); }
+  });
+  $("chatMessage").addEventListener("keydown", event => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      $("sendChatMessage").click();
+    }
+  });
+
+  $("recordVoice").addEventListener("click", async () => {
+    if (!secure() || recorder) return;
+    try {
+      if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder !== "function") throw new Error("VOICE_RECORDING_UNAVAILABLE");
+      clearVoice();
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      chunks = [];
+      recorder = new MediaRecorder(stream, { audioBitsPerSecond: 24000 });
+      recorder.addEventListener("dataavailable", event => {
+        if (event.data?.size) chunks.push(event.data);
+      });
+      recorder.addEventListener("stop", () => {
+        const blob = new Blob(chunks, { type: recorder?.mimeType || "audio/webm" });
+        releaseRecorder();
+        if (!blob.size || blob.size > 180 * 1024) {
+          clearVoice();
+          status(t("tooLarge"), "error");
+          return;
+        }
+        voiceBlob = blob;
+        voiceUrl = URL.createObjectURL(blob);
+        $("voicePreview").src = voiceUrl;
+        $("voicePreview").hidden = false;
+        $("cancelVoice").hidden = false;
+        $("sendVoice").disabled = !secure();
+        status(t("preview"), "ok");
+      }, { once: true });
+      recorder.start();
+      $("stopVoice").disabled = false;
+      $("recordVoice").disabled = true;
+      $("cancelVoice").hidden = false;
+      status(t("recording"));
+      stopLimit = setTimeout(() => {
+        if (recorder && recorder.state !== "inactive") recorder.stop();
+      }, 12_000);
+    } catch (_) {
+      releaseRecorder();
+      status(t("micDenied"), "error");
+    }
+  });
+  $("stopVoice").addEventListener("click", () => {
+    if (recorder && recorder.state !== "inactive") recorder.stop();
+  });
+  $("cancelVoice").addEventListener("click", () => {
+    if (recorder && recorder.state !== "inactive") recorder.stop();
+    chunks = [];
+    clearVoice();
+    status(t("notReady"));
+  });
+  $("sendVoice").addEventListener("click", async () => {
+    if (!secure() || !voiceBlob) return;
+    const blob = voiceBlob;
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    if (!bytes.length || bytes.length > 180 * 1024) {
+      status(t("tooLarge"), "error");
+      return;
+    }
+    $("sendVoice").disabled = true;
+    const receipt = addMessage(t("sending"), t("voiceIncoming"), "sent");
+    try {
+      await session.sendVoice(bytes);
+      receipt.textContent = t("delivered");
+      clearVoice();
+    } catch (_) {
+      receipt.textContent = t("failed");
+      controls();
+    }
+  });
+
+  document.addEventListener("ezero:friend-selected", event => { void connect(event.detail); });
+  document.addEventListener("ezero:language-changed", event => {
+    language = ["ur", "en", "ar"].includes(event.detail?.language) ? event.detail.language : "ur";
+    $("chatTitle").textContent = t("title");
+    $("chatMessage").placeholder = t("textPlaceholder");
+    $("sendChatMessage").textContent = t("send");
+    $("recordVoice").textContent = t("voice");
+    $("stopVoice").textContent = t("stop");
+    $("cancelVoice").textContent = t("cancel");
+    $("sendVoice").textContent = t("sendVoice");
+  });
+  window.addEventListener("pagehide", () => {
+    if (recorder && recorder.state !== "inactive") recorder.stop();
+    releaseRecorder();
+    closeSession();
+    clearVoice();
+  });
+  document.dispatchEvent(new CustomEvent("ezero:language-changed", { detail: { language: "ur" } }));
+})();
