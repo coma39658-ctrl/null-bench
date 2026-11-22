@@ -1,4 +1,5 @@
 import { EzeroConnectRendezvous } from "./rendezvous.mjs";
+export { EzeroConnectRendezvous };
 
 const INVITE_PREFIX = "EZERO1.";
 const INVITE_TTL_MS = 90_000;
