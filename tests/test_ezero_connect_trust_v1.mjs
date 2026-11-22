@@ -180,6 +180,21 @@ try {
     catch (error) { return error.message; }
   }, { id: savedA.relationshipId, fingerprint: identityB.fingerprint });
   assert.equal(revokedProfileRead, "TRUST_RELATIONSHIP_NOT_TRUSTED");
+  const revokedPhotoCount = await a.evaluate(async () => {
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open("ezero-connect-trusted-contacts", 2);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const count = await new Promise((resolve, reject) => {
+      const request = db.transaction("friendProfiles", "readonly").objectStore("friendProfiles").count();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    db.close();
+    return count;
+  });
+  assert.equal(revokedPhotoCount, 0);
   assert.equal(await a.evaluate(fp => window.EZERO_CONNECT_TRUST.canReconnect(fp), identityB.fingerprint), false);
   await b.evaluate(fp => window.EZERO_CONNECT_TRUST.block(fp), identityA.fingerprint);
   assert.equal(await b.evaluate(fp => window.EZERO_CONNECT_TRUST.canReconnect(fp), identityA.fingerprint), false);
