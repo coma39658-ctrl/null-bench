@@ -164,6 +164,7 @@ export class EzeroConnectRendezvous {
         state.expiresAt = Date.now() + SESSION_TTL_MS;
         state.messageTimes = [];
         ws.serializeAttachment(state);
+        await this.ctx.storage.setAlarm(state.expiresAt);
         send(ws, { type: "authenticated", expiresAt: state.expiresAt });
         await this.notifyReady();
         return;
