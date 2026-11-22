@@ -51,6 +51,9 @@ await assert.rejects(() => createSessionOffer({
   relationshipId, sessionId, trust: { ...trustA, status: "REVOKED" }, identity: a.identity, signCanonical: a.signCanonical
 }), /E2E_RELATIONSHIP_NOT_TRUSTED/);
 await assert.rejects(() => createSessionOffer({
+  relationshipId, sessionId, trust: { ...trustA, remoteFingerprint: "F".repeat(95) + "F" }, identity: a.identity, signCanonical: a.signCanonical
+}), /E2E_REMOTE_KEY_FINGERPRINT_MISMATCH/);
+await assert.rejects(() => createSessionOffer({
   relationshipId: "c".repeat(64), sessionId, trust: trustA, identity: a.identity, signCanonical: a.signCanonical
 }), /E2E_RELATIONSHIP_NOT_TRUSTED/);
 await assert.rejects(() => channelA.encrypt("text", new Uint8Array(256 * 1024 + 1)), /E2E_FRAME_SIZE_INVALID/);
