@@ -192,6 +192,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       controls();
     } catch (_) {
       if (currentFingerprint === fingerprint) {
+        closeSession();
         status(t("error"), "error");
         controls();
       }
