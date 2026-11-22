@@ -88,6 +88,7 @@
       root.append(p);
     } else {
       const fragment = document.createDocumentFragment();
+      const avatarHydrations = [];
       for (const contact of page) {
         const button = document.createElement("button");
         button.type = "button";
@@ -107,6 +108,7 @@
         fp.style.cssText = "display:block;font-size:10px;color:#718278;direction:ltr;text-align:start";
         info.append(name, fp);
         button.append(face, info);
+        avatarHydrations.push({ contact, face, button });
         button.addEventListener("click", () => {
           selected = contact.remoteFingerprint;
           writeSelection(selected);
@@ -118,6 +120,9 @@
         fragment.append(button);
       }
       root.append(fragment);
+      for (const item of avatarHydrations) {
+        void hydrateFriendAvatar(item.contact, item.face, item.button, generation);
+      }
       const footer = document.createElement("div");
       footer.className = "muted";
       footer.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 2px";
