@@ -29,6 +29,7 @@ async function validateTrust(trust, relationshipId, localIdentity) {
       !validFingerprint(trust.remoteFingerprint) || !trust.remotePublicKeySpki) fail("E2E_RELATIONSHIP_NOT_TRUSTED");
   if (!localIdentity || !validFingerprint(localIdentity.fingerprint) ||
       localIdentity.fingerprint === trust.remoteFingerprint) fail("E2E_LOCAL_IDENTITY_INVALID");
+  if (await fingerprint(fromB64u(trust.remotePublicKeySpki, 1024)) !== trust.remoteFingerprint) fail("E2E_REMOTE_KEY_FINGERPRINT_MISMATCH");
 }
 async function verifySignature(publicKeySpki, payload, signature) {
   const raw = fromB64u(publicKeySpki, 1024);
