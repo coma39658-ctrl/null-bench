@@ -110,6 +110,11 @@ try {
     { id: savedA.relationshipId, fingerprint: identityB.fingerprint });
   assert.deepEqual([...persistedV2.bytes], [...friendPhotoV2]);
   assert.notEqual(persistedV2.updatedAt, "");
+  await a.reload();
+  await a.waitForFunction(() => Boolean(window.EZERO_CONNECT_TRUST));
+  const afterReload = await a.evaluate(args => window.EZERO_CONNECT_TRUST.getTrustedFriendProfile(args.id, args.fingerprint),
+    { id: savedA.relationshipId, fingerprint: identityB.fingerprint });
+  assert.deepEqual([...afterReload.bytes], [...friendPhotoV2]);
   const wrongFriendPhotoIdentity = await a.evaluate(async args => {
     try { await window.EZERO_CONNECT_TRUST.saveTrustedFriendProfile(args.id, args.fingerprint, args.bytes); return "ACCEPTED"; }
     catch (error) { return error.message; }
