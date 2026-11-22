@@ -73,9 +73,9 @@
   }
   async function save(displayName, avatarDataUrl) {
     const name = String(displayName || "").trim();
-    if (!name || name.length > 48 || /[\\u0000-\\u001F\\u007F]/.test(name)) throw new Error("PROFILE_NAME_INVALID");
+    if (!name || name.length > 48 || /[\u0000-\u001F\u007F]/.test(name)) throw new Error("PROFILE_NAME_INVALID");
     const avatar = String(avatarDataUrl || "");
-    if (avatar && (!/^data:image\\/(?:jpeg|png|webp);base64,/.test(avatar) || avatar.length > 260000)) {
+    if (avatar && (!/^data:image\/(?:jpeg|png|webp);base64,/.test(avatar) || avatar.length > 260000)) {
       throw new Error("PROFILE_AVATAR_INVALID");
     }
     const value = { v: 1, displayName: name, avatarDataUrl: avatar, updatedAt: new Date().toISOString() };
@@ -89,7 +89,7 @@
     return { displayName: current.displayName, hasAvatar: Boolean(current.avatarDataUrl) };
   }
   async function compressImage(file) {
-    if (!(file instanceof Blob) || !/^image\\/(?:jpeg|png|webp)$/.test(file.type) || file.size > 8 * 1024 * 1024) {
+    if (!(file instanceof Blob) || !/^image\/(?:jpeg|png|webp)$/.test(file.type) || file.size > 8 * 1024 * 1024) {
       throw new Error("PROFILE_IMAGE_FILE_INVALID");
     }
     const bitmap = await createImageBitmap(file);
