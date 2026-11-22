@@ -97,6 +97,22 @@ try {
   assert.equal(await a.evaluate(fp => window.EZERO_CONNECT_TRUST.canReconnect(fp), identityB.fingerprint), true);
   assert.equal(await b.evaluate(fp => window.EZERO_CONNECT_TRUST.canReconnect(fp), identityA.fingerprint), true);
 
+  const trustedPeerA = await a.evaluate(id => window.EZERO_CONNECT_TRUST.getTrustedContact(id), savedA.relationshipId);
+  const trustedPeerB = await b.evaluate(id => window.EZERO_CONNECT_TRUST.getTrustedContact(id), savedB.relationshipId);
+  assert.equal(trustedPeerA.relationshipId, savedA.relationshipId);
+  assert.equal(trustedPeerA.remoteFingerprint, identityB.fingerprint);
+  assert.equal(trustedPeerA.remotePublicKeySpki, identityB.publicKeySpki);
+  assert.equal(trustedPeerA.status, "TRUSTED");
+  assert.equal(trustedPeerB.remoteFingerprint, identityA.fingerprint);
+  assert.equal(trustedPeerB.remotePublicKeySpki, identityA.publicKeySpki);
+  assert.equal(Object.isFrozen(trustedPeerA), true);
+
+  const unknownRelationship = await a.evaluate(async () => {
+    try { await window.EZERO_CONNECT_TRUST.getTrustedContact("0".repeat(64)); return "ACCEPTED"; }
+    catch (error) { return error.message; }
+  });
+  assert.equal(unknownRelationship, "TRUST_RELATIONSHIP_NOT_TRUSTED");
+
   const atRest = await a.evaluate(async () => {
     const db = await new Promise((resolve, reject) => {
       const request = indexedDB.open("ezero-connect-trusted-contacts", 1);
