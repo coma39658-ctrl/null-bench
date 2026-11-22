@@ -62,6 +62,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
   let currentFingerprint = null;
   let currentRelationshipId = null;
   let currentFriendName = "";
+  let connectionGeneration = 0;
   let recorder = null;
   let cancelRecording = false;
   let stream = null;
@@ -186,6 +187,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
   }
 
   async function connect(detail) {
+    const generation = ++connectionGeneration;
     const fingerprint = detail?.fingerprint;
     const relationshipId = detail?.relationshipId;
     if (!fingerprint || !relationshipId) {
@@ -206,8 +208,10 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     friendAvatar.removeAttribute("src");
     try {
       const savedProfile = await globalThis.EZERO_CONNECT_TRUST.getTrustedFriendProfile(relationshipId, fingerprint);
+      if (generation !== connectionGeneration || currentRelationshipId !== relationshipId || currentFingerprint !== fingerprint) return;
       if (savedProfile.bytes) showFriendAvatar(savedProfile.bytes);
     } catch (_) { /* No saved friend photo yet; keep the name/initials. */ }
+    if (generation !== connectionGeneration || currentRelationshipId !== relationshipId || currentFingerprint !== fingerprint) return;
     currentFriendName = String(detail.displayName || "").trim();
     $("chatTitle").textContent = currentFriendName ? currentFriendName + " · " + t("title") : t("title");
     status(t("waiting"));
@@ -215,7 +219,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       session = createTrustedFriendMessagingSession({
         relationshipId,
         onState: value => {
-          if (currentFingerprint !== fingerprint) return;
+          if (generation !== connectionGeneration || currentFingerprint !== fingerprint || currentRelationshipId !== relationshipId) return;
           if (value.state === "rendezvous-waiting-for-peer" || value.state === "rendezvous-peer-offline") {
             status(t("peer"));
           } else if (value.state === "transport-secure") {
@@ -231,7 +235,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       unsubscribe = session.subscribe(message => receive(message, relationshipId, fingerprint));
       controls();
       await session.ready;
-      if (currentFingerprint !== fingerprint) return;
+      if (generation !== connectionGeneration || currentFingerprint !== fingerprint || currentRelationshipId !== relationshipId) return;
       status(t("secure"), "ok");
       controls();
       void sendCurrentProfileIfChanged(false).catch(() => status(t("failed"), "error"));
@@ -259,23 +263,26 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
   }
 
   async function sendCurrentProfileIfChanged(force) {
-    const syncId = currentRelationshipId;
+    const relationshipId = currentRelationshipId;
+    const fingerprint = currentFingerprint;
+    const activeSession = session;
+    const generation = connectionGeneration;
+    const syncId = relationshipId;
     if (!syncId) return false;
     if (profileSyncPromises.has(syncId)) return profileSyncPromises.get(syncId);
     const promise = (async () => {
-    if (!secure() || !currentRelationshipId || !currentFingerprint) return false;
+    const stillCurrent = () => generation === connectionGeneration && relationshipId === currentRelationshipId && fingerprint === currentFingerprint && activeSession === session && secure();
+    if (!relationshipId || !fingerprint || !activeSession || !stillCurrent()) return false;
     const bytes = await getOwnProfileBytes();
-    if (!bytes) return false;
+    if (!bytes || !stillCurrent()) return false;
     const digest = await crypto.subtle.digest("SHA-256", bytes);
     const hash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
     const trust = globalThis.EZERO_CONNECT_TRUST;
-    const previous = await trust.getTrustedFriendProfile(currentRelationshipId, currentFingerprint);
+    const previous = await trust.getTrustedFriendProfile(relationshipId, fingerprint);
+    if (!stillCurrent()) return false;
     if (!force && previous.lastSharedHash === hash) return false;
-    const activeSession = session;
-    const relationshipId = currentRelationshipId;
-    const fingerprint = currentFingerprint;
     await activeSession.sendProfile(bytes);
-    if (activeSession !== session || relationshipId !== currentRelationshipId || fingerprint !== currentFingerprint) return false;
+    if (!stillCurrent()) return false;
     await trust.setTrustedFriendProfileSharedHash(relationshipId, fingerprint, hash);
     return true;
     })();
