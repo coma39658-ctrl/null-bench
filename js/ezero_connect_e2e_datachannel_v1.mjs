@@ -130,7 +130,7 @@ export function createE2EDataChannelSession({
     if (!exactKeys(envelope, ["messageId", "payload"]) ||
         typeof envelope.messageId !== "string" || typeof envelope.payload !== "string") fail("E2E_DATA_ENVELOPE_INVALID");
     const bytes = fromB64u(envelope.payload);
-    if (!bytes.length || bytes.length > MAX_FRAME_BYTES) fail("E2E_DATA_PAYLOAD_SIZE_INVALID");
+    if (!bytes.length || bytes.length > MAX_FRAME_BYTES || (opened.type === "profile" && bytes.length > 140 * 1024)) fail("E2E_DATA_PAYLOAD_SIZE_INVALID");
     await onMessage(Object.freeze({ type: opened.type, messageId: envelope.messageId, bytes }));
     const ack = encoder.encode(JSON.stringify({ messageId: envelope.messageId }));
     sendFrame(await secureChannel.encrypt("ack", ack));
@@ -189,9 +189,9 @@ export function createE2EDataChannelSession({
   }
   async function send(type, bytes) {
     if (closed || !secureChannel) fail("E2E_DATA_SESSION_NOT_READY");
-    if (!["text", "voice"].includes(type)) fail("E2E_DATA_TYPE_INVALID");
+    if (!["text", "voice", "profile"].includes(type)) fail("E2E_DATA_TYPE_INVALID");
     const payload = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
-    if (!payload.length || payload.length > MAX_PAYLOAD_BYTES) fail("E2E_DATA_PAYLOAD_SIZE_INVALID");
+    if (!payload.length || payload.length > MAX_PAYLOAD_BYTES || (type === "profile" && payload.length > 140 * 1024)) fail("E2E_DATA_PAYLOAD_SIZE_INVALID");
     const messageId = randomId();
     const envelope = encoder.encode(JSON.stringify({ messageId, payload: b64u(payload) }));
     const frame = await secureChannel.encrypt(type, envelope);
