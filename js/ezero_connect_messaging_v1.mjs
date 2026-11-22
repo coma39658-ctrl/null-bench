@@ -63,7 +63,12 @@ export function createMessagingController({
     if (!active?.session.isSecure) throw new Error("E2E_MESSAGING_NOT_CONNECTED");
     return active.session.send("voice", bytes);
   }
-  async function sendProfile(bytes) {\n    if (!(bytes instanceof Uint8Array) || !bytes.length || bytes.length > 140 * 1024) throw new Error("E2E_MESSAGING_PROFILE_INVALID");\n    if (!active?.session.isSecure) throw new Error("E2E_MESSAGING_NOT_CONNECTED");\n    return active.session.send("profile", bytes);\n  }\n  function subscribe(handler) {
+  async function sendProfile(bytes) {
+    if (!(bytes instanceof Uint8Array) || !bytes.length || bytes.length > 140 * 1024) throw new Error("E2E_MESSAGING_PROFILE_INVALID");
+    if (!active?.session.isSecure) throw new Error("E2E_MESSAGING_NOT_CONNECTED");
+    return active.session.send("profile", bytes);
+  }
+  function subscribe(handler) {
     if (typeof handler !== "function") throw new Error("E2E_MESSAGING_SUBSCRIBER_INVALID");
     subscribers.add(handler);
     return () => subscribers.delete(handler);
