@@ -50,7 +50,11 @@ export function createWebRTCMessagingTransport({
   const role = localFingerprint < remoteFingerprint ? "initiator" : "responder";
   const pc = new RTCPeerConnectionImpl({ iceServers: validatedIceServers });
   const messaging = messagingFactory({ trustApi, identityApi, onState: value => emit(value.state, value) });
-  const unsubscribeMessage = messaging.subscribe(onMessage);
+  const subscribers = new Set();
+  const unsubscribeMessage = messaging.subscribe(async message => {
+    await onMessage(message);
+    for (const subscriber of [...subscribers]) await subscriber(message);
+  });
   let closed = false;
   let started = false;
   let attached = false;
@@ -169,6 +173,13 @@ export function createWebRTCMessagingTransport({
         emit("offer-sent");
       } catch (error) { failTransport(error); }
       return ready;
+    },
+    sendText: text => messaging.sendText(text),
+    sendVoice: bytes => messaging.sendVoice(bytes),
+    subscribe(handler) {
+      if (typeof handler !== "function") fail("WEBRTC_MESSAGING_SUBSCRIBER_INVALID");
+      subscribers.add(handler);
+      return () => subscribers.delete(handler);
     },
     close,
     get state() { return closed ? "closed" : messaging.state; }
