@@ -1,0 +1,123 @@
+import { createTrustedRendezvousClient } from "./ezero_connect_rendezvous_client_v1.mjs";
+import { createWebRTCMessagingTransport } from "./ezero_connect_webrtc_messaging_transport_v1.mjs";
+
+function fail(code) { throw new Error(code); }
+
+export function createTrustedFriendMessagingSession({
+  signalingUrl = globalThis.EZERO_CONNECT_CONFIG?.signalingUrl,
+  relationshipId,
+  iceServers = [],
+  trustApi = globalThis.EZERO_CONNECT_TRUST,
+  identityApi = globalThis.EZERO_CONNECT_IDENTITY,
+  WebSocketImpl = globalThis.WebSocket,
+  RTCPeerConnectionImpl = globalThis.RTCPeerConnection,
+  rendezvousFactory = createTrustedRendezvousClient,
+  transportFactory = createWebRTCMessagingTransport,
+  onMessage = async () => {},
+  onState = () => {}
+} = {}) {
+  if (typeof relationshipId !== "string" || !/^[a-f0-9]{64}$/.test(relationshipId) ||
+      typeof onMessage !== "function" || typeof onState !== "function") fail("TRUSTED_FRIEND_SESSION_INPUT_INVALID");
+
+  let closed = false;
+  let transport = null;
+  let starting = false;
+  let settled = false;
+  const subscribers = new Set();
+  let resolveReady, rejectReady;
+  const ready = new Promise((resolve, reject) => { resolveReady = resolve; rejectReady = reject; });
+  ready.catch(() => {});
+
+  function emit(state, detail = {}) {
+    try { onState(Object.freeze({ state, relationshipId, ...detail })); } catch (_) {}
+  }
+  function reject(error) {
+    if (settled) return;
+    settled = true;
+    rejectReady(error instanceof Error ? error : new Error("TRUSTED_FRIEND_SESSION_FAILED"));
+  }
+  function resolve(value) {
+    if (settled) return;
+    settled = true;
+    resolveReady(value);
+  }
+  function close() {
+    if (closed) return;
+    closed = true;
+    try { transport?.close(); } catch (_) {}
+    try { rendezvous.close(); } catch (_) {}
+    emit("closed");
+    reject(new Error("TRUSTED_FRIEND_SESSION_CLOSED"));
+  }
+
+  const rendezvous = rendezvousFactory({
+    signalingUrl, relationshipId, trustApi, identityApi, WebSocketImpl,
+    onState: value => {
+      emit("rendezvous-" + value.state, value);
+      if (value.state === "peer-ready" && !starting && !closed) void attachPeer(value.peerFingerprint);
+      if (["error", "expired", "closed"].includes(value.state) && !transport) {
+        reject(new Error(value.error || "TRUSTED_RENDEZVOUS_" + value.state.toUpperCase()));
+      }
+    }
+  });
+
+  async function attachPeer(peerFingerprint) {
+    starting = true;
+    try {
+      await rendezvous.ready;
+      const [contact, identity] = await Promise.all([
+        trustApi.getTrustedContact(relationshipId),
+        identityApi.getPublicIdentity()
+      ]);
+      if (closed) return;
+      if (!contact || contact.status !== "TRUSTED" || contact.relationshipId !== relationshipId ||
+          contact.remoteFingerprint !== peerFingerprint ||
+          identity?.fingerprint === peerFingerprint) fail("TRUSTED_FRIEND_PEER_IDENTITY_MISMATCH");
+      transport = transportFactory({
+        signalingSession: rendezvous,
+        relationshipId,
+        localFingerprint: identity.fingerprint,
+        remoteFingerprint: contact.remoteFingerprint,
+        iceServers,
+        RTCPeerConnectionImpl,
+        trustApi,
+        identityApi,
+        onMessage: async message => {
+          await onMessage(message);
+          for (const subscriber of [...subscribers]) await subscriber(message);
+        },
+        onState: value => {
+          emit("transport-" + value.state, value);
+          if (value.state === "secure") resolve(Object.freeze({ state: "secure", relationshipId }));
+          if (value.state === "error") reject(new Error(value.error || "TRUSTED_FRIEND_TRANSPORT_FAILED"));
+        }
+      });
+      void transport.start().catch(reject);
+      await transport.ready;
+      if (!closed && !settled) resolve(Object.freeze({ state: "secure", relationshipId }));
+    } catch (error) {
+      emit("error", { error: error?.message || "TRUSTED_FRIEND_ATTACH_FAILED" });
+      reject(error);
+      close();
+    }
+  }
+
+  return Object.freeze({
+    ready,
+    sendText(text) {
+      if (closed || !transport) fail("TRUSTED_FRIEND_NOT_SECURE");
+      return transport.sendText(text);
+    },
+    sendVoice(bytes) {
+      if (closed || !transport) fail("TRUSTED_FRIEND_NOT_SECURE");
+      return transport.sendVoice(bytes);
+    },
+    subscribe(handler) {
+      if (typeof handler !== "function") fail("TRUSTED_FRIEND_SUBSCRIBER_INVALID");
+      subscribers.add(handler);
+      return () => subscribers.delete(handler);
+    },
+    close,
+    get state() { return closed ? "closed" : transport?.state || rendezvous.state; }
+  });
+}
