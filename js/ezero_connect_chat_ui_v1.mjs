@@ -60,6 +60,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
   let session = null;
   let unsubscribe = null;
   let currentFingerprint = null;
+  let currentFriendName = "";
   let recorder = null;
   let cancelRecording = false;
   let stream = null;
@@ -167,6 +168,8 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     currentFingerprint = fingerprint;
     panel.hidden = false;
     $("chatMessages").replaceChildren();
+    currentFriendName = String(detail.displayName || "").trim();
+    $("chatTitle").textContent = currentFriendName ? currentFriendName + " · " + t("title") : t("title");
     status(t("waiting"));
     try {
       session = createTrustedFriendMessagingSession({
@@ -294,7 +297,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
   document.addEventListener("ezero:friend-selected", event => { void connect(event.detail); });
   document.addEventListener("ezero:language-changed", event => {
     language = ["ur", "en", "ar"].includes(event.detail?.language) ? event.detail.language : "ur";
-    $("chatTitle").textContent = t("title");
+    $("chatTitle").textContent = currentFriendName ? currentFriendName + " · " + t("title") : t("title");
     $("chatMessage").placeholder = t("textPlaceholder");
     $("sendChatMessage").textContent = t("send");
     $("recordVoice").textContent = t("voice");
