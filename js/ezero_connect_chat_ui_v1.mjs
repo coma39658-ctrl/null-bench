@@ -20,7 +20,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       failed:"وصولی کی تصدیق نہیں ملی؛ Delivered نہیں دکھایا گیا۔",
       received:"موصول ہوا", notReady:"پہلے محفوظ دوست کے ساتھ کنکشن بننے دیں۔",
       voiceIncoming:"وائس پیغام", error:"محفوظ چیٹ کنکشن دستیاب نہیں۔",
-      noRelation:"اس محفوظ دوست کا relationship ID دستیاب نہیں۔"
+      noRelation:"اس محفوظ دوست کا relationship ID دستیاب نہیں۔", shareProfile:"اپنی DP محفوظ دوست کو بھیجیں", profileSent:"پروفائل تصویر محفوظ کنکشن پر بھیج دی گئی۔", profileReceived:"دوست کی پروفائل تصویر موصول ہوئی", profileMissing:"پہلے اپنی پروفائل میں تصویر محفوظ کریں۔", profileInvalid:"موصولہ پروفائل تصویر درست نہیں۔"
     },
     en: {
       title:"Chat with saved friend", waiting:"Establishing secure connection…",
@@ -36,7 +36,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       received:"Received", voiceIncoming:"Voice message",
       notReady:"Wait for a secure connection to the saved friend.",
       error:"Secure chat connection is unavailable.",
-      noRelation:"The saved friend relationship ID is unavailable."
+      noRelation:"The saved friend relationship ID is unavailable.", shareProfile:"Share my DP with saved friend", profileSent:"Profile photo sent over the secure connection.", profileReceived:"Friend profile photo received", profileMissing:"Save a photo in your profile first.", profileInvalid:"The received profile image is invalid."
     },
     ar: {
       title:"محادثة مع صديق محفوظ", waiting:"جارٍ إنشاء اتصال آمن…",
@@ -52,7 +52,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       received:"تم الاستلام", voiceIncoming:"رسالة صوتية",
       notReady:"انتظر إنشاء اتصال آمن مع الصديق المحفوظ.",
       error:"اتصال المحادثة الآمنة غير متاح.",
-      noRelation:"معرّف علاقة الصديق المحفوظ غير متاح."
+      noRelation:"معرّف علاقة الصديق المحفوظ غير متاح.", shareProfile:"مشاركة صورتي مع الصديق", profileSent:"تم إرسال الصورة عبر الاتصال الآمن.", profileReceived:"تم استلام صورة الصديق", profileMissing:"احفظ صورة في ملفك الشخصي أولاً.", profileInvalid:"صورة الملف الشخصي المستلمة غير صالحة."
     }
   };
 
@@ -67,7 +67,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
   let chunks = [];
   let voiceBlob = null;
   let voiceUrl = null;
-  let stopLimit = null;
+  let stopLimit = null;\n  let friendAvatarUrl = null;\n  const shareProfileButton = document.createElement("button");\n  shareProfileButton.type = "button";\n  shareProfileButton.className = "secondary";\n  shareProfileButton.disabled = true;\n  shareProfileButton.textContent = t("shareProfile");\n  $("chatPanel").querySelector(".chat-tools")?.append(shareProfileButton);\n  const friendAvatar = document.createElement("img");\n  friendAvatar.alt = "Verified friend profile photo";\n  friendAvatar.hidden = true;\n  friendAvatar.style.cssText = "width:38px;height:38px;object-fit:cover;border-radius:50%;flex:0 0 38px";\n  $("chatTitle")?.parentElement?.insertBefore(friendAvatar, $("chatTitle"));
   const encoder = new TextEncoder();
   const decoder = new TextDecoder("utf-8", { fatal: true });
 
@@ -85,7 +85,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     $("sendChatMessage").disabled = !connected;
     $("recordVoice").disabled = !connected || Boolean(recorder);
     $("stopVoice").disabled = !recorder;
-    $("sendVoice").disabled = !connected || !voiceBlob;
+    $("sendVoice").disabled = !connected || !voiceBlob;\n    shareProfileButton.disabled = !connected;
   }
   function clearVoice() {
     if (voiceUrl) URL.revokeObjectURL(voiceUrl);
@@ -133,7 +133,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       addMessage(t("received"), decoded, "received");
       return;
     }
-    if (message.type === "voice") {
+    if (message.type === "profile") {\n      const bytes = message.bytes;\n      if (bytes.length < 4 || bytes.length > 140 * 1024 || bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) throw new Error("CHAT_PROFILE_JPEG_INVALID");\n      if (friendAvatarUrl) URL.revokeObjectURL(friendAvatarUrl);\n      friendAvatarUrl = URL.createObjectURL(new Blob([bytes], { type: "image/jpeg" }));\n      friendAvatar.src = friendAvatarUrl;\n      friendAvatar.hidden = false;\n      addMessage(t("profileReceived"), "JPEG · " + Math.round(bytes.length / 1024) + " KB", "received");\n      return;\n    }\n    if (message.type === "voice") {
       const blob = new Blob([message.bytes], { type: "audio/webm" });
       const url = URL.createObjectURL(blob);
       const row = document.createElement("div");
@@ -202,7 +202,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     }
   }
 
-  $("sendChatMessage").addEventListener("click", async () => {
+  shareProfileButton.addEventListener("click", async () => {\n    if (!secure()) return;\n    try {\n      const profile = await globalThis.EZERO_CONNECT_LOCAL_PROFILE?.load?.();\n      const match = /^data:image\\/jpeg;base64,([A-Za-z0-9+/]+={0,2})$/.exec(profile?.avatarDataUrl || "");\n      if (!match) { status(t("profileMissing"), "error"); return; }\n      const binary = atob(match[1]);\n      const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));\n      if (bytes.length < 4 || bytes.length > 140 * 1024 || bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) { status(t("profileInvalid"), "error"); return; }\n      shareProfileButton.disabled = true;\n      await session.sendProfile(bytes);\n      status(t("profileSent"), "ok");\n    } catch (_) { status(t("failed"), "error"); } finally { controls(); }\n  });\n\n  $("sendChatMessage").addEventListener("click", async () => {
     const value = $("chatMessage").value.trim();
     if (!value || !secure()) return;
     $("sendChatMessage").disabled = true;
@@ -303,7 +303,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     $("recordVoice").textContent = t("voice");
     $("stopVoice").textContent = t("stop");
     $("cancelVoice").textContent = t("cancel");
-    $("sendVoice").textContent = t("sendVoice");
+    $("sendVoice").textContent = t("sendVoice");\n    shareProfileButton.textContent = t("shareProfile");
   });
   window.addEventListener("pagehide", () => {
     if (recorder && recorder.state !== "inactive") { cancelRecording = true; recorder.stop(); }
