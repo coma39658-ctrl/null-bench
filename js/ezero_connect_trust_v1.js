@@ -278,6 +278,22 @@
     );
   }
 
+  async function getTrustedContact(relationshipId) {
+    if (typeof relationshipId !== "string" || !/^[a-f0-9]{64}$/.test(relationshipId)) {
+      throw new Error("TRUST_RELATIONSHIP_ID_INVALID");
+    }
+    const records = await allContacts();
+    const record = records.find(item => item.relationshipId === relationshipId);
+    if (!record || record.status !== "TRUSTED") throw new Error("TRUST_RELATIONSHIP_NOT_TRUSTED");
+    return Object.freeze({
+      relationshipId: record.relationshipId,
+      remoteFingerprint: record.remoteFingerprint,
+      remotePublicKeySpki: record.remotePublicKeySpki,
+      displayName: record.displayName,
+      status: record.status
+    });
+  }
+
   async function canReconnect(remoteFingerprint) {
     if (!/^(?:[0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(remoteFingerprint)) return false;
     const records = await allContacts();
