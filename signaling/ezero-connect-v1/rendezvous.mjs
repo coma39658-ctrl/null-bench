@@ -52,6 +52,21 @@ export async function verifyReconnectProof(proof, expectedRelationshipId, challe
       !Array.isArray(t.participants) || t.participants.length !== 2) {
     throw new Error("RENDEZVOUS_TRANSCRIPT_INVALID");
   }
+  if (!/^[A-F0-9:]{95}$/.test(p.localFingerprint) || !/^[A-F0-9:]{95}$/.test(p.remoteFingerprint) ||
+      !/^[A-Za-z0-9_-]{32}$/.test(t.roomId || "") || !/^[A-Za-z0-9_-]{32}$/.test(t.inviteNonce || "") ||
+      !Number.isSafeInteger(t.inviteIssuedAt) || !Number.isSafeInteger(t.inviteExpiresAt) ||
+      !Number.isSafeInteger(t.createdAt) || t.createdAt < t.inviteIssuedAt || t.createdAt > t.inviteExpiresAt ||
+      !(t.participants[0].fingerprint < t.participants[1].fingerprint)) {
+    throw new Error("RENDEZVOUS_TRANSCRIPT_FIELDS_INVALID");
+  }
+  for (const participant of t.participants) {
+    if (!/^(?:[0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(participant.fingerprint) || typeof participant.publicKeySpki !== "string") {
+      throw new Error("RENDEZVOUS_PARTICIPANT_INVALID");
+    }
+    const digest = await crypto.subtle.digest("SHA-256", decode(participant.publicKeySpki));
+    const fingerprint = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, "0").toUpperCase()).join(":");
+    if (fingerprint !== participant.fingerprint) throw new Error("RENDEZVOUS_PARTICIPANT_KEY_MISMATCH");
+  }
   const transcriptHash = await hashHex(canonical(t));
   const relationshipId = await hashHex(canonical(t));
   if (transcriptHash !== p.transcriptHash || relationshipId !== expectedRelationshipId) {
