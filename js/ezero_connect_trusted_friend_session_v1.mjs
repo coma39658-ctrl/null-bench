@@ -114,7 +114,11 @@ export function createTrustedFriendMessagingSession({
       if (closed || !transport) fail("TRUSTED_FRIEND_NOT_SECURE");
       return transport.sendVoice(bytes);
     },
-    sendProfile(bytes) {\n      if (closed || !transport) fail("TRUSTED_FRIEND_NOT_SECURE");\n      return transport.sendProfile(bytes);\n    },\n    subscribe(handler) {
+    sendProfile(bytes) {
+      if (closed || !transport) fail("TRUSTED_FRIEND_NOT_SECURE");
+      return transport.sendProfile(bytes);
+    },
+    subscribe(handler) {
       if (typeof handler !== "function") fail("TRUSTED_FRIEND_SUBSCRIBER_INVALID");
       subscribers.add(handler);
       return () => subscribers.delete(handler);
