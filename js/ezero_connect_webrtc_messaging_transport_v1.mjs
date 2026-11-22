@@ -161,6 +161,7 @@ export function createWebRTCMessagingTransport({
       }
       try {
         const channel = pc.createDataChannel("ezero-secure-messages-v1", { ordered: true });
+        void attachDataChannel(channel);
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
         if (!isDescription(pc.localDescription, "offer")) fail("WEBRTC_LOCAL_OFFER_INVALID");
