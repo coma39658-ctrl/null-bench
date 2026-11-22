@@ -44,7 +44,7 @@
       invalid:"تعذر التحقق من موافقة الصديق."
     }
   };
-  let lang = "ur";
+  let lang = (() => { try { const v = localStorage.getItem("ezero_connect_language_v1"); return ["ur","en","ar"].includes(v) ? v : "ur"; } catch (_) { return "ur"; } })();
   let role = null;
   let session = null;
   let invite = null;
@@ -211,8 +211,10 @@
   });
   $("pairingCancel").textContent = t("cancel");
   $("pairingCancel").addEventListener("click", cancel);
-  $("language").addEventListener("click", () => {
-    lang = lang === "ur" ? "en" : lang === "en" ? "ar" : "ur";
+  document.addEventListener("ezero:language-changed", event => {
+    const value = event.detail?.language;
+    if (["ur","en","ar"].includes(value)) lang = value;
+    if (role) $("pairingRole").textContent = role === "host" ? t("host") : t("guest");
     $("pairingTitle").textContent = t("title");
     $("pairingCancel").textContent = t("cancel");
   });
