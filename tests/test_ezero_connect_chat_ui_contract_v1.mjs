@@ -28,11 +28,16 @@ assert.match(ui, /wasCancelled/);
 assert.match(ui, /URL\.revokeObjectURL/);
 assert.match(session, /if \(!delivered\) throw new Error\("TRUSTED_FRIEND_NO_MESSAGE_RECEIVER"\)/);
 assert.match(session, /transport\.sendText\(text\)/);
-assert.match(session, /transport\.sendVoice\(bytes\)/);\nassert.match(ui, /sendProfile\(bytes\)/);\nassert.match(ui, /message\.type === "profile"/);\nassert.match(ui, /140 \* 1024/);\nassert.match(session, /transport\.sendProfile\(bytes\)/);
+assert.match(session, /transport\.sendVoice\(bytes\)/);
+assert.match(ui, /sendProfile\(bytes\)/);
+assert.match(ui, /message\.type === "profile"/);
+assert.match(ui, /140 \* 1024/);
+assert.match(session, /transport\.sendProfile\(bytes\)/);
 
 console.log("PASS saved-friend chat controls are hidden until a verified friend is selected");
 console.log("PASS text and voice send require an established secure session");
 console.log("PASS microphone is requested only by the explicit record button");
 console.log("PASS voice recording is bounded, cancellable, and not auto-sent");
-console.log("PASS Delivered label is applied only after the send promise confirms authenticated receipt\nconsole.log("PASS profile image sharing is user-triggered, JPEG-only, size-bounded, and rendered only after E2E delivery");");
+console.log("PASS Delivered label is applied only after the send promise confirms authenticated receipt");
+console.log("PASS profile image sharing is user-triggered, JPEG-only, size-bounded, and rendered only after E2E delivery");
 console.log("BOUNDARY: static UI contract only; no live browser media, real peer, network, or Android notification proof");
