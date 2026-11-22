@@ -302,7 +302,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     $("sendVoice").textContent = t("sendVoice");
   });
   window.addEventListener("pagehide", () => {
-    if (recorder && recorder.state !== "inactive") recorder.stop();
+    if (recorder && recorder.state !== "inactive") { cancelRecording = true; recorder.stop(); }
     releaseRecorder();
     closeSession();
     clearVoice();
