@@ -87,6 +87,7 @@
     await transaction(STORE, "readwrite", store => store.put({ id: "primary", iv, ciphertext: new Uint8Array(ciphertext) }));
     current = { displayName: name, avatarDataUrl: avatar };
     render();
+    document.dispatchEvent(new CustomEvent("ezero:local-profile-updated", { detail: { hasAvatar: Boolean(current.avatarDataUrl) } }));
     return { displayName: current.displayName, hasAvatar: Boolean(current.avatarDataUrl) };
   }
   async function compressImage(file) {
