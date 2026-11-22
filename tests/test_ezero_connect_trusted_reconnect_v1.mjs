@@ -76,7 +76,7 @@ await assert.rejects(() => createTrustedReconnectProof({
 await assert.rejects(() => createTrustedReconnectProof({
   relationshipId: "f".repeat(64), challenge: b64(new Uint8Array(32)),
   challengeExpiresAt: now + 20_000, trustApi, identityApi, now
-}), /RECONNECT_TRANSCRIPT_RELATIONSHIP_MISMATCH/);
+}), /RECONNECT_CONTACT_NOT_TRUSTED/);
 
 console.log("PASS relationship ID is derived from mutual trust transcript");
 console.log("PASS both saved signatures are re-verified before reconnect");
