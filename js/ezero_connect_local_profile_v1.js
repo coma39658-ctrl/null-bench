@@ -8,6 +8,7 @@
   const $ = id => document.getElementById(id);
   let current = { displayName: "", avatarDataUrl: "" };
   let pendingAvatar = "";
+  let removeAvatar = false;
 
   function openDb() {
     if (!globalThis.indexedDB || !globalThis.crypto?.subtle || !globalThis.isSecureContext) {
@@ -131,7 +132,7 @@
     const preview = $("myProfilePreview");
     if (preview) {
       preview.replaceChildren();
-      if (current.avatarDataUrl || pendingAvatar) {
+      if (!removeAvatar && (current.avatarDataUrl || pendingAvatar)) {
         const img = document.createElement("img");
         img.src = pendingAvatar || current.avatarDataUrl;
         img.alt = "Profile preview";
@@ -150,20 +151,20 @@
     $("myProfilePhoto")?.addEventListener("change", async event => {
       const file = event.target.files?.[0];
       if (!file) return;
-      try { pendingAvatar = await compressImage(file); render(); status("تصویر تیار ہے؛ محفوظ کرنے کے لیے دبائیں۔"); }
+      try { pendingAvatar = await compressImage(file); removeAvatar = false; render(); status("تصویر تیار ہے؛ محفوظ کرنے کے لیے دبائیں۔"); }
       catch (error) { pendingAvatar = ""; status(error.message === "PROFILE_IMAGE_TOO_LARGE" ? "تصویر کا حجم کم نہیں ہو سکا۔ دوسری تصویر منتخب کریں۔" : "یہ تصویر استعمال نہیں ہو سکی۔", true); }
     });
-    $("removeMyProfilePhoto")?.addEventListener("click", () => { pendingAvatar = ""; current.avatarDataUrl = ""; render(); status("تصویر ہٹا دی گئی؛ تبدیلی محفوظ کریں۔"); });
+    $("removeMyProfilePhoto")?.addEventListener("click", () => { pendingAvatar = ""; removeAvatar = true; render(); status("تصویر ہٹا دی گئی؛ تبدیلی محفوظ کریں۔"); });
     $("saveMyProfile")?.addEventListener("click", async () => {
       try {
-        await save($("myProfileName")?.value, pendingAvatar || current.avatarDataUrl);
-        pendingAvatar = ""; editor.hidden = true;
+        await save($("myProfileName")?.value, removeAvatar ? "" : (pendingAvatar || current.avatarDataUrl));
+        pendingAvatar = ""; removeAvatar = false; editor.hidden = true;
         status("آپ کی پروفائل اسی فون میں محفوظ ہو گئی۔");
       } catch (error) {
         status(error.message === "PROFILE_NAME_INVALID" ? "نام 1 سے 48 حروف کا ہونا چاہیے۔" : "پروفائل محفوظ نہیں ہو سکی؛ مقامی محفوظ اسٹوریج چیک کریں۔", true);
       }
     });
-    $("cancelMyProfile")?.addEventListener("click", () => { pendingAvatar = ""; editor.hidden = true; render(); });
+    $("cancelMyProfile")?.addEventListener("click", () => { pendingAvatar = ""; removeAvatar = false; editor.hidden = true; render(); });
     load().then(value => {
       if (!value.displayName) {
         const node = $("myProfileName");
