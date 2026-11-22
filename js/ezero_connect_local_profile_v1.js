@@ -172,6 +172,7 @@
       }
     }).catch(() => status("محفوظ پروفائل اسٹوریج دستیاب نہیں؛ کوئی غیر محفوظ متبادل استعمال نہیں ہوگا۔", true));
   }
+  document.addEventListener("ezero:language-changed", render);
   globalThis.EZERO_CONNECT_LOCAL_PROFILE = Object.freeze({ load, save, compressImage });
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true });
   else init();
