@@ -149,7 +149,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     friendAvatar.src = friendAvatarUrl;
     friendAvatar.hidden = false;
   }
-  async function receive(message, relationshipId, fingerprint) {
+  async function receive(message, relationshipId, fingerprint, generation) {
     if (!message || !(message.bytes instanceof Uint8Array)) throw new Error("CHAT_INBOUND_FRAME_INVALID");
     if (message.type === "text") {
       const decoded = decoder.decode(message.bytes);
@@ -161,6 +161,9 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       if (bytes.length < 4 || bytes.length > 140 * 1024 || bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) throw new Error("CHAT_PROFILE_JPEG_INVALID");
       if (relationshipId !== currentRelationshipId || fingerprint !== currentFingerprint) throw new Error("CHAT_PROFILE_RELATIONSHIP_CHANGED");
       await globalThis.EZERO_CONNECT_TRUST.saveTrustedFriendProfile(relationshipId, fingerprint, bytes);
+      // Persist under the original relationship, but never paint an old friend's
+      // delayed profile into a newly selected friend's chat.
+      if (generation !== connectionGeneration || relationshipId !== currentRelationshipId || fingerprint !== currentFingerprint) return;
       showFriendAvatar(bytes);
       addMessage(t("profileReceived"), "JPEG · " + Math.round(bytes.length / 1024) + " KB", "received");
       return;
@@ -232,7 +235,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
           }
         }
       });
-      unsubscribe = session.subscribe(message => receive(message, relationshipId, fingerprint));
+      unsubscribe = session.subscribe(message => receive(message, relationshipId, fingerprint, generation));
       controls();
       await session.ready;
       if (generation !== connectionGeneration || currentFingerprint !== fingerprint || currentRelationshipId !== relationshipId) return;
