@@ -78,7 +78,7 @@
           render();
           const status = $("callStatus");
           if (status) status.textContent = (copy[language] || copy.ur).callPending;
-          document.dispatchEvent(new CustomEvent("ezero:friend-selected", { detail: { fingerprint: selected, relationshipId: contact.relationshipId || null } }));
+          document.dispatchEvent(new CustomEvent("ezero:friend-selected", { detail: { fingerprint: selected, relationshipId: contact.relationshipId || null, displayName: String(contact.displayName || "").trim() } }));
         });
         fragment.append(button);
       }
