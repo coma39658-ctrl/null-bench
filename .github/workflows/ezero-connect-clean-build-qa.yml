@@ -136,7 +136,7 @@ jobs:
           printf '%s\\n' 'PUBLIC_ORIGIN=http://127.0.0.1:8769' > signaling/ezero-connect-v1/.dev.vars
           nohup npx wrangler dev --local --ip 127.0.0.1 --port 8787 --config signaling/ezero-connect-v1/wrangler.jsonc >/tmp/ezero-connect-worker.log 2>&1 &
           for i in $(seq 1 60); do
-            if curl -fsS http://127.0.0.1:8787/health >/dev/null; then exit 0; fi
+            if curl -fsS http://127.0.0.1:8787/health >/dev/null; then sleep 2; cat /tmp/ezero-connect-worker.log; exit 0; fi
             sleep 1
           done
           cat /tmp/ezero-connect-worker.log
