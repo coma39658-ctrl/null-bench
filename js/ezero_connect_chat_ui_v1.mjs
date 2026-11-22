@@ -70,7 +70,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
   let voiceUrl = null;
   let stopLimit = null;
   let friendAvatarUrl = null;
-  let profileSyncPromise = null;
+  const profileSyncPromises = new Map();
   const shareProfileButton = document.createElement("button");
   shareProfileButton.type = "button";
   shareProfileButton.className = "secondary";
@@ -259,8 +259,10 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
   }
 
   async function sendCurrentProfileIfChanged(force) {
-    if (profileSyncPromise) return profileSyncPromise;
-    profileSyncPromise = (async () => {
+    const syncId = currentRelationshipId;
+    if (!syncId) return false;
+    if (profileSyncPromises.has(syncId)) return profileSyncPromises.get(syncId);
+    const promise = (async () => {
     if (!secure() || !currentRelationshipId || !currentFingerprint) return false;
     const bytes = await getOwnProfileBytes();
     if (!bytes) return false;
@@ -277,8 +279,9 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     await trust.setTrustedFriendProfileSharedHash(relationshipId, fingerprint, hash);
     return true;
     })();
-    try { return await profileSyncPromise; }
-    finally { profileSyncPromise = null; }
+    profileSyncPromises.set(syncId, promise);
+    try { return await promise; }
+    finally { if (profileSyncPromises.get(syncId) === promise) profileSyncPromises.delete(syncId); }
   }
 
   shareProfileButton.addEventListener("click", async () => {
