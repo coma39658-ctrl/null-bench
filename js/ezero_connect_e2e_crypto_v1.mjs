@@ -114,7 +114,7 @@ function createSecureChannel({ keys, relationshipId, sessionId, role }) {
   let closed = false;
   async function encrypt(type, bytes) {
     if (closed) fail("E2E_CHANNEL_CLOSED");
-    if (!["text", "voice", "ack"].includes(type)) fail("E2E_FRAME_TYPE_INVALID");
+    if (!["text", "voice", "profile", "ack"].includes(type)) fail("E2E_FRAME_TYPE_INVALID");
     const plaintext = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
     if (!plaintext.length || plaintext.length > MAX_FRAME_BYTES) fail("E2E_FRAME_SIZE_INVALID");
     const sequence = ++sendSequence;
@@ -130,7 +130,7 @@ function createSecureChannel({ keys, relationshipId, sessionId, role }) {
     if (!m || m.v !== 1 || m.protocol !== PROTOCOL || m.relationshipId !== relationshipId ||
         m.sessionId !== sessionId || m.sender !== (role === "initiator" ? "responder" : "initiator") ||
         m.recipient !== role || !Number.isSafeInteger(m.sequence) || m.sequence !== receiveSequence + 1 ||
-        !["text", "voice", "ack"].includes(m.type)) fail("E2E_FRAME_REPLAY_OR_CONTEXT_INVALID");
+        !["text", "voice", "profile", "ack"].includes(m.type)) fail("E2E_FRAME_REPLAY_OR_CONTEXT_INVALID");
     const nonce = fromB64u(frame.nonce, 32);
     const ciphertext = fromB64u(frame.ciphertext, MAX_FRAME_BYTES * 2);
     if (nonce.length !== 12 || ciphertext.length < 17 || ciphertext.length > MAX_FRAME_BYTES + 16) fail("E2E_FRAME_SIZE_INVALID");
