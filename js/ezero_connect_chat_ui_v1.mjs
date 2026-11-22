@@ -61,6 +61,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
   let unsubscribe = null;
   let currentFingerprint = null;
   let recorder = null;
+  let cancelRecording = false;
   let stream = null;
   let chunks = [];
   let voiceBlob = null;
@@ -230,7 +231,10 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       });
       recorder.addEventListener("stop", () => {
         const blob = new Blob(chunks, { type: recorder?.mimeType || "audio/webm" });
+        const wasCancelled = cancelRecording;
+        cancelRecording = false;
         releaseRecorder();
+        if (wasCancelled) { chunks = []; clearVoice(); status(t("notReady")); return; }
         if (!blob.size || blob.size > 180 * 1024) {
           clearVoice();
           status(t("tooLarge"), "error");
@@ -261,7 +265,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     if (recorder && recorder.state !== "inactive") recorder.stop();
   });
   $("cancelVoice").addEventListener("click", () => {
-    if (recorder && recorder.state !== "inactive") recorder.stop();
+    if (recorder && recorder.state !== "inactive") { cancelRecording = true; recorder.stop(); }
     chunks = [];
     clearVoice();
     status(t("notReady"));
