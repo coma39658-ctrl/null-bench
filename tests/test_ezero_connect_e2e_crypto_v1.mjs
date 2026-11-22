@@ -41,7 +41,7 @@ const altered = await channelA.encrypt("text", enc.encode("tamper target"));
 altered.metadata.relationshipId = "b".repeat(64);
 await assert.rejects(() => channelB.decrypt(altered), /E2E_FRAME_REPLAY_OR_CONTEXT_INVALID/);
 const tampered = await channelA.encrypt("text", enc.encode("ciphertext tamper"));
-tampered.ciphertext = (tampered.ciphertext[0] === "A" ? "B" : "A") + tampered.ciphertext.slice(1);
+const tamperedFrame = { ...tampered, ciphertext: (tampered.ciphertext[0] === "A" ? "B" : "A") + tampered.ciphertext.slice(1) };
 await assert.rejects(() => channelB.decrypt(tampered), /E2E_FRAME_REPLAY_OR_CONTEXT_INVALID|E2E_CIPHERTEXT_AUTHENTICATION_FAILED/);
 await assert.rejects(() => acceptSessionOffer({
   hello: { ...pending.hello, signature: b64u(crypto.getRandomValues(new Uint8Array(64))) },
