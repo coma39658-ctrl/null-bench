@@ -60,6 +60,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
   let session = null;
   let unsubscribe = null;
   let currentFingerprint = null;
+  let currentRelationshipId = null;
   let currentFriendName = "";
   let recorder = null;
   let cancelRecording = false;
@@ -137,9 +138,16 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     try { session?.close(); } catch (_) {}
     session = null;
     currentFingerprint = null;
+    currentRelationshipId = null;
     controls();
   }
-  function receive(message) {
+  function showFriendAvatar(bytes) {
+    if (friendAvatarUrl) URL.revokeObjectURL(friendAvatarUrl);
+    friendAvatarUrl = URL.createObjectURL(new Blob([bytes], { type: "image/jpeg" }));
+    friendAvatar.src = friendAvatarUrl;
+    friendAvatar.hidden = false;
+  }
+  async function receive(message, relationshipId, fingerprint) {
     if (!message || !(message.bytes instanceof Uint8Array)) throw new Error("CHAT_INBOUND_FRAME_INVALID");
     if (message.type === "text") {
       const decoded = decoder.decode(message.bytes);
@@ -149,10 +157,9 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     if (message.type === "profile") {
       const bytes = message.bytes;
       if (bytes.length < 4 || bytes.length > 140 * 1024 || bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) throw new Error("CHAT_PROFILE_JPEG_INVALID");
-      if (friendAvatarUrl) URL.revokeObjectURL(friendAvatarUrl);
-      friendAvatarUrl = URL.createObjectURL(new Blob([bytes], { type: "image/jpeg" }));
-      friendAvatar.src = friendAvatarUrl;
-      friendAvatar.hidden = false;
+      if (relationshipId !== currentRelationshipId || fingerprint !== currentFingerprint) throw new Error("CHAT_PROFILE_RELATIONSHIP_CHANGED");
+      await globalThis.EZERO_CONNECT_TRUST.saveTrustedFriendProfile(relationshipId, fingerprint, bytes);
+      showFriendAvatar(bytes);
       addMessage(t("profileReceived"), "JPEG · " + Math.round(bytes.length / 1024) + " KB", "received");
       return;
     }
@@ -189,8 +196,17 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     if (fingerprint === currentFingerprint && session) return;
     closeSession();
     currentFingerprint = fingerprint;
+    currentRelationshipId = relationshipId;
     panel.hidden = false;
     $("chatMessages").replaceChildren();
+    if (friendAvatarUrl) URL.revokeObjectURL(friendAvatarUrl);
+    friendAvatarUrl = null;
+    friendAvatar.hidden = true;
+    friendAvatar.removeAttribute("src");
+    try {
+      const savedProfile = await globalThis.EZERO_CONNECT_TRUST.getTrustedFriendProfile(relationshipId, fingerprint);
+      if (savedProfile.bytes) showFriendAvatar(savedProfile.bytes);
+    } catch (_) { /* No saved friend photo yet; keep the name/initials. */ }
     currentFriendName = String(detail.displayName || "").trim();
     $("chatTitle").textContent = currentFriendName ? currentFriendName + " · " + t("title") : t("title");
     status(t("waiting"));
@@ -204,18 +220,20 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
           } else if (value.state === "transport-secure") {
             status(t("secure"), "ok");
             controls();
+            void sendCurrentProfileIfChanged(false).catch(() => status(t("failed"), "error"));
           } else if (value.state === "error" || value.state === "transport-error") {
             status(t("error"), "error");
             controls();
           }
         }
       });
-      unsubscribe = session.subscribe(receive);
+      unsubscribe = session.subscribe(message => receive(message, relationshipId, fingerprint));
       controls();
       await session.ready;
       if (currentFingerprint !== fingerprint) return;
       status(t("secure"), "ok");
       controls();
+      void sendCurrentProfileIfChanged(false).catch(() => status(t("failed"), "error"));
     } catch (_) {
       if (currentFingerprint === fingerprint) {
         closeSession();
@@ -225,19 +243,44 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     }
   }
 
+
+  async function getOwnProfileBytes() {
+    const profile = await globalThis.EZERO_CONNECT_LOCAL_PROFILE?.load?.();
+    const dataUrl = String(profile?.avatarDataUrl || "");
+    const prefix = "data:image/jpeg;base64,";
+    if (!dataUrl.startsWith(prefix) || !/^[A-Za-z0-9+/]+={0,2}$/.test(dataUrl.slice(prefix.length))) return null;
+    const binary = atob(dataUrl.slice(prefix.length));
+    const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+    if (bytes.length < 4 || bytes.length > 140 * 1024 || bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) {
+      throw new Error("CHAT_PROFILE_JPEG_INVALID");
+    }
+    return bytes;
+  }
+
+  async function sendCurrentProfileIfChanged(force) {
+    if (!secure() || !currentRelationshipId || !currentFingerprint) return false;
+    const bytes = await getOwnProfileBytes();
+    if (!bytes) return false;
+    const digest = await crypto.subtle.digest("SHA-256", bytes);
+    const hash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
+    const trust = globalThis.EZERO_CONNECT_TRUST;
+    const previous = await trust.getTrustedFriendProfile(currentRelationshipId, currentFingerprint);
+    if (!force && previous.lastSharedHash === hash) return false;
+    const activeSession = session;
+    const relationshipId = currentRelationshipId;
+    const fingerprint = currentFingerprint;
+    await activeSession.sendProfile(bytes);
+    if (activeSession !== session || relationshipId !== currentRelationshipId || fingerprint !== currentFingerprint) return false;
+    await trust.setTrustedFriendProfileSharedHash(relationshipId, fingerprint, hash);
+    return true;
+  }
+
   shareProfileButton.addEventListener("click", async () => {
     if (!secure()) return;
     try {
-      const profile = await globalThis.EZERO_CONNECT_LOCAL_PROFILE?.load?.();
-      const dataUrl = String(profile?.avatarDataUrl || "");
-      const prefix = "data:image/jpeg;base64,";
-      if (!dataUrl.startsWith(prefix) || !/^[A-Za-z0-9+/]+={0,2}$/.test(dataUrl.slice(prefix.length))) { status(t("profileMissing"), "error"); return; }
-      const binary = atob(dataUrl.slice(prefix.length));
-      const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
-      if (bytes.length < 4 || bytes.length > 140 * 1024 || bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) { status(t("profileInvalid"), "error"); return; }
       shareProfileButton.disabled = true;
-      await session.sendProfile(bytes);
-      status(t("profileSent"), "ok");
+      const sent = await sendCurrentProfileIfChanged(true);
+      status(sent ? t("profileSent") : t("profileMissing"), sent ? "ok" : "error");
     } catch (_) { status(t("failed"), "error"); } finally { controls(); }
   });
 
@@ -334,6 +377,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
   });
 
   document.addEventListener("ezero:friend-selected", event => { void connect(event.detail); });
+  document.addEventListener("ezero:local-profile-updated", () => { void sendCurrentProfileIfChanged(false).catch(() => status(t("failed"), "error")); });
   document.addEventListener("ezero:language-changed", event => {
     language = ["ur", "en", "ar"].includes(event.detail?.language) ? event.detail.language : "ur";
     $("chatTitle").textContent = currentFriendName ? currentFriendName + " · " + t("title") : t("title");
