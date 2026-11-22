@@ -33,7 +33,6 @@ async function validateTrust(trust, relationshipId, localIdentity) {
 }
 async function verifySignature(publicKeySpki, payload, signature) {
   const raw = fromB64u(publicKeySpki, 1024);
-  if (await fingerprint(raw) === "") fail("E2E_REMOTE_KEY_INVALID");
   const key = await crypto.subtle.importKey("spki", raw, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
   const sig = fromB64u(signature, 256);
   const ok = await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, key, sig, encoder.encode(canonical(payload)));
