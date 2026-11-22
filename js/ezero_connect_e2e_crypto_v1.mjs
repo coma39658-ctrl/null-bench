@@ -13,10 +13,10 @@ function canonical(value) {
   }
   return fail("E2E_CANONICAL_VALUE_INVALID");
 }
-function b64u(bytes) { return Buffer.from(bytes).toString("base64url"); }
+function b64u(bytes) { let binary = ""; for (const b of new Uint8Array(bytes)) binary += String.fromCharCode(b); return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, ""); }
 function fromB64u(value, max = 2048) {
   if (typeof value !== "string" || value.length > max || !/^[A-Za-z0-9_-]+$/.test(value)) fail("E2E_ENCODING_INVALID");
-  return new Uint8Array(Buffer.from(value, "base64url"));
+  const padded = value.replaceAll("-", "+").replaceAll("_", "/") + "=".repeat((4 - value.length % 4) % 4); return Uint8Array.from(atob(padded), c => c.charCodeAt(0));
 }
 function validFingerprint(value) { return typeof value === "string" && /^(?:[0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(value); }
 async function fingerprint(spki) {
@@ -24,7 +24,7 @@ async function fingerprint(spki) {
   return Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, "0").toUpperCase()).join(":");
 }
 async function sha256(bytes) { return new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)); }
-function validateTrust(trust, relationshipId, localIdentity) {
+async function validateTrust(trust, relationshipId, localIdentity) {
   if (!trust || trust.status !== "TRUSTED" || trust.relationshipId !== relationshipId ||
       !validFingerprint(trust.remoteFingerprint) || !trust.remotePublicKeySpki) fail("E2E_RELATIONSHIP_NOT_TRUSTED");
   if (!localIdentity || !validFingerprint(localIdentity.fingerprint) ||
@@ -67,7 +67,7 @@ async function deriveKeys(privateKey, remoteEphemeral, transcript, role) {
     { sendKey: second, receiveKey: first, sendRole: role, receiveRole: "initiator" };
 }
 async function createSessionOffer({ relationshipId, sessionId, trust, identity, signCanonical }) {
-  validateTrust(trust, relationshipId, identity);
+  await validateTrust(trust, relationshipId, identity);
   if (typeof signCanonical !== "function" || typeof sessionId !== "string" || !/^[A-Za-z0-9_-]{22,64}$/.test(sessionId)) fail("E2E_SESSION_INPUT_INVALID");
   const ephemeral = await makeEphemeral();
   const payload = {
