@@ -120,7 +120,7 @@ header{height:76px;display:flex;align-items:center;justify-content:space-between
     </div>
     <button class="secondary" id="chooseGalleryQr" type="button" disabled style="width:100%;margin-top:9px">گیلری سے QR تصویر منتخب کریں</button>
     <input id="qrGalleryFile" type="file" accept="image/png,image/jpeg,image/webp,image/avif,image/gif,image/bmp" hidden>
-    <video id="qrScannerVideo" playsinline muted hidden style="width:100%;border-radius:14px;margin-top:12px;background:#102d22"></video>
+    <video id="qrScannerVideo" playsinline muted hidden style="display:block;width:100%;height:clamp(280px,62vw,440px);max-height:60vh;object-fit:cover;border-radius:16px;margin-top:12px;background:#102d22"></video>
     <button class="secondary" id="stopQrScanner" type="button" hidden style="width:100%;margin-top:8px">اسکین بند کریں</button>
     <div id="myQrDisplay" hidden style="text-align:center;padding:14px 4px 4px">
       <div id="myQrImage" style="display:inline-block;max-width:100%;background:#fff;padding:10px;border-radius:14px"></div>
@@ -143,8 +143,9 @@ header{height:76px;display:flex;align-items:center;justify-content:space-between
     <div class="dialog-actions"><button class="secondary" id="closeDialog" type="button">بند کریں</button></div>
   </section>
 </div>
-<script src="./js/ezero_connect_identity_v1.js" defer></script>
+<script src="./js/vendor/ezero-qrcode-generator-mit.js" defer></script>
 <script src="./js/ezero_qr_runtime_v1.js" defer></script>
+<script src="./js/ezero_connect_identity_v1.js" defer></script>
 <script src="./js/ezero_connect_invite_v1.js" defer></script>
 <script src="./js/ezero_connect_trust_v1.js" defer></script>
 <script src="./js/ezero_connect_config_v1.js" defer></script>
