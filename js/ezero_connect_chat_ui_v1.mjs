@@ -67,7 +67,19 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
   let chunks = [];
   let voiceBlob = null;
   let voiceUrl = null;
-  let stopLimit = null;\n  let friendAvatarUrl = null;\n  const shareProfileButton = document.createElement("button");\n  shareProfileButton.type = "button";\n  shareProfileButton.className = "secondary";\n  shareProfileButton.disabled = true;\n  shareProfileButton.textContent = t("shareProfile");\n  $("chatPanel").querySelector(".chat-tools")?.append(shareProfileButton);\n  const friendAvatar = document.createElement("img");\n  friendAvatar.alt = "Verified friend profile photo";\n  friendAvatar.hidden = true;\n  friendAvatar.style.cssText = "width:38px;height:38px;object-fit:cover;border-radius:50%;flex:0 0 38px";\n  $("chatTitle")?.parentElement?.insertBefore(friendAvatar, $("chatTitle"));
+  let stopLimit = null;
+  let friendAvatarUrl = null;
+  const shareProfileButton = document.createElement("button");
+  shareProfileButton.type = "button";
+  shareProfileButton.className = "secondary";
+  shareProfileButton.disabled = true;
+  shareProfileButton.textContent = t("shareProfile");
+  $("chatPanel").querySelector(".chat-tools")?.append(shareProfileButton);
+  const friendAvatar = document.createElement("img");
+  friendAvatar.alt = "Verified friend profile photo";
+  friendAvatar.hidden = true;
+  friendAvatar.style.cssText = "width:38px;height:38px;object-fit:cover;border-radius:50%;flex:0 0 38px";
+  $("chatTitle")?.parentElement?.insertBefore(friendAvatar, $("chatTitle"));
   const encoder = new TextEncoder();
   const decoder = new TextDecoder("utf-8", { fatal: true });
 
@@ -85,7 +97,8 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     $("sendChatMessage").disabled = !connected;
     $("recordVoice").disabled = !connected || Boolean(recorder);
     $("stopVoice").disabled = !recorder;
-    $("sendVoice").disabled = !connected || !voiceBlob;\n    shareProfileButton.disabled = !connected;
+    $("sendVoice").disabled = !connected || !voiceBlob;
+    shareProfileButton.disabled = !connected;
   }
   function clearVoice() {
     if (voiceUrl) URL.revokeObjectURL(voiceUrl);
@@ -133,7 +146,17 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       addMessage(t("received"), decoded, "received");
       return;
     }
-    if (message.type === "profile") {\n      const bytes = message.bytes;\n      if (bytes.length < 4 || bytes.length > 140 * 1024 || bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) throw new Error("CHAT_PROFILE_JPEG_INVALID");\n      if (friendAvatarUrl) URL.revokeObjectURL(friendAvatarUrl);\n      friendAvatarUrl = URL.createObjectURL(new Blob([bytes], { type: "image/jpeg" }));\n      friendAvatar.src = friendAvatarUrl;\n      friendAvatar.hidden = false;\n      addMessage(t("profileReceived"), "JPEG · " + Math.round(bytes.length / 1024) + " KB", "received");\n      return;\n    }\n    if (message.type === "voice") {
+    if (message.type === "profile") {
+      const bytes = message.bytes;
+      if (bytes.length < 4 || bytes.length > 140 * 1024 || bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) throw new Error("CHAT_PROFILE_JPEG_INVALID");
+      if (friendAvatarUrl) URL.revokeObjectURL(friendAvatarUrl);
+      friendAvatarUrl = URL.createObjectURL(new Blob([bytes], { type: "image/jpeg" }));
+      friendAvatar.src = friendAvatarUrl;
+      friendAvatar.hidden = false;
+      addMessage(t("profileReceived"), "JPEG · " + Math.round(bytes.length / 1024) + " KB", "received");
+      return;
+    }
+    if (message.type === "voice") {
       const blob = new Blob([message.bytes], { type: "audio/webm" });
       const url = URL.createObjectURL(blob);
       const row = document.createElement("div");
@@ -202,7 +225,23 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     }
   }
 
-  shareProfileButton.addEventListener("click", async () => {\n    if (!secure()) return;\n    try {\n      const profile = await globalThis.EZERO_CONNECT_LOCAL_PROFILE?.load?.();\n      const match = /^data:image\\/jpeg;base64,([A-Za-z0-9+/]+={0,2})$/.exec(profile?.avatarDataUrl || "");\n      if (!match) { status(t("profileMissing"), "error"); return; }\n      const binary = atob(match[1]);\n      const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));\n      if (bytes.length < 4 || bytes.length > 140 * 1024 || bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) { status(t("profileInvalid"), "error"); return; }\n      shareProfileButton.disabled = true;\n      await session.sendProfile(bytes);\n      status(t("profileSent"), "ok");\n    } catch (_) { status(t("failed"), "error"); } finally { controls(); }\n  });\n\n  $("sendChatMessage").addEventListener("click", async () => {
+  shareProfileButton.addEventListener("click", async () => {
+    if (!secure()) return;
+    try {
+      const profile = await globalThis.EZERO_CONNECT_LOCAL_PROFILE?.load?.();
+      const dataUrl = String(profile?.avatarDataUrl || "");
+      const prefix = "data:image/jpeg;base64,";
+      if (!dataUrl.startsWith(prefix) || !/^[A-Za-z0-9+/]+={0,2}$/.test(dataUrl.slice(prefix.length))) { status(t("profileMissing"), "error"); return; }
+      const binary = atob(dataUrl.slice(prefix.length));
+      const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+      if (bytes.length < 4 || bytes.length > 140 * 1024 || bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) { status(t("profileInvalid"), "error"); return; }
+      shareProfileButton.disabled = true;
+      await session.sendProfile(bytes);
+      status(t("profileSent"), "ok");
+    } catch (_) { status(t("failed"), "error"); } finally { controls(); }
+  });
+
+  $("sendChatMessage").addEventListener("click", async () => {
     const value = $("chatMessage").value.trim();
     if (!value || !secure()) return;
     $("sendChatMessage").disabled = true;
@@ -303,7 +342,8 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     $("recordVoice").textContent = t("voice");
     $("stopVoice").textContent = t("stop");
     $("cancelVoice").textContent = t("cancel");
-    $("sendVoice").textContent = t("sendVoice");\n    shareProfileButton.textContent = t("shareProfile");
+    $("sendVoice").textContent = t("sendVoice");
+    shareProfileButton.textContent = t("shareProfile");
   });
   window.addEventListener("pagehide", () => {
     if (recorder && recorder.state !== "inactive") { cancelRecording = true; recorder.stop(); }
