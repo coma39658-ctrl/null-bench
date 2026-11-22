@@ -45,7 +45,7 @@ assert.match(ui, /const existing = profileSyncPromises\.get\(syncId\);[\s\S]*?ex
 assert.match(ui, /const syncState = \{ dirty: false, promise: null \}/);
 assert.match(ui, /do \{[\s\S]*?syncState\.dirty = false;[\s\S]*?\} while \(syncState\.dirty && stillCurrent\(\)\)/);
 assert.match(ui, /const stillCurrent = \(\) => generation === connectionGeneration/);
-assert.match(ui, /if \(!stillCurrent\(\)\) return false/);
+assert.match(ui, /if \(!stillCurrent\(\)\) return sent/);
 assert.match(ui, /140 \* 1024/);
 assert.match(session, /transport\.sendProfile\(bytes\)/);
 
