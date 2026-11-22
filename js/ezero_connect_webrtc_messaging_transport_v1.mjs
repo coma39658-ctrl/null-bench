@@ -177,7 +177,8 @@ export function createWebRTCMessagingTransport({
       return ready;
     },
     sendText: text => messaging.sendText(text),
-    sendVoice: bytes => messaging.sendVoice(bytes),\n    sendProfile: bytes => messaging.sendProfile(bytes),
+    sendVoice: bytes => messaging.sendVoice(bytes),
+    sendProfile: bytes => messaging.sendProfile(bytes),
     subscribe(handler) {
       if (typeof handler !== "function") fail("WEBRTC_MESSAGING_SUBSCRIBER_INVALID");
       subscribers.add(handler);
