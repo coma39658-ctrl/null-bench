@@ -20,7 +20,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       failed:"وصولی کی تصدیق نہیں ملی؛ Delivered نہیں دکھایا گیا۔",
       received:"موصول ہوا", notReady:"پہلے محفوظ دوست کے ساتھ کنکشن بننے دیں۔",
       voiceIncoming:"وائس پیغام", error:"محفوظ چیٹ کنکشن دستیاب نہیں۔",
-      noRelation:"اس محفوظ دوست کا relationship ID دستیاب نہیں۔", shareProfile:"اپنی DP محفوظ دوست کو بھیجیں", profileSent:"پروفائل تصویر محفوظ کنکشن پر بھیج دی گئی۔", profileReceived:"دوست کی پروفائل تصویر موصول ہوئی", profileMissing:"پہلے اپنی پروفائل میں تصویر محفوظ کریں۔", profileInvalid:"موصولہ پروفائل تصویر درست نہیں۔"
+      noRelation:"اس محفوظ دوست کا relationship ID دستیاب نہیں۔", shareProfile:"اپنی DP محفوظ دوست کو بھیجیں", profileSent:"پروفائل تصویر محفوظ کنکشن پر بھیج دی گئی۔", profileReceived:"دوست کی DP فون میں محفوظ ہو گئی", profileMissing:"پہلے اپنی پروفائل میں تصویر محفوظ کریں۔", profileInvalid:"موصولہ پروفائل تصویر درست نہیں۔"
     },
     en: {
       title:"Chat with saved friend", waiting:"Establishing secure connection…",
@@ -36,7 +36,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       received:"Received", voiceIncoming:"Voice message",
       notReady:"Wait for a secure connection to the saved friend.",
       error:"Secure chat connection is unavailable.",
-      noRelation:"The saved friend relationship ID is unavailable.", shareProfile:"Share my DP with saved friend", profileSent:"Profile photo sent over the secure connection.", profileReceived:"Friend profile photo received", profileMissing:"Save a photo in your profile first.", profileInvalid:"The received profile image is invalid."
+      noRelation:"The saved friend relationship ID is unavailable.", shareProfile:"Share my DP with saved friend", profileSent:"Profile photo sent over the secure connection.", profileReceived:"Friend DP saved on this phone", profileMissing:"Save a photo in your profile first.", profileInvalid:"The received profile image is invalid."
     },
     ar: {
       title:"محادثة مع صديق محفوظ", waiting:"جارٍ إنشاء اتصال آمن…",
@@ -52,7 +52,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       received:"تم الاستلام", voiceIncoming:"رسالة صوتية",
       notReady:"انتظر إنشاء اتصال آمن مع الصديق المحفوظ.",
       error:"اتصال المحادثة الآمنة غير متاح.",
-      noRelation:"معرّف علاقة الصديق المحفوظ غير متاح.", shareProfile:"مشاركة صورتي مع الصديق", profileSent:"تم إرسال الصورة عبر الاتصال الآمن.", profileReceived:"تم استلام صورة الصديق", profileMissing:"احفظ صورة في ملفك الشخصي أولاً.", profileInvalid:"صورة الملف الشخصي المستلمة غير صالحة."
+      noRelation:"معرّف علاقة الصديق المحفوظ غير متاح.", shareProfile:"مشاركة صورتي مع الصديق", profileSent:"تم إرسال الصورة عبر الاتصال الآمن.", profileReceived:"تم حفظ صورة الصديق على الهاتف", profileMissing:"احفظ صورة في ملفك الشخصي أولاً.", profileInvalid:"صورة الملف الشخصي المستلمة غير صالحة."
     }
   };
 
