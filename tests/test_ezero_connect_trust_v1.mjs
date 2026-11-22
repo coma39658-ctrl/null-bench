@@ -166,6 +166,8 @@ try {
   assert.ok(atRest.ciphertextBytes > 0);
   assert.equal(atRest.vaultExtractable, false);
   assert.equal(atRest.vaultAlgorithm, "AES-GCM");
+  assert.deepEqual(atRest.friendProfileKeys, ["ciphertext", "iv", "relationshipId"]);
+  assert.ok(atRest.friendProfileCiphertextBytes > 0);
 
   await a.evaluate(fp => window.EZERO_CONNECT_TRUST.revoke(fp), identityB.fingerprint);
   const revokedProfileRead = await a.evaluate(async args => {
