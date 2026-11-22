@@ -35,6 +35,11 @@ assert.match(ui, /saveTrustedFriendProfile\(relationshipId, fingerprint, bytes\)
 assert.match(ui, /getTrustedFriendProfile\(relationshipId, fingerprint\)/);
 assert.match(ui, /setTrustedFriendProfileSharedHash/);
 assert.match(ui, /ezero:local-profile-updated/);
+assert.match(ui, /let connectionGeneration = 0/);
+assert.match(ui, /const generation = \+\+connectionGeneration/);
+assert.match(ui, /generation !== connectionGeneration \|\| currentRelationshipId !== relationshipId \|\| currentFingerprint !== fingerprint/);
+assert.match(ui, /const stillCurrent = \(\) => generation === connectionGeneration/);
+assert.match(ui, /if \(!stillCurrent\(\)\) return false/);
 assert.match(ui, /140 \* 1024/);
 assert.match(session, /transport\.sendProfile\(bytes\)/);
 
