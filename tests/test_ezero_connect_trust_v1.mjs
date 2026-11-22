@@ -99,12 +99,12 @@ try {
 
   const friendPhotoV1 = Uint8Array.from([0xff, 0xd8, 0xff, 0x11, 0x22, 0x33, 0xd9]);
   const friendPhotoV2 = Uint8Array.from([0xff, 0xd8, 0xff, 0x44, 0x55, 0x66, 0xd9]);
-  await a.evaluate(args => window.EZERO_CONNECT_TRUST.saveTrustedFriendProfile(args.id, args.fingerprint, args.bytes),
+  await a.evaluate(args => window.EZERO_CONNECT_TRUST.saveTrustedFriendProfile(args.id, args.fingerprint, new Uint8Array(args.bytes)),
     { id: savedA.relationshipId, fingerprint: identityB.fingerprint, bytes: [...friendPhotoV1] });
   const persistedV1 = await a.evaluate(args => window.EZERO_CONNECT_TRUST.getTrustedFriendProfile(args.id, args.fingerprint),
     { id: savedA.relationshipId, fingerprint: identityB.fingerprint });
   assert.deepEqual([...persistedV1.bytes], [...friendPhotoV1]);
-  await a.evaluate(args => window.EZERO_CONNECT_TRUST.saveTrustedFriendProfile(args.id, args.fingerprint, args.bytes),
+  await a.evaluate(args => window.EZERO_CONNECT_TRUST.saveTrustedFriendProfile(args.id, args.fingerprint, new Uint8Array(args.bytes)),
     { id: savedA.relationshipId, fingerprint: identityB.fingerprint, bytes: [...friendPhotoV2] });
   const persistedV2 = await a.evaluate(args => window.EZERO_CONNECT_TRUST.getTrustedFriendProfile(args.id, args.fingerprint),
     { id: savedA.relationshipId, fingerprint: identityB.fingerprint });
@@ -116,12 +116,12 @@ try {
     { id: savedA.relationshipId, fingerprint: identityB.fingerprint });
   assert.deepEqual([...afterReload.bytes], [...friendPhotoV2]);
   const wrongFriendPhotoIdentity = await a.evaluate(async args => {
-    try { await window.EZERO_CONNECT_TRUST.saveTrustedFriendProfile(args.id, args.fingerprint, args.bytes); return "ACCEPTED"; }
+    try { await window.EZERO_CONNECT_TRUST.saveTrustedFriendProfile(args.id, args.fingerprint, new Uint8Array(args.bytes)); return "ACCEPTED"; }
     catch (error) { return error.message; }
   }, { id: savedA.relationshipId, fingerprint: identityA.fingerprint, bytes: [...friendPhotoV1] });
   assert.equal(wrongFriendPhotoIdentity, "TRUST_FRIEND_PROFILE_TRUST_MISMATCH");
   const invalidPhoto = await a.evaluate(async args => {
-    try { await window.EZERO_CONNECT_TRUST.saveTrustedFriendProfile(args.id, args.fingerprint, args.bytes); return "ACCEPTED"; }
+    try { await window.EZERO_CONNECT_TRUST.saveTrustedFriendProfile(args.id, args.fingerprint, new Uint8Array(args.bytes)); return "ACCEPTED"; }
     catch (error) { return error.message; }
   }, { id: savedA.relationshipId, fingerprint: identityB.fingerprint, bytes: [1, 2, 3, 4] });
   assert.equal(invalidPhoto, "TRUST_FRIEND_PROFILE_JPEG_INVALID");
