@@ -204,6 +204,11 @@ export class EzeroConnectRendezvous {
       if (state?.state === "PENDING" && state.challengeExpiresAt <= now) close(ws, 1008, "challenge expired");
       if (state?.state === "AUTHENTICATED" && state.expiresAt <= now) close(ws, 1008, "session expired");
     }
+    const deadlines = this.ctx.getWebSockets().map(ws => ws.deserializeAttachment())
+      .filter(a => a && Number.isSafeInteger(a.state === "PENDING" ? a.challengeExpiresAt : a.expiresAt))
+      .map(a => a.state === "PENDING" ? a.challengeExpiresAt : a.expiresAt).filter(t => t > now);
+    if (deadlines.length) await this.ctx.storage.setAlarm(Math.min(...deadlines));
+    else await this.ctx.storage.deleteAlarm();
   }
 }
 
