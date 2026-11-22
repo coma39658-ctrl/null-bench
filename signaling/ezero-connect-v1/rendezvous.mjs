@@ -138,7 +138,8 @@ export class EzeroConnectRendezvous {
     const [client, server] = Object.values(pair);
     this.ctx.acceptWebSocket(server);
     server.serializeAttachment({ state: "PENDING", relationshipId, challenge, challengeExpiresAt, messageTimes: [] });
-    await this.ctx.storage.setAlarm(challengeExpiresAt);\n    send(server, { type: "challenge", challenge, challengeExpiresAt });
+    await this.ctx.storage.setAlarm(challengeExpiresAt);
+    send(server, { type: "challenge", challenge, challengeExpiresAt });
     return new Response(null, { status: 101, webSocket: client });
   }
 
