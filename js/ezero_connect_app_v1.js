@@ -56,6 +56,7 @@
     $("searchFriends").placeholder = t.search;
     if ($("identityStatus") && !$("identityStatus").dataset.kind && $("identityFingerprintWrap").hidden) $("identityStatus").textContent = t.identityStatus;
     $("language").textContent = language === "ur" ? "اردو · EN · AR" : language === "en" ? "EN · AR · اردو" : "العربية · EN · اردو";
+    document.dispatchEvent(new CustomEvent("ezero:language-changed", { detail: { language } }));
     document.querySelectorAll("[data-tab]").forEach((button) => {
       button.setAttribute("aria-selected", String(button.dataset.tab === activeTab));
     });
