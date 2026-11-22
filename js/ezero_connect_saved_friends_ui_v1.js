@@ -10,7 +10,7 @@
   };
   let contacts = [];
   let selected = null;
-  let language = "ur";
+  let language = (() => { try { const v = localStorage.getItem("ezero_connect_language_v1"); return ["ur","en","ar"].includes(v) ? v : "ur"; } catch (_) { return "ur"; } })();
   let pageCount = 1;
   let renderGeneration = 0;
   const avatarUrls = new Set();
@@ -174,10 +174,7 @@
   document.addEventListener("ezero:friend-local-removed", refresh);
   document.addEventListener("ezero:friend-profile-updated", refresh);
   $("searchFriends")?.addEventListener("input", () => { pageCount = 1; render(); });
-  $("language")?.addEventListener("click", () => {
-    language = language === "ur" ? "en" : language === "en" ? "ar" : "ur";
-    render();
-  });
+  document.addEventListener("ezero:language-changed", event => setLanguage(event.detail?.language));
   window.addEventListener("pageshow", refresh);
   window.addEventListener("focus", refresh);
   window.EZERO_CONNECT_CONTACTS_UI = Object.freeze({ refresh, setLanguage, getSelected: () => selected });
