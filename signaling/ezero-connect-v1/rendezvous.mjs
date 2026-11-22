@@ -130,6 +130,7 @@ export class EzeroConnectRendezvous {
     }
     if (request.headers.get("Origin") !== this.env.PUBLIC_ORIGIN) return new Response("Origin rejected", { status: 403 });
     if (!/^[a-f0-9]{64}$/.test(relationshipId)) return new Response("Relationship invalid", { status: 400 });
+    if (this.ctx.getWebSockets().length >= 4) return new Response("Rendezvous capacity reached", { status: 429 });
     const now = Date.now();
     const challenge = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))))
       .replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
@@ -145,6 +146,7 @@ export class EzeroConnectRendezvous {
 
   async webSocketMessage(ws, raw) {
     try {
+      if (typeof raw !== "string" || new TextEncoder().encode(raw).length > MAX_MESSAGE_BYTES) return close(ws, 1009, "message too large");
       const state = ws.deserializeAttachment();
       if (!state) return close(ws);
       if (state.state === "PENDING") {
