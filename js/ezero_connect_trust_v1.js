@@ -450,6 +450,7 @@
     signApproval,
     verifyApproval,
     saveTrustedContact,
+    saveVerifiedPeer,
     listTrustedContacts,
     canReconnect,
     revoke,
