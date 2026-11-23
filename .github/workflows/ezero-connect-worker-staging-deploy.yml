@@ -1,6 +1,12 @@
 name: E-ZERO Connect isolated signaling Worker deploy
 
 on:
+  push:
+    branches:
+      - ezero-connect-qr-renderer-20261120
+    paths:
+      - 'signaling/ezero-connect-v1/**'
+      - '.github/workflows/ezero-connect-worker-staging-deploy.yml'
   workflow_dispatch:
     inputs:
       confirm_staging_deploy:
@@ -14,7 +20,7 @@ permissions:
 
 jobs:
   deploy-staging-worker:
-    if: github.ref == 'refs/heads/ezero-connect-qr-renderer-20261120' && inputs.confirm_staging_deploy == true
+    if: github.ref == 'refs/heads/ezero-connect-qr-renderer-20261120' && (github.event_name == 'push' || inputs.confirm_staging_deploy == true)
     runs-on: ubuntu-22.04
     steps:
       - name: Verify Cloudflare credentials are configured without displaying them

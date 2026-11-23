@@ -81,6 +81,7 @@ header{height:76px;display:flex;align-items:center;justify-content:space-between
       <button class="tab" type="button" role="tab" aria-selected="false" data-tab="chats" id="tabChats">چیٹس</button>
       <button class="tab" type="button" role="tab" aria-selected="false" data-tab="calls" id="tabCalls">کالز</button>
     </div>
+    <div id="savedFriendsList" aria-live="polite"></div>
     <div class="empty" id="emptyState">
       <div class="symbol">👥</div><b id="emptyTitle">ابھی کوئی دوست محفوظ نہیں</b>
       <p id="emptyText">پہلی بار دوست سے جڑنے کے بعد، باہمی منظوری سے اسے یہاں محفوظ کیا جائے گا۔</p>
@@ -147,6 +148,11 @@ header{height:76px;display:flex;align-items:center;justify-content:space-between
 <script src="./js/ezero_connect_identity_v1.js" defer></script>
 <script src="./js/ezero_qr_runtime_v1.js" defer></script>
 <script src="./js/ezero_connect_invite_v1.js" defer></script>
-<script src="./js/ezero_connect_trust_v1.js" defer></script>\n<script src="./js/ezero_connect_app_v1.js" defer></script>
+<script src="./js/ezero_connect_trust_v1.js" defer></script>
+<script src="./js/ezero_connect_config_v1.js" defer></script>
+<script src="./js/ezero_connect_signal_client_v1.js" defer></script>
+<script src="./js/ezero_connect_pairing_v1.js" defer></script>
+<script src="./js/ezero_connect_app_v1.js" defer></script>
+<script src="./js/ezero_connect_pairing_ui_v1.js" defer></script>
 </body>
 </html>

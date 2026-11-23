@@ -154,6 +154,7 @@
     const consumed = await consumeNonce(payload.nonce, payload.expiresAt, now);
     if (!consumed) throw new Error("INVITE_REPLAYED");
     return {
+      origin: payload.origin,
       inviterFingerprint: payload.inviterFingerprint,
       inviterPublicKeySpki: payload.inviterPublicKeySpki,
       roomId: payload.roomId,
