@@ -36,7 +36,10 @@
     const url = new URL(baseUrl);
     if (url.protocol === "https:") url.protocol = "wss:";
     else if (url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname)) url.protocol = "ws:";
-    else throw new Error("SIGNAL_TLS_REQUIRED");
+    else if (url.protocol !== "wss:") throw new Error("SIGNAL_TLS_REQUIRED");
+    if (url.protocol === "ws:" && !["localhost", "127.0.0.1"].includes(url.hostname)) {
+      throw new Error("SIGNAL_TLS_REQUIRED");
+    }
     if (!["wss:", "ws:"].includes(url.protocol)) throw new Error("SIGNAL_PROTOCOL_INVALID");
     url.pathname = "/v1/rooms/" + encodeURIComponent(roomId);
     url.search = new URLSearchParams({ role }).toString();
