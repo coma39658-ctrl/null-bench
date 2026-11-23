@@ -34,10 +34,12 @@
 
   function toWebSocketUrl(baseUrl, roomId, role) {
     const url = new URL(baseUrl);
+    // A secure WebSocket URL is already TLS-protected; preserve it.
+    // HTTPS is upgraded to WSS. Plain WS remains limited to local development.
     if (url.protocol === "https:") url.protocol = "wss:";
     else if (url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname)) url.protocol = "ws:";
-    else throw new Error("SIGNAL_TLS_REQUIRED");
-    if (!["wss:", "ws:"].includes(url.protocol)) throw new Error("SIGNAL_PROTOCOL_INVALID");
+    else if (url.protocol !== "wss:") throw new Error("SIGNAL_TLS_REQUIRED");
+    if (url.protocol !== "wss:" && url.protocol !== "ws:") throw new Error("SIGNAL_PROTOCOL_INVALID");
     url.pathname = "/v1/rooms/" + encodeURIComponent(roomId);
     url.search = new URLSearchParams({ role }).toString();
     url.hash = "";

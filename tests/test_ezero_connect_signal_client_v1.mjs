@@ -62,12 +62,15 @@ const connection = globalThis.EZERO_CONNECT_SIGNAL.connect({
   inviteCode: "EZERO1.test",
   invitePayload,
   role: "host",
-  signalingBaseUrl: "https://signal.example.test",
+  signalingBaseUrl: "wss://signal.example.test",
   onEvent: event => events.push(event)
 });
 await connection.ready;
 assert.equal(connection.authenticated, true);
 assert.equal(FakeWebSocket.last.url, "wss://signal.example.test/v1/rooms/" + invitePayload.roomId + "?role=host");
+assert.throws(() => globalThis.EZERO_CONNECT_SIGNAL.connect({
+  inviteCode: "EZERO1.test", invitePayload, role: "host", signalingBaseUrl: "ws://signal.example.test"
+}), /SIGNAL_TLS_REQUIRED/);
 assert.equal(sentSignatures.length, 1);
 assert.equal(sentSignatures[0].protocol, "E-ZERO-SIGNAL-HELLO-1");
 assert.equal(sentSignatures[0].origin, location.origin);
