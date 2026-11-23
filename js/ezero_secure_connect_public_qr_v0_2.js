@@ -9,7 +9,7 @@
     ur:{
       back:"↩ واپس",language:"زبان",heading:"محفوظ QR رابطہ",intro:"ایک بٹن دبائیں، اپنا QR دکھائیں اور دوست کا QR اسکین کریں۔",
       startLabel:"رابطہ شروع کریں",start:"📷 QR رابطہ شروع کریں",again:"📷 دوبارہ اسکین کریں",showQr:"اپنا QR دوست کو دکھائیں",
-      stop:"■ کیمرہ بند کریں",truth:"QR صرف عارضی ڈیجیٹل چابی کی تصدیق کرتا ہے، انسان کی شناخت یا مکمل کال کی نہیں۔ کال خودکار شروع نہیں ہوگی۔",
+      stop:"■ کیمرہ بند کریں",flip:"🔄 کیمرہ بدلیں",torchOn:"🔦 لائٹ آن",torchOff:"🔦 لائٹ بند",gallery:"🖼️ گیلری سے QR",galleryNoQr:"تصویر میں QR نہیں ملا؛ دوسری واضح تصویر آزمائیں۔",truth:"QR صرف عارضی ڈیجیٹل چابی کی تصدیق کرتا ہے، انسان کی شناخت یا مکمل کال کی نہیں۔ کال خودکار شروع نہیں ہوگی۔",
       share:"↗ دوست کو ایپ کا لنک بھیجیں",footer:"E-ZERO · کوئی اشتہار نہیں، کوئی خفیہ ریکارڈنگ نہیں۔",
       policy:"🔒 پرائیویسی اور کاروباری تحفظ کی پالیسی",generating:"اس فون پر عارضی محفوظ شناخت تیار ہو رہی ہے…",
       scanning:"کیمرہ فعال ہے۔ دوسرے فون کا E-ZERO QR سامنے دکھائیں۔",
@@ -27,7 +27,7 @@
     en:{
       back:"↩ Back",language:"Language",heading:"Secure QR connect",intro:"One tap shows your QR and scans your friend's QR.",
       startLabel:"Start a connection",start:"📷 Start QR connection",again:"📷 Scan again",showQr:"Show your QR to your friend",
-      stop:"■ Stop camera",truth:"QR verifies only a temporary digital key, not a person's identity or an actual call. No call starts automatically.",
+      stop:"■ Stop camera",flip:"🔄 Switch camera",torchOn:"🔦 Torch on",torchOff:"🔦 Torch off",gallery:"🖼️ Scan from gallery",galleryNoQr:"No QR code found in that image. Try a clearer image.",truth:"QR verifies only a temporary digital key, not a person's identity or an actual call. No call starts automatically.",
       share:"↗ Share this app with a friend",footer:"E-ZERO · No ads, no hidden recording.",
       policy:"🔒 Privacy and business protection policy",generating:"Creating a temporary identity on this device…",
       scanning:"Camera active. Point at your friend's E-ZERO QR.",
@@ -44,7 +44,7 @@
     ar:{
       back:"↩ رجوع",language:"اللغة",heading:"اتصال QR آمن",intro:"ضغطة واحدة لعرض رمزك ومسح رمز صديقك.",
       startLabel:"ابدأ الاتصال",start:"📷 بدء اتصال QR",again:"📷 المسح مجدداً",showQr:"اعرض رمز QR لصديقك",
-      stop:"■ إيقاف الكاميرا",truth:"يتحقق QR من مفتاح رقمي مؤقت فقط، وليس هوية الشخص أو مكالمة فعلية. لن تبدأ المكالمة تلقائياً.",
+      stop:"■ إيقاف الكاميرا",flip:"🔄 تبديل الكاميرا",torchOn:"🔦 تشغيل الضوء",torchOff:"🔦 إيقاف الضوء",gallery:"🖼️ مسح من المعرض",galleryNoQr:"لم يتم العثور على رمز QR في الصورة. جرّب صورة أوضح.",truth:"يتحقق QR من مفتاح رقمي مؤقت فقط، وليس هوية الشخص أو مكالمة فعلية. لن تبدأ المكالمة تلقائياً.",
       share:"↗ مشاركة التطبيق مع صديق",footer:"E-ZERO · بلا إعلانات أو تسجيل خفي.",
       policy:"🔒 سياسة الخصوصية وحماية الأعمال",generating:"جارٍ إنشاء هوية مؤقتة على هذا الجهاز…",
       scanning:"الكاميرا تعمل. وجّهها نحو رمز E-ZERO الخاص بصديقك.",
@@ -61,13 +61,21 @@
   };
   const textEncoder=new TextEncoder();
   const $status=$("oneTapResult"),$start=$("oneTapStartButton"),$video=$("scanVideo"),
-    $stage=$("oneTapStage"),$stop=$("oneTapStop"),$qr=$("oneTapQr");
-  if(!$status||!$start||!$video||!$stage||!$stop||!$qr)return;
-  let language="ur",generation=0,stream=null,timer=null,identity=null,started=false,
-    lastState=null;
+    $stage=$("oneTapStage"),$stop=$("oneTapStop"),$qr=$("oneTapQr"),
+    $camera=$("oneTapCamera"),$controls=$("oneTapCameraControls"),
+    $cameraStatus=$("oneTapCameraStatus"),$flip=$("oneTapFlipCamera"),
+    $torch=$("oneTapTorch"),$galleryButton=$("oneTapGalleryButton"),
+    $galleryInput=$("oneTapGalleryInput");
+  if(!$status||!$start||!$video||!$stage||!$stop||!$qr||!$camera||
+     !$controls||!$cameraStatus||!$flip||!$torch||!$galleryButton||!$galleryInput)return;
+  let language="ur",generation=0,stream=null,timer=null,deadlineTimer=null,
+    identity=null,started=false,cameraFacing="environment",torchOn=false,lastState=null;
+  const scanCanvas=document.createElement("canvas");
+  const scanContext=scanCanvas.getContext("2d",{willReadFrequently:true});
   const say=k=>ui[language][k]||k;
   function showState(key,kind="info"){
     lastState={key,kind};$status.textContent=say(key);$status.dataset.kind=kind;
+    $cameraStatus.textContent=say(key);
   }
   function selectLanguage(value){
     language=Object.hasOwn(ui,value)?value:"ur";
@@ -142,48 +150,66 @@
   function stopCamera(show=false){
     ++generation;
     if(timer!==null){clearTimeout(timer);timer=null;}
+    if(deadlineTimer!==null){clearTimeout(deadlineTimer);deadlineTimer=null;}
     if(stream){for(const track of stream.getTracks())track.stop();stream=null;}
     $video.pause();$video.srcObject=null;$video.hidden=true;
-    $stop.hidden=true;$start.disabled=false;
+    $camera.classList.remove("scanner-active");$controls.hidden=true;
+    $stop.hidden=false;$start.disabled=false;torchOn=false;
+    $torch.setAttribute("aria-pressed","false");$torch.textContent=say("torchOn");
+    $torch.disabled=true;
     if(show)showState("stopped");
   }
   $stop.addEventListener("click",()=>stopCamera(true));
   async function openScanner(){
-    if(!("BarcodeDetector" in window)||!navigator.mediaDevices?.getUserMedia){
+    if(typeof window.jsQR!=="function"||!navigator.mediaDevices?.getUserMedia){
       showState("unsupported","warning");return;
     }
     const round=generation;
     try{
-      const detector=new BarcodeDetector({formats:["qr_code"]});
       const camera=await navigator.mediaDevices.getUserMedia({
-        video:{facingMode:{ideal:"environment"}},audio:false
+        video:{facingMode:{ideal:cameraFacing},width:{ideal:1280},height:{ideal:720}},
+        audio:false
       });
       if(round!==generation||document.hidden){camera.getTracks().forEach(t=>t.stop());return;}
       stream=camera;$video.srcObject=camera;$video.hidden=false;
       await $video.play();
       if(round!==generation||document.hidden){stopCamera();return;}
-      $stop.hidden=false;showState("scanning");
-      timer=setTimeout(()=>{if(round!==generation)return;stopCamera();showState("timeout","warning");},20000);
-      let failures=0;
-      const frame=async()=>{
+      $camera.classList.add("scanner-active");$controls.hidden=false;
+      const track=camera.getVideoTracks()[0];
+      let capabilities={};
+      try{capabilities=track?.getCapabilities?.()||{};}catch(_){}
+      $torch.disabled=!capabilities.torch;
+      $torch.setAttribute("aria-pressed","false");$torch.textContent=say("torchOn");
+      showState("scanning");
+      deadlineTimer=setTimeout(()=>{
+        if(round!==generation)return;
+        stopCamera();showState("timeout","warning");
+      },45000);
+      const frame=()=>{
         if(round!==generation||!stream||document.hidden)return;
         try{
-          const matches=await detector.detect($video);
-          if(round!==generation)return;
-          failures=0;
-          if(matches?.length){
-            const token=String(matches[0].rawValue||"");
-            stopCamera();
-            try{await verify(token);showState("verified","success");}
-            catch(e){showState(e.message==="SELF"?"self":e.message==="EXPIRED"?"expired":"invalid","error");}
-            return;
+          if($video.readyState>=2&&$video.videoWidth>0&&$video.videoHeight>0){
+            const scale=Math.min(1,960/Math.max($video.videoWidth,$video.videoHeight));
+            const width=Math.max(1,Math.round($video.videoWidth*scale));
+            const height=Math.max(1,Math.round($video.videoHeight*scale));
+            if(scanCanvas.width!==width)scanCanvas.width=width;
+            if(scanCanvas.height!==height)scanCanvas.height=height;
+            scanContext.drawImage($video,0,0,width,height);
+            const pixels=scanContext.getImageData(0,0,width,height);
+            const result=window.jsQR(pixels.data,width,height,{inversionAttempts:"attemptBoth"});
+            if(result?.data){
+              const token=String(result.data);
+              stopCamera();
+              verify(token).then(()=>showState("verified","success")).catch(e=>{
+                showState(e.message==="SELF"?"self":e.message==="EXPIRED"?"expired":"invalid","error");
+              });
+              return;
+            }
           }
-        }catch(_){
-          if(++failures>=5){stopCamera();showState("failure","error");return;}
-        }
-        if(round===generation)timer=setTimeout(frame,280);
+        }catch(_){}
+        if(round===generation)timer=setTimeout(frame,120);
       };
-      timer=setTimeout(frame,350);
+      timer=setTimeout(frame,180);
     }catch(e){
       if(round!==generation)return;
       stopCamera();
@@ -192,6 +218,54 @@
         name==="NotFoundError"||name==="NotReadableError"?"unavailable":"failure","error");
     }
   }
+  $flip.addEventListener("click",async()=>{
+    if(!stream)return;
+    cameraFacing=cameraFacing==="environment"?"user":"environment";
+    stopCamera(false);
+    await openScanner();
+  });
+  $torch.addEventListener("click",async()=>{
+    const track=stream?.getVideoTracks?.()[0];
+    if(!track)return;
+    try{
+      const capabilities=track.getCapabilities?.()||{};
+      if(!capabilities.torch){$torch.disabled=true;return;}
+      torchOn=!torchOn;
+      await track.applyConstraints({advanced:[{torch:torchOn}]});
+      $torch.setAttribute("aria-pressed",String(torchOn));
+      $torch.textContent=say(torchOn?"torchOff":"torchOn");
+    }catch(_){$torch.disabled=true;torchOn=false;$torch.setAttribute("aria-pressed","false");}
+  });
+  $galleryButton.addEventListener("click",()=>{
+    stopCamera(false);
+    $galleryInput.click();
+  });
+  $galleryInput.addEventListener("change",async()=>{
+    const file=$galleryInput.files?.[0];$galleryInput.value="";
+    if(!file)return;
+    try{
+      let bitmap;
+      if("createImageBitmap" in window)bitmap=await createImageBitmap(file);
+      else{
+        const url=URL.createObjectURL(file);
+        bitmap=await new Promise((resolve,reject)=>{
+          const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=url;
+        });
+      }
+      const width=bitmap.width,height=bitmap.height;
+      if(!width||!height)throw Error("IMAGE");
+      const scale=Math.min(1,1600/Math.max(width,height));
+      const w=Math.max(1,Math.round(width*scale)),h=Math.max(1,Math.round(height*scale));
+      scanCanvas.width=w;scanCanvas.height=h;scanContext.drawImage(bitmap,0,0,w,h);
+      if(typeof bitmap.close==="function")bitmap.close();
+      const pixels=scanContext.getImageData(0,0,w,h);
+      const result=window.jsQR(pixels.data,w,h,{inversionAttempts:"attemptBoth"});
+      if(!result?.data){showState("galleryNoQr","warning");return;}
+      await verify(String(result.data));showState("verified","success");
+    }catch(e){
+      showState(e.message==="SELF"?"self":e.message==="EXPIRED"?"expired":"invalid","error");
+    }
+  });
   $start.addEventListener("click",async()=>{
     if($start.disabled)return;
     stopCamera();$start.disabled=true;
