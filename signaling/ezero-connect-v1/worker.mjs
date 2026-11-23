@@ -1,3 +1,5 @@
+import { EzeroConnectInbox } from "./inbox_worker.mjs";
+export { EzeroConnectInbox };
 const INVITE_PREFIX = "EZERO1.";
 const INVITE_TTL_MS = 90_000;
 const ROOM_TTL_MS = 10 * 60_000;
@@ -510,6 +512,12 @@ export default {
     }
     if (request.method !== "GET" || request.headers.get("Upgrade")?.toLowerCase() !== "websocket") {
       return new Response("WebSocket upgrade required", { status: 426 });
+    }
+    const inboxMatch = url.pathname.match(/^\/v1\/inbox\/((?:[0-9A-F]{2}:){31}[0-9A-F]{2})$/);
+    if (inboxMatch) {
+      if (!await enforceIpRateLimit(env, request, "inbox")) return new Response("Rate limited", { status: 429, headers: { "Cache-Control": "no-store" } });
+      const id = env.INBOXES.idFromName(inboxMatch[1]);
+      return env.INBOXES.get(id).fetch(request);
     }
     const match = url.pathname.match(/^\/v1\/rooms\/([A-Za-z0-9_-]{32})$/);
     if (!match || !["host", "guest"].includes(url.searchParams.get("role"))) {
