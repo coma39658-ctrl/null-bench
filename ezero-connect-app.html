@@ -84,7 +84,7 @@ header{height:76px;display:flex;align-items:center;justify-content:space-between
     <div id="savedFriendsList" aria-live="polite"></div>
     <div class="empty" id="emptyState">
       <div class="symbol">👥</div><b id="emptyTitle">ابھی کوئی دوست محفوظ نہیں</b>
-      <p id="emptyText">پہلی بار دوست سے جڑنے کے بعد، باہمی منظوری سے اسے یہاں محفوظ کیا جائے گا۔</p>
+      <p id="emptyText">پہلی بار QR اسکین اور محفوظ شناخت کی تصدیق مکمل ہونے پر دوست خود اس فون میں محفوظ ہو جائے گا۔</p>
       <button class="primary" id="emptyAdd" type="button">＋ دوست شامل کریں</button>
     </div>
   </section>
@@ -136,15 +136,15 @@ header{height:76px;display:flex;align-items:center;justify-content:space-between
   </section>
   <section class="panel">
     <div class="panel-head"><strong id="privacyTitle">آپ کی پرائیویسی</strong><span class="muted">E-ZERO</span></div>
-    <p class="muted" id="privacyText">کیمرہ اور مائیک صرف آپ کے واضح بٹن دبانے کے بعد مانگے جائیں گے۔ اس پیش نظارہ میں ابھی کوئی کال، پیغام یا دوست محفوظ نہیں کیا جاتا۔</p>
+    <p class="muted" id="privacyText">QR سے محفوظ شناخت کی تصدیق مکمل ہونے پر دوست اس فون میں مقامی طور پر محفوظ ہوتا ہے۔ کال اور چیٹ ابھی اس Preview میں فعال نہیں۔ کیمرہ اور مائیک صرف آپ کی اجازت سے استعمال ہوں گے۔</p>
   </section>
 </main>
-<footer class="footer" id="footerStatus">Android staging app کے ساتھ کھولنے کا لنک فعال ہے۔ دوستوں کی مقامی فہرست ابھی فون اور ویب کے درمیان sync نہیں ہوتی؛ کال اور چیٹ سروس ابھی منسلک نہیں۔</footer>
+<footer class="footer" id="footerStatus">دوست کی تصدیق شدہ شناخت اس فون میں مقامی طور پر محفوظ ہوتی ہے۔ کال اور چیٹ سروس اس Preview میں ابھی فعال نہیں۔</footer>
 </div>
 <div class="dialog-backdrop" id="dialogBackdrop" role="presentation">
   <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
     <h2 id="dialogTitle">دوست شامل کریں</h2>
-    <p id="dialogText">QR شناخت، محفوظ رابطہ اور دونوں طرف منظوری کا نیا نظام ابھی تعمیر کے مرحلے میں ہے۔ اس Preview میں QR یا رابطہ بھیجنے کا جھوٹا دعویٰ نہیں کیا جائے گا۔</p>
+    <p id="dialogText">دوست شامل کرنے کے لیے ایک بار QR اسکین کریں یا دعوتی لنک کھولیں۔ محفوظ شناخت کی تصدیق کے بعد دوست خود اس فون میں محفوظ ہو جائے گا۔</p>
     <div class="status" id="dialogStatus" role="status" aria-live="polite"></div>
     <div class="dialog-actions"><button class="secondary" id="closeDialog" type="button">بند کریں</button></div>
   </section>
@@ -155,8 +155,8 @@ header{height:76px;display:flex;align-items:center;justify-content:space-between
 <script src="./js/ezero_connect_trust_v1.js" defer></script>
 <script src="./js/ezero_connect_config_v1.js" defer></script>
 <script src="./js/ezero_connect_signal_client_v1.js" defer></script>
-<script src="./js/ezero_connect_pairing_v1.js" defer></script>
+<script src="./js/ezero_connect_pairing_v2.js" defer></script>
 <script src="./js/ezero_connect_app_v1.js" defer></script>
-<script src="./js/ezero_connect_pairing_ui_v1.js" defer></script>
+<script src="./js/ezero_connect_pairing_auto_ui_v2.js" defer></script>
 </body>
 </html>
