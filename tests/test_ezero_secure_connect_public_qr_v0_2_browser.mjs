@@ -96,17 +96,16 @@ try{
   // Real QR verification reuses explicit camera consent.
   const bIdentity=await b.evaluate(()=>window.EZERO_PUBLIC_QR_CORE.identity());
   await a.evaluate(token=>{
-    window.BarcodeDetector=class{
-      constructor({formats}){if(!formats.includes("qr_code"))throw Error("BAD_FORMAT");}
-      async detect(){return [{rawValue:token}];}
-    };
+    window.jsQR=()=>({data:token});
   },bIdentity.token);
   await a.locator("#oneTapStartButton").click();
   await a.waitForFunction(()=>document.querySelector("#oneTapResult")?.dataset.kind==="success",
     {timeout:15000});
   assert.equal(await a.evaluate(()=>window.__camera.length),1);
   assert.equal(await a.evaluate(()=>window.__camera[0].audio),false);
-  console.log("ONE_CLICK_CAMERA_CONSENT_SIGNED_QR_NO_MIC: PASS");
+  assert.equal(await a.locator("#oneTapCamera").evaluate(el=>el.classList.contains("scanner-active")),false,
+    "Scanner overlay closes after a verified QR");
+  console.log("ONE_CLICK_CAMERA_CONSENT_LOCAL_JSQR_SIGNED_QR_NO_MIC: PASS");
 
   const installed=await phone("INSTALLED");
   await installed.addInitScript(()=>{
