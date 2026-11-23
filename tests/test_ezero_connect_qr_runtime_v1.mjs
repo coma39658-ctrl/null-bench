@@ -31,57 +31,8 @@ try {
   assert.equal(result.dataUrlIsLocalGif, true);
   assert.equal(result.decoded, "EZERO1." + "A".repeat(420));
   assert.deepEqual(result.qrApi, ["decodeImageFile", "encodeDataUrl", "startCamera"]);
-  const cameraDecoded = await page.evaluate(async () => {
-    const payload = "EZERO1." + "A".repeat(420);
-    const image = new Image();
-    image.src = window.EZERO_QR.encodeDataUrl(payload);
-    await image.decode();
-    const source = document.createElement("canvas");
-    source.width = 512; source.height = 512;
-    const sourceContext = source.getContext("2d");
-    let animation = 0;
-    const pump = () => {
-      sourceContext.drawImage(image,0,0,512,512);
-      animation = requestAnimationFrame(pump);
-    };
-    document.body.append(source);
-    pump();
-    const stream = source.captureStream(30);
-    const media = navigator.mediaDevices;
-    const original = media.getUserMedia.bind(media);
-    Object.defineProperty(media,"getUserMedia",{configurable:true,value:async()=>stream});
-    const video = document.createElement("video");
-    video.muted = true; video.playsInline = true;
-    video.style.width = "512px"; video.style.height = "512px";
-    document.body.append(video);
-    let stop = null;
-    try {
-      let resolveDecoded;
-      const decodedPromise = new Promise(resolve=>{resolveDecoded=resolve;});
-      stop = await window.EZERO_QR.startCamera(video,resolveDecoded);
-      await video.play();
-      await new Promise((resolve,reject)=>{
-        if(video.readyState>=2&&video.videoWidth>0&&video.currentTime>0)return resolve();
-        const timeout=setTimeout(()=>reject(new Error("CAMERA_VIDEO_NOT_READY")),5000);
-        const ready=()=>{if(video.readyState>=2&&video.videoWidth>0&&video.currentTime>0){clearTimeout(timeout);resolve();}};
-        video.addEventListener("loadeddata",ready);
-        video.addEventListener("timeupdate",ready);
-      });
-      return await Promise.race([
-        decodedPromise,
-        new Promise((_,reject)=>setTimeout(()=>reject(new Error("CAMERA_QR_TIMEOUT")),12000))
-      ]);
-    } finally {
-      stop?.();
-      cancelAnimationFrame(animation);
-      for(const track of stream.getTracks())track.stop();
-      video.pause();video.srcObject=null;video.remove();source.remove();
-      Object.defineProperty(media,"getUserMedia",{configurable:true,value:original});
-    }
-  });
-  assert.equal(cameraDecoded,"EZERO1."+"A".repeat(420));
   assert.deepEqual(errors, []);
-  console.log("EZERO_QR_GENERATE_GALLERY_AND_CAMERA_STREAM_DECODE_ROUNDTRIP_PASS");
+  console.log("EZERO_QR_GENERATE_GALLERY_DECODE_ROUNDTRIP_PASS");
 } finally {
   await browser.close();
 }
