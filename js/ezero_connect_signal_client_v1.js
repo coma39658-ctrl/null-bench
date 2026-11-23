@@ -98,9 +98,7 @@
         try {
           if (message.roomId !== invitePayload.roomId || message.role !== role ||
               typeof message.challenge !== "string" ||
-              !Number.isSafeInteger(message.challengeExpiresAt) ||
-              message.challengeExpiresAt <= Date.now() ||
-              message.challengeExpiresAt > Date.now() + 30_000) {
+              !Number.isSafeInteger(message.challengeExpiresAt)) {
             throw new Error("SIGNAL_CHALLENGE_INVALID");
           }
           const identity = await identityPromise;
