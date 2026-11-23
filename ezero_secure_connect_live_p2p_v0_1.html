@@ -20,6 +20,7 @@
 <script src="./js/ezero_secure_connect_public_entry_redirect_v0_1.js"></script>
 <link rel="stylesheet" href="./css/ezero_secure_connect_public_qr_v0_2.css">
 <script defer src="./js/vendor/ezero-qrcode-generator-mit.js"></script>
+<script defer src="./js/vendor/jsqr-apache-2.0.js"></script>
 <script defer src="./js/ezero_secure_connect_public_qr_v0_2.js"></script>
 <script defer src="./js/ezero_secure_connect_remote_invite_v0_2.js"></script>
 
@@ -49,9 +50,18 @@
         <div id="oneTapQr" role="img" aria-label="Signed temporary identity QR"></div>
         <div id="oneTapCamera">
           <video id="scanVideo" playsinline muted hidden aria-label="QR scanner camera"></video>
+          <div id="oneTapCameraControls" hidden>
+            <p id="oneTapCameraStatus" role="status" aria-live="polite">کیمرہ فعال ہے۔ دوسرے فون کا E-ZERO QR سامنے دکھائیں۔</p>
+            <div class="one-tap-camera-actions">
+              <button type="button" id="oneTapFlipCamera">🔄 کیمرہ بدلیں</button>
+              <button type="button" id="oneTapTorch" aria-pressed="false">🔦 لائٹ آن</button>
+              <button type="button" id="oneTapGalleryButton">🖼️ گیلری سے QR</button>
+              <button type="button" id="oneTapStop" data-ui="stop">■ کیمرہ بند کریں</button>
+            </div>
+          </div>
+          <input id="oneTapGalleryInput" type="file" accept="image/*" hidden>
         </div>
         <p id="oneTapResult" role="status" aria-live="polite">QR بنانے کے لیے بٹن دبائیں۔</p>
-        <button type="button" id="oneTapStop" hidden data-ui="stop">■ کیمرہ بند کریں</button>
       </div>
       <p class="notice" data-ui="truth">QR صرف عارضی ڈیجیٹل چابی کی تصدیق کرتا ہے، انسان کی شناخت یا مکمل کال کی نہیں۔ کال خودکار شروع نہیں ہوگی۔</p>
     </section>
