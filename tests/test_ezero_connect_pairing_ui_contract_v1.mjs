@@ -25,6 +25,13 @@ assert.ok(app.includes('#invite='), "Shared invite links must carry the signed i
 assert.ok(app.includes('acceptInviteFromSharedLink'), "Opening a shared invite link must enter the same verification path");
 assert.ok(app.includes('beforeinstallprompt'), "PWA install action must support the browser install prompt");
 assert.ok(app.includes('ezero:invite-created'), "Host QR creation must start host pairing");
+assert.ok(app.includes('ezero:invite-host-ready'), "Host QR must not be shown until the signed signaling handshake is ready");
+assert.ok(app.includes('ezero:invite-host-failed'), "A failed host handshake must cancel the pending QR");
+assert.ok(app.includes('qrConnecting') && app.includes('qrHostFailed'), "Host readiness and failure states must be localized");
+assert.ok(app.includes('$("myQrDisplay").hidden = true;'), "The QR display must remain hidden while host signaling connects");
+assert.ok(app.includes('$("shareInviteLink").disabled = true;'), "Invite sharing must remain disabled until host signaling is ready");
+assert.ok(ui.includes('ezero:invite-host-ready'), "Host readiness event must be emitted only after connection.ready");
+assert.ok(ui.includes('ezero:invite-host-failed'), "Host handshake failure must notify the QR UI");
 assert.ok(app.includes('ezero:invite-verified'), "Verified guest QR must start guest pairing");
 assert.ok(invite.includes("origin: payload.origin"), "Verified invite must retain exact origin for signaling");
 assert.ok(ui.includes('session.approveOutgoing()'), "Host must explicitly approve outgoing friend request");
