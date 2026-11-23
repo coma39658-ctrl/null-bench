@@ -346,6 +346,10 @@
     if (existing.some(contact => contact.remoteFingerprint === remote.fingerprint && contact.status === "BLOCKED")) {
       throw new Error("TRUST_REMOTE_DEVICE_BLOCKED");
     }
+    const trustedPeer = existing.find(contact => contact.remoteFingerprint === remote.fingerprint && contact.status === "TRUSTED");
+    if (trustedPeer) {
+      return { relationshipId: trustedPeer.relationshipId, remoteFingerprint: remote.fingerprint, status: "TRUSTED", alreadySaved: true };
+    }
     const record = {
       relationshipId, trustVersion: 2, remoteFingerprint: remote.fingerprint,
       remotePublicKeySpki: remote.publicKeySpki, displayName: name, transcript,
