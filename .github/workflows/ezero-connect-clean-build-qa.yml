@@ -28,6 +28,7 @@ on:
       - 'tests/test_ezero_connect_pairing_v2.mjs'
       - 'signaling/ezero-connect-v1/**'
       - 'tests/test_ezero_connect_clean_build_v1.mjs'
+      - 'tests/test_ezero_connect_qr_frozen_guard_v1.mjs'
       - '.github/workflows/ezero-connect-clean-build-qa.yml'
   push:
     branches:
@@ -112,6 +113,8 @@ jobs:
           done
           cat /tmp/ezero-clean-build.log
           exit 1
+      - name: Enforce immutable QR and trusted-friend pairing baseline
+        run: node tests/test_ezero_connect_qr_frozen_guard_v1.mjs
       - name: Test clean mobile shell behavior and no-legacy boundary
         run: node tests/test_ezero_connect_clean_build_v1.mjs
       - name: Verify QR generation and gallery-image roundtrip
