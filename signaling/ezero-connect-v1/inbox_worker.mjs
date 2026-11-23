@@ -120,7 +120,8 @@ export class EzeroConnectInbox {
         }
         const alreadyOnline = this.ctx.getWebSockets().some(other => {
           if (other === ws || other.readyState !== 1) return false;
-          const state = other.deserializeAttachment();\n          return state?.state === "AUTHENTICATED" && state.fingerprint === message.fingerprint;
+          const state = other.deserializeAttachment();
+          return state?.state === "AUTHENTICATED" && state.fingerprint === message.fingerprint;
         });
         if (alreadyOnline) { close(ws, 1008, "device inbox already connected"); return; }
         a.state = "AUTHENTICATED";
