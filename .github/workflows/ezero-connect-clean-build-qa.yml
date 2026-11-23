@@ -43,6 +43,7 @@ on:
       - 'tests/test_ezero_connect_clean_build_v1.mjs'
       - 'tests/test_ezero_connect_trust_v1.mjs'
       - 'tests/test_ezero_connect_qr_runtime_v1.mjs'
+      - 'tests/test_ezero_web_scanner_controls_v1.mjs'
       - 'tests/test_ezero_connect_signaling_v1.mjs'
       - 'tests/test_ezero_connect_signal_client_v1.mjs'
       - 'tests/test_ezero_connect_pairing_v1.mjs'
