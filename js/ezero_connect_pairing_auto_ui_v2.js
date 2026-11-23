@@ -52,6 +52,7 @@
   let role = null;
   let busy = false;
   let completed = false;
+  let activeRoomId = null;
   const t = () => words[language] || words.en;
 
   function status(message, kind = "") {
@@ -110,12 +111,15 @@
   }
 
   async function beginPairing({ inviteCode, invitePayload, nextRole }) {
-    if (completed || busy) return;
+    if (busy) return;
     if (!invitePayload || invitePayload.origin !== location.origin) {
       panel.hidden = false;
       status(t().error + "INVITE_ORIGIN_OR_VERSION_INVALID", "error");
       return;
     }
+    if (completed && activeRoomId === invitePayload.roomId) return;
+    completed = false;
+    activeRoomId = invitePayload.roomId;
     if (connection && !connection.closed) connection.close();
     if (session) session.close();
     connection = null;
