@@ -39,7 +39,7 @@ try {
     return {position:overlay.position,height:video.getBoundingClientRect().height};
   });
   assert.equal(layout.position,"fixed","camera occupies a dedicated full-screen overlay");
-  assert.ok(layout.height>=300,"camera preview is large on a phone-sized viewport");
+  assert.ok(layout.height>=250,"camera preview is large while preserving the camera aspect ratio");
   await page.locator("#switchQrCamera").click();
   await page.waitForFunction(()=>document.querySelector("#qrScanStatus").textContent.includes("Camera switched"));
   await page.locator("#stopQrScanner").click();
