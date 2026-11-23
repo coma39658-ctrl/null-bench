@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { webcrypto } from "node:crypto";
-import { encodeCallInvite, verifyCallInvite, CALL_INVITE_LIMITS } from "../signaling/ezero-connect-v1/inbox_protocol.mjs";
+import { canonicalCallInvite, encodeCallInvite, verifyCallInvite, CALL_INVITE_LIMITS } from "../signaling/ezero-connect-v1/inbox_protocol.mjs";
 
 if (!globalThis.crypto) globalThis.crypto = webcrypto;
 if (!globalThis.atob) globalThis.atob = value => Buffer.from(value, "base64").toString("binary");
@@ -26,7 +26,7 @@ const payload = {
 };
 const signature = b64url(new Uint8Array(await crypto.subtle.sign(
   { name: "ECDSA", hash: "SHA-256" }, keys.privateKey,
-  new TextEncoder().encode(JSON.stringify(Object.fromEntries(Object.entries(payload).sort(([a],[b]) => a.localeCompare(b)))))
+  new TextEncoder().encode(canonicalCallInvite(payload))
 )));
 const code = encodeCallInvite({ payload, signature });
 const verified = await verifyCallInvite(code, payload.origin, recipientFingerprint, now);
