@@ -131,7 +131,7 @@ export class EzeroConnectInbox {
 
       if (a.state !== "AUTHENTICATED" && a.state !== "CALL_ACCEPTED") { close(ws); return; }
       if (message?.type === "call-invite" && Object.keys(message).sort().join(",") === "inviteCode,type") {
-        if (a.pendingCallId || a.peerCallId) { send(ws, { type: "busy" }); return; }
+        if (a.pendingCallId || a.peerCallId || a.activeCallId) { send(ws, { type: "busy" }); return; }
         const invite = await verifyCallInvite(message.inviteCode, a.origin, a.inboxFingerprint);
         if (invite.callerFingerprint !== a.fingerprint) throw new Error("INBOX_CALLER_IDENTITY_MISMATCH");
         a.recentCallIds = Array.isArray(a.recentCallIds) ? a.recentCallIds.filter(item => item && item.expiresAt > Date.now()) : [];
@@ -195,7 +195,8 @@ export class EzeroConnectInbox {
         const peer = this.ctx.getWebSockets().find(other => {
           if (other === ws || other.readyState !== 1) return false;
           const state = other.deserializeAttachment();
-          return state?.state === "AUTHENTICATED" && state.peerCallId === message.callId &&
+          return ["AUTHENTICATED", "CALL_ACCEPTED"].includes(state?.state) &&
+            (state.peerCallId === message.callId || state.activeCallId === message.callId) &&
             state.peerFingerprint === a.fingerprint;
         });
         if (peer) {
