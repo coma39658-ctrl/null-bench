@@ -66,6 +66,7 @@ const connection = globalThis.EZERO_CONNECT_SIGNAL.connect({
   onEvent: event => events.push(event)
 });
 await connection.ready;
+const primarySocket = FakeWebSocket.last;
 assert.equal(connection.authenticated, true);
 assert.equal(FakeWebSocket.last.url, "wss://signal.example.test/v1/rooms/" + invitePayload.roomId + "?role=host");
 const directWss = globalThis.EZERO_CONNECT_SIGNAL.connect({
@@ -87,10 +88,10 @@ assert.equal(sentSignatures.length, 1);
 assert.equal(sentSignatures[0].protocol, "E-ZERO-SIGNAL-HELLO-1");
 assert.equal(sentSignatures[0].origin, location.origin);
 assert.equal(sentSignatures[0].role, "host");
-assert.equal(FakeWebSocket.last.sent.length, 1);
-assert.equal(JSON.parse(FakeWebSocket.last.sent[0]).type, "hello");
+assert.equal(primarySocket.sent.length, 1);
+assert.equal(JSON.parse(primarySocket.sent[0]).type, "hello");
 connection.send("call-invite", { mode: "video" });
-assert.equal(JSON.parse(FakeWebSocket.last.sent[1]).payload.mode, "video");
+assert.equal(JSON.parse(primarySocket.sent[1]).payload.mode, "video");
 assert.throws(() => connection.send("clear-dtc", {}), /SIGNAL_MESSAGE_NOT_ALLOWED/);
 assert.throws(() => connection.send("offer", { sdp: "x".repeat(17_000) }), /SIGNAL_MESSAGE_TOO_LARGE/);
 connection.close();
