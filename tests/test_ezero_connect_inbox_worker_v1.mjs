@@ -75,6 +75,19 @@ assert.deepEqual(callerSocket.sent.at(-1), {
 });
 assert.equal(callerSocket.attachment.pendingCallId, null);
 assert.equal(recipientSocket.attachment.peerCallId, null);
+assert.equal(callerSocket.attachment.state, "CALL_ACCEPTED");
+assert.equal(recipientSocket.attachment.state, "CALL_ACCEPTED");
+
+// An accepted call occupies both endpoints until cancellation.
+await inbox.webSocketMessage(callerSocket, JSON.stringify({ type: "call-invite", inviteCode }));
+assert.equal(callerSocket.sent.at(-1).type, "busy");
+await inbox.webSocketMessage(callerSocket, JSON.stringify({ type: "call-cancel", callId: payload.callId }));
+assert.equal(callerSocket.attachment.state, "AUTHENTICATED");
+assert.equal(recipientSocket.attachment.state, "AUTHENTICATED");
+
+// A signed invite cannot be replayed after the call is cancelled.
+await inbox.webSocketMessage(callerSocket, JSON.stringify({ type: "call-invite", inviteCode }));
+assert.equal(callerSocket.sent.at(-1).type, "replay-rejected");
 
 // Offline recipients are never queued or reported as delivered.
 const offlineCaller = new FakeSocket({
