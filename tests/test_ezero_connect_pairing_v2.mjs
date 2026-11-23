@@ -46,7 +46,7 @@ await hostConnection.emit({
   type: "peer-ready", peerFingerprint: guestIdentity.fingerprint,
   peerPublicKeySpki: guestIdentity.publicKeySpki, peerHandshake: guestProof
 });
-await guestConnection.emit({
+await hostConnection.emit({
   type: "peer-ready", peerFingerprint: guestIdentity.fingerprint,
   peerPublicKeySpki: guestIdentity.publicKeySpki, peerHandshake: guestProof
 });
