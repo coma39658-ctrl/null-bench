@@ -181,7 +181,7 @@ export class EzeroConnectInbox {
         } else {
           a.state = "CALL_ACCEPTED";
           a.activeCallId = message.callId;
-          a.peerCallId = null; a.peerFingerprint = null; a.callExpiresAt = null;
+          a.peerCallId = null; a.callExpiresAt = null;
           ws.serializeAttachment(a);
           callerState.state = "CALL_ACCEPTED";
           callerState.activeCallId = message.callId;
@@ -201,7 +201,9 @@ export class EzeroConnectInbox {
         });
         if (peer) {
           const peerState = peer.deserializeAttachment();
-          peerState.peerCallId = null; peerState.peerFingerprint = null; peerState.callExpiresAt = null;
+          peerState.peerCallId = null; peerState.pendingCallId = null;
+          peerState.activeCallId = null; peerState.state = "AUTHENTICATED";
+          peerState.peerFingerprint = null; peerState.callExpiresAt = null;
           peer.serializeAttachment(peerState);
           send(peer, { type: "call-cancelled", callId: message.callId });
         }
@@ -218,7 +220,7 @@ export class EzeroConnectInbox {
 
   async webSocketClose(ws) {
     const a = ws.deserializeAttachment();
-    if (a?.state !== "AUTHENTICATED") return;
+    if (!["AUTHENTICATED", "CALL_ACCEPTED"].includes(a?.state)) return;
     const other = this.ctx.getWebSockets().find(peer => {
       if (peer === ws || peer.readyState !== 1) return false;
       const state = peer.deserializeAttachment();
@@ -229,7 +231,7 @@ export class EzeroConnectInbox {
     });
     if (other) {
       const state = other.deserializeAttachment();
-      const callId = state.peerCallId || state.pendingCallId;
+      const callId = state.activeCallId || state.peerCallId || state.pendingCallId;
       state.peerCallId = null; state.pendingCallId = null; state.activeCallId = null;
       state.state = "AUTHENTICATED";
       state.peerFingerprint = null; state.callExpiresAt = null;
