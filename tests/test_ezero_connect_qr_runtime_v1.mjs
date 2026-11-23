@@ -1,5 +1,14 @@
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
+import fs from "node:fs";
+
+const cameraSource = fs.readFileSync("scripts/ezero_connect_qr_entry_v1.js", "utf8");
+assert.match(cameraSource, /decodeQR\(context\.getImageData/);
+assert.match(cameraSource, /requestAnimationFrame\(scanFrame\)/);
+assert.match(cameraSource, /facingMode: \{ ideal: "environment" \}/);
+assert.match(cameraSource, /enumerateDevices\(\)/);
+assert.match(cameraSource, /getCapabilities\?\.\(\)/);
+assert.match(cameraSource, /applyConstraints\(\{ advanced: \[\{ torch: torchOn \}\] \}\)/);
 
 const browser = await chromium.launch({ headless: true });
 try {
