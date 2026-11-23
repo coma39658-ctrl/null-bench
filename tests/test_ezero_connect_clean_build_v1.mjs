@@ -224,7 +224,7 @@ try {
   await page.locator("#requestCameraPermission").click();
   await page.waitForFunction(() => /Camera permission is blocked|کیمرہ اجازت بند ہے/.test(document.querySelector("#qrScanStatus").textContent));
   await page.locator("#createMyQr").click();
-  await page.waitForFunction(() => /Establishing the secure signaling connection/.test(document.querySelector("#qrScanStatus").textContent));
+  await page.waitForFunction(() => /محفوظ سگنلنگ رابطہ قائم ہو رہا ہے|Establishing the secure signaling connection|جارٍ إنشاء اتصال الإشارة الآمن/.test(document.querySelector("#qrScanStatus").textContent));
   assert.equal(await page.locator("#myQrDisplay").isVisible(), false);
   assert.equal(await page.locator("#shareInviteLink").isDisabled(), true);
   await page.waitForFunction(() => !document.querySelector("#myQrDisplay").hidden);
