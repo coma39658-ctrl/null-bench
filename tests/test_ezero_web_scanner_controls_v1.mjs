@@ -31,6 +31,8 @@ try {
   });
   await page.locator("#scanFriendQr").click();
   await page.waitForFunction(()=>!document.querySelector("#qrScannerOverlay").hidden);
+  await page.waitForFunction(()=>!document.querySelector("#switchQrCamera").disabled);
+  await page.waitForFunction(()=>document.querySelector("#qrScannerVideo").videoWidth>0);
   assert.equal(await page.locator("#qrScannerVideo").isVisible(),true);
   assert.equal(await page.locator("#toggleQrTorch").isDisabled(),true,"unsupported torch is disabled, not falsely advertised");
   const layout=await page.evaluate(()=>{
