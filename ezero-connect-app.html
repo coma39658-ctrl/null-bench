@@ -34,6 +34,23 @@ header{height:76px;display:flex;align-items:center;justify-content:space-between
 .dialog-backdrop{position:fixed;inset:0;background:#0b2119a8;display:none;align-items:flex-end;justify-content:center;padding:14px;z-index:5}.dialog-backdrop.open{display:flex}.dialog{background:white;border-radius:22px 22px 18px 18px;padding:20px;width:min(100%,500px);box-shadow:var(--shadow)}.dialog h2{font-size:17px;margin:0 0 8px}.dialog p{font-size:12px;color:var(--muted);line-height:1.8}.dialog-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
 @media(min-width:650px){.shell{padding-top:14px}.dialog-backdrop{align-items:center}.dialog{border-radius:22px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* Full-screen mobile QR scanner: keep the camera frame large and controls reachable. */
+#qrScannerOverlay[hidden]{display:none!important}
+#qrScannerOverlay{position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;
+  justify-content:center;gap:12px;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));
+  background:#061b16;color:#fff;overflow:auto}
+#qrScannerVideo{display:block;width:100%;max-width:100%;height:auto;max-height:min(68dvh,760px);
+  object-fit:contain;background:#000;border:1px solid #78998a;border-radius:18px;margin:auto}
+#qrScannerControls{width:100%;max-width:760px;margin:0 auto}
+#qrScannerOverlayStatus{margin:0 0 10px;padding:10px 12px;text-align:center;line-height:1.7;
+  color:#fff;background:#143c2c;border:1px solid #47745e;border-radius:12px}
+.qr-camera-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.qr-camera-actions button{min-height:54px;padding:9px 8px;border-radius:13px;font-weight:850;font-size:13px}
+.qr-camera-actions #stopQrScanner{background:#a32d39;color:#fff;border-color:#c55b65}
+@media(max-width:520px){.qr-camera-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.qr-camera-actions #stopQrScanner{grid-column:1/-1}}
+@media(min-width:700px){#qrScannerVideo{max-height:min(70dvh,760px);max-width:1000px}}
+
 </style>
 </head>
 <body>
@@ -94,8 +111,18 @@ header{height:76px;display:flex;align-items:center;justify-content:space-between
     <button class="primary" id="requestCameraPermission" type="button" disabled style="width:100%;margin-top:9px">کیمرہ اجازت دیں اور QR اسکین کریں</button>
     <button class="secondary" id="chooseGalleryQr" type="button" disabled style="width:100%;margin-top:9px">گیلری سے QR تصویر منتخب کریں</button>
     <input id="qrGalleryFile" type="file" accept="image/png,image/jpeg,image/webp,image/avif,image/gif,image/bmp" hidden>
-    <video id="qrScannerVideo" playsinline muted hidden style="width:100%;border-radius:14px;margin-top:12px;background:#102d22"></video>
-    <button class="secondary" id="stopQrScanner" type="button" hidden style="width:100%;margin-top:8px">اسکین بند کریں</button>
+    <div id="qrScannerOverlay" hidden>
+      <video id="qrScannerVideo" playsinline muted></video>
+      <div id="qrScannerControls">
+        <p id="qrScannerOverlayStatus" role="status" aria-live="polite">کیمرہ فعال ہے۔ دوسرے فون کا E-ZERO QR سامنے رکھیں۔</p>
+        <div class="qr-camera-actions">
+          <button class="secondary" id="switchQrCamera" type="button">🔄 کیمرہ بدلیں</button>
+          <button class="secondary" id="toggleQrTorch" type="button" aria-pressed="false">🔦 لائٹ آن</button>
+          <button class="secondary" id="chooseGalleryQrInScanner" type="button">🖼️ گیلری سے QR</button>
+          <button class="primary" id="stopQrScanner" type="button">■ اسکین بند کریں</button>
+        </div>
+      </div>
+    </div>
     <div id="myQrDisplay" hidden style="text-align:center;padding:14px 4px 4px">
       <div id="myQrImage" style="display:inline-block;max-width:100%;background:#fff;padding:10px;border-radius:14px"></div>
       <div class="muted" id="myQrExpiry" style="margin-top:8px"></div>
