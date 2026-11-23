@@ -41,6 +41,46 @@ try {
       const original = media.getUserMedia.bind(media);
       media.getUserMedia = (...args) => { window.__ezeroMediaRequestCount++; return original(...args); };
     }
+    window.WebSocket = class FakeWebSocket {
+      static OPEN = 1;
+      constructor(url) {
+        const parsed = new URL(url);
+        this.url = url;
+        this.roomId = parsed.pathname.split("/").pop();
+        this.role = parsed.searchParams.get("role");
+        this.readyState = 1;
+        this.listeners = new Map();
+        queueMicrotask(() => this.dispatch("message", { data: JSON.stringify({
+          type: "challenge",
+          roomId: this.roomId,
+          role: this.role,
+          challenge: "C".repeat(43),
+          challengeExpiresAt: Date.now() + 20_000
+        }) }));
+      }
+      addEventListener(type, callback) {
+        if (!this.listeners.has(type)) this.listeners.set(type, []);
+        this.listeners.get(type).push(callback);
+      }
+      dispatch(type, event) {
+        for (const callback of this.listeners.get(type) || []) callback(event);
+      }
+      send(raw) {
+        const message = JSON.parse(raw);
+        if (message.type === "hello") {
+          setTimeout(() => this.dispatch("message", { data: JSON.stringify({
+            type: "hello-accepted",
+            role: this.role,
+            roomId: this.roomId,
+            expiresAt: Date.now() + 500_000
+          }) }), 500);
+        }
+      }
+      close(code = 1000) {
+        this.readyState = 3;
+        this.dispatch("close", { code, reason: "test close" });
+      }
+    };
   });
   await page.goto("http://127.0.0.1:8769/ezero-connect-app.html");
   await page.waitForSelector("#emptyState");
@@ -184,7 +224,11 @@ try {
   await page.locator("#requestCameraPermission").click();
   await page.waitForFunction(() => /Camera permission is blocked|کیمرہ اجازت بند ہے/.test(document.querySelector("#qrScanStatus").textContent));
   await page.locator("#createMyQr").click();
+  await page.waitForFunction(() => /محفوظ سگنلنگ رابطہ قائم ہو رہا ہے|Establishing the secure signaling connection|جارٍ إنشاء اتصال الإشارة الآمن/.test(document.querySelector("#qrScanStatus").textContent));
+  assert.equal(await page.locator("#myQrDisplay").isVisible(), false);
+  assert.equal(await page.locator("#shareInviteLink").isDisabled(), true);
   await page.waitForFunction(() => !document.querySelector("#myQrDisplay").hidden);
+  assert.equal(await page.locator("#shareInviteLink").isDisabled(), false);
   const qrPngDataUrl = await page.evaluate(async () => {
     const image = document.querySelector("#myQrImage img");
     await image.decode();
