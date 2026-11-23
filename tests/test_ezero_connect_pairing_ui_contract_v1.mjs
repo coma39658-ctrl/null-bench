@@ -17,6 +17,13 @@ for (const source of [
 ]) assert.ok(html.includes(source), `Missing browser module: ${source}`);
 
 assert.ok(html.includes('id="savedFriendsList"'), "Saved friend list container must exist");
+assert.ok(html.includes('id="shareInviteLink"'), "A one-tap invite-link share action must exist");
+assert.ok(html.includes('id="installEzero"'), "An install action must exist");
+assert.ok(html.includes("صرف 90 سیکنڈ") || html.includes("90 سیکنڈ تک"), "The first invite must visibly explain its 90-second expiry");
+assert.ok(app.includes('navigator.share'), "Invite link must use the native share sheet when available");
+assert.ok(app.includes('#invite='), "Shared invite links must carry the signed invite token in the URL fragment");
+assert.ok(app.includes('acceptInviteFromSharedLink'), "Opening a shared invite link must enter the same verification path");
+assert.ok(app.includes('beforeinstallprompt'), "PWA install action must support the browser install prompt");
 assert.ok(app.includes('ezero:invite-created'), "Host QR creation must start host pairing");
 assert.ok(app.includes('ezero:invite-verified'), "Verified guest QR must start guest pairing");
 assert.ok(invite.includes("origin: payload.origin"), "Verified invite must retain exact origin for signaling");
