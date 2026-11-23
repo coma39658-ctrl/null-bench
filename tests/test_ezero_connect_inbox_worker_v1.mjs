@@ -78,6 +78,21 @@ assert.equal(recipientSocket.attachment.peerCallId, null);
 assert.equal(callerSocket.attachment.state, "CALL_ACCEPTED");
 assert.equal(recipientSocket.attachment.state, "CALL_ACCEPTED");
 
+// Only an accepted call can hand off a short-lived, signed WebRTC room invite.
+// The inbox relays it opaquely; each browser verifies it against its saved peer.
+const roomInviteCode = "EZERO1." + "A".repeat(120);
+await inbox.webSocketMessage(callerSocket, JSON.stringify({
+  type: "call-room-invite", callId: payload.callId, inviteCode: roomInviteCode
+}));
+assert.deepEqual(recipientSocket.sent.at(-1), {
+  type: "call-room-invite", callId: payload.callId, inviteCode: roomInviteCode
+});
+assert.equal(callerSocket.sent.at(-1).type, "call-room-routed");
+await inbox.webSocketMessage(callerSocket, JSON.stringify({
+  type: "call-room-invite", callId: payload.callId, inviteCode: "bad"
+}));
+assert.equal(callerSocket.readyState, 3);
+
 // An accepted call occupies both endpoints until cancellation.
 await inbox.webSocketMessage(callerSocket, JSON.stringify({ type: "call-invite", inviteCode }));
 assert.equal(callerSocket.sent.at(-1).type, "busy");
