@@ -10,7 +10,7 @@ try {
   page.on("pageerror",error=>errors.push(error.message));
   await page.goto("http://127.0.0.1:8769/ezero-connect-app.html",{waitUntil:"domcontentloaded"});
   await page.waitForFunction(()=>Boolean(window.EZERO_QR));
-  for(const id of ["qrScannerOverlay","qrScannerVideo","qrScannerControls","switchQrCamera","toggleQrTorch","stopQrScanner","chooseGalleryQr","qrGalleryFile"])
+  for(const id of ["qrScannerOverlay","qrScannerVideo","qrScannerControls","switchQrCamera","toggleQrTorch","stopQrScanner","chooseGalleryQr","chooseGalleryQrInScanner","qrGalleryFile"])
     assert.equal(await page.locator("#"+id).count(),1,"control exists: "+id);
   assert.equal(await page.locator("#qrScannerOverlay").isHidden(),true,"camera must not start on page load");
   await page.evaluate(()=>{
