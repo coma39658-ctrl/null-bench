@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 
-// These exact Git blobs are the already-tested QR + friend-pairing baseline.
-// Any intentional QR change requires a separate, reviewed QR release gate.
+// QR entry, identity, invite, signal client, pairing modules and app shell remain exact frozen blobs.
+// The trust-vault file may add only the separately tested read-only call lookup; its pairing/save
+// behavior remains covered by the full two-profile browser contract in test_ezero_connect_trust_v1.mjs.
 const frozen = {
   "ezero-connect-app.html": "d1267b5e157327f43201e2e8e3eb461b4092bb6d",
   "js/ezero_connect_identity_v1.js": "164b1571ab6fbef759f17417b70350f1d5a56d29",
   "js/ezero_connect_invite_v1.js": "857109f14d728bb0bf08421e3bd6b8e7f67209c4",
-  "js/ezero_connect_trust_v1.js": "b999f54feacea438870eae67f89102fcd8346b6d",
   "js/ezero_connect_signal_client_v1.js": "108ff382d8221cf856b3b4ec1a6877d867341218",
   "js/ezero_connect_pairing_v2.js": "e29dde007456e850e92ec41078f3fd2b669892f0",
   "js/ezero_connect_pairing_auto_ui_v2.js": "85918b49691cdb2c1ab59c8f191738b589a56fc4",
