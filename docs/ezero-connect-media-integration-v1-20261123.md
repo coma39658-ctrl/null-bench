@@ -42,3 +42,27 @@ Status: design and implementation gate; not enabled in the public/staging app ye
 - Phase B may be enabled only after DataChannel and payload-integrity tests pass.
 - Phase C may be enabled only after native APK and screen-off/background physical tests pass.
 - Merge to the shared staging branch and allow the isolated Render staging site to auto-deploy only after the relevant gate passes. Production remains untouched.
+
+## Integration inspection — 2026-11-23 (before implementation)
+
+The current clean-app signaling Worker is an invite-created, one-host/one-guest room with a maximum 10-minute lifetime. Its message allowlist already recognizes call control, SDP and ICE, but that does **not** provide a durable addressable inbox for a previously saved friend. A direct saved-friend call therefore cannot be implemented by simply enabling the disabled buttons or sending `call-invite` through an arbitrary room.
+
+The older foreground inbox prototype is not reusable as-is:
+- it reads a legacy `localStorage` fingerprint/name list rather than the current AES-GCM IndexedDB trust vault;
+- it depends on the legacy `EZERO_DEVICE_IDENTITY_STORE`, not `EZERO_CONNECT_IDENTITY`;
+- its fixed GitHub Pages origin and old call-page URL do not match this isolated Render staging origin;
+- it assumes a browser tab remains open and is not proof of native background push/ringing.
+
+The current trust API exposes a safe contact listing and `canReconnect(fingerprint)`, but deliberately does not expose the saved peer SPKI key through a narrow call-authentication lookup. A media adapter must not trust a fingerprint-only target or display name. Before implementation, add a reviewed, read-only trust-vault method that returns the peer public SPKI and relationship ID only for a locally TRUSTED contact, and returns nothing for BLOCKED/REVOKED contacts. This is an additive API change and must be covered by the frozen QR regression guard.
+
+### Required isolated inbox protocol
+
+- One stable inbox address per device fingerprint, with no public contact directory or discoverability endpoint.
+- The owner opens a foreground WebSocket and proves possession of its P-256 private key by signing a fresh, origin-bound challenge. The Worker derives and verifies the fingerprint from the SPKI.
+- The caller signs a short-lived call invitation bound to caller fingerprint, recipient fingerprint, relationship ID, call ID, mode, expiry and staging origin. Both sides independently verify the other device against their local TRUSTED vault record.
+- The Worker routes only bounded call-control envelopes to an already connected recipient socket; it must not persist call payloads or keep SDP/ICE/media/chat content in Durable Object storage.
+- Receiver explicitly accepts or declines. Acceptance creates a fresh ephemeral signaling room; the existing signed room handshake then binds WebRTC to the expected saved fingerprint.
+- If recipient inbox is offline, show unavailable; do not claim delivered, ring, or queue an invite. Native push is a separate Phase C implementation and test gate.
+- Rate-limit inbox connections and call attempts; reject replay, duplicate call IDs, self-call, blocked/revoked contacts, expired invitations, wrong origin and oversized messages. Close both sides on decline, hangup, timeout or revocation.
+
+No QR/pairing, identity, vault, current app-shell or production files were changed during this inspection. This section records blockers and the safe implementation sequence; it is not a claim that direct calling is implemented.
