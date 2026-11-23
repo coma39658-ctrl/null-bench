@@ -31,6 +31,6 @@
     }
   ],
   "vars": {
-    "PUBLIC_ORIGIN": "https://ezero-connect-camera-preview-20261120.onrender.com"
+    "PUBLIC_ORIGIN": "https://ezero-connect-pairing-v2-preview-20261123.onrender.com"
   }
 }
