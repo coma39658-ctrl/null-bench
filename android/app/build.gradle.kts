@@ -33,8 +33,8 @@ android {
         applicationId = "com.ezero.connect.staging75"
         minSdk = 24
         targetSdk = 35
-        versionCode = 75
-        versionName = "0.1.0-staging75"
+        versionCode = 76
+        versionName = "0.1.0-staging76"
     }
 
     signingConfigs {
