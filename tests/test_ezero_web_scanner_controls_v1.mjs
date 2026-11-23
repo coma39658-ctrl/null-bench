@@ -16,7 +16,8 @@ try {
   await page.evaluate(()=>{
     document.querySelector("#scanFriendQr").disabled=false;
     document.querySelector("#requestCameraPermission").disabled=false;
-    window.EZERO_QR.startCamera=async(video)=>{
+    const qrApi=window.EZERO_QR;
+    window.EZERO_QR=Object.freeze({...qrApi,startCamera:async(video)=>{
       const stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});
       video.srcObject=stream;
       await video.play();
@@ -26,7 +27,7 @@ try {
       stop.torchSupported=()=>false;
       stop.toggleTorch=async()=>true;
       return stop;
-    };
+    }});
   });
   await page.locator("#scanFriendQr").click();
   await page.waitForFunction(()=>!document.querySelector("#qrScannerOverlay").hidden);
