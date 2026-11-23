@@ -88,10 +88,14 @@ assert.deepEqual(recipientSocket.sent.at(-1), {
   type: "call-room-invite", callId: payload.callId, inviteCode: roomInviteCode
 });
 assert.equal(callerSocket.sent.at(-1).type, "call-room-routed");
-await inbox.webSocketMessage(callerSocket, JSON.stringify({
-  type: "call-room-invite", callId: payload.callId, inviteCode: "bad"
+const notAcceptedSocket = new FakeSocket({
+  state: "AUTHENTICATED", inboxFingerprint: recipient.fingerprint,
+  origin: payload.origin, fingerprint: caller.fingerprint, pendingCallId: null
+});
+await inbox.webSocketMessage(notAcceptedSocket, JSON.stringify({
+  type: "call-room-invite", callId: payload.callId, inviteCode: roomInviteCode
 }));
-assert.equal(callerSocket.readyState, 3);
+assert.equal(notAcceptedSocket.readyState, 3);
 
 // An accepted call occupies both endpoints until cancellation.
 await inbox.webSocketMessage(callerSocket, JSON.stringify({ type: "call-invite", inviteCode }));
