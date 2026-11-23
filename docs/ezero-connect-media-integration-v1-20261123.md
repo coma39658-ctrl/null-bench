@@ -85,3 +85,10 @@ Automated test coverage added for:
 - Offline recipient no-queue behavior.
 
 **Not implemented yet:** acceptance does not yet allocate/join an ephemeral WebRTC signaling room, and the inbox does not relay SDP/ICE or media. This is protocol/lifecycle hardening only, not a working audio/video call. Replay memory is intentionally volatile and scoped to the live socket; reconnect/replay policy still needs a stronger server-side short-lived nonce strategy before release. Worker deployment and public/staging UI activation remain blocked until the full call-room handoff and end-to-end tests pass.
+
+
+## Integration step — accepted-call room handoff (2026-11-23)
+
+The isolated inbox Worker now supports a narrowly scoped `call-room-invite` relay after both endpoints enter `CALL_ACCEPTED`. The caller may provide only a bounded `EZERO1.` room invite (maximum 8,192 characters) bound to the active call ID. The Worker relays the opaque invite only to the authenticated counterpart for that accepted call and does not persist it. A non-accepted socket or malformed invite is rejected.
+
+The receiver must still independently run the existing browser `EZERO_CONNECT_INVITES.verifyInvite()` and confirm the room invite's origin, expiry, signature and inviter fingerprint match the locally trusted peer and the accepted call relationship before joining. This relay is transport plumbing only: it does not establish a WebRTC session, verify the invite in the browser, negotiate SDP/ICE, or enable the UI. Those client-side checks and end-to-end browser tests remain required before Phase A can be enabled.
