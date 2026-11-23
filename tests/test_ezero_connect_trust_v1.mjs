@@ -143,6 +143,76 @@ try {
   assert.equal(await a.evaluate(fp => window.EZERO_CONNECT_TRUST.canReconnect(fp), identityB.fingerprint), true);
   assert.equal(await b.evaluate(fp => window.EZERO_CONNECT_TRUST.canReconnect(fp), identityA.fingerprint), true);
 
+
+  // V2: the invite creator and QR scanner have already supplied the two deliberate
+  // consent actions. Each phone verifies the other phone's Worker-accepted signed
+  // challenge proof, then saves locally without approval buttons or a save checkbox.
+  const autoInvite = await a.evaluate(() => window.EZERO_CONNECT_INVITES.createInvite());
+  const autoVerified = await b.evaluate(code => window.EZERO_CONNECT_INVITES.verifyInvite(code), autoInvite.inviteCode);
+
+  async function signedPeerHandshake(page, invite, role) {
+    return page.evaluate(async ({ invite, role }) => {
+      const identity = await window.EZERO_CONNECT_IDENTITY.getPublicIdentity();
+      const random = crypto.getRandomValues(new Uint8Array(32));
+      let binary = "";
+      for (const byte of random) binary += String.fromCharCode(byte);
+      const challenge = btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
+      const payload = {
+        v: 1,
+        protocol: "E-ZERO-SIGNAL-HELLO-1",
+        origin: invite.origin,
+        roomId: invite.roomId,
+        inviteNonce: invite.nonce,
+        role,
+        fingerprint: identity.fingerprint,
+        publicKeySpki: identity.publicKeySpki,
+        challenge,
+        challengeExpiresAt: Date.now() + 30_000
+      };
+      return { payload, signature: await window.EZERO_CONNECT_IDENTITY.signCanonical(payload) };
+    }, { invite, role });
+  }
+
+  const guestProof = await signedPeerHandshake(b, autoVerified, "guest");
+  const hostProof = await signedPeerHandshake(a, autoInvite, "host");
+  const autoSavedA = await a.evaluate(args => window.EZERO_CONNECT_TRUST.saveVerifiedPeer({
+    invitePayload: args.invite,
+    peerHandshake: args.proof,
+    localRole: "host",
+    peerFingerprint: args.peerFingerprint,
+    peerPublicKeySpki: args.peerPublicKeySpki
+  }), { invite: autoInvite, proof: guestProof, peerFingerprint: identityB.fingerprint, peerPublicKeySpki: identityB.publicKeySpki });
+  const autoSavedB = await b.evaluate(args => window.EZERO_CONNECT_TRUST.saveVerifiedPeer({
+    invitePayload: args.invite,
+    peerHandshake: args.proof,
+    localRole: "guest",
+    peerFingerprint: args.peerFingerprint,
+    peerPublicKeySpki: args.peerPublicKeySpki
+  }), { invite: autoVerified, proof: hostProof, peerFingerprint: identityA.fingerprint, peerPublicKeySpki: identityA.publicKeySpki });
+  assert.equal(autoSavedA.status, "TRUSTED");
+  assert.equal(autoSavedB.status, "TRUSTED");
+  assert.equal(autoSavedA.relationshipId, autoSavedB.relationshipId);
+  const duplicateAutoSave = await a.evaluate(args => window.EZERO_CONNECT_TRUST.saveVerifiedPeer({
+    invitePayload: args.invite,
+    peerHandshake: args.proof,
+    localRole: "host",
+    peerFingerprint: args.peerFingerprint,
+    peerPublicKeySpki: args.peerPublicKeySpki
+  }), { invite: autoInvite, proof: guestProof, peerFingerprint: identityB.fingerprint, peerPublicKeySpki: identityB.publicKeySpki });
+  assert.equal(duplicateAutoSave.alreadySaved, true);
+
+  const invalidPeerProof = { ...guestProof, signature: (guestProof.signature[0] === "A" ? "B" : "A") + guestProof.signature.slice(1) };
+  const invalidPeerResult = await a.evaluate(async args => {
+    try {
+      await window.EZERO_CONNECT_TRUST.saveVerifiedPeer({
+        invitePayload: args.invite, peerHandshake: args.proof, localRole: "host",
+        peerFingerprint: args.peerFingerprint, peerPublicKeySpki: args.peerPublicKeySpki
+      });
+      return "ACCEPTED";
+    } catch (error) { return error.message; }
+  }, { invite: autoInvite, proof: invalidPeerProof, peerFingerprint: identityB.fingerprint, peerPublicKeySpki: identityB.publicKeySpki });
+  assert.equal(invalidPeerResult, "TRUST_V2_PEER_SIGNATURE_INVALID");
+
   console.log("EZERO_MUTUAL_TRUST_TWO_PROFILE_ENCRYPTED_CONTACT_REVOCATION_PASS");
 } finally {
   for (const context of contexts) await context.close();
