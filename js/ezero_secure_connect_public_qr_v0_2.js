@@ -154,7 +154,7 @@
     if(stream){for(const track of stream.getTracks())track.stop();stream=null;}
     $video.pause();$video.srcObject=null;$video.hidden=true;
     $camera.classList.remove("scanner-active");$controls.hidden=true;
-    $stop.hidden=false;$start.disabled=false;torchOn=false;
+    $stop.hidden=true;$start.disabled=false;torchOn=false;$flip.disabled=true;
     $torch.setAttribute("aria-pressed","false");$torch.textContent=say("torchOn");
     $torch.disabled=true;
     if(show)showState("stopped");
@@ -162,6 +162,7 @@
   $stop.addEventListener("click",()=>stopCamera(true));
   async function openScanner(){
     if(typeof window.jsQR!=="function"||!navigator.mediaDevices?.getUserMedia){
+      $controls.hidden=false;$flip.disabled=true;$torch.disabled=true;
       showState("unsupported","warning");return;
     }
     const round=generation;
@@ -174,7 +175,7 @@
       stream=camera;$video.srcObject=camera;$video.hidden=false;
       await $video.play();
       if(round!==generation||document.hidden){stopCamera();return;}
-      $camera.classList.add("scanner-active");$controls.hidden=false;
+      $camera.classList.add("scanner-active");$controls.hidden=false;$flip.disabled=false;$stop.hidden=false;
       const track=camera.getVideoTracks()[0];
       let capabilities={};
       try{capabilities=track?.getCapabilities?.()||{};}catch(_){}
@@ -212,7 +213,7 @@
       timer=setTimeout(frame,180);
     }catch(e){
       if(round!==generation)return;
-      stopCamera();
+      stopCamera();$controls.hidden=false;$flip.disabled=true;$torch.disabled=true;
       const name=String(e?.name||"");
       showState(name==="NotAllowedError"||name==="SecurityError"?"denied":
         name==="NotFoundError"||name==="NotReadableError"?"unavailable":"failure","error");
