@@ -38,7 +38,13 @@ try {
     await image.decode();
     const source = document.createElement("canvas");
     source.width = 512; source.height = 512;
-    source.getContext("2d").drawImage(image,0,0,512,512);
+    const sourceContext = source.getContext("2d");
+    let animation = 0;
+    const pump = () => {
+      sourceContext.drawImage(image,0,0,512,512);
+      animation = requestAnimationFrame(pump);
+    };
+    pump();
     const stream = source.captureStream(30);
     const media = navigator.mediaDevices;
     const original = media.getUserMedia.bind(media);
@@ -49,16 +55,21 @@ try {
     document.body.append(video);
     let stop = null;
     try {
-      const decoded = await Promise.race([
-        new Promise(async (resolve,reject) => {
-          try { stop = await window.EZERO_QR.startCamera(video,resolve); }
-          catch (error) { reject(error); }
-        }),
+      let resolveDecoded;
+      const decodedPromise = new Promise(resolve=>{resolveDecoded=resolve;});
+      stop = await window.EZERO_QR.startCamera(video,resolveDecoded);
+      await new Promise((resolve,reject)=>{
+        if(video.readyState>=2&&video.videoWidth>0)return resolve();
+        const timeout=setTimeout(()=>reject(new Error("CAMERA_VIDEO_NOT_READY")),5000);
+        video.addEventListener("loadeddata",()=>{clearTimeout(timeout);resolve();},{once:true});
+      });
+      return await Promise.race([
+        decodedPromise,
         new Promise((_,reject)=>setTimeout(()=>reject(new Error("CAMERA_QR_TIMEOUT")),12000))
       ]);
-      return decoded;
     } finally {
       stop?.();
+      cancelAnimationFrame(animation);
       for(const track of stream.getTracks())track.stop();
       video.pause();video.srcObject=null;video.remove();
       Object.defineProperty(media,"getUserMedia",{configurable:true,value:original});
