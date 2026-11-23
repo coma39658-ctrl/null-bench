@@ -264,6 +264,9 @@
     try {
       if (!stopCameraScan?.switchCamera) throw new Error("QR_CAMERA_SWITCH_UNAVAILABLE");
       const label = await stopCameraScan.switchCamera();
+      $("toggleQrTorch").textContent = translations[language].torchOn;
+      $("toggleQrTorch").setAttribute("aria-pressed", "false");
+      $("toggleQrTorch").disabled = !stopCameraScan.torchSupported();
       setQrStatus(translations[language].cameraSwitched + (label ? " " + label : ""), "ok");
     } catch (_) {
       setQrStatus(translations[language].cameraSwitchError, "error");
