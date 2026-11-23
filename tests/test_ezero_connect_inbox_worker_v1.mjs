@@ -89,6 +89,18 @@ assert.equal(recipientSocket.attachment.state, "AUTHENTICATED");
 await inbox.webSocketMessage(callerSocket, JSON.stringify({ type: "call-invite", inviteCode }));
 assert.equal(callerSocket.sent.at(-1).type, "replay-rejected");
 
+// A dropped socket also releases the accepted-call state on the other endpoint.
+callerSocket.attachment.state = "CALL_ACCEPTED";
+callerSocket.attachment.activeCallId = payload.callId;
+callerSocket.attachment.peerFingerprint = recipient.fingerprint;
+recipientSocket.attachment.state = "CALL_ACCEPTED";
+recipientSocket.attachment.activeCallId = payload.callId;
+recipientSocket.attachment.peerFingerprint = caller.fingerprint;
+await inbox.webSocketClose(callerSocket, 1006, "network lost");
+assert.equal(recipientSocket.attachment.state, "AUTHENTICATED");
+assert.equal(recipientSocket.attachment.activeCallId, null);
+assert.equal(recipientSocket.sent.at(-1).type, "peer-inbox-disconnected");
+
 // Offline recipients are never queued or reported as delivered.
 const offlineCaller = new FakeSocket({
   state: "AUTHENTICATED", inboxFingerprint: recipient.fingerprint,
