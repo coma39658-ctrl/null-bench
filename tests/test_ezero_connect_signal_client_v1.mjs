@@ -10,13 +10,22 @@ class FakeWebSocket {
     this.listeners = new Map();
     this.sent = [];
     FakeWebSocket.last = this;
-    queueMicrotask(() => this.dispatch("message", { data: JSON.stringify({
-      type: "challenge",
-      roomId: "A".repeat(32),
-      role: "host",
-      challenge: "C".repeat(43),
-      challengeExpiresAt: Date.now() + 20_000
-    }) }));
+    queueMicrotask(() => {
+      const realNow = Date.now;
+      const challengeExpiresAt = realNow() + 20_000;
+      Date.now = () => realNow() + 60_000;
+      try {
+        this.dispatch("message", { data: JSON.stringify({
+          type: "challenge",
+          roomId: "A".repeat(32),
+          role: "host",
+          challenge: "C".repeat(43),
+          challengeExpiresAt
+        }) });
+      } finally {
+        Date.now = realNow;
+      }
+    });
   }
   addEventListener(type, callback) {
     if (!this.listeners.has(type)) this.listeners.set(type, []);
