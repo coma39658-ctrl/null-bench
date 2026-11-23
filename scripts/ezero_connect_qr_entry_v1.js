@@ -38,12 +38,40 @@ async function startCamera(video, onDecoded) {
   const camera = await rearCamera(video);
   let stopped = false;
   let busy = false;
+  let torchOn = false;
   let cancelFrame = () => {};
   const stop = () => {
     if (stopped) return;
     stopped = true;
     cancelFrame();
     camera.stop();
+  };
+  // Expose only user-invoked camera controls; never open another camera implicitly.
+  stop.cameraCount = async () => (await camera.listDevices()).length;
+  stop.switchCamera = async () => {
+    if (stopped) throw new Error("QR_CAMERA_STOPPED");
+    const devices = await camera.listDevices();
+    if (devices.length < 2) throw new Error("QR_CAMERA_SWITCH_UNAVAILABLE");
+    const currentId = video.srcObject?.getVideoTracks?.()[0]?.getSettings?.().deviceId || "";
+    const currentIndex = devices.findIndex(device => device.deviceId === currentId);
+    const next = currentIndex >= 0 ? devices[(currentIndex + 1) % devices.length] : (devices[1] || devices[0]);
+    await camera.setDevice(next.deviceId);
+    torchOn = false;
+    return next.label;
+  };
+  stop.torchSupported = () => {
+    const track = video.srcObject?.getVideoTracks?.()[0];
+    try { return !!track?.getCapabilities?.().torch; } catch (_) { return false; }
+  };
+  stop.toggleTorch = async () => {
+    if (stopped) throw new Error("QR_CAMERA_STOPPED");
+    const track = video.srcObject?.getVideoTracks?.()[0];
+    let capabilities = {};
+    try { capabilities = track?.getCapabilities?.() || {}; } catch (_) {}
+    if (!track || !capabilities.torch) throw new Error("QR_TORCH_UNSUPPORTED");
+    torchOn = !torchOn;
+    await track.applyConstraints({ advanced: [{ torch: torchOn }] });
+    return torchOn;
   };
   cancelFrame = frameLoop(() => {
     if (stopped || busy) return;
