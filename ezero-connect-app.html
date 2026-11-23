@@ -45,10 +45,10 @@ header{height:76px;display:flex;align-items:center;justify-content:space-between
 #qrScannerControls{width:100%;max-width:760px;margin:0 auto}
 #qrScannerOverlayStatus{margin:0 0 10px;padding:10px 12px;text-align:center;line-height:1.7;
   color:#fff;background:#143c2c;border:1px solid #47745e;border-radius:12px}
-.qr-camera-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.qr-camera-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
 .qr-camera-actions button{min-height:54px;padding:9px 8px;border-radius:13px;font-weight:850;font-size:13px}
 .qr-camera-actions #stopQrScanner{background:#a32d39;color:#fff;border-color:#c55b65}
-@media(max-width:420px){.qr-camera-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.qr-camera-actions #stopQrScanner{grid-column:1/-1}}
+@media(max-width:520px){.qr-camera-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.qr-camera-actions #stopQrScanner{grid-column:1/-1}}
 @media(min-width:700px){#qrScannerVideo{max-height:min(70dvh,760px);max-width:1000px}}
 
 </style>
@@ -118,6 +118,7 @@ header{height:76px;display:flex;align-items:center;justify-content:space-between
         <div class="qr-camera-actions">
           <button class="secondary" id="switchQrCamera" type="button">🔄 کیمرہ بدلیں</button>
           <button class="secondary" id="toggleQrTorch" type="button" aria-pressed="false">🔦 لائٹ آن</button>
+          <button class="secondary" id="chooseGalleryQrInScanner" type="button">🖼️ گیلری سے QR</button>
           <button class="primary" id="stopQrScanner" type="button">■ اسکین بند کریں</button>
         </div>
       </div>
