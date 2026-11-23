@@ -218,8 +218,14 @@
         onState: renderState
       });
       renderState({ state: session.state, role: nextRole });
+      if (nextRole === "host") {
+        document.dispatchEvent(new CustomEvent("ezero:invite-host-ready", { detail: { roomId: invitePayload.roomId } }));
+      }
     } catch (error) {
       status(t().connectingError + (error?.message || "SIGNAL_CONNECTION_FAILED"), "error");
+      if (nextRole === "host") {
+        document.dispatchEvent(new CustomEvent("ezero:invite-host-failed", { detail: { roomId: invitePayload.roomId } }));
+      }
       setDeclineVisible(false);
     } finally {
       busy = false;
