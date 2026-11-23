@@ -13,6 +13,10 @@
       {
         "name": "RATE_LIMITER",
         "class_name": "EzeroConnectRateLimit"
+      },
+      {
+        "name": "INBOXES",
+        "class_name": "EzeroConnectInbox"
       }
     ]
   },
@@ -27,6 +31,12 @@
       "tag": "v2",
       "new_sqlite_classes": [
         "EzeroConnectRateLimit"
+      ]
+    },
+    {
+      "tag": "v3",
+      "new_sqlite_classes": [
+        "EzeroConnectInbox"
       ]
     }
   ],
