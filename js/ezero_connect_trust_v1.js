@@ -321,7 +321,7 @@
     );
     if (!valid) throw new Error("TRUST_V2_PEER_SIGNATURE_INVALID");
     const name = String(displayName).trim();
-    if (name.length > 64 || /[\\u0000-\\u001F\\u007F]/.test(name)) throw new Error("TRUST_DISPLAY_NAME_INVALID");
+    if (name.length > 64 || /[\u0000-\u001F\u007F]/.test(name)) throw new Error("TRUST_DISPLAY_NAME_INVALID");
     const participants = [local, remote].map(p => ({ fingerprint: p.fingerprint, publicKeySpki: p.publicKeySpki }))
       .sort((a, b) => a.fingerprint < b.fingerprint ? -1 : a.fingerprint > b.fingerprint ? 1 : 0);
     const transcript = {
