@@ -45,7 +45,9 @@ class QrCameraScanActivity : ComponentActivity() {
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var statusText: TextView
     private lateinit var torchButton: TextView
+    private lateinit var cameraSwitchButton: TextView
     private var camera: Camera? = null
+    private var lensFacing = CameraSelector.LENS_FACING_BACK
     private var torchEnabled = false
     private val delivered = AtomicBoolean(false)
 
@@ -82,6 +84,7 @@ class QrCameraScanActivity : ComponentActivity() {
         ).apply { gravity = Gravity.CENTER }
 
         torchButton = control("⚡ ٹارچ آن") { toggleTorch() }
+        cameraSwitchButton = control("↻ کیمرہ بدلیں") { switchCamera() }
         val closeButton = control("✕ بند کریں") { finish() }
 
         val topBar = LinearLayout(this).apply {
@@ -103,6 +106,9 @@ class QrCameraScanActivity : ComponentActivity() {
             addView(torchButton, LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, dp(52)
             ).apply { topMargin = dp(14) })
+            addView(cameraSwitchButton, LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(48)
+            ).apply { topMargin = dp(8) })
             addView(textView("بہتر نتیجے کے لیے QR کو سیدھا رکھیں اور روشنی مناسب رکھیں",
                 12f, 0xFFE0E0E0.toInt(), false).apply {
                 gravity = Gravity.CENTER
@@ -149,8 +155,11 @@ class QrCameraScanActivity : ComponentActivity() {
                 }
             try {
                 provider.unbindAll()
+                val selector = CameraSelector.Builder()
+                    .requireLensFacing(lensFacing)
+                    .build()
                 camera = provider.bindToLifecycle(
-                    this, CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis
+                    this, selector, preview, analysis
                 )
                 previewView.post {
                     focusAt(previewView.width / 2f, previewView.height / 2f)
@@ -175,6 +184,21 @@ class QrCameraScanActivity : ComponentActivity() {
         } catch (_: Exception) {
             // Some camera providers do not expose tap-to-focus; QR analysis continues.
         }
+    }
+
+    private fun switchCamera() {
+        torchEnabled = false
+        lensFacing = if (lensFacing == CameraSelector.LENS_FACING_BACK) {
+            CameraSelector.LENS_FACING_FRONT
+        } else {
+            CameraSelector.LENS_FACING_BACK
+        }
+        cameraSwitchButton.text = if (lensFacing == CameraSelector.LENS_FACING_BACK) {
+            "↻ پچھلا کیمرہ"
+        } else {
+            "↻ اگلا کیمرہ"
+        }
+        startCamera()
     }
 
     private fun toggleTorch() {
