@@ -192,6 +192,15 @@ try {
   assert.equal(autoSavedA.status, "TRUSTED");
   assert.equal(autoSavedB.status, "TRUSTED");
   assert.equal(autoSavedA.relationshipId, autoSavedB.relationshipId);
+  const callPeerA = await a.evaluate(fp => window.EZERO_CONNECT_TRUST.getTrustedPeerForCall(fp), identityB.fingerprint);
+  const callPeerB = await b.evaluate(fp => window.EZERO_CONNECT_TRUST.getTrustedPeerForCall(fp), identityA.fingerprint);
+  assert.deepEqual(Object.keys(callPeerA).sort(), ["displayName","relationshipId","remoteFingerprint","remotePublicKeySpki"]);
+  assert.equal(callPeerA.relationshipId, autoSavedA.relationshipId);
+  assert.equal(callPeerA.remoteFingerprint, identityB.fingerprint);
+  assert.equal(callPeerA.remotePublicKeySpki, identityB.publicKeySpki);
+  assert.equal(callPeerB.remoteFingerprint, identityA.fingerprint);
+  assert.equal(callPeerB.remotePublicKeySpki, identityA.publicKeySpki);
+  assert.equal(await a.evaluate(() => window.EZERO_CONNECT_TRUST.getTrustedPeerForCall("invalid")), null);
   const duplicateAutoSave = await a.evaluate(args => window.EZERO_CONNECT_TRUST.saveVerifiedPeer({
     invitePayload: args.invite,
     peerHandshake: args.proof,
@@ -227,6 +236,12 @@ try {
     } catch (error) { return error.message; }
   }, { invite: autoInvite, proof: invalidPeerProof, peerFingerprint: identityB.fingerprint, peerPublicKeySpki: identityB.publicKeySpki });
   assert.equal(invalidPeerResult, "TRUST_V2_PEER_SIGNATURE_INVALID");
+
+  await a.evaluate(fp => window.EZERO_CONNECT_TRUST.block(fp), identityB.fingerprint);
+  assert.equal(await a.evaluate(fp => window.EZERO_CONNECT_TRUST.getTrustedPeerForCall(fp), identityB.fingerprint), null);
+  await a.evaluate(fp => window.EZERO_CONNECT_TRUST.unblock(fp), identityB.fingerprint);
+  assert.equal(await a.evaluate(fp => window.EZERO_CONNECT_TRUST.getTrustedPeerForCall(fp), identityB.fingerprint), null);
+  assert.equal(await a.evaluate(fp => window.EZERO_CONNECT_TRUST.canReconnect(fp), identityB.fingerprint), false);
 
   console.log("EZERO_MUTUAL_TRUST_TWO_PROFILE_ENCRYPTED_CONTACT_REVOCATION_PASS");
 } finally {
