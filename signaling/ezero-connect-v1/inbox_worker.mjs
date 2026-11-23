@@ -190,6 +190,29 @@ export class EzeroConnectInbox {
         return;
       }
 
+      // After explicit Accept, relay the caller's short-lived signed EZERO1 room invite.
+      // The recipient must verify its signature, origin, expiry and caller fingerprint locally.
+      // The Worker treats it as opaque and never stores it.
+      if (message?.type === "call-room-invite" &&
+          Object.keys(message).sort().join(",") === "callId,inviteCode,type" &&
+          typeof message.callId === "string" &&
+          typeof message.inviteCode === "string" &&
+          message.inviteCode.startsWith("EZERO1.") &&
+          message.inviteCode.length <= 8192 &&
+          a.state === "CALL_ACCEPTED" && a.activeCallId === message.callId) {
+        const peer = this.ctx.getWebSockets().find(other => {
+          if (other === ws || other.readyState !== 1) return false;
+          const state = other.deserializeAttachment();
+          return state?.state === "CALL_ACCEPTED" &&
+            state.activeCallId === message.callId &&
+            state.peerFingerprint === a.fingerprint;
+        });
+        if (!peer) { send(ws, { type: "call-room-unavailable", callId: message.callId }); return; }
+        send(peer, { type: "call-room-invite", callId: message.callId, inviteCode: message.inviteCode });
+        send(ws, { type: "call-room-routed", callId: message.callId });
+        return;
+      }
+
       if (message?.type === "call-cancel" && Object.keys(message).sort().join(",") === "callId,type" &&
           typeof message.callId === "string" && (a.pendingCallId === message.callId || a.activeCallId === message.callId)) {
         const peer = this.ctx.getWebSockets().find(other => {
