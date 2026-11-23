@@ -84,7 +84,7 @@ assert.throws(() => globalThis.EZERO_CONNECT_SIGNAL.connect({
   signalingBaseUrl: "ws://public-signal.example.test"
 }), /SIGNAL_TLS_REQUIRED/);
 directWss.close();
-assert.equal(sentSignatures.length, 1);
+assert.equal(sentSignatures.length, 2);
 assert.equal(sentSignatures[0].protocol, "E-ZERO-SIGNAL-HELLO-1");
 assert.equal(sentSignatures[0].origin, location.origin);
 assert.equal(sentSignatures[0].role, "host");
