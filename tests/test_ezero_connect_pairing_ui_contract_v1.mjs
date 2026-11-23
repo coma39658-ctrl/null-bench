@@ -45,7 +45,7 @@ assert.ok(!ui.includes("pairSaveConsent") && !ui.includes("explicitConsent") && 
   "No separate save checkbox or Save button may remain");
 assert.ok(config.includes("wss://ezero-connect-signal-staging-20261120.coma39658.workers.dev"),
   "Must use isolated signaling staging endpoint");
-assert.ok(worker.includes('"PUBLIC_ORIGIN": "https://ezero-connect-camera-preview-20261120.onrender.com"'),
+assert.ok(worker.includes('"PUBLIC_ORIGIN": "https://ezero-connect-pairing-v2-preview-20261123.onrender.com"'),
   "Worker origin must match current Render staging origin");
 assert.ok(!ui.includes("getUserMedia("), "Pairing UI must not request camera or microphone");
 assert.ok(!ui.includes("RTCPeerConnection("), "Pairing UI must not change or start the frozen calling engine");
