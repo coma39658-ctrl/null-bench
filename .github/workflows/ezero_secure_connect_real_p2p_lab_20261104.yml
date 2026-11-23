@@ -1,7 +1,7 @@
 name: E-ZERO Secure Connect Signed QR and Real P2P Call Lab QA
 on:
   push:
-    branches: [ezero-secure-connect-three-language-p2p-20261104]
+    branches: [ezero-secure-connect-three-language-p2p-20261104, ezero-web-qr-scanner-large-controls-staging-20261123]
   pull_request:
     branches: [main]
 permissions:
@@ -24,7 +24,10 @@ jobs:
           node --check js/ezero_secure_connect_live_p2p_v0_1.js
           node --check js/ezero_secure_connect_simple_near_far_v0_1.js
           node --check js/ezero_secure_connect_one_tap_qr_v0_1.js
+          node --check js/vendor/jsqr-apache-2.0.js
           node --check js/ezero_secure_connect_public_qr_v0_2.js
+          node --check tests/test_ezero_public_qr_large_scanner_contract.js
+          node tests/test_ezero_public_qr_large_scanner_contract.js
           node --check js/ezero_secure_connect_remote_invite_v0_2.js
           node --check js/ezero_secure_connect_short_link_v0_2.js
           node --check js/ezero_secure_connect_modern_communications_v0_3.js
