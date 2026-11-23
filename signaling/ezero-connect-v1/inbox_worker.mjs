@@ -85,7 +85,7 @@ export class EzeroConnectInbox {
     server.serializeAttachment({ state: "PENDING", inboxFingerprint, origin, challenge, challengeExpiresAt });
     send(server, {
       type: "challenge",
-      payload: { v: 1, protocol: "E-ZERO-INBOX-HELLO-1", origin, fingerprint: inboxFingerprint, challenge, challengeExpiresAt }
+      payload: { v: 1, protocol: "E-ZERO-INBOX-HELLO-1", origin, inboxFingerprint, challenge, challengeExpiresAt }
     });
     return new Response(null, { status: 101, webSocket: client });
   }
@@ -103,7 +103,7 @@ export class EzeroConnectInbox {
       if (a.state === "PENDING") {
         if (!message || Object.keys(message).sort().join(",") !== "fingerprint,publicKeySpki,signature,type" ||
             message.type !== "hello" || typeof message.publicKeySpki !== "string" ||
-            typeof message.signature !== "string" || message.fingerprint !== a.inboxFingerprint ||
+            typeof message.signature !== "string" || !FINGERPRINT_RE.test(message.fingerprint) ||
             a.challengeExpiresAt <= Date.now()) {
           close(ws, 1008, "valid signed hello required"); return;
         }
@@ -112,7 +112,7 @@ export class EzeroConnectInbox {
         }
         const payload = {
           v: 1, protocol: "E-ZERO-INBOX-HELLO-1", origin: a.origin,
-          fingerprint: a.inboxFingerprint, challenge: a.challenge,
+          fingerprint: message.fingerprint, inboxFingerprint: a.inboxFingerprint, challenge: a.challenge,
           challengeExpiresAt: a.challengeExpiresAt
         };
         if (!await verifyHello(message.publicKeySpki, message.signature, payload)) {
@@ -120,7 +120,7 @@ export class EzeroConnectInbox {
         }
         const alreadyOnline = this.ctx.getWebSockets().some(other => {
           if (other === ws || other.readyState !== 1) return false;
-          return other.deserializeAttachment()?.state === "AUTHENTICATED";
+          const state = other.deserializeAttachment();\n          return state?.state === "AUTHENTICATED" && state.fingerprint === message.fingerprint;
         });
         if (alreadyOnline) { close(ws, 1008, "device inbox already connected"); return; }
         a.state = "AUTHENTICATED";
@@ -141,7 +141,7 @@ export class EzeroConnectInbox {
         const recipient = this.ctx.getWebSockets().find(other => {
           if (other === ws || other.readyState !== 1) return false;
           const peer = other.deserializeAttachment();
-          return peer?.state === "AUTHENTICATED" && !peer.peerCallId && !peer.pendingCallId;
+          return peer?.state === "AUTHENTICATED" && peer.fingerprint === a.inboxFingerprint && !peer.peerCallId && !peer.pendingCallId;
         });
         if (!recipient) { send(ws, { type: "unavailable", callId: invite.callId }); return; }
         const recipientState = recipient.deserializeAttachment();
