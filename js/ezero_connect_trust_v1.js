@@ -271,6 +271,111 @@
     return { relationshipId, remoteFingerprint: remote.fingerprint, status: "TRUSTED" };
   }
 
+
+  // V2: the inviter's deliberate invite creation and the invitee's deliberate scan/open
+  // are the two consent actions. The Worker-verified peer challenge proof authenticates
+  // the other device; local persistence is automatic and idempotent after peer-ready.
+  async function saveVerifiedPeer({ invitePayload, peerHandshake, localRole, peerFingerprint, peerPublicKeySpki, displayName = "" }) {
+    if (!invitePayload || invitePayload.origin !== location.origin ||
+        !/^[A-Za-z0-9_-]{32}$/.test(invitePayload.roomId) ||
+        !/^[A-Za-z0-9_-]{32}$/.test(invitePayload.nonce) ||
+        !Number.isSafeInteger(invitePayload.issuedAt) || !Number.isSafeInteger(invitePayload.expiresAt) ||
+        invitePayload.expiresAt <= invitePayload.issuedAt ||
+        invitePayload.expiresAt - invitePayload.issuedAt > 90_000 ||
+        !["host", "guest"].includes(localRole) || !peerHandshake?.payload ||
+        typeof peerHandshake.signature !== "string") {
+      throw new Error("TRUST_V2_INVITE_OR_ROLE_INVALID");
+    }
+    const proof = peerHandshake.payload;
+    const exactKeys = ["challenge","challengeExpiresAt","fingerprint","inviteNonce","origin","protocol","publicKeySpki","roomId","role","v"].sort().join(",");
+    if (!proof || Object.keys(proof).sort().join(",") !== exactKeys ||
+        proof.v !== 1 || proof.protocol !== "E-ZERO-SIGNAL-HELLO-1" ||
+        proof.origin !== invitePayload.origin || proof.roomId !== invitePayload.roomId ||
+        proof.inviteNonce !== invitePayload.nonce ||
+        proof.role !== (localRole === "host" ? "guest" : "host") ||
+        proof.fingerprint !== peerFingerprint || proof.publicKeySpki !== peerPublicKeySpki ||
+        !Number.isSafeInteger(proof.challengeExpiresAt) ||
+        typeof proof.challenge !== "string" || !/^[A-Za-z0-9_-]{43}$/.test(proof.challenge)) {
+      throw new Error("TRUST_V2_PEER_PROOF_BINDING_INVALID");
+    }
+    const local = await globalThis.EZERO_CONNECT_IDENTITY.getPublicIdentity();
+    const inviter = { fingerprint: invitePayload.inviterFingerprint, publicKeySpki: invitePayload.inviterPublicKeySpki };
+    const remote = { fingerprint: proof.fingerprint, publicKeySpki: proof.publicKeySpki };
+    const localIsInviter = local.fingerprint === inviter.fingerprint && local.publicKeySpki === inviter.publicKeySpki;
+    const remoteIsInviter = remote.fingerprint === inviter.fingerprint && remote.publicKeySpki === inviter.publicKeySpki;
+    if (localRole === "host" ? !localIsInviter || remoteIsInviter : !remoteIsInviter || localIsInviter) {
+      throw new Error("TRUST_V2_INVITER_ROLE_MISMATCH");
+    }
+    if (local.fingerprint === remote.fingerprint || !/^(?:[0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(remote.fingerprint)) {
+      throw new Error("TRUST_V2_PEER_IDENTITY_INVALID");
+    }
+    const spki = decodeBase64url(remote.publicKeySpki);
+    const digest = await crypto.subtle.digest("SHA-256", spki);
+    if (toHex(digest) !== remote.fingerprint) throw new Error("TRUST_V2_PEER_KEY_MISMATCH");
+    const publicKey = await crypto.subtle.importKey("spki", spki, { name: "ECDSA", namedCurve: "P-256" }, true, ["verify"]);
+    const valid = await crypto.subtle.verify(
+      { name: "ECDSA", hash: "SHA-256" },
+      publicKey,
+      decodeBase64url(peerHandshake.signature, 64),
+      new TextEncoder().encode(stableCanonical(proof))
+    );
+    if (!valid) throw new Error("TRUST_V2_PEER_SIGNATURE_INVALID");
+    const name = String(displayName).trim();
+    if (name.length > 64 || /[\\u0000-\\u001F\\u007F]/.test(name)) throw new Error("TRUST_DISPLAY_NAME_INVALID");
+    const participants = [local, remote].map(p => ({ fingerprint: p.fingerprint, publicKeySpki: p.publicKeySpki }))
+      .sort((a, b) => a.fingerprint < b.fingerprint ? -1 : a.fingerprint > b.fingerprint ? 1 : 0);
+    const transcript = {
+      v: 2,
+      protocol: "E-ZERO-TRUST-2",
+      purpose: "consented-invite-auto-save",
+      origin: invitePayload.origin,
+      roomId: invitePayload.roomId,
+      inviteNonce: invitePayload.nonce,
+      inviteIssuedAt: invitePayload.issuedAt,
+      inviteExpiresAt: invitePayload.expiresAt,
+      inviterFingerprint: inviter.fingerprint,
+      participants
+    };
+    const relationshipId = await hashHex(new TextEncoder().encode(stableCanonical(transcript)));
+    const existing = await allContacts();
+    const prior = existing.find(contact => contact.relationshipId === relationshipId);
+    if (prior) {
+      if (prior.status === "TRUSTED") return { relationshipId, remoteFingerprint: remote.fingerprint, status: "TRUSTED", alreadySaved: true };
+      throw new Error(prior.status === "BLOCKED" ? "TRUST_REMOTE_DEVICE_BLOCKED" : "TRUST_RELATIONSHIP_REVOKED");
+    }
+    if (existing.some(contact => contact.remoteFingerprint === remote.fingerprint && contact.status === "BLOCKED")) {
+      throw new Error("TRUST_REMOTE_DEVICE_BLOCKED");
+    }
+    const record = {
+      relationshipId, trustVersion: 2, remoteFingerprint: remote.fingerprint,
+      remotePublicKeySpki: remote.publicKeySpki, displayName: name, transcript,
+      peerHandshake, status: "TRUSTED", createdAt: new Date().toISOString()
+    };
+    const key = await readVaultKey(true);
+    const encrypted = await encryptRecord(record, key);
+    const db = await openDb();
+    let alreadySaved = false;
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(CONTACTS, "readwrite");
+      const store = tx.objectStore(CONTACTS);
+      const request = store.get(relationshipId);
+      request.onsuccess = () => {
+        if (request.result) { alreadySaved = true; return; }
+        store.put(encrypted);
+      };
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(new Error("TRUST_CONTACT_SAVE_FAILED"));
+      tx.onabort = () => reject(new Error("TRUST_CONTACT_SAVE_ABORTED"));
+    });
+    db.close();
+    if (alreadySaved) {
+      const refreshed = await allContacts();
+      const recordNow = refreshed.find(contact => contact.relationshipId === relationshipId);
+      if (recordNow?.status !== "TRUSTED") throw new Error("TRUST_RELATIONSHIP_NOT_ACTIVE");
+    }
+    return { relationshipId, remoteFingerprint: remote.fingerprint, status: "TRUSTED", alreadySaved };
+  }
+
   async function listTrustedContacts() {
     const records = await allContacts();
     return records.map(({ relationshipId, remoteFingerprint, displayName, status, createdAt }) =>
