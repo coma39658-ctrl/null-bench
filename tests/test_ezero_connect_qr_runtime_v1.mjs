@@ -44,6 +44,7 @@ try {
       sourceContext.drawImage(image,0,0,512,512);
       animation = requestAnimationFrame(pump);
     };
+    document.body.append(source);
     pump();
     const stream = source.captureStream(30);
     const media = navigator.mediaDevices;
@@ -58,10 +59,13 @@ try {
       let resolveDecoded;
       const decodedPromise = new Promise(resolve=>{resolveDecoded=resolve;});
       stop = await window.EZERO_QR.startCamera(video,resolveDecoded);
+      await video.play();
       await new Promise((resolve,reject)=>{
-        if(video.readyState>=2&&video.videoWidth>0)return resolve();
+        if(video.readyState>=2&&video.videoWidth>0&&video.currentTime>0)return resolve();
         const timeout=setTimeout(()=>reject(new Error("CAMERA_VIDEO_NOT_READY")),5000);
-        video.addEventListener("loadeddata",()=>{clearTimeout(timeout);resolve();},{once:true});
+        const ready=()=>{if(video.readyState>=2&&video.videoWidth>0&&video.currentTime>0){clearTimeout(timeout);resolve();}};
+        video.addEventListener("loadeddata",ready);
+        video.addEventListener("timeupdate",ready);
       });
       return await Promise.race([
         decodedPromise,
@@ -71,7 +75,7 @@ try {
       stop?.();
       cancelAnimationFrame(animation);
       for(const track of stream.getTracks())track.stop();
-      video.pause();video.srcObject=null;video.remove();
+      video.pause();video.srcObject=null;video.remove();source.remove();
       Object.defineProperty(media,"getUserMedia",{configurable:true,value:original});
     }
   });
