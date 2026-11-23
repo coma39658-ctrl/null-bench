@@ -104,13 +104,17 @@ header{height:76px;display:flex;align-items:center;justify-content:space-between
   </section>
   <section class="panel" aria-labelledby="qrTitle">
     <div class="panel-head"><strong id="qrTitle">محفوظ QR رابطہ</strong><span class="muted" id="qrCountdown"></span></div>
-    <p class="muted" id="qrExplain">پہلی بار دوست سے محفوظ رابطے کے لیے عارضی QR بنائیں یا دوست کا QR اسکین کریں۔ QR صرف 90 سیکنڈ کے لیے کارآمد ہوگا۔</p>
+    <p class="muted" id="qrExplain">پہلی بار دوست سے محفوظ رابطے کے لیے عارضی QR بنائیں یا دوست کا QR اسکین کریں۔ QR/دعوتی لنک صرف 90 سیکنڈ کے لیے کارآمد ہے؛ وقت ختم ہو تو نیا بنائیں۔</p>
+    <p id="inviteExpiryNotice" role="note" style="margin:8px 0;padding:10px 12px;border-radius:12px;background:#fff5df;color:#805414;font-size:12px;line-height:1.8;font-weight:800">اہم: پہلی دعوت کا QR یا لنک صرف 90 سیکنڈ تک کارآمد ہے۔ دوست کو فوراً بھیجیں؛ وقت ختم ہو تو نیا QR/لنک بنائیں۔ محفوظ دوست کو دوبارہ QR کی ضرورت نہیں۔</p>
     <div class="actions">
       <button class="action" id="createMyQr" type="button" disabled><i>▦</i><span id="createMyQrLabel">میرا QR بنائیں</span></button>
       <button class="action video" id="scanFriendQr" type="button" disabled><i>⌕</i><span id="scanFriendQrLabel">دوست کا QR اسکین کریں</span></button>
     </div>
     <button class="primary" id="requestCameraPermission" type="button" disabled style="width:100%;margin-top:9px">کیمرہ اجازت دیں اور QR اسکین کریں</button>
     <button class="secondary" id="chooseGalleryQr" type="button" disabled style="width:100%;margin-top:9px">گیلری سے QR تصویر منتخب کریں</button>
+    <button class="primary" id="shareInviteLink" type="button" disabled style="width:100%;margin-top:9px">🔗 دوست کو دعوتی لنک بھیجیں</button>
+    <button class="secondary" id="installEzero" type="button" style="width:100%;margin-top:9px">⬇ E-ZERO انسٹال کریں</button>
+    <div class="status" id="shareInstallStatus" role="status" aria-live="polite"></div>
     <input id="qrGalleryFile" type="file" accept="image/png,image/jpeg,image/webp,image/avif,image/gif,image/bmp" hidden>
     <div id="qrScannerOverlay" hidden>
       <video id="qrScannerVideo" playsinline muted></video>
