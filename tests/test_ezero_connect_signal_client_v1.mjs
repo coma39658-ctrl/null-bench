@@ -68,6 +68,21 @@ const connection = globalThis.EZERO_CONNECT_SIGNAL.connect({
 await connection.ready;
 assert.equal(connection.authenticated, true);
 assert.equal(FakeWebSocket.last.url, "wss://signal.example.test/v1/rooms/" + invitePayload.roomId + "?role=host");
+const directWss = globalThis.EZERO_CONNECT_SIGNAL.connect({
+  inviteCode: "EZERO1.test",
+  invitePayload,
+  role: "host",
+  signalingBaseUrl: "wss://secure-signal.example.test"
+});
+await directWss.ready;
+assert.equal(FakeWebSocket.last.url, "wss://secure-signal.example.test/v1/rooms/" + invitePayload.roomId + "?role=host");
+assert.throws(() => globalThis.EZERO_CONNECT_SIGNAL.connect({
+  inviteCode: "EZERO1.test",
+  invitePayload,
+  role: "host",
+  signalingBaseUrl: "ws://public-signal.example.test"
+}), /SIGNAL_TLS_REQUIRED/);
+directWss.close();
 assert.equal(sentSignatures.length, 1);
 assert.equal(sentSignatures[0].protocol, "E-ZERO-SIGNAL-HELLO-1");
 assert.equal(sentSignatures[0].origin, location.origin);
