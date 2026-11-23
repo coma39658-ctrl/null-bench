@@ -66,3 +66,22 @@ The current trust API exposes a safe contact listing and `canReconnect(fingerpri
 - Rate-limit inbox connections and call attempts; reject replay, duplicate call IDs, self-call, blocked/revoked contacts, expired invitations, wrong origin and oversized messages. Close both sides on decline, hangup, timeout or revocation.
 
 No QR/pairing, identity, vault, current app-shell or production files were changed during this inspection. This section records blockers and the safe implementation sequence; it is not a claim that direct calling is implemented.
+
+## Implementation status — foreground inbox hardening (2026-11-23)
+
+Implemented on the isolated draft branch:
+- Foreground WebSocket inbox with signed P-256 proof-of-possession and origin/fingerprint binding.
+- Signed, short-lived saved-friend call invitation routed only to an authenticated online recipient; offline recipients are not queued and are reported unavailable.
+- Explicit accept/decline response routing.
+- Accepted-call endpoint state is retained until cancellation or disconnect; both endpoints are marked busy during that state.
+- Recent call IDs/nonces are kept only in the live caller WebSocket attachment (bounded to 32 entries) to reject replay during that socket lifetime.
+- A pending handshake from one socket no longer blocks unrelated devices from authenticating to the same inbox.
+
+Automated test coverage added for:
+- Signed invite delivery and explicit acceptance.
+- Busy response while an accepted call is active.
+- Cancellation and restoration to authenticated idle state.
+- Replay rejection after cancellation.
+- Offline recipient no-queue behavior.
+
+**Not implemented yet:** acceptance does not yet allocate/join an ephemeral WebRTC signaling room, and the inbox does not relay SDP/ICE or media. This is protocol/lifecycle hardening only, not a working audio/video call. Replay memory is intentionally volatile and scoped to the live socket; reconnect/replay policy still needs a stronger server-side short-lived nonce strategy before release. Worker deployment and public/staging UI activation remain blocked until the full call-room handoff and end-to-end tests pass.
