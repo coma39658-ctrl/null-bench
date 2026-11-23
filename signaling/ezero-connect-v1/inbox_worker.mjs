@@ -107,7 +107,7 @@ export class EzeroConnectInbox {
             a.challengeExpiresAt <= Date.now()) {
           close(ws, 1008, "valid signed hello required"); return;
         }
-        if (await fingerprintFor(message.publicKeySpki) !== a.inboxFingerprint) {
+        if (await fingerprintFor(message.publicKeySpki) !== message.fingerprint) {
           close(ws, 1008, "inbox identity mismatch"); return;
         }
         const payload = {
