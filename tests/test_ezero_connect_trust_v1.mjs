@@ -201,6 +201,21 @@ try {
   }), { invite: autoInvite, proof: guestProof, peerFingerprint: identityB.fingerprint, peerPublicKeySpki: identityB.publicKeySpki });
   assert.equal(duplicateAutoSave.alreadySaved, true);
 
+  // A fresh QR from the same already-trusted device must not create a second
+  // active contact row for that fingerprint.
+  const secondInvite = await a.evaluate(() => window.EZERO_CONNECT_INVITES.createInvite());
+  const secondVerified = await b.evaluate(code => window.EZERO_CONNECT_INVITES.verifyInvite(code), secondInvite.inviteCode);
+  const secondGuestProof = await signedPeerHandshake(b, secondVerified, "guest");
+  const freshQrSave = await a.evaluate(args => window.EZERO_CONNECT_TRUST.saveVerifiedPeer({
+    invitePayload: args.invite, peerHandshake: args.proof, localRole: "host",
+    peerFingerprint: args.peerFingerprint, peerPublicKeySpki: args.peerPublicKeySpki
+  }), { invite: secondInvite, proof: secondGuestProof, peerFingerprint: identityB.fingerprint, peerPublicKeySpki: identityB.publicKeySpki });
+  assert.equal(freshQrSave.status, "TRUSTED");
+  assert.equal(freshQrSave.alreadySaved, true);
+  assert.equal(freshQrSave.relationshipId, autoSavedA.relationshipId);
+  const activeContactsAfterFreshQr = await a.evaluate(() => window.EZERO_CONNECT_TRUST.listTrustedContacts());
+  assert.equal(activeContactsAfterFreshQr.filter(c => c.remoteFingerprint === identityB.fingerprint && c.status === "TRUSTED").length, 1);
+
   const invalidPeerProof = { ...guestProof, signature: (guestProof.signature[0] === "A" ? "B" : "A") + guestProof.signature.slice(1) };
   const invalidPeerResult = await a.evaluate(async args => {
     try {
