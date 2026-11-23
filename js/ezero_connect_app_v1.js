@@ -180,13 +180,52 @@
     $("qrCountdown").textContent = "";
   }
 
+  function inviteVerificationErrorMessage(error) {
+    const reason = String(error?.message || "UNKNOWN");
+    const messages = {
+      ur: {
+        INVITE_ORIGIN_OR_VERSION_INVALID: "یہ QR دوسرے ویب لنک/ڈومین یا مختلف ورژن سے بنا ہے۔ دونوں فون ایک ہی E-ZERO Staging لنک کھولیں اور نیا QR بنائیں۔",
+        INVITE_EXPIRED_OR_TIME_INVALID: "QR کی 90 سیکنڈ کی مدت ختم ہو گئی یا فون کے وقت میں فرق ہے۔ نیا QR بنائیں اور فوراً اسکین کریں۔",
+        INVITE_REPLAYED: "یہ QR پہلے استعمال ہو چکا ہے۔ حفاظت کے لیے ہر QR صرف ایک بار قبول ہوتا ہے؛ نیا QR بنائیں۔",
+        INVITE_SIGNATURE_INVALID: "QR کے دستخط کی تصدیق ناکام ہوئی؛ یہ QR تبدیل شدہ یا غیر معتبر ہے۔",
+        INVITE_FINGERPRINT_MISMATCH: "QR کی عوامی شناخت اور فنگرپرنٹ آپس میں نہیں ملتے۔ نیا QR بنائیں۔",
+        INVITE_REPLAY_DB_FAILED: "اس فون کا محفوظ براؤزر اسٹوریج دستیاب نہیں۔ Chrome میں سائٹ اسٹوریج کی اجازت چیک کریں۔",
+        INVITE_REPLAY_DB_BLOCKED: "محفوظ QR اسٹوریج دوسری کھلی ٹیب میں مصروف ہے۔ اضافی E-ZERO ٹیب بند کرکے دوبارہ کوشش کریں۔"
+      },
+      en: {
+        INVITE_ORIGIN_OR_VERSION_INVALID: "This QR was created on a different website/domain or version. Open the same E-ZERO staging link on both phones and create a fresh QR.",
+        INVITE_EXPIRED_OR_TIME_INVALID: "The 90-second QR window expired, or the phones' clocks differ. Create a new QR and scan it promptly.",
+        INVITE_REPLAYED: "This QR was already used. Each QR is accepted only once for security; create a new one.",
+        INVITE_SIGNATURE_INVALID: "QR signature verification failed; the QR may be altered or untrusted.",
+        INVITE_FINGERPRINT_MISMATCH: "The QR public identity does not match its fingerprint. Create a new QR.",
+        INVITE_REPLAY_DB_FAILED: "Secure browser storage is unavailable. Check site storage permissions in Chrome.",
+        INVITE_REPLAY_DB_BLOCKED: "Secure QR storage is busy in another tab. Close extra E-ZERO tabs and retry."
+      },
+      ar: {
+        INVITE_ORIGIN_OR_VERSION_INVALID: "تم إنشاء هذا الرمز من رابط أو نطاق أو إصدار مختلف. افتح رابط E-ZERO التجريبي نفسه على الهاتفين وأنشئ رمزاً جديداً.",
+        INVITE_EXPIRED_OR_TIME_INVALID: "انتهت مدة QR البالغة 90 ثانية أو يوجد اختلاف في ساعة الهاتفين. أنشئ رمزاً جديداً وامسحه فوراً.",
+        INVITE_REPLAYED: "تم استخدام هذا الرمز من قبل. يُقبل كل رمز مرة واحدة فقط للحماية؛ أنشئ رمزاً جديداً.",
+        INVITE_SIGNATURE_INVALID: "فشل التحقق من توقيع QR؛ قد يكون الرمز معدلاً أو غير موثوق.",
+        INVITE_FINGERPRINT_MISMATCH: "لا تتطابق الهوية العامة للرمز مع بصمتها. أنشئ رمزاً جديداً.",
+        INVITE_REPLAY_DB_FAILED: "التخزين الآمن للمتصفح غير متاح. تحقق من إعدادات تخزين الموقع في Chrome.",
+        INVITE_REPLAY_DB_BLOCKED: "تخزين QR الآمن مشغول في علامة تبويب أخرى. أغلق علامات E-ZERO الإضافية ثم أعد المحاولة."
+      }
+    };
+    const languageMessages = messages[language] || messages.en;
+    return languageMessages[reason] || (language === "ur"
+      ? "QR کی تصدیق ناکام ہوئی (" + reason + ")۔ نیا QR بنا کر دوبارہ کوشش کریں۔"
+      : language === "ar"
+        ? "فشل التحقق من QR (" + reason + "). أنشئ رمزاً جديداً وحاول مرة أخرى."
+        : "QR verification failed (" + reason + "). Create a fresh QR and try again.");
+  }
+
   async function acceptScannedCode(code) {
     stopQrCamera();
     try {
       const verified = await window.EZERO_CONNECT_INVITES.verifyInvite(code);
       setQrStatus(translations[language].qrVerified + " " + verified.inviterFingerprint, "ok");
-    } catch (_) {
-      setQrStatus(translations[language].qrInvalid, "error");
+    } catch (error) {
+      setQrStatus(inviteVerificationErrorMessage(error), "error");
     }
   }
 
