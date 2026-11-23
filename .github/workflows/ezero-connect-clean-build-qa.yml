@@ -46,6 +46,8 @@ on:
       - 'js/ezero_connect_trust_v1.js'
       - 'js/ezero_connect_signal_client_v1.js'
       - 'js/ezero_connect_pairing_v1.js'
+      - 'js/ezero_connect_pairing_v2.js'
+      - 'js/ezero_connect_pairing_auto_ui_v2.js'
       - 'scripts/ezero_connect_qr_entry_v1.js'
       - 'package.json'
       - 'tests/test_ezero_connect_clean_build_v1.mjs'
@@ -55,6 +57,7 @@ on:
       - 'tests/test_ezero_connect_signaling_v1.mjs'
       - 'tests/test_ezero_connect_signal_client_v1.mjs'
       - 'tests/test_ezero_connect_pairing_v1.mjs'
+      - 'tests/test_ezero_connect_pairing_v2.mjs'
       - 'signaling/ezero-connect-v1/**'
       - '.github/workflows/ezero-connect-clean-build-qa.yml'
 
