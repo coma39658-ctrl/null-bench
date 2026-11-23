@@ -11,7 +11,7 @@
       privacy:"آپ کی پرائیویسی", privacyText:"کیمرہ اور مائیک صرف آپ کے واضح بٹن دبانے کے بعد مانگے جائیں گے۔ اس پیش نظارہ میں ابھی کوئی کال، پیغام یا دوست محفوظ نہیں کیا جاتا۔",
       footer:"نیا نظام — محفوظ تعمیراتی Preview، ابھی عوامی کال سروس نہیں۔",
       dialogTitle:"دوست شامل کریں", dialogText:"QR شناخت، محفوظ رابطہ اور دونوں طرف منظوری کا نیا نظام ابھی تعمیر کے مرحلے میں ہے۔ اس Preview میں QR یا رابطہ بھیجنے کا جھوٹا دعویٰ نہیں کیا جائے گا۔",
-      close:"بند کریں", searchEmpty:"اس تلاش کے لیے کوئی محفوظ دوست موجود نہیں۔", identityTitle:"اس فون کی محفوظ شناخت", identityState:"ابھی نہیں بنی", identityExplain:"آپ کی منظوری کے بعد اس فون پر ایک نجی شناختی کلید بنے گی۔ نجی کلید اسی ڈیوائس میں رہے گی؛ صرف عوامی شناختی فنگرپرنٹ دکھایا جائے گا۔", identityConsent:"میں اس فون پر غیر قابلِ برآمد نجی کلید بنانے اور اسے مقامی طور پر محفوظ کرنے کی اجازت دیتا/دیتی ہوں۔", identityButton:"اپنی محفوظ شناخت بنائیں", identityStatus:"بغیر اجازت کوئی شناخت نہیں بنائی جائے گی۔", fingerprint:"عوامی شناختی فنگرپرنٹ", identitySaved:"اس فون کی شناخت محفوظ ہو گئی۔", identityExisting:"اس فون کی پہلے سے محفوظ شناخت مل گئی۔", identityNoConsent:"پہلے اجازت والے خانے پر نشان لگائیں۔", identityError:"شناخت محفوظ نہیں ہو سکی۔ محفوظ کنکشن یا براؤزر اسٹوریج چیک کریں۔", qrTitle:"محفوظ QR رابطہ", qrExplain:"پہلی بار دوست سے محفوظ رابطے کے لیے عارضی QR بنائیں یا دوست کا QR اسکین کریں۔ QR صرف 90 سیکنڈ کے لیے کارآمد ہوگا۔", createQr:"میرا QR بنائیں", scanQr:"دوست کا QR اسکین کریں", galleryQr:"گیلری سے QR تصویر منتخب کریں", stopScanner:"اسکین بند کریں", switchCamera:"🔄 کیمرہ بدلیں", torchOn:"🔦 لائٹ آن", torchOff:"🔦 لائٹ بند", cameraSwitched:"کیمرہ تبدیل ہوگیا۔", cameraSwitchError:"دوسرا کیمرہ دستیاب نہیں۔", torchError:"اس کیمرے میں ٹارچ دستیاب نہیں۔", cameraPermission:"کیمرہ اجازت دیں اور QR اسکین کریں", cameraDenied:"کیمرہ اجازت بند ہے۔ فون کی Settings میں اس سائٹ کی Camera permission کو Allow کریں، پھر دوبارہ کوشش کریں۔", cameraMissing:"اس فون میں دستیاب کیمرہ نہیں ملا۔ گیلری سے QR تصویر منتخب کریں۔", cameraBusy:"کیمرہ کسی دوسری ایپ میں استعمال ہو رہا ہے۔ دوسری ایپ بند کرکے دوبارہ کوشش کریں۔", cameraSecure:"کیمرہ صرف HTTPS یا محفوظ localhost پر چلتا ہے۔ اصل Preview لنک کھولیں۔", cameraUnsupported:"یہ براؤزر کیمرہ اسکیننگ سپورٹ نہیں کرتا۔ Chrome اپ ڈیٹ کریں یا گیلری سے QR منتخب کریں۔", qrNeedIdentity:"QR بنانے یا اسکین کرنے سے پہلے اس فون کی محفوظ شناخت بنائیں۔", qrReady:"آپ کا QR تیار ہے؛ یہ 90 سیکنڈ بعد ختم ہو جائے گا۔", qrVerified:"QR کی دستخطی تصدیق کامیاب ہے۔ اگلے مرحلے میں دونوں طرف منظوری ہوگی۔", qrInvalid:"یہ QR درست یا قابلِ اعتماد نہیں، یا اس کی مدت ختم ہو چکی ہے۔", qrCameraError:"کیمرہ شروع نہیں ہو سکا۔ براؤزر کی اجازت چیک کریں۔", qrGalleryError:"اس تصویر میں قابلِ تصدیق E-ZERO QR نہیں ملا۔", qrExpired:"یہ QR ختم ہو گیا۔ نیا QR بنائیں۔", qrSeconds:"باقی وقت: {n} سیکنڈ"
+      close:"بند کریں", searchEmpty:"اس تلاش کے لیے کوئی محفوظ دوست موجود نہیں۔", identityTitle:"اس فون کی محفوظ شناخت", identityState:"ابھی نہیں بنی", identityExplain:"آپ کی منظوری کے بعد اس فون پر ایک نجی شناختی کلید بنے گی۔ نجی کلید اسی ڈیوائس میں رہے گی؛ صرف عوامی شناختی فنگرپرنٹ دکھایا جائے گا۔", identityConsent:"میں اس فون پر غیر قابلِ برآمد نجی کلید بنانے اور اسے مقامی طور پر محفوظ کرنے کی اجازت دیتا/دیتی ہوں۔", identityButton:"اپنی محفوظ شناخت بنائیں", identityStatus:"بغیر اجازت کوئی شناخت نہیں بنائی جائے گی۔", fingerprint:"عوامی شناختی فنگرپرنٹ", identitySaved:"اس فون کی شناخت محفوظ ہو گئی۔", identityExisting:"اس فون کی پہلے سے محفوظ شناخت مل گئی۔", identityNoConsent:"پہلے اجازت والے خانے پر نشان لگائیں۔", identityError:"شناخت محفوظ نہیں ہو سکی۔ محفوظ کنکشن یا براؤزر اسٹوریج چیک کریں۔", qrTitle:"محفوظ QR رابطہ", qrExplain:"پہلی بار دوست سے محفوظ رابطے کے لیے عارضی QR بنائیں یا دوست کا QR اسکین کریں۔ QR صرف 90 سیکنڈ کے لیے کارآمد ہوگا۔", createQr:"میرا QR بنائیں", scanQr:"دوست کا QR اسکین کریں", galleryQr:"گیلری سے QR تصویر منتخب کریں", stopScanner:"اسکین بند کریں", switchCamera:"🔄 کیمرہ بدلیں", torchOn:"🔦 لائٹ آن", torchOff:"🔦 لائٹ بند", cameraSwitched:"کیمرہ تبدیل ہوگیا۔", cameraSwitchError:"دوسرا کیمرہ دستیاب نہیں۔", torchError:"اس کیمرے میں ٹارچ دستیاب نہیں۔", cameraPermission:"کیمرہ اجازت دیں اور QR اسکین کریں", cameraDenied:"کیمرہ اجازت بند ہے۔ فون کی Settings میں اس سائٹ کی Camera permission کو Allow کریں، پھر دوبارہ کوشش کریں۔", cameraMissing:"اس فون میں دستیاب کیمرہ نہیں ملا۔ گیلری سے QR تصویر منتخب کریں۔", cameraBusy:"کیمرہ کسی دوسری ایپ میں استعمال ہو رہا ہے۔ دوسری ایپ بند کرکے دوبارہ کوشش کریں۔", cameraSecure:"کیمرہ صرف HTTPS یا محفوظ localhost پر چلتا ہے۔ اصل Preview لنک کھولیں۔", cameraUnsupported:"یہ براؤزر کیمرہ اسکیننگ سپورٹ نہیں کرتا۔ Chrome اپ ڈیٹ کریں یا گیلری سے QR منتخب کریں۔", qrNeedIdentity:"QR بنانے یا اسکین کرنے سے پہلے اس فون کی محفوظ شناخت بنائیں۔", qrReady:"آپ کا QR تیار ہے؛ یہ 90 سیکنڈ بعد ختم ہو جائے گا۔", qrVerified:"QR کی دستخطی تصدیق کامیاب ہے۔ اگلے مرحلے میں دونوں طرف منظوری ہوگی۔", qrInvalid:"یہ QR درست یا قابلِ اعتماد نہیں، یا اس کی مدت ختم ہو چکی ہے۔", qrCameraError:"کیمرہ شروع نہیں ہو سکا۔ براؤزر کی اجازت چیک کریں۔", qrGalleryError:"اس تصویر میں قابلِ تصدیق E-ZERO QR نہیں ملا۔", qrExpired:"یہ QR ختم ہو گیا۔ نیا QR بنائیں۔", qrSeconds:"باقی وقت: {n} سیکنڈ",shareInvite:"🔗 دوست کو دعوتی لنک بھیجیں",installApp:"⬇ E-ZERO انسٹال کریں",shareReady:"دعوتی لنک تیار ہے۔ اسے 90 سیکنڈ کے اندر بھیجیں۔",shareFailed:"لنک شیئر نہیں ہو سکا۔ دوبارہ کوشش کریں۔",installHelp:"انسٹال کے لیے براؤزر کے مینو میں 'Add to Home screen' یا 'Install app' منتخب کریں۔"
     },
     en: {
       welcome:"Hello 👋", sub:"Your friends, all in one place", quick:"Quick contact", hint:"Choose a friend",
@@ -22,7 +22,7 @@
       privacy:"Your privacy", privacyText:"Camera and microphone access will only be requested after your explicit action. This preview does not save contacts or send calls or messages.",
       footer:"New system — clean-build preview; public calling is not available yet.",
       dialogTitle:"Add a friend", dialogText:"The new QR identity, secure connection and mutual-approval flow is still being built. This preview will not pretend to scan a QR code or send an invite.",
-      close:"Close", searchEmpty:"No saved friend matches this search.", identityTitle:"This device identity", identityState:"Not created", identityExplain:"After your consent, this device creates a private signing key. The private key stays on this device; only its public fingerprint is shown.", identityConsent:"I consent to creating a non-extractable private key and saving it locally on this device.", identityButton:"Create secure device identity", identityStatus:"No identity will be created without your consent.", fingerprint:"Public identity fingerprint", identitySaved:"This device identity has been saved.", identityExisting:"An existing identity for this device was found.", identityNoConsent:"Please tick the consent box first.", identityError:"Identity could not be saved. Check secure connection and browser storage.", qrTitle:"Secure QR connection", qrExplain:"Create a temporary QR for a first secure connection, or scan your friend’s QR. The QR expires after 90 seconds.", createQr:"Create my QR", scanQr:"Scan friend QR", galleryQr:"Choose QR image from gallery", stopScanner:"Stop scanning", switchCamera:"🔄 Switch camera", torchOn:"🔦 Torch on", torchOff:"🔦 Torch off", cameraSwitched:"Camera switched.", cameraSwitchError:"Another camera is not available.", torchError:"Torch is not supported by this camera.", cameraPermission:"Allow camera & scan QR", cameraDenied:"Camera permission is blocked. In Android site settings, allow Camera for this site, then try again.", cameraMissing:"No camera was found. Choose a QR image from your gallery instead.", cameraBusy:"The camera is busy in another app. Close that app and try again.", cameraSecure:"Camera access requires HTTPS or secure localhost. Open the secure Preview link.", cameraUnsupported:"This browser does not support camera scanning. Update Chrome or use a gallery image.", qrNeedIdentity:"Create this device’s secure identity before making or scanning a QR.", qrReady:"Your QR is ready and expires in 90 seconds.", qrVerified:"QR signature verified. Both people must approve in the next step.", qrInvalid:"This QR is invalid, untrusted, already used, or expired.", qrCameraError:"Could not start the camera. Check browser permission.", qrGalleryError:"No verifiable E-ZERO QR was found in this image.", qrExpired:"This QR has expired. Create a new one.", qrSeconds:"Expires in {n} seconds"
+      close:"Close", searchEmpty:"No saved friend matches this search.", identityTitle:"This device identity", identityState:"Not created", identityExplain:"After your consent, this device creates a private signing key. The private key stays on this device; only its public fingerprint is shown.", identityConsent:"I consent to creating a non-extractable private key and saving it locally on this device.", identityButton:"Create secure device identity", identityStatus:"No identity will be created without your consent.", fingerprint:"Public identity fingerprint", identitySaved:"This device identity has been saved.", identityExisting:"An existing identity for this device was found.", identityNoConsent:"Please tick the consent box first.", identityError:"Identity could not be saved. Check secure connection and browser storage.", qrTitle:"Secure QR connection", qrExplain:"Create a temporary QR for a first secure connection, or scan your friend’s QR. The QR expires after 90 seconds.", createQr:"Create my QR", scanQr:"Scan friend QR", galleryQr:"Choose QR image from gallery", stopScanner:"Stop scanning", switchCamera:"🔄 Switch camera", torchOn:"🔦 Torch on", torchOff:"🔦 Torch off", cameraSwitched:"Camera switched.", cameraSwitchError:"Another camera is not available.", torchError:"Torch is not supported by this camera.", cameraPermission:"Allow camera & scan QR", cameraDenied:"Camera permission is blocked. In Android site settings, allow Camera for this site, then try again.", cameraMissing:"No camera was found. Choose a QR image from your gallery instead.", cameraBusy:"The camera is busy in another app. Close that app and try again.", cameraSecure:"Camera access requires HTTPS or secure localhost. Open the secure Preview link.", cameraUnsupported:"This browser does not support camera scanning. Update Chrome or use a gallery image.", qrNeedIdentity:"Create this device’s secure identity before making or scanning a QR.", qrReady:"Your QR is ready and expires in 90 seconds.", qrVerified:"QR signature verified. Both people must approve in the next step.", qrInvalid:"This QR is invalid, untrusted, already used, or expired.", qrCameraError:"Could not start the camera. Check browser permission.", qrGalleryError:"No verifiable E-ZERO QR was found in this image.", qrExpired:"This QR has expired. Create a new one.", qrSeconds:"Expires in {n} seconds",shareInvite:"🔗 Share invite link",installApp:"⬇ Install E-ZERO",shareReady:"Invite link is ready. Share it within 90 seconds.",shareFailed:"Could not share the link. Please try again.",installHelp:"To install, choose 'Add to Home screen' or 'Install app' from your browser menu."
     },
     ar: {
       welcome:"مرحباً 👋", sub:"أصدقاؤك في مكان واحد", quick:"اتصال سريع", hint:"اختر صديقاً",
@@ -33,7 +33,7 @@
       privacy:"خصوصيتك", privacyText:"لن نطلب إذن الكاميرا والميكروفون إلا بعد إجراء صريح منك. هذه المعاينة لا تحفظ جهات اتصال ولا تجري مكالمات أو ترسل رسائل.",
       footer:"النظام الجديد — معاينة بناء نظيف؛ خدمة الاتصال العامة غير متاحة بعد.",
       dialogTitle:"إضافة صديق", dialogText:"يجري بناء نظام هوية QR والاتصال الآمن والموافقة المتبادلة. لن تدّعي هذه المعاينة مسح رمز أو إرسال دعوة.",
-      close:"إغلاق", searchEmpty:"لا يوجد صديق محفوظ يطابق هذا البحث.", identityTitle:"هوية هذا الجهاز", identityState:"لم تُنشأ بعد", identityExplain:"بعد موافقتك، ينشئ هذا الجهاز مفتاح توقيع خاصاً. يبقى المفتاح الخاص على هذا الجهاز، ويُعرض فقط البصمة العامة.", identityConsent:"أوافق على إنشاء مفتاح خاص غير قابل للتصدير وحفظه محلياً على هذا الجهاز.", identityButton:"إنشاء هوية آمنة للجهاز", identityStatus:"لن يتم إنشاء أي هوية دون موافقتك.", fingerprint:"بصمة الهوية العامة", identitySaved:"تم حفظ هوية هذا الجهاز.", identityExisting:"تم العثور على هوية محفوظة مسبقاً لهذا الجهاز.", identityNoConsent:"يرجى تحديد مربع الموافقة أولاً.", identityError:"تعذر حفظ الهوية. تحقق من الاتصال الآمن ومساحة تخزين المتصفح.", qrTitle:"اتصال QR آمن", qrExplain:"أنشئ رمز QR مؤقتاً للاتصال الأول الآمن أو امسح رمز صديقك. تنتهي صلاحية الرمز بعد 90 ثانية.", createQr:"إنشاء رمز QR الخاص بي", scanQr:"مسح رمز الصديق", galleryQr:"اختيار صورة QR من المعرض", stopScanner:"إيقاف المسح", switchCamera:"🔄 تبديل الكاميرا", torchOn:"🔦 تشغيل الضوء", torchOff:"🔦 إيقاف الضوء", cameraSwitched:"تم تبديل الكاميرا.", cameraSwitchError:"الكاميرا الأخرى غير متاحة.", torchError:"هذا الجهاز لا يدعم ضوء الكاميرا.", cameraPermission:"السماح بالكاميرا ومسح QR", cameraDenied:"إذن الكاميرا محظور. اسمح بالكاميرا لهذا الموقع من إعدادات الموقع ثم أعد المحاولة.", cameraMissing:"لم يتم العثور على كاميرا. اختر صورة QR من المعرض بدلاً من ذلك.", cameraBusy:"الكاميرا قيد الاستخدام في تطبيق آخر. أغلقه ثم أعد المحاولة.", cameraSecure:"يتطلب الوصول إلى الكاميرا HTTPS أو localhost آمناً. افتح رابط المعاينة الآمن.", cameraUnsupported:"هذا المتصفح لا يدعم مسح الكاميرا. حدّث Chrome أو استخدم صورة من المعرض.", qrNeedIdentity:"أنشئ هوية آمنة لهذا الجهاز قبل إنشاء رمز QR أو مسحه.", qrReady:"رمز QR جاهز وتنتهي صلاحيته بعد 90 ثانية.", qrVerified:"تم التحقق من توقيع QR. يجب أن يوافق الطرفان في الخطوة التالية.", qrInvalid:"رمز QR غير صالح أو غير موثوق أو مستخدم أو منتهي الصلاحية.", qrCameraError:"تعذر تشغيل الكاميرا. تحقق من إذن المتصفح.", qrGalleryError:"لم يتم العثور على رمز E-ZERO QR قابل للتحقق في هذه الصورة.", qrExpired:"انتهت صلاحية رمز QR. أنشئ رمزاً جديداً.", qrSeconds:"الوقت المتبقي: {n} ثانية"
+      close:"إغلاق", searchEmpty:"لا يوجد صديق محفوظ يطابق هذا البحث.", identityTitle:"هوية هذا الجهاز", identityState:"لم تُنشأ بعد", identityExplain:"بعد موافقتك، ينشئ هذا الجهاز مفتاح توقيع خاصاً. يبقى المفتاح الخاص على هذا الجهاز، ويُعرض فقط البصمة العامة.", identityConsent:"أوافق على إنشاء مفتاح خاص غير قابل للتصدير وحفظه محلياً على هذا الجهاز.", identityButton:"إنشاء هوية آمنة للجهاز", identityStatus:"لن يتم إنشاء أي هوية دون موافقتك.", fingerprint:"بصمة الهوية العامة", identitySaved:"تم حفظ هوية هذا الجهاز.", identityExisting:"تم العثور على هوية محفوظة مسبقاً لهذا الجهاز.", identityNoConsent:"يرجى تحديد مربع الموافقة أولاً.", identityError:"تعذر حفظ الهوية. تحقق من الاتصال الآمن ومساحة تخزين المتصفح.", qrTitle:"اتصال QR آمن", qrExplain:"أنشئ رمز QR مؤقتاً للاتصال الأول الآمن أو امسح رمز صديقك. تنتهي صلاحية الرمز بعد 90 ثانية.", createQr:"إنشاء رمز QR الخاص بي", scanQr:"مسح رمز الصديق", galleryQr:"اختيار صورة QR من المعرض", stopScanner:"إيقاف المسح", switchCamera:"🔄 تبديل الكاميرا", torchOn:"🔦 تشغيل الضوء", torchOff:"🔦 إيقاف الضوء", cameraSwitched:"تم تبديل الكاميرا.", cameraSwitchError:"الكاميرا الأخرى غير متاحة.", torchError:"هذا الجهاز لا يدعم ضوء الكاميرا.", cameraPermission:"السماح بالكاميرا ومسح QR", cameraDenied:"إذن الكاميرا محظور. اسمح بالكاميرا لهذا الموقع من إعدادات الموقع ثم أعد المحاولة.", cameraMissing:"لم يتم العثور على كاميرا. اختر صورة QR من المعرض بدلاً من ذلك.", cameraBusy:"الكاميرا قيد الاستخدام في تطبيق آخر. أغلقه ثم أعد المحاولة.", cameraSecure:"يتطلب الوصول إلى الكاميرا HTTPS أو localhost آمناً. افتح رابط المعاينة الآمن.", cameraUnsupported:"هذا المتصفح لا يدعم مسح الكاميرا. حدّث Chrome أو استخدم صورة من المعرض.", qrNeedIdentity:"أنشئ هوية آمنة لهذا الجهاز قبل إنشاء رمز QR أو مسحه.", qrReady:"رمز QR جاهز وتنتهي صلاحيته بعد 90 ثانية.", qrVerified:"تم التحقق من توقيع QR. يجب أن يوافق الطرفان في الخطوة التالية.", qrInvalid:"رمز QR غير صالح أو غير موثوق أو مستخدم أو منتهي الصلاحية.", qrCameraError:"تعذر تشغيل الكاميرا. تحقق من إذن المتصفح.", qrGalleryError:"لم يتم العثور على رمز E-ZERO QR قابل للتحقق في هذه الصورة.", qrExpired:"انتهت صلاحية رمز QR. أنشئ رمزاً جديداً.", qrSeconds:"الوقت المتبقي: {n} ثانية",shareInvite:"🔗 مشاركة رابط الدعوة",installApp:"⬇ تثبيت E-ZERO",shareReady:"رابط الدعوة جاهز. أرسله خلال 90 ثانية.",shareFailed:"تعذرت مشاركة الرابط. حاول مرة أخرى.",installHelp:"للتثبيت، اختر 'إضافة إلى الشاشة الرئيسية' أو 'تثبيت التطبيق' من قائمة المتصفح."
     }
   };
   let language = "ur";
@@ -49,7 +49,7 @@
       audioLabel:t.audio,videoLabel:t.video,callStatus:t.callStatus,peopleTitle:t.people,
       addFriend:t.add,emptyAdd:t.add,searchFriends:null,tabFriends:t.friends,tabChats:t.chats,
       tabCalls:t.calls,emptyTitle:t.empty,emptyText:t.emptyText,privacyTitle:t.privacy,
-      privacyText:t.privacyText,footerStatus:t.footer,identityTitle:t.identityTitle,identityExplain:t.identityExplain,identityConsentText:t.identityConsent,createIdentity:t.identityButton,identityState:t.identityState,fingerprintLabel:t.fingerprint,qrTitle:t.qrTitle,qrExplain:t.qrExplain,createMyQrLabel:t.createQr,scanFriendQrLabel:t.scanQr,chooseGalleryQr:t.galleryQr,chooseGalleryQrInScanner:t.galleryQr,requestCameraPermission:t.cameraPermission,stopQrScanner:t.stopScanner,switchQrCamera:t.switchCamera,toggleQrTorch:$("toggleQrTorch")?.getAttribute("aria-pressed")==="true"?t.torchOff:t.torchOn,dialogTitle:t.dialogTitle,
+      privacyText:t.privacyText,footerStatus:t.footer,identityTitle:t.identityTitle,identityExplain:t.identityExplain,identityConsentText:t.identityConsent,createIdentity:t.identityButton,identityState:t.identityState,fingerprintLabel:t.fingerprint,qrTitle:t.qrTitle,qrExplain:t.qrExplain,createMyQrLabel:t.createQr,scanFriendQrLabel:t.scanQr,chooseGalleryQr:t.galleryQr,chooseGalleryQrInScanner:t.galleryQr,shareInviteLink:t.shareInvite,installEzero:t.installApp,requestCameraPermission:t.cameraPermission,stopQrScanner:t.stopScanner,switchQrCamera:t.switchCamera,toggleQrTorch:$("toggleQrTorch")?.getAttribute("aria-pressed")==="true"?t.torchOff:t.torchOn,dialogTitle:t.dialogTitle,
       dialogText:t.dialogText,closeDialog:t.close
     };
     for (const [id,value] of Object.entries(map)) if (value !== null && $(id)) $(id).textContent = value;
@@ -176,6 +176,7 @@
     if (inviteTimer) clearInterval(inviteTimer);
     inviteTimer = null;
     activeInvite = null;
+    if ($("shareInviteLink")) $("shareInviteLink").disabled = true;
     $("myQrDisplay").hidden = true;
     $("myQrImage").replaceChildren();
     $("qrCountdown").textContent = "";
@@ -231,6 +232,69 @@
     }
   }
 
+  function inviteShareUrl(invite) {
+    return location.origin + location.pathname + location.search + "#invite=" + encodeURIComponent(invite.inviteCode);
+  }
+
+  $("shareInviteLink").addEventListener("click", async () => {
+    if (!activeInvite || activeInvite.expiresAt <= Date.now()) {
+      setQrStatus(translations[language].qrExpired, "error");
+      return;
+    }
+    const url = inviteShareUrl(activeInvite);
+    const title = "E-ZERO Connect — محفوظ دوست کی دعوت";
+    const text = translations[language].shareReady;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, text, url });
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        throw new Error("SHARE_UNAVAILABLE");
+      }
+      $("shareInstallStatus").textContent = text;
+      $("shareInstallStatus").dataset.kind = "ok";
+    } catch (error) {
+      if (error?.name === "AbortError") return;
+      $("shareInstallStatus").textContent = translations[language].shareFailed;
+      $("shareInstallStatus").dataset.kind = "error";
+    }
+  });
+
+  let deferredInstallPrompt = null;
+  window.addEventListener("beforeinstallprompt", event => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+  });
+  $("installEzero").addEventListener("click", async () => {
+    const status = $("shareInstallStatus");
+    try {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+        status.textContent = "E-ZERO installation prompt opened.";
+        status.dataset.kind = "ok";
+      } else {
+        status.textContent = translations[language].installHelp;
+        status.dataset.kind = "";
+      }
+    } catch (_) {
+      status.textContent = translations[language].installHelp;
+      status.dataset.kind = "";
+    }
+  });
+
+  function acceptInviteFromSharedLink() {
+    const match = location.hash.match(/^#invite=(.+)$/);
+    if (!match) return;
+    let code;
+    try { code = decodeURIComponent(match[1]); }
+    catch (_) { setQrStatus(translations[language].qrInvalid, "error"); return; }
+    history.replaceState(null, "", location.pathname + location.search);
+    acceptScannedCode(code);
+  }
+
   $("createMyQr").addEventListener("click", async () => {
     clearActiveQr();
     try {
@@ -249,6 +313,7 @@
       $("myQrImage").replaceChildren(image);
       $("myQrDisplay").hidden = false;
       activeInvite = invite;
+      $("shareInviteLink").disabled = false;
       document.dispatchEvent(new CustomEvent("ezero:invite-created", { detail: { invite } }));
       setQrStatus(translations[language].qrReady, "ok");
       const updateExpiry = () => {
@@ -355,4 +420,5 @@
   $("videoCall").disabled = true;
   renderLanguage();
   initializeIdentity();
+  acceptInviteFromSharedLink();
 })();
