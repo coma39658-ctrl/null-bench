@@ -41,7 +41,7 @@ try {
   assert.equal(layout.position,"fixed","camera occupies a dedicated full-screen overlay");
   assert.ok(layout.height>=250,"camera preview is large while preserving the camera aspect ratio");
   await page.locator("#switchQrCamera").click();
-  await page.waitForFunction(()=>document.querySelector("#qrScanStatus").textContent.includes("Camera switched"));
+  await page.waitForFunction(()=>document.querySelector("#qrScanStatus").textContent.includes("کیمرہ تبدیل ہوگیا"));
   await page.locator("#stopQrScanner").click();
   await page.waitForFunction(()=>document.querySelector("#qrScannerOverlay").hidden);
   assert.equal(await page.locator("#qrScannerVideo").evaluate(el=>el.srcObject),null);
