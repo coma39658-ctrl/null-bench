@@ -20,7 +20,12 @@
     {
       "tag": "v1",
       "new_sqlite_classes": [
-        "EzeroConnectRoom",
+        "EzeroConnectRoom"
+      ]
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": [
         "EzeroConnectRateLimit"
       ]
     }
