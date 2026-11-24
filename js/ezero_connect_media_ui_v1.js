@@ -117,7 +117,7 @@
       busy = false; updateButtons(); removeCallPanel(); removeRemoteMedia();
     } else if (state === "media-route-failed") {
       setStatus("اس نیٹ ورک پر براہِ راست میڈیا راستہ نہیں ملا؛ TURN ریلے ابھی دستیاب نہیں۔", "error");
-    } else if (state === "call-declined" || state === "call-ended") {
+    } else if (state === "incoming-call-cancelled" || state === "call-declined" || state === "call-ended") {
       setStatus(t().ended); busy = false; updateButtons(); removeCallPanel(); removeRemoteMedia();
     } else if (state === "media-disconnected" || state === "media-closed") {
       setStatus(t().ended); busy = false; updateButtons(); removeCallPanel(); removeRemoteMedia();
