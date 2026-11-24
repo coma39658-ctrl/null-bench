@@ -90,7 +90,143 @@ jobs:
           set -euo pipefail
           git fetch --no-tags origin ezero-connect-clean-build-20261120 --depth=50
           git diff --name-only origin/ezero-connect-clean-build-20261120...HEAD > /tmp/ezero-qr-changes.txt
-          if grep -E '^js/.*(webrtc|call|media|signaling)' /tmp/ezero-qr-changes.txt | grep -Ev '^js/ezero_connect_(saved_calls_v1|media_v1|media_ui_v1)\\.js
+          if grep -E '^js/.*(webrtc|call|media|signaling)' /tmp/ezero-qr-changes.txt | grep -Ev '^js/ezero_connect_(saved_calls_v1|media_v1|media_ui_v1)\.js
+            echo 'FROZEN_CALL_ENGINE_SOURCE_CHANGE_DETECTED'
+            exit 1
+          fi
+          echo 'FROZEN_CALL_ENGINE_UNMODIFIED; THIS IS NOT PROOF OF NEW_CALL_FUNCTIONALITY'
+  clean-mobile-shell:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: node --check js/ezero_connect_app_v1.js && node --check js/ezero_connect_identity_v1.js && node --check js/ezero_connect_invite_v1.js && node --check js/ezero_connect_trust_v1.js && node --check scripts/ezero_connect_qr_entry_v1.js && node --check signaling/ezero-connect-v1/worker.mjs && node --check signaling/ezero-connect-v1/inbox_worker.mjs && node --check signaling/ezero-connect-v1/inbox_protocol.mjs && node --check tests/test_ezero_saved_friend_call_invite_v1.mjs && node --check tests/test_ezero_connect_inbox_worker_v1.mjs && node --check js/ezero_connect_signal_client_v1.js && node --check js/ezero_connect_saved_calls_v1.js && node --check js/ezero_connect_media_v1.js && node --check js/ezero_connect_media_ui_v1.js && node --check tests/test_ezero_connect_media_client_v1.mjs && node --check tests/test_ezero_connect_saved_calls_client_v1.mjs && node --check js/ezero_connect_pairing_v1.js && node --check js/ezero_connect_pairing_ui_v1.js && node --check js/ezero_connect_pairing_v2.js && node --check js/ezero_connect_pairing_auto_ui_v2.js && node --check js/ezero_connect_config_v1.js && node --check tests/test_ezero_connect_pairing_ui_contract_v1.mjs && node --check tests/test_ezero_connect_signal_client_v1.mjs && node --check tests/test_ezero_connect_pairing_v1.mjs && node --check tests/test_ezero_connect_pairing_v2.mjs && node --check tests/test_ezero_connect_signaling_v1.mjs && node --check tests/test_ezero_connect_clean_build_v1.mjs && node --check tests/test_ezero_connect_qr_runtime_v1.mjs && node --check tests/test_ezero_web_scanner_controls_v1.mjs && node --check tests/test_ezero_connect_trust_v1.mjs
+      - name: Install isolated browser test dependency
+        run: npm install --no-save --no-audit --no-fund --ignore-scripts playwright@1.57.0 qr@0.7.2 esbuild@0.25.12 wrangler@4.165.0
+      - name: Build locally hosted QR runtime
+        run: npm run build:ezero-qr
+      - name: Validate isolated inbox Worker bundle and Durable Object migrations without deploying
+        run: npx wrangler deploy --dry-run --config signaling/ezero-connect-v1/wrangler.jsonc
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Serve only on loopback
+        shell: bash
+        run: |
+          set -euo pipefail
+          nohup python3 -m http.server 8769 --bind 127.0.0.1 >/tmp/ezero-clean-build.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8769/ezero-connect-app.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ezero-clean-build.log
+          exit 1
+      - name: Enforce immutable QR and trusted-friend pairing baseline
+        run: node tests/test_ezero_connect_qr_frozen_guard_v1.mjs
+      - name: Test clean mobile shell behavior and no-legacy boundary
+        run: node tests/test_ezero_connect_clean_build_v1.mjs
+      - name: Verify QR generation and gallery-image roundtrip
+        run: node tests/test_ezero_connect_qr_runtime_v1.mjs
+      - name: Verify full-screen mobile scanner, camera switch, torch gating and gallery control
+        run: node tests/test_ezero_web_scanner_controls_v1.mjs
+      - name: Verify mutual approval and encrypted trusted-contact vault
+        run: node tests/test_ezero_connect_trust_v1.mjs
+      - name: Verify signed signaling handshake and message limits
+        run: node tests/test_ezero_connect_signaling_v1.mjs
+      - name: Verify browser signaling client handshake and send allowlist
+        run: node tests/test_ezero_connect_signal_client_v1.mjs
+      - name: Verify legacy v1 approval protocol remains isolated
+        run: node tests/test_ezero_connect_pairing_v1.mjs
+      - name: Verify automatic v2 trusted-friend pairing session
+        run: node tests/test_ezero_connect_pairing_v2.mjs
+      - name: Verify the browser automatic-pairing UI is wired to signed invite events and local trust
+        run: node tests/test_ezero_connect_pairing_ui_contract_v1.mjs
+      - name: Verify saved-friend signed call invite binding, expiry and tamper rejection
+        run: node tests/test_ezero_saved_friend_call_invite_v1.mjs
+      - name: Verify saved-friend inbox signed routing and offline behavior
+        run: node tests/test_ezero_connect_inbox_worker_v1.mjs
+      - name: Verify saved-friend browser call identity, invite, room handoff and inbox authentication
+        run: node tests/test_ezero_connect_saved_calls_client_v1.mjs
+      - name: Verify saved-friend media call controls, explicit accept and room handoff
+        run: node tests/test_ezero_connect_media_client_v1.mjs
+      - name: Validate Worker bundle without deployment
+        run: npx wrangler deploy --dry-run --outdir /tmp/ezero-connect-worker-dry-run --config signaling/ezero-connect-v1/wrangler.jsonc
+      - name: State evidence boundary
+        run: echo 'CLEAN_MOBILE_UI_SIGNED_QR_AUTO_TRUST_PAIRING_AND_LOCAL_VAULT_TESTS_ONLY_NO_PHYSICAL_PHONE_OR_CALL_PROOF'
+; then
+            echo 'FROZEN_CALL_ENGINE_SOURCE_CHANGE_DETECTED'
+            exit 1
+          fi
+          echo 'FROZEN_CALL_ENGINE_UNMODIFIED; THIS IS NOT PROOF OF NEW_CALL_FUNCTIONALITY'
+  clean-mobile-shell:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: node --check js/ezero_connect_app_v1.js && node --check js/ezero_connect_identity_v1.js && node --check js/ezero_connect_invite_v1.js && node --check js/ezero_connect_trust_v1.js && node --check scripts/ezero_connect_qr_entry_v1.js && node --check signaling/ezero-connect-v1/worker.mjs && node --check signaling/ezero-connect-v1/inbox_worker.mjs && node --check signaling/ezero-connect-v1/inbox_protocol.mjs && node --check tests/test_ezero_saved_friend_call_invite_v1.mjs && node --check tests/test_ezero_connect_inbox_worker_v1.mjs && node --check js/ezero_connect_signal_client_v1.js && node --check js/ezero_connect_saved_calls_v1.js && node --check js/ezero_connect_media_v1.js && node --check js/ezero_connect_media_ui_v1.js && node --check tests/test_ezero_connect_media_client_v1.mjs && node --check tests/test_ezero_connect_saved_calls_client_v1.mjs && node --check js/ezero_connect_pairing_v1.js && node --check js/ezero_connect_pairing_ui_v1.js && node --check js/ezero_connect_pairing_v2.js && node --check js/ezero_connect_pairing_auto_ui_v2.js && node --check js/ezero_connect_config_v1.js && node --check tests/test_ezero_connect_pairing_ui_contract_v1.mjs && node --check tests/test_ezero_connect_signal_client_v1.mjs && node --check tests/test_ezero_connect_pairing_v1.mjs && node --check tests/test_ezero_connect_pairing_v2.mjs && node --check tests/test_ezero_connect_signaling_v1.mjs && node --check tests/test_ezero_connect_clean_build_v1.mjs && node --check tests/test_ezero_connect_qr_runtime_v1.mjs && node --check tests/test_ezero_web_scanner_controls_v1.mjs && node --check tests/test_ezero_connect_trust_v1.mjs
+      - name: Install isolated browser test dependency
+        run: npm install --no-save --no-audit --no-fund --ignore-scripts playwright@1.57.0 qr@0.7.2 esbuild@0.25.12 wrangler@4.165.0
+      - name: Build locally hosted QR runtime
+        run: npm run build:ezero-qr
+      - name: Validate isolated inbox Worker bundle and Durable Object migrations without deploying
+        run: npx wrangler deploy --dry-run --config signaling/ezero-connect-v1/wrangler.jsonc
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Serve only on loopback
+        shell: bash
+        run: |
+          set -euo pipefail
+          nohup python3 -m http.server 8769 --bind 127.0.0.1 >/tmp/ezero-clean-build.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8769/ezero-connect-app.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ezero-clean-build.log
+          exit 1
+      - name: Enforce immutable QR and trusted-friend pairing baseline
+        run: node tests/test_ezero_connect_qr_frozen_guard_v1.mjs
+      - name: Test clean mobile shell behavior and no-legacy boundary
+        run: node tests/test_ezero_connect_clean_build_v1.mjs
+      - name: Verify QR generation and gallery-image roundtrip
+        run: node tests/test_ezero_connect_qr_runtime_v1.mjs
+      - name: Verify full-screen mobile scanner, camera switch, torch gating and gallery control
+        run: node tests/test_ezero_web_scanner_controls_v1.mjs
+      - name: Verify mutual approval and encrypted trusted-contact vault
+        run: node tests/test_ezero_connect_trust_v1.mjs
+      - name: Verify signed signaling handshake and message limits
+        run: node tests/test_ezero_connect_signaling_v1.mjs
+      - name: Verify browser signaling client handshake and send allowlist
+        run: node tests/test_ezero_connect_signal_client_v1.mjs
+      - name: Verify legacy v1 approval protocol remains isolated
+        run: node tests/test_ezero_connect_pairing_v1.mjs
+      - name: Verify automatic v2 trusted-friend pairing session
+        run: node tests/test_ezero_connect_pairing_v2.mjs
+      - name: Verify the browser automatic-pairing UI is wired to signed invite events and local trust
+        run: node tests/test_ezero_connect_pairing_ui_contract_v1.mjs
+      - name: Verify saved-friend signed call invite binding, expiry and tamper rejection
+        run: node tests/test_ezero_saved_friend_call_invite_v1.mjs
+      - name: Verify saved-friend inbox signed routing and offline behavior
+        run: node tests/test_ezero_connect_inbox_worker_v1.mjs
+      - name: Verify saved-friend browser call identity, invite, room handoff and inbox authentication
+        run: node tests/test_ezero_connect_saved_calls_client_v1.mjs
+      - name: Verify saved-friend media call controls, explicit accept and room handoff
+        run: node tests/test_ezero_connect_media_client_v1.mjs
+      - name: Validate Worker bundle without deployment
+        run: npx wrangler deploy --dry-run --outdir /tmp/ezero-connect-worker-dry-run --config signaling/ezero-connect-v1/wrangler.jsonc
+      - name: State evidence boundary
+        run: echo 'CLEAN_MOBILE_UI_SIGNED_QR_AUTO_TRUST_PAIRING_AND_LOCAL_VAULT_TESTS_ONLY_NO_PHYSICAL_PHONE_OR_CALL_PROOF'
+; then
             echo 'FROZEN_CALL_ENGINE_SOURCE_CHANGE_DETECTED'
             exit 1
           fi
