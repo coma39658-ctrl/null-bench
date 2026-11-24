@@ -19,27 +19,27 @@
   const words = {
     ur: {
       select:"کال کے لیے منتخب کریں", selected:"منتخب دوست", idle:"دوست منتخب کریں",
-      connecting:"محفوظ کال رابطہ قائم ہو رہا ہے…", calling:"کال کی دعوت بھیجی جا رہی ہے…",
+      connecting:"محفوظ کال رابطہ قائم ہو رہا ہے…", ready:"محفوظ کال ان باکس منسلک ہے؛ آنے والی کال کے لیے تیار۔", calling:"کال کی دعوت بھیجی جا رہی ہے…",
       incoming:"کی طرف سے آنے والی کال", accept:"کال قبول کریں", decline:"مسترد کریں",
-      hangup:"کال بند کریں", mic:"مائیک کی اجازت درکار ہے۔", unavailable:"دوست اس وقت آن لائن نہیں یا رابطہ دستیاب نہیں۔",
+      hangup:"کال بند کریں", mic:"مائیک کی اجازت درکار ہے۔", unavailable:"دوست کا محفوظ کال ان باکس منسلک نہیں؛ دوسرے فون پر E-ZERO کھول کر تیار ہونے کا انتظار کریں۔",
       busy:"دوست پہلے سے کال پر ہے۔", failed:"کال شروع نہیں ہو سکی: ", ended:"کال ختم ہو گئی۔",
       audio:"آڈیو کال", video:"ویڈیو کال", accepted:"کال قبول ہو گئی؛ محفوظ میڈیا رابطہ بن رہا ہے…",
       connected:"کال منسلک ہو گئی۔", waiting:"دوست کے میڈیا رابطے کا انتظار ہے…"
     },
     en: {
       select:"Select for call", selected:"Selected friend", idle:"Choose a friend",
-      connecting:"Connecting securely…", calling:"Sending call invitation…",
+      connecting:"Connecting securely…", ready:"Secure call inbox connected and ready for incoming calls.", calling:"Sending call invitation…",
       incoming:"Incoming call from", accept:"Accept call", decline:"Decline",
-      hangup:"End call", mic:"Microphone permission is required.", unavailable:"Friend is offline or unreachable.",
+      hangup:"End call", mic:"Microphone permission is required.", unavailable:"Friend’s secure call inbox is not connected. Open E-ZERO on the other phone and wait for its ready status.",
       busy:"Friend is already on a call.", failed:"Call could not start: ", ended:"Call ended.",
       audio:"Audio call", video:"Video call", accepted:"Call accepted; establishing secure media…",
       connected:"Call connected.", waiting:"Waiting for friend's media connection…"
     },
     ar: {
       select:"اختيار للاتصال", selected:"الصديق المحدد", idle:"اختر صديقاً",
-      connecting:"جارٍ إنشاء اتصال آمن…", calling:"جارٍ إرسال دعوة الاتصال…",
+      connecting:"جارٍ إنشاء اتصال آمن…", ready:"صندوق المكالمات الآمن متصل وجاهز لاستقبال المكالمات.", calling:"جارٍ إرسال دعوة الاتصال…",
       incoming:"مكالمة واردة من", accept:"قبول المكالمة", decline:"رفض",
-      hangup:"إنهاء المكالمة", mic:"يلزم السماح باستخدام الميكروفون.", unavailable:"الصديق غير متصل أو لا يمكن الوصول إليه.",
+      hangup:"إنهاء المكالمة", mic:"يلزم السماح باستخدام الميكروفون.", unavailable:"صندوق المكالمات الآمن لدى الصديق غير متصل. افتح E-ZERO على الهاتف الآخر وانتظر حالة الجاهزية.",
       busy:"الصديق في مكالمة أخرى.", failed:"تعذر بدء المكالمة: ", ended:"انتهت المكالمة.",
       audio:"مكالمة صوتية", video:"مكالمة فيديو", accepted:"تم قبول المكالمة؛ جارٍ إنشاء اتصال الوسائط الآمن…",
       connected:"المكالمة متصلة.", waiting:"بانتظار اتصال الوسائط لدى الصديق…"
@@ -104,7 +104,7 @@
   }
   function statusHandler(event) {
     const state = event.state;
-    if (state === "inbox-listening") setStatus(t().connecting, "ok");
+    if (state === "inbox-listening") setStatus(t().ready, "ok");
     else if (state === "calling" || state === "call-invite-sent") setStatus(t().calling);
     else if (state === "call-accepted" || state === "room-connected" || state === "peer-verified") setStatus(t().accepted, "ok");
     else if (state === "waiting-for-friend-media" || state === "waiting-for-offer") setStatus(t().waiting);
