@@ -81,7 +81,7 @@ async function saveMutualTrustedFriend(host, guest) {
     v: 1, protocol: "E-ZERO-SIGNAL-HELLO-1", origin: invitePayload.origin,
     roomId: invitePayload.roomId, inviteNonce: invitePayload.nonce,
     role: "host", fingerprint: host.identity.fingerprint,
-    publicKeySpki: host.identity.publicKeySpki, challenge: token(),
+    publicKeySpki: host.identity.publicKeySpki, challenge: randomBytes(32).toString("base64url"),
     challengeExpiresAt: Date.now() + 20000
   };
   const guestProofPayload = {
@@ -89,7 +89,7 @@ async function saveMutualTrustedFriend(host, guest) {
     role: "guest",
     fingerprint: guest.identity.fingerprint,
     publicKeySpki: guest.identity.publicKeySpki,
-    challenge: token(),
+    challenge: randomBytes(32).toString("base64url"),
     challengeExpiresAt: Date.now() + 20000
   };
   const [hostSignature, guestSignature] = await Promise.all([
