@@ -93,7 +93,7 @@ class FakeWebSocket {
 globalThis.WebSocket = FakeWebSocket;
 local = B;
 const inbox = calls.connectInbox({ signalingBaseUrl: "https://signal.example", inboxFingerprint: A.fingerprint });
-assert.equal(FakeWebSocket.last.url, "wss://signal.example/v1/inbox/" + encodeURIComponent(A.fingerprint));
+assert.equal(FakeWebSocket.last.url, "wss://signal.example/v1/inbox/" + A.fingerprint);
 await FakeWebSocket.last.receive({ type: "challenge", payload: {
   v: 1, protocol: "E-ZERO-INBOX-HELLO-1", origin: location.origin,
   inboxFingerprint: A.fingerprint, challenge: "A".repeat(43), challengeExpiresAt: Date.now() + 20_000
