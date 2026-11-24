@@ -23,7 +23,7 @@ const html = execFileSync("git", ["show", "HEAD:ezero-connect-app.html"], { enco
 assert.match(html, /id="audioCall"[^>]*disabled/);
 assert.match(html, /id="videoCall"[^>]*disabled/);
 assert.doesNotMatch(html, /ezero_trusted_friends_staging|ezero_saved_friend_stage_engine/);
-assert.match(html, /ezero_connect_saved_calls_v1\\.js/);
-assert.match(html, /ezero_connect_media_v1\\.js/);
-assert.match(html, /ezero_connect_media_ui_v1\\.js/);
+assert.match(html, /ezero_connect_saved_calls\.js/);
+assert.match(html, /ezero_connect_media_v1\.js/);
+assert.match(html, /ezero_connect_media_ui_v1\.js/);
 console.log("EZERO_QR_AND_AUTO_FRIEND_PAIRING_BASELINE_FROZEN_PASS");
