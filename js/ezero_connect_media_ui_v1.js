@@ -119,7 +119,9 @@
       setStatus("اس نیٹ ورک پر براہِ راست میڈیا راستہ نہیں ملا؛ TURN ریلے ابھی دستیاب نہیں۔", "error");
     } else if (state === "incoming-call-cancelled" || state === "call-declined" || state === "call-ended") {
       setStatus(t().ended); busy = false; updateButtons(); removeCallPanel(); removeRemoteMedia();
-    } else if (state === "media-disconnected" || state === "media-closed") {
+    } else if (state === "media-disconnected") {
+      setStatus("کنکشن عارضی طور پر منقطع ہے؛ دوبارہ رابطہ بننے کا انتظار ہے۔", "warning");
+    } else if (state === "media-closed") {
       setStatus(t().ended); busy = false; updateButtons(); removeCallPanel(); removeRemoteMedia();
     }
   }
