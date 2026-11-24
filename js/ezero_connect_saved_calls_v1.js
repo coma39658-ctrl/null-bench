@@ -167,7 +167,7 @@
     const url = new URL(signalingBaseUrl);
     if (url.protocol === "https:") url.protocol = "wss:";
     if (url.protocol !== "wss:") throw new Error("SAVED_CALL_INBOX_TLS_REQUIRED");
-    url.pathname = "/v1/inbox/" + encodeURIComponent(inboxFingerprint);
+    // Fingerprints contain colons. Keep them literal so the Worker route regex matches.\n    url.pathname = "/v1/inbox/" + inboxFingerprint;
     url.search = "";
     url.hash = "";
     const socket = new WebSocket(url.toString());
