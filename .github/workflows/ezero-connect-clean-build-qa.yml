@@ -39,6 +39,7 @@ on:
       - ezero-web-scanner-controls-staging-20261123
       - ezero-mutual-approval-ui-staging-20261123
       - ezero-connect-auto-trust-pairing-v2-20261123
+      - ezero-connect-media-foundation-v1-20261123
     paths:
       - 'ezero-connect.html'
       - 'ezero-connect-app.html'
