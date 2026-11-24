@@ -1,0 +1,32 @@
+name: E-ZERO Connect Actual App Two-Context Call QA
+
+on:
+  push:
+    branches:
+      - ezero-connect-two-browser-app-integration-20261124
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  actual-app-call-route:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check test syntax
+        run: node --check tests/test_ezero_connect_actual_app_two_context_call_v1.mjs
+      - name: Install isolated browser test dependency
+        run: npm install --no-save --no-audit --no-fund --ignore-scripts playwright@1.57.0
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Test actual E-ZERO app with two isolated device contexts and live staging Worker
+        run: node tests/test_ezero_connect_actual_app_two_context_call_v1.mjs
+      - name: Evidence boundary
+        run: echo 'AUTOMATED_BROWSER_CONTEXTS_ONLY_NO_PHYSICAL_PHONE_OR_BACKGROUND_RING_PROOF'
