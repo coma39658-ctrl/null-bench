@@ -129,7 +129,7 @@
       });
       call.peer = pc;
       call.remoteStream = new MediaStream();
-      call.pendingCandidates = [];\n      call.pendingCandidates = [];
+      call.pendingCandidates = [];
       pc.ontrack = event => {
         if (call.closed || active !== call) return;
         const stream = event.streams?.[0] || call.remoteStream;
