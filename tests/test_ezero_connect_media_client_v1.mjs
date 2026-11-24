@@ -10,6 +10,7 @@ function harness() {
   const fingerprintB = "BB:".repeat(31) + "BB";
   const calls = [];
   const signals = [];
+  const sockets = [];
   const identity = { getPublicIdentity: async () => ({ fingerprint: fingerprintA, publicKeySpki: "spki-A" }) };
   const trust = { getTrustedPeerForCall: async fp => fp === fingerprintB
     ? { relationshipId: "relationship_1234567890", remoteFingerprint: fingerprintB, remotePublicKeySpki: "spki-B", displayName: "Friend" }
@@ -25,6 +26,7 @@ function harness() {
         close() { this.closed = true; }
       };
       calls.push(["inbox", options.inboxFingerprint]);
+      sockets.push(socket);
       return socket;
     },
     createCallInvite: async ({ recipientFingerprint, mode }) => ({
@@ -71,32 +73,27 @@ function harness() {
   };
   context.globalThis = context;
   vm.runInNewContext(source, context, { filename: "ezero_connect_media_v1.js" });
-  return { context, calls, signals, fingerprintA, fingerprintB };
+  return { context, calls, signals, sockets, fingerprintA, fingerprintB };
 }
 
 {
   const h = harness();
   const manager = h.context.EZERO_CONNECT_MEDIA.createManager({
-    onStatus: value => h.context.statuses.push(value),
-    onIncomingCall: controls => { h.context.onIncoming = controls; }
+    onStatus: value => h.context.statuses.push(value)
   });
   await manager.listen();
-  assert.equal(h.calls[0][0], "inbox");
-  assert.equal(h.calls[0][1], h.fingerprintA);
+  assert.equal(h.sockets.length, 1);
+  assert.equal(h.sockets[0].options.inboxFingerprint, h.fingerprintA);
 
   await manager.call({ recipientFingerprint: h.fingerprintB, mode: "audio" });
+  assert.equal(h.sockets.length, 2);
+  const outgoing = h.sockets[1];
   assert.ok(h.calls.some(item => item[0] === "invite" && item[1] === "EZERO-CALL1.signed"));
-  const outgoing = h.calls;
-  const outgoingInbox = h.context; // event callback is retained by the fake connection below
-  const connectRecord = outgoing.find(item => item[0] === "inbox" && item[1] === h.fingerprintB);
-  assert.ok(connectRecord, "outgoing call must address the saved friend's inbox");
-  const inboxConnection = h.context.EZERO_CONNECT_MEDIA;
-  assert.ok(inboxConnection);
+  assert.equal(manager.activeCall.mode, "audio");
 
-  // The most recent fake inbox is retained in the test by re-opening a small instrumented manager path.
-  // Exercise the callback captured from the outgoing socket by finding it on the created socket registry.
-  const callManager = manager;
-  assert.equal(callManager.activeCall.mode, "audio");
+  await outgoing.options.onEvent({ type: "call-response", callId: "A".repeat(32), decision: "accept" });
+  assert.ok(h.signals.some(item => item[0] === "connect" && item[1] === "host"));
+  assert.ok(h.calls.some(item => item[0] === "room" && item[1] === "A".repeat(32) && item[2] === "EZERO1.room"));
   manager.dispose();
 }
 
@@ -107,11 +104,16 @@ function harness() {
     onIncomingCall: controls => incoming.push(controls)
   });
   await manager.listen();
-  // Recreate the listener through the factory stub and retain its callback.
-  const listenerOptions = h.calls.length;
-  assert.equal(listenerOptions, 1);
-  // No call is accepted until the explicit control is invoked.
-  assert.equal(incoming.length, 0);
+  const listener = h.sockets[0];
+  await listener.options.onEvent({ type: "incoming-call", inviteCode: "EZERO-CALL1.incoming" });
+  assert.equal(incoming.length, 1);
+  assert.equal(h.calls.some(item => item[0] === "response"), false,
+    "incoming call must not be accepted automatically");
+  await incoming[0].accept();
+  assert.ok(h.calls.some(item => item[0] === "response" && item[2] === "accept"));
+  await listener.options.onEvent({ type: "call-room-invite", callId: "B".repeat(32), inviteCode: "EZERO1.room" });
+  assert.ok(h.signals.some(item => item[0] === "connect" && item[1] === "guest"));
+  assert.equal(manager.activeCall.mode, "audio");
   manager.dispose();
 }
 
