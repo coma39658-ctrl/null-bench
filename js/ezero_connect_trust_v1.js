@@ -394,6 +394,26 @@
     return records.some(r => r.remoteFingerprint === remoteFingerprint && r.status === "TRUSTED");
   }
 
+  // Narrow read-only call credential lookup. Never exposes the encrypted record,
+  // transcript, private identity material, or non-TRUSTED contacts.
+  async function getTrustedPeerForCall(remoteFingerprint) {
+    if (typeof remoteFingerprint !== "string" ||
+        !/^(?:[0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(remoteFingerprint)) return null;
+    const records = await allContacts();
+    if (records.some(r => r.remoteFingerprint === remoteFingerprint && r.status === "BLOCKED")) return null;
+    const trusted = records.filter(r => r.remoteFingerprint === remoteFingerprint && r.status === "TRUSTED");
+    if (trusted.length !== 1) return null;
+    const record = trusted[0];
+    if (typeof record.relationshipId !== "string" || typeof record.remotePublicKeySpki !== "string" ||
+        typeof record.displayName !== "string") return null;
+    return Object.freeze({
+      relationshipId: record.relationshipId,
+      remoteFingerprint: record.remoteFingerprint,
+      remotePublicKeySpki: record.remotePublicKeySpki,
+      displayName: record.displayName
+    });
+  }
+
   async function changeStatus(remoteFingerprint, status) {
     if (!["REVOKED", "BLOCKED"].includes(status)) throw new Error("TRUST_STATUS_INVALID");
     const records = await allContacts();
@@ -457,6 +477,7 @@
     saveVerifiedPeer,
     listTrustedContacts,
     canReconnect,
+    getTrustedPeerForCall,
     revoke,
     block,
     unblock

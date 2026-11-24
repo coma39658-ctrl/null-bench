@@ -88,7 +88,15 @@
         fingerprint.style.direction = "ltr";
         fingerprint.style.overflowWrap = "anywhere";
         fingerprint.textContent = contact.remoteFingerprint;
-        item.append(name, fingerprint);
+        const select = document.createElement("button");
+        select.type = "button";
+        select.className = "secondary";
+        select.dataset.ezeroSelectFriend = "true";
+        select.dataset.fingerprint = contact.remoteFingerprint;
+        select.textContent = language === "ar" ? "اختيار للاتصال" : language === "en" ? "Select for call" : "کال کے لیے منتخب کریں";
+        select.style.width = "100%";
+        select.style.marginTop = "8px";
+        item.append(name, fingerprint, select);
         list.append(item);
       }
     } catch (error) {
