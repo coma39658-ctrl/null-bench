@@ -51,6 +51,7 @@
     requireRuntime();
     let listener = null;
     let active = null;
+    let pendingIncoming = null;
     let disposed = false;
     const config = globalThis.EZERO_CONNECT_CONFIG;
 
@@ -244,7 +245,7 @@
       if (!event || disposed) return;
       try {
         if (event.type === "incoming-call") {
-          if (active) {
+          if (active || pendingIncoming) {
             const pending = await globalThis.EZERO_CONNECT_SAVED_CALLS.verifyIncomingCallInvite(event.inviteCode);
             const connection = listener;
             connection?.respondToCall(pending.callId, "decline");
@@ -258,10 +259,12 @@
             inbox: listener, role: "guest", accepted: false, closed: false
           };
           status("incoming-call", { callId: call.callId, mode: call.mode, peerName: call.peerName });
+          pendingIncoming = call;
           const controls = Object.freeze({
             callId: call.callId, mode: call.mode, peerName: call.peerName,
             accept: async () => {
-              if (active || call.closed) throw new Error("MEDIA_BUSY");
+              if (active || call.closed || pendingIncoming !== call) throw new Error("MEDIA_BUSY");
+              pendingIncoming = null;
               active = call;
               call.accepted = true;
               call.inbox.respondToCall(call.callId, "accept");
@@ -271,6 +274,7 @@
               if (!call.closed) {
                 call.inbox.respondToCall(call.callId, "decline");
                 call.closed = true;
+                if (pendingIncoming === call) pendingIncoming = null;
                 status("call-declined", { callId: call.callId });
               }
             }
@@ -283,6 +287,11 @@
           return;
         }
         if (event.type === "call-cancelled" || event.type === "peer-inbox-disconnected") {
+          if (pendingIncoming && (!event.callId || event.callId === pendingIncoming.callId)) {
+            pendingIncoming.closed = true;
+            pendingIncoming = null;
+            status("incoming-call-cancelled", { callId: event.callId });
+          }
           if (active) { active.endReason = event.type; closeMedia(active, false); }
           return;
         }
@@ -354,6 +363,7 @@
     function dispose() {
       disposed = true;
       if (active) { active.endReason = "page-closed"; closeMedia(active, true); }
+      if (pendingIncoming) { pendingIncoming.closed = true; pendingIncoming = null; }
       try { listener?.close(); } catch (_) {}
       listener = null;
     }
