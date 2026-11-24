@@ -34,6 +34,7 @@ on:
       - 'tests/test_ezero_saved_friend_call_invite_v1.mjs'
       - 'tests/test_ezero_connect_inbox_worker_v1.mjs'
       - 'tests/test_ezero_connect_saved_calls_client_v1.mjs'
+      - 'tests/test_ezero_connect_live_inbox_smoke_v1.mjs'
       - 'tests/test_ezero_connect_media_client_v1.mjs'
       - 'tests/test_ezero_connect_media_ui_contract_v1.mjs'
       - 'package.json'
@@ -77,6 +78,7 @@ on:
       - 'tests/test_ezero_saved_friend_call_invite_v1.mjs'
       - 'tests/test_ezero_connect_inbox_worker_v1.mjs'
       - 'tests/test_ezero_connect_saved_calls_client_v1.mjs'
+      - 'tests/test_ezero_connect_live_inbox_smoke_v1.mjs'
       - 'tests/test_ezero_connect_media_client_v1.mjs'
       - 'tests/test_ezero_connect_media_ui_contract_v1.mjs'
       - 'package.json'
@@ -147,6 +149,7 @@ jobs:
           node --check tests/test_ezero_saved_friend_call_invite_v1.mjs
           node --check tests/test_ezero_connect_inbox_worker_v1.mjs
           node --check tests/test_ezero_connect_saved_calls_client_v1.mjs
+          node --check tests/test_ezero_connect_live_inbox_smoke_v1.mjs
           node --check tests/test_ezero_connect_media_client_v1.mjs
       - name: Install isolated browser test dependency
         run: npm install --no-save --no-audit --no-fund --ignore-scripts playwright@1.57.0 qr@0.7.2 esbuild@0.25.12 wrangler@4.165.0
@@ -195,5 +198,7 @@ jobs:
         run: node tests/test_ezero_connect_saved_calls_client_v1.mjs
       - name: Verify foreground media call controls and accepted-room handoff
         run: node tests/test_ezero_connect_media_client_v1.mjs
+      - name: Verify live staging Worker health, literal inbox route and signed browser authentication
+        run: node tests/test_ezero_connect_live_inbox_smoke_v1.mjs
       - name: State evidence boundary
         run: echo 'AUTOMATED_CONTRACTS_ONLY_NO_PHYSICAL_TWO_PHONE_CALL_OR_ANDROID_BACKGROUND_RING_PROOF'
