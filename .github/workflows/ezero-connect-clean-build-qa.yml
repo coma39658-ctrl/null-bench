@@ -49,6 +49,8 @@ on:
       - 'js/ezero_connect_invite_v1.js'
       - 'js/ezero_connect_trust_v1.js'
       - 'js/ezero_connect_signal_client_v1.js'
+      - 'js/ezero_connect_saved_calls_v1.js'
+      - 'tests/test_ezero_connect_saved_calls_client_v1.mjs'
       - 'js/ezero_connect_pairing_v1.js'
       - 'js/ezero_connect_pairing_v2.js'
       - 'js/ezero_connect_pairing_auto_ui_v2.js'
@@ -82,7 +84,7 @@ jobs:
           set -euo pipefail
           git fetch --no-tags origin ezero-connect-clean-build-20261120 --depth=50
           git diff --name-only origin/ezero-connect-clean-build-20261120...HEAD > /tmp/ezero-qr-changes.txt
-          if grep -E '^js/.*(webrtc|call|media|signaling)' /tmp/ezero-qr-changes.txt | grep -v '^js/ezero_connect_saved_calls_v1.js
+          if grep -E '^js/.*(webrtc|call|media|signaling)' /tmp/ezero-qr-changes.txt | grep -v '^js/ezero_connect_saved_calls_v1.js$'; then
             echo 'FROZEN_CALL_ENGINE_SOURCE_CHANGE_DETECTED'
             exit 1
           fi
