@@ -144,7 +144,11 @@
       pc.onconnectionstatechange = () => {
         if (call.closed || active !== call) return;
         status("media-" + pc.connectionState, { callId: call.callId, mode: call.mode });
-        if (pc.connectionState === "failed") status("media-route-failed", { callId: call.callId });
+        if (pc.connectionState === "failed") {
+          status("media-route-failed", { callId: call.callId });
+          call.endReason = "media-route-failed";
+          closeMedia(call, false);
+        }
       };
       const constraints = {
         audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
