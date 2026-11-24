@@ -63,6 +63,8 @@ async function openPhone(label) {
   const identity = await page.evaluate(() => window.EZERO_CONNECT_IDENTITY.getPublicIdentity());
   const authenticated = await ready;
   assert.equal(authenticated.fingerprint, identity.fingerprint, label + "_INBOX_IDENTITY_BINDING");
+  await page.waitForFunction(() => document.getElementById("callStatus")?.textContent.includes("تیار"),
+    null, { timeout: 10000 });
   return { page, identity, context };
 }
 
