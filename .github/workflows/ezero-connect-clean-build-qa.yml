@@ -90,7 +90,7 @@ jobs:
           set -euo pipefail
           git fetch --no-tags origin ezero-connect-clean-build-20261120 --depth=50
           git diff --name-only origin/ezero-connect-clean-build-20261120...HEAD > /tmp/ezero-qr-changes.txt
-          if grep -E '^js/.*(webrtc|call|media|signaling)' /tmp/ezero-qr-changes.txt | grep -Ev '^js/ezero_connect_(saved_calls_v1|media_v1|media_ui_v1)\.js
+          if grep -E '^js/.*(webrtc|call|media|signaling)' /tmp/ezero-qr-changes.txt | grep -Ev '^js/ezero_connect_(saved_calls_v1|media_v1|media_ui_v1)\.js$'; then
             echo 'FROZEN_CALL_ENGINE_SOURCE_CHANGE_DETECTED'
             exit 1
           fi
