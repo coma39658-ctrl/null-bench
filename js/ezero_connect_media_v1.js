@@ -70,7 +70,7 @@
       try { call.peer?.close(); } catch (_) {}
       try { call.signal?.close(); } catch (_) {}
       try { call.inbox?.cancelCall?.(call.callId); } catch (_) {}
-      try { call.inbox?.close?.(); } catch (_) {}
+      if (call.inbox && call.inbox !== listener) { try { call.inbox.close?.(); } catch (_) {} }
       if (active === call) active = null;
       try { onCallEnded(Object.freeze({ callId: call.callId, reason: call.endReason || "ended" })); } catch (_) {}
     }
@@ -127,7 +127,7 @@
         iceServers: [{ urls: "stun:stun.cloudflare.com:3478" }]
       });
       call.peer = pc;
-      call.remoteStream = new MediaStream();
+      call.remoteStream = new MediaStream();\n      call.pendingCandidates = [];
       pc.ontrack = event => {
         if (call.closed || active !== call) return;
         const stream = event.streams?.[0] || call.remoteStream;
