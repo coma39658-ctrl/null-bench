@@ -127,7 +127,8 @@
         iceServers: [{ urls: "stun:stun.cloudflare.com:3478" }]
       });
       call.peer = pc;
-      call.remoteStream = new MediaStream();\n      call.pendingCandidates = [];
+      call.remoteStream = new MediaStream();
+      call.pendingCandidates = [];\n      call.pendingCandidates = [];
       pc.ontrack = event => {
         if (call.closed || active !== call) return;
         const stream = event.streams?.[0] || call.remoteStream;
@@ -165,6 +166,16 @@
       }
     }
 
+    async function applyRemoteOffer(call, sdp) {
+      if (!call.peer || call.role !== "guest" || !call.peerReady) throw new Error("MEDIA_PEER_NOT_VERIFIED");
+      await call.peer.setRemoteDescription({ type: "offer", sdp });
+      for (const candidate of call.pendingCandidates.splice(0)) await call.peer.addIceCandidate(candidate);
+      const answer = await call.peer.createAnswer();
+      await call.peer.setLocalDescription(answer);
+      call.signal.send("answer", { sdp: call.peer.localDescription.sdp });
+      status("answer-sent", { callId: call.callId });
+    }
+
     async function handleSignalEvent(call, event, expectedPeer) {
       if (!event || call.closed || active !== call) return;
       try {
@@ -175,6 +186,11 @@
           call.peerReady = true;
           status("peer-verified", { callId: call.callId, mode: call.mode });
           await startPeerConnection(call);
+          if (call.role === "guest" && call.pendingOfferSdp) {
+            const pending = call.pendingOfferSdp;
+            call.pendingOfferSdp = null;
+            await applyRemoteOffer(call, pending);
+          }
           return;
         }
         if (event.type === "relay") {
@@ -182,12 +198,8 @@
               !SIGNAL_TYPES.has(event.message.type)) throw new Error("MEDIA_SIGNAL_SENDER_INVALID");
           const payload = event.message.payload || {};
           if (event.message.type === "offer" && call.role === "guest") {
-            if (!call.peer) await startPeerConnection(call);
-            await call.peer.setRemoteDescription({ type: "offer", sdp: payload.sdp });
-            const answer = await call.peer.createAnswer();
-            await call.peer.setLocalDescription(answer);
-            call.signal.send("answer", { sdp: call.peer.localDescription.sdp });
-            status("answer-sent", { callId: call.callId });
+            if (!call.peerReady) { call.pendingOfferSdp = payload.sdp; return; }
+            await applyRemoteOffer(call, payload.sdp);
           } else if (event.message.type === "answer" && call.role === "host") {
             if (!call.peer || call.peer.signalingState !== "have-local-offer") throw new Error("MEDIA_UNEXPECTED_ANSWER");
             await call.peer.setRemoteDescription({ type: "answer", sdp: payload.sdp });
@@ -195,7 +207,8 @@
           } else if (event.message.type === "ice-candidate") {
             if (!call.peer || typeof payload.candidate !== "string") throw new Error("MEDIA_ICE_INVALID");
             const candidate = JSON.parse(payload.candidate);
-            await call.peer.addIceCandidate(candidate);
+            if (call.peer.remoteDescription) await call.peer.addIceCandidate(candidate);
+            else call.pendingCandidates.push(candidate);
           } else if (event.message.type === "hangup") {
             call.endReason = "peer-hangup";
             closeMedia(call, false);
