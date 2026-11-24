@@ -110,6 +110,7 @@
     $("chooseGalleryQr").disabled = false;
     $("requestCameraPermission").disabled = false;
     $("identityConsent").disabled = true;
+    document.dispatchEvent(new CustomEvent("ezero:identity-ready", { detail: { fingerprint: info.fingerprint } }));
   }
 
   async function initializeIdentity() {
