@@ -97,7 +97,8 @@ export async function verifyReconnectProof(proof, expectedRelationshipId, challe
 }
 
 function send(ws, value) {
-  try { if (ws.readyState === 1) ws.send(JSON.stringify(value)); } catch (_) {}
+  try { if (ws.readyState === 1) { ws.send(JSON.stringify(value)); return true; } } catch (_) {}
+  return false;
 }
 function close(ws, code = 1008, reason = "rejected") {
   try { if (ws.readyState === 0 || ws.readyState === 1) ws.close(code, reason.slice(0, 100)); } catch (_) {}
@@ -210,7 +211,7 @@ export class EzeroConnectRendezvous {
         if (message.type === "call-invite") {
           const existing = await this.ctx.storage.get("pendingCall");
           if (existing && existing.expiresAt > now && existing.callId !== message.payload.callId) {
-            return send(ws, { type: "call-busy" });
+            return send(ws, { type: "peer-offline" });
           }
           await this.ctx.storage.put("pendingCall", {
             fromFingerprint: state.localFingerprint,
@@ -259,9 +260,11 @@ export class EzeroConnectRendezvous {
       if (peer) {
         send(ws, { type: "peer-ready", peerFingerprint: state.remoteFingerprint });
         if (pending && pending.toFingerprint === state.localFingerprint && pending.expiresAt > Date.now()) {
-          send(ws, { type: "relay", fromFingerprint: pending.fromFingerprint, message: pending.message });
-          await this.ctx.storage.delete("pendingCall");
-          pending = null;
+          const delivered = send(ws, { type: "relay", fromFingerprint: pending.fromFingerprint, message: pending.message });
+          if (delivered) {
+            await this.ctx.storage.delete("pendingCall");
+            pending = null;
+          }
         }
       } else send(ws, { type: "waiting-for-peer" });
     }
