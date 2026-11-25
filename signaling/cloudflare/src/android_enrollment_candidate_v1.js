@@ -138,7 +138,15 @@ export class AndroidEnrollmentRegistry extends DurableObject {
           typeof body.device_proof !== "string" || typeof body.root_approval !== "string")
         return response({error:"BAD_ENROLLMENT"},400);
       const key = "challenge:"+challengeId;
-      const saved = await this.ctx.storage.get(key);
+      // Atomically reserve/consume before asynchronous signature checks. This
+      // prevents two concurrent completion requests from both enrolling.
+      // Invalid proofs require a fresh challenge; fail closed rather than replay.
+      const saved = this.ctx.storage.transactionSync(tx => {
+        const value = tx.get(key);
+        if (!value) return null;
+        tx.delete(key);
+        return value;
+      });
       if (!saved) return response({error:"CHALLENGE_UNKNOWN_OR_USED"},409);
       const c = saved.challenge, now = Date.now();
       if (Number(c.expires_at) <= now || Number(c.expires_at)-saved.created_at > CHALLENGE_MS) {
