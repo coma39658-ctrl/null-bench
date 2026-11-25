@@ -1,0 +1,18 @@
+{
+  "$schema": "https://unpkg.com/wrangler@4/config-schema.json",
+  "name": "ezero-android-enrollment-candidate-v1",
+  "main": "src/android_enrollment_candidate_v1.js",
+  "compatibility_date": "2026-11-25",
+  "workers_dev": true,
+  "vars": {
+    "PUBLIC_ORIGIN": "https://coma39658-ctrl.github.io"
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "ENROLLMENT", "class_name": "AndroidEnrollmentRegistry" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["AndroidEnrollmentRegistry"] }
+  ]
+}
