@@ -97,6 +97,12 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     node.dataset.kind = kind;
   }
   function secure() { return Boolean(session && session.state === "secure"); }
+  function callStatus(message, kind = "") {
+    const node = $("callStatus");
+    if (!node) return;
+    node.textContent = message;
+    node.dataset.kind = kind;
+  }
   function clearCallMedia() {
     for (const id of ["remoteCallVideo", "localCallVideo", "remoteCallAudio"]) {
       const node = $(id);
@@ -120,8 +126,10 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       failed:"callFailed", error:"callFailed", "media-error":"callFailed"
     };
     const key = labels[callState];
-    if (key) status(t(key), ["failed","error","media-error"].includes(callState) ? "error" : callState === "connected" || callState === "ready" ? "ok" : "");
+    if (key) callStatus(t(key), ["failed","error","media-error"].includes(callState) ? "error" : callState === "connected" || callState === "ready" ? "ok" : "");
     if (callState === "incoming") $("incomingCallLabel").textContent = t("incomingCallLabel") + (currentFriendName ? " · " + currentFriendName : "");
+    const activeLabel = { ready:"callReady", outgoing:"callOutgoing", incoming:"callIncoming", accepted:"callAccepted", "starting-media":"callAccepted", connected:"callConnected", declined:"callDeclined", expired:"callExpired", ended:"callEnded", failed:"callFailed" }[callState];
+    if (activeLabel) callStatus(t(activeLabel), callState === "failed" ? "error" : "");
     controls();
   }
   function controls() {
@@ -132,7 +140,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     $("stopVoice").disabled = !recorder;
     $("sendVoice").disabled = !connected || !voiceBlob;
     shareProfileButton.disabled = !connected;
-    const callReady = connected && Boolean(callController) && callState === "idle";
+    const callReady = connected && Boolean(callController) && !callController.callId && !["error","closed","verifying"].includes(callState);
     $("audioCall").disabled = !callReady;
     $("videoCall").disabled = !callReady;
     $("acceptIncomingCall").disabled = !callController || callState !== "incoming";
@@ -178,6 +186,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     try { callController?.close(); } catch (_) {}
     callController = null;
     callState = "idle";
+    callStatus(t("callReady"));
     activeCallMode = null;
     clearCallMedia();
     try { unsubscribe?.(); } catch (_) {}
@@ -314,6 +323,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
         return;
       }
       status(t("secure"), "ok");
+      callStatus(t("callReady"), "ok");
       controls();
       void sendCurrentProfileIfChanged(false).catch(() => status(t("failed"), "error"));
     } catch (_) {
@@ -394,19 +404,19 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
 
   $("audioCall").addEventListener("click", async () => {
     if (!callController || !secure()) return;
-    try { await callController.call("audio"); } catch (_) { status(t("callFailed"), "error"); }
+    try { await callController.call("audio"); } catch (_) { callStatus(t("callFailed"), "error"); }
   });
   $("videoCall").addEventListener("click", async () => {
     if (!callController || !secure()) return;
-    try { await callController.call("video"); } catch (_) { status(t("callFailed"), "error"); }
+    try { await callController.call("video"); } catch (_) { callStatus(t("callFailed"), "error"); }
   });
   $("acceptIncomingCall").addEventListener("click", async () => {
     if (!callController) return;
-    try { await callController.accept(); } catch (_) { status(t("callFailed"), "error"); }
+    try { await callController.accept(); } catch (_) { callStatus(t("callFailed"), "error"); }
   });
   $("declineIncomingCall").addEventListener("click", async () => {
     if (!callController) return;
-    try { await callController.decline(); } catch (_) { status(t("callFailed"), "error"); }
+    try { await callController.decline(); } catch (_) { callStatus(t("callFailed"), "error"); }
   });
   $("hangupCall").addEventListener("click", () => { callController?.hangup(); });
 
