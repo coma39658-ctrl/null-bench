@@ -19,7 +19,7 @@ test("root approval uses exact canonical field order and Worker tag", () => {
 
 test("signed fields reject missing, empty, and CR/LF-injected values", () => {
   assert.match(source, /ROOT_COMMAND_FIELD_INVALID/);
-  assert.match(source, /\[\\r\\n\]/);
+  assert.ok(source.includes(String.raw`/[\r\n]/.test(fields[key])`));
   assert.match(source, /ROOT_COMMAND_ROOT_FINGERPRINT_INVALID/);
 });
 
