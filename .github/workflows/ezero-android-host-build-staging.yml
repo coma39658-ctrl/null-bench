@@ -6,10 +6,9 @@ on:
       - ezero-connect-android-push-wake-staging-20261125
     paths:
       - "android/**"
-      - ".github/workflows/ezero-android-host-build-staging.yml"
-  pull_request:
-    paths:
-      - "android/**"
+      - "signaling/ezero-connect-v1/**"
+      - "js/ezero_connect_trusted_friend_call_controller_v1.mjs"
+      - "tests/test_ezero_connect_rendezvous_v1.mjs"
       - ".github/workflows/ezero-android-host-build-staging.yml"
   workflow_dispatch:
 
@@ -38,6 +37,15 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.9"
+      - name: Set up Node for signaling contract tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Run trusted rendezvous offline-call queue tests
+        run: |
+          node --check signaling/ezero-connect-v1/rendezvous.mjs
+          node --check js/ezero_connect_trusted_friend_call_controller_v1.mjs
+          node tests/test_ezero_connect_rendezvous_v1.mjs
       - name: Run Android unit tests
         run: gradle -p android :app:testDebugUnitTest
       - name: Compile debug APK
