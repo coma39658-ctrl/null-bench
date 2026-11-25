@@ -151,11 +151,14 @@ try {
   assert.equal(verifiedInvite.issuedAt, invite.issuedAt);
   assert.equal(Object.hasOwn(invite, "guestSecret"), false);
   assert.equal(Object.hasOwn(verifiedInvite, "guestProof"), false);
-  const replayResult = await page.evaluate(async code => {
+  // Parsing a QR must be retryable after an interrupted pairing. Replay control
+  // is enforced by the signaling Durable Object, which binds the nonce to the
+  // first authenticated guest fingerprint and rejects a different guest.
+  const retryResult = await page.evaluate(async code => {
     try { await window.EZERO_CONNECT_INVITES.verifyInvite(code); return "ACCEPTED"; }
     catch (error) { return error.message; }
   }, invite.inviteCode);
-  assert.equal(replayResult, "INVITE_REPLAYED");
+  assert.equal(retryResult, "ACCEPTED");
 
 
 
