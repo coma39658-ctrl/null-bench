@@ -25,7 +25,7 @@ test("QR payloads are bounded and reject malformed content", () => {
   assert.match(contract, /<= 2,400 UTF-8 bytes/);
   assert.match(contract, /duplicate keys/);
   assert.match(contract, /unknown fields/);
-  assert.match(contract, /Do not silently truncate/);
+  assert.match(contract, /reject larger payloads rather than truncating or splitting silently/);
 });
 
 test("private and unrelated user data are excluded from QR payloads", () => {
