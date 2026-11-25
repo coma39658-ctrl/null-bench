@@ -1,3 +1,6 @@
+import { EzeroConnectRendezvous } from "./rendezvous.mjs";
+export { EzeroConnectRendezvous };
+
 const INVITE_PREFIX = "EZERO1.";
 const INVITE_TTL_MS = 90_000;
 const ROOM_TTL_MS = 10 * 60_000;
@@ -471,6 +474,11 @@ export default {
     }
     if (request.method !== "GET" || request.headers.get("Upgrade")?.toLowerCase() !== "websocket") {
       return new Response("WebSocket upgrade required", { status: 426 });
+    }
+    const rendezvousMatch = url.pathname.match(/^\/v1\/rendezvous\/([a-f0-9]{64})$/);
+    if (rendezvousMatch) {
+      const rendezvousId = env.RENDEZVOUS.idFromName(rendezvousMatch[1]);
+      return env.RENDEZVOUS.get(rendezvousId).fetch(request);
     }
     const match = url.pathname.match(/^\/v1\/rooms\/([A-Za-z0-9_-]{32})$/);
     if (!match || !["host", "guest"].includes(url.searchParams.get("role"))) {

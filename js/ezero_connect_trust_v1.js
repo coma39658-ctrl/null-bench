@@ -1,9 +1,10 @@
 (() => {
   "use strict";
   const DB_NAME = "ezero-connect-trusted-contacts";
-  const DB_VERSION = 1;
+  const DB_VERSION = 2;
   const CONTACTS = "contacts";
   const VAULT = "vault";
+  const FRIEND_PROFILES = "friendProfiles";
   const VAULT_ID = "local-aes-gcm-key";
   // Contact metadata is AES-GCM encrypted locally; the non-extractable vault key stays in IndexedDB.
 
@@ -44,6 +45,7 @@
         const db = request.result;
         if (!db.objectStoreNames.contains(CONTACTS)) db.createObjectStore(CONTACTS, { keyPath: "relationshipId" });
         if (!db.objectStoreNames.contains(VAULT)) db.createObjectStore(VAULT, { keyPath: "id" });
+        if (!db.objectStoreNames.contains(FRIEND_PROFILES)) db.createObjectStore(FRIEND_PROFILES, { keyPath: "relationshipId" });
       };
       request.onsuccess = () => {
         const db = request.result;
@@ -278,11 +280,149 @@
     );
   }
 
+  async function getTrustedContact(relationshipId) {
+    if (typeof relationshipId !== "string" || !/^[a-f0-9]{64}$/.test(relationshipId)) {
+      throw new Error("TRUST_RELATIONSHIP_ID_INVALID");
+    }
+    const records = await allContacts();
+    const record = records.find(item => item.relationshipId === relationshipId);
+    if (!record || record.status !== "TRUSTED") throw new Error("TRUST_RELATIONSHIP_NOT_TRUSTED");
+    return Object.freeze({
+      relationshipId: record.relationshipId,
+      remoteFingerprint: record.remoteFingerprint,
+      remotePublicKeySpki: record.remotePublicKeySpki,
+      displayName: record.displayName,
+      status: record.status,
+      trustProof: Object.freeze({
+        transcript: record.transcript,
+        approvals: Object.freeze([record.localApproval, record.remoteApproval])
+      })
+    });
+  }
+
+  function bytesToBase64(bytes) {
+    let binary = "";
+    for (let offset = 0; offset < bytes.length; offset += 0x8000) {
+      binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
+    }
+    return btoa(binary);
+  }
+
+  function base64ToBytes(value) {
+    if (typeof value !== "string" || !/^[A-Za-z0-9+/]+={0,2}$/.test(value)) throw new Error("TRUST_FRIEND_PROFILE_ENCODING_INVALID");
+    return Uint8Array.from(atob(value), character => character.charCodeAt(0));
+  }
+
+  async function trustedProfileContext(relationshipId, remoteFingerprint) {
+    const contact = await getTrustedContact(relationshipId);
+    if (contact.status !== "TRUSTED" || contact.remoteFingerprint !== remoteFingerprint) {
+      throw new Error("TRUST_FRIEND_PROFILE_TRUST_MISMATCH");
+    }
+    return contact;
+  }
+
+  async function readFriendProfileState(relationshipId, key) {
+    const db = await openDb();
+    const record = await new Promise((resolve, reject) => {
+      const request = db.transaction(FRIEND_PROFILES, "readonly").objectStore(FRIEND_PROFILES).get(relationshipId);
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => reject(new Error("TRUST_FRIEND_PROFILE_READ_FAILED"));
+    });
+    db.close();
+    if (!record) return { avatarBase64: "", lastSharedHash: "", updatedAt: "" };
+    const clear = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: new Uint8Array(record.iv), additionalData: new TextEncoder().encode(relationshipId) },
+      key,
+      new Uint8Array(record.ciphertext)
+    );
+    const value = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(clear));
+    if (value.relationshipId !== relationshipId || typeof value.avatarBase64 !== "string" ||
+        typeof value.lastSharedHash !== "string") throw new Error("TRUST_FRIEND_PROFILE_RECORD_INVALID");
+    return value;
+  }
+
+  async function writeFriendProfileState(relationshipId, value, key) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const plaintext = new TextEncoder().encode(JSON.stringify({ relationshipId, ...value }));
+    const ciphertext = await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv, additionalData: new TextEncoder().encode(relationshipId) },
+      key,
+      plaintext
+    );
+    const db = await openDb();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(FRIEND_PROFILES, "readwrite");
+      tx.objectStore(FRIEND_PROFILES).put({ relationshipId, iv, ciphertext: new Uint8Array(ciphertext) });
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(new Error("TRUST_FRIEND_PROFILE_WRITE_FAILED"));
+      tx.onabort = () => reject(new Error("TRUST_FRIEND_PROFILE_WRITE_ABORTED"));
+    });
+    db.close();
+  }
+
+  async function saveTrustedFriendProfile(relationshipId, remoteFingerprint, bytes) {
+    await trustedProfileContext(relationshipId, remoteFingerprint);
+    if (!(bytes instanceof Uint8Array) || bytes.length < 4 || bytes.length > 140 * 1024 ||
+        bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) {
+      throw new Error("TRUST_FRIEND_PROFILE_JPEG_INVALID");
+    }
+    const key = await readVaultKey(true);
+    if (!key || key.extractable !== false || key.algorithm?.name !== "AES-GCM") {
+      throw new Error("TRUST_VAULT_KEY_MISSING_OR_INVALID");
+    }
+    const previous = await readFriendProfileState(relationshipId, key);
+    await writeFriendProfileState(relationshipId, {
+      avatarBase64: bytesToBase64(bytes),
+      lastSharedHash: previous.lastSharedHash || "",
+      updatedAt: new Date().toISOString()
+    }, key);
+    return { relationshipId, updated: true };
+  }
+
+  async function getTrustedFriendProfile(relationshipId, remoteFingerprint) {
+    await trustedProfileContext(relationshipId, remoteFingerprint);
+    const key = await readVaultKey(false);
+    if (!key || key.extractable !== false || key.algorithm?.name !== "AES-GCM") {
+      throw new Error("TRUST_VAULT_KEY_MISSING_OR_INVALID");
+    }
+    const value = await readFriendProfileState(relationshipId, key);
+    return Object.freeze({
+      bytes: value.avatarBase64 ? base64ToBytes(value.avatarBase64) : null,
+      updatedAt: value.updatedAt || "",
+      lastSharedHash: value.lastSharedHash || ""
+    });
+  }
+
+  async function setTrustedFriendProfileSharedHash(relationshipId, remoteFingerprint, hash) {
+    await trustedProfileContext(relationshipId, remoteFingerprint);
+    if (typeof hash !== "string" || !/^[a-f0-9]{64}$/.test(hash)) throw new Error("TRUST_FRIEND_PROFILE_HASH_INVALID");
+    const key = await readVaultKey(true);
+    const previous = await readFriendProfileState(relationshipId, key);
+    await writeFriendProfileState(relationshipId, {
+      avatarBase64: previous.avatarBase64 || "",
+      lastSharedHash: hash,
+      updatedAt: previous.updatedAt || ""
+    }, key);
+    return true;
+  }
+
   async function canReconnect(remoteFingerprint) {
     if (!/^(?:[0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(remoteFingerprint)) return false;
     const records = await allContacts();
     if (records.some(r => r.remoteFingerprint === remoteFingerprint && r.status === "BLOCKED")) return false;
     return records.some(r => r.remoteFingerprint === remoteFingerprint && r.status === "TRUSTED");
+  }
+
+  async function deleteFriendProfileRecord(relationshipId) {
+    const db = await openDb();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(FRIEND_PROFILES, "readwrite");
+      tx.objectStore(FRIEND_PROFILES).delete(relationshipId);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(new Error("TRUST_FRIEND_PROFILE_DELETE_FAILED"));
+      tx.onabort = () => reject(new Error("TRUST_FRIEND_PROFILE_DELETE_ABORTED"));
+    });
+    db.close();
   }
 
   async function changeStatus(remoteFingerprint, status) {
@@ -306,6 +446,7 @@
       });
     }
     db.close();
+    for (const record of changed) await deleteFriendProfileRecord(record.relationshipId);
     return true;
   }
 
@@ -346,6 +487,10 @@
     verifyApproval,
     saveTrustedContact,
     listTrustedContacts,
+    getTrustedContact,
+    saveTrustedFriendProfile,
+    getTrustedFriendProfile,
+    setTrustedFriendProfileSharedHash,
     canReconnect,
     revoke,
     block,

@@ -6,11 +6,13 @@
   "workers_dev": true,
   "durable_objects": {
     "bindings": [
-      { "name": "ROOMS", "class_name": "EzeroConnectRoom" }
+      { "name": "ROOMS", "class_name": "EzeroConnectRoom" },
+      { "name": "RENDEZVOUS", "class_name": "EzeroConnectRendezvous" }
     ]
   },
   "migrations": [
-    { "tag": "v1", "new_sqlite_classes": ["EzeroConnectRoom"] }
+    { "tag": "v1", "new_sqlite_classes": ["EzeroConnectRoom"] },
+    { "tag": "v2", "new_sqlite_classes": ["EzeroConnectRendezvous"] }
   ],
   "vars": {
     "PUBLIC_ORIGIN": "https://coma39658-ctrl.github.io"
