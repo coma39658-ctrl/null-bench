@@ -36,10 +36,7 @@ internal class AndroidEnrollmentWorkerClientV1(baseUrl: String) {
             c.getString("expires_at")
         )
         require(challenge.deviceFingerprint == identity.fingerprint) { "WORKER_DEVICE_FINGERPRINT_MISMATCH" }
-        val canonical = AndroidEnrollmentProtocolV1.canonicalChallenge(challenge)
-        val returned = decodeBase64Url(response.getString("device_challenge"))
-        require(returned.contentEquals(canonical)) { "WORKER_CHALLENGE_BYTES_MISMATCH" }
-        return ChallengeResult(challenge)
+        return validateChallengePayload(challenge, identity.fingerprint, response.getString("device_challenge"))
     }
 
     fun completeEnrollment(
@@ -107,7 +104,22 @@ internal class AndroidEnrollmentWorkerClientV1(baseUrl: String) {
         }
     }
 
-    private fun decodeBase64Url(value: String): ByteArray {
+    companion object {
+        fun validateChallengePayload(
+            challenge: AndroidEnrollmentProtocolV1.Challenge,
+            expectedDeviceFingerprint: String,
+            encodedCanonicalChallenge: String
+        ): ChallengeResult {
+            require(challenge.deviceFingerprint == expectedDeviceFingerprint) {
+                "WORKER_DEVICE_FINGERPRINT_MISMATCH"
+            }
+            val canonical = AndroidEnrollmentProtocolV1.canonicalChallenge(challenge)
+            val returned = decodeCanonicalBase64Url(encodedCanonicalChallenge)
+            require(returned.contentEquals(canonical)) { "WORKER_CHALLENGE_BYTES_MISMATCH" }
+            return ChallengeResult(challenge)
+        }
+
+        private fun decodeCanonicalBase64Url(value: String): ByteArray {
         require(value.matches(Regex("^[A-Za-z0-9_-]+$")) && value.length % 4 != 1) {
             "WORKER_CHALLENGE_ENCODING_INVALID"
         }
@@ -116,5 +128,6 @@ internal class AndroidEnrollmentWorkerClientV1(baseUrl: String) {
             "WORKER_CHALLENGE_ENCODING_NON_CANONICAL"
         }
         return bytes
+        }
     }
 }
