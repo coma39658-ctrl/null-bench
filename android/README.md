@@ -68,3 +68,6 @@ See [DEVICE_REGISTRATION_AND_PUSH_CONTRACT.md](./DEVICE_REGISTRATION_AND_PUSH_CO
 
 - The wake verifier pin is a public key, not a secret. Supply it at build time with `-PezeroWakePublicKeySpkiBase64=<base64-SPKI>`; blank remains fail-closed.
 - The server signing private key and Firebase service-account JSON must remain Worker secrets (`EZERO_WAKE_PRIVATE_KEY_PKCS8_BASE64`, `FCM_SERVICE_ACCOUNT_JSON`) and must never be added to the Android APK or repository.
+
+
+The parent staging QA workflow also runs the offline rendezvous and signed FCM wake contract tests, then executes Android unit tests and compiles the debug APK when this module is present.
