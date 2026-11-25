@@ -132,7 +132,6 @@ export class AndroidEnrollmentRegistry extends DurableObject {
         const fp = await fingerprint(spki);
         if (fp !== expectedFp) return response({error:"ROOT_FINGERPRINT_MISMATCH"},403);
         failureStage = "ATOMIC_STORAGE_TRANSACTION";
-        const record = { spki:body.root_spki, added_at:Date.now(), active:true };
         // The durable transaction is the single-use gate. Concurrent requests
         // cannot both consume bootstrap authorization or install competing roots.
         const registered = this.ctx.storage.transactionSync(() => {
