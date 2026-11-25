@@ -33,6 +33,7 @@ internal object AndroidEnrollmentQrEnvelopeV1 {
             if (bits >= 8) {
                 bits -= 8
                 out.write((buffer shr bits) and 0xff)
+                buffer = buffer and ((1 shl bits) - 1)
             }
         }
         require(bits == 0 || (buffer and ((1 shl bits) - 1)) == 0) { "NON_CANONICAL_BASE64URL" }
