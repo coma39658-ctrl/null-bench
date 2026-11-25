@@ -8,7 +8,7 @@ const fp = spki => createHash("sha256").update(spki).digest("hex");
 const canonical = (tag, fields, order) => Buffer.from(tag+"\n"+order.map(k=>k+"="+fields[k]+"\n").join(""),"utf8");
 const CHALLENGE_ORDER=["challenge_id","device_fp","nonce","audience","expires_at"];
 const APPROVAL_ORDER=["root_fp","device_fp","challenge_id","nonce","audience","expires_at"];
-const signBytes=(key,bytes)=>sign("sha256",bytes,{key,dsaEncoding:"der"});
+const signBytes=(key,bytes)=>sign("sha256",bytes,{key,dsaEncoding:"ieee-p1363"});
 const verifyBytes=(key,bytes,sig)=>verify("sha256",bytes,key,sig);
 
 function fixture(){
@@ -28,9 +28,10 @@ test("fingerprints are recomputed from SPKI, not accepted as labels",()=>{
  assert.notEqual(fp(f.deviceSpki),f.rootFp);
 });
 
-test("Android device proof verifies only against the exact challenge and device key",()=>{
+test("Android device proof uses 64-byte P1363 and verifies only against the exact challenge and device key",()=>{
  const f=fixture(), bytes=canonical("EZERO_ANDROID_ENROLL_CHALLENGE_V1",f.challenge,CHALLENGE_ORDER);
  const proof=signBytes(f.device.privateKey,bytes);
+ assert.equal(proof.length,64,"WebCrypto ECDSA verification expects IEEE-P1363 r||s bytes");
  assert.equal(verifyBytes(createPublicKey({key:f.deviceSpki,type:"spki",format:"der"}),bytes,proof),true);
  assert.equal(verifyBytes(f.root.publicKey,bytes,proof),false);
  assert.equal(verifyBytes(f.device.publicKey,canonical("EZERO_ANDROID_ENROLL_CHALLENGE_V1",{...f.challenge,nonce:"changednonceabcdefghijkl"},CHALLENGE_ORDER),proof),false);
