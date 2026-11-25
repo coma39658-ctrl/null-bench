@@ -117,8 +117,8 @@ client.close();
 console.log("PASS browser client signs the server challenge using saved mutual trust");
 console.log("PASS client exposes the signalingSession on/send contract to WebRTC transport");
 console.log("PASS authenticated client emits call invite, accept and decline relays");
-console.log("PASS server validates call mode, bounded expiry and call correlation IDs
-PASS media offer, answer, ICE and hangup are strictly bound to a call ID");
+console.log("PASS server validates call mode, bounded expiry and call correlation IDs");
+console.log("PASS media offer, answer, ICE and hangup are strictly bound to a call ID");
 console.log("PASS malformed call controls and non-empty hangup payloads are rejected");
 
 console.log("PASS server verifies ECDSA proof-of-possession against saved transcript identity");
