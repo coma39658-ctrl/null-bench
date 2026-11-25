@@ -42,6 +42,28 @@ jobs:
           node tests/test_ezero_public_site_state_v0_1.js
           node tests/test_ezero_ai_video_frame_contract_v0_1.js
 
+
+      - name: Set up Java for isolated Android enrollment QA
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Run Android enrollment unit tests
+        run: gradle -p android :app:testDebugUnitTest
+
+      - name: Assemble isolated Android staging debug APK
+        run: gradle -p android :app:assembleDebug
+
+      - name: Preserve Android staging APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ezero-android-enrollment-staging-${{ github.run_id }}
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Preserve validation log
         if: always()
         uses: actions/upload-artifact@v4
