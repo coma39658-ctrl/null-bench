@@ -62,7 +62,7 @@ test("canonical encodings are deterministic, LF-only, and end with LF",()=>{
   const bytes=canonical(tag,fields,order);
   assert.equal(bytes.at(-1),10);
   assert.equal(bytes.includes(13),false);
-  assert.equal(bytes,canonical(tag,fields,order));
+  assert.equal(bytes.equals(canonical(tag,fields,order)),true);
  }
 });
 
