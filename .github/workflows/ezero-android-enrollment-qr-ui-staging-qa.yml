@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - ezero-android-enrollment-qr-ui-staging-20261125
+      - ezero-android-enrollment-worker-integration-staging-20261125
   pull_request:
     branches:
       - ezero-android-worker-client-staging-20261125
