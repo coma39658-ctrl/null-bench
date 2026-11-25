@@ -54,7 +54,7 @@ export function createWebRTCMediaCallTransport({
 
   const servers = validateIceServers(iceServers);
   let pc = null, localStream = null, closed = false, started = false;
-  let remoteDescriptionSet = false, pendingCandidates = [];
+  let remoteDescriptionSet = false, pendingCandidates = [], pendingSignals = [];
   const listeners = [];
   let resolveConnected, rejectConnected;
   const connected = new Promise((resolve, reject) => { resolveConnected = resolve; rejectConnected = reject; });
@@ -69,7 +69,11 @@ export function createWebRTCMediaCallTransport({
         !["call-offer", "call-answer", "call-ice-candidate", "call-hangup"].includes(message.type) || message.payload?.callId !== callId) return;
     try {
       if (message.type === "call-hangup") { close(false); return; }
-      if (!pc) return fail("MEDIA_CALL_SIGNAL_BEFORE_START");
+      if (!pc) {
+        if (pendingSignals.length >= 64) return fail("MEDIA_CALL_SIGNAL_QUEUE_LIMIT");
+        pendingSignals.push(message);
+        return;
+      }
       if (message.type === "call-offer") {
         if (role !== "callee" || remoteDescriptionSet ||
             !validDescription({ type: "offer", sdp: message.payload?.sdp }, "offer")) fail("MEDIA_CALL_OFFER_INVALID");
@@ -107,6 +111,8 @@ export function createWebRTCMediaCallTransport({
     }
   }
 
+  listeners.push(signalingSession.on("message", handleSignal));
+
   async function flushCandidates() {
     for (const candidate of pendingCandidates.splice(0)) await pc.addIceCandidate(candidate);
   }
@@ -121,6 +127,7 @@ export function createWebRTCMediaCallTransport({
     for (const track of localStream?.getTracks?.() || []) { try { track.stop(); } catch (_) {} }
     try { pc?.close(); } catch (_) {}
     pendingCandidates = [];
+    pendingSignals = [];
     emit("closed");
     rejectConnected(new Error("MEDIA_CALL_CLOSED"));
   }
@@ -163,7 +170,6 @@ export function createWebRTCMediaCallTransport({
             close(false);
           }
         };
-        listeners.push(signalingSession.on("message", handleSignal));
         if (role === "caller") {
           const offer = await pc.createOffer();
           await pc.setLocalDescription(offer);
@@ -171,6 +177,9 @@ export function createWebRTCMediaCallTransport({
           signalingSession.send("call-offer", { callId, sdp: pc.localDescription.sdp });
           emit("offer-sent");
         } else emit("waiting-for-offer");
+        // Drain signaling messages received while microphone permission was
+        // pending and before the peer connection was constructed.
+        for (const message of pendingSignals.splice(0)) await handleSignal(message);
         return Object.freeze({ state: "started", callId, mode, role });
       } catch (error) {
         emit("error", { error: error?.message || "MEDIA_CALL_START_FAILED" });
