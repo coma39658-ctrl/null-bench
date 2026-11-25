@@ -308,4 +308,4 @@ export class EzeroConnectRendezvous {
   }
 }
 
-export const RENDEZVOUS_LIMITS = Object.freeze({ challengeTtlMs: CHALLENGE_TTL_MS, sessionTtlMs: SESSION_TTL_MS, maxMessageBytes: MAX_MESSAGE_BYTES });
+export const RENDEZVOUS_LIMITS = Object.freeze({ challengeTtlMs: CHALLENGE_TTL_MS, sessionTtlMs: SESSION_TTL_MS, maxMessageBytes: MAX_MESSAGE_BYTES, maxPendingCallTtlMs: MAX_PENDING_CALL_TTL_MS });
