@@ -27,7 +27,7 @@ async function waitReady() {
   for (let i = 0; i < 90; i++) {
     if (child.exitCode !== null) throw new Error("Wrangler exited early:\n" + output);
     try {
-      const r = await fetch(base + "/not-found", { headers: { Origin: origin } });
+      const r = await fetch(base + "/not-found", { headers: { Origin: origin }, signal: AbortSignal.timeout(5000) });
       if (r.status === 404) return;
     } catch {}
     await sleep(1000);
@@ -35,15 +35,20 @@ async function waitReady() {
   throw new Error("Wrangler did not become ready:\n" + output);
 }
 async function register({ token = secret, key = rootSpki, requestOrigin = origin } = {}) {
-  return fetch(base + "/v1/admin/root-register", {
+  try {
+    return await fetch(base + "/v1/admin/root-register", {
     method: "POST",
     headers: {
       Origin: requestOrigin,
       "Content-Type": "application/json",
       "X-Root-Bootstrap": token
     },
-    body: JSON.stringify({ root_spki: key })
-  });
+      body: JSON.stringify({ root_spki: key }),
+      signal: AbortSignal.timeout(10000)
+    });
+  } catch (error) {
+    throw new Error("ROOT_REGISTER_REQUEST_FAILED_OR_TIMED_OUT: " + (error?.name || "Error") + "\\n" + output.slice(-6000));
+  }
 }
 
 try {
