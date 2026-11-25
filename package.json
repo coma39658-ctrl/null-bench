@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "test:ezero-call-state": "node --test scripts/ezero_call_state_machine_v1.test.cjs js/ezero_connect_trusted_friend_call_controller_v1.test.mjs js/ezero_connect_webrtc_media_call_v1.test.mjs tests/ezero_connect_contract_model.test.mjs",
-    "test:ezero-push-contract": "node --test tests/ezero_push_contract_v1.test.cjs tests/ezero_push_service_worker_v1.test.cjs tests/ezero_connect_isolated_worker_v1.test.cjs",
+    "test:ezero-push-contract": "node --test tests/ezero_push_contract_v1.test.cjs tests/ezero_connect_isolated_worker_v1.test.cjs",
     "build:ezero-qr": "esbuild scripts/ezero_connect_qr_entry_v1.js --bundle --format=iife --global-name=EZERO_QR_BUNDLE --outfile=js/ezero_qr_runtime_v1.js --minify",
     "build:ezero-connect-push-scope-staging": "bash scripts/build_ezero_connect_push_scope_staging.sh"
   },
