@@ -128,8 +128,8 @@ export function createTrustedFriendMessagingSession({
       await ready;
       if (closed || !transport) fail("TRUSTED_FRIEND_NOT_SECURE");
       return createTrustedFriendCallController({
-        signalingSession: rendezvous, relationshipId, trustApi, identityApi, iceServers,
-        RTCPeerConnectionImpl, ...options
+        ...options, signalingSession: rendezvous, relationshipId, trustApi, identityApi, iceServers,
+        RTCPeerConnectionImpl
       });
     },
     close,
