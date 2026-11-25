@@ -70,3 +70,16 @@ Implemented on branch `ezero-enrollment-alarm-cleanup-staging-20261125`:
 - Runtime tests added for expired challenge cleanup, unexpired challenge retention, multi-batch cleanup, and expired rate-bucket cleanup.
 
 Not yet verified: these new tests must pass in the Cloudflare Workers runtime CI. Global abuse ceilings, validated device-level limits, Root/device lifecycle endpoints, and broader concurrency/scheduling race tests remain open. No deployment or Root registration has occurred.
+
+## Implementation progress — shared rate ceilings
+
+Added on branch `ezero-enrollment-global-rate-ceiling-staging-20261125`:
+
+- The existing per-IP bucket and a shared per-route bucket are updated in one Durable Object storage transaction.
+- Challenge route ceiling: 300 requests per minute across all source IPs; existing per-IP ceiling remains 10/minute.
+- Root registration ceiling: 20 requests per hour globally; existing per-IP ceiling remains 3/hour.
+- Shared buckets use fixed route identifiers, and IP-specific bucket keys remain SHA-256 digests; raw IP values are not persisted.
+- Storage/transaction failure returns `RATE_LIMIT_UNAVAILABLE` (503) and does not proceed with enrollment.
+- Runtime tests added for 301 concurrent requests across distinct IPs (exactly 300 accepted) and 11 concurrent requests from one IP (exactly 10 accepted).
+
+Not implemented: per-device ceilings. Device identity must be established by a valid cryptographic proof before it can safely be used as an abuse-control identity. No deployment or production configuration change.
