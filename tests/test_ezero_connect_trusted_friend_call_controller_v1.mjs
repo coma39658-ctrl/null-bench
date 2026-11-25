@@ -67,6 +67,10 @@ await session.receive("call-hangup", { callId: callB });
 assert.equal(controller.state, "starting-media", "hangup for another call must be ignored");
 await session.receive("call-hangup", { callId: callA });
 assert.equal(controller.state, "ended");
+const secondCall = await controller.call("video");
+assert.equal(secondCall.mode, "video", "same saved friend can be called again after hangup");
+await session.receive("call-decline", { callId: callA });
+assert.equal(controller.state, "declined");
 controller.close();
 assert.equal(controller.state, "closed");
 
@@ -115,5 +119,5 @@ console.log("PASS only the mutually trusted saved-friend fingerprint can control
 console.log("PASS outgoing calls start media only after matching call acceptance");
 console.log("PASS incoming calls request no media before explicit accept");
 console.log("PASS mismatched call IDs and untrusted senders are ignored");
-console.log("PASS invite expiry, decline, hangup and closed-state cleanup are enforced");
+console.log("PASS invite expiry, decline, hangup, repeat-call and closed-state cleanup are enforced");
 console.log("PASS unverified contacts cannot start call control");
