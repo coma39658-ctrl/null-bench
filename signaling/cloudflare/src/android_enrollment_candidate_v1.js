@@ -107,16 +107,22 @@ export default {
 
 export class AndroidEnrollmentRegistry extends DurableObject {
   async scheduleCleanup(expiresAt) {
-    const current = await this.ctx.storage.getAlarm();
-    if (current === null || current > expiresAt) {
-      await this.ctx.storage.setAlarm(expiresAt);
-    }
+    // Serialize alarm comparisons: concurrent callers must not let a later
+    // expiry overwrite an earlier alarm after both observed an empty slot.
+    const previous = this.scheduleQueue || Promise.resolve();
+    const next = previous.catch(() => {}).then(async () => {
+      const current = await this.ctx.storage.getAlarm();
+      if (current === null || current > expiresAt) {
+        await this.ctx.storage.setAlarm(expiresAt);
+      }
+    });
+    this.scheduleQueue = next;
+    await next;
   }
 
   async alarm() {
     const now = Date.now();
     const due = await this.ctx.storage.list({ prefix: "expiry:", limit: CLEANUP_BATCH });
-    let removed = 0;
     for (const [indexKey] of due) {
       const expiresAt = indexedExpiry(indexKey);
       if (!Number.isFinite(expiresAt) || expiresAt > now) break;
@@ -129,7 +135,6 @@ export class AndroidEnrollmentRegistry extends DurableObject {
         if (Number(recordExpiry) === expiresAt) await txn.delete(recordKey);
         await txn.delete(indexKey);
       });
-      removed++;
     }
 
     // The index is timestamp-sorted. If more expired rows remain, yield and
