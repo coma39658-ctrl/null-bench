@@ -45,25 +45,25 @@ test("saved friend can call without QR; untrusted third parties cannot", () => {
 });
 test("media is impossible before explicit recipient acceptance", () => {
   const trusted = trustedFixture();
-  const call = issueCall({ trusted, caller: "A", callee: "B", callId: "call-1", mode: "video", now: NOW, expiresAt: NOW + 60_000 });
-  const ringing = ringCall(call, "B", NOW + 1);
+  const call = issueCall({ trusted, caller: "device-A", callee: "device-B", callId: "call-1", mode: "video", now: NOW, expiresAt: NOW + 60_000 });
+  const ringing = ringCall(call, "device-B", NOW + 1);
   assert.equal(ringing.state, CALL.RINGING);
   assert.throws(() => authorizeMedia(ringing, NOW + 2), /MEDIA_NOT_AUTHORIZED/);
-  const accepted = respondCall(ringing, "B", "accept", NOW + 3);
+  const accepted = respondCall(ringing, "device-B", "accept", NOW + 3);
   assert.equal(authorizeMedia(accepted, NOW + 4), true);
 });
 test("decline, wrong recipient and expired call never authorize media", () => {
   const trusted = trustedFixture();
-  const call = issueCall({ trusted, caller: "A", callee: "B", callId: "call-1", mode: "audio", now: NOW, expiresAt: NOW + 60_000 });
-  assert.throws(() => ringCall(call, "C", NOW + 1), /CALL_RECIPIENT_INVALID/);
-  const declined = respondCall(ringCall(call, "B", NOW + 1), "B", "decline", NOW + 2);
+  const call = issueCall({ trusted, caller: "device-A", callee: "device-B", callId: "call-1", mode: "audio", now: NOW, expiresAt: NOW + 60_000 });
+  assert.throws(() => ringCall(call, "outsider-C", NOW + 1), /CALL_RECIPIENT_INVALID/);
+  const declined = respondCall(ringCall(call, "device-B", NOW + 1), "B", "decline", NOW + 2);
   assert.equal(declined.state, CALL.DECLINED);
   assert.throws(() => authorizeMedia(declined, NOW + 3), /MEDIA_NOT_AUTHORIZED/);
-  const expired = ringCall(call, "B", NOW + 60_000);
+  const expired = ringCall(call, "device-B", NOW + 60_000);
   assert.equal(expired.state, CALL.EXPIRED);
 });
 test("malformed call mode and excessive token lifetime fail closed", () => {
   const trusted = trustedFixture();
-  assert.throws(() => issueCall({ trusted, caller: "A", callee: "B", callId: "x", mode: "screen-share", now: NOW, expiresAt: NOW + 10_000 }), /CALL_INVITE_INVALID/);
-  assert.throws(() => issueCall({ trusted, caller: "A", callee: "B", callId: "x", mode: "audio", now: NOW, expiresAt: NOW + 60_001 }), /CALL_INVITE_INVALID/);
+  assert.throws(() => issueCall({ trusted, caller: "device-A", callee: "device-B", callId: "x", mode: "screen-share", now: NOW, expiresAt: NOW + 10_000 }), /CALL_INVITE_INVALID/);
+  assert.throws(() => issueCall({ trusted, caller: "device-A", callee: "device-B", callId: "x", mode: "audio", now: NOW, expiresAt: NOW + 60_001 }), /CALL_INVITE_INVALID/);
 });
