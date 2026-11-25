@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>E-ZERO Root Android Approval — Staging</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#17323b;background:#f1f6f7}
+*{box-sizing:border-box}body{margin:0;padding:16px}.wrap{max-width:760px;margin:18px auto;background:#fff;border:1px solid #d1e0e4;border-radius:16px;padding:20px;box-shadow:0 8px 26px #16394312}
+h1{font-size:23px;margin:0 0 8px}.note{font-size:14px;line-height:1.7;color:#536b73}
+.warning{padding:13px;border-right:4px solid #b45309;background:#fff7ed;line-height:1.7;margin:16px 0}
+button,.file{display:inline-block;border:0;border-radius:9px;padding:12px 16px;margin:5px 4px 5px 0;background:#174b57;color:white;font-weight:700;font-size:14px}
+button:disabled{opacity:.5}.secondary{background:#e7eff1;color:#17404b}
+#status{margin:15px 0;padding:13px;border-radius:9px;background:#eef5f6;line-height:1.7;overflow-wrap:anywhere}
+#status[data-state=error]{background:#fff0ed;color:#8b2d20}
+.panel{border:1px solid #d4e1e4;border-radius:12px;padding:14px;margin:15px 0}
+.panel h2{font-size:17px;margin:0 0 12px}.detail{padding:9px 0;border-bottom:1px solid #e8eef0;overflow-wrap:anywhere}
+.detail b{display:block;font-size:12px;color:#627982;margin-bottom:4px}
+code{font-size:12px;word-break:break-all;direction:ltr;display:block}
+video{width:100%;max-height:330px;background:#101b20;border-radius:10px}
+label.consent{display:flex;gap:10px;align-items:flex-start;line-height:1.6;margin:14px 0}
+input[type=checkbox]{width:20px;height:20px;flex:0 0 20px;margin-top:2px}
+#approvalImage{display:block;width:min(100%,340px);margin:12px auto;border:1px solid #d4e1e4;border-radius:8px}
+textarea{width:100%;min-height:100px;padding:10px;border:1px solid #cbd9dd;border-radius:8px;direction:ltr;font:12px monospace}
+small{color:#637981}
+</style>
+</head>
+<body>
+<main class="wrap">
+<h1>E‑ZERO Root — Android درخواست کی منظوری</h1>
+<p class="note">یہ الگ Staging صفحہ پہلے سے محفوظ Root شناخت سے Android enrollment درخواست کی تصدیق کرتا ہے اور واضح انسانی منظوری کے بعد دستخط شدہ QR بناتا ہے۔ اسے اسی canonical ویب سائٹ پر کھولیں جہاں Root شناخت پہلے سے محفوظ ہے۔</p>
+<div class="warning"><b>حفاظتی اصول:</b> صرف درست device proof، 90 سیکنڈ کے اندر challenge، اور درست E‑ZERO origin قبول ہوگا۔ Root کی نجی کلید براؤزر سے باہر نہیں جاتی۔ یہ صفحہ Worker پر enrollment نہیں کرتا اور نہ ہی دوست یا کال کی اجازت دیتا ہے۔</div>
+<section class="panel">
+<h2>1 — Android درخواست اسکین کریں</h2>
+<button id="startCamera" type="button">کیمرہ سے اسکین</button>
+<label class="file" for="requestFile">گیلری سے QR تصویر منتخب کریں</label>
+<input id="requestFile" type="file" accept="image/png,image/jpeg,image/webp,image/avif,image/gif,image/bmp" hidden>
+<div id="camera" hidden>
+<video id="video" playsinline muted></video>
+<button id="stopCamera" class="secondary" type="button">کیمرہ بند کریں</button>
+</div>
+</section>
+<div id="status" role="status" aria-live="polite">Root شناخت اور QR scanner لوڈ ہو رہے ہیں…</div>
+<section id="requestDetails" class="panel" hidden>
+<h2>2 — درخواست کی تفصیل کی تصدیق</h2>
+<div class="detail"><b>Android Device Fingerprint</b><code id="deviceFp"></code></div>
+<div class="detail"><b>Challenge ID</b><code id="challengeId"></code></div>
+<div class="detail"><b>Challenge expiry</b><span id="expiry"></span></div>
+<div class="detail"><b>اس براؤزر کا Root Fingerprint</b><code id="rootFp"></code></div>
+<label class="consent"><input id="consent" type="checkbox"><span>میں نے Android ڈیوائس fingerprint اور درخواست کی تفصیل خود دیکھی ہے، اور اسی مخصوص ڈیوائس کو enrollment کے لیے منظوری دیتا/دیتی ہوں۔</span></label>
+<button id="approve" type="button" disabled>Root سے منظوری دستخط کریں</button>
+</section>
+<section id="approval" class="panel" hidden>
+<h2>3 — دستخط شدہ Approval QR</h2>
+<img id="approvalImage" alt="E-ZERO Android approval QR">
+<textarea id="approvalText" readonly aria-label="Approval QR text"></textarea>
+<button id="copyApproval" class="secondary" type="button">Approval متن کاپی کریں</button>
+<p class="note">یہ QR Android فون پر واپس اسکین کریں۔ اس سے صرف Root signature کی مقامی تصدیق ممکن ہوگی؛ Staging Worker enrollment ابھی الگ مرحلہ ہے۔</p>
+</section>
+<p><small>STAGING ONLY · No production changes · No network upload · No private-key export · No automatic Root key creation</small></p>
+</main>
+<script src="js/ezero_connect_identity_v1.js"></script>
+<script src="js/ezero_connect_root_signer_v1.js"></script>
+<script src="js/ezero_qr_runtime_v1.js"></script>
+<script src="js/ezero_root_android_approval_ui_v1.js"></script>
+</body>
+</html>
