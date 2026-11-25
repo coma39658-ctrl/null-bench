@@ -1,6 +1,6 @@
 import { createTrustedReconnectProof } from "./ezero_connect_trusted_reconnect_v1.mjs";
 
-const RELAY_TYPES = new Set(["offer", "answer", "ice-candidate", "hangup"]);
+const RELAY_TYPES = new Set(["offer", "answer", "ice-candidate", "call-invite", "call-accept", "call-decline", "hangup"]);
 
 function fail(code) { throw new Error(code); }
 
