@@ -24,6 +24,7 @@ test("bootstrap validates actual P-256 SPKI before registration", () => {
 
 test("bootstrap authorization and root insertion share one atomic SQLite insert", () => {
   assert.match(route, /INSERT OR IGNORE INTO ezero_root_bootstrap_state/);
+  assert.match(route, /Date\.now\(\)\n        \)\.toArray\(\)/);
   assert.match(route, /SELECT changes\(\) AS changes/);
   assert.match(route, /if \(!inserted\)/);
   assert.match(route, /BOOTSTRAP_ALREADY_USED/);
