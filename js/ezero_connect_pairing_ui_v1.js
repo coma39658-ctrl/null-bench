@@ -99,6 +99,10 @@
     renderStepTitles();
     $("pairingRole").textContent = roleValue === "host" ? t("host") : t("guest");
     $("pairingTitle").textContent = t("title");
+    $("pairingNameLabel").hidden = true;
+    $("pairingFriendName").hidden = true;
+    $("pairingAction").hidden = true;
+    $("pairingAction").disabled = true;
     status(message || t("waiting"));
     if (roleValue === "guest") { markDone("qr"); markDone("identity"); }
     else setStep("qr", "active");
