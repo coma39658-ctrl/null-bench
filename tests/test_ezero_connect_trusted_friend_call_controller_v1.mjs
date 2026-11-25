@@ -73,7 +73,7 @@ assert.deepEqual(mediaLog[0], { action: "start", role: "caller", mode: "audio", 
 assert.equal(controller.state, "connected", "WebRTC connectionState=connected must update call control state");
 assert.ok(callStates.some(value => value.state === "connected"), "media detail must not overwrite the authoritative connected call state");
 await session.receive("call-hangup", { callId: callB });
-assert.equal(controller.state, "starting-media", "hangup for another call must be ignored");
+assert.equal(controller.state, "connected", "hangup for another call must be ignored while the current call is connected");
 await session.receive("call-hangup", { callId: callA });
 assert.equal(controller.state, "ended");
 const secondCall = await controller.call("video");
