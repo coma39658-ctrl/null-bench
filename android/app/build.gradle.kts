@@ -1,3 +1,6 @@
+val configuredEnrollmentWorkerEndpoint = providers.gradleProperty("ezeroAndroidEnrollmentWorkerEndpoint")
+    .orNull?.trim()?.takeIf { Regex("^https://[a-z0-9-]+\\.workers\\.dev$").matches(it) } ?: ""
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -11,12 +14,17 @@ android {
     namespace = "com.ezero.connect"
     compileSdk = 35
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "com.ezero.connect"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
         versionName = "0.1.0-staging"
+        buildConfigField("String", "ANDROID_ENROLLMENT_WORKER_ENDPOINT", "\\"${configuredEnrollmentWorkerEndpoint}\\"")
     }
 
     compileOptions {
