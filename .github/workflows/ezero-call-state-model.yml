@@ -10,6 +10,8 @@ on:
       - "scripts/ezero_call_state_machine_v1.test.cjs"
       - ".github/workflows/ezero-call-state-model.yml"
       - "package.json"
+      - "src/ezero_connect_contract_model.mjs"
+      - "tests/ezero_connect_contract_model.test.mjs"
   pull_request:
     paths:
       - "scripts/ezero_call_state_machine_v1.cjs"
@@ -27,4 +29,4 @@ jobs:
         with:
           node-version: 22
       - name: Run deterministic call-state tests
-        run: node --test scripts/ezero_call_state_machine_v1.test.cjs js/ezero_connect_trusted_friend_call_controller_v1.test.mjs
+        run: node --test scripts/ezero_call_state_machine_v1.test.cjs js/ezero_connect_trusted_friend_call_controller_v1.test.mjs tests/ezero_connect_contract_model.test.mjs
