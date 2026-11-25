@@ -1,6 +1,6 @@
 package com.ezero.connect
 
-/** Separates enrollment transport envelopes from permanent friend identity QR tokens. */
+/** Separates enrollment transport envelopes from permanent friend identity QR tokens. Classification alone never grants trust. */
 internal object AndroidQrPayloadRouter {
     enum class Kind { ENROLLMENT_REQUEST, ENROLLMENT_APPROVAL, INVALID_ENROLLMENT, PERMANENT_QR_CANDIDATE }
 
