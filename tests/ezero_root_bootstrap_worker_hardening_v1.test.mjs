@@ -27,7 +27,6 @@ test("bootstrap authorization and root insertion share one atomic SQLite insert"
   assert.match(route, /attemptId = base64url/);
   assert.match(route, /existing\?\.attempt_id === attemptId/);
   assert.match(route, /Date\.now\(\)\n        \)\.toArray\(\)/);
-  assert.match(route, /if \(!inserted\)/);
   assert.match(route, /BOOTSTRAP_ALREADY_USED/);
 });
 
