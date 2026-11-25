@@ -3,7 +3,7 @@ const SESSION_TTL_MS = 120_000;
 const MAX_MESSAGE_BYTES = 16 * 1024;
 const MAX_SDP_CHARS = 12 * 1024;
 const MAX_ICE_BYTES = 2 * 1024;
-const ALLOWED = new Set(["offer", "answer", "ice-candidate", "hangup"]);
+const ALLOWED = new Set(["offer", "answer", "ice-candidate", "call-invite", "call-accept", "call-decline", "hangup"]);
 
 export function canonical(value) {
   if (value === null || typeof value === "string" || typeof value === "boolean") return JSON.stringify(value);
@@ -102,7 +102,7 @@ function close(ws, code = 1008, reason = "rejected") {
   try { if (ws.readyState === 0 || ws.readyState === 1) ws.close(code, reason.slice(0, 100)); } catch (_) {}
 }
 
-function validateRelay(raw, now = Date.now()) {
+export function validateRelay(raw, now = Date.now()) {
   if (typeof raw !== "string" || new TextEncoder().encode(raw).length > MAX_MESSAGE_BYTES) throw new Error("RENDEZVOUS_MESSAGE_TOO_LARGE");
   const m = JSON.parse(raw);
   if (!m || Object.keys(m).sort().join(",") !== "payload,sentAt,type" ||
@@ -115,6 +115,18 @@ function validateRelay(raw, now = Date.now()) {
     if (Object.keys(m.payload).sort().join(",") !== "candidate" ||
         typeof m.payload.candidate !== "string" ||
         new TextEncoder().encode(m.payload.candidate).length > MAX_ICE_BYTES) throw new Error("RENDEZVOUS_ICE_INVALID");
+  } else if (m.type === "call-invite") {
+    if (Object.keys(m.payload).sort().join(",") !== "callId,expiresAt,mode" ||
+        typeof m.payload.callId !== "string" || !/^[A-Za-z0-9_-]{32}$/.test(m.payload.callId) ||
+        !["audio", "video"].includes(m.payload.mode) ||
+        !Number.isSafeInteger(m.payload.expiresAt) ||
+        m.payload.expiresAt <= now || m.payload.expiresAt > m.sentAt + 60_000 ||
+        m.payload.expiresAt <= m.sentAt) throw new Error("RENDEZVOUS_CALL_INVITE_INVALID");
+  } else if (m.type === "call-accept" || m.type === "call-decline") {
+    if (Object.keys(m.payload).join(",") !== "callId" ||
+        typeof m.payload.callId !== "string" || !/^[A-Za-z0-9_-]{32}$/.test(m.payload.callId)) {
+      throw new Error("RENDEZVOUS_CALL_RESPONSE_INVALID");
+    }
   } else if (Object.keys(m.payload).length !== 0) throw new Error("RENDEZVOUS_HANGUP_INVALID");
   return m;
 }
