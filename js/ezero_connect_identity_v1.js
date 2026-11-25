@@ -158,7 +158,7 @@
     if (!fields || typeof fields !== "object" || Array.isArray(fields)) throw new Error("ROOT_COMMAND_INVALID");
     for (const key of keys) {
       if (typeof fields[key] !== "string" || !fields[key] || /[\\r\\n]/.test(fields[key])) {
-        throw new Error("ROOT_COMMAND_FIELD_INVALID");
+      if (typeof fields[key] !== "string" || !fields[key] || /[\r\n]/.test(fields[key])) {
       }
     }
     if (fields.audience !== "https://coma39658-ctrl.github.io") throw new Error("ROOT_COMMAND_AUDIENCE_INVALID");
@@ -173,7 +173,7 @@
     const metadata = await publicMetadata(record.publicKey);
     if (metadata.fingerprint !== record.fingerprint) throw new Error("IDENTITY_FINGERPRINT_MISMATCH");
     const rootFp = lowerHex(await crypto.subtle.digest("SHA-256", metadata.publicSpki));
-    const canonical = tag + "\\n" + order.map(key => key + "=" + fields[key] + "\\n").join("");
+    const canonical = tag + "\n" + order.map(key => key + "=" + fields[key] + "\n").join("");
     const signature = await crypto.subtle.sign(
       { name: "ECDSA", hash: "SHA-256" },
       record.privateKey,
