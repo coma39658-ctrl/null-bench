@@ -107,11 +107,11 @@ export class AndroidEnrollmentRegistry extends DurableObject {
     const windowMs = admin ? 60 * 60 * 1000 : 60 * 1000;
     const limit = admin ? 3 : 10;
     const windowStart = Math.floor(now / windowMs) * windowMs;
-    return this.ctx.storage.transactionSync(tx => {
-      const previous = tx.get(key);
+    return this.ctx.storage.transaction(async (txn) => {
+      const previous = await txn.get(key);
       const count = previous?.window_start === windowStart ? previous.count : 0;
       if (count >= limit) return false;
-      tx.put(key, { window_start:windowStart, count:count + 1 });
+      await txn.put(key, { window_start:windowStart, count:count + 1 });
       return true;
     });
   }
@@ -176,10 +176,10 @@ export class AndroidEnrollmentRegistry extends DurableObject {
       // Atomically reserve/consume before asynchronous signature checks. This
       // prevents two concurrent completion requests from both enrolling.
       // Invalid proofs require a fresh challenge; fail closed rather than replay.
-      const saved = this.ctx.storage.transactionSync(tx => {
-        const value = tx.get(key);
+      const saved = await this.ctx.storage.transaction(async (txn) => {
+        const value = await txn.get(key);
         if (!value) return null;
-        tx.delete(key);
+        await txn.delete(key);
         return value;
       });
       if (!saved) return response({error:"CHALLENGE_UNKNOWN_OR_USED"},409);
