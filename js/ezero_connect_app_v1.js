@@ -230,8 +230,18 @@
       const verified = await window.EZERO_CONNECT_INVITES.verifyInvite(code);
       setQrStatus(translations[language].qrVerified + " " + verified.inviterFingerprint, "ok");
       document.dispatchEvent(new CustomEvent("ezero:invite-verified", { detail: { verified, inviteCode: code } }));
-    } catch (_) {
-      setQrStatus(translations[language].qrInvalid, "error");
+    } catch (error) {
+      const code = String(error?.message || "UNKNOWN_ERROR");
+      const reasons = {
+        INVITE_EXPIRED_OR_TIME_INVALID: "QR کی دستخط شدہ مدت ختم ہے یا فون کی گھڑی میں دو منٹ سے زیادہ فرق ہے۔",
+        INVITE_REPLAYED: "یہ QR پہلے استعمال ہو چکا ہے؛ اگر پچھلی کوشش ادھوری رہی تو نیا QR بنائیں۔",
+        INVITE_SIGNATURE_INVALID: "QR کے ڈیجیٹل دستخط کی تصدیق ناکام ہوئی۔",
+        INVITE_ORIGIN_OR_VERSION_INVALID: "یہ QR کسی دوسرے E-ZERO ویب پتے سے بنایا گیا ہے۔ دونوں فون ایک ہی Preview لنک کھولیں۔",
+        INVITE_FINGERPRINT_MISMATCH: "QR کی عوامی شناخت اور فنگرپرنٹ آپس میں نہیں ملتے۔",
+        INVITE_REPLAY_DB_FAILED: "فون کی مقامی محفوظ اسٹوریج دستیاب نہیں۔",
+        INVITE_REPLAY_DB_BLOCKED: "فون کی مقامی اسٹوریج دوسری کھلی E-ZERO ونڈو کے باعث بند ہے۔"
+      };
+      setQrStatus(translations[language].qrInvalid + " وجہ: " + (reasons[code] || code), "error");
     }
   }
 
