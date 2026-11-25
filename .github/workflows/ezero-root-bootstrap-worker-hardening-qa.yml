@@ -1,0 +1,25 @@
+name: E-ZERO Root Bootstrap Worker Hardening QA
+
+on:
+  push:
+    branches:
+      - ezero-root-bootstrap-worker-hardening-staging-20261125
+    paths:
+      - signaling/cloudflare/src/android_enrollment_candidate_v1.js
+      - tests/ezero_root_bootstrap_worker_hardening_v1.test.mjs
+      - .github/workflows/ezero-root-bootstrap-worker-hardening-qa.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap-hardening:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify isolated root bootstrap safeguards
+        run: node --test tests/ezero_root_bootstrap_worker_hardening_v1.test.mjs
