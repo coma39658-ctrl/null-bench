@@ -39,6 +39,16 @@ internal class AndroidEnrollmentWorkerClientV1(baseUrl: String) {
         return validateChallengePayload(challenge, identity.fingerprint, response.getString("device_challenge"))
     }
 
+    /**
+     * Requests a short-lived Worker challenge, signs it with the non-exportable
+     * Android Keystore key, and returns the exact request QR payload for display.
+     */
+    fun createRequestQr(identity: AndroidEnrollmentKeyStore.PublicIdentity): String {
+        val challenge = requestChallenge(identity).challenge
+        val proof = AndroidEnrollmentKeyStore.signChallenge(challenge)
+        return encodeSignedRequest(identity, challenge, proof)
+    }
+
     fun completeEnrollment(
         rawRequest: String,
         rawApproval: String,
@@ -105,6 +115,27 @@ internal class AndroidEnrollmentWorkerClientV1(baseUrl: String) {
     }
 
     companion object {
+        fun encodeSignedRequest(
+            identity: AndroidEnrollmentKeyStore.PublicIdentity,
+            challenge: AndroidEnrollmentProtocolV1.Challenge,
+            deviceProof: String
+        ): String {
+            require(challenge.deviceFingerprint == identity.fingerprint) {
+                "WORKER_DEVICE_FINGERPRINT_MISMATCH"
+            }
+            return AndroidEnrollmentQrEnvelopeV1.encodeRequest(
+                AndroidEnrollmentQrEnvelopeV1.Request(
+                    identity.publicKeySpkiBase64Url,
+                    identity.fingerprint,
+                    challenge.challengeId,
+                    challenge.nonce,
+                    challenge.audience,
+                    challenge.expiresAt,
+                    deviceProof
+                )
+            )
+        }
+
         fun validateChallengePayload(
             challenge: AndroidEnrollmentProtocolV1.Challenge,
             expectedDeviceFingerprint: String,
