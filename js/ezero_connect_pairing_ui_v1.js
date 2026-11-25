@@ -12,33 +12,33 @@
   const words = {
     ur: {
       title:"محفوظ دوست بنائیں", host:"آپ QR کے مالک ہیں", guest:"دوست کا QR اسکین ہوا",
-      waiting:"دوست کے جڑنے کا انتظار ہے…", peer:"محفوظ کنکشن بن گیا۔ دعوت خود بھیج دی گئی ہے؛ دوست کی ایک منظوری کا انتظار ہے۔", requestSent:"دعوت بھیج دی گئی ہے۔ دوسری طرف سے ایک بار قبول ہونے کا انتظار ہے…", recipientAccept:"ایک بار قبول کریں؛ محفوظ دوستی اور دونوں فونوں کی دوستوں کی فہرست بنے گی۔",
+      waiting:"دوست کے جڑنے کا انتظار ہے…", peer:"محفوظ کنکشن بن گیا۔ دعوت خود بھیج دی گئی ہے؛ دوست کی ایک منظوری کا انتظار ہے۔", requestSent:"دعوت بھیج دی گئی ہے۔ دوسری طرف سے ایک بار قبول ہونے کا انتظار ہے…", recipientAccept:"ایک بار قبول کریں؛ محفوظ دوستی بنے گی اور پہلی آڈیو کال خود شروع ہوگی۔",
       hostName:"دوست کا نام لکھیں", hostAction:"درخواست بھیجیں اور محفوظ کرنے کی منظوری دیں",
       guestWait:"دوست کی درخواست کا انتظار ہے…", request:"دوست آپ کو محفوظ کرنا چاہتا ہے۔ نام لکھیں اور منظوری دیں۔",
       guestName:"اپنی فہرست میں دوست کا نام لکھیں", guestAction:"منظوری دیں اور دوست محفوظ کریں",
-      hostSaved:"دوست محفوظ ہو گیا۔", guestSaved:"دوست محفوظ ہو گیا۔",
+      hostSaved:"دوست محفوظ ہو گیا؛ پہلی آڈیو کال شروع ہو رہی ہے۔", guestSaved:"دوست محفوظ ہو گیا؛ پہلی آڈیو کال شروع ہو رہی ہے۔", hostAwaitGuestSaved:"آپ کی طرف دوست محفوظ ہے؛ دوسرے فون کی تصدیق کا انتظار ہے…",
       canceled:"رابطہ منسوخ کر دیا گیا۔", error:"محفوظ رابطہ مکمل نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
       cancel:"منسوخ کریں", emptyName:"دوست کا نام لکھیں۔", notReady:"محفوظ رابطہ سروس دستیاب نہیں۔",
       invalid:"دوست کی منظوری کی تصدیق نہیں ہو سکی۔"
     },
     en: {
       title:"Save a trusted friend", host:"You are showing your QR", guest:"Friend QR verified",
-      waiting:"Waiting for the other device…", peer:"Secure peer connection established. The invitation has been sent; wait for the friend to accept once.", requestSent:"Invitation sent. Waiting for the recipient to Accept once…", recipientAccept:"Accept once to establish trusted friendship and save each other on both phones.",
+      waiting:"Waiting for the other device…", peer:"Secure peer connection established. The invitation has been sent; wait for the friend to accept once.", requestSent:"Invitation sent. Waiting for the recipient to Accept once…", recipientAccept:"Accept once to save each other and start the first audio call automatically.",
       hostName:"Enter the friend's name", hostAction:"Send request and consent to save",
       guestWait:"Waiting for the friend's request…", request:"This person wants to save you as a trusted friend. Enter their name and approve.",
       guestName:"Name this friend in your list", guestAction:"Approve and save friend",
-      hostSaved:"Friend saved.", guestSaved:"Friend saved.", canceled:"Pairing canceled.",
+      hostSaved:"Friend saved; starting the first audio call.", guestSaved:"Friend saved; starting the first audio call.", hostAwaitGuestSaved:"Saved locally; waiting for the other phone to confirm its save…", canceled:"Pairing canceled.",
       error:"Secure pairing did not complete. Please try again.", cancel:"Cancel",
       emptyName:"Enter a friend name.", notReady:"Secure pairing service is unavailable.",
       invalid:"The friend's approval could not be verified."
     },
     ar: {
       title:"حفظ صديق موثوق", host:"أنت تعرض رمز QR", guest:"تم التحقق من رمز الصديق",
-      waiting:"بانتظار الجهاز الآخر…", peer:"تم إنشاء اتصال آمن وإرسال الدعوة تلقائياً؛ بانتظار قبول الصديق مرة واحدة.", requestSent:"تم إرسال الدعوة؛ بانتظار قبول الطرف الآخر مرة واحدة…", recipientAccept:"اقبل مرة واحدة لإنشاء صداقة موثوقة وحفظ الطرفين في قائمة الأصدقاء.",
+      waiting:"بانتظار الجهاز الآخر…", peer:"تم إنشاء اتصال آمن وإرسال الدعوة تلقائياً؛ بانتظار قبول الصديق مرة واحدة.", requestSent:"تم إرسال الدعوة؛ بانتظار قبول الطرف الآخر مرة واحدة…", recipientAccept:"اقبل مرة واحدة لحفظ الصديقين وبدء أول مكالمة صوتية تلقائياً.",
       hostName:"أدخل اسم الصديق", hostAction:"إرسال الطلب والموافقة على الحفظ",
       guestWait:"بانتظار طلب الصديق…", request:"يريد هذا الشخص حفظك كصديق موثوق. أدخل اسمه ووافق.",
       guestName:"اكتب اسم هذا الصديق في قائمتك", guestAction:"الموافقة وحفظ الصديق",
-      hostSaved:"تم حفظ الصديق.", guestSaved:"تم حفظ الصديق.", canceled:"تم إلغاء الاقتران.",
+      hostSaved:"تم حفظ الصديق؛ جارٍ بدء أول مكالمة صوتية.", guestSaved:"تم حفظ الصديق؛ جارٍ بدء أول مكالمة صوتية.", hostAwaitGuestSaved:"تم الحفظ محلياً؛ بانتظار تأكيد الجهاز الآخر…", canceled:"تم إلغاء الاقتران.",
       error:"لم يكتمل الاقتران الآمن. حاول مرة أخرى.", cancel:"إلغاء",
       emptyName:"أدخل اسم الصديق.", notReady:"خدمة الاقتران الآمن غير متاحة.",
       invalid:"تعذر التحقق من موافقة الصديق."
@@ -146,18 +146,16 @@
     status(t("error") + " وجہ: " + reason, "error");
     $("pairingAction").disabled = true;
   }
-  function refreshContacts(saved) {
+  async function refreshContacts(saved, options = {}) {
     document.dispatchEvent(new CustomEvent("ezero:friend-local-saved"));
-    window.EZERO_CONNECT_CONTACTS_UI?.refresh?.();
+    await window.EZERO_CONNECT_CONTACTS_UI?.refresh?.();
     if (saved?.relationshipId && saved?.remoteFingerprint) {
-      // Open the verified friend thread on both devices. This establishes
-      // the saved-friend session only; media still needs an explicit call
-      // mode and recipient acceptance.
       document.dispatchEvent(new CustomEvent("ezero:friend-selected", {
         detail: {
           relationshipId: saved.relationshipId,
           fingerprint: saved.remoteFingerprint,
-          displayName: remoteName || friendAlias(saved.remoteFingerprint)
+          displayName: remoteName || friendAlias(saved.remoteFingerprint),
+          ...options
         }
       }));
     }
@@ -238,10 +236,9 @@
         });
         session.send("trust-approval", { transcript, approval: localApproval, stage: "host-saved" });
         markDone("approval");
-        markDone("saved");
-        status(t("hostSaved"), "ok");
+        status(t("hostAwaitGuestSaved"), "ok");
         $("pairingAction").disabled = true;
-        refreshContacts(saved);
+        await refreshContacts();
         return;
       }
       if (message.type === "trust-approval" && role === "guest" && p.stage === "host-saved") {
@@ -252,11 +249,22 @@
           transcript, localApproval, remoteApproval: p.approval,
           displayName: remoteName, explicitConsent: true
         });
+        session.send("trust-approval", { transcript, approval: localApproval, stage: "guest-saved" });
         markDone("approval");
         markDone("saved");
         status(t("guestSaved"), "ok");
         $("pairingAction").disabled = true;
-        refreshContacts();
+        await refreshContacts(saved, { autoAcceptFirstCall: true });
+      }
+      if (message.type === "trust-approval" && role === "host" && p.stage === "guest-saved") {
+        if (canonical(p.transcript) !== canonical(transcript) ||
+            p.approval?.signerFingerprint !== peer?.fingerprint ||
+            !await window.EZERO_CONNECT_TRUST.verifyApproval(transcript, p.approval)) throw new Error("PAIRING_GUEST_APPROVAL_INVALID");
+        markDone("saved");
+        status(t("hostSaved"), "ok");
+        $("pairingAction").disabled = true;
+        const saved = await window.EZERO_CONNECT_TRUST.getTrustedContact(transcript.relationshipId);
+        await refreshContacts(saved, { autoCallMode: "audio" });
       }
     } catch (error) { fail(error); }
   }
