@@ -257,4 +257,47 @@ describe("Android enrollment storage lifecycle alarms", () => {
     expect(remaining.bucket).toBeUndefined();
     expect(remaining.index).toBeUndefined();
   });
+
+  it("preserves the earliest alarm when concurrent writers schedule cleanup", async () => {
+    const stub = env.ENROLLMENT.get(env.ENROLLMENT.idFromName("cleanup-concurrent-schedule"));
+    const earliest = Date.now() + 30000;
+    const later = earliest + 60000;
+    const alarm = await runInDurableObject(stub, async (instance, state) => {
+      await Promise.all([
+        instance.scheduleCleanup(later),
+        instance.scheduleCleanup(earliest),
+        instance.scheduleCleanup(later + 60000)
+      ]);
+      return state.storage.getAlarm();
+    });
+    expect(alarm).toBe(earliest);
+  });
+
+  it("does not let a stale rate index delete a refreshed bucket", async () => {
+    const stub = env.ENROLLMENT.get(env.ENROLLMENT.idFromName("cleanup-stale-rate-index"));
+    const oldExpiry = Date.now() - 1000;
+    const newExpiry = Date.now() + 60000;
+    const recordKey = "rate:/v1/android/enrollment/challenge:" + "b".repeat(64);
+    const oldIndex = "expiry:" + String(oldExpiry).padStart(16, "0") + ":" + recordKey;
+    const newIndex = "expiry:" + String(newExpiry).padStart(16, "0") + ":" + recordKey;
+    await runInDurableObject(stub, async (_instance, state) => {
+      await state.storage.put(recordKey, {
+        window_start: 2, count: 1, expires_at: newExpiry
+      });
+      await state.storage.put(oldIndex, { record_key: recordKey });
+      await state.storage.put(newIndex, { record_key: recordKey });
+      await state.storage.setAlarm(Date.now() + 60000);
+    });
+
+    expect(await runDurableObjectAlarm(stub)).toBe(true);
+    const state = await runInDurableObject(stub, async (_instance, state) => ({
+      bucket: await state.storage.get(recordKey),
+      oldIndex: await state.storage.get(oldIndex),
+      newIndex: await state.storage.get(newIndex)
+    }));
+    expect(state.bucket?.expires_at).toBe(newExpiry);
+    expect(state.oldIndex).toBeUndefined();
+    expect(state.newIndex).toBeTruthy();
+  });
+
 });
