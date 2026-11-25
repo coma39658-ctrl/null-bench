@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - ezero-connect-global-rebuild-realtimekit-staging-20261125
+      - ezero-connect-push-phase-b-staging-20261125
     paths:
       - "js/ezero_connect_trusted_friend_call_controller_v1.mjs"
       - "js/ezero_connect_trusted_friend_call_controller_v1.test.mjs"
@@ -14,12 +15,22 @@ on:
       - "package.json"
       - "src/ezero_connect_contract_model.mjs"
       - "tests/ezero_connect_contract_model.test.mjs"
+      - "js/ezero_push_contract_v1.js"
+      - "tests/ezero_push_contract_v1.test.cjs"
+      - "staging/ezero-connect-push-scope/service-worker.js"
+      - "scripts/build_ezero_connect_push_scope_staging.sh"
+      - "tests/ezero_connect_isolated_worker_v1.test.cjs"
   pull_request:
     paths:
       - "scripts/ezero_call_state_machine_v1.cjs"
       - "scripts/ezero_call_state_machine_v1.test.cjs"
       - ".github/workflows/ezero-call-state-model.yml"
       - "package.json"
+      - "js/ezero_push_contract_v1.js"
+      - "tests/ezero_push_contract_v1.test.cjs"
+      - "staging/ezero-connect-push-scope/service-worker.js"
+      - "scripts/build_ezero_connect_push_scope_staging.sh"
+      - "tests/ezero_connect_isolated_worker_v1.test.cjs"
 permissions:
   contents: read
 jobs:
@@ -30,5 +41,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Run deterministic call-state tests
-        run: node --test scripts/ezero_call_state_machine_v1.test.cjs js/ezero_connect_trusted_friend_call_controller_v1.test.mjs js/ezero_connect_webrtc_media_call_v1.test.mjs tests/ezero_connect_contract_model.test.mjs
+      - name: Build isolated E-ZERO Connect staging bundle
+        run: bash scripts/build_ezero_connect_push_scope_staging.sh "$RUNNER_TEMP/ezero-connect-push-scope"
+      - name: Run deterministic call-state and push contract tests
+        run: node --test scripts/ezero_call_state_machine_v1.test.cjs js/ezero_connect_trusted_friend_call_controller_v1.test.mjs js/ezero_connect_webrtc_media_call_v1.test.mjs tests/ezero_connect_contract_model.test.mjs tests/ezero_push_contract_v1.test.cjs tests/ezero_connect_isolated_worker_v1.test.cjs
