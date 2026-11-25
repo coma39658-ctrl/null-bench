@@ -43,3 +43,11 @@ A push is only a wake-up hint. It never accepts a call, enables microphone/camer
 8. Do not merge or deploy until all automated and real-device gates pass.
 
 A powered-off or offline phone cannot receive a live incoming-call push. Android battery restrictions, notification permission and DND can also affect delivery.
+
+## Signaling backend audit (2026-11-25)
+
+The existing `signaling/ezero-connect-v1/worker.mjs` accepts WebSocket-upgrade requests for room/rendezvous signaling and rejects ordinary HTTP requests. Its configured origin guard is not a push authorization mechanism. The accompanying README states that the Worker has not been deployed and that a real staging deployment requires an isolated origin and dedicated Durable Object namespace.
+
+No authenticated push-subscription registry, VAPID delivery endpoint, recipient-device binding, or live signed-call-request lookup exists in this Worker today. Do not add a public POST push route to the WebSocket signaling handler. Implement push as a separately authenticated service or a separately reviewed route with explicit subscription ownership, sender proof, replay protection, rate limits and server-only VAPID secrets.
+
+Render account inspection found existing E-ZERO static preview sites, but no currently listed dedicated push-delivery web service. Existing previews must not be repurposed or have their branch/deploy settings changed as a shortcut.
