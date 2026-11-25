@@ -6,6 +6,9 @@ plugins {
 val ezeroConnectUrl = providers.gradleProperty("ezeroConnectUrl").orElse("").get()
     .replace("\\", "\\\\")
     .replace("\"", "\\\"")
+val ezeroWakePublicKey = providers.gradleProperty("ezeroWakePublicKeySpkiBase64").orElse("").get()
+    .replace("\\", "\\\\")
+    .replace("\"", "\\\"")
 
 if (file("google-services.json").exists()) {
     apply(plugin = "com.google.gms.google-services")
@@ -22,6 +25,7 @@ android {
         versionCode = 1
         versionName = "0.1.0-staging"
         buildConfigField("String", "EZERO_CONNECT_URL", "\"$ezeroConnectUrl\"")
+        buildConfigField("String", "EZERO_WAKE_PUBLIC_KEY_SPKI_BASE64", "\"$ezeroWakePublicKey\"")
     }
 
     buildFeatures {
