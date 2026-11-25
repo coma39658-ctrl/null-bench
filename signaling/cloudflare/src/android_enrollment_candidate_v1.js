@@ -118,7 +118,10 @@ export class AndroidEnrollmentRegistry extends DurableObject {
         if (registered === "USED") return response({error:"BOOTSTRAP_ALREADY_USED"},409);
         if (registered === "ROOT_ALREADY_REGISTERED") return response({error:"ROOT_ALREADY_REGISTERED"},409);
         return response({ok:true,root_fp:fp,status:"ROOT_REGISTERED"});
-      } catch (_) { return response({error:"BAD_ROOT_KEY"},400); }
+      } catch (error) {
+        console.error("ROOT_BOOTSTRAP_INTERNAL_FAILURE", error?.name || "Error", error?.message || "");
+        return response({error:"BAD_ROOT_KEY"},400);
+      }
     }
 
 
