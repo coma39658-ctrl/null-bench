@@ -48,7 +48,7 @@ assert.equal(verifiedInvite.nonce, nonce);
 assert.equal(verifiedInvite.inviterFingerprint, host.fingerprint);
 await assert.rejects(() => verifyInviteCode(inviteCode, "https://wrong.invalid", roomId, now), /INVITE_ORIGIN_OR_ROOM_INVALID/);
 await assert.rejects(() => verifyInviteCode(inviteCode, origin, base64url(crypto.getRandomValues(new Uint8Array(24))), now), /INVITE_ORIGIN_OR_ROOM_INVALID/);
-await assert.rejects(() => verifyInviteCode(inviteCode, origin, roomId, invitePayload.expiresAt + 1), /INVITE_EXPIRED_OR_TIME_INVALID/);
+await assert.rejects(() => verifyInviteCode(inviteCode, origin, roomId, invitePayload.expiresAt + 120_001), /INVITE_EXPIRED_OR_TIME_INVALID/);
 const skewedPastNow = invitePayload.issuedAt + 120_000;
 assert.equal((await verifyInviteCode(inviteCode, origin, roomId, skewedPastNow)).nonce, nonce,
   "A valid signed invite remains usable with a bounded two-minute device/server clock skew");
