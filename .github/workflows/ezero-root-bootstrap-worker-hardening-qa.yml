@@ -7,6 +7,8 @@ on:
     paths:
       - signaling/cloudflare/src/android_enrollment_candidate_v1.js
       - tests/ezero_root_bootstrap_worker_hardening_v1.test.mjs
+      - tests/ezero_root_bootstrap_worker_local_integration_v1.mjs
+      - signaling/cloudflare/wrangler.android-enrollment-candidate-v1.jsonc
       - .github/workflows/ezero-root-bootstrap-worker-hardening-qa.yml
   workflow_dispatch:
 
@@ -23,3 +25,5 @@ jobs:
           node-version: 22
       - name: Verify isolated root bootstrap safeguards
         run: node --test tests/ezero_root_bootstrap_worker_hardening_v1.test.mjs
+      - name: Exercise local Wrangler Durable Object integration
+        run: node tests/ezero_root_bootstrap_worker_local_integration_v1.mjs
