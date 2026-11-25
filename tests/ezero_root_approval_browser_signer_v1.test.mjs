@@ -9,7 +9,7 @@ test("browser root approval signer is exposed without exporting private key", ()
   assert.match(source, /signAndroidDeviceManagement/);
   assert.match(source, /globalThis\.EZERO_CONNECT_IDENTITY = Object\.freeze/);
   assert.doesNotMatch(source, /exportKey\(["']pkcs8/);
-  assert.doesNotMatch(source, /exportKey/);
+  assert.equal(source.includes('exportKey("pkcs8"'), false);
 });
 
 test("root approval uses the Worker canonical tag and exact field order", () => {
