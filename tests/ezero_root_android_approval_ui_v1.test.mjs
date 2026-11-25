@@ -20,6 +20,13 @@ test("request acceptance verifies challenge freshness, device fingerprint and de
   assert.match(ui, /DEVICE_PROOF_INVALID/);
 });
 
+test("request handling and signing are hard-blocked outside the canonical origin", () => {
+  assert.match(ui, /function assertCanonicalOrigin\(\)/);
+  assert.match(ui, /assertCanonicalOrigin\(\);\s*const f = await verifyRequest/);
+  assert.match(ui, /catch \(e\) \{ setStatus\("منظوری روک دی گئی:/);
+  assert.match(ui, /NON_CANONICAL_ROOT_ORIGIN/);
+});
+
 test("Root signing requires explicit human consent and existing Root identity", () => {
   assert.match(ui, /!\$\("consent"\)\.checked/);
   assert.match(ui, /EZERO_CONNECT_IDENTITY\.load\(\)/);
