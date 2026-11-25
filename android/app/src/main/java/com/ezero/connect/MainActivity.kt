@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.ViewGroup
@@ -12,14 +13,19 @@ import android.text.InputType
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import android.Manifest
 import android.content.pm.PackageManager
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.qrcode.QRCodeWriter
 
 class MainActivity : Activity() {
     private lateinit var statusView: TextView
+    private lateinit var enrollmentQrView: ImageView
+    private lateinit var completeEnrollmentButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,6 +34,11 @@ class MainActivity : Activity() {
             setPadding(32, 48, 32, 32)
         }
         statusView = TextView(this).apply { textSize = 18f }
+        enrollmentQrView = ImageView(this).apply {
+            adjustViewBounds = true
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            visibility = android.view.View.GONE
+        }
         val galleryButton = Button(this).apply {
             text = "Read E-ZERO QR from gallery"
             setOnClickListener {
@@ -59,6 +70,26 @@ class MainActivity : Activity() {
             }
         }
         layout.addView(prepareEnrollmentButton, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        ))
+        val createEnrollmentQrButton = Button(this).apply {
+            text = "Create secure enrollment QR"
+            isEnabled = BuildConfig.ANDROID_ENROLLMENT_WORKER_ENDPOINT.isNotBlank()
+            setOnClickListener { createEnrollmentRequestQr() }
+        }
+        layout.addView(createEnrollmentQrButton, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        ))
+        layout.addView(enrollmentQrView, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            (resources.displayMetrics.density * 280).toInt()
+        ))
+        completeEnrollmentButton = Button(this).apply {
+            text = "Complete verified server enrollment"
+            isEnabled = false
+            setOnClickListener { completeServerEnrollment() }
+        }
+        layout.addView(completeEnrollmentButton, LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
         ))
         val rootPinButton = Button(this).apply {
@@ -162,13 +193,13 @@ class MainActivity : Activity() {
                     require(verified.challengeId !in consumed) { "CHALLENGE_ALREADY_CONSUMED_ON_THIS_DEVICE" }
                     consumed.add(verified.challengeId)
                     require(prefs.edit()
-                        .remove(KEY_PENDING_REQUEST)
-                        .putStringSet(KEY_CONSUMED_CHALLENGES, consumed)
+                        .putString(KEY_PENDING_APPROVAL, raw)
                         .putString(KEY_LAST_APPROVED_DEVICE_FP, verified.deviceFingerprint)
                         .putString(KEY_LAST_APPROVED_ROOT_FP, verified.rootFingerprint)
                         .putString(KEY_LAST_APPROVAL_AT, System.currentTimeMillis().toString())
                         .commit()) { "APPROVAL_STATE_PERSISTENCE_FAILED" }
-                    statusView.text = "E-ZERO Root approval signature VERIFIED on this phone.\\n\\nRoot fingerprint: ${verified.rootFingerprint}\\nDevice fingerprint: ${verified.deviceFingerprint}\\n\\nStatus: ROOT_APPROVAL_VERIFIED_LOCAL_ONLY.\\nServer enrollment, friend trust, FCM registration, and call permission are NOT active yet."
+                    completeEnrollmentButton.isEnabled = BuildConfig.ANDROID_ENROLLMENT_WORKER_ENDPOINT.isNotBlank()
+                    statusView.text = "E-ZERO Root approval signature VERIFIED locally.\\n\\nRoot fingerprint: ${verified.rootFingerprint}\\nDevice fingerprint: ${verified.deviceFingerprint}\\n\\nPending request and approval are retained until the Worker confirms ENROLLED. Tap Complete verified server enrollment when the staging Worker endpoint is configured.\\n\\nStatus: ROOT_APPROVAL_VERIFIED_LOCAL_ONLY — NOT ENROLLED."
                 } catch (error: Exception) {
                     statusView.text = "Root approval rejected: " + (error.message ?: "APPROVAL_INVALID") + ". Pending enrollment remains untrusted."
                 }
@@ -190,6 +221,97 @@ class MainActivity : Activity() {
                 }
             }
         }
+    }
+
+
+    private fun createEnrollmentRequestQr() {
+        val endpoint = BuildConfig.ANDROID_ENROLLMENT_WORKER_ENDPOINT
+        if (endpoint.isBlank()) {
+            statusView.text = "Enrollment Worker endpoint is not configured. No network request was sent."
+            return
+        }
+        statusView.text = "Requesting a short-lived secure enrollment challenge…"
+        Thread {
+            try {
+                val identity = AndroidEnrollmentKeyStore.getOrCreatePublicIdentity()
+                val raw = AndroidEnrollmentWorkerClientV1(endpoint).createRequestQr(identity)
+                val bitmap = renderEnrollmentQr(raw)
+                val saved = getSharedPreferences(ENROLLMENT_STATE_PREFS, MODE_PRIVATE)
+                    .edit().putString(KEY_PENDING_REQUEST, raw).remove(KEY_PENDING_APPROVAL).commit()
+                require(saved) { "PENDING_REQUEST_PERSISTENCE_FAILED" }
+                runOnUiThread {
+                    enrollmentQrView.setImageBitmap(bitmap)
+                    enrollmentQrView.visibility = android.view.View.VISIBLE
+                    completeEnrollmentButton.isEnabled = false
+                    statusView.text = "Signed E-ZERO enrollment QR is ready.\\n\\nIt contains a 90-second one-use Worker challenge and this phone's proof-of-possession signature. Show it to the authorized Root browser, then scan the Root approval QR back on this phone.\\n\\nStatus: PENDING_ROOT_APPROVAL — NOT ENROLLED."
+                }
+            } catch (error: Exception) {
+                runOnUiThread {
+                    statusView.text = "Enrollment QR was not created: ${error.message ?: "REQUEST_FAILED"}. No enrollment was recorded."
+                }
+            }
+        }.start()
+    }
+
+    private fun renderEnrollmentQr(raw: String): Bitmap {
+        val matrix = QRCodeWriter().encode(raw, BarcodeFormat.QR_CODE, 768, 768)
+        val pixels = IntArray(matrix.width * matrix.height)
+        for (y in 0 until matrix.height) {
+            for (x in 0 until matrix.width) {
+                pixels[y * matrix.width + x] = if (matrix[x, y]) Color.BLACK else Color.WHITE
+            }
+        }
+        return Bitmap.createBitmap(matrix.width, matrix.height, Bitmap.Config.ARGB_8888).apply {
+            setPixels(pixels, 0, matrix.width, 0, 0, matrix.width, matrix.height)
+        }
+    }
+
+    private fun completeServerEnrollment() {
+        val endpoint = BuildConfig.ANDROID_ENROLLMENT_WORKER_ENDPOINT
+        if (endpoint.isBlank()) {
+            statusView.text = "Enrollment Worker endpoint is not configured. Local Root verification is not server enrollment."
+            return
+        }
+        val prefs = getSharedPreferences(ENROLLMENT_STATE_PREFS, MODE_PRIVATE)
+        val request = prefs.getString(KEY_PENDING_REQUEST, null)
+        val approval = prefs.getString(KEY_PENDING_APPROVAL, null)
+        if (request == null || approval == null) {
+            statusView.text = "A pending enrollment request and locally verified Root approval are both required."
+            return
+        }
+        val trustedRoot = AndroidRootTrustPinV1.load(this)
+        if (trustedRoot == null) {
+            statusView.text = "The independently verified Root fingerprint pin is missing. Server enrollment blocked."
+            return
+        }
+        completeEnrollmentButton.isEnabled = false
+        statusView.text = "Submitting the locally verified approval to the configured staging Worker…"
+        Thread {
+            try {
+                val result = AndroidEnrollmentWorkerClientV1(endpoint)
+                    .completeEnrollment(request, approval, trustedRoot)
+                val decoded = AndroidEnrollmentQrEnvelopeV1.decodeRequest(request)
+                val consumed = (prefs.getStringSet(KEY_CONSUMED_CHALLENGES, emptySet()) ?: emptySet()).toMutableSet()
+                consumed.add(decoded.challengeId)
+                require(prefs.edit()
+                    .remove(KEY_PENDING_REQUEST)
+                    .remove(KEY_PENDING_APPROVAL)
+                    .putStringSet(KEY_CONSUMED_CHALLENGES, consumed)
+                    .putString(KEY_LAST_APPROVED_DEVICE_FP, result.getString("device_fp"))
+                    .putString(KEY_LAST_APPROVED_ROOT_FP, result.getString("root_fp"))
+                    .putString(KEY_LAST_APPROVAL_AT, System.currentTimeMillis().toString())
+                    .commit()) { "ENROLLMENT_STATE_PERSISTENCE_FAILED" }
+                runOnUiThread {
+                    enrollmentQrView.visibility = android.view.View.GONE
+                    statusView.text = "E-ZERO device enrollment confirmed by Worker.\\n\\nDevice fingerprint: ${result.getString("device_fp")}\\nRoot fingerprint: ${result.getString("root_fp")}\\n\\nStatus: ENROLLED. This does not enable FCM ringing, friend trust, or WebRTC calling."
+                }
+            } catch (error: Exception) {
+                runOnUiThread {
+                    completeEnrollmentButton.isEnabled = true
+                    statusView.text = "Worker did not confirm enrollment: ${error.message ?: "ENROLLMENT_FAILED"}. Pending evidence was retained; challenge may need a fresh request if the Worker consumed it."
+                }
+            }
+        }.start()
     }
 
     private fun showRootPinDialog() {
@@ -256,6 +378,7 @@ class MainActivity : Activity() {
         private const val REQUEST_QR_CAMERA = 703
         private const val ENROLLMENT_STATE_PREFS = "ezero_android_enrollment_state_v1"
         private const val KEY_PENDING_REQUEST = "pending_request_qr"
+        private const val KEY_PENDING_APPROVAL = "pending_approval_qr"
         private const val KEY_CONSUMED_CHALLENGES = "consumed_challenge_ids"
         private const val KEY_LAST_APPROVED_DEVICE_FP = "last_approved_device_fp"
         private const val KEY_LAST_APPROVED_ROOT_FP = "last_approved_root_fp"
