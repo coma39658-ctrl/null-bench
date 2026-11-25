@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 
 const ui = readFileSync(new URL("../js/ezero_root_android_approval_ui_v1.js", import.meta.url), "utf8");
 const page = readFileSync(new URL("../ezero-root-android-approval-staging.html", import.meta.url), "utf8");
+const qrEntry = readFileSync(new URL("../scripts/ezero_connect_qr_entry_v1.js", import.meta.url), "utf8");
 
 test("Root approval UI is bound to the canonical E-ZERO origin and protocol tags", () => {
   assert.match(ui, /const ORIGIN = "https:\/\/coma39658-ctrl\.github\.io"/);
@@ -31,6 +32,13 @@ test("approval output is QR-only and explicitly not Worker enrollment", () => {
   assert.match(ui, /Worker enrollment ابھی نہیں ہوا/);
   assert.doesNotMatch(ui, /fetch\s*\(/);
   assert.doesNotMatch(ui, /XMLHttpRequest/);
+});
+
+test("QR build entry exports the exact camera, gallery and encoder APIs used by the page", () => {
+  assert.match(qrEntry, /globalThis\\.EZERO_QR = Object\\.freeze\\(\\{ encodeDataUrl, decodeImageFile, startCamera \\}\\)/);
+  assert.match(qrEntry, /async function decodeImageFile\\(/);
+  assert.match(qrEntry, /async function startCamera\\(/);
+  assert.match(qrEntry, /function encodeDataUrl\\(/);
 });
 
 test("staging page loads only existing identity, signer, QR runtime and approval UI", () => {
