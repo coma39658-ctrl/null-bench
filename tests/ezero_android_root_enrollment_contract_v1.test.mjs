@@ -93,3 +93,16 @@ test("foreign browser origins remain rejected and admin root registration stays 
  assert.match(worker,/if \(request\.headers\.get\("Origin"\) !== ORIGIN\) return response\(\{error:"ORIGIN_DENIED"\},403\)/);
  assert.match(worker,/if \(rootAdminRoute && origin !== ORIGIN\) return response\(\{error:"ORIGIN_DENIED"\},403\)/);
 });
+
+test("enrollment endpoints apply privacy-preserving per-IP fixed-window limits",()=>{
+ const worker=readFileSync(fileURLToPath(new URL("../signaling/cloudflare/src/android_enrollment_candidate_v1.js",import.meta.url)),"utf8");
+ assert.match(worker,/CF-Connecting-IP/);
+ assert.match(worker,/X-EZERO-Client-IP/);
+ assert.match(worker,/crypto\.subtle\.digest\("SHA-256", enc\.encode\(clientIp\)\)/);
+ assert.match(worker,/const windowMs = admin \? 60 \* 60 \* 1000 : 60 \* 1000/);
+ assert.match(worker,/const limit = admin \? 3 : 10/);
+ assert.match(worker,/transactionSync\(tx => \{/);
+ assert.match(worker,/status:429/);
+ assert.match(worker,/Retry-After/);
+ assert.doesNotMatch(worker,/tx\.put\([^\n]*clientIp/,"raw client IP must never be persisted");
+});
