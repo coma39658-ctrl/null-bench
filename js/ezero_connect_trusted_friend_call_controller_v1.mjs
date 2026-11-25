@@ -176,8 +176,22 @@ export function createTrustedFriendCallController({
     throw error;
   });
 
+  function configure(options = {}) {
+    if (active) fail("TRUSTED_CALL_ALREADY_ACTIVE");
+    if (typeof options.callIdFactory === "function") callIdFactory = options.callIdFactory;
+    if (typeof options.mediaCallFactory === "function") mediaCallFactory = options.mediaCallFactory;
+    if (typeof options.now === "function") now = options.now;
+    if (typeof options.setTimer === "function") setTimer = options.setTimer;
+    if (typeof options.clearTimer === "function") clearTimer = options.clearTimer;
+    if (Array.isArray(options.iceServers)) iceServers = options.iceServers;
+    if (options.mediaDevices) mediaDevices = options.mediaDevices;
+    if (options.RTCPeerConnectionImpl) RTCPeerConnectionImpl = options.RTCPeerConnectionImpl;
+    return true;
+  }
+
   return Object.freeze({
     ready,
+    configure,
     async call(mode) {
       await ready;
       if (closed || !canStartNewCall() || !["audio", "video"].includes(mode)) fail("TRUSTED_CALL_NOT_AVAILABLE");
