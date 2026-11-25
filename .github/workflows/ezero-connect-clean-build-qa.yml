@@ -155,7 +155,7 @@ jobs:
           node --check tests/test_ezero_connect_live_call_route_v1.mjs
           node --check tests/test_ezero_connect_media_client_v1.mjs
       - name: Install isolated browser test dependency
-        run: npm install --no-save --no-audit --no-fund --ignore-scripts playwright@1.57.0 qr@0.7.2 esbuild@0.25.12 wrangler@4.165.0
+        run: npm install --no-save --no-audit --no-fund --ignore-scripts --legacy-peer-deps --package-lock=false playwright@1.57.0 qr@0.7.2 esbuild@0.25.12 wrangler@4.165.0
       - name: Build locally hosted QR runtime
         run: npm run build:ezero-qr
       - name: Validate Worker bundle and migrations without deploying
@@ -202,8 +202,10 @@ jobs:
       - name: Verify foreground media call controls and accepted-room handoff
         run: node tests/test_ezero_connect_media_client_v1.mjs
       - name: Verify live staging Worker health, literal inbox route and signed browser authentication
+        if: ${{ vars.EZERO_LIVE_STAGING_SMOKE == 'true' }}
         run: node tests/test_ezero_connect_live_inbox_smoke_v1.mjs
       - name: Verify live two-device inbox, signed call invite, accept and room relay
+        if: ${{ vars.EZERO_LIVE_STAGING_SMOKE == 'true' }}
         run: node tests/test_ezero_connect_live_call_route_v1.mjs
       - name: State evidence boundary
         run: echo 'AUTOMATED_CONTRACTS_ONLY_NO_PHYSICAL_TWO_PHONE_CALL_OR_ANDROID_BACKGROUND_RING_PROOF'
