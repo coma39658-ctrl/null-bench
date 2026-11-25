@@ -1,5 +1,5 @@
 name: E-ZERO Root Bootstrap Worker Hardening QA
-# Includes local Wrangler Durable Object integration checks.
+# Includes local Wrangler Durable Object integration checks; diagnostics revision.
 
 on:
   push:
