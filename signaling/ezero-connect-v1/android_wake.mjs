@@ -4,14 +4,14 @@ const FCM_SCOPE = "https://www.googleapis.com/auth/firebase.messaging";
 const FCM_GRANT = "urn:ietf:params:oauth:grant-type:jwt-bearer";
 
 function decodeBase64(value) {
-  const binary = atob(String(value).replace(/\\s+/g, ""));
+  const binary = atob(String(value).replace(/\s+/g, ""));
   return Uint8Array.from(binary, char => char.charCodeAt(0));
 }
 
 function encodeBase64Url(bytes) {
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/g, "");
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
 function derLength(length) {
@@ -40,12 +40,12 @@ export function rawEcdsaSignatureToDer(rawSignature) {
 
 export function canonicalWakeMessage({ wake_v, call_id, mode, expires_at, nonce }) {
   return encoder.encode(
-    "EZERO_CALL_WAKE_V1\\n" +
-    "wake_v=" + wake_v + "\\n" +
-    "call_id=" + call_id + "\\n" +
-    "mode=" + mode + "\\n" +
-    "expires_at=" + expires_at + "\\n" +
-    "nonce=" + nonce + "\\n"
+    "EZERO_CALL_WAKE_V1\n" +
+    "wake_v=" + wake_v + "\n" +
+    "call_id=" + call_id + "\n" +
+    "mode=" + mode + "\n" +
+    "expires_at=" + expires_at + "\n" +
+    "nonce=" + nonce + "\n"
   );
 }
 
