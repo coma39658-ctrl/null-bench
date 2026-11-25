@@ -80,6 +80,17 @@ header{height:76px;display:flex;align-items:center;justify-content:space-between
       <button class="action video" id="videoCall" type="button" disabled><i>▣</i><span id="videoLabel">ویڈیو کال</span></button>
     </div>
     <div class="status" id="callStatus" role="status" aria-live="polite">ابھی کوئی تصدیق شدہ دوست منتخب نہیں۔</div>
+    <div id="incomingCallActions" hidden style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+      <strong id="incomingCallLabel" style="width:100%;font-size:12px">آنے والی کال</strong>
+      <button class="primary" id="acceptIncomingCall" type="button">کال قبول کریں</button>
+      <button class="secondary" id="declineIncomingCall" type="button">کال مسترد کریں</button>
+      <button class="secondary" id="hangupCall" type="button" hidden>کال ختم کریں</button>
+    </div>
+    <div id="callMediaStage" hidden style="margin-top:10px;display:grid;gap:8px">
+      <video id="remoteCallVideo" playsinline autoplay style="width:100%;max-height:280px;object-fit:contain;border-radius:14px;background:#071b13" hidden></video>
+      <video id="localCallVideo" playsinline autoplay muted style="width:100%;max-height:140px;object-fit:cover;border-radius:14px;background:#071b13" hidden></video>
+      <audio id="remoteCallAudio" autoplay></audio>
+    </div>
   </section>
   <section class="panel">
     <div class="panel-head"><strong id="peopleTitle">آپ کے رابطے</strong><button class="secondary" id="addFriend" type="button">＋ دوست شامل کریں</button></div>
