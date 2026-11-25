@@ -129,7 +129,7 @@ try {
   // requested audio call. Platform media permission remains separate.
   await Promise.all([host, guest].map(page => page.waitForFunction(
     () => document.querySelector("#callStatus")?.textContent.includes("کال منسلک ہے"),
-    { timeout: 60000 }
+    undefined, { timeout: 60000 }
   )));
   assert.ok(await host.evaluate(() => window.__mediaCalls > 0),
     "Caller microphone should start only after the recipient's one Accept");
