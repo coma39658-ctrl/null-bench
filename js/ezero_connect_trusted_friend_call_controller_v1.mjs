@@ -51,7 +51,7 @@ export function createTrustedFriendCallController({
   const pendingMessages = [];
 
   function emit(state, detail = {}) {
-    const event = Object.freeze({ state, relationshipId, callId: active?.callId || null, mode: active?.mode || null, ...detail });
+    const event = Object.freeze({ ...detail, state, relationshipId, callId: active?.callId || null, mode: active?.mode || null });
     try { onState(event); } catch (_) {}
     for (const subscriber of [...subscribers]) { try { subscriber(event); } catch (_) {} }
   }
