@@ -230,6 +230,7 @@ export function createTrustedFriendCallController({
       emit("closed");
     },
     get state() { return phase; },
-    get callId() { return active?.callId || null; }
+    get callId() { return active?.callId || null; },
+    get mode() { return active?.mode || null; }
   });
 }
