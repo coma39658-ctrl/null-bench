@@ -100,10 +100,13 @@ export class AndroidEnrollmentRegistry extends DurableObject {
       const spki = decode64(body.root_spki, 512);
       if (!spki || spki.length < 80 || spki.length > 160)
         return response({error:"BAD_ROOT_KEY"},400);
+      let failureStage = "P256_IMPORT";
       try {
         await importP256(spki);
+        failureStage = "FINGERPRINT";
         const fp = await fingerprint(spki);
         if (fp !== expectedFp) return response({error:"ROOT_FINGERPRINT_MISMATCH"},403);
+        failureStage = "ATOMIC_STORAGE_TRANSACTION";
         const record = { spki:body.root_spki, added_at:Date.now(), active:true };
         // The durable transaction is the single-use gate. Concurrent requests
         // cannot both consume bootstrap authorization or install competing roots.
@@ -119,7 +122,7 @@ export class AndroidEnrollmentRegistry extends DurableObject {
         if (registered === "ROOT_ALREADY_REGISTERED") return response({error:"ROOT_ALREADY_REGISTERED"},409);
         return response({ok:true,root_fp:fp,status:"ROOT_REGISTERED"});
       } catch (error) {
-        console.error("ROOT_BOOTSTRAP_INTERNAL_FAILURE", error?.name || "Error", error?.message || "");
+        console.error("ROOT_BOOTSTRAP_INTERNAL_FAILURE", failureStage, error?.name || "Error", error?.message || "");
         return response({error:"BAD_ROOT_KEY"},400);
       }
     }
