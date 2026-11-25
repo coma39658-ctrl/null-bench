@@ -1,7 +1,7 @@
 package com.ezero.connect
 
 import android.content.Context
-import android.util.Base64
+import java.util.Base64
 import java.security.AlgorithmParameters
 import java.security.KeyFactory
 import java.security.MessageDigest
@@ -27,9 +27,10 @@ internal object AndroidRootTrustPinV1 {
         require(spkiBase64Url.matches(Regex("^[A-Za-z0-9_-]+$")) && spkiBase64Url.length % 4 != 1) {
             "ROOT_SPKI_BASE64URL_INVALID"
         }
-        val padded = spkiBase64Url.replace('-', '+').replace('_', '/') +
-            "=".repeat((4 - spkiBase64Url.length % 4) % 4)
-        val spki = Base64.decode(padded, Base64.DEFAULT)
+        val spki = Base64.getUrlDecoder().decode(spkiBase64Url)
+        require(Base64.getUrlEncoder().withoutPadding().encodeToString(spki) == spkiBase64Url) {
+            "ROOT_SPKI_BASE64URL_NON_CANONICAL"
+        }
         require(spki.size in 80..160) { "ROOT_SPKI_SIZE_INVALID" }
         val key = KeyFactory.getInstance("EC").generatePublic(X509EncodedKeySpec(spki)) as? ECPublicKey
             ?: throw IllegalArgumentException("ROOT_PUBLIC_KEY_INVALID")
