@@ -22,17 +22,15 @@ test("bootstrap validates actual P-256 SPKI before registration", () => {
   assert.match(route, /await fingerprint\(spki\)/);
 });
 
-test("bootstrap authorization and root insertion share one atomic transaction", () => {
-  assert.match(route, /this\.ctx\.storage\.transactionSync\(\(\) =>/);
-  assert.match(route, /SELECT used FROM ezero_root_bootstrap_state/);
-  assert.match(route, /ezero_root_bootstrap_state/);
+test("bootstrap authorization and root insertion share one atomic SQLite insert", () => {
   assert.match(route, /INSERT INTO ezero_root_bootstrap_state/);
-  assert.match(route, /INSERT INTO ezero_roots/);
+  assert.match(route, /ON CONFLICT\(id\) DO NOTHING/);
+  assert.match(route, /inserted\.rowsWritten !== 1/);
   assert.match(route, /BOOTSTRAP_ALREADY_USED/);
 });
 
 test("bootstrap cannot replace or add a second root", () => {
-  assert.match(route, /SELECT COUNT\(\*\) AS count FROM ezero_roots/);
+  assert.match(source, /id INTEGER PRIMARY KEY CHECK \(id = 1\)/);
   assert.match(route, /ROOT_ALREADY_REGISTERED/);
 });
 
