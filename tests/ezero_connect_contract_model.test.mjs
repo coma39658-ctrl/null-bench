@@ -56,7 +56,7 @@ test("decline, wrong recipient and expired call never authorize media", () => {
   const trusted = trustedFixture();
   const call = issueCall({ trusted, caller: "device-A", callee: "device-B", callId: "call-1", mode: "audio", now: NOW, expiresAt: NOW + 60_000 });
   assert.throws(() => ringCall(call, "outsider-C", NOW + 1), /CALL_RECIPIENT_INVALID/);
-  const declined = respondCall(ringCall(call, "device-B", NOW + 1), "B", "decline", NOW + 2);
+  const declined = respondCall(ringCall(call, "device-B", NOW + 1), "device-B", "decline", NOW + 2);
   assert.equal(declined.state, CALL.DECLINED);
   assert.throws(() => authorizeMedia(declined, NOW + 3), /MEDIA_NOT_AUTHORIZED/);
   const expired = ringCall(call, "device-B", NOW + 60_000);
