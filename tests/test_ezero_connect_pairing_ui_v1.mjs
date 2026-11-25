@@ -125,14 +125,20 @@ try {
   assert.equal(guestSavedFriend.displayName, "E-ZERO friend · " + hostIdentity.fingerprint.replaceAll(":", "").slice(0, 8));
   assert.equal(hostSavedFriend.remoteFingerprint, guestIdentity.fingerprint);
   assert.equal(guestSavedFriend.remoteFingerprint, hostIdentity.fingerprint);
-  assert.equal(await host.evaluate(() => window.__mediaCalls), 0);
-  assert.equal(await guest.evaluate(() => window.__mediaCalls), 0);
-  assert.equal(await host.locator("#audioCall").isDisabled(), true);
-  assert.equal(await host.locator("#videoCall").isDisabled(), true);
-  assert.equal(await guest.locator("#audioCall").isDisabled(), true);
-  assert.equal(await guest.locator("#videoCall").isDisabled(), true);
+  // The recipient's single pairing Accept also authorizes the first
+  // requested audio call. Platform media permission remains separate.
+  await Promise.all([host, guest].map(page => page.waitForFunction(
+    () => document.querySelector("#callStatus")?.textContent.includes("کال منسلک ہے"),
+    { timeout: 60000 }
+  )));
+  assert.ok(await host.evaluate(() => window.__mediaCalls > 0),
+    "Caller microphone should start only after the recipient's one Accept");
+  assert.ok(await guest.evaluate(() => window.__mediaCalls > 0),
+    "Recipient microphone should start after its one pairing Accept");
+  assert.equal(await host.locator("#hangupCall").isVisible(), true);
+  assert.equal(await guest.locator("#hangupCall").isVisible(), true);
 
-  console.log("EZERO_ONE_RECIPIENT_ACCEPT_AUTO_SAVES_BOTH_TRUSTED_FRIENDS_PASS");
+  console.log("EZERO_ONE_RECIPIENT_ACCEPT_BILATERAL_SAVE_AND_FIRST_AUDIO_CALL_PASS");
 } finally {
   for (const context of contexts) await context.close();
   await browser.close();
