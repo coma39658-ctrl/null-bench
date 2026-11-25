@@ -2,7 +2,7 @@ import { createHash, generateKeyPairSync } from "node:crypto";
 import { spawn } from "node:child_process";
 import assert from "node:assert/strict";
 
-// Diagnostic run: worker returns only a safe failure-stage label. SQL-backed atomic root bootstrap is under integration test. Latest revision exercises documented async atomic transaction. Re-run after assertion syntax correction. Single-use transaction now uses storage.kv. Atomic storage path now uses synchronous SQLite KV API.
+// Diagnostic run: worker returns only a safe failure-stage label. Final single-statement SQLite gate regression. SQL-backed atomic root bootstrap is under integration test. Latest revision exercises documented async atomic transaction. Re-run after assertion syntax correction. Single-use transaction now uses storage.kv. Atomic storage path now uses synchronous SQLite KV API.
 const origin = "https://coma39658-ctrl.github.io";
 const port = 8791 + Math.floor(Math.random() * 300);
 const secret = "ci-only-ezero-root-bootstrap-secret";
