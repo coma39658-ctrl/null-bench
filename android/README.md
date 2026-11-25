@@ -56,3 +56,12 @@ A successful build would only validate compilation. It would not validate push d
 ## Device enrollment and push contract
 
 See [DEVICE_REGISTRATION_AND_PUSH_CONTRACT.md](./DEVICE_REGISTRATION_AND_PUSH_CONTRACT.md) for the isolated staging design, enrollment ceremony, FCM payload allowlist, revocation/cancellation rules, and automated/physical acceptance gates. This is a preparation specification only; no registration API, FCM sender, or Worker deployment is active.
+
+
+## Native Accept to browser call handoff (staging)
+
+- A verified notification Accept now opens the configured E-ZERO Connect browser page with only the opaque call ID and mode in the query string.
+- Configure the approved HTTPS page at build time with Gradle property `-PezeroConnectUrl=https://<approved-ezero-origin>/<app-page>`. The default is blank; the Android app will not open an arbitrary or unconfigured URL.
+- The URL builder allowlists the E-ZERO GitHub Pages origin and the known E-ZERO Render preview origin. Update the allowlist only when a new staging origin is approved.
+- The browser handoff auto-accepts only an incoming trusted-call event whose call ID exactly matches the native Accept action. The browser call controller still verifies the saved relationship and remote fingerprint.
+- This handoff does not activate FCM. Firebase client configuration, authenticated token enrollment, server push sender, pinned wake key and physical locked-screen tests remain pending.
