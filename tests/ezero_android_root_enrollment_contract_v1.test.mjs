@@ -1,4 +1,6 @@
 import test from "node:test";
+import {readFileSync} from "node:fs";
+import {fileURLToPath} from "node:url";
 import assert from "node:assert/strict";
 import {createHash, generateKeyPairSync, sign, verify, createPublicKey} from "node:crypto";
 
@@ -75,4 +77,19 @@ test("challenge expiry, audience and field syntax fail closed",()=>{
  assert.equal(valid({...good,audience:"*"}),false);
  assert.equal(valid({...good,nonce:"tiny"}),false);
  assert.equal(valid({...good,expires_at:String(now+90001)}),false);
+});
+
+
+test("native Android requests may omit Origin only on proof-gated enrollment routes",()=>{
+ const worker=readFileSync(fileURLToPath(new URL("../signaling/cloudflare/src/android_enrollment_candidate_v1.js",import.meta.url)),"utf8");
+ assert.match(worker,/const androidRoute = u\.pathname === "\/v1\/android\/enrollment\/challenge" \|\|[\s\S]*?u\.pathname === "\/v1\/android\/enrollment\/complete"/);
+ assert.match(worker,/if \(rootAdminRoute && origin !== ORIGIN\) return response\(\{error:"ORIGIN_DENIED"\},403\)/);
+ assert.match(worker,/if \(androidRoute && origin !== null && origin !== ORIGIN\)[\s\S]*?ORIGIN_DENIED/);
+ assert.match(worker,/Native Android HTTP clients do not send a browser Origin header/);
+});
+
+test("foreign browser origins remain rejected and admin root registration stays origin-bound",()=>{
+ const worker=readFileSync(fileURLToPath(new URL("../signaling/cloudflare/src/android_enrollment_candidate_v1.js",import.meta.url)),"utf8");
+ assert.match(worker,/if \(request\.headers\.get\("Origin"\) !== ORIGIN\) return response\(\{error:"ORIGIN_DENIED"\},403\)/);
+ assert.match(worker,/if \(rootAdminRoute && origin !== ORIGIN\) return response\(\{error:"ORIGIN_DENIED"\},403\)/);
 });
