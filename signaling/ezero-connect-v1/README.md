@@ -1,20 +1,26 @@
 # E-ZERO Connect signaling — isolated staging worker
 
-This is a new, isolated signaling service for the clean E-ZERO Connect application. It does not import the previous signaling pilot and is not deployed.
+This is a new, isolated signaling service for the clean E-ZERO Connect application. It is separate from the previous signaling pilot and must only be deployed to the dedicated staging Worker.
+
+## Staging configuration
+
+- Worker: `ezero-connect-call-preview-20261125`
+- Browser origin: `https://ezero-connect-pr216-preview-20261125.onrender.com`
+- Worker endpoint: `wss://ezero-connect-call-preview-20261125.coma39658.workers.dev`
+
+The exact browser origin is configured as `PUBLIC_ORIGIN` in `wrangler.jsonc`. Do not use the production origin.
 
 ## Local configuration
 
 1. Install the pinned Wrangler CLI from the repository root.
-2. Copy .dev.vars.example to .dev.vars in this directory.
-3. Keep the local origin exact: http://127.0.0.1:8787.
-4. Run Wrangler from this directory with --config wrangler.jsonc.
-
-The checked-in PUBLIC_ORIGIN is deliberately a reserved .invalid placeholder. Replace it only in an isolated staging environment with the exact staging app origin. Do not use the production origin in this phase.
+2. Copy `.dev.vars.example` to `.dev.vars` in this directory.
+3. For local development only, set the origin to `http://127.0.0.1:8787`.
+4. Run Wrangler from this directory with `--config wrangler.jsonc`.
 
 ## Endpoints
 
-- GET /health: non-sensitive health response.
-- GET /v1/rooms/{32-char-room-id}?role=host|guest: WebSocket upgrade only.
+- `GET /health`: non-sensitive health response.
+- `GET /v1/rooms/{32-char-room-id}?role=host|guest`: WebSocket upgrade only.
 
 ## Handshake
 
@@ -35,4 +41,4 @@ The Worker stores only room metadata, public keys/fingerprints, role and expiry.
 
 ## Deployment boundary
 
-No Worker has been deployed. The wrangler.jsonc name and .invalid origin are staging placeholders. A real staging deployment requires an explicitly configured Cloudflare account, exact staging origin and dedicated Durable Object namespace. Production must not be targeted.
+The manual GitHub Actions workflow deploys only this isolated staging Worker and its Durable Object migrations. It requires dedicated repository secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. If either is missing, deployment fails closed. Production must not be targeted.
