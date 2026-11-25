@@ -6,7 +6,7 @@ const encoder = new TextEncoder();
 export function canonicalCallWakeV1({ wake_v, call_id, mode, expires_at, nonce }) {
   if (wake_v !== "1" || !CALL_ID.test(call_id || "") ||
       !["AUDIO", "VIDEO"].includes(mode) ||
-      !/^\\d{13}$/.test(String(expires_at)) || !NONCE.test(nonce || "")) {
+      !/^\d{13}$/.test(String(expires_at)) || !NONCE.test(nonce || "")) {
     throw new TypeError("Invalid E-ZERO call-wake fields");
   }
   return encoder.encode(
@@ -41,6 +41,6 @@ export async function signCallWakeV1({ privateKey, call_id, mode, nonce, nowMill
   ));
   let binary = "";
   for (const byte of signature) binary += String.fromCharCode(byte);
-  const server_sig = btoa(binary).replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/g, "");
+  const server_sig = btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
   return { ...fields, server_sig };
 }
