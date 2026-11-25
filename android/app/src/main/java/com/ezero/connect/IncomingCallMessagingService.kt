@@ -16,6 +16,13 @@ class IncomingCallMessagingService : FirebaseMessagingService() {
         if (!IncomingCallWakeSignatureVerifier.verify(message.data)) return
 
         val payload = IncomingCallPayload.parse(message.data) ?: return
+        // Persist nonce and call-ID before showing the notification. Duplicate
+        // FCM delivery and process restarts must not resurrect an already-seen call.
+        val replayGuard = IncomingCallReplayGuard(
+            SharedPreferencesWakeReplayStore(applicationContext)
+        )
+        if (!replayGuard.accept(payload.nonce, payload.callId, payload.expiresAt)) return
+
         IncomingCallNotifications.show(
             context = this,
             callId = payload.callId,
