@@ -88,16 +88,43 @@ export default {
     return env.ENROLLMENT.get(id).fetch(new Request("https://enrollment.internal"+u.pathname,{
       method:"POST",headers:{
         "Content-Type":"application/json",
-        "X-Root-Bootstrap":request.headers.get("X-Root-Bootstrap") || ""
+        "X-Root-Bootstrap":request.headers.get("X-Root-Bootstrap") || "",
+        // Cloudflare supplies CF-Connecting-IP at the edge; only its hash is persisted.
+        "X-EZERO-Client-IP":request.headers.get("CF-Connecting-IP") || "unknown"
       },body:JSON.stringify(body)
     }));
   }
 };
 
 export class AndroidEnrollmentRegistry extends DurableObject {
+  async consumeRateLimit(request, route) {
+    const clientIp = request.headers.get("X-EZERO-Client-IP") || "unknown";
+    // Do not persist raw IP addresses; use a one-way digest in the per-route bucket key.
+    const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(clientIp)));
+    const key = "rate:" + route + ":" + hex(digest);
+    const now = Date.now();
+    const admin = route === "/v1/admin/root-register";
+    const windowMs = admin ? 60 * 60 * 1000 : 60 * 1000;
+    const limit = admin ? 3 : 10;
+    const windowStart = Math.floor(now / windowMs) * windowMs;
+    return this.ctx.storage.transactionSync(tx => {
+      const previous = tx.get(key);
+      const count = previous?.window_start === windowStart ? previous.count : 0;
+      if (count >= limit) return false;
+      tx.put(key, { window_start:windowStart, count:count + 1 });
+      return true;
+    });
+  }
+
   async fetch(request) {
     const u = new URL(request.url), body = await readJson(request);
     if (!body) return response({error:"BAD_BODY"},400);
+    const rateAllowed = await this.consumeRateLimit(request, u.pathname);
+    if (!rateAllowed) return new Response(JSON.stringify({error:"RATE_LIMITED"}), {
+      status:429, headers:{"Content-Type":"application/json; charset=utf-8",
+        "Cache-Control":"no-store","Retry-After":u.pathname === "/v1/admin/root-register" ? "3600" : "60",
+        "X-Content-Type-Options":"nosniff","Access-Control-Allow-Origin":ORIGIN,"Vary":"Origin"}
+    });
 
     if (u.pathname === "/v1/admin/root-register") {
       const secret = this.env.ROOT_BOOTSTRAP_SECRET;
