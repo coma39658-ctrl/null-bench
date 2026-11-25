@@ -196,12 +196,24 @@ export function createTrustedFriendCallController({
       await ready;
       if (closed || phase !== "incoming" || !isLive(active)) fail("TRUSTED_CALL_NO_INCOMING_INVITE");
       const call = active;
-      clearExpiry();
-      signalingSession.send("call-accept", { callId: call.callId });
       phase = "accepted";
       emit("accepted");
-      try { await startMedia("callee"); }
-      catch (error) { reset("failed", { error: error?.message || "CALL_MEDIA_START_FAILED" }); throw error; }
+      try {
+        // Prepare the callee peer connection and attach its signaling listener
+        // before telling the caller to send the WebRTC offer. Otherwise a fast
+        // caller can send call-offer while getUserMedia is still pending, and
+        // the callee misses that one-shot offer.
+        await startMedia("callee");
+        if (closed || active?.callId !== call.callId || !isLive(call)) fail("TRUSTED_CALL_EXPIRED");
+        clearExpiry();
+        signalingSession.send("call-accept", { callId: call.callId });
+      } catch (error) {
+        if (active?.callId === call.callId) {
+          try { signalingSession.send("call-decline", { callId: call.callId }); } catch (_) {}
+          reset("failed", { error: error?.message || "CALL_MEDIA_START_FAILED" });
+        }
+        throw error;
+      }
       return Object.freeze({ callId: call.callId, mode: call.mode });
     },
     async decline() {
