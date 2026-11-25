@@ -64,6 +64,9 @@
     if (!valid) throw new Error("DEVICE_PROOF_INVALID");
     return f;
   }
+  function assertCanonicalOrigin() {
+    if (location.origin !== ORIGIN) throw new Error("NON_CANONICAL_ROOT_ORIGIN");
+  }
   function stopCamera() {
     if (cameraStop) { cameraStop(); cameraStop = null; }
     $("camera").hidden = true;
@@ -79,6 +82,7 @@
     $("consent").checked = false;
     pending = null;
     try {
+      assertCanonicalOrigin();
       const f = await verifyRequest(raw);
       const identity = await globalThis.EZERO_CONNECT_IDENTITY.load();
       if (!identity) throw new Error("ROOT_IDENTITY_NOT_FOUND_ON_THIS_ORIGIN");
@@ -117,6 +121,8 @@
     finally { event.target.value = ""; }
   });
   $("approve").addEventListener("click", async () => {
+    try { assertCanonicalOrigin(); }
+    catch (e) { setStatus("منظوری روک دی گئی: "+String(e.message||e), true); return; }
     if (!pending || !$("consent").checked) { setStatus("منظوری کے لیے واضح تصدیق ضروری ہے۔", true); return; }
     $("approve").disabled = true;
     try {
