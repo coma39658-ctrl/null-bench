@@ -140,7 +140,8 @@ export class AndroidEnrollmentRegistry extends DurableObject {
         const rootSpki=decode64(root.spki,512);
         if (await fingerprint(rootSpki)!==c.root_fp) return response({error:"ROOT_REGISTRY_CORRUPT"},503);
         const rootKey=await importP256(rootSpki);
-        const sig=decode64(body.signature,180);
+        const sig=decode64(body.signature,86);
+        if (!sig || sig.length !== 64) return response({error:"SIGNATURE_ENCODING"},400);
         const bytes=canonical("EZERO_ROOT_DEVICE_MANAGEMENT_V1",c,MANAGEMENT_ORDER);
         const valid=await crypto.subtle.verify({name:"ECDSA",hash:"SHA-256"},rootKey,sig,bytes);
         if (!valid) return response({error:"PROOF_INVALID"},403);
@@ -213,8 +214,10 @@ export class AndroidEnrollmentRegistry extends DurableObject {
         const rootSpki = decode64(root.spki,512);
         if (await fingerprint(rootSpki) !== body.root_fp) return response({error:"ROOT_REGISTRY_CORRUPT"},503);
         const rootKey = await importP256(rootSpki);
-        const deviceSig = decode64(body.device_proof,180);
-        const rootSig = decode64(body.root_approval,180);
+        const deviceSig = decode64(body.device_proof,86);
+        const rootSig = decode64(body.root_approval,86);
+        if (!deviceSig || !rootSig || deviceSig.length !== 64 || rootSig.length !== 64)
+          return response({error:"SIGNATURE_ENCODING"},400);
         const challengeBytes = canonical("EZERO_ANDROID_ENROLL_CHALLENGE_V1",c,CHALLENGE_ORDER);
         const approval = {
           root_fp:body.root_fp, device_fp:c.device_fp, challenge_id:c.challenge_id,
