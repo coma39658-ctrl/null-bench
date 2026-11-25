@@ -7,6 +7,7 @@ on:
       - ezero-android-home-icon-staging-20261120
       - ezero-android-package-isolated-staging75-20261122
       - ezero-android-fcm-replay-guard-staging-20261125
+      - ezero-fcm-canonical-interoperability-staging-20261125
     paths:
       - "android/**"
       - ".github/workflows/ezero-android-host-build-staging.yml"
