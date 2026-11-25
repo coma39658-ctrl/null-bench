@@ -63,8 +63,8 @@ try {
 
   const concurrent = await Promise.all([register(), register()]);
   const statuses = concurrent.map(r => r.status).sort((a,b) => a-b);
-  assert.deepEqual(statuses, [200, 409], "exactly one concurrent bootstrap request may succeed");
   const bodies = await Promise.all(concurrent.map(r => r.clone().json()));
+  assert.deepEqual(statuses, [200, 409], "exactly one concurrent bootstrap request may succeed; responses=" + JSON.stringify(bodies));
   const success = bodies.find(b => b.ok === true);
   assert.equal(success.root_fp, expectedFp);
   assert.equal(JSON.stringify(bodies).includes(secret), false, "secret must not appear in responses");
