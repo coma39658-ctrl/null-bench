@@ -1,0 +1,35 @@
+name: E-ZERO Android Enrollment QR UI Staging QA
+
+on:
+  push:
+    branches:
+      - ezero-android-enrollment-qr-ui-staging-20261125
+  pull_request:
+    branches:
+      - ezero-android-worker-client-staging-20261125
+    paths:
+      - "android/**"
+      - ".github/workflows/ezero-android-enrollment-qr-ui-staging-qa.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  android-enrollment-qr-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Confirm endpoint defaults to disabled
+        run: |
+          grep -q 'ezeroAndroidEnrollmentWorkerEndpoint' android/app/build.gradle.kts
+          grep -q 'ANDROID_ENROLLMENT_WORKER_ENDPOINT.isNotBlank()' android/app/src/main/java/com/ezero/connect/MainActivity.kt
+          grep -q 'No network request was sent' android/app/src/main/java/com/ezero/connect/MainActivity.kt
+      - name: Run Android unit tests
+        run: gradle -p android :app:testDebugUnitTest
+      - name: Assemble isolated staging APK
+        run: gradle -p android :app:assembleDebug
