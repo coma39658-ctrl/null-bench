@@ -35,6 +35,7 @@ jobs:
       - name: Check isolated Root public identity page contract
         run: |
           node --check js/ezero_connect_identity_v1.js
+          node --check js/ezero_connect_root_signer_v1.js
           node tests/test_ezero_root_public_identity_page_v1.mjs
 
       - name: Check AI browser contract and external link safety
