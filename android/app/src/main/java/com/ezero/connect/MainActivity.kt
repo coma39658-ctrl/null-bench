@@ -183,7 +183,7 @@ class MainActivity : Activity() {
                 }
                 if (multiLine) minLines = 3
                 setTextIsSelectable(true)
-            }.also(fields::addView)
+            }.also { fields.addView(it) }
         }
         val spkiInput = field("Root Public SPKI (Base64URL)", true)
         val fingerprintInput = field("Root SHA-256 fingerprint (64 lowercase hex)")
