@@ -141,7 +141,7 @@ export class AndroidEnrollmentRegistry extends DurableObject {
         );
         // Read changes() synchronously before yielding; the singleton PK makes
         // the insert itself the atomic one-use gate.
-        const inserted = sql.exec("SELECT changes() AS changes").one().changes === 1;
+        const inserted = sql.exec("SELECT changes() AS changes").one().changes;
         let registered = "REGISTERED";
         if (!inserted) {
           const existing = sql.exec(
