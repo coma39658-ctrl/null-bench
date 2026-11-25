@@ -113,6 +113,7 @@ const delivered = recipientSocket.sent.find(value => value.type === "relay" && v
 assert.equal(delivered?.fromFingerprint, fpA);
 assert.equal(delivered?.message?.payload?.callId, queuedCallId);
 assert.equal(await fakeStorage.get("pendingCall"), undefined);
+fakeSockets.splice(fakeSockets.indexOf(recipientSocket), 1);
 
 const cancelledCallId = b64(new Uint8Array(24).fill(12));
 const cancelAt = Date.now();
