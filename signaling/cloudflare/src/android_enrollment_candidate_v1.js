@@ -90,15 +90,13 @@ export class AndroidEnrollmentRegistry extends DurableObject {
     super(ctx, env);
     ctx.blockConcurrencyWhile(() => {
       ctx.storage.sql.exec(`
-        CREATE TABLE IF NOT EXISTS ezero_roots (
-          fp TEXT PRIMARY KEY,
+        CREATE TABLE IF NOT EXISTS ezero_root_bootstrap_state (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          used INTEGER NOT NULL,
+          root_fp TEXT NOT NULL UNIQUE,
           spki TEXT NOT NULL,
           added_at INTEGER NOT NULL,
           active INTEGER NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS ezero_root_bootstrap_state (
-          id INTEGER PRIMARY KEY CHECK (id = 1),
-          used INTEGER NOT NULL
         );
       `);
     });
@@ -106,7 +104,7 @@ export class AndroidEnrollmentRegistry extends DurableObject {
 
   rootRecord(fp) {
     return this.ctx.storage.sql.exec(
-      "SELECT fp, spki, added_at, active FROM ezero_roots WHERE fp = ?",
+      "SELECT root_fp AS fp, spki, added_at, active FROM ezero_root_bootstrap_state WHERE id = 1 AND root_fp = ?",
       fp
     ).toArray()[0] || null;
   }
@@ -134,23 +132,20 @@ export class AndroidEnrollmentRegistry extends DurableObject {
         failureStage = "ATOMIC_STORAGE_TRANSACTION";
         // The durable transaction is the single-use gate. Concurrent requests
         // cannot both consume bootstrap authorization or install competing roots.
-        const registered = this.ctx.storage.transactionSync(() => {
-          const sql = this.ctx.storage.sql;
-          const used = sql.exec(
-            "SELECT used FROM ezero_root_bootstrap_state WHERE id = 1"
+        const sql = this.ctx.storage.sql;
+        // A single INSERT is the atomic gate: the singleton primary key allows
+        // only one root bootstrap to commit, even for concurrent requests.
+        const inserted = sql.exec(
+          "INSERT INTO ezero_root_bootstrap_state (id, used, root_fp, spki, added_at, active) VALUES (1, 1, ?, ?, ?, 1) ON CONFLICT(id) DO NOTHING",
+          fp, body.root_spki, Date.now()
+        );
+        let registered = "REGISTERED";
+        if (inserted.rowsWritten !== 1) {
+          const existing = sql.exec(
+            "SELECT root_fp FROM ezero_root_bootstrap_state WHERE id = 1"
           ).toArray()[0];
-          if (used?.used === 1) return "USED";
-          const count = sql.exec("SELECT COUNT(*) AS count FROM ezero_roots").one().count;
-          if (count !== 0) return "ROOT_ALREADY_REGISTERED";
-          sql.exec(
-            "INSERT INTO ezero_roots (fp, spki, added_at, active) VALUES (?, ?, ?, 1)",
-            fp, body.root_spki, Date.now()
-          );
-          sql.exec(
-            "INSERT INTO ezero_root_bootstrap_state (id, used) VALUES (1, 1)"
-          );
-          return "REGISTERED";
-        });
+          registered = existing?.root_fp === fp ? "USED" : "ROOT_ALREADY_REGISTERED";
+        }
         if (registered === "USED") return response({error:"BOOTSTRAP_ALREADY_USED"},409);
         if (registered === "ROOT_ALREADY_REGISTERED") return response({error:"ROOT_ALREADY_REGISTERED"},409);
         return response({ok:true,root_fp:fp,status:"ROOT_REGISTERED"});
