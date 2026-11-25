@@ -25,8 +25,8 @@ function validateIncomingCallPush(value, now = Date.now()) {
   });
 }
 
-function notificationOptions(envelope) {
-  const safe = validateIncomingCallPush(envelope);
+function notificationOptions(envelope, now = Date.now()) {
+  const safe = validateIncomingCallPush(envelope, now);
   if (!safe) return null;
   return {
     body: "Open E-ZERO Connect to review the call request.",
