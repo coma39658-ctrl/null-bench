@@ -24,8 +24,10 @@ class FakePeerConnection {
     FakePeerConnection.instances.push(this);
   }
   addTrack(track, stream) { this.added.push({ track, stream }); }
-  async createOffer() { return { type: "offer", sdp: "v=0\r\n".padEnd(120, "x") }; }
-  async createAnswer() { return { type: "answer", sdp: "v=0\r\n".padEnd(120, "y") }; }
+  async createOffer() { return { type: "offer", sdp: "v=0\r
+".padEnd(120, "x") }; }
+  async createAnswer() { return { type: "answer", sdp: "v=0\r
+".padEnd(120, "y") }; }
   async setLocalDescription(value) { this.localDescription = value; }
   async setRemoteDescription(value) { this.remoteDescription = value; }
   async addIceCandidate(value) { (this.candidates ||= []).push(value); }
@@ -61,7 +63,8 @@ assert.equal(FakePeerConnection.instances.at(-1).added.length, 1);
 assert.equal(FakePeerConnection.instances.at(-1).added[0].track.kind, "audio");
 assert.equal(signaling.sent.at(-1).type, "call-offer");
 assert.equal(signaling.sent.at(-1).payload.callId === callId && signaling.sent.at(-1).payload.sdp.length <= 12_000, true);
-await signaling.receive({ type: "answer", payload: { sdp: "v=0\r\n".padEnd(120, "z") } });
+await signaling.receive({ type: "answer", payload: { sdp: "v=0\r
+".padEnd(120, "z") } });
 assert.equal(FakePeerConnection.instances.at(-1).remoteDescription.type, "answer");
 const callerPc = FakePeerConnection.instances.at(-1);
 callerPc.connectionState = "connected";
@@ -91,7 +94,8 @@ await callee.start();
 assert.equal(videoCalls.length, 1);
 const calleePc = FakePeerConnection.instances.at(-1);
 assert.equal(calleePc.added.length, 2);
-await incomingSignal.receive({ type: "offer", payload: { sdp: "v=0\r\n".padEnd(120, "o") } });
+await incomingSignal.receive({ type: "offer", payload: { sdp: "v=0\r
+".padEnd(120, "o") } });
 assert.equal(calleePc.remoteDescription.type, "offer");
 assert.equal(incomingSignal.sent.at(-1).type, "call-answer");
 callee.close();
@@ -105,4 +109,5 @@ console.log("PASS WebRTC media call requests no permissions until explicit start
 console.log("PASS audio mode requests microphone only and never opens camera");
 console.log("PASS video mode requests audio and camera only after explicit start");
 console.log("PASS caller offer and callee answer are bound to the active call ID");
-console.log("PASS hangup closes peer connection and stops every local media track");\nconsole.log("PASS signals for another call ID are ignored");
+console.log("PASS hangup closes peer connection and stops every local media track");
+console.log("PASS signals for another call ID are ignored");
