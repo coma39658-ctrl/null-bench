@@ -17,6 +17,7 @@ class CallActionReceiver : BroadcastReceiver() {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
             putExtra(EXTRA_ACTION, action)
             putExtra(EXTRA_CALL_ID, callId)
+            putExtra(EXTRA_MODE, intent.getStringExtra(EXTRA_MODE) ?: "AUDIO")
         }
         context.startActivity(open)
     }
@@ -26,5 +27,6 @@ class CallActionReceiver : BroadcastReceiver() {
         const val ACTION_REJECT = "com.ezero.connect.REJECT_CALL"
         const val EXTRA_ACTION = "ezero_call_action"
         const val EXTRA_CALL_ID = "ezero_call_id"
+        const val EXTRA_MODE = "ezero_call_mode"
     }
 }
