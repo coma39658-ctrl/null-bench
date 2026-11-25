@@ -1,6 +1,6 @@
 # E-ZERO Android Enrollment Storage Lifecycle Hardening — V1
 
-Status: STAGING DESIGN / NOT DEPLOYED
+Status: PARTIAL STAGING IMPLEMENTATION / NOT DEPLOYED
 
 Base: `4182ce7dad787495e323835ac6fae4d0ffb10f4d` (PR #207 runtime-test candidate)
 
@@ -56,3 +56,17 @@ Close the storage lifecycle risks identified by the security review before any W
 - Keep this branch and its PR Draft/open/unmerged.
 - No Worker deployment, Root registration, secret provisioning, production configuration change, or FCM/push work is authorized by this scope.
 - No claim of background ringing, saved-friend calling, or two-phone end-to-end success.
+
+## Implementation progress — alarm cleanup slice
+
+Implemented on branch `ezero-enrollment-alarm-cleanup-staging-20261125`:
+
+- Challenge and rate-bucket expiry rows use a timestamp-sorted index.
+- Durable Object alarms process at most 100 expiry rows per invocation.
+- Expired challenge rows and expired rate buckets are deleted with their index rows.
+- A stale rate-bucket index cannot delete a bucket refreshed into a newer window.
+- Cleanup reschedules itself for the next expiry; overdue batches yield to another alarm after one second.
+- Completion atomically consumes the challenge and removes its expiry index.
+- Runtime tests added for expired challenge cleanup, unexpired challenge retention, multi-batch cleanup, and expired rate-bucket cleanup.
+
+Not yet verified: these new tests must pass in the Cloudflare Workers runtime CI. Global abuse ceilings, validated device-level limits, Root/device lifecycle endpoints, and broader concurrency/scheduling race tests remain open. No deployment or Root registration has occurred.
