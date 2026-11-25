@@ -23,10 +23,10 @@ test("bootstrap validates actual P-256 SPKI before registration", () => {
 });
 
 test("bootstrap authorization and root insertion share one atomic transaction", () => {
-  assert.match(route, /transactionSync\(tx =>/);
-  assert.match(route, /root-bootstrap-v1-used/);
-  assert.match(route, /tx\.put\("root-bootstrap-v1-used", true\)/);
-  assert.match(route, /tx\.put\("roots", \{ \[fp\]: record \}\)/);
+  assert.match(route, /transactionSync\(\(\) =>/);
+  assert.match(route, /this\.ctx\.storage\.kv/);\n  assert.match(route, /root-bootstrap-v1-used/);
+  assert.match(route, /kv\.put\("root-bootstrap-v1-used", true\)/);
+  assert.match(route, /kv\.put\("roots", \{ \[fp\]: record \}\)/);
   assert.match(route, /BOOTSTRAP_ALREADY_USED/);
 });
 
