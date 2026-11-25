@@ -2,7 +2,8 @@
   "use strict";
   const ALLOWED_MESSAGES = new Set([
     "trust-request", "trust-approval", "trust-decline",
-    "call-invite", "call-accept", "call-decline", "hangup",
+    "call-invite", "call-accept", "call-decline", "call-hangup",
+    "call-offer", "call-answer", "call-ice-candidate", "hangup",
     "offer", "answer", "ice-candidate", "profile-metadata"
   ]);
   const MAX_MESSAGE_BYTES = 16 * 1024;
