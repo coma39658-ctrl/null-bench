@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - ezero-android-root-enrollment-worker-candidate-20261125
+      - ezero-android-native-worker-origin-staging-20261125
+      - ezero-android-enrollment-worker-integration-staging-20261125
     paths:
       - "signaling/cloudflare/src/android_enrollment_candidate_v1.js"
       - "signaling/cloudflare/wrangler.android-enrollment-candidate-v1.jsonc"

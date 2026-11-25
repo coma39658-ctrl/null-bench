@@ -1,4 +1,6 @@
 import test from "node:test";
+import {readFileSync} from "node:fs";
+import {fileURLToPath} from "node:url";
 import assert from "node:assert/strict";
 import {createHash, generateKeyPairSync, sign, verify, createPublicKey} from "node:crypto";
 
@@ -6,7 +8,7 @@ const fp = spki => createHash("sha256").update(spki).digest("hex");
 const canonical = (tag, fields, order) => Buffer.from(tag+"\n"+order.map(k=>k+"="+fields[k]+"\n").join(""),"utf8");
 const CHALLENGE_ORDER=["challenge_id","device_fp","nonce","audience","expires_at"];
 const APPROVAL_ORDER=["root_fp","device_fp","challenge_id","nonce","audience","expires_at"];
-const signBytes=(key,bytes)=>sign("sha256",bytes,{key,dsaEncoding:"der"});
+const signBytes=(key,bytes)=>sign("sha256",bytes,{key,dsaEncoding:"ieee-p1363"});
 const verifyBytes=(key,bytes,sig)=>verify("sha256",bytes,key,sig);
 
 function fixture(){
@@ -26,9 +28,10 @@ test("fingerprints are recomputed from SPKI, not accepted as labels",()=>{
  assert.notEqual(fp(f.deviceSpki),f.rootFp);
 });
 
-test("Android device proof verifies only against the exact challenge and device key",()=>{
+test("Android device proof uses 64-byte P1363 and verifies only against the exact challenge and device key",()=>{
  const f=fixture(), bytes=canonical("EZERO_ANDROID_ENROLL_CHALLENGE_V1",f.challenge,CHALLENGE_ORDER);
  const proof=signBytes(f.device.privateKey,bytes);
+ assert.equal(proof.length,64,"WebCrypto ECDSA verification expects IEEE-P1363 r||s bytes");
  assert.equal(verifyBytes(createPublicKey({key:f.deviceSpki,type:"spki",format:"der"}),bytes,proof),true);
  assert.equal(verifyBytes(f.root.publicKey,bytes,proof),false);
  assert.equal(verifyBytes(f.device.publicKey,canonical("EZERO_ANDROID_ENROLL_CHALLENGE_V1",{...f.challenge,nonce:"changednonceabcdefghijkl"},CHALLENGE_ORDER),proof),false);
@@ -75,4 +78,32 @@ test("challenge expiry, audience and field syntax fail closed",()=>{
  assert.equal(valid({...good,audience:"*"}),false);
  assert.equal(valid({...good,nonce:"tiny"}),false);
  assert.equal(valid({...good,expires_at:String(now+90001)}),false);
+});
+
+
+test("native Android requests may omit Origin only on proof-gated enrollment routes",()=>{
+ const worker=readFileSync(fileURLToPath(new URL("../signaling/cloudflare/src/android_enrollment_candidate_v1.js",import.meta.url)),"utf8");
+ assert.match(worker,/const androidRoute = u\.pathname === "\/v1\/android\/enrollment\/challenge" \|\|[\s\S]*?u\.pathname === "\/v1\/android\/enrollment\/complete"/);
+ assert.match(worker,/if \(rootAdminRoute && origin !== ORIGIN\) return response\(\{error:"ORIGIN_DENIED"\},403\)/);
+ assert.match(worker,/if \(androidRoute && origin !== null && origin !== ORIGIN\)[\s\S]*?ORIGIN_DENIED/);
+ assert.match(worker,/Native Android HTTP clients do not send a browser Origin header/);
+});
+
+test("foreign browser origins remain rejected and admin root registration stays origin-bound",()=>{
+ const worker=readFileSync(fileURLToPath(new URL("../signaling/cloudflare/src/android_enrollment_candidate_v1.js",import.meta.url)),"utf8");
+ assert.match(worker,/if \(request\.headers\.get\("Origin"\) !== ORIGIN\) return response\(\{error:"ORIGIN_DENIED"\},403\)/);
+ assert.match(worker,/if \(rootAdminRoute && origin !== ORIGIN\) return response\(\{error:"ORIGIN_DENIED"\},403\)/);
+});
+
+test("enrollment endpoints apply privacy-preserving per-IP fixed-window limits",()=>{
+ const worker=readFileSync(fileURLToPath(new URL("../signaling/cloudflare/src/android_enrollment_candidate_v1.js",import.meta.url)),"utf8");
+ assert.match(worker,/CF-Connecting-IP/);
+ assert.match(worker,/X-EZERO-Client-IP/);
+ assert.match(worker,/crypto\.subtle\.digest\("SHA-256", enc\.encode\(clientIp\)\)/);
+ assert.match(worker,/const windowMs = admin \? 60 \* 60 \* 1000 : 60 \* 1000/);
+ assert.match(worker,/const limit = admin \? 3 : 10/);
+ assert.match(worker,/transactionSync\(tx => \{/);
+ assert.match(worker,/status:429/);
+ assert.match(worker,/Retry-After/);
+ assert.doesNotMatch(worker,/tx\.put\([^\n]*clientIp/,"raw client IP must never be persisted");
 });
