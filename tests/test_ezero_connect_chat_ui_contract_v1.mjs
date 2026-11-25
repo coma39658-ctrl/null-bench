@@ -7,7 +7,7 @@ const session = await readFile(new URL("../js/ezero_connect_trusted_friend_sessi
 
 for (const id of [
   "chatPanel", "chatMessages", "chatMessage", "sendChatMessage",
-  "recordVoice", "stopVoice", "cancelVoice", "sendVoice", "voicePreview"
+  "recordVoice", "stopVoice", "cancelVoice", "sendVoice", "voicePreview", "audioCall", "videoCall", "callStatus", "incomingCallActions", "acceptIncomingCall", "declineIncomingCall", "hangupCall", "remoteCallVideo", "localCallVideo", "remoteCallAudio"
 ]) assert.match(html, new RegExp('id="' + id + '"'));
 assert.match(html, /id="chatPanel" hidden/);
 assert.match(html, /id="sendChatMessage" type="button" disabled/);
@@ -16,6 +16,16 @@ assert.match(html, /type="module" src="\.\/js\/ezero_connect_chat_ui_v1\.mjs"/);
 
 assert.match(ui, /ezero:friend-selected/);
 assert.match(ui, /createTrustedFriendMessagingSession/);
+assert.match(ui, /session\.createCallController/);
+assert.match(ui, /callController\.call\("audio"\)/);
+assert.match(ui, /callController\.call\("video"\)/);
+assert.match(ui, /callController\.accept\(\)/);
+assert.match(ui, /callController\.decline\(\)/);
+assert.match(ui, /callController\?\.hangup\(\)/);
+assert.match(ui, /callState === "incoming"/);
+assert.match(ui, /onLocalStream:/);
+assert.match(ui, /onRemoteStream:/);
+assert.match(ui, /callController\.ready/);
 assert.match(ui, /navigator\.mediaDevices\?\.getUserMedia/);
 assert.match(ui, /addEventListener\("click", async \(\) => \{/);
 assert.match(ui, /12_000/);
@@ -51,6 +61,8 @@ assert.match(session, /transport\.sendProfile\(bytes\)/);
 
 console.log("PASS saved-friend chat controls are hidden until a verified friend is selected");
 console.log("PASS text and voice send require an established secure session");
+console.log("PASS audio/video buttons, incoming accept/decline and hangup are wired to trusted saved-friend call control");
+console.log("PASS media streams attach to call UI only after accepted call start");
 console.log("PASS microphone is requested only by the explicit record button");
 console.log("PASS voice recording is bounded, cancellable, and not auto-sent");
 console.log("PASS Delivered label is applied only after the send promise confirms authenticated receipt");

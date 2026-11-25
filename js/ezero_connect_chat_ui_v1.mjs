@@ -20,7 +20,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       failed:"وصولی کی تصدیق نہیں ملی؛ Delivered نہیں دکھایا گیا۔",
       received:"موصول ہوا", notReady:"پہلے محفوظ دوست کے ساتھ کنکشن بننے دیں۔",
       voiceIncoming:"وائس پیغام", error:"محفوظ چیٹ کنکشن دستیاب نہیں۔",
-      noRelation:"اس محفوظ دوست کا relationship ID دستیاب نہیں۔", shareProfile:"اپنی DP محفوظ دوست کو بھیجیں", profileSent:"پروفائل تصویر محفوظ کنکشن پر بھیج دی گئی۔", profileReceived:"دوست کی DP فون میں محفوظ ہو گئی", profileMissing:"پہلے اپنی پروفائل میں تصویر محفوظ کریں۔", profileInvalid:"موصولہ پروفائل تصویر درست نہیں۔"
+      noRelation:"اس محفوظ دوست کا relationship ID دستیاب نہیں۔", shareProfile:"اپنی DP محفوظ دوست کو بھیجیں", profileSent:"پروفائل تصویر محفوظ کنکشن پر بھیج دی گئی۔", profileReceived:"دوست کی DP فون میں محفوظ ہو گئی", profileMissing:"پہلے اپنی پروفائل میں تصویر محفوظ کریں۔", profileInvalid:"موصولہ پروفائل تصویر درست نہیں۔", callReady:"محفوظ دوست کال کے لیے تیار ہے۔", callOutgoing:"دوست کو کال کی دعوت بھیجی جا رہی ہے…", callIncoming:"آپ کے محفوظ دوست کی کال آ رہی ہے۔", callAccepted:"کال قبول ہو گئی؛ رابطہ بن رہا ہے…", callConnected:"کال منسلک ہے۔", callDeclined:"کال مسترد کر دی گئی۔", callExpired:"کال کی دعوت کی مدت ختم ہو گئی۔", callEnded:"کال ختم ہو گئی۔", callFailed:"کال منسلک نہیں ہو سکی۔", acceptCall:"کال قبول کریں", declineCall:"کال مسترد کریں", hangupCall:"کال ختم کریں", incomingCallLabel:"آنے والی کال"
     },
     en: {
       title:"Chat with saved friend", waiting:"Establishing secure connection…",
@@ -36,7 +36,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       received:"Received", voiceIncoming:"Voice message",
       notReady:"Wait for a secure connection to the saved friend.",
       error:"Secure chat connection is unavailable.",
-      noRelation:"The saved friend relationship ID is unavailable.", shareProfile:"Share my DP with saved friend", profileSent:"Profile photo sent over the secure connection.", profileReceived:"Friend DP saved on this phone", profileMissing:"Save a photo in your profile first.", profileInvalid:"The received profile image is invalid."
+      noRelation:"The saved friend relationship ID is unavailable.", shareProfile:"Share my DP with saved friend", profileSent:"Profile photo sent over the secure connection.", profileReceived:"Friend DP saved on this phone", profileMissing:"Save a photo in your profile first.", profileInvalid:"The received profile image is invalid.", callReady:"Your saved friend is ready to call.", callOutgoing:"Calling your friend…", callIncoming:"Incoming call from your saved friend.", callAccepted:"Call accepted; connecting…", callConnected:"Call connected.", callDeclined:"Call declined.", callExpired:"Call invitation expired.", callEnded:"Call ended.", callFailed:"The call could not connect.", acceptCall:"Accept call", declineCall:"Decline call", hangupCall:"End call", incomingCallLabel:"Incoming call"
     },
     ar: {
       title:"محادثة مع صديق محفوظ", waiting:"جارٍ إنشاء اتصال آمن…",
@@ -52,12 +52,15 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       received:"تم الاستلام", voiceIncoming:"رسالة صوتية",
       notReady:"انتظر إنشاء اتصال آمن مع الصديق المحفوظ.",
       error:"اتصال المحادثة الآمنة غير متاح.",
-      noRelation:"معرّف علاقة الصديق المحفوظ غير متاح.", shareProfile:"مشاركة صورتي مع الصديق", profileSent:"تم إرسال الصورة عبر الاتصال الآمن.", profileReceived:"تم حفظ صورة الصديق على الهاتف", profileMissing:"احفظ صورة في ملفك الشخصي أولاً.", profileInvalid:"صورة الملف الشخصي المستلمة غير صالحة."
+      noRelation:"معرّف علاقة الصديق المحفوظ غير متاح.", shareProfile:"مشاركة صورتي مع الصديق", profileSent:"تم إرسال الصورة عبر الاتصال الآمن.", profileReceived:"تم حفظ صورة الصديق على الهاتف", profileMissing:"احفظ صورة في ملفك الشخصي أولاً.", profileInvalid:"صورة الملف الشخصي المستلمة غير صالحة.", callReady:"صديقك المحفوظ جاهز للاتصال.", callOutgoing:"جارٍ الاتصال بصديقك…", callIncoming:"مكالمة واردة من صديقك المحفوظ.", callAccepted:"تم قبول المكالمة؛ جارٍ الاتصال…", callConnected:"المكالمة متصلة.", callDeclined:"تم رفض المكالمة.", callExpired:"انتهت صلاحية دعوة المكالمة.", callEnded:"انتهت المكالمة.", callFailed:"تعذر الاتصال بالمكالمة.", acceptCall:"قبول المكالمة", declineCall:"رفض المكالمة", hangupCall:"إنهاء المكالمة", incomingCallLabel:"مكالمة واردة"
     }
   };
 
   let language = "ur";
   let session = null;
+  let callController = null;
+  let callState = "idle";
+  let activeCallMode = null;
   let unsubscribe = null;
   let currentFingerprint = null;
   let currentRelationshipId = null;
@@ -94,6 +97,41 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     node.dataset.kind = kind;
   }
   function secure() { return Boolean(session && session.state === "secure"); }
+  function callStatus(message, kind = "") {
+    const node = $("callStatus");
+    if (!node) return;
+    node.textContent = message;
+    node.dataset.kind = kind;
+  }
+  function clearCallMedia() {
+    for (const id of ["remoteCallVideo", "localCallVideo", "remoteCallAudio"]) {
+      const node = $(id);
+      if (node) { try { node.pause?.(); } catch (_) {} node.srcObject = null; }
+    }
+    if ($("remoteCallVideo")) $("remoteCallVideo").hidden = true;
+    if ($("localCallVideo")) $("localCallVideo").hidden = true;
+    if ($("callMediaStage")) $("callMediaStage").hidden = true;
+  }
+  function handleCallState(value) {
+    callState = value?.state || "idle";
+    if (value?.mode) activeCallMode = value.mode;
+    if (["ended", "declined", "expired", "failed", "closed"].includes(callState)) {
+      activeCallMode = null;
+      clearCallMedia();
+    }
+    const labels = {
+      ready:"callReady", outgoing:"callOutgoing", incoming:"callIncoming",
+      accepted:"callAccepted", "starting-media":"callAccepted", connected:"callConnected",
+      declined:"callDeclined", expired:"callExpired", ended:"callEnded",
+      failed:"callFailed", error:"callFailed", "media-error":"callFailed"
+    };
+    const key = labels[callState];
+    if (key) callStatus(t(key), ["failed","error","media-error"].includes(callState) ? "error" : callState === "connected" || callState === "ready" ? "ok" : "");
+    if (callState === "incoming") $("incomingCallLabel").textContent = t("incomingCallLabel") + (currentFriendName ? " · " + currentFriendName : "");
+    const activeLabel = { ready:"callReady", outgoing:"callOutgoing", incoming:"callIncoming", accepted:"callAccepted", "starting-media":"callAccepted", connected:"callConnected", declined:"callDeclined", expired:"callExpired", ended:"callEnded", failed:"callFailed" }[callState];
+    if (activeLabel) callStatus(t(activeLabel), callState === "failed" ? "error" : "");
+    controls();
+  }
   function controls() {
     const connected = secure();
     $("chatMessage").disabled = !connected;
@@ -102,6 +140,16 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     $("stopVoice").disabled = !recorder;
     $("sendVoice").disabled = !connected || !voiceBlob;
     shareProfileButton.disabled = !connected;
+    const callReady = connected && Boolean(callController) && !callController.callId && !["error","closed","verifying"].includes(callState);
+    $("audioCall").disabled = !callReady;
+    $("videoCall").disabled = !callReady;
+    $("acceptIncomingCall").disabled = !callController || callState !== "incoming";
+    $("declineIncomingCall").disabled = !callController || callState !== "incoming";
+    $("hangupCall").disabled = !callController || !["outgoing","accepted","starting-media","connected"].includes(callState);
+    $("acceptIncomingCall").hidden = callState !== "incoming";
+    $("declineIncomingCall").hidden = callState !== "incoming";
+    $("hangupCall").hidden = !["outgoing","accepted","starting-media","connected"].includes(callState);
+    $("incomingCallActions").hidden = callState !== "incoming" && $("hangupCall").hidden;
   }
   function clearVoice() {
     if (voiceUrl) URL.revokeObjectURL(voiceUrl);
@@ -135,6 +183,12 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     controls();
   }
   function closeSession() {
+    try { callController?.close(); } catch (_) {}
+    callController = null;
+    callState = "idle";
+    callStatus(t("callReady"));
+    activeCallMode = null;
+    clearCallMedia();
     try { unsubscribe?.(); } catch (_) {}
     unsubscribe = null;
     try { session?.close(); } catch (_) {}
@@ -244,7 +298,32 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       controls();
       await session.ready;
       if (generation !== connectionGeneration || currentFingerprint !== fingerprint || currentRelationshipId !== relationshipId) return;
+      callController = await session.createCallController({
+        onState: handleCallState,
+        onLocalStream: localStream => {
+          if (activeCallMode === "video") {
+            $("localCallVideo").srcObject = localStream;
+            $("localCallVideo").hidden = false;
+            $("callMediaStage").hidden = false;
+          }
+        },
+        onRemoteStream: remoteStream => {
+          $("remoteCallAudio").srcObject = remoteStream;
+          if (activeCallMode === "video") {
+            $("remoteCallVideo").srcObject = remoteStream;
+            $("remoteCallVideo").hidden = false;
+          }
+          $("callMediaStage").hidden = false;
+        }
+      });
+      await callController.ready;
+      if (generation !== connectionGeneration || currentFingerprint !== fingerprint || currentRelationshipId !== relationshipId) {
+        callController.close();
+        callController = null;
+        return;
+      }
       status(t("secure"), "ok");
+      callStatus(t("callReady"), "ok");
       controls();
       void sendCurrentProfileIfChanged(false).catch(() => status(t("failed"), "error"));
     } catch (_) {
@@ -322,6 +401,24 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       status(sent ? t("profileSent") : t("profileMissing"), sent ? "ok" : "error");
     } catch (_) { status(t("failed"), "error"); } finally { controls(); }
   });
+
+  $("audioCall").addEventListener("click", async () => {
+    if (!callController || !secure()) return;
+    try { await callController.call("audio"); } catch (_) { callStatus(t("callFailed"), "error"); }
+  });
+  $("videoCall").addEventListener("click", async () => {
+    if (!callController || !secure()) return;
+    try { await callController.call("video"); } catch (_) { callStatus(t("callFailed"), "error"); }
+  });
+  $("acceptIncomingCall").addEventListener("click", async () => {
+    if (!callController) return;
+    try { await callController.accept(); } catch (_) { callStatus(t("callFailed"), "error"); }
+  });
+  $("declineIncomingCall").addEventListener("click", async () => {
+    if (!callController) return;
+    try { await callController.decline(); } catch (_) { callStatus(t("callFailed"), "error"); }
+  });
+  $("hangupCall").addEventListener("click", () => { callController?.hangup(); });
 
   $("sendChatMessage").addEventListener("click", async () => {
     const value = $("chatMessage").value.trim();
@@ -427,6 +524,10 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     $("cancelVoice").textContent = t("cancel");
     $("sendVoice").textContent = t("sendVoice");
     shareProfileButton.textContent = t("shareProfile");
+    $("acceptIncomingCall").textContent = t("acceptCall");
+    $("declineIncomingCall").textContent = t("declineCall");
+    $("hangupCall").textContent = t("hangupCall");
+    if (callState === "incoming") $("incomingCallLabel").textContent = t("incomingCallLabel") + (currentFriendName ? " · " + currentFriendName : "");
   });
   window.addEventListener("pagehide", () => {
     if (recorder && recorder.state !== "inactive") { cancelRecording = true; recorder.stop(); }

@@ -1,5 +1,6 @@
 import { createTrustedRendezvousClient } from "./ezero_connect_rendezvous_client_v1.mjs";
 import { createWebRTCMessagingTransport } from "./ezero_connect_webrtc_messaging_transport_v1.mjs";
+import { createTrustedFriendCallController } from "./ezero_connect_trusted_friend_call_controller_v1.mjs";
 
 function fail(code) { throw new Error(code); }
 
@@ -122,6 +123,14 @@ export function createTrustedFriendMessagingSession({
       if (typeof handler !== "function") fail("TRUSTED_FRIEND_SUBSCRIBER_INVALID");
       subscribers.add(handler);
       return () => subscribers.delete(handler);
+    },
+    async createCallController(options = {}) {
+      await ready;
+      if (closed || !transport) fail("TRUSTED_FRIEND_NOT_SECURE");
+      return createTrustedFriendCallController({
+        ...options, signalingSession: rendezvous, relationshipId, trustApi, identityApi, iceServers,
+        RTCPeerConnectionImpl
+      });
     },
     close,
     get state() { return closed ? "closed" : transport?.state || rendezvous.state; }

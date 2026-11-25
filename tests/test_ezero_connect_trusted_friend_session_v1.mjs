@@ -5,12 +5,13 @@ const relationshipId = "a".repeat(64);
 const localFingerprint = "01:".repeat(31) + "01";
 const remoteFingerprint = "02:".repeat(31) + "02";
 let rendezvousOptions, transportOptions, startCount = 0;
+const relayed = [];
 const rendezvous = {
   ready: Promise.resolve({ state: "authenticated", relationshipId }),
   state: "authenticated",
   close() { this.state = "closed"; },
   on() { return () => {}; },
-  send() {}
+  send(type, payload) { relayed.push({ type, payload }); }
 };
 const rendezvousFactory = options => { rendezvousOptions = options; return rendezvous; };
 const transport = {
@@ -49,10 +50,18 @@ assert.equal(transportOptions.localFingerprint, localFingerprint);
 assert.equal(transportOptions.remoteFingerprint, remoteFingerprint);
 assert.equal(await session.sendText("hello").then(x => x.text), "hello");
 assert.equal((await session.sendVoice(new Uint8Array([1,2,3]))).length, 3);
+const callController = await session.createCallController({ callIdFactory: () => "C".repeat(32) });
+await callController.ready;
+const outgoingCall = await callController.call("audio");
+assert.equal(outgoingCall.callId, "C".repeat(32));
+assert.equal(relayed.at(-1).type, "call-invite");
+assert.equal(relayed.at(-1).payload.callId, outgoingCall.callId);
+callController.close();
 session.close();
 assert.equal(session.state, "closed");
 assert.ok(states.includes("rendezvous-peer-ready"));
 console.log("PASS saved-friend session waits for authenticated peer-ready before WebRTC startup");
 console.log("PASS remote fingerprint must match the locally saved trusted friend");
 console.log("PASS secure transport exposes text and voice sends without repeating QR pairing");
+console.log("PASS saved-friend messaging session exposes call control over the same authenticated rendezvous");
 console.log("BOUNDARY: orchestration contract test only; no real RTC, TURN, physical device, or background push proof");
