@@ -1,0 +1,25 @@
+name: E-ZERO Browser Root Approval Staging QA
+
+on:
+  push:
+    branches:
+      - ezero-root-approval-browser-staging-20261125
+    paths:
+      - "js/ezero_connect_identity_v1.js"
+      - "tests/ezero_root_approval_browser_signer_v1.test.mjs"
+      - ".github/workflows/ezero-root-approval-browser-staging-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-root-approval-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify browser root approval signer contract
+        run: node --test tests/ezero_root_approval_browser_signer_v1.test.mjs
