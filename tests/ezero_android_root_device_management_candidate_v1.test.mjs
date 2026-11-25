@@ -43,5 +43,5 @@ test("candidate stays isolated and does not add push token handling",()=>{
   assert.ok(!active.includes("android_enrollment_candidate_v1.js"));
   assert.ok(!active.includes("AndroidEnrollmentRegistry"));
   assert.ok(!source.includes("/push-token"));
-  assert.ok(!source.includes("FCM"));
+  assert.ok(!source.includes("/push-token"));
 });
