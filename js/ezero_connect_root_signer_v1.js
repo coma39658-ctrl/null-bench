@@ -157,8 +157,8 @@
   function validateSignedFields(fields, keys) {
     if (!fields || typeof fields !== "object" || Array.isArray(fields)) throw new Error("ROOT_COMMAND_INVALID");
     for (const key of keys) {
-      if (typeof fields[key] !== "string" || !fields[key] || /[\\r\\n]/.test(fields[key])) {
       if (typeof fields[key] !== "string" || !fields[key] || /[\r\n]/.test(fields[key])) {
+        throw new Error("ROOT_COMMAND_FIELD_INVALID");
       }
     }
     if (fields.audience !== "https://coma39658-ctrl.github.io") throw new Error("ROOT_COMMAND_AUDIENCE_INVALID");
