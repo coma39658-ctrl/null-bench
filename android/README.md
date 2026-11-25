@@ -65,3 +65,6 @@ See [DEVICE_REGISTRATION_AND_PUSH_CONTRACT.md](./DEVICE_REGISTRATION_AND_PUSH_CO
 - The URL builder allowlists the E-ZERO GitHub Pages origin and the known E-ZERO Render preview origin. Update the allowlist only when a new staging origin is approved.
 - The browser handoff auto-accepts only an incoming trusted-call event whose call ID exactly matches the native Accept action. The browser call controller still verifies the saved relationship and remote fingerprint.
 - This handoff does not activate FCM. Firebase client configuration, authenticated token enrollment, server push sender, pinned wake key and physical locked-screen tests remain pending.
+
+- The wake verifier pin is a public key, not a secret. Supply it at build time with `-PezeroWakePublicKeySpkiBase64=<base64-SPKI>`; blank remains fail-closed.
+- The server signing private key and Firebase service-account JSON must remain Worker secrets (`EZERO_WAKE_PRIVATE_KEY_PKCS8_BASE64`, `FCM_SERVICE_ACCOUNT_JSON`) and must never be added to the Android APK or repository.
