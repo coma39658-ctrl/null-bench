@@ -53,6 +53,7 @@
   let localApproval = null;
   let remoteApproval = null;
   let remoteName = "";
+  let savedRelationshipId = null;
   let localConsent = false;
   let busy = false;
   let pendingMessages = [];
@@ -115,6 +116,7 @@
     closeSession();
     invite = peer = transcript = localApproval = remoteApproval = null;
     remoteName = "";
+    savedRelationshipId = null;
     localConsent = false;
     busy = false;
     panel.hidden = true;
@@ -185,6 +187,7 @@
           // is the only additional human approval required.
           localConsent = true;
           remoteName = friendAlias(remote.fingerprint);
+          savedRelationshipId = null;
           markDone("identity");
           setStep("approval", "active");
           session.send("trust-request", { transcript, approval: localApproval });
@@ -234,6 +237,7 @@
         const saved = await window.EZERO_CONNECT_TRUST.saveTrustedContact({
           transcript, localApproval, remoteApproval, displayName: name, explicitConsent: localConsent
         });
+        savedRelationshipId = saved.relationshipId;
         session.send("trust-approval", { transcript, approval: localApproval, stage: "host-saved" });
         markDone("approval");
         status(t("hostAwaitGuestSaved"), "ok");
@@ -263,7 +267,7 @@
         markDone("saved");
         status(t("hostSaved"), "ok");
         $("pairingAction").disabled = true;
-        const saved = await window.EZERO_CONNECT_TRUST.getTrustedContact(transcript.relationshipId);
+        const saved = await window.EZERO_CONNECT_TRUST.getTrustedContact(savedRelationshipId);
         await refreshContacts(saved, { autoCallMode: "audio" });
       }
     } catch (error) { fail(error); }
