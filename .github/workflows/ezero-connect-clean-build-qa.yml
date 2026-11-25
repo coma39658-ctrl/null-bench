@@ -37,6 +37,7 @@ on:
       - 'tests/test_ezero_connect_trusted_friend_call_controller_v1.mjs'
       - 'tests/test_ezero_connect_webrtc_media_call_v1.mjs'
       - 'js/ezero_connect_chat_ui_v1.mjs'
+      - 'js/ezero_connect_first_call_handoff_v1.mjs'
       - 'tests/test_ezero_connect_chat_ui_contract_v1.mjs'
       - 'js/ezero_connect_trusted_friend_session_v1.mjs'
       - 'js/ezero_connect_chat_ui_v1.mjs'
@@ -44,6 +45,8 @@ on:
       - 'tests/test_ezero_connect_trusted_friend_session_v1.mjs'
       - 'tests/test_ezero_connect_webrtc_messaging_transport_v1.mjs'
       - 'signaling/ezero-connect-v1/**'
+      - 'tests/test_ezero_android_wake_v1.mjs'
+      - 'android/**'
       - 'tests/test_ezero_connect_clean_build_v1.mjs'
       - 'tests/test_ezero_connect_saved_friends_ui_v1.mjs'
       - 'tests/test_ezero_connect_local_profile_v1.mjs'
@@ -115,7 +118,7 @@ jobs:
         with:
           node-version: '22'
       - name: Check JavaScript syntax
-        run: node --check js/ezero_connect_app_v1.js && node --check js/ezero_connect_chat_ui_v1.mjs && node --check tests/test_ezero_connect_chat_ui_contract_v1.mjs && node --check js/ezero_connect_identity_v1.js && node --check js/ezero_connect_invite_v1.js && node --check js/ezero_connect_trust_v1.js && node --check js/ezero_connect_trusted_reconnect_v1.mjs && node --check js/ezero_connect_trusted_friend_session_v1.mjs && node --check js/ezero_connect_rendezvous_client_v1.mjs && node --check tests/test_ezero_connect_trusted_reconnect_v1.mjs && node --check scripts/ezero_connect_qr_entry_v1.js && node --check signaling/ezero-connect-v1/worker.mjs && node --check signaling/ezero-connect-v1/rendezvous.mjs && node --check tests/test_ezero_connect_rendezvous_v1.mjs && node --check js/ezero_connect_config_v1.js && node --check js/ezero_connect_e2e_crypto_v1.mjs && node --check tests/test_ezero_connect_e2e_crypto_v1.mjs && node --check js/ezero_connect_e2e_datachannel_v1.mjs && node --check tests/test_ezero_connect_e2e_datachannel_v1.mjs && node --check js/ezero_connect_messaging_v1.mjs && node --check tests/test_ezero_connect_messaging_v1.mjs && node --check js/ezero_connect_webrtc_messaging_transport_v1.mjs && node --check js/ezero_connect_webrtc_media_call_v1.mjs && node --check js/ezero_connect_trusted_friend_call_controller_v1.mjs && node --check tests/test_ezero_connect_trusted_friend_call_controller_v1.mjs && node --check tests/test_ezero_connect_webrtc_media_call_v1.mjs && node --check tests/test_ezero_connect_webrtc_messaging_transport_v1.mjs && node --check js/ezero_connect_signaling_client_v1.js && node --check js/ezero_connect_pairing_ui_v1.js && node --check js/ezero_connect_local_profile_v1.js && node --check tests/test_ezero_connect_pairing_ui_v1.mjs && node --check tests/test_ezero_connect_signaling_v1.mjs && node --check tests/test_ezero_connect_signaling_local_v1.mjs && node --check tests/test_ezero_connect_clean_build_v1.mjs && node --check tests/test_ezero_connect_qr_runtime_v1.mjs && node --check tests/test_ezero_connect_trust_v1.mjs
+        run: node --check js/ezero_connect_app_v1.js && node --check js/ezero_connect_chat_ui_v1.mjs && node --check js/ezero_connect_first_call_handoff_v1.mjs && node --check tests/test_ezero_connect_chat_ui_contract_v1.mjs && node --check js/ezero_connect_identity_v1.js && node --check js/ezero_connect_invite_v1.js && node --check js/ezero_connect_trust_v1.js && node --check js/ezero_connect_trusted_reconnect_v1.mjs && node --check js/ezero_connect_trusted_friend_session_v1.mjs && node --check js/ezero_connect_rendezvous_client_v1.mjs && node --check tests/test_ezero_connect_trusted_reconnect_v1.mjs && node --check scripts/ezero_connect_qr_entry_v1.js && node --check signaling/ezero-connect-v1/worker.mjs && node --check signaling/ezero-connect-v1/rendezvous.mjs && node --check tests/test_ezero_connect_rendezvous_v1.mjs && node --check js/ezero_connect_config_v1.js && node --check js/ezero_connect_e2e_crypto_v1.mjs && node --check tests/test_ezero_connect_e2e_crypto_v1.mjs && node --check js/ezero_connect_e2e_datachannel_v1.mjs && node --check tests/test_ezero_connect_e2e_datachannel_v1.mjs && node --check js/ezero_connect_messaging_v1.mjs && node --check tests/test_ezero_connect_messaging_v1.mjs && node --check js/ezero_connect_webrtc_messaging_transport_v1.mjs && node --check js/ezero_connect_webrtc_media_call_v1.mjs && node --check js/ezero_connect_trusted_friend_call_controller_v1.mjs && node --check tests/test_ezero_connect_trusted_friend_call_controller_v1.mjs && node --check tests/test_ezero_connect_webrtc_media_call_v1.mjs && node --check tests/test_ezero_connect_webrtc_messaging_transport_v1.mjs && node --check js/ezero_connect_signaling_client_v1.js && node --check js/ezero_connect_pairing_ui_v1.js && node --check js/ezero_connect_local_profile_v1.js && node --check tests/test_ezero_connect_pairing_ui_v1.mjs && node --check tests/test_ezero_connect_signaling_v1.mjs && node --check tests/test_ezero_connect_signaling_local_v1.mjs && node --check tests/test_ezero_connect_clean_build_v1.mjs && node --check tests/test_ezero_connect_qr_runtime_v1.mjs && node --check tests/test_ezero_connect_trust_v1.mjs
       - name: Install isolated browser test dependency
         run: npm install --no-save --no-audit --no-fund --ignore-scripts playwright@1.57.0 qr@0.7.2 esbuild@0.25.12 wrangler@4.165.0
       - name: Build locally hosted QR runtime
@@ -171,8 +174,31 @@ jobs:
         run: node tests/test_ezero_connect_messaging_v1.mjs
       - name: Verify signed trusted-friend reconnect proof and fail-closed gates
         run: node tests/test_ezero_connect_trusted_reconnect_v1.mjs
-      - name: Verify cryptographic trusted-friend rendezvous authorization
+      - name: Verify cryptographic trusted-friend rendezvous and offline-call queue
         run: node tests/test_ezero_connect_rendezvous_v1.mjs
+      - name: Record Android background-wake evidence boundary
+        run: echo 'ANDROID_FCM_TOKEN_ENROLLMENT_SENDER_AND_LOCKED_SCREEN_RING_NOT_IMPLEMENTED_OR_VERIFIED'
+      - name: Set up JDK 17 for Android host build
+        if: ${{ hashFiles('android/app/build.gradle.kts') != '' }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Android SDK for Android host build
+        if: ${{ hashFiles('android/app/build.gradle.kts') != '' }}
+        uses: android-actions/setup-android@v4
+        with:
+          cmdline-tools-version: 15859902
+          accept-android-sdk-licenses: true
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+      - name: Set up Gradle for Android host build
+        if: ${{ hashFiles('android/app/build.gradle.kts') != '' }}
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Run Android unit tests and compile staging APK
+        if: ${{ hashFiles('android/app/build.gradle.kts') != '' }}
+        run: gradle -p android :app:testDebugUnitTest :app:assembleDebug
       - name: Verify saved-friend reconnect to secure messaging orchestration
         run: node tests/test_ezero_connect_trusted_friend_session_v1.mjs
       - name: Verify WebRTC offer-answer negotiation and secure DataChannel attachment

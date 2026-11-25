@@ -10,7 +10,7 @@ const MAX_ICE_BYTES = 2 * 1024;
 const MAX_SDP_CHARS = 12 * 1024;
 const ALLOWED_MESSAGES = new Set([
   "trust-request", "trust-approval", "trust-decline",
-  "call-invite", "call-accept", "call-decline", "hangup",
+  "call-invite", "call-accept", "call-decline", "call-hangup", "call-offer", "call-answer", "call-ice-candidate", "hangup",
   "offer", "answer", "ice-candidate", "profile-metadata"
 ]);
 
@@ -153,13 +153,14 @@ export function validateSignalMessage(raw, now = Date.now()) {
       !message.payload || typeof message.payload !== "object" || Array.isArray(message.payload)) {
     throw new Error("SIGNAL_MESSAGE_INVALID");
   }
-  if (message.type === "ice-candidate") {
+  if (message.type === "ice-candidate" || message.type === "call-ice-candidate") {
     if (typeof message.payload.candidate !== "string" ||
         new TextEncoder().encode(message.payload.candidate).length > MAX_ICE_BYTES) {
       throw new Error("ICE_CANDIDATE_INVALID");
     }
   }
-  if (message.type === "offer" || message.type === "answer") {
+  if (message.type === "offer" || message.type === "answer" ||
+      message.type === "call-offer" || message.type === "call-answer") {
     if (typeof message.payload.sdp !== "string" || message.payload.sdp.length > MAX_SDP_CHARS) {
       throw new Error("SDP_PAYLOAD_INVALID");
     }
@@ -372,7 +373,7 @@ export class EzeroConnectRoom {
         return;
       }
       safeSend(peer, { type: "relay", fromFingerprint: attachment.fingerprint, message });
-      if (message.type === "hangup" || message.type === "trust-decline") {
+      if (message.type === "hangup" || message.type === "call-hangup" || message.type === "trust-decline") {
         await this.closeRoom(message.type);
       }
     } catch (_) {

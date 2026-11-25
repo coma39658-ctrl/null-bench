@@ -21,7 +21,11 @@ export function createTrustedFriendMessagingSession({
       (onMessage !== null && typeof onMessage !== "function") || typeof onState !== "function") fail("TRUSTED_FRIEND_SESSION_INPUT_INVALID");
 
   let closed = false;
+  // The trusted call controller is armed independently of chat readiness.
   let transport = null;
+  let callController = null;
+  let callControllerPromise = null;
+  const callCallbacks = new Set();
   let starting = false;
   let settled = false;
   const subscribers = new Set();
@@ -45,6 +49,9 @@ export function createTrustedFriendMessagingSession({
   function close() {
     if (closed) return;
     closed = true;
+    try { callController?.close(); } catch (_) {}
+    callController = null;
+    callCallbacks.clear();
     try { transport?.close(); } catch (_) {}
     try { rendezvous.close(); } catch (_) {}
     emit("closed");
@@ -61,6 +68,22 @@ export function createTrustedFriendMessagingSession({
       }
     }
   });
+
+  callControllerPromise = rendezvous.ready.then(() => {
+    if (closed) fail("TRUSTED_FRIEND_SESSION_CLOSED");
+    callController = createTrustedFriendCallController({
+      signalingSession: rendezvous, relationshipId, trustApi, identityApi, iceServers,
+      RTCPeerConnectionImpl,
+      onState: value => {
+        try { globalThis.document?.dispatchEvent?.(new CustomEvent("ezero:trusted-call-state", { detail: value })); } catch (_) {}
+        for (const callback of [...callCallbacks]) { try { callback.onState?.(value); } catch (_) {} }
+      },
+      onLocalStream: value => { for (const callback of [...callCallbacks]) { try { callback.onLocalStream?.(value); } catch (_) {} } },
+      onRemoteStream: value => { for (const callback of [...callCallbacks]) { try { callback.onRemoteStream?.(value); } catch (_) {} } }
+    });
+    return callController;
+  });
+  callControllerPromise.catch(() => {});
 
   async function attachPeer(peerFingerprint) {
     starting = true;
@@ -125,12 +148,23 @@ export function createTrustedFriendMessagingSession({
       return () => subscribers.delete(handler);
     },
     async createCallController(options = {}) {
-      await ready;
-      if (closed || !transport) fail("TRUSTED_FRIEND_NOT_SECURE");
-      return createTrustedFriendCallController({
-        ...options, signalingSession: rendezvous, relationshipId, trustApi, identityApi, iceServers,
-        RTCPeerConnectionImpl
-      });
+      if (closed) fail("TRUSTED_FRIEND_SESSION_CLOSED");
+      const callback = { onState: options.onState, onLocalStream: options.onLocalStream, onRemoteStream: options.onRemoteStream };
+      callCallbacks.add(callback);
+      try {
+        const controller = await callControllerPromise;
+        if (options.callIdFactory || options.mediaCallFactory || options.now || options.setTimer || options.clearTimer || options.iceServers || options.mediaDevices || options.RTCPeerConnectionImpl) {
+          controller.configure?.(options);
+        }
+        await controller.ready;
+        if (typeof callback.onState === "function") callback.onState({
+          state: controller.state, relationshipId, callId: controller.callId, mode: controller.mode || null
+        });
+        return controller;
+      } catch (error) {
+        callCallbacks.delete(callback);
+        throw error;
+      }
     },
     close,
     get state() { return closed ? "closed" : transport?.state || rendezvous.state; }

@@ -127,7 +127,9 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     };
     const key = labels[callState];
     if (key) callStatus(t(key), ["failed","error","media-error"].includes(callState) ? "error" : callState === "connected" || callState === "ready" ? "ok" : "");
-    if (callState === "incoming") $("incomingCallLabel").textContent = t("incomingCallLabel") + (currentFriendName ? " · " + currentFriendName : "");
+    if (callState === "incoming") {
+      $("incomingCallLabel").textContent = t("incomingCallLabel") + (currentFriendName ? " · " + currentFriendName : "");
+    }
     const activeLabel = { ready:"callReady", outgoing:"callOutgoing", incoming:"callIncoming", accepted:"callAccepted", "starting-media":"callAccepted", connected:"callConnected", declined:"callDeclined", expired:"callExpired", ended:"callEnded", failed:"callFailed" }[callState];
     if (activeLabel) callStatus(t(activeLabel), callState === "failed" ? "error" : "");
     controls();

@@ -48,9 +48,10 @@ export function createTrustedFriendCallController({
   let localFingerprint = null;
   let remoteFingerprint = null;
   const subscribers = new Set();
+  const pendingMessages = [];
 
   function emit(state, detail = {}) {
-    const event = Object.freeze({ state, relationshipId, callId: active?.callId || null, mode: active?.mode || null, ...detail });
+    const event = Object.freeze({ ...detail, state, relationshipId, callId: active?.callId || null, mode: active?.mode || null });
     try { onState(event); } catch (_) {}
     for (const subscriber of [...subscribers]) { try { subscriber(event); } catch (_) {} }
   }
@@ -78,7 +79,7 @@ export function createTrustedFriendCallController({
       iceServers, mediaDevices, RTCPeerConnectionImpl, onLocalStream, onRemoteStream,
       onState: value => {
         if (!active || active.callId !== call.callId) return;
-        if (value.state === "connected") { phase = "connected"; emit("connected", value); }
+        if (value.state === "connected" || (value.state === "connection" && value.connectionState === "connected")) { phase = "connected"; emit("connected", value); }
         else if (value.state === "error") emit("media-error", value);
         else if (value.state === "closed" && phase !== "idle") reset("ended", { reason: "media-closed" });
         else emit("media-" + value.state, value);
@@ -113,7 +114,15 @@ export function createTrustedFriendCallController({
   }
 
   async function handleMessage(message) {
-    if (closed || !message || message.fromFingerprint !== remoteFingerprint || !message.payload) return;
+    if (closed || !message || !message.payload) return;
+    // A valid invite can arrive just after rendezvous authentication but
+    // before the local trust lookup finishes. Queue only bounded call invites;
+    // verify the sender fingerprint once the trusted contact is loaded.
+    if (!remoteFingerprint) {
+      if (message.type === "call-invite" && pendingMessages.length < 8) pendingMessages.push(message);
+      return;
+    }
+    if (message.fromFingerprint !== remoteFingerprint) return;
     const payload = message.payload;
     if (message.type === "call-invite") {
       if (!validCallId(payload.callId) || !["audio", "video"].includes(payload.mode) ||
@@ -156,14 +165,33 @@ export function createTrustedFriendCallController({
   }
 
   const removeListener = signalingSession.on("message", message => { void handleMessage(message); });
-  const ready = verifyTrust().catch(error => {
+  const ready = verifyTrust().then(async result => {
+    const queued = pendingMessages.splice(0);
+    for (const message of queued) await handleMessage(message);
+    return result;
+  }).catch(error => {
     phase = "error";
+    pendingMessages.length = 0;
     emit("error", { error: error?.message || "TRUSTED_CALL_VERIFICATION_FAILED" });
     throw error;
   });
 
+  function configure(options = {}) {
+    if (active) fail("TRUSTED_CALL_ALREADY_ACTIVE");
+    if (typeof options.callIdFactory === "function") callIdFactory = options.callIdFactory;
+    if (typeof options.mediaCallFactory === "function") mediaCallFactory = options.mediaCallFactory;
+    if (typeof options.now === "function") now = options.now;
+    if (typeof options.setTimer === "function") setTimer = options.setTimer;
+    if (typeof options.clearTimer === "function") clearTimer = options.clearTimer;
+    if (Array.isArray(options.iceServers)) iceServers = options.iceServers;
+    if (options.mediaDevices) mediaDevices = options.mediaDevices;
+    if (options.RTCPeerConnectionImpl) RTCPeerConnectionImpl = options.RTCPeerConnectionImpl;
+    return true;
+  }
+
   return Object.freeze({
     ready,
+    configure,
     async call(mode) {
       await ready;
       if (closed || !canStartNewCall() || !["audio", "video"].includes(mode)) fail("TRUSTED_CALL_NOT_AVAILABLE");
@@ -182,12 +210,24 @@ export function createTrustedFriendCallController({
       await ready;
       if (closed || phase !== "incoming" || !isLive(active)) fail("TRUSTED_CALL_NO_INCOMING_INVITE");
       const call = active;
-      clearExpiry();
-      signalingSession.send("call-accept", { callId: call.callId });
       phase = "accepted";
       emit("accepted");
-      try { await startMedia("callee"); }
-      catch (error) { reset("failed", { error: error?.message || "CALL_MEDIA_START_FAILED" }); throw error; }
+      try {
+        // Prepare the callee peer connection and attach its signaling listener
+        // before telling the caller to send the WebRTC offer. Otherwise a fast
+        // caller can send call-offer while getUserMedia is still pending, and
+        // the callee misses that one-shot offer.
+        await startMedia("callee");
+        if (closed || active?.callId !== call.callId || !isLive(call)) fail("TRUSTED_CALL_EXPIRED");
+        clearExpiry();
+        signalingSession.send("call-accept", { callId: call.callId });
+      } catch (error) {
+        if (active?.callId === call.callId) {
+          try { signalingSession.send("call-decline", { callId: call.callId }); } catch (_) {}
+          reset("failed", { error: error?.message || "CALL_MEDIA_START_FAILED" });
+        }
+        throw error;
+      }
       return Object.freeze({ callId: call.callId, mode: call.mode });
     },
     async decline() {
@@ -216,6 +256,7 @@ export function createTrustedFriendCallController({
       emit("closed");
     },
     get state() { return phase; },
-    get callId() { return active?.callId || null; }
+    get callId() { return active?.callId || null; },
+    get mode() { return active?.mode || null; }
   });
 }

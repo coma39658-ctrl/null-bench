@@ -170,6 +170,13 @@
     if (["ur","en","ar"].includes(value)) language = value;
     render();
   }
+  document.addEventListener("ezero:friend-selected", event => {
+    const fingerprint = event.detail?.fingerprint;
+    if (!validFingerprint(fingerprint)) return;
+    selected = fingerprint;
+    writeSelection(selected);
+    render();
+  });
   document.addEventListener("ezero:friend-local-saved", refresh);
   document.addEventListener("ezero:friend-local-removed", refresh);
   document.addEventListener("ezero:friend-profile-updated", refresh);
