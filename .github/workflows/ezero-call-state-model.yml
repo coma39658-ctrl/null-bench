@@ -4,6 +4,8 @@ on:
     branches:
       - ezero-connect-global-rebuild-realtimekit-staging-20261125
     paths:
+      - "js/ezero_connect_trusted_friend_call_controller_v1.mjs"
+      - "js/ezero_connect_trusted_friend_call_controller_v1.test.mjs"
       - "scripts/ezero_call_state_machine_v1.cjs"
       - "scripts/ezero_call_state_machine_v1.test.cjs"
       - ".github/workflows/ezero-call-state-model.yml"
@@ -25,4 +27,4 @@ jobs:
         with:
           node-version: 22
       - name: Run deterministic call-state tests
-        run: node --test scripts/ezero_call_state_machine_v1.test.cjs
+        run: node --test scripts/ezero_call_state_machine_v1.test.cjs js/ezero_connect_trusted_friend_call_controller_v1.test.mjs
