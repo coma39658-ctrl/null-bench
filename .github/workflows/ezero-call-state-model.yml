@@ -18,7 +18,10 @@ on:
       - "js/ezero_push_contract_v1.js"
       - "tests/ezero_push_contract_v1.test.cjs"
       - "service-worker.js"
-      - "tests/ezero_push_service_worker_v1.test.cjs"
+      - "tests/ezero_push_service_worker_v1.test.cjs tests/ezero_connect_isolated_worker_v1.test.cjs"
+      - "staging/ezero-connect-push-scope/service-worker.js"
+      - "scripts/build_ezero_connect_push_scope_staging.sh"
+      - "tests/ezero_connect_isolated_worker_v1.test.cjs"
   pull_request:
     paths:
       - "scripts/ezero_call_state_machine_v1.cjs"
@@ -27,6 +30,9 @@ on:
       - "package.json"
       - "js/ezero_push_contract_v1.js"
       - "tests/ezero_push_contract_v1.test.cjs"
+      - "staging/ezero-connect-push-scope/service-worker.js"
+      - "scripts/build_ezero_connect_push_scope_staging.sh"
+      - "tests/ezero_connect_isolated_worker_v1.test.cjs"
 permissions:
   contents: read
 jobs:
