@@ -139,9 +139,8 @@ class MainActivity : Activity() {
                     val localIdentity = AndroidEnrollmentKeyStore.getOrCreatePublicIdentity()
                     require(request.deviceFp == localIdentity.fingerprint) { "REQUEST_IS_NOT_FOR_THIS_DEVICE" }
                     val prefs = getSharedPreferences(ENROLLMENT_STATE_PREFS, MODE_PRIVATE)
-                    require(prefs.getString(KEY_CONSUMED_CHALLENGE, null) != request.challengeId) {
-                        "CHALLENGE_ALREADY_CONSUMED_ON_THIS_DEVICE"
-                    }
+                    val consumed = prefs.getStringSet(KEY_CONSUMED_CHALLENGES, emptySet()) ?: emptySet()
+                    require(request.challengeId !in consumed) { "CHALLENGE_ALREADY_CONSUMED_ON_THIS_DEVICE" }
                     require(prefs.edit().putString(KEY_PENDING_REQUEST, raw).commit()) {
                         "PENDING_REQUEST_PERSISTENCE_FAILED"
                     }
@@ -159,12 +158,12 @@ class MainActivity : Activity() {
                         ?: throw IllegalStateException("ROOT_PIN_NOT_CONFIGURED")
                     val verified = AndroidEnrollmentApprovalGateV1.verify(pending, raw, trustedRoot)
                     val prefs = getSharedPreferences(ENROLLMENT_STATE_PREFS, MODE_PRIVATE)
-                    require(prefs.getString(KEY_CONSUMED_CHALLENGE, null) != verified.challengeId) {
-                        "CHALLENGE_ALREADY_CONSUMED_ON_THIS_DEVICE"
-                    }
+                    val consumed = (prefs.getStringSet(KEY_CONSUMED_CHALLENGES, emptySet()) ?: emptySet()).toMutableSet()
+                    require(verified.challengeId !in consumed) { "CHALLENGE_ALREADY_CONSUMED_ON_THIS_DEVICE" }
+                    consumed.add(verified.challengeId)
                     require(prefs.edit()
                         .remove(KEY_PENDING_REQUEST)
-                        .putString(KEY_CONSUMED_CHALLENGE, verified.challengeId)
+                        .putStringSet(KEY_CONSUMED_CHALLENGES, consumed)
                         .putString(KEY_LAST_APPROVED_DEVICE_FP, verified.deviceFingerprint)
                         .putString(KEY_LAST_APPROVED_ROOT_FP, verified.rootFingerprint)
                         .putString(KEY_LAST_APPROVAL_AT, System.currentTimeMillis().toString())
@@ -257,7 +256,7 @@ class MainActivity : Activity() {
         private const val REQUEST_QR_CAMERA = 703
         private const val ENROLLMENT_STATE_PREFS = "ezero_android_enrollment_state_v1"
         private const val KEY_PENDING_REQUEST = "pending_request_qr"
-        private const val KEY_CONSUMED_CHALLENGE = "last_consumed_challenge_id"
+        private const val KEY_CONSUMED_CHALLENGES = "consumed_challenge_ids"
         private const val KEY_LAST_APPROVED_DEVICE_FP = "last_approved_device_fp"
         private const val KEY_LAST_APPROVED_ROOT_FP = "last_approved_root_fp"
         private const val KEY_LAST_APPROVAL_AT = "last_approval_at"
