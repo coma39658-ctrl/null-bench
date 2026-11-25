@@ -28,6 +28,7 @@ export function createTrustedFriendCallController({
   mediaCallFactory = createWebRTCMediaCallTransport,
   callIdFactory = () => makeCallId(),
   now = () => Date.now(),
+  mediaStartTimeoutMs = 20_000,
   setTimer = setTimeout,
   clearTimer = clearTimeout,
   onLocalStream = () => {},
@@ -36,7 +37,8 @@ export function createTrustedFriendCallController({
 } = {}) {
   if (!signalingSession?.on || !signalingSession?.send ||
       typeof relationshipId !== "string" || !/^[a-f0-9]{64}$/.test(relationshipId) ||
-      typeof onState !== "function" || typeof mediaCallFactory !== "function") {
+      typeof onState !== "function" || typeof mediaCallFactory !== "function" ||
+      !Number.isSafeInteger(mediaStartTimeoutMs) || mediaStartTimeoutMs < 5_000 || mediaStartTimeoutMs > 60_000) {
     fail("TRUSTED_CALL_CONTROLLER_INPUT_INVALID");
   }
 
@@ -78,7 +80,7 @@ export function createTrustedFriendCallController({
       iceServers, mediaDevices, RTCPeerConnectionImpl, onLocalStream, onRemoteStream,
       onState: value => {
         if (!active || active.callId !== call.callId) return;
-        if (value.state === "connected") { phase = "connected"; emit("connected", value); }
+        if (value.state === "connected") { clearExpiry(); phase = "connected"; emit("connected", value); }
         else if (value.state === "error") emit("media-error", value);
         else if (value.state === "closed" && phase !== "idle") reset("ended", { reason: "media-closed" });
         else emit("media-" + value.state, value);
@@ -94,6 +96,15 @@ export function createTrustedFriendCallController({
     expiryTimer = setTimer(() => {
       if (active?.callId === call.callId && phase !== "connected") reset("expired", { reason: "invite-expired" });
     }, delay);
+  }
+  function armMediaStartTimeout(call) {
+    clearExpiry();
+    expiryTimer = setTimer(() => {
+      if (active?.callId === call.callId && phase !== "connected") {
+        try { media?.close(true); } catch (_) {}
+        reset("failed", { reason: "media-connect-timeout" });
+      }
+    }, mediaStartTimeoutMs);
   }
 
   async function verifyTrust() {
@@ -131,8 +142,8 @@ export function createTrustedFriendCallController({
     }
     if (!active || payload.callId !== active.callId || !isLive(active)) return;
     if (message.type === "call-accept" && active.direction === "outgoing" && phase === "outgoing") {
-      clearExpiry();
       phase = "accepted";
+      armMediaStartTimeout(active);
       emit("accepted");
       try { await startMedia("caller"); }
       catch (error) { reset("failed", { error: error?.message || "CALL_MEDIA_START_FAILED" }); }
@@ -182,9 +193,9 @@ export function createTrustedFriendCallController({
       await ready;
       if (closed || phase !== "incoming" || !isLive(active)) fail("TRUSTED_CALL_NO_INCOMING_INVITE");
       const call = active;
-      clearExpiry();
       signalingSession.send("call-accept", { callId: call.callId });
       phase = "accepted";
+      armMediaStartTimeout(call);
       emit("accepted");
       try { await startMedia("callee"); }
       catch (error) { reset("failed", { error: error?.message || "CALL_MEDIA_START_FAILED" }); throw error; }
