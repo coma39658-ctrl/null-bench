@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - ezero-android-enrollment-worker-integration-staging-20261125
+      - ezero-enrollment-alarm-cleanup-staging-20261125
     paths:
       - "signaling/cloudflare/src/android_enrollment_candidate_v1.js"
       - "signaling/cloudflare/wrangler.android-enrollment-candidate-v1.jsonc"
