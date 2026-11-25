@@ -36,6 +36,28 @@ class MainActivity : Activity() {
         layout.addView(statusView, LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
         ))
+        val prepareEnrollmentButton = Button(this).apply {
+            text = "Prepare this phone for secure enrollment"
+            setOnClickListener {
+                try {
+                    val identity = AndroidEnrollmentKeyStore.getOrCreatePublicIdentity()
+                    statusView.text = buildString {
+                        append("E-ZERO Connect — Android enrollment preparation\\n\\n")
+                        append("Device fingerprint (SHA-256):\\n")
+                        append(identity.fingerprint)
+                        append("\\n\\nStatus: KEY_CREATED_NOT_ENROLLED")
+                        append("\\nPrivate key remains inside Android Keystore.")
+                        append("\\nNo server connection or friend trust has been created.")
+                        append("\\nRoot approval is still required.")
+                    }
+                } catch (_: Exception) {
+                    statusView.text = "Secure device key could not be prepared on this phone."
+                }
+            }
+        }
+        layout.addView(prepareEnrollmentButton, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        ))
         layout.addView(galleryButton, LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
         ))
