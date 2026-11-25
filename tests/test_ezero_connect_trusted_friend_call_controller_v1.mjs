@@ -47,12 +47,14 @@ const clock = { value: 1_000_000 };
 const timers = makeTimers(clock);
 const session = new FakeSession();
 const mediaLog = [];
+const callStates = [];
 const generatedCallIds = [callA, callD];
 const controller = createTrustedFriendCallController({
   signalingSession: session, relationshipId, trustApi: trustApi(), identityApi,
   callIdFactory: () => generatedCallIds.shift(), now: () => clock.value,
   setTimer: timers.setTimer, clearTimer: timers.clearTimer,
-  mediaCallFactory: mediaFactoryLog(mediaLog)
+  mediaCallFactory: mediaFactoryLog(mediaLog),
+  onState: value => callStates.push(value)
 });
 await controller.ready;
 assert.equal(controller.state, "idle");
@@ -69,6 +71,7 @@ assert.equal(mediaLog.length, 0, "untrusted fingerprint must be ignored");
 await session.receive("call-accept", { callId: callA });
 assert.deepEqual(mediaLog[0], { action: "start", role: "caller", mode: "audio", callId: callA });
 assert.equal(controller.state, "connected", "WebRTC connectionState=connected must update call control state");
+assert.ok(callStates.some(value => value.state === "connected"), "media detail must not overwrite the authoritative connected call state");
 await session.receive("call-hangup", { callId: callB });
 assert.equal(controller.state, "starting-media", "hangup for another call must be ignored");
 await session.receive("call-hangup", { callId: callA });
@@ -83,11 +86,13 @@ assert.equal(controller.state, "closed");
 
 const incomingSession = new FakeSession();
 const incomingLog = [];
+const incomingStates = [];
 const incoming = createTrustedFriendCallController({
   signalingSession: incomingSession, relationshipId, trustApi: trustApi(), identityApi,
   callIdFactory: () => callB, now: () => clock.value,
   setTimer: timers.setTimer, clearTimer: timers.clearTimer,
-  mediaCallFactory: mediaFactoryLog(incomingLog)
+  mediaCallFactory: mediaFactoryLog(incomingLog),
+  onState: value => incomingStates.push(value)
 });
 await incoming.ready;
 await incomingSession.receive("call-invite", { callId: callB, mode: "video", expiresAt: clock.value + 30_000 });
@@ -97,6 +102,7 @@ await incoming.accept();
 assert.equal(incomingSession.sent.at(-1).type, "call-accept");
 assert.deepEqual(incomingLog[0], { action: "start", role: "callee", mode: "video", callId: callB });
 assert.equal(incoming.state, "connected", "callee WebRTC connectionState=connected must update call control state");
+assert.ok(incomingStates.some(value => value.state === "connected"), "callee emits the authoritative connected state");
 incoming.hangup();
 assert.equal(incoming.state, "ended");
 incoming.close();
