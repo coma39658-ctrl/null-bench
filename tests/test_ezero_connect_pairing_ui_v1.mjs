@@ -127,10 +127,24 @@ try {
   assert.equal(guestSavedFriend.remoteFingerprint, hostIdentity.fingerprint);
   // The recipient's single pairing Accept also authorizes the first
   // requested audio call. Platform media permission remains separate.
-  await Promise.all([host, guest].map(page => page.waitForFunction(
-    () => document.querySelector("#callStatus")?.textContent.includes("کال منسلک ہے"),
-    undefined, { timeout: 60000 }
-  )));
+  try {
+    await Promise.all([host, guest].map(page => page.waitForFunction(
+      () => document.querySelector("#callStatus")?.textContent.includes("کال منسلک ہے"),
+      undefined, { timeout: 60000 }
+    )));
+  } catch (error) {
+    const diagnostics = await Promise.all([host, guest].map(page => page.evaluate(() => ({
+      callStatus: document.querySelector("#callStatus")?.textContent,
+      chatStatus: document.querySelector("#chatConnectionStatus")?.textContent,
+      audioDisabled: document.querySelector("#audioCall")?.disabled,
+      acceptHidden: document.querySelector("#acceptIncomingCall")?.hidden,
+      acceptDisabled: document.querySelector("#acceptIncomingCall")?.disabled,
+      hangupHidden: document.querySelector("#hangupCall")?.hidden,
+      mediaCalls: window.__mediaCalls,
+      friends: window.EZERO_CONNECT_TRUST?.listTrustedContacts?.().then(rows => rows.length)
+    }))));
+    throw new Error("First audio call did not connect: " + JSON.stringify(diagnostics) + " | " + error.message);
+  }
   assert.ok(await host.evaluate(() => window.__mediaCalls > 0),
     "Caller microphone should start only after the recipient's one Accept");
   assert.ok(await guest.evaluate(() => window.__mediaCalls > 0),
