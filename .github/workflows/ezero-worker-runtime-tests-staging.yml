@@ -31,6 +31,6 @@ jobs:
         with:
           node-version: "22"
       - name: Install pinned project dependencies
-        run: npm install --ignore-scripts
+        run: npm install --ignore-scripts --legacy-peer-deps --package-lock=false --no-audit --no-fund
       - name: Run isolated Durable Object tests
         run: npm run test:android-enrollment-worker
