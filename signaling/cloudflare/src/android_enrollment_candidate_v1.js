@@ -158,13 +158,25 @@ export class AndroidEnrollmentRegistry extends DurableObject {
     const windowMs = admin ? 60 * 60 * 1000 : 60 * 1000;
     const limit = admin ? 3 : 10;
     const windowStart = Math.floor(now / windowMs) * windowMs;
+    // A shared route ceiling limits distributed-IP bypass. It is deliberately
+    // conservative and updated atomically with the per-IP bucket.
+    const globalKey = "rate:global:" + route;
+    const globalLimit = admin ? 20 : 300;
     return this.ctx.storage.transaction(async (txn) => {
-      const previous = await txn.get(key);
+      const [previous, globalPrevious] = await Promise.all([
+        txn.get(key), txn.get(globalKey)
+      ]);
       const count = previous?.window_start === windowStart ? previous.count : 0;
-      if (count >= limit) return false;
+      const globalCount = globalPrevious?.window_start === windowStart
+        ? globalPrevious.count : 0;
+      if (count >= limit || globalCount >= globalLimit) return false;
       const expiresAt = windowStart + windowMs + RATE_RETENTION_MS;
       await txn.put(key, { window_start:windowStart, count:count + 1, expires_at:expiresAt });
       await txn.put(expiryIndexKey(expiresAt, key), { record_key:key });
+      await txn.put(globalKey, {
+        window_start:windowStart, count:globalCount + 1, expires_at:expiresAt
+      });
+      await txn.put(expiryIndexKey(expiresAt, globalKey), { record_key:globalKey });
       return true;
     }).then(async (allowed) => {
       if (allowed) {
@@ -178,7 +190,13 @@ export class AndroidEnrollmentRegistry extends DurableObject {
   async fetch(request) {
     const u = new URL(request.url), body = await readJson(request);
     if (!body) return response({error:"BAD_BODY"},400);
-    const rateAllowed = await this.consumeRateLimit(request, u.pathname);
+    let rateAllowed;
+    try {
+      rateAllowed = await this.consumeRateLimit(request, u.pathname);
+    } catch (_) {
+      // Limiter storage errors fail closed; never continue enrollment unmetered.
+      return response({error:"RATE_LIMIT_UNAVAILABLE"},503);
+    }
     if (!rateAllowed) return new Response(JSON.stringify({error:"RATE_LIMITED"}), {
       status:429, headers:{"Content-Type":"application/json; charset=utf-8",
         "Cache-Control":"no-store","Retry-After":u.pathname === "/v1/admin/root-register" ? "3600" : "60",
