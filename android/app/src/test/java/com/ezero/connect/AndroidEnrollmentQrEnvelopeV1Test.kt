@@ -25,12 +25,14 @@ class AndroidEnrollmentQrEnvelopeV1Test {
         AndroidEnrollmentProtocolV1.AUDIENCE, (System.currentTimeMillis() + 60_000L).toString(), b64(64)
     )
     @Test fun requestRoundTripsInExactFieldOrder() {
-        val encoded = AndroidEnrollmentQrEnvelopeV1.encodeRequest(request())
-        assertEquals(request(), AndroidEnrollmentQrEnvelopeV1.decodeRequest(encoded))
+        val original = request()
+        val encoded = AndroidEnrollmentQrEnvelopeV1.encodeRequest(original)
+        assertEquals(original, AndroidEnrollmentQrEnvelopeV1.decodeRequest(encoded))
     }
     @Test fun approvalRoundTripsInExactFieldOrder() {
-        val encoded = AndroidEnrollmentQrEnvelopeV1.encodeApproval(approval())
-        assertEquals(approval(), AndroidEnrollmentQrEnvelopeV1.decodeApproval(encoded))
+        val original = approval()
+        val encoded = AndroidEnrollmentQrEnvelopeV1.encodeApproval(original)
+        assertEquals(original, AndroidEnrollmentQrEnvelopeV1.decodeApproval(encoded))
     }
     @Test fun rejectsDuplicateOrReorderedFields() {
         val encoded = AndroidEnrollmentQrEnvelopeV1.encodeRequest(request())
