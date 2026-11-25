@@ -1,6 +1,5 @@
 package com.ezero.connect
 
-import android.util.Base64
 import java.nio.charset.StandardCharsets
 
 /** Strict, public-only QR envelopes. This codec does not enroll or trust a device. */
@@ -21,9 +20,24 @@ internal object AndroidEnrollmentQrEnvelopeV1 {
     )
 
     private fun decode64(value: String): ByteArray {
-        require(B64.matches(value)) { "BAD_BASE64URL" }
-        val bytes = Base64.decode(value, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
-        require(bytes.isNotEmpty() && Base64.encodeToString(bytes, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING) == value) { "NON_CANONICAL_BASE64URL" }
+        require(B64.matches(value) && value.length % 4 != 1) { "BAD_BASE64URL" }
+        val alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+        val out = java.io.ByteArrayOutputStream()
+        var buffer = 0
+        var bits = 0
+        value.forEach { ch ->
+            val digit = alphabet.indexOf(ch)
+            require(digit >= 0) { "BAD_BASE64URL" }
+            buffer = (buffer shl 6) or digit
+            bits += 6
+            if (bits >= 8) {
+                bits -= 8
+                out.write((buffer shr bits) and 0xff)
+            }
+        }
+        require(bits == 0 || (buffer and ((1 shl bits) - 1)) == 0) { "NON_CANONICAL_BASE64URL" }
+        val bytes = out.toByteArray()
+        require(bytes.isNotEmpty()) { "BAD_BASE64URL" }
         return bytes
     }
     private fun expiry(value: String) {
