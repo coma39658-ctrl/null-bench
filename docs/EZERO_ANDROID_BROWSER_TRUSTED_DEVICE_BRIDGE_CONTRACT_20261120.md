@@ -93,3 +93,10 @@ Android proof-of-possession must sign the server challenge and the same enrollme
 7. Run automated regression tests, then one consolidated physical-device test round.
 
 No stage may bypass the existing browser WebRTC media engine or modify production. No paid service, deployment, Firebase configuration change, or production release is implied by this design contract.
+
+
+## Native Android Accept → browser WebRTC handoff
+
+The native CallStyle notification's Accept action now passes the verified call ID and media mode to MainActivity. MainActivity opens only a build-configured HTTPS E-ZERO origin. The URL carries an opaque call locator, not caller identity, SDP, credentials or an authorization token. The web handoff module waits for an authenticated incoming-call event with the exact same call ID and only then clicks the existing Accept control. This means the user's native Accept is the one human approval; no unrelated call can be auto-accepted.
+
+The Gradle property `ezeroConnectUrl` defaults to empty. Until an approved staging URL is configured, Accept reports that browser handoff is not configured and does not start a call. This code does not enable FCM delivery or background ringing by itself.
