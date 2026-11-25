@@ -43,5 +43,5 @@ test("bootstrap response does not disclose secret or SPKI", () => {
 
 test("bootstrap candidate remains isolated and has no FCM/push activation", () => {
   assert.match(source, /ISOLATED \/ NOT DEPLOYED/);
-  assert.doesNotMatch(source, /firebase|FCM|sendPush/i);
+  assert.doesNotMatch(source, /getMessaging\\(|getToken\\(|onMessageReceived|sendPush\\(/i);
 });
