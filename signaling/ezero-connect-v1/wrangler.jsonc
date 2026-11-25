@@ -1,6 +1,6 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
-  "name": "ezero-connect-signal-staging-20261120",
+  "name": "ezero-connect-call-preview-20261125",
   "main": "worker.mjs",
   "compatibility_date": "2026-11-19",
   "workers_dev": true,
