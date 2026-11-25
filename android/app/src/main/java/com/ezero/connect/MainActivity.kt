@@ -26,7 +26,7 @@ class MainActivity : Activity() {
         }
         statusView = TextView(this).apply { textSize = 18f }
         val galleryButton = Button(this).apply {
-            text = "Verify friend's permanent QR from gallery"
+            text = "Read E-ZERO QR from gallery"
             setOnClickListener {
                 val pick = Intent(Intent.ACTION_GET_CONTENT).apply { type = "image/*" }
                 @Suppress("DEPRECATION")
@@ -62,7 +62,7 @@ class MainActivity : Activity() {
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
         ))
         val cameraButton = Button(this).apply {
-            text = "Scan friend's permanent QR with camera"
+            text = "Scan E-ZERO QR with camera"
             setOnClickListener {
                 startActivityForResult(Intent(this@MainActivity, QrCameraScanActivity::class.java), REQUEST_QR_CAMERA)
             }
@@ -118,16 +118,43 @@ class MainActivity : Activity() {
     }
 
     private fun verifyScannedToken(token: String?) {
-        try {
-            val verified = BrowserPermanentIdentityVerifier.verify(requireNotNull(token) { "QR_EMPTY" })
-            statusView.text = buildString {
-                append("E-ZERO permanent QR verified.\n")
-                append("Fingerprint: ")
-                append(verified.fingerprintSha256)
-                append("\n\nThis only verifies the QR signature. Friend enrollment and call permission are not active.")
+        val raw = token ?: run {
+            statusView.text = "QR not verified. No QR data was received."
+            return
+        }
+        when (AndroidQrPayloadRouter.classify(raw)) {
+            AndroidQrPayloadRouter.Kind.ENROLLMENT_REQUEST -> {
+                try {
+                    AndroidEnrollmentQrEnvelopeV1.decodeRequest(raw)
+                    statusView.text = "E-ZERO Android enrollment request QR format is valid.\n\nScan this request with the already-authorized browser Root device. Scanning does not enroll or trust this phone."
+                } catch (_: Exception) {
+                    statusView.text = "Android enrollment request QR is malformed or expired. No trust was created."
+                }
             }
-        } catch (_: Exception) {
-            statusView.text = "QR not verified. Use a clear, valid E-ZERO permanent QR."
+            AndroidQrPayloadRouter.Kind.ENROLLMENT_APPROVAL -> {
+                try {
+                    AndroidEnrollmentQrEnvelopeV1.decodeApproval(raw)
+                    statusView.text = "E-ZERO enrollment approval QR format is valid only.\n\nRoot signature verification and matching a live pending challenge are not connected yet. This phone is NOT enrolled or trusted."
+                } catch (_: Exception) {
+                    statusView.text = "Android enrollment approval QR is malformed or expired. No trust was created."
+                }
+            }
+            AndroidQrPayloadRouter.Kind.INVALID_ENROLLMENT -> {
+                statusView.text = "Unrecognized Android enrollment QR version. No trust was created."
+            }
+            AndroidQrPayloadRouter.Kind.PERMANENT_QR_CANDIDATE -> {
+                try {
+                    val verified = BrowserPermanentIdentityVerifier.verify(raw)
+                    statusView.text = buildString {
+                        append("E-ZERO permanent QR verified.\n")
+                        append("Fingerprint: ")
+                        append(verified.fingerprintSha256)
+                        append("\n\nThis only verifies the QR signature. Friend enrollment and call permission are not active.")
+                    }
+                } catch (_: Exception) {
+                    statusView.text = "QR not verified. Use a clear, valid E-ZERO permanent QR."
+                }
+            }
         }
     }
 
