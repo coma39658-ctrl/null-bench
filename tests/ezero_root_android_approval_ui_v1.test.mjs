@@ -35,10 +35,10 @@ test("approval output is QR-only and explicitly not Worker enrollment", () => {
 });
 
 test("QR build entry exports the exact camera, gallery and encoder APIs used by the page", () => {
-  assert.match(qrEntry, /globalThis\\.EZERO_QR = Object\\.freeze\\(\\{ encodeDataUrl, decodeImageFile, startCamera \\}\\)/);
-  assert.match(qrEntry, /async function decodeImageFile\\(/);
-  assert.match(qrEntry, /async function startCamera\\(/);
-  assert.match(qrEntry, /function encodeDataUrl\\(/);
+  assert.ok(qrEntry.includes("globalThis.EZERO_QR = Object.freeze({ encodeDataUrl, decodeImageFile, startCamera })"));
+  assert.ok(qrEntry.includes("async function decodeImageFile("));
+  assert.ok(qrEntry.includes("async function startCamera("));
+  assert.ok(qrEntry.includes("function encodeDataUrl("));
 });
 
 test("staging page loads only existing identity, signer, QR runtime and approval UI", () => {
