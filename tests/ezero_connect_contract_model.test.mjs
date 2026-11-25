@@ -39,9 +39,9 @@ test("two signatures from the same device cannot create a trusted relationship",
 });
 test("saved friend can call without QR; untrusted third parties cannot", () => {
   const trusted = trustedFixture();
-  const call = issueCall({ trusted, caller: "A", callee: "B", callId: "call-1", mode: "audio", now: NOW, expiresAt: NOW + 60_000 });
+  const call = issueCall({ trusted, caller: "device-A", callee: "device-B", callId: "call-1", mode: "audio", now: NOW, expiresAt: NOW + 60_000 });
   assert.equal(call.state, CALL.INVITED);
-  assert.throws(() => issueCall({ trusted, caller: "C", callee: "B", callId: "call-2", mode: "audio", now: NOW, expiresAt: NOW + 60_000 }), /CALL_INVITE_INVALID/);
+  assert.throws(() => issueCall({ trusted, caller: "outsider-C", callee: "device-B", callId: "call-2", mode: "audio", now: NOW, expiresAt: NOW + 60_000 }), /CALL_INVITE_INVALID/);
 });
 test("media is impossible before explicit recipient acceptance", () => {
   const trusted = trustedFixture();
