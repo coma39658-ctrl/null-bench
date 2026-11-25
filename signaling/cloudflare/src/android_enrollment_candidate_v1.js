@@ -13,7 +13,16 @@ const ID = /^[A-Za-z0-9_-]{16,128}$/;
 const B64 = /^[A-Za-z0-9_-]+$/;
 const MAX_BODY = 4096;
 const CHALLENGE_MS = 90000;
+const RATE_RETENTION_MS = 24 * 60 * 60 * 1000;
+const CLEANUP_BATCH = 100;
 const enc = new TextEncoder();
+
+function expiryIndexKey(expiresAt, recordKey) {
+  return "expiry:" + String(expiresAt).padStart(16, "0") + ":" + recordKey;
+}
+function indexedExpiry(indexKey) {
+  return Number(indexKey.slice(7, 23));
+}
 
 export function base64url(bytes) {
   let s = "";
@@ -97,6 +106,48 @@ export default {
 };
 
 export class AndroidEnrollmentRegistry extends DurableObject {
+  async scheduleCleanup(expiresAt) {
+    // Serialize alarm comparisons: concurrent callers must not let a later
+    // expiry overwrite an earlier alarm after both observed an empty slot.
+    const previous = this.scheduleQueue || Promise.resolve();
+    const next = previous.catch(() => {}).then(async () => {
+      const current = await this.ctx.storage.getAlarm();
+      if (current === null || current > expiresAt) {
+        await this.ctx.storage.setAlarm(expiresAt);
+      }
+    });
+    this.scheduleQueue = next;
+    await next;
+  }
+
+  async alarm() {
+    const now = Date.now();
+    const due = await this.ctx.storage.list({ prefix: "expiry:", limit: CLEANUP_BATCH });
+    for (const [indexKey] of due) {
+      const expiresAt = indexedExpiry(indexKey);
+      if (!Number.isFinite(expiresAt) || expiresAt > now) break;
+      const recordKey = indexKey.slice(24);
+      await this.ctx.storage.transaction(async (txn) => {
+        const record = await txn.get(recordKey);
+        const recordExpiry = record?.expires_at ?? record?.challenge?.expires_at;
+        // A rate bucket may have been refreshed into a newer window while an
+        // older index row still exists. Never let that stale row delete it.
+        if (Number(recordExpiry) === expiresAt) await txn.delete(recordKey);
+        await txn.delete(indexKey);
+      });
+    }
+
+    // The index is timestamp-sorted. If more expired rows remain, yield and
+    // continue in another bounded alarm rather than scanning unbounded storage.
+    const next = await this.ctx.storage.list({ prefix: "expiry:", limit: 1 });
+    if (next.size) {
+      const nextKey = next.keys().next().value;
+      const nextExpiry = indexedExpiry(nextKey);
+      const scheduledAt = nextExpiry <= now ? now + 1000 : nextExpiry;
+      await this.scheduleCleanup(scheduledAt);
+    }
+  }
+
   async consumeRateLimit(request, route) {
     const clientIp = request.headers.get("X-EZERO-Client-IP") || "unknown";
     // Do not persist raw IP addresses; use a one-way digest in the per-route bucket key.
@@ -107,19 +158,45 @@ export class AndroidEnrollmentRegistry extends DurableObject {
     const windowMs = admin ? 60 * 60 * 1000 : 60 * 1000;
     const limit = admin ? 3 : 10;
     const windowStart = Math.floor(now / windowMs) * windowMs;
-    return this.ctx.storage.transactionSync(tx => {
-      const previous = tx.get(key);
+    // A shared route ceiling limits distributed-IP bypass. It is deliberately
+    // conservative and updated atomically with the per-IP bucket.
+    const globalKey = "rate:global:" + route;
+    const globalLimit = admin ? 20 : 300;
+    return this.ctx.storage.transaction(async (txn) => {
+      const [previous, globalPrevious] = await Promise.all([
+        txn.get(key), txn.get(globalKey)
+      ]);
       const count = previous?.window_start === windowStart ? previous.count : 0;
-      if (count >= limit) return false;
-      tx.put(key, { window_start:windowStart, count:count + 1 });
+      const globalCount = globalPrevious?.window_start === windowStart
+        ? globalPrevious.count : 0;
+      if (count >= limit || globalCount >= globalLimit) return false;
+      const expiresAt = windowStart + windowMs + RATE_RETENTION_MS;
+      await txn.put(key, { window_start:windowStart, count:count + 1, expires_at:expiresAt });
+      await txn.put(expiryIndexKey(expiresAt, key), { record_key:key });
+      await txn.put(globalKey, {
+        window_start:windowStart, count:globalCount + 1, expires_at:expiresAt
+      });
+      await txn.put(expiryIndexKey(expiresAt, globalKey), { record_key:globalKey });
       return true;
+    }).then(async (allowed) => {
+      if (allowed) {
+        const expiresAt = windowStart + windowMs + RATE_RETENTION_MS;
+        await this.scheduleCleanup(expiresAt);
+      }
+      return allowed;
     });
   }
 
   async fetch(request) {
     const u = new URL(request.url), body = await readJson(request);
     if (!body) return response({error:"BAD_BODY"},400);
-    const rateAllowed = await this.consumeRateLimit(request, u.pathname);
+    let rateAllowed;
+    try {
+      rateAllowed = await this.consumeRateLimit(request, u.pathname);
+    } catch (_) {
+      // Limiter storage errors fail closed; never continue enrollment unmetered.
+      return response({error:"RATE_LIMIT_UNAVAILABLE"},503);
+    }
     if (!rateAllowed) return new Response(JSON.stringify({error:"RATE_LIMITED"}), {
       status:429, headers:{"Content-Type":"application/json; charset=utf-8",
         "Cache-Control":"no-store","Retry-After":u.pathname === "/v1/admin/root-register" ? "3600" : "60",
@@ -159,9 +236,15 @@ export class AndroidEnrollmentRegistry extends DurableObject {
           audience:ORIGIN,
           expires_at:String(now+CHALLENGE_MS)
         };
-        await this.ctx.storage.put("challenge:"+challenge.challenge_id,{
-          challenge,device_spki:body.device_spki,created_at:now
+        const challengeKey = "challenge:" + challenge.challenge_id;
+        const expiresAt = Number(challenge.expires_at);
+        await this.ctx.storage.transaction(async (txn) => {
+          await txn.put(challengeKey, {
+            challenge,device_spki:body.device_spki,created_at:now
+          });
+          await txn.put(expiryIndexKey(expiresAt, challengeKey), { record_key:challengeKey });
         });
+        await this.scheduleCleanup(expiresAt);
         return response({challenge,device_challenge:base64url(canonical(
           "EZERO_ANDROID_ENROLL_CHALLENGE_V1",challenge,CHALLENGE_ORDER))});
       } catch (_) { return response({error:"BAD_DEVICE_KEY"},400); }
@@ -176,16 +259,18 @@ export class AndroidEnrollmentRegistry extends DurableObject {
       // Atomically reserve/consume before asynchronous signature checks. This
       // prevents two concurrent completion requests from both enrolling.
       // Invalid proofs require a fresh challenge; fail closed rather than replay.
-      const saved = this.ctx.storage.transactionSync(tx => {
-        const value = tx.get(key);
+      const saved = await this.ctx.storage.transaction(async (txn) => {
+        const value = await txn.get(key);
         if (!value) return null;
-        tx.delete(key);
+        await txn.delete(key);
+        if (value.challenge?.expires_at) {
+          await txn.delete(expiryIndexKey(Number(value.challenge.expires_at), key));
+        }
         return value;
       });
       if (!saved) return response({error:"CHALLENGE_UNKNOWN_OR_USED"},409);
       const c = saved.challenge, now = Date.now();
       if (Number(c.expires_at) <= now || Number(c.expires_at)-saved.created_at > CHALLENGE_MS) {
-        await this.ctx.storage.delete(key);
         return response({error:"CHALLENGE_EXPIRED"},410);
       }
       const roots = (await this.ctx.storage.get("roots")) || {};
