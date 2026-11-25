@@ -12,7 +12,7 @@
   const words = {
     ur: {
       title:"محفوظ دوست بنائیں", host:"آپ QR کے مالک ہیں", guest:"دوست کا QR اسکین ہوا",
-      waiting:"دوست کے جڑنے کا انتظار ہے…", peer:"محفوظ کنکشن بن گیا۔ دعوت خود بھیج دی گئی ہے؛ دوست کی ایک منظوری کا انتظار ہے۔", requestSent:"دعوت بھیج دی گئی ہے۔ دوسری طرف سے ایک بار قبول ہونے کا انتظار ہے…", recipientAccept:"ایک بار قبول کریں؛ کال کا محفوظ رابطہ اور دوستوں کی فہرست دونوں فونوں پر بنے گی۔",
+      waiting:"دوست کے جڑنے کا انتظار ہے…", peer:"محفوظ کنکشن بن گیا۔ دعوت خود بھیج دی گئی ہے؛ دوست کی ایک منظوری کا انتظار ہے۔", requestSent:"دعوت بھیج دی گئی ہے۔ دوسری طرف سے ایک بار قبول ہونے کا انتظار ہے…", recipientAccept:"ایک بار قبول کریں؛ محفوظ دوستی اور دونوں فونوں کی دوستوں کی فہرست بنے گی۔",
       hostName:"دوست کا نام لکھیں", hostAction:"درخواست بھیجیں اور محفوظ کرنے کی منظوری دیں",
       guestWait:"دوست کی درخواست کا انتظار ہے…", request:"دوست آپ کو محفوظ کرنا چاہتا ہے۔ نام لکھیں اور منظوری دیں۔",
       guestName:"اپنی فہرست میں دوست کا نام لکھیں", guestAction:"منظوری دیں اور دوست محفوظ کریں",
@@ -23,7 +23,7 @@
     },
     en: {
       title:"Save a trusted friend", host:"You are showing your QR", guest:"Friend QR verified",
-      waiting:"Waiting for the other device…", peer:"Secure peer connection established. The invitation has been sent; wait for the friend to accept once.", requestSent:"Invitation sent. Waiting for the recipient to Accept once…", recipientAccept:"Accept once to connect and save this friend on both phones.",
+      waiting:"Waiting for the other device…", peer:"Secure peer connection established. The invitation has been sent; wait for the friend to accept once.", requestSent:"Invitation sent. Waiting for the recipient to Accept once…", recipientAccept:"Accept once to establish trusted friendship and save each other on both phones.",
       hostName:"Enter the friend's name", hostAction:"Send request and consent to save",
       guestWait:"Waiting for the friend's request…", request:"This person wants to save you as a trusted friend. Enter their name and approve.",
       guestName:"Name this friend in your list", guestAction:"Approve and save friend",
@@ -34,7 +34,7 @@
     },
     ar: {
       title:"حفظ صديق موثوق", host:"أنت تعرض رمز QR", guest:"تم التحقق من رمز الصديق",
-      waiting:"بانتظار الجهاز الآخر…", peer:"تم إنشاء اتصال آمن وإرسال الدعوة تلقائياً؛ بانتظار قبول الصديق مرة واحدة.", requestSent:"تم إرسال الدعوة؛ بانتظار قبول الطرف الآخر مرة واحدة…", recipientAccept:"اقبل مرة واحدة لإنشاء الاتصال وحفظ الصديق في الجهازين.",
+      waiting:"بانتظار الجهاز الآخر…", peer:"تم إنشاء اتصال آمن وإرسال الدعوة تلقائياً؛ بانتظار قبول الصديق مرة واحدة.", requestSent:"تم إرسال الدعوة؛ بانتظار قبول الطرف الآخر مرة واحدة…", recipientAccept:"اقبل مرة واحدة لإنشاء صداقة موثوقة وحفظ الطرفين في قائمة الأصدقاء.",
       hostName:"أدخل اسم الصديق", hostAction:"إرسال الطلب والموافقة على الحفظ",
       guestWait:"بانتظار طلب الصديق…", request:"يريد هذا الشخص حفظك كصديق موثوق. أدخل اسمه ووافق.",
       guestName:"اكتب اسم هذا الصديق في قائمتك", guestAction:"الموافقة وحفظ الصديق",
