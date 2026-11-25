@@ -11,6 +11,11 @@ try {
     await page.addInitScript(() => {
       window.EZERO_CONNECT_CONFIG = { signalingUrl: "ws://127.0.0.1:8787" };
       window.__mediaCalls = 0;
+      window.__callStateEvents = [];
+      document.addEventListener("ezero:trusted-call-state", event => {
+        const value = event.detail || {};
+        window.__callStateEvents.push({ state: value.state, error: value.error || "", connectionState: value.connectionState || "", iceConnectionState: value.iceConnectionState || "", role: value.role || "", mode: value.mode || "" });
+      });
       window.__wsTrace = [];
       const NativeWebSocket = window.WebSocket;
       window.WebSocket = class extends NativeWebSocket {
@@ -141,6 +146,7 @@ try {
       acceptDisabled: document.querySelector("#acceptIncomingCall")?.disabled,
       hangupHidden: document.querySelector("#hangupCall")?.hidden,
       mediaCalls: window.__mediaCalls,
+      callStates: window.__callStateEvents,
       friends: window.EZERO_CONNECT_TRUST?.listTrustedContacts?.().then(rows => rows.length)
     }))));
     throw new Error("First audio call did not connect: " + JSON.stringify(diagnostics) + " | " + error.message);
