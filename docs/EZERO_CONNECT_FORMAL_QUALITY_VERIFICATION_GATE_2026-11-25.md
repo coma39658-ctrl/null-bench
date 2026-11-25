@@ -77,3 +77,50 @@ Stop immediately on any invariant failure, secret exposure, unexpected charge, p
 
 ## 8. Release evidence format
 For each gate record: requirement ID, test ID, expected result, observed result, PASS/FAIL/BLOCKED, environment, commit SHA, SDK versions, timestamp, log/artifact reference, and reviewer. A green CI run is not a physical-device pass. Never report an unrun test as passed.
+
+
+## 9. Threat intelligence, dark-web exposure, and adversary emulation
+Purpose: use attacker knowledge to harden E-ZERO, strictly as defensive threat-informed engineering. Do not access, buy from, communicate with, or download from criminal marketplaces; do not acquire stolen credentials, private data, malware, or exploit kits. Use reputable public reports, vetted commercial feeds if separately approved, and lawful monitoring services.
+
+### 9.1 Threat-intelligence sources and handling
+- Map relevant attacker behaviors using MITRE ATT&CK; map defensive engagement/deception only in a controlled lab using MITRE Engage.
+- Ingest high-confidence public advisories and exploited-vulnerability information (CISA KEV and vendor security advisories); record source, timestamp, confidence, expiry, affected component, and remediation.
+- Evaluate MISP and OpenCTI as self-hostable CTI aggregation options; use STIX 2.1/TAXII 2.1 for normalized exchange where supported.
+- Consider dark-web exposure monitoring only for E-ZERO-owned domains, brand identifiers, and authorized organization email domains. Prefer vendors that provide evidence provenance, false-positive handling, retention controls, deletion, and clear legal sourcing. Never search for or expose personal data unrelated to E-ZERO.
+- Treat leaked-password alerts as an incident signal: do not store or test plaintext passwords. Notify the owner, force reset/revoke sessions where authorized, enable MFA/passkeys, and preserve minimal evidence.
+- Threat feeds are untrusted input: validate schema, signatures where available, source reputation, freshness/TTL, deduplicate, and require human review before blocking or changing production behavior.
+
+### 9.2 Adversary model for E-ZERO
+Test likely abuse cases: account/device impersonation; QR substitution and replay; stolen or revoked device; push spoofing and replay; call-ID guessing; unauthorized room-token requests; broken object-level authorization; WebSocket/event injection; malicious deep links; dependency/supply-chain compromise; secrets in build artifacts; denial-of-service and resource exhaustion; social engineering and notification abuse; Android exported-component/intent abuse; insecure local storage and backup leakage; log/analytics leakage; downgrade and provider failover confusion.
+
+### 9.3 Authorized red-team / purple-team test plan
+- Only test E-ZERO-owned repositories, preview services, test accounts, and devices explicitly in scope. No scanning or exploitation of provider infrastructure, public third-party systems, other users, or real dark-web targets.
+- Start with passive inventory and configuration review; then static analysis, dependency/SBOM review, secret scanning, dynamic application testing, API authorization tests, and controlled adversary emulation.
+- Create a threat-to-control matrix: ATT&CK technique -> E-ZERO attack surface -> expected detection/prevention -> test case -> evidence -> residual risk.
+- Use benign synthetic identities, synthetic push payloads, fake secrets, and isolated test data. Any decoy/honeytoken must be fictitious and isolated; it must never collect real users' credentials or private content.
+- Red-team findings are not "fixed" by disabling essential controls. Fix root causes, add regression tests, and verify both security and usability.
+- A human approves any production-facing block, account lock, takedown, credential revocation, or external notification.
+
+### 9.4 Additional security gates
+K. Threat modelling: STRIDE per component and abuse-case analysis for identity, QR, API, signaling, media, push, storage, and admin surfaces.
+L. Standards-based checks: OWASP ASVS 5.0 for web/API; OWASP MASVS for Android/mobile; NIST SSDF (SP 800-218) for development and release; NIST secure software verification guidance; CIS Controls mapping where applicable.
+M. Supply chain: generate SBOM (CycloneDX or SPDX), pin dependencies, verify provenance/signatures, scan known vulnerabilities, review transitive dependencies, and test reproducible build/provenance where feasible.
+N. Runtime defenses: least privilege, short-lived scoped tokens, rate limits, abuse throttles, replay protection, secure headers/CSP, TLS, safe error handling, privacy-preserving audit logs, and alerting for anomalous auth/call patterns.
+O. Incident readiness: documented credential rotation, device revocation, session invalidation, provider outage/failover, data breach triage, backup/restore, and user notification playbooks.
+P. Dark-web/credential exposure response: validate alert independently; assess whether it concerns E-ZERO-controlled identifiers; rotate/revoke only affected credentials; document source confidence and avoid retaining illicitly obtained material.
+
+### 9.5 New acceptance criteria
+- Every in-scope high-risk ATT&CK/STRIDE scenario has a mapped control and a test or a documented accepted residual risk.
+- No unauthorized access to another user's friend list, profile, messages, call metadata, or media room.
+- No replayed invite/push, forged caller identity, cross-call event injection, or privilege escalation succeeds in the staging threat suite.
+- No secret or personal data appears in client bundles, crash reports, CI logs, or threat-intelligence artifacts.
+- Every CTI indicator has provenance, confidence, first-seen/last-seen, expiry, and a review decision; stale/low-confidence indicators never trigger automatic production blocking.
+- Dark-web monitoring is limited to explicitly authorized E-ZERO identifiers and does not ingest stolen datasets or unrelated personal information.
+- Security test report includes scope, methods, limitations, findings, remediation, retest evidence, and residual risk; no blanket "secure" claim based solely on a scan.
+
+## 10. Additional reference frameworks
+- OWASP ASVS 5.0 (web/API verification requirements) and OWASP MASVS (mobile application security verification).
+- NIST SP 800-218 SSDF (secure development lifecycle); NIST SP 800-150 (cyber threat information sharing); NISTIR 8286A Rev.1 (risk-informed threat intelligence).
+- MITRE ATT&CK (adversary tactics/techniques), MITRE Engage (controlled adversary engagement/deception), and CIS Controls v8.1 mappings.
+- CISA guidance on cyber decoys (September 2026): use isolated fictitious decoys/honeytokens and integrate detections with incident response.
+- CTI exchange: STIX 2.1 / TAXII 2.1; evaluate MISP and OpenCTI for normalization and analyst workflow.
