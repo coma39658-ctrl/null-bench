@@ -136,11 +136,11 @@ export class AndroidEnrollmentRegistry extends DurableObject {
         // A single INSERT is the atomic gate: the singleton primary key allows
         // only one root bootstrap to commit, even for concurrent requests.
         const inserted = sql.exec(
-          "INSERT INTO ezero_root_bootstrap_state (id, used, root_fp, spki, added_at, active) VALUES (1, 1, ?, ?, ?, 1) ON CONFLICT(id) DO NOTHING",
+          "INSERT INTO ezero_root_bootstrap_state (id, used, root_fp, spki, added_at, active) VALUES (1, 1, ?, ?, ?, 1) ON CONFLICT(id) DO NOTHING RETURNING id",
           fp, body.root_spki, Date.now()
-        );
+        ).toArray();
         let registered = "REGISTERED";
-        if (inserted.rowsWritten !== 1) {
+        if (inserted.length !== 1) {
           const existing = sql.exec(
             "SELECT root_fp FROM ezero_root_bootstrap_state WHERE id = 1"
           ).toArray()[0];
