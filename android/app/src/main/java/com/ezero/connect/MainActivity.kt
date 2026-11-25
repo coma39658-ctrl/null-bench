@@ -6,6 +6,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
+import android.net.Uri
+import android.content.ActivityNotFoundException
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
@@ -55,10 +57,16 @@ class MainActivity : Activity() {
             append("E-ZERO Connect\n\nAndroid incoming-call host — isolated staging.")
             append("\nAndroid Telecom registration: ")
             append(if (telecomReady) "registered" else "unavailable on this device")
-            append("\nPush setup and secure WebRTC handoff are not active yet.")
+            append("\nFCM enrollment is not active yet. A verified native Accept can open the configured E-ZERO browser call page.")
             append("\n\nA verified QR is identity evidence only; it does not enroll or trust a friend.")
         }
         requestNotificationPermission()
+        showPendingCall(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
         showPendingCall(intent)
     }
 
@@ -118,14 +126,29 @@ class MainActivity : Activity() {
     }
 
     private fun showPendingCall(intent: Intent?) {
-        val action = intent?.getStringExtra(CallActionReceiver.EXTRA_ACTION) ?: return
-        val callId = intent.getStringExtra(CallActionReceiver.EXTRA_CALL_ID) ?: "unknown"
-        val status = when (action) {
-            CallActionReceiver.ACTION_ACCEPT -> "Accept tapped. Secure invite handoff is not integrated yet."
-            CallActionReceiver.ACTION_REJECT -> "Call rejected."
-            else -> "Incoming call event received."
+        val callId = intent?.getStringExtra(CallActionReceiver.EXTRA_CALL_ID)
+        val action = intent?.getStringExtra(CallActionReceiver.EXTRA_ACTION)
+        val mode = intent?.getStringExtra(CallActionReceiver.EXTRA_MODE) ?: "AUDIO"
+        if (callId.isNullOrBlank()) return
+
+        if (action == CallActionReceiver.ACTION_ACCEPT) {
+            val target = BrowserCallHandoff.buildUrl(BuildConfig.EZERO_CONNECT_URL, callId, mode)
+            if (target == null) {
+                statusView.text = "E-ZERO Connect\n\nAccept received. The approved staging browser URL is not configured yet; no call was started."
+                return
+            }
+            try {
+                statusView.text = "E-ZERO Connect\n\nOpening the verified browser call…"
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(target)))
+                finish()
+            } catch (_: ActivityNotFoundException) {
+                statusView.text = "E-ZERO Connect\n\nNo browser is available to open the call."
+            }
+            return
         }
-        statusView.text = "E-ZERO Connect\n\n$status\nCall reference: $callId"
+
+        val modeLabel = if (mode.equals("VIDEO", ignoreCase = true)) "video" else "audio"
+        statusView.text = "E-ZERO Connect\n\nIncoming $modeLabel call. Use Accept or Decline on the call notification.\nCall reference: $callId"
     }
 
     companion object {
