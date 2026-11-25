@@ -2,6 +2,7 @@ import { createHash, generateKeyPairSync } from "node:crypto";
 import { spawn } from "node:child_process";
 import assert from "node:assert/strict";
 
+// Diagnostic run: worker returns only a safe failure-stage label.
 const origin = "https://coma39658-ctrl.github.io";
 const port = 8791 + Math.floor(Math.random() * 300);
 const secret = "ci-only-ezero-root-bootstrap-secret";
