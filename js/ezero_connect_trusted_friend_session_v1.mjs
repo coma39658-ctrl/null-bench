@@ -74,7 +74,10 @@ export function createTrustedFriendMessagingSession({
     callController = createTrustedFriendCallController({
       signalingSession: rendezvous, relationshipId, trustApi, identityApi, iceServers,
       RTCPeerConnectionImpl,
-      onState: value => { for (const callback of [...callCallbacks]) { try { callback.onState?.(value); } catch (_) {} } },
+      onState: value => {
+        try { globalThis.document?.dispatchEvent?.(new CustomEvent("ezero:trusted-call-state", { detail: value })); } catch (_) {}
+        for (const callback of [...callCallbacks]) { try { callback.onState?.(value); } catch (_) {} }
+      },
       onLocalStream: value => { for (const callback of [...callCallbacks]) { try { callback.onLocalStream?.(value); } catch (_) {} } },
       onRemoteStream: value => { for (const callback of [...callCallbacks]) { try { callback.onRemoteStream?.(value); } catch (_) {} } }
     });
