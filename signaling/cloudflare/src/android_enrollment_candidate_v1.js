@@ -86,6 +86,31 @@ export default {
 };
 
 export class AndroidEnrollmentRegistry extends DurableObject {
+  constructor(ctx, env) {
+    super(ctx, env);
+    ctx.blockConcurrencyWhile(() => {
+      ctx.storage.sql.exec(`
+        CREATE TABLE IF NOT EXISTS ezero_roots (
+          fp TEXT PRIMARY KEY,
+          spki TEXT NOT NULL,
+          added_at INTEGER NOT NULL,
+          active INTEGER NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS ezero_root_bootstrap_state (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          used INTEGER NOT NULL
+        );
+      `);
+    });
+  }
+
+  rootRecord(fp) {
+    return this.ctx.storage.sql.exec(
+      "SELECT fp, spki, added_at, active FROM ezero_roots WHERE fp = ?",
+      fp
+    ).toArray()[0] || null;
+  }
+
   async fetch(request) {
     const u = new URL(request.url), body = await readJson(request);
     if (!body) return response({error:"BAD_BODY"},400);
@@ -110,12 +135,21 @@ export class AndroidEnrollmentRegistry extends DurableObject {
         const record = { spki:body.root_spki, added_at:Date.now(), active:true };
         // The durable transaction is the single-use gate. Concurrent requests
         // cannot both consume bootstrap authorization or install competing roots.
-        const registered = await this.ctx.storage.transaction(async tx => {
-          if (await tx.get("root-bootstrap-v1-used") === true) return "USED";
-          const roots = (await tx.get("roots")) || {};
-          if (Object.keys(roots).length !== 0) return "ROOT_ALREADY_REGISTERED";
-          await tx.put("roots", { [fp]: record });
-          await tx.put("root-bootstrap-v1-used", true);
+        const registered = this.ctx.storage.transactionSync(() => {
+          const sql = this.ctx.storage.sql;
+          const used = sql.exec(
+            "SELECT used FROM ezero_root_bootstrap_state WHERE id = 1"
+          ).toArray()[0];
+          if (used?.used === 1) return "USED";
+          const count = sql.exec("SELECT COUNT(*) AS count FROM ezero_roots").one().count;
+          if (count !== 0) return "ROOT_ALREADY_REGISTERED";
+          sql.exec(
+            "INSERT INTO ezero_roots (fp, spki, added_at, active) VALUES (?, ?, ?, 1)",
+            fp, body.root_spki, Date.now()
+          );
+          sql.exec(
+            "INSERT INTO ezero_root_bootstrap_state (id, used) VALUES (1, 1)"
+          );
           return "REGISTERED";
         });
         if (registered === "USED") return response({error:"BOOTSTRAP_ALREADY_USED"},409);
@@ -131,8 +165,8 @@ export class AndroidEnrollmentRegistry extends DurableObject {
 
     if (u.pathname === "/v1/root/devices/challenge") {
       if (!FP.test(body.root_fp || "") || !["LIST_DEVICES","REVOKE_DEVICE"].includes(body.action) || (body.action === "REVOKE_DEVICE" && !FP.test(body.device_fp || ""))) return response({error:"BAD_MANAGEMENT_REQUEST"},400);
-      const roots=(await this.ctx.storage.get("roots"))||{};
-      if (!roots[body.root_fp]?.active) return response({error:"ROOT_NOT_AUTHORIZED"},403);
+      const root=this.rootRecord(body.root_fp);
+      if (!root?.active) return response({error:"ROOT_NOT_AUTHORIZED"},403);
       if (body.action==="REVOKE_DEVICE") {
         const devices=(await this.ctx.storage.get("devices"))||{};
         if (!devices[body.device_fp] || devices[body.device_fp].root_fp!==body.root_fp) return response({error:"DEVICE_NOT_FOUND"},404);
@@ -158,8 +192,7 @@ export class AndroidEnrollmentRegistry extends DurableObject {
       const c=saved.challenge;
       if (Number(c.expires_at)<=Date.now() || Number(c.expires_at)-saved.created_at>CHALLENGE_MS) return response({error:"CHALLENGE_EXPIRED"},410);
       if (c.root_fp!==body.root_fp || c.action!==action || c.device_fp!==(action==="REVOKE_DEVICE"?body.device_fp:"-")) return response({error:"COMMAND_BINDING_MISMATCH"},403);
-      const roots=(await this.ctx.storage.get("roots"))||{};
-      const root=roots[c.root_fp];
+      const root=this.rootRecord(c.root_fp);
       if (!root?.active) return response({error:"ROOT_NOT_AUTHORIZED"},403);
       try {
         const rootSpki=decode64(root.spki,512);
@@ -230,8 +263,7 @@ export class AndroidEnrollmentRegistry extends DurableObject {
         await this.ctx.storage.delete(key);
         return response({error:"CHALLENGE_EXPIRED"},410);
       }
-      const roots = (await this.ctx.storage.get("roots")) || {};
-      const root = roots[body.root_fp];
+      const root = this.rootRecord(body.root_fp);
       if (!root?.active) return response({error:"ROOT_NOT_AUTHORIZED"},403);
       try {
         const deviceSpki = decode64(saved.device_spki,512);
