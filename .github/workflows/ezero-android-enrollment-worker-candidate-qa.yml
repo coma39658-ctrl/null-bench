@@ -1,0 +1,33 @@
+name: E-ZERO Android Enrollment Worker Candidate QA
+
+on:
+  push:
+    branches:
+      - ezero-android-root-enrollment-worker-candidate-20261125
+    paths:
+      - "signaling/cloudflare/src/android_enrollment_candidate_v1.js"
+      - "signaling/cloudflare/wrangler.android-enrollment-candidate-v1.jsonc"
+      - "android/ROOT_APPROVED_ENROLLMENT_CONTRACT_V1.md"
+      - "tests/ezero_android_root_enrollment_contract_v1.test.mjs"
+      - ".github/workflows/ezero-android-enrollment-worker-candidate-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  candidate-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify root enrollment contract
+        run: node --test tests/ezero_android_root_enrollment_contract_v1.test.mjs
+      - name: Validate isolated Worker bundle without deploying
+        working-directory: signaling/cloudflare
+        run: npx --yes wrangler@4 deploy --dry-run --config wrangler.android-enrollment-candidate-v1.jsonc
+      - name: Confirm active Worker config remains separate
+        run: |
+          node --input-type=module -e "import fs from 'node:fs'; const active=fs.readFileSync('signaling/cloudflare/wrangler.jsonc','utf8'); const candidate=fs.readFileSync('signaling/cloudflare/wrangler.android-enrollment-candidate-v1.jsonc','utf8'); if(active.includes('android_enrollment_candidate_v1.js') || active.includes('AndroidEnrollmentRegistry')) throw new Error('candidate leaked into active config'); if(!candidate.includes('android_enrollment_candidate_v1.js')) throw new Error('candidate entrypoint missing'); console.log('ACTIVE_WORKER_ISOLATION_PASS')"
