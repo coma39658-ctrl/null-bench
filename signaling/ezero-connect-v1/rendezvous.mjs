@@ -3,7 +3,7 @@ const SESSION_TTL_MS = 120_000;
 const MAX_MESSAGE_BYTES = 16 * 1024;
 const MAX_SDP_CHARS = 12 * 1024;
 const MAX_ICE_BYTES = 2 * 1024;
-const ALLOWED = new Set(["offer", "answer", "ice-candidate", "call-invite", "call-accept", "call-decline", "hangup"]);
+const ALLOWED = new Set(["offer", "answer", "ice-candidate", "call-invite", "call-accept", "call-decline", "call-offer", "call-answer", "call-ice-candidate", "call-hangup", "hangup"]);
 
 export function canonical(value) {
   if (value === null || typeof value === "string" || typeof value === "boolean") return JSON.stringify(value);
@@ -108,7 +108,7 @@ export function validateRelay(raw, now = Date.now()) {
   if (!m || Object.keys(m).sort().join(",") !== "payload,sentAt,type" ||
       !ALLOWED.has(m.type) || !Number.isSafeInteger(m.sentAt) || Math.abs(now - m.sentAt) > 30_000 ||
       !m.payload || typeof m.payload !== "object" || Array.isArray(m.payload)) throw new Error("RENDEZVOUS_MESSAGE_INVALID");
-  if (m.type === "offer" || m.type === "answer") {
+  if (m.type === "call-offer" || m.type === "call-answer") {\n    if (Object.keys(m.payload).sort().join(",") !== "callId,sdp" ||\n        typeof m.payload.callId !== "string" || !/^[A-Za-z0-9_-]{32}$/.test(m.payload.callId) ||\n        typeof m.payload.sdp !== "string" || m.payload.sdp.length === 0 || m.payload.sdp.length > MAX_SDP_CHARS) throw new Error("RENDEZVOUS_CALL_SDP_INVALID");\n  } else if (m.type === "call-ice-candidate") {\n    if (Object.keys(m.payload).sort().join(",") !== "callId,candidate" ||\n        typeof m.payload.callId !== "string" || !/^[A-Za-z0-9_-]{32}$/.test(m.payload.callId) ||\n        typeof m.payload.candidate !== "string" || new TextEncoder().encode(m.payload.candidate).length > MAX_ICE_BYTES) throw new Error("RENDEZVOUS_CALL_ICE_INVALID");\n  } else if (m.type === "call-hangup") {\n    if (Object.keys(m.payload).join(",") !== "callId" || typeof m.payload.callId !== "string" || !/^[A-Za-z0-9_-]{32}$/.test(m.payload.callId)) throw new Error("RENDEZVOUS_CALL_HANGUP_INVALID");\n  } else if (m.type === "offer" || m.type === "answer") {
     if (Object.keys(m.payload).sort().join(",") !== "sdp" ||
         typeof m.payload.sdp !== "string" || m.payload.sdp.length > MAX_SDP_CHARS) throw new Error("RENDEZVOUS_SDP_INVALID");
   } else if (m.type === "ice-candidate") {
