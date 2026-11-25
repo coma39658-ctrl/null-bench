@@ -43,7 +43,7 @@ audience=<exact-origin>
 expires_at=<unix-ms-decimal>
 ```
 
-Both signatures use ECDSA P-256 / SHA-256 with DER encoding. Challenge proof is made by Android key; approval signature is made by the already-authorized browser root key.
+Both signatures use ECDSA P-256 / SHA-256 with fixed-width 64-byte IEEE-P1363 encoding. WebCrypto already emits P1363; Android/JCA DER output must be strictly converted to 64-byte r||s before sending. Challenge proof is made by Android key; approval signature is made by the already-authorized browser root key.
 
 ## Required backend invariants
 
