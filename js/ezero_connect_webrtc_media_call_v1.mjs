@@ -35,6 +35,7 @@ export function createWebRTCMediaCallTransport({
   callId,
   mode,
   role,
+  remoteFingerprint,
   iceServers = [],
   mediaDevices = globalThis.navigator?.mediaDevices,
   RTCPeerConnectionImpl = globalThis.RTCPeerConnection,
@@ -44,6 +45,7 @@ export function createWebRTCMediaCallTransport({
 } = {}) {
   if (!signalingSession?.on || !signalingSession?.send ||
       !validCallId(callId) || !["audio", "video"].includes(mode) ||
+      typeof remoteFingerprint !== "string" || !/^(?:[0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(remoteFingerprint) ||
       !["caller", "callee"].includes(role) ||
       typeof mediaDevices?.getUserMedia !== "function" ||
       typeof RTCPeerConnectionImpl !== "function" ||
@@ -63,7 +65,7 @@ export function createWebRTCMediaCallTransport({
   };
 
   async function handleSignal(message) {
-    if (closed || !message || message.fromFingerprint === undefined ||
+    if (closed || !message || message.fromFingerprint !== remoteFingerprint ||
         !["offer", "answer", "ice-candidate", "hangup"].includes(message.type)) return;
     try {
       if (message.type === "hangup") { close(false); return; }
