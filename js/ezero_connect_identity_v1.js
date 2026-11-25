@@ -159,7 +159,7 @@
       throw new Error("ROOT_COMMAND_INVALID");
     }
     for (const key of keys) {
-      if (typeof fields[key] !== "string" || !fields[key] || /[\\r\\n]/.test(fields[key])) {
+      if (typeof fields[key] !== "string" || !fields[key] || /[\r\n]/.test(fields[key])) {
         throw new Error("ROOT_COMMAND_FIELD_INVALID");
       }
     }
