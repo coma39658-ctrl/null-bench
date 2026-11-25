@@ -8,7 +8,7 @@
       people:"آپ کے رابطے", add:"＋ دوست شامل کریں", search:"دوست تلاش کریں",
       friends:"دوست", chats:"چیٹس", calls:"کالز", empty:"ابھی کوئی دوست محفوظ نہیں",
       emptyText:"پہلی بار دوست سے جڑنے کے بعد، باہمی منظوری سے اسے یہاں محفوظ کیا جائے گا۔",
-      privacy:"آپ کی پرائیویسی", privacyText:"کیمرہ اور مائیک صرف آپ کے واضح بٹن دبانے کے بعد مانگے جائیں گے۔ اس پیش نظارہ میں ابھی کوئی کال، پیغام یا دوست محفوظ نہیں کیا جاتا۔",
+      privacy:"آپ کی پرائیویسی", privacyText:"کیمرہ اور مائیک صرف آپ کے واضح عمل کے بعد مانگے جائیں گے۔ کال صرف تصدیق شدہ محفوظ دوست کے ساتھ شروع ہو گی۔",
       footer:"نیا نظام — محفوظ تعمیراتی Preview، ابھی عوامی کال سروس نہیں۔",
       dialogTitle:"دوست شامل کریں", dialogText:"QR شناخت، محفوظ رابطہ اور دونوں طرف منظوری کا نیا نظام ابھی تعمیر کے مرحلے میں ہے۔ اس Preview میں QR یا رابطہ بھیجنے کا جھوٹا دعویٰ نہیں کیا جائے گا۔",
       close:"بند کریں", searchEmpty:"اس تلاش کے لیے کوئی محفوظ دوست موجود نہیں۔", identityTitle:"اس فون کی محفوظ شناخت", identityState:"ابھی نہیں بنی", identityExplain:"آپ کی منظوری کے بعد اس فون پر ایک نجی شناختی کلید بنے گی۔ نجی کلید اسی ڈیوائس میں رہے گی؛ صرف عوامی شناختی فنگرپرنٹ دکھایا جائے گا۔", identityConsent:"میں اس فون پر غیر قابلِ برآمد نجی کلید بنانے اور اسے مقامی طور پر محفوظ کرنے کی اجازت دیتا/دیتی ہوں۔", identityButton:"اپنی محفوظ شناخت بنائیں", identityStatus:"بغیر اجازت کوئی شناخت نہیں بنائی جائے گی۔", fingerprint:"عوامی شناختی فنگرپرنٹ", identitySaved:"اس فون کی شناخت محفوظ ہو گئی۔", identityExisting:"اس فون کی پہلے سے محفوظ شناخت مل گئی۔", identityNoConsent:"پہلے اجازت والے خانے پر نشان لگائیں۔", identityError:"شناخت محفوظ نہیں ہو سکی۔ محفوظ کنکشن یا براؤزر اسٹوریج چیک کریں۔", qrTitle:"محفوظ QR رابطہ", qrExplain:"پہلی بار دوست سے محفوظ رابطے کے لیے عارضی QR بنائیں یا دوست کا QR اسکین کریں۔ QR صرف 90 سیکنڈ کے لیے کارآمد ہوگا۔", createQr:"میرا QR بنائیں", scanQr:"دوست کا QR اسکین کریں", galleryQr:"گیلری سے QR تصویر منتخب کریں", stopScanner:"اسکین بند کریں", qrNeedIdentity:"QR بنانے یا اسکین کرنے سے پہلے اس فون کی محفوظ شناخت بنائیں۔", qrReady:"آپ کا QR تیار ہے؛ یہ 90 سیکنڈ بعد ختم ہو جائے گا۔", qrVerified:"QR کی دستخطی تصدیق کامیاب ہے۔ اگلے مرحلے میں دونوں طرف منظوری ہوگی۔", qrInvalid:"یہ QR درست یا قابلِ اعتماد نہیں، یا اس کی مدت ختم ہو چکی ہے۔", qrCameraError:"کیمرہ شروع نہیں ہو سکا۔ براؤزر کی اجازت چیک کریں۔", qrGalleryError:"اس تصویر میں قابلِ تصدیق E-ZERO QR نہیں ملا۔", qrExpired:"یہ QR ختم ہو گیا۔ نیا QR بنائیں۔", qrSeconds:"باقی وقت: {n} سیکنڈ"
@@ -19,7 +19,7 @@
       people:"Your contacts", add:"＋ Add friend", search:"Search friends",
       friends:"Friends", chats:"Chats", calls:"Calls", empty:"No saved friends yet",
       emptyText:"After a first connection and mutual approval, a friend can be saved here.",
-      privacy:"Your privacy", privacyText:"Camera and microphone access will only be requested after your explicit action. This preview does not save contacts or send calls or messages.",
+      privacy:"Your privacy", privacyText:"Camera and microphone access is requested only after your explicit action. Calls are available only with a verified saved friend.",
       footer:"New system — clean-build preview; public calling is not available yet.",
       dialogTitle:"Add a friend", dialogText:"The new QR identity, secure connection and mutual-approval flow is still being built. This preview will not pretend to scan a QR code or send an invite.",
       close:"Close", searchEmpty:"No saved friend matches this search.", identityTitle:"This device identity", identityState:"Not created", identityExplain:"After your consent, this device creates a private signing key. The private key stays on this device; only its public fingerprint is shown.", identityConsent:"I consent to creating a non-extractable private key and saving it locally on this device.", identityButton:"Create secure device identity", identityStatus:"No identity will be created without your consent.", fingerprint:"Public identity fingerprint", identitySaved:"This device identity has been saved.", identityExisting:"An existing identity for this device was found.", identityNoConsent:"Please tick the consent box first.", identityError:"Identity could not be saved. Check secure connection and browser storage.", qrTitle:"Secure QR connection", qrExplain:"Create a temporary QR for a first secure connection, or scan your friend’s QR. The QR expires after 90 seconds.", createQr:"Create my QR", scanQr:"Scan friend QR", galleryQr:"Choose QR image from gallery", stopScanner:"Stop scanning", qrNeedIdentity:"Create this device’s secure identity before making or scanning a QR.", qrReady:"Your QR is ready and expires in 90 seconds.", qrVerified:"QR signature verified. Both people must approve in the next step.", qrInvalid:"This QR is invalid, untrusted, already used, or expired.", qrCameraError:"Could not start the camera. Check browser permission.", qrGalleryError:"No verifiable E-ZERO QR was found in this image.", qrExpired:"This QR has expired. Create a new one.", qrSeconds:"Expires in {n} seconds"
@@ -30,7 +30,7 @@
       people:"جهات الاتصال", add:"＋ إضافة صديق", search:"ابحث عن صديق",
       friends:"الأصدقاء", chats:"المحادثات", calls:"المكالمات", empty:"لا يوجد أصدقاء محفوظون بعد",
       emptyText:"بعد الاتصال الأول والموافقة المتبادلة، يمكن حفظ الصديق هنا.",
-      privacy:"خصوصيتك", privacyText:"لن نطلب إذن الكاميرا والميكروفون إلا بعد إجراء صريح منك. هذه المعاينة لا تحفظ جهات اتصال ولا تجري مكالمات أو ترسل رسائل.",
+      privacy:"خصوصيتك", privacyText:"لن نطلب إذن الكاميرا والميكروفون إلا بعد إجراء صريح منك. المكالمات متاحة فقط مع صديق محفوظ وموثّق.",
       footer:"النظام الجديد — معاينة بناء نظيف؛ خدمة الاتصال العامة غير متاحة بعد.",
       dialogTitle:"إضافة صديق", dialogText:"يجري بناء نظام هوية QR والاتصال الآمن والموافقة المتبادلة. لن تدّعي هذه المعاينة مسح رمز أو إرسال دعوة.",
       close:"إغلاق", searchEmpty:"لا يوجد صديق محفوظ يطابق هذا البحث.", identityTitle:"هوية هذا الجهاز", identityState:"لم تُنشأ بعد", identityExplain:"بعد موافقتك، ينشئ هذا الجهاز مفتاح توقيع خاصاً. يبقى المفتاح الخاص على هذا الجهاز، ويُعرض فقط البصمة العامة.", identityConsent:"أوافق على إنشاء مفتاح خاص غير قابل للتصدير وحفظه محلياً على هذا الجهاز.", identityButton:"إنشاء هوية آمنة للجهاز", identityStatus:"لن يتم إنشاء أي هوية دون موافقتك.", fingerprint:"بصمة الهوية العامة", identitySaved:"تم حفظ هوية هذا الجهاز.", identityExisting:"تم العثور على هوية محفوظة مسبقاً لهذا الجهاز.", identityNoConsent:"يرجى تحديد مربع الموافقة أولاً.", identityError:"تعذر حفظ الهوية. تحقق من الاتصال الآمن ومساحة تخزين المتصفح.", qrTitle:"اتصال QR آمن", qrExplain:"أنشئ رمز QR مؤقتاً للاتصال الأول الآمن أو امسح رمز صديقك. تنتهي صلاحية الرمز بعد 90 ثانية.", createQr:"إنشاء رمز QR الخاص بي", scanQr:"مسح رمز الصديق", galleryQr:"اختيار صورة QR من المعرض", stopScanner:"إيقاف المسح", qrNeedIdentity:"أنشئ هوية آمنة لهذا الجهاز قبل إنشاء رمز QR أو مسحه.", qrReady:"رمز QR جاهز وتنتهي صلاحيته بعد 90 ثانية.", qrVerified:"تم التحقق من توقيع QR. يجب أن يوافق الطرفان في الخطوة التالية.", qrInvalid:"رمز QR غير صالح أو غير موثوق أو مستخدم أو منتهي الصلاحية.", qrCameraError:"تعذر تشغيل الكاميرا. تحقق من إذن المتصفح.", qrGalleryError:"لم يتم العثور على رمز E-ZERO QR قابل للتحقق في هذه الصورة.", qrExpired:"انتهت صلاحية رمز QR. أنشئ رمزاً جديداً.", qrSeconds:"الوقت المتبقي: {n} ثانية"
@@ -315,11 +315,8 @@
     clearActiveQr();
   });
 
-  // Safety invariant: the clean-build preview has no contact database, no
-  // signaling transport and no media access. Calls remain disabled until
-  // verified services are implemented and release-gated.
-  $("audioCall").disabled = true;
-  $("videoCall").disabled = true;
+  // Call buttons stay disabled in HTML until the saved-friend chat module
+  // confirms an authenticated, mutually trusted session.
   renderLanguage();
   initializeIdentity();
 })();
