@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"] });
 const contexts = [];
 try {
   async function phone() {
-    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true });
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, permissions: ["microphone"] });
     contexts.push(context);
     const page = await context.newPage();
     await page.addInitScript(() => {
