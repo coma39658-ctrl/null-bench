@@ -153,7 +153,9 @@ export function createTrustedFriendMessagingSession({
       callCallbacks.add(callback);
       try {
         const controller = await callControllerPromise;
-        controller.configure?.(options);
+        if (options.callIdFactory || options.mediaCallFactory || options.now || options.setTimer || options.clearTimer || options.iceServers || options.mediaDevices || options.RTCPeerConnectionImpl) {
+          controller.configure?.(options);
+        }
         await controller.ready;
         if (typeof callback.onState === "function") callback.onState({
           state: controller.state, relationshipId, callId: controller.callId, mode: controller.mode || null
