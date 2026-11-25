@@ -49,6 +49,18 @@ assert.equal(verifiedInvite.inviterFingerprint, host.fingerprint);
 await assert.rejects(() => verifyInviteCode(inviteCode, "https://wrong.invalid", roomId, now), /INVITE_ORIGIN_OR_ROOM_INVALID/);
 await assert.rejects(() => verifyInviteCode(inviteCode, origin, base64url(crypto.getRandomValues(new Uint8Array(24))), now), /INVITE_ORIGIN_OR_ROOM_INVALID/);
 await assert.rejects(() => verifyInviteCode(inviteCode, origin, roomId, invitePayload.expiresAt + 1), /INVITE_EXPIRED_OR_TIME_INVALID/);
+const skewedPastNow = invitePayload.issuedAt + 120_000;
+assert.equal((await verifyInviteCode(inviteCode, origin, roomId, skewedPastNow)).nonce, nonce,
+  "A valid signed invite remains usable with a bounded two-minute device/server clock skew");
+await assert.rejects(() => verifyInviteCode(inviteCode, origin, roomId, invitePayload.expiresAt + 120_001),
+  /INVITE_EXPIRED_OR_TIME_INVALID/);
+const futureIssuedPayload = { ...invitePayload, issuedAt: now + 120_000, expiresAt: now + 210_000 };
+const futureIssuedCode = "EZERO1." + base64url(encoder.encode(stableCanonical({
+  payload: futureIssuedPayload, signature: await sign(host.privateKey, futureIssuedPayload)
+})));
+assert.equal((await verifyInviteCode(futureIssuedCode, origin, roomId, now)).nonce, nonce,
+  "A signed invite tolerates bounded fast-device clock skew");
+
 const tamperedEnvelope = structuredClone(inviteEnvelope);
 tamperedEnvelope.payload.issuedAt += 1;
 const tamperedCode = "EZERO1." + base64url(encoder.encode(JSON.stringify(tamperedEnvelope)));
