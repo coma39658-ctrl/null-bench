@@ -1,6 +1,6 @@
 # E-ZERO Push Phase B — staging contract
 
-This branch contains an isolated Web Push envelope validator, a root service-worker push/click handler, and deterministic tests. The service-worker handler is passive until a subscription receives a push; it does not register itself, request permission, create subscriptions, or send pushes.
+This branch contains an isolated Web Push envelope validator, a dedicated-origin E-ZERO Connect service worker, and deterministic tests. The existing Null Bench root service worker remains unchanged. The dedicated handler is passive until a subscription receives a push; the app does not register it, request permission, create subscriptions, or send pushes yet.
 
 ## Verified implementation
 
@@ -61,3 +61,12 @@ Render account inspection found existing E-ZERO static preview sites, but no cur
 - The app still does not register this worker, request permission, create a subscription, or consume wake-up messages. Hosting the bundle alone does not enable push.
 - CI now builds the isolated bundle and runs dedicated worker tests alongside the existing call-state/push tests. The worker test asserts that only push/click handlers are installed, permission denial and invalid payloads are ignored, and notification click sends wake-up only.
 - Next gate: verify CI completion, create a new isolated static preview service with auto-deploy disabled, verify the deployed bundle and origin, then implement consent-based subscription registration and authenticated push delivery separately. No existing Render preview or production service is to be repurposed.
+
+
+## Latest integration correction (2026-11-25)
+
+- Restored the shared repository-root `service-worker.js` exactly to the base staging branch. E-ZERO push handling exists only in `staging/ezero-connect-push-scope/service-worker.js` and is copied into the separate-origin static bundle.
+- Removed the test that exercised push behavior in the shared root PWA worker. CI now tests the dedicated E-ZERO worker directly.
+- The isolated bundle was redeployed from commit `dfdcc281884b832ffad58c248921b4749420fe52`; Render reports deployment status `live`.
+- The deterministic call-state/push workflow at that commit completed successfully, including the isolated bundle build and test command.
+- Push delivery is still not enabled: no permission prompt, subscription registration, VAPID sender, recipient-bound authenticated push API, or Android real-device ringing test has been completed.
