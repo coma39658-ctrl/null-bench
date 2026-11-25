@@ -1,0 +1,36 @@
+name: E-ZERO Isolated Android Enrollment Worker Runtime Tests
+
+on:
+  pull_request:
+    branches:
+      - ezero-android-enrollment-worker-integration-staging-20261125
+    paths:
+      - "signaling/cloudflare/src/android_enrollment_candidate_v1.js"
+      - "signaling/cloudflare/wrangler.android-enrollment-candidate-v1.jsonc"
+      - "tests/worker-runtime/**"
+      - "vitest.config.mjs"
+      - "package.json"
+      - ".github/workflows/ezero-worker-runtime-tests-staging.yml"
+  push:
+    branches:
+      - ezero-worker-runtime-tests-staging-20261125
+
+permissions:
+  contents: read
+
+jobs:
+  worker-runtime:
+    name: Workers runtime — enrollment security
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout isolated candidate
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install pinned project dependencies
+        run: npm install --ignore-scripts --legacy-peer-deps --package-lock=false --no-audit --no-fund
+      - name: Run isolated Durable Object tests
+        run: npm run test:android-enrollment-worker
