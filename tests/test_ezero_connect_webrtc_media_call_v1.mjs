@@ -50,7 +50,7 @@ const mediaDevices = {
 const signaling = new FakeSignaling();
 const states = [];
 const caller = createWebRTCMediaCallTransport({
-  signalingSession: signaling, callId, mode: "audio", role: "caller",
+  signalingSession: signaling, callId, mode: "audio", role: "caller", remoteFingerprint,
   mediaDevices, RTCPeerConnectionImpl: FakePeerConnection,
   onState: value => states.push(value.state)
 });
@@ -83,7 +83,7 @@ const videoMedia = {
 };
 const incomingSignal = new FakeSignaling();
 const callee = createWebRTCMediaCallTransport({
-  signalingSession: incomingSignal, callId: "B".repeat(32), mode: "video", role: "callee",
+  signalingSession: incomingSignal, callId: "B".repeat(32), mode: "video", role: "callee", remoteFingerprint,
   mediaDevices: videoMedia, RTCPeerConnectionImpl: FakePeerConnection
 });
 assert.equal(videoCalls.length, 0, "incoming call must wait for explicit accept/start");
