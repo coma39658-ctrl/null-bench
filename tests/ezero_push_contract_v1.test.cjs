@@ -24,10 +24,10 @@ test("rejects unsupported modes and unexpected envelope types", () => {
   assert.equal(validateIncomingCallPush({ ...valid, type: "message" }, now), null);
 });
 test("notification is generic and carries no auto-answer action or caller content", () => {
-  const options = notificationOptions(valid);
+  const options = notificationOptions(valid, now);
   assert.match(options.body, /review the call request/i);
   assert.deepEqual(options.actions.map(x => x.action), ["open", "dismiss"]);
   assert.equal(options.data.requestId, valid.requestId);
   assert.equal("sdp" in options.data, false);
-  assert.equal(notificationOptions({ ...valid, expiresAt: now - 1 }), null);
+  assert.equal(notificationOptions({ ...valid, expiresAt: now - 1 }, now), null);
 });
