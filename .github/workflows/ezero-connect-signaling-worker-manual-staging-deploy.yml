@@ -2,6 +2,12 @@ name: E-ZERO Connect Signaling Worker — Manual Staging Deploy
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - ezero-connect-trusted-call-controller-staging-20261125
+    paths:
+      - 'signaling/ezero-connect-v1/**'
+      - '.github/workflows/ezero-connect-signaling-worker-manual-staging-deploy.yml'
 
 permissions:
   contents: read
