@@ -1,6 +1,13 @@
 package com.ezero.connect
 
 import java.nio.charset.StandardCharsets
+import java.security.KeyFactory
+import java.security.MessageDigest
+import java.security.AlgorithmParameters
+import java.security.spec.ECGenParameterSpec
+import java.security.spec.ECParameterSpec
+import java.security.spec.X509EncodedKeySpec
+import java.security.interfaces.ECPublicKey
 
 /** Strict, public-only QR envelopes. This codec does not enroll or trust a device. */
 internal object AndroidEnrollmentQrEnvelopeV1 {
@@ -41,6 +48,20 @@ internal object AndroidEnrollmentQrEnvelopeV1 {
         require(bytes.isNotEmpty()) { "BAD_BASE64URL" }
         return bytes
     }
+    private fun validateDeviceSpki(encoded: String, expectedFingerprint: String) {
+        val bytes = decode64(encoded)
+        require(bytes.size in 80..160) { "BAD_DEVICE_SPKI_SIZE" }
+        val key = KeyFactory.getInstance("EC").generatePublic(X509EncodedKeySpec(bytes)) as? ECPublicKey
+            ?: throw IllegalArgumentException("BAD_DEVICE_PUBLIC_KEY")
+        val parameters = AlgorithmParameters.getInstance("EC").apply {
+            init(ECGenParameterSpec("secp256r1"))
+        }.getParameterSpec(ECParameterSpec::class.java)
+        require(key.params.curve == parameters.curve && key.params.generator == parameters.generator &&
+            key.params.order == parameters.order && key.params.cofactor == parameters.cofactor) { "DEVICE_KEY_NOT_P256" }
+        val actual = MessageDigest.getInstance("SHA-256").digest(bytes)
+            .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+        require(actual == expectedFingerprint) { "DEVICE_FINGERPRINT_MISMATCH" }
+    }
     private fun expiry(value: String) {
         require(value.matches(Regex("^[0-9]{13}$"))) { "BAD_EXPIRY" }
         val time = value.toLong()
@@ -72,7 +93,7 @@ internal object AndroidEnrollmentQrEnvelopeV1 {
     fun encodeRequest(value: Request): String {
         require(FP.matches(value.deviceFp) && ID.matches(value.challengeId) && ID.matches(value.nonce))
         require(value.audience == ORIGIN); expiry(value.expiresAt)
-        require(decode64(value.deviceSpki).size in 80..160)
+        validateDeviceSpki(value.deviceSpki, value.deviceFp)
         require(decode64(value.deviceProof).size == 64)
         return envelope("EZERO_ANDROID_ENROLL_REQUEST_V1", listOf(
             "device_spki" to value.deviceSpki, "device_fp" to value.deviceFp,
@@ -86,9 +107,16 @@ internal object AndroidEnrollmentQrEnvelopeV1 {
         val result = Request(f.getValue("device_spki"), f.getValue("device_fp"), f.getValue("challenge_id"), f.getValue("nonce"), f.getValue("audience"), f.getValue("expires_at"), f.getValue("device_proof"))
         require(FP.matches(result.deviceFp) && ID.matches(result.challengeId) && ID.matches(result.nonce))
         require(result.audience == ORIGIN); expiry(result.expiresAt)
-        require(decode64(result.deviceSpki).size in 80..160 && decode64(result.deviceProof).size == 64)
+        validateDeviceSpki(result.deviceSpki, result.deviceFp)
+        require(decode64(result.deviceProof).size == 64)
         return result
     }
+    fun matchesRequest(request: Request, approval: Approval): Boolean =
+        request.deviceFp == approval.deviceFp &&
+            request.challengeId == approval.challengeId &&
+            request.nonce == approval.nonce &&
+            request.audience == approval.audience &&
+            request.expiresAt == approval.expiresAt
     fun encodeApproval(value: Approval): String {
         require(FP.matches(value.rootFp) && FP.matches(value.deviceFp) && ID.matches(value.challengeId) && ID.matches(value.nonce))
         require(value.audience == ORIGIN); expiry(value.expiresAt)
