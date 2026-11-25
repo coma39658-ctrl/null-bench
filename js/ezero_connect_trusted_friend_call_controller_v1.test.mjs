@@ -35,8 +35,8 @@ function harness() {
   });
   return {
     controller, sent, mediaStarts, timers,
-    async receive(type, payload) {
-      for (const fn of [...listeners]) await fn({ type, payload, fromFingerprint: remote });
+    async receive(type, payload, fromFingerprint = remote) {
+      for (const fn of [...listeners]) await fn({ type, payload, fromFingerprint });
     }
   };
 }
@@ -80,16 +80,16 @@ test("duplicate incoming invite while busy is declined without replacing active 
   const h = harness();
   await h.controller.ready;
   await h.receive("call-invite", { callId, mode: "audio", expiresAt: Date.now() + 30_000 });
-  await h.receive("call-invite", { callId: "abcdefghijklmnopqrstuv0123456789", mode: "video", expiresAt: Date.now() + 30_000 });
+  await h.receive("call-invite", { callId: "abcdefghijklmnop0123456789ABCDEF", mode: "video", expiresAt: Date.now() + 30_000 });
   assert.equal(h.controller.callId, callId);
-  assert.equal(h.sent.some(x => x.type === "call-decline" && x.payload.callId === "abcdefghijklmnopqrstuv0123456789"), true);
+  assert.equal(h.sent.some(x => x.type === "call-decline" && x.payload.callId === "abcdefghijklmnop0123456789ABCDEF"), true);
   h.controller.close();
 });
 
 test("untrusted sender, expired invite and malformed mode are ignored", async () => {
   const h = harness();
   await h.controller.ready;
-  await h.receive("call-invite", { callId, mode: "audio", expiresAt: Date.now() + 30_000, fromFingerprint: "spoof" });
+  await h.receive("call-invite", { callId, mode: "audio", expiresAt: Date.now() + 30_000 }, "03:" + "CC:".repeat(30) + "CC");
   assert.equal(h.controller.state, "idle");
   await h.receive("call-invite", { callId, mode: "audio", expiresAt: Date.now() - 1 });
   await h.receive("call-invite", { callId, mode: "screen-share", expiresAt: Date.now() + 30_000 });
