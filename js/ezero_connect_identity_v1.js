@@ -155,13 +155,20 @@
   }
 
   function validateSignedFields(fields, keys) {
-    if (!fields || typeof fields !== "object" || Array.isArray(fields)) throw new Error("ROOT_COMMAND_INVALID");
+    if (!fields || typeof fields !== "object" || Array.isArray(fields)) {
+      throw new Error("ROOT_COMMAND_INVALID");
+    }
     for (const key of keys) {
       if (typeof fields[key] !== "string" || !fields[key] || /[\\r\\n]/.test(fields[key])) {
-      if (typeof fields[key] !== "string" || !fields[key] || /[\r\n]/.test(fields[key])) {
+        throw new Error("ROOT_COMMAND_FIELD_INVALID");
       }
     }
-    if (fields.audience !== "https://coma39658-ctrl.github.io") throw new Error("ROOT_COMMAND_AUDIENCE_INVALID");
+    if (fields.audience !== "https://coma39658-ctrl.github.io") {
+      throw new Error("ROOT_COMMAND_AUDIENCE_INVALID");
+    }
+    if (!/^[a-f0-9]{64}$/.test(fields.root_fp)) {
+      throw new Error("ROOT_COMMAND_ROOT_FINGERPRINT_INVALID");
+    }
     const expires = Number(fields.expires_at);
     if (!Number.isSafeInteger(expires) || expires <= Date.now() || expires > Date.now() + 90000) {
       throw new Error("ROOT_COMMAND_EXPIRED");
