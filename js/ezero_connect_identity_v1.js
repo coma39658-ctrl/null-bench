@@ -150,5 +150,74 @@
     return toBase64Url(signature);
   }
 
-  globalThis.EZERO_CONNECT_IDENTITY = Object.freeze({ load, createAfterConsent, getPublicIdentity, signCanonical });
+  function lowerHex(bytes) {
+    return Array.from(new Uint8Array(bytes), byte => byte.toString(16).padStart(2, "0")).join("");
+  }
+
+  function validateSignedFields(fields, keys) {
+    if (!fields || typeof fields !== "object" || Array.isArray(fields)) throw new Error("ROOT_COMMAND_INVALID");
+    for (const key of keys) {
+      if (typeof fields[key] !== "string" || !fields[key] || /[\\r\\n]/.test(fields[key])) {
+        throw new Error("ROOT_COMMAND_FIELD_INVALID");
+      }
+    }
+    if (fields.audience !== "https://coma39658-ctrl.github.io") throw new Error("ROOT_COMMAND_AUDIENCE_INVALID");
+    const expires = Number(fields.expires_at);
+    if (!Number.isSafeInteger(expires) || expires <= Date.now() || expires > Date.now() + 90000) {
+      throw new Error("ROOT_COMMAND_EXPIRED");
+    }
+  }
+
+  async function signProtocolCommand(tag, fields, order) {
+    const record = validateRecord(await readRecord());
+    const metadata = await publicMetadata(record.publicKey);
+    if (metadata.fingerprint !== record.fingerprint) throw new Error("IDENTITY_FINGERPRINT_MISMATCH");
+    const rootFp = lowerHex(await crypto.subtle.digest("SHA-256", metadata.publicSpki));
+    const canonical = tag + "\\n" + order.map(key => key + "=" + fields[key] + "\\n").join("");
+    const signature = await crypto.subtle.sign(
+      { name: "ECDSA", hash: "SHA-256" },
+      record.privateKey,
+      new TextEncoder().encode(canonical)
+    );
+    return { root_fp: rootFp, signature: toBase64Url(signature) };
+  }
+
+  async function signAndroidRootApproval(challenge) {
+    const order = ["root_fp", "device_fp", "challenge_id", "nonce", "audience", "expires_at"];
+    validateSignedFields(challenge, order);
+    if (!/^[a-f0-9]{64}$/.test(challenge.device_fp) ||
+        !/^[A-Za-z0-9_-]{16,128}$/.test(challenge.challenge_id) ||
+        !/^[A-Za-z0-9_-]{16,128}$/.test(challenge.nonce)) {
+      throw new Error("ROOT_APPROVAL_BINDING_INVALID");
+    }
+    const record = validateRecord(await readRecord());
+    const metadata = await publicMetadata(record.publicKey);
+    const actualRootFp = lowerHex(await crypto.subtle.digest("SHA-256", metadata.publicSpki));
+    if (challenge.root_fp !== actualRootFp) throw new Error("ROOT_APPROVAL_ROOT_MISMATCH");
+    const signed = await signProtocolCommand("EZERO_ANDROID_ROOT_APPROVAL_V1", challenge, order);
+    return { root_fp: signed.root_fp, signature: signed.signature };
+  }
+
+  async function signAndroidDeviceManagement(challenge) {
+    const order = ["root_fp", "action", "device_fp", "challenge_id", "nonce", "audience", "expires_at"];
+    validateSignedFields(challenge, order);
+    if (!["LIST_DEVICES", "REVOKE_DEVICE"].includes(challenge.action) ||
+        (challenge.action === "REVOKE_DEVICE" && !/^[a-f0-9]{64}$/.test(challenge.device_fp)) ||
+        (challenge.action === "LIST_DEVICES" && challenge.device_fp !== "-") ||
+        !/^[A-Za-z0-9_-]{16,128}$/.test(challenge.challenge_id) ||
+        !/^[A-Za-z0-9_-]{16,128}$/.test(challenge.nonce)) {
+      throw new Error("ROOT_MANAGEMENT_BINDING_INVALID");
+    }
+    const record = validateRecord(await readRecord());
+    const metadata = await publicMetadata(record.publicKey);
+    const actualRootFp = lowerHex(await crypto.subtle.digest("SHA-256", metadata.publicSpki));
+    if (challenge.root_fp !== actualRootFp) throw new Error("ROOT_MANAGEMENT_ROOT_MISMATCH");
+    const signed = await signProtocolCommand("EZERO_ROOT_DEVICE_MANAGEMENT_V1", challenge, order);
+    return { root_fp: signed.root_fp, signature: signed.signature };
+  }
+
+  globalThis.EZERO_CONNECT_IDENTITY = Object.freeze({
+    load, createAfterConsent, getPublicIdentity, signCanonical,
+    signAndroidRootApproval, signAndroidDeviceManagement
+  });
 })();
