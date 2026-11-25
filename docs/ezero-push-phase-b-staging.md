@@ -51,3 +51,13 @@ The existing `signaling/ezero-connect-v1/worker.mjs` accepts WebSocket-upgrade r
 No authenticated push-subscription registry, VAPID delivery endpoint, recipient-device binding, or live signed-call-request lookup exists in this Worker today. Do not add a public POST push route to the WebSocket signaling handler. Implement push as a separately authenticated service or a separately reviewed route with explicit subscription ownership, sender proof, replay protection, rate limits and server-only VAPID secrets.
 
 Render account inspection found existing E-ZERO static preview sites, but no currently listed dedicated push-delivery web service. Existing previews must not be repurposed or have their branch/deploy settings changed as a shortcut.
+
+
+## Isolated-origin static bundle (2026-11-25)
+
+- Added `scripts/build_ezero_connect_push_scope_staging.sh` to produce a self-contained static bundle in `dist/` (or an explicitly supplied safe output directory). It publishes the Connect app as `index.html`, its manifest/icons, the existing JS modules, and a dedicated `service-worker.js`.
+- The dedicated worker lives at `staging/ezero-connect-push-scope/service-worker.js`. It imports the shared push-envelope contract and registers only `push` and `notificationclick` handlers. It deliberately has no install, activate, fetch, or cache handlers.
+- This bundle is intended for a **separate Render static-site origin**. Its root service-worker scope will therefore be isolated from the Null Bench origin. Do not register it from the existing public origin.
+- The app still does not register this worker, request permission, create a subscription, or consume wake-up messages. Hosting the bundle alone does not enable push.
+- CI now builds the isolated bundle and runs dedicated worker tests alongside the existing call-state/push tests. The worker test asserts that only push/click handlers are installed, permission denial and invalid payloads are ignored, and notification click sends wake-up only.
+- Next gate: verify CI completion, create a new isolated static preview service with auto-deploy disabled, verify the deployed bundle and origin, then implement consent-based subscription registration and authenticated push delivery separately. No existing Render preview or production service is to be repurposed.
