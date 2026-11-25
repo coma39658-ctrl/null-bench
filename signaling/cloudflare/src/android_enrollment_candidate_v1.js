@@ -55,6 +55,7 @@ function response(body, status=200) {
 }
 const CHALLENGE_ORDER = ["challenge_id","device_fp","nonce","audience","expires_at"];
 const APPROVAL_ORDER = ["root_fp","device_fp","challenge_id","nonce","audience","expires_at"];
+const MANAGEMENT_ORDER = ["root_fp","action","device_fp","challenge_id","nonce","audience","expires_at"];
 
 export default {
   async fetch(request, env) {
@@ -68,9 +69,7 @@ export default {
     }
     if (request.headers.get("Origin") !== ORIGIN) return response({error:"ORIGIN_DENIED"},403);
     if (!env.ENROLLMENT?.idFromName) return response({error:"UNAVAILABLE"},503);
-    if (u.pathname !== "/v1/android/enrollment/challenge" &&
-        u.pathname !== "/v1/android/enrollment/complete" &&
-        u.pathname !== "/v1/admin/root-register") return response({error:"NOT_FOUND"},404);
+    if (!["/v1/android/enrollment/challenge","/v1/android/enrollment/complete","/v1/admin/root-register","/v1/root/devices/challenge","/v1/root/devices/list","/v1/root/devices/revoke"].includes(u.pathname)) return response({error:"NOT_FOUND"},404);
     if (request.method !== "POST") return response({error:"METHOD_NOT_ALLOWED"},405);
     if (!request.headers.get("Content-Type")?.toLowerCase().startsWith("application/json"))
       return response({error:"CONTENT_TYPE"},415);
@@ -107,6 +106,58 @@ export class AndroidEnrollmentRegistry extends DurableObject {
         await this.ctx.storage.put("roots",roots);
         return response({ok:true,root_fp:fp});
       } catch (_) { return response({error:"BAD_ROOT_KEY"},400); }
+    }
+
+
+    if (u.pathname === "/v1/root/devices/challenge") {
+      if (!FP.test(body.root_fp || "") || !["LIST_DEVICES","REVOKE_DEVICE"].includes(body.action) || (body.action === "REVOKE_DEVICE" && !FP.test(body.device_fp || ""))) return response({error:"BAD_MANAGEMENT_REQUEST"},400);
+      const roots=(await this.ctx.storage.get("roots"))||{};
+      if (!roots[body.root_fp]?.active) return response({error:"ROOT_NOT_AUTHORIZED"},403);
+      if (body.action==="REVOKE_DEVICE") {
+        const devices=(await this.ctx.storage.get("devices"))||{};
+        if (!devices[body.device_fp] || devices[body.device_fp].root_fp!==body.root_fp) return response({error:"DEVICE_NOT_FOUND"},404);
+      }
+      const now=Date.now();
+      const challenge={root_fp:body.root_fp,action:body.action,device_fp:body.action==="REVOKE_DEVICE"?body.device_fp:"-",challenge_id:base64url(crypto.getRandomValues(new Uint8Array(24))),nonce:base64url(crypto.getRandomValues(new Uint8Array(24))),audience:ORIGIN,expires_at:String(now+CHALLENGE_MS)};
+      await this.ctx.storage.put("management:"+challenge.challenge_id,{challenge,created_at:now});
+      return response({challenge,root_command:base64url(canonical("EZERO_ROOT_DEVICE_MANAGEMENT_V1",challenge,MANAGEMENT_ORDER))});
+    }
+
+    if (u.pathname === "/v1/root/devices/list" || u.pathname === "/v1/root/devices/revoke") {
+      const action=u.pathname.endsWith("/list")?"LIST_DEVICES":"REVOKE_DEVICE";
+      const challengeId=body.challenge_id;
+      if (!ID.test(challengeId||"") || !FP.test(body.root_fp||"") || typeof body.signature!=="string" || (action==="REVOKE_DEVICE" && !FP.test(body.device_fp||""))) return response({error:"BAD_MANAGEMENT_PROOF"},400);
+      const key="management:"+challengeId;
+      const saved=this.ctx.storage.transactionSync(tx=>{const value=tx.get(key);if(!value)return null;tx.delete(key);return value;});
+      if (!saved) return response({error:"CHALLENGE_UNKNOWN_OR_USED"},409);
+      const c=saved.challenge;
+      if (Number(c.expires_at)<=Date.now() || Number(c.expires_at)-saved.created_at>CHALLENGE_MS) return response({error:"CHALLENGE_EXPIRED"},410);
+      if (c.root_fp!==body.root_fp || c.action!==action || c.device_fp!==(action==="REVOKE_DEVICE"?body.device_fp:"-")) return response({error:"COMMAND_BINDING_MISMATCH"},403);
+      const roots=(await this.ctx.storage.get("roots"))||{};
+      const root=roots[c.root_fp];
+      if (!root?.active) return response({error:"ROOT_NOT_AUTHORIZED"},403);
+      try {
+        const rootSpki=decode64(root.spki,512);
+        if (await fingerprint(rootSpki)!==c.root_fp) return response({error:"ROOT_REGISTRY_CORRUPT"},503);
+        const rootKey=await importP256(rootSpki);
+        const sig=decode64(body.signature,180);
+        const bytes=canonical("EZERO_ROOT_DEVICE_MANAGEMENT_V1",c,MANAGEMENT_ORDER);
+        const valid=await crypto.subtle.verify({name:"ECDSA",hash:"SHA-256"},rootKey,sig,bytes);
+        if (!valid) return response({error:"PROOF_INVALID"},403);
+      } catch (_) { return response({error:"PROOF_INVALID"},403); }
+      const devices=(await this.ctx.storage.get("devices"))||{};
+      if (action==="LIST_DEVICES") {
+        const owned=Object.entries(devices).filter(([fp,d])=>d.root_fp===c.root_fp).map(([device_fp,d])=>({device_fp,active:!!d.active,enrolled_at:d.enrolled_at,revoked_at:d.revoked_at||null}));
+        return response({ok:true,devices:owned});
+      }
+      const target=devices[c.device_fp];
+      if (!target || target.root_fp!==c.root_fp) return response({error:"DEVICE_NOT_FOUND"},404);
+      if (!target.active) return response({ok:true,status:"ALREADY_REVOKED",device_fp:c.device_fp});
+      target.active=false;
+      target.revoked_at=Date.now();
+      devices[c.device_fp]=target;
+      await this.ctx.storage.put("devices",devices);
+      return response({ok:true,status:"REVOKED",device_fp:c.device_fp});
     }
 
     if (u.pathname === "/v1/android/enrollment/challenge") {
