@@ -4,6 +4,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
 import java.util.Base64
+import java.security.KeyPairGenerator
+import java.security.spec.ECGenParameterSpec
+import java.security.MessageDigest
 
 class AndroidEnrollmentWorkerClientV1Test {
     private fun b64(bytes: ByteArray) = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
@@ -39,6 +42,32 @@ class AndroidEnrollmentWorkerClientV1Test {
             AndroidEnrollmentWorkerClientV1.validateChallengePayload(
                 challenge.copy(expiresAt = (now + 91_000L).toString()),
                 challenge.deviceFingerprint, b64(canonical)
+            )
+        }
+    }
+
+    @Test fun signedRequestQrBindsKeystorePublicIdentityToWorkerChallenge() {
+        val generator = KeyPairGenerator.getInstance("EC")
+        generator.initialize(ECGenParameterSpec("secp256r1"))
+        val pair = generator.generateKeyPair()
+        val spki = pair.public.encoded
+        val fp = MessageDigest.getInstance("SHA-256").digest(spki)
+            .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+        val identity = AndroidEnrollmentKeyStore.PublicIdentity(fp, b64(spki))
+        val challenge = AndroidEnrollmentProtocolV1.Challenge(
+            "C".repeat(32), fp, "N".repeat(32),
+            AndroidEnrollmentProtocolV1.AUDIENCE, (System.currentTimeMillis() + 60_000L).toString()
+        )
+        val qr = AndroidEnrollmentWorkerClientV1.encodeSignedRequest(
+            identity, challenge, b64(ByteArray(64) { 7 })
+        )
+        val decoded = AndroidEnrollmentQrEnvelopeV1.decodeRequest(qr)
+        assertEquals(fp, decoded.deviceFp)
+        assertEquals(challenge.challengeId, decoded.challengeId)
+        assertEquals(identity.publicKeySpkiBase64Url, decoded.deviceSpki)
+        assertThrows(IllegalArgumentException::class.java) {
+            AndroidEnrollmentWorkerClientV1.encodeSignedRequest(
+                identity, challenge.copy(deviceFingerprint = "b".repeat(64)), b64(ByteArray(64) { 7 })
             )
         }
     }
