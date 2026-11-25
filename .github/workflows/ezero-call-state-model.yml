@@ -43,5 +43,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Build isolated E-ZERO Connect staging bundle
+        run: bash scripts/build_ezero_connect_push_scope_staging.sh "$RUNNER_TEMP/ezero-connect-push-scope"
       - name: Run deterministic call-state and push contract tests
         run: node --test scripts/ezero_call_state_machine_v1.test.cjs js/ezero_connect_trusted_friend_call_controller_v1.test.mjs js/ezero_connect_webrtc_media_call_v1.test.mjs tests/ezero_connect_contract_model.test.mjs tests/ezero_push_contract_v1.test.cjs tests/ezero_push_service_worker_v1.test.cjs
