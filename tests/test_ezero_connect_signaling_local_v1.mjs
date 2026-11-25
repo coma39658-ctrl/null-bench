@@ -117,6 +117,20 @@ try {
   assert.equal(await a.evaluate(fp => window.EZERO_CONNECT_TRUST.canReconnect(fp), identityB.fingerprint), true);
   assert.equal(await b.evaluate(fp => window.EZERO_CONNECT_TRUST.canReconnect(fp), identityA.fingerprint), true);
 
+  // A third, different device must not take over the already-bound guest
+  // identity by replaying the same signed QR/nonce.
+  const c = await phone();
+  await c.evaluate(args => {
+    const session = window.EZERO_CONNECT_SIGNALING.connect({
+      role: "guest", inviteCode: args.inviteCode, inviteMetadata: args.metadata
+    });
+    window.__ezeroSignal = session;
+    session.on("error", error => { window.__ezeroSignalError = error.message; });
+    session.ready.catch(error => { window.__ezeroReadyRejected = error.message; });
+  }, { inviteCode: invite.inviteCode, metadata: verified });
+  await c.waitForFunction(() => Boolean(window.__ezeroReadyRejected), null, { timeout: 10000 });
+  assert.equal(await c.evaluate(() => window.__ezeroReadyRejected), "SIGNAL_SOCKET_CLOSED_BEFORE_READY");
+
   await a.evaluate(() => window.__ezeroSignal.send("hangup", {}));
   await b.waitForFunction(() => Boolean(window.__ezeroRoomClosed));
   await a.waitForFunction(() => Boolean(window.__ezeroRoomClosed));
