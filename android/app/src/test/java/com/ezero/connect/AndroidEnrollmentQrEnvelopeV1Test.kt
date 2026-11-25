@@ -3,10 +3,9 @@ package com.ezero.connect
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
-import android.util.Base64
 
 class AndroidEnrollmentQrEnvelopeV1Test {
-    private fun b64(size: Int) = Base64.encodeToString(ByteArray(size) { (it + 1).toByte() }, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+    private fun b64(size: Int) = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(ByteArray(size) { (it + 1).toByte() })
     private fun request() = AndroidEnrollmentQrEnvelopeV1.Request(
         b64(91), "a".repeat(64), "A".repeat(32), "B".repeat(32),
         AndroidEnrollmentProtocolV1.AUDIENCE, (System.currentTimeMillis() + 60_000L).toString(), b64(64)
