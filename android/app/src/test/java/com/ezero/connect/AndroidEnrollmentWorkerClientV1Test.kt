@@ -1,6 +1,5 @@
 package com.ezero.connect
 
-import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
@@ -16,20 +15,31 @@ class AndroidEnrollmentWorkerClientV1Test {
             AndroidEnrollmentProtocolV1.AUDIENCE, (now + 60_000L).toString()
         )
         val canonical = AndroidEnrollmentProtocolV1.canonicalChallenge(challenge)
-        val json = JSONObject()
-            .put("challenge", JSONObject()
-                .put("challenge_id", challenge.challengeId)
-                .put("device_fp", challenge.deviceFingerprint)
-                .put("nonce", challenge.nonce)
-                .put("audience", challenge.audience)
-                .put("expires_at", challenge.expiresAt))
-            .put("device_challenge", b64(canonical))
-        assertEquals(challenge.challengeId, json.getJSONObject("challenge").getString("challenge_id"))
+        val accepted = AndroidEnrollmentWorkerClientV1.validateChallengePayload(
+            challenge, challenge.deviceFingerprint, b64(canonical)
+        )
+        assertEquals(challenge.challengeId, accepted.challenge.challengeId)
         assertThrows(IllegalArgumentException::class.java) {
-            AndroidEnrollmentProtocolV1.canonicalChallenge(challenge.copy(audience = "https://attacker.example"))
+            AndroidEnrollmentWorkerClientV1.validateChallengePayload(
+                challenge, "b".repeat(64), b64(canonical)
+            )
         }
         assertThrows(IllegalArgumentException::class.java) {
-            AndroidEnrollmentProtocolV1.canonicalChallenge(challenge.copy(expiresAt = (now + 91_000L).toString()))
+            AndroidEnrollmentWorkerClientV1.validateChallengePayload(
+                challenge, challenge.deviceFingerprint, b64("tampered".toByteArray())
+            )
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            AndroidEnrollmentWorkerClientV1.validateChallengePayload(
+                challenge.copy(audience = "https://attacker.example"),
+                challenge.deviceFingerprint, b64(canonical)
+            )
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            AndroidEnrollmentWorkerClientV1.validateChallengePayload(
+                challenge.copy(expiresAt = (now + 91_000L).toString()),
+                challenge.deviceFingerprint, b64(canonical)
+            )
         }
     }
 
