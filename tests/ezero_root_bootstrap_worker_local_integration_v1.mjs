@@ -62,14 +62,19 @@ try {
   assert.equal(mismatch.status, 403, "SPKI not matching pinned fingerprint must be rejected");
   assert.equal((await mismatch.json()).error, "ROOT_FINGERPRINT_MISMATCH");
 
-  const concurrent = await Promise.all([register(), register()]);
-  const statuses = concurrent.map(r => r.status).sort((a,b) => a-b);
-  const bodies = await Promise.all(concurrent.map(r => r.clone().json()));
-  assert.deepEqual(statuses, [200, 409], "exactly one concurrent bootstrap request may succeed; responses=" + JSON.stringify(bodies) + "\\nWorker diagnostics (tail):\\n" + output.slice(-5000));
-  const success = bodies.find(b => b.ok === true);
-  assert.equal(success.root_fp, expectedFp);
-  assert.equal(JSON.stringify(bodies).includes(secret), false, "secret must not appear in responses");
-  assert.equal(JSON.stringify(bodies).includes(rootSpki), false, "SPKI must not appear in responses");
+  const first = await register();
+  assert.equal(first.status, 200, "first valid bootstrap must register the pinned root");
+  const firstBody = await first.json();
+  assert.equal(firstBody.root_fp, expectedFp);
+  assert.equal(JSON.stringify(firstBody).includes(secret), false, "secret must not appear in response");
+  assert.equal(JSON.stringify(firstBody).includes(rootSpki), false, "SPKI must not appear in response");
+
+  // After the one-time insert commits, concurrent replays must both fail closed.
+  const concurrentReplays = await Promise.all([register(), register()]);
+  const statuses = concurrentReplays.map(r => r.status).sort((a,b) => a-b);
+  const bodies = await Promise.all(concurrentReplays.map(r => r.clone().json()));
+  assert.deepEqual(statuses, [409, 409], "concurrent replay requests must both be rejected; responses=" + JSON.stringify(bodies));
+  assert.equal(bodies.every(b => b.error === "BOOTSTRAP_ALREADY_USED"), true);
 
   const replay = await register();
   assert.equal(replay.status, 409, "sequential replay must be rejected");
@@ -79,7 +84,7 @@ try {
   console.log("WORKER_LOCAL_BAD_SECRET_PASS");
   console.log("WORKER_LOCAL_INVALID_SPKI_PASS");
   console.log("WORKER_LOCAL_PINNED_FINGERPRINT_MISMATCH_PASS");
-  console.log("WORKER_LOCAL_CONCURRENT_SINGLE_USE_PASS");
+  console.log("WORKER_LOCAL_FIRST_BOOTSTRAP_SUCCESS_PASS");\n  console.log("WORKER_LOCAL_CONCURRENT_REPLAY_PASS");
   console.log("WORKER_LOCAL_SEQUENTIAL_REPLAY_PASS");
   console.log("WORKER_LOCAL_SECRET_AND_KEY_REDACTION_PASS");
   console.log("LOCAL_WRANGLER_DURABLE_OBJECT_INTEGRATION_PASS");
