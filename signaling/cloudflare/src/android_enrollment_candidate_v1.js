@@ -66,11 +66,19 @@ export default {
         "Access-Control-Allow-Headers":"Content-Type","Access-Control-Max-Age":"300","Vary":"Origin"
       }});
     }
-    if (request.headers.get("Origin") !== ORIGIN) return response({error:"ORIGIN_DENIED"},403);
+    const origin = request.headers.get("Origin");
+    const androidRoute = u.pathname === "/v1/android/enrollment/challenge" ||
+      u.pathname === "/v1/android/enrollment/complete";
+    const rootAdminRoute = u.pathname === "/v1/admin/root-register";
+    if (!androidRoute && !rootAdminRoute) return response({error:"NOT_FOUND"},404);
+
+    // Native Android HTTP clients do not send a browser Origin header.
+    // Permit an absent Origin only on the two proof-gated Android endpoints.
+    // Browser callers must still be the canonical web origin; foreign origins fail closed.
+    if (rootAdminRoute && origin !== ORIGIN) return response({error:"ORIGIN_DENIED"},403);
+    if (androidRoute && origin !== null && origin !== ORIGIN)
+      return response({error:"ORIGIN_DENIED"},403);
     if (!env.ENROLLMENT?.idFromName) return response({error:"UNAVAILABLE"},503);
-    if (u.pathname !== "/v1/android/enrollment/challenge" &&
-        u.pathname !== "/v1/android/enrollment/complete" &&
-        u.pathname !== "/v1/admin/root-register") return response({error:"NOT_FOUND"},404);
     if (request.method !== "POST") return response({error:"METHOD_NOT_ALLOWED"},405);
     if (!request.headers.get("Content-Type")?.toLowerCase().startsWith("application/json"))
       return response({error:"CONTENT_TYPE"},415);
