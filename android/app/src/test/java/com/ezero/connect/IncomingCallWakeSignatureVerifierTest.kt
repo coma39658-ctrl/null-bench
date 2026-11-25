@@ -3,6 +3,7 @@ package com.ezero.connect
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.Signature
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -34,6 +35,23 @@ class IncomingCallWakeSignatureVerifierTest {
             update(canonical)
             sign()
         }
+    }
+
+    @Test fun canonicalBytesMatchSenderContractExactlyIncludingFinalLf() {
+        val expected = (
+            "EZERO_CALL_WAKE_V1\n" +
+                "wake_v=1\n" +
+                "call_id=call_12345678\n" +
+                "mode=AUDIO\n" +
+                "expires_at=1800000090000\n" +
+                "nonce=nonce_1234567890\n"
+            ).toByteArray(Charsets.UTF_8)
+        assertArrayEquals(
+            expected,
+            IncomingCallWakeSignatureVerifier.canonicalMessage(
+                "1", "call_12345678", "AUDIO", "1800000090000", "nonce_1234567890"
+            )
+        )
     }
 
     @Test fun acceptsValidServerSignature() {
