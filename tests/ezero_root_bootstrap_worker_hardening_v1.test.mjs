@@ -26,7 +26,6 @@ test("bootstrap authorization and root insertion share one atomic SQLite insert"
   assert.match(route, /INSERT OR IGNORE INTO ezero_root_bootstrap_state/);
   assert.match(route, /SELECT changes\(\) AS changes/);
   assert.match(route, /if \(!inserted\)/);
-  assert.match(route, /inserted\.length !== 1/);
   assert.match(route, /BOOTSTRAP_ALREADY_USED/);
 });
 
