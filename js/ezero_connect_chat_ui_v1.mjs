@@ -65,9 +65,6 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
   let currentFingerprint = null;
   let currentRelationshipId = null;
   let currentFriendName = "";
-  let autoAcceptFirstCallPending = false;
-  let autoAcceptInProgress = false;
-  let autoCallModePending = null;
   let connectionGeneration = 0;
   let recorder = null;
   let cancelRecording = false;
@@ -132,7 +129,6 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     if (key) callStatus(t(key), ["failed","error","media-error"].includes(callState) ? "error" : callState === "connected" || callState === "ready" ? "ok" : "");
     if (callState === "incoming") {
       $("incomingCallLabel").textContent = t("incomingCallLabel") + (currentFriendName ? " · " + currentFriendName : "");
-      void acceptFirstPairedCallIfAuthorized();
     }
     const activeLabel = { ready:"callReady", outgoing:"callOutgoing", incoming:"callIncoming", accepted:"callAccepted", "starting-media":"callAccepted", connected:"callConnected", declined:"callDeclined", expired:"callExpired", ended:"callEnded", failed:"callFailed" }[callState];
     if (activeLabel) callStatus(t(activeLabel), callState === "failed" ? "error" : "");
@@ -188,18 +184,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     recorder = null;
     controls();
   }
-  async function acceptFirstPairedCallIfAuthorized() {
-    if (!autoAcceptFirstCallPending || autoAcceptInProgress || !callController || callController.state !== "incoming") return;
-    autoAcceptFirstCallPending = false;
-    autoAcceptInProgress = true;
-    try { await callController.accept(); }
-    catch (_) { callStatus(t("callFailed"), "error"); }
-    finally { autoAcceptInProgress = false; }
-  }
   function closeSession() {
-    autoAcceptFirstCallPending = false;
-    autoAcceptInProgress = false;
-    autoCallModePending = null;
     try { callController?.close(); } catch (_) {}
     callController = null;
     callState = "idle";
@@ -277,8 +262,6 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     }
     if (fingerprint === currentFingerprint && session) return;
     closeSession();
-    autoAcceptFirstCallPending = Boolean(detail.autoAcceptFirstCall);
-    autoCallModePending = ["audio", "video"].includes(detail.autoCallMode) ? detail.autoCallMode : null;
     currentFingerprint = fingerprint;
     currentRelationshipId = relationshipId;
     panel.hidden = false;
@@ -344,16 +327,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       status(t("secure"), "ok");
       callStatus(t("callReady"), "ok");
       controls();
-      // The recipient's one pairing Accept authorizes only the first paired call.
-      // The caller starts that same trusted session call after both sessions are ready.
-      await acceptFirstPairedCallIfAuthorized();
-      if (autoCallModePending && callController && secure()) {
-        const mode = autoCallModePending;
-        autoCallModePending = null;
-        try { await callController.call(mode); }
-        catch (_) { callStatus(t("callFailed"), "error"); }
-      }
-      void sendCurrentProfileIfChanged(false).catch(() => status(t("failed"), "error"));
+post ready      void sendCurrentProfileIfChanged(false).catch(() => status(t("failed"), "error"));
     } catch (_) {
       if (currentFingerprint === fingerprint) {
         closeSession();
