@@ -15,7 +15,7 @@ function fixture(){
  const rootSpki=root.publicKey.export({type:"spki",format:"der"});
  const deviceSpki=device.publicKey.export({type:"spki",format:"der"});
  const rootFp=fp(rootSpki), deviceFp=fp(deviceSpki);
- const challenge={challenge_id:"challenge_123456",device_fp:deviceFp,nonce:"abcdefghijklmnopQRSTUV",audience:"https://ezero-staging.example",expires_at:"1795555555000"};
+ const challenge={challenge_id:"challenge_123456",device_fp:deviceFp,nonce:"abcdefghijklmnopQRSTUV",audience:"https://ezero-staging.example",expires_at:"1795555650000"};
  const approval={root_fp:rootFp,device_fp:deviceFp,challenge_id:challenge.challenge_id,nonce:challenge.nonce,audience:challenge.audience,expires_at:challenge.expires_at};
  return {root,device,rootSpki,deviceSpki,rootFp,deviceFp,challenge,approval};
 }
