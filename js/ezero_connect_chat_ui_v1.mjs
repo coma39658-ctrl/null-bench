@@ -163,6 +163,9 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       if (bytes.length < 4 || bytes.length > 140 * 1024 || bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) throw new Error("CHAT_PROFILE_JPEG_INVALID");
       if (relationshipId !== currentRelationshipId || fingerprint !== currentFingerprint) throw new Error("CHAT_PROFILE_RELATIONSHIP_CHANGED");
       await globalThis.EZERO_CONNECT_TRUST.saveTrustedFriendProfile(relationshipId, fingerprint, bytes);
+      document.dispatchEvent(new CustomEvent("ezero:friend-profile-updated", {
+        detail: { relationshipId, fingerprint }
+      }));
       // Persist under the original relationship, but never paint an old friend's
       // delayed profile into a newly selected friend's chat.
       if (generation !== connectionGeneration || relationshipId !== currentRelationshipId || fingerprint !== currentFingerprint) return;

@@ -36,7 +36,12 @@
       close:"إغلاق", searchEmpty:"لا يوجد صديق محفوظ يطابق هذا البحث.", identityTitle:"هوية هذا الجهاز", identityState:"لم تُنشأ بعد", identityExplain:"بعد موافقتك، ينشئ هذا الجهاز مفتاح توقيع خاصاً. يبقى المفتاح الخاص على هذا الجهاز، ويُعرض فقط البصمة العامة.", identityConsent:"أوافق على إنشاء مفتاح خاص غير قابل للتصدير وحفظه محلياً على هذا الجهاز.", identityButton:"إنشاء هوية آمنة للجهاز", identityStatus:"لن يتم إنشاء أي هوية دون موافقتك.", fingerprint:"بصمة الهوية العامة", identitySaved:"تم حفظ هوية هذا الجهاز.", identityExisting:"تم العثور على هوية محفوظة مسبقاً لهذا الجهاز.", identityNoConsent:"يرجى تحديد مربع الموافقة أولاً.", identityError:"تعذر حفظ الهوية. تحقق من الاتصال الآمن ومساحة تخزين المتصفح.", qrTitle:"اتصال QR آمن", qrExplain:"أنشئ رمز QR مؤقتاً للاتصال الأول الآمن أو امسح رمز صديقك. تنتهي صلاحية الرمز بعد 90 ثانية.", createQr:"إنشاء رمز QR الخاص بي", scanQr:"مسح رمز الصديق", galleryQr:"اختيار صورة QR من المعرض", stopScanner:"إيقاف المسح", qrNeedIdentity:"أنشئ هوية آمنة لهذا الجهاز قبل إنشاء رمز QR أو مسحه.", qrReady:"رمز QR جاهز وتنتهي صلاحيته بعد 90 ثانية.", qrVerified:"تم التحقق من توقيع QR. يجب أن يوافق الطرفان في الخطوة التالية.", qrInvalid:"رمز QR غير صالح أو غير موثوق أو مستخدم أو منتهي الصلاحية.", qrCameraError:"تعذر تشغيل الكاميرا. تحقق من إذن المتصفح.", qrGalleryError:"لم يتم العثور على رمز E-ZERO QR قابل للتحقق في هذه الصورة.", qrExpired:"انتهت صلاحية رمز QR. أنشئ رمزاً جديداً.", qrSeconds:"الوقت المتبقي: {n} ثانية"
     }
   };
-  let language = "ur";
+  const LANGUAGE_KEY = "ezero_connect_language_v1";
+  function loadLanguage() {
+    try { const saved = localStorage.getItem(LANGUAGE_KEY); return ["ur","en","ar"].includes(saved) ? saved : "ur"; }
+    catch (_) { return "ur"; }
+  }
+  let language = loadLanguage();
   let activeTab = "friends";
   const backdrop = $("dialogBackdrop");
 
@@ -77,6 +82,7 @@
 
   $("language").addEventListener("click", () => {
     language = language === "ur" ? "en" : language === "en" ? "ar" : "ur";
+    try { localStorage.setItem(LANGUAGE_KEY, language); } catch (_) {}
     renderLanguage();
     renderSearch();
   });
@@ -149,6 +155,10 @@
   let activeInvite = null;
   let inviteTimer = null;
   let stopCameraScan = null;
+  let nativeScanStream = null;
+  let nativeScanFrame = 0;
+  let nativeScanDetector = null;
+  let scanResultAccepted = false;
 
   function setQrStatus(message, kind) {
     $("qrScanStatus").textContent = message;
@@ -156,13 +166,53 @@
   }
 
   function stopQrCamera() {
+    if (nativeScanFrame) cancelAnimationFrame(nativeScanFrame);
+    nativeScanFrame = 0;
+    if (nativeScanStream) {
+      for (const track of nativeScanStream.getTracks()) track.stop();
+      nativeScanStream = null;
+    }
     if (stopCameraScan) {
-      stopCameraScan();
+      try { stopCameraScan(); } catch (_) {}
       stopCameraScan = null;
     }
-    $("qrScannerVideo").hidden = true;
+    const video = $("qrScannerVideo");
+    video.pause?.();
+    video.srcObject = null;
+    video.hidden = true;
     $("stopQrScanner").hidden = true;
-    $("qrScannerVideo").srcObject = null;
+    scanResultAccepted = false;
+  }
+
+  async function startNativeQrScanner(video) {
+    if (!("BarcodeDetector" in window) || !navigator.mediaDevices?.getUserMedia) return false;
+    const supported = await window.BarcodeDetector.getSupportedFormats();
+    if (!supported.includes("qr_code")) return false;
+    nativeScanDetector = new window.BarcodeDetector({ formats: ["qr_code"] });
+    nativeScanStream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    video.srcObject = nativeScanStream;
+    video.hidden = false;
+    await video.play();
+    const scanFrame = async () => {
+      if (!nativeScanStream || scanResultAccepted) return;
+      try {
+        const codes = await nativeScanDetector.detect(video);
+        const value = codes.find(item => typeof item.rawValue === "string" && item.rawValue.startsWith("EZERO1."))?.rawValue;
+        if (value) {
+          scanResultAccepted = true;
+          await acceptScannedCode(value);
+          return;
+        }
+      } catch (_) {
+        // Keep the camera active; transient frame decode errors are recoverable.
+      }
+      if (nativeScanStream && !scanResultAccepted) nativeScanFrame = requestAnimationFrame(scanFrame);
+    };
+    nativeScanFrame = requestAnimationFrame(scanFrame);
+    return true;
   }
 
   function clearActiveQr() {
@@ -223,11 +273,23 @@
 
   $("scanFriendQr").addEventListener("click", async () => {
     stopQrCamera();
+    const video = $("qrScannerVideo");
     try {
-      if (!window.EZERO_QR) throw new Error("QR_RUNTIME_UNAVAILABLE");
-      $("qrScannerVideo").hidden = false;
+      video.hidden = false;
       $("stopQrScanner").hidden = false;
-      stopCameraScan = await window.EZERO_QR.startCamera($("qrScannerVideo"), code => acceptScannedCode(code));
+      video.setAttribute("playsinline", "");
+      video.setAttribute("autoplay", "");
+      video.muted = true;
+      // Prefer Android Chrome's native QR decoder; use the bundled decoder only
+      // when native BarcodeDetector is unavailable on this browser.
+      const nativeStarted = await startNativeQrScanner(video);
+      if (!nativeStarted) {
+        if (!window.EZERO_QR?.startCamera) throw new Error("QR_DECODER_UNAVAILABLE");
+        stopCameraScan = await window.EZERO_QR.startCamera(video, code => {
+          if (typeof code === "string" && code.startsWith("EZERO1.")) void acceptScannedCode(code);
+        });
+      }
+      setQrStatus("کیمرہ QR تلاش کر رہا ہے؛ کوڈ کو فریم کے درمیان رکھیں۔", "ok");
     } catch (_) {
       stopQrCamera();
       setQrStatus(translations[language].qrCameraError, "error");

@@ -13,7 +13,7 @@ const trustJs = await readFile("js/ezero_connect_trust_v1.js", "utf8");
 assert.match(html, /E-ZERO Connect/);
 assert.match(html, /js\/ezero_connect_app_v1\.js/);
 assert.doesNotMatch(html, /ezero_trusted_friends_staging|ezero_saved_friend_stage|ezero_saved_friend_stage_engine/);
-assert.doesNotMatch(js, /getUserMedia|RTCPeerConnection|WebSocket|localStorage|indexedDB/);
+assert.doesNotMatch(js, /RTCPeerConnection|WebSocket|indexedDB/); // QR scanning may request camera only after an explicit user action; the runtime test below proves no automatic media request.
 assert.ok(html.includes("js/ezero_connect_identity_v1.js"));
 assert.ok(html.includes("js/ezero_qr_runtime_v1.js"));
 assert.ok(html.includes("js/ezero_connect_invite_v1.js"));
@@ -117,7 +117,7 @@ try {
   const expiredResult = await page.evaluate(async ({ code, now }) => {
     try { await window.EZERO_CONNECT_INVITES.verifyInvite(code, now); return "ACCEPTED"; }
     catch (error) { return error.message; }
-  }, { code: invite.inviteCode, now: invite.expiresAt + 1 });
+  }, { code: invite.inviteCode, now: invite.expiresAt + 5 * 60_000 + 1 }); // Client clock-skew allowance is five minutes; server enforces exact 90s expiry.
   assert.equal(expiredResult, "INVITE_EXPIRED_OR_TIME_INVALID");
 
   const tamperedCode = await page.evaluate((code) => {

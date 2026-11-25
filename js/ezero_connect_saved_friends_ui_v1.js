@@ -10,8 +10,41 @@
   };
   let contacts = [];
   let selected = null;
-  let language = "ur";
+  let language = (() => { try { const v = localStorage.getItem("ezero_connect_language_v1"); return ["ur","en","ar"].includes(v) ? v : "ur"; } catch (_) { return "ur"; } })();
   let pageCount = 1;
+  let renderGeneration = 0;
+  const avatarUrls = new Set();
+
+  function clearAvatarUrls() {
+    for (const url of avatarUrls) URL.revokeObjectURL(url);
+    avatarUrls.clear();
+  }
+
+  async function hydrateFriendAvatar(contact, face, button, generation) {
+    const api = window.EZERO_CONNECT_TRUST;
+    if (!api || typeof api.getTrustedFriendProfile !== "function" ||
+        typeof contact.relationshipId !== "string" || !contact.relationshipId) return;
+    try {
+      const profile = await api.getTrustedFriendProfile(contact.relationshipId, contact.remoteFingerprint);
+      if (generation !== renderGeneration || !button.isConnected ||
+          !contacts.some(item => item.relationshipId === contact.relationshipId &&
+            item.remoteFingerprint === contact.remoteFingerprint && item.status === "TRUSTED")) return;
+      const bytes = profile?.bytes;
+      if (!(bytes instanceof Uint8Array) || bytes.length < 4 || bytes.length > 140 * 1024 ||
+          bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) return;
+      const url = URL.createObjectURL(new Blob([bytes], { type: "image/jpeg" }));
+      avatarUrls.add(url);
+      const image = document.createElement("img");
+      image.alt = "Verified friend's saved profile photo";
+      image.width = 38;
+      image.height = 38;
+      image.style.cssText = "width:38px;height:38px;object-fit:cover;border-radius:50%";
+      image.src = url;
+      face.replaceChildren(image);
+    } catch (_) {
+      // A missing or unreadable avatar must not hide the trusted contact or its initials.
+    }
+  }
 
   function validFingerprint(value) {
     return typeof value === "string" && /^(?:[0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(value);
@@ -32,6 +65,8 @@
     const root = $("savedFriendsList");
     if (!root) return;
     const t = copy[language] || copy.ur;
+    const generation = ++renderGeneration;
+    clearAvatarUrls();
     root.replaceChildren();
     const trusted = contacts.filter(c => c && c.status === "TRUSTED" && validFingerprint(c.remoteFingerprint));
     if (selected && !trusted.some(c => c.remoteFingerprint === selected)) {
@@ -53,6 +88,7 @@
       root.append(p);
     } else {
       const fragment = document.createDocumentFragment();
+      const avatarHydrations = [];
       for (const contact of page) {
         const button = document.createElement("button");
         button.type = "button";
@@ -72,6 +108,7 @@
         fp.style.cssText = "display:block;font-size:10px;color:#718278;direction:ltr;text-align:start";
         info.append(name, fp);
         button.append(face, info);
+        avatarHydrations.push({ contact, face, button });
         button.addEventListener("click", () => {
           selected = contact.remoteFingerprint;
           writeSelection(selected);
@@ -83,6 +120,9 @@
         fragment.append(button);
       }
       root.append(fragment);
+      for (const item of avatarHydrations) {
+        void hydrateFriendAvatar(item.contact, item.face, item.button, generation);
+      }
       const footer = document.createElement("div");
       footer.className = "muted";
       footer.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 2px";
@@ -132,11 +172,9 @@
   }
   document.addEventListener("ezero:friend-local-saved", refresh);
   document.addEventListener("ezero:friend-local-removed", refresh);
+  document.addEventListener("ezero:friend-profile-updated", refresh);
   $("searchFriends")?.addEventListener("input", () => { pageCount = 1; render(); });
-  $("language")?.addEventListener("click", () => {
-    language = language === "ur" ? "en" : language === "en" ? "ar" : "ur";
-    render();
-  });
+  document.addEventListener("ezero:language-changed", event => setLanguage(event.detail?.language));
   window.addEventListener("pageshow", refresh);
   window.addEventListener("focus", refresh);
   window.EZERO_CONNECT_CONTACTS_UI = Object.freeze({ refresh, setLanguage, getSelected: () => selected });
