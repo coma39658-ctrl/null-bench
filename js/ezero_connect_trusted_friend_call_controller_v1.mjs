@@ -142,6 +142,16 @@ export function createTrustedFriendCallController({
     }
   }
 
+  function hangup() {
+    if (closed || !active) return false;
+    if (media) media.close(true);
+    else {
+      try { signalingSession.send("call-decline", { callId: active.callId }); } catch (_) {}
+    }
+    reset("ended", { reason: "local-hangup" });
+    return true;
+  }
+
   const removeListener = signalingSession.on("message", message => { void handleMessage(message); });
   const ready = verifyTrust().catch(error => {
     phase = "error";
@@ -185,15 +195,7 @@ export function createTrustedFriendCallController({
       reset("declined", { reason: "local-decline" });
       return callId;
     },
-    hangup() {
-      if (closed || !active) return false;
-      if (media) media.close(true);
-      else {
-        try { signalingSession.send("call-decline", { callId: active.callId }); } catch (_) {}
-      }
-      reset("ended", { reason: "local-hangup" });
-      return true;
-    },
+    hangup,
     subscribe(handler) {
       if (typeof handler !== "function") fail("TRUSTED_CALL_SUBSCRIBER_INVALID");
       subscribers.add(handler);
@@ -201,7 +203,7 @@ export function createTrustedFriendCallController({
     },
     close() {
       if (closed) return;
-      if (active) this.hangup();
+      if (active) hangup();
       closed = true;
       clearExpiry();
       try { removeListener?.(); } catch (_) {}
