@@ -138,6 +138,8 @@ export function createTrustedFriendCallController({
       catch (error) { reset("failed", { error: error?.message || "CALL_MEDIA_START_FAILED" }); }
     } else if (message.type === "call-decline" && active.direction === "outgoing") {
       reset("declined", { reason: "friend-declined" });
+    } else if (message.type === "call-decline" && active.direction === "incoming") {
+      reset("ended", { reason: "caller-cancelled-invite" });
     } else if (message.type === "call-hangup" && ["starting-media", "connected", "accepted"].includes(phase)) {
       reset("ended", { reason: "friend-hung-up" });
     }
