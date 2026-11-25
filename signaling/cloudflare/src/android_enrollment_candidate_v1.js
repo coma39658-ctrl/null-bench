@@ -137,7 +137,7 @@ export class AndroidEnrollmentRegistry extends DurableObject {
         // A single INSERT is the atomic gate: the singleton primary key allows
         // only one root bootstrap to commit, even for concurrent requests.
         const attemptId = base64url(crypto.getRandomValues(new Uint8Array(16)));
-        // SQLite primary-key arbitration is the concurrency boundary; no app-level lock.
+        // SQLite primary-key arbitration is the concurrency boundary; no app-level lock. Integration remains local-only until all checks pass.
         // The singleton INSERT is atomic. The per-request attempt ID lets only
         // the request that inserted the row receive success under concurrency.
         sql.exec(
