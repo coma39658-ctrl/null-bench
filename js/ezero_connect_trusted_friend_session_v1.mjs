@@ -21,6 +21,7 @@ export function createTrustedFriendMessagingSession({
       (onMessage !== null && typeof onMessage !== "function") || typeof onState !== "function") fail("TRUSTED_FRIEND_SESSION_INPUT_INVALID");
 
   let closed = false;
+  // The trusted call controller is armed independently of chat readiness.
   let transport = null;
   let starting = false;
   let settled = false;
