@@ -108,10 +108,10 @@ export class AndroidEnrollmentRegistry extends DurableObject {
     const limit = admin ? 3 : 10;
     const windowStart = Math.floor(now / windowMs) * windowMs;
     return this.ctx.storage.transactionSync(() => {
-      const previous = this.ctx.storage.get(key);
+      const previous = this.ctx.storage.getSync(key);
       const count = previous?.window_start === windowStart ? previous.count : 0;
       if (count >= limit) return false;
-      this.ctx.storage.put(key, { window_start:windowStart, count:count + 1 });
+      this.ctx.storage.putSync(key, { window_start:windowStart, count:count + 1 });
       return true;
     });
   }
@@ -177,9 +177,9 @@ export class AndroidEnrollmentRegistry extends DurableObject {
       // prevents two concurrent completion requests from both enrolling.
       // Invalid proofs require a fresh challenge; fail closed rather than replay.
       const saved = this.ctx.storage.transactionSync(() => {
-        const value = this.ctx.storage.get(key);
+        const value = this.ctx.storage.getSync(key);
         if (!value) return null;
-        this.ctx.storage.delete(key);
+        this.ctx.storage.deleteSync(key);
         return value;
       });
       if (!saved) return response({error:"CHALLENGE_UNKNOWN_OR_USED"},409);
