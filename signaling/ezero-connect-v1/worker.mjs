@@ -3,6 +3,7 @@ export { EzeroConnectRendezvous };
 
 const INVITE_PREFIX = "EZERO1.";
 const INVITE_TTL_MS = 90_000;
+const INVITE_CLOCK_SKEW_TOLERANCE_MS = 2 * 60_000;
 const ROOM_TTL_MS = 10 * 60_000;
 const CHALLENGE_TTL_MS = 30_000;
 const MAX_MESSAGE_BYTES = 16 * 1024;
@@ -75,7 +76,8 @@ export async function verifyInviteCode(inviteCode, expectedOrigin, expectedRoomI
     throw new Error("INVITE_ORIGIN_OR_ROOM_INVALID");
   }
   if (!Number.isSafeInteger(payload.issuedAt) || !Number.isSafeInteger(payload.expiresAt) ||
-      payload.expiresAt <= now || payload.issuedAt > now + 30_000 ||
+      payload.expiresAt <= now - INVITE_CLOCK_SKEW_TOLERANCE_MS ||
+      payload.issuedAt > now + INVITE_CLOCK_SKEW_TOLERANCE_MS ||
       payload.expiresAt - payload.issuedAt > INVITE_TTL_MS || payload.issuedAt > payload.expiresAt) {
     throw new Error("INVITE_EXPIRED_OR_TIME_INVALID");
   }
@@ -284,7 +286,7 @@ export class EzeroConnectRoom {
           if (typeof parsed.inviteCode !== "string") { safeClose(ws, 1008, "signed invite required"); return; }
           const invite = await verifyInviteCode(parsed.inviteCode, this.env.PUBLIC_ORIGIN, attachment.roomId, now);
           if (parsed.inviteNonce !== invite.nonce) { safeClose(ws, 1008, "invite nonce mismatch"); return; }
-          const expiresAt = invite.issuedAt + ROOM_TTL_MS;
+          const expiresAt = now + ROOM_TTL_MS;
           if (expiresAt <= now) { safeClose(ws, 1008, "room expired"); return; }
           room = {
             v: 1,
@@ -304,7 +306,8 @@ export class EzeroConnectRoom {
           safeClose(ws, 1008, "room state mismatch or expired");
           return;
         }
-        if (attachment.role === "guest" && !room.guestFingerprint && room.inviteExpiresAt <= now) {
+        if (attachment.role === "guest" && !room.guestFingerprint &&
+            room.inviteExpiresAt <= now - INVITE_CLOCK_SKEW_TOLERANCE_MS) {
           safeClose(ws, 1008, "invite expired before guest joined");
           return;
         }
