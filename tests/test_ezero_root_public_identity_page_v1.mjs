@@ -9,7 +9,6 @@ assert.match(html, /EZERO_CONNECT_IDENTITY\.load\(\)/);
 assert.match(html, /EZERO_CONNECT_IDENTITY\.getPublicIdentity\(\)/);
 assert.match(html, /NO_EXISTING_ROOT_IDENTITY_ON_THIS_ORIGIN/);
 assert.match(html, /ROOT_IDENTITY_MODULE_UNAVAILABLE_OR_INSECURE_ORIGIN/);
-assert.match(html, /64\}\$/.test("64}")); // Keep the fingerprint validation below explicit.
 assert.match(html, /\[a-f0-9\]\{64\}/);
 assert.match(html, /Public SPKI/);
 assert.match(html, /private key remains non-exportable/i);
