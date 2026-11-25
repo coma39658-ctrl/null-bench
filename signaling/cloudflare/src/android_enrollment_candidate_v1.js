@@ -110,12 +110,13 @@ export class AndroidEnrollmentRegistry extends DurableObject {
         const record = { spki:body.root_spki, added_at:Date.now(), active:true };
         // The durable transaction is the single-use gate. Concurrent requests
         // cannot both consume bootstrap authorization or install competing roots.
-        const registered = this.ctx.storage.transactionSync(tx => {
-          if (tx.get("root-bootstrap-v1-used") === true) return "USED";
-          const roots = tx.get("roots") || {};
+        const registered = this.ctx.storage.transactionSync(() => {
+          const kv = this.ctx.storage.kv;
+          if (kv.get("root-bootstrap-v1-used") === true) return "USED";
+          const roots = kv.get("roots") || {};
           if (Object.keys(roots).length !== 0) return "ROOT_ALREADY_REGISTERED";
-          tx.put("roots", { [fp]: record });
-          tx.put("root-bootstrap-v1-used", true);
+          kv.put("roots", { [fp]: record });
+          kv.put("root-bootstrap-v1-used", true);
           return "REGISTERED";
         });
         if (registered === "USED") return response({error:"BOOTSTRAP_ALREADY_USED"},409);
@@ -148,7 +149,13 @@ export class AndroidEnrollmentRegistry extends DurableObject {
       const challengeId=body.challenge_id;
       if (!ID.test(challengeId||"") || !FP.test(body.root_fp||"") || typeof body.signature!=="string" || (action==="REVOKE_DEVICE" && !FP.test(body.device_fp||""))) return response({error:"BAD_MANAGEMENT_PROOF"},400);
       const key="management:"+challengeId;
-      const saved=this.ctx.storage.transactionSync(tx=>{const value=tx.get(key);if(!value)return null;tx.delete(key);return value;});
+      const saved=this.ctx.storage.transactionSync(() => {
+        const kv = this.ctx.storage.kv;
+        const value = kv.get(key);
+        if (!value) return null;
+        kv.delete(key);
+        return value;
+      });
       if (!saved) return response({error:"CHALLENGE_UNKNOWN_OR_USED"},409);
       const c=saved.challenge;
       if (Number(c.expires_at)<=Date.now() || Number(c.expires_at)-saved.created_at>CHALLENGE_MS) return response({error:"CHALLENGE_EXPIRED"},410);
@@ -213,10 +220,11 @@ export class AndroidEnrollmentRegistry extends DurableObject {
       // Atomically reserve/consume before asynchronous signature checks. This
       // prevents two concurrent completion requests from both enrolling.
       // Invalid proofs require a fresh challenge; fail closed rather than replay.
-      const saved = this.ctx.storage.transactionSync(tx => {
-        const value = tx.get(key);
+      const saved = this.ctx.storage.transactionSync(() => {
+        const kv = this.ctx.storage.kv;
+        const value = kv.get(key);
         if (!value) return null;
-        tx.delete(key);
+        kv.delete(key);
         return value;
       });
       if (!saved) return response({error:"CHALLENGE_UNKNOWN_OR_USED"},409);
