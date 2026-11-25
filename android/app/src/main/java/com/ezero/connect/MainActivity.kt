@@ -135,18 +135,42 @@ class MainActivity : Activity() {
         when (AndroidQrPayloadRouter.classify(raw)) {
             AndroidQrPayloadRouter.Kind.ENROLLMENT_REQUEST -> {
                 try {
-                    AndroidEnrollmentQrEnvelopeV1.decodeRequest(raw)
-                    statusView.text = "E-ZERO Android enrollment request QR format is valid.\n\nScan this request with the already-authorized browser Root device. Scanning does not enroll or trust this phone."
-                } catch (_: Exception) {
-                    statusView.text = "Android enrollment request QR is malformed or expired. No trust was created."
+                    val request = AndroidEnrollmentQrEnvelopeV1.decodeRequest(raw)
+                    val localIdentity = AndroidEnrollmentKeyStore.getOrCreatePublicIdentity()
+                    require(request.deviceFp == localIdentity.fingerprint) { "REQUEST_IS_NOT_FOR_THIS_DEVICE" }
+                    val prefs = getSharedPreferences(ENROLLMENT_STATE_PREFS, MODE_PRIVATE)
+                    val consumed = prefs.getStringSet(KEY_CONSUMED_CHALLENGES, emptySet()) ?: emptySet()
+                    require(request.challengeId !in consumed) { "CHALLENGE_ALREADY_CONSUMED_ON_THIS_DEVICE" }
+                    require(prefs.edit().putString(KEY_PENDING_REQUEST, raw).commit()) {
+                        "PENDING_REQUEST_PERSISTENCE_FAILED"
+                    }
+                    statusView.text = "E-ZERO enrollment request validated and saved on this phone.\\n\\nDevice proof is checked when the Root approval arrives. Keep this pending request active and scan the Root approval QR on this same phone.\\n\\nStatus: PENDING_ROOT_APPROVAL — NOT ENROLLED."
+                } catch (error: Exception) {
+                    statusView.text = "Enrollment request rejected: " + (error.message ?: "INVALID_REQUEST") + ". No trust was created."
                 }
             }
             AndroidQrPayloadRouter.Kind.ENROLLMENT_APPROVAL -> {
                 try {
-                    AndroidEnrollmentQrEnvelopeV1.decodeApproval(raw)
-                    statusView.text = "E-ZERO enrollment approval QR format is valid only.\n\nRoot signature verification and matching a live pending challenge are not connected yet. This phone is NOT enrolled or trusted."
-                } catch (_: Exception) {
-                    statusView.text = "Android enrollment approval QR is malformed or expired. No trust was created."
+                    val pending = getSharedPreferences(ENROLLMENT_STATE_PREFS, MODE_PRIVATE)
+                        .getString(KEY_PENDING_REQUEST, null)
+                        ?: throw IllegalStateException("PENDING_REQUEST_NOT_FOUND")
+                    val trustedRoot = AndroidRootTrustPinV1.load(this)
+                        ?: throw IllegalStateException("ROOT_PIN_NOT_CONFIGURED")
+                    val verified = AndroidEnrollmentApprovalGateV1.verify(pending, raw, trustedRoot)
+                    val prefs = getSharedPreferences(ENROLLMENT_STATE_PREFS, MODE_PRIVATE)
+                    val consumed = (prefs.getStringSet(KEY_CONSUMED_CHALLENGES, emptySet()) ?: emptySet()).toMutableSet()
+                    require(verified.challengeId !in consumed) { "CHALLENGE_ALREADY_CONSUMED_ON_THIS_DEVICE" }
+                    consumed.add(verified.challengeId)
+                    require(prefs.edit()
+                        .remove(KEY_PENDING_REQUEST)
+                        .putStringSet(KEY_CONSUMED_CHALLENGES, consumed)
+                        .putString(KEY_LAST_APPROVED_DEVICE_FP, verified.deviceFingerprint)
+                        .putString(KEY_LAST_APPROVED_ROOT_FP, verified.rootFingerprint)
+                        .putString(KEY_LAST_APPROVAL_AT, System.currentTimeMillis().toString())
+                        .commit()) { "APPROVAL_STATE_PERSISTENCE_FAILED" }
+                    statusView.text = "E-ZERO Root approval signature VERIFIED on this phone.\\n\\nRoot fingerprint: ${verified.rootFingerprint}\\nDevice fingerprint: ${verified.deviceFingerprint}\\n\\nStatus: ROOT_APPROVAL_VERIFIED_LOCAL_ONLY.\\nServer enrollment, friend trust, FCM registration, and call permission are NOT active yet."
+                } catch (error: Exception) {
+                    statusView.text = "Root approval rejected: " + (error.message ?: "APPROVAL_INVALID") + ". Pending enrollment remains untrusted."
                 }
             }
             AndroidQrPayloadRouter.Kind.INVALID_ENROLLMENT -> {
@@ -230,5 +254,11 @@ class MainActivity : Activity() {
     companion object {
         private const val REQUEST_QR_IMAGE = 702
         private const val REQUEST_QR_CAMERA = 703
+        private const val ENROLLMENT_STATE_PREFS = "ezero_android_enrollment_state_v1"
+        private const val KEY_PENDING_REQUEST = "pending_request_qr"
+        private const val KEY_CONSUMED_CHALLENGES = "consumed_challenge_ids"
+        private const val KEY_LAST_APPROVED_DEVICE_FP = "last_approved_device_fp"
+        private const val KEY_LAST_APPROVED_ROOT_FP = "last_approved_root_fp"
+        private const val KEY_LAST_APPROVAL_AT = "last_approval_at"
     }
 }
