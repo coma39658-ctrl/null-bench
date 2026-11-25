@@ -29,4 +29,4 @@ The candidate has no FCM token endpoint, FCM sender, push delivery, device listi
 7. FCM integration is a separate later stage; do not store FCM tokens until enrollment, revocation, sender authorization and signed wake validation are complete.
 
 ## Canonical crypto
-UTF-8, LF-only, fixed field order, final LF. ECDSA P-256/SHA-256 DER signatures. Challenge is 90 seconds and binds the exact device key, nonce, challenge ID and fixed E-ZERO audience. Root approval binds root fingerprint, device fingerprint, challenge ID, nonce, audience and expiry.
+UTF-8, LF-only, fixed field order, final LF. ECDSA P-256/SHA-256 64-byte IEEE-P1363 signatures. Challenge is 90 seconds and binds the exact device key, nonce, challenge ID and fixed E-ZERO audience. Root approval binds root fingerprint, device fingerprint, challenge ID, nonce, audience and expiry.
