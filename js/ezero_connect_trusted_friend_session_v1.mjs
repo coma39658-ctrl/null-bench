@@ -125,8 +125,12 @@ export function createTrustedFriendMessagingSession({
       return () => subscribers.delete(handler);
     },
     async createCallController(options = {}) {
-      await ready;
-      if (closed || !transport) fail("TRUSTED_FRIEND_NOT_SECURE");
+      // Call signaling is authenticated independently of the messaging
+      // DataChannel. Attach the call listener as soon as the rendezvous is
+      // authenticated so an incoming invite cannot arrive before the UI
+      // finishes opening its chat channel.
+      await rendezvous.ready;
+      if (closed) fail("TRUSTED_FRIEND_SESSION_CLOSED");
       return createTrustedFriendCallController({
         ...options, signalingSession: rendezvous, relationshipId, trustApi, identityApi, iceServers,
         RTCPeerConnectionImpl
