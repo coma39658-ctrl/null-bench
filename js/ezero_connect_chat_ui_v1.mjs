@@ -327,7 +327,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       status(t("secure"), "ok");
       callStatus(t("callReady"), "ok");
       controls();
-post ready      void sendCurrentProfileIfChanged(false).catch(() => status(t("failed"), "error"));
+      void sendCurrentProfileIfChanged(false).catch(() => status(t("failed"), "error"));
     } catch (_) {
       if (currentFingerprint === fingerprint) {
         closeSession();
