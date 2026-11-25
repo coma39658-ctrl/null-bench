@@ -12,7 +12,7 @@
   const words = {
     ur: {
       title:"محفوظ دوست بنائیں", host:"آپ QR کے مالک ہیں", guest:"دوست کا QR اسکین ہوا",
-      waiting:"دوست کے جڑنے کا انتظار ہے…", peer:"محفوظ کنکشن بن گیا۔ اب دوست کو محفوظ کرنے کی منظوری دیں۔",
+      waiting:"دوست کے جڑنے کا انتظار ہے…", peer:"محفوظ کنکشن بن گیا۔ دعوت خود بھیج دی گئی ہے؛ دوست کی ایک منظوری کا انتظار ہے۔", requestSent:"دعوت بھیج دی گئی ہے۔ دوسری طرف سے ایک بار قبول ہونے کا انتظار ہے…", recipientAccept:"ایک بار قبول کریں؛ کال کا محفوظ رابطہ اور دوستوں کی فہرست دونوں فونوں پر بنے گی۔",
       hostName:"دوست کا نام لکھیں", hostAction:"درخواست بھیجیں اور محفوظ کرنے کی منظوری دیں",
       guestWait:"دوست کی درخواست کا انتظار ہے…", request:"دوست آپ کو محفوظ کرنا چاہتا ہے۔ نام لکھیں اور منظوری دیں۔",
       guestName:"اپنی فہرست میں دوست کا نام لکھیں", guestAction:"منظوری دیں اور دوست محفوظ کریں",
@@ -23,7 +23,7 @@
     },
     en: {
       title:"Save a trusted friend", host:"You are showing your QR", guest:"Friend QR verified",
-      waiting:"Waiting for the other device…", peer:"Secure peer connection established. Approve saving this friend.",
+      waiting:"Waiting for the other device…", peer:"Secure peer connection established. The invitation has been sent; wait for the friend to accept once.", requestSent:"Invitation sent. Waiting for the recipient to Accept once…", recipientAccept:"Accept once to connect and save this friend on both phones.",
       hostName:"Enter the friend's name", hostAction:"Send request and consent to save",
       guestWait:"Waiting for the friend's request…", request:"This person wants to save you as a trusted friend. Enter their name and approve.",
       guestName:"Name this friend in your list", guestAction:"Approve and save friend",
@@ -34,7 +34,7 @@
     },
     ar: {
       title:"حفظ صديق موثوق", host:"أنت تعرض رمز QR", guest:"تم التحقق من رمز الصديق",
-      waiting:"بانتظار الجهاز الآخر…", peer:"تم إنشاء اتصال آمن. وافق على حفظ هذا الصديق.",
+      waiting:"بانتظار الجهاز الآخر…", peer:"تم إنشاء اتصال آمن وإرسال الدعوة تلقائياً؛ بانتظار قبول الصديق مرة واحدة.", requestSent:"تم إرسال الدعوة؛ بانتظار قبول الطرف الآخر مرة واحدة…", recipientAccept:"اقبل مرة واحدة لإنشاء الاتصال وحفظ الصديق في الجهازين.",
       hostName:"أدخل اسم الصديق", hostAction:"إرسال الطلب والموافقة على الحفظ",
       guestWait:"بانتظار طلب الصديق…", request:"يريد هذا الشخص حفظك كصديق موثوق. أدخل اسمه ووافق.",
       guestName:"اكتب اسم هذا الصديق في قائمتك", guestAction:"الموافقة وحفظ الصديق",
@@ -122,11 +122,16 @@
     return "{" + Object.keys(value).sort().map(k => JSON.stringify(k) + ":" + canonical(value[k])).join(",") + "}";
   }
   function controls(label, actionLabel, enabled) {
-    $("pairingNameLabel").textContent = label;
+    $("pairingNameLabel").hidden = true;
+    $("pairingFriendName").hidden = true;
     $("pairingFriendName").value = "";
-    $("pairingFriendName").hidden = false;
     $("pairingAction").textContent = actionLabel;
     $("pairingAction").disabled = !enabled;
+    $("pairingAction").hidden = !enabled;
+  }
+  function friendAlias(fingerprint) {
+    const suffix = typeof fingerprint === "string" ? fingerprint.replaceAll(":", "").slice(0, 8) : "verified";
+    return "E-ZERO friend · " + suffix;
   }
   function fail(error) {
     busy = false;
@@ -159,13 +164,20 @@
         for (const queued of pendingMessages.splice(0)) void handleMessage(queued);
         if (role !== "host") { status(t("guestWait")); return; }
         try {
-          const local = await window.EZERO_CONNECT_IDENTITY.getPublicIdentity();
           transcript = (await window.EZERO_CONNECT_TRUST.buildTranscript(invite, remote, Date.now())).transcript;
           localApproval = await window.EZERO_CONNECT_TRUST.signApproval(transcript);
+          // The caller's deliberate QR/invitation creation is consent to save
+          // this verified relationship. The recipient's single Accept below
+          // is the only additional human approval required.
+          localConsent = true;
+          remoteName = friendAlias(remote.fingerprint);
           markDone("identity");
           setStep("approval", "active");
-          status(t("peer"));
-          controls(t("hostName"), t("hostAction"), true);
+          session.send("trust-request", { transcript, approval: localApproval });
+          status(t("requestSent"), "ok");
+          $("pairingNameLabel").hidden = true;
+          $("pairingFriendName").hidden = true;
+          $("pairingAction").hidden = true;
         } catch (error) { fail(error); }
       });
       session.on("message", message => { void handleMessage(message); });
@@ -193,7 +205,8 @@
         remoteApproval = p.approval;
         markDone("peer");
         setStep("approval", "active");
-        status(t("request"), "ok");
+        remoteName = friendAlias(peer.fingerprint);
+        status(t("recipientAccept"), "ok");
         controls(t("guestName"), t("guestAction"), true);
         return;
       }
@@ -202,8 +215,8 @@
             p.approval?.signerFingerprint !== peer?.fingerprint ||
             !await window.EZERO_CONNECT_TRUST.verifyApproval(transcript, p.approval)) throw new Error("PAIRING_GUEST_APPROVAL_INVALID");
         remoteApproval = p.approval;
-        const name = $("pairingFriendName").value.trim();
-        if (!name || name.length > 64) throw new Error("PAIRING_FRIEND_NAME_REQUIRED");
+        const name = remoteName || friendAlias(peer?.fingerprint);
+        if (!name) throw new Error("PAIRING_FRIEND_NAME_REQUIRED");
         const saved = await window.EZERO_CONNECT_TRUST.saveTrustedContact({
           transcript, localApproval, remoteApproval, displayName: name, explicitConsent: localConsent
         });
@@ -234,23 +247,17 @@
 
   $("pairingAction").addEventListener("click", async () => {
     if (busy) return;
-    const name = $("pairingFriendName").value.trim();
-    if (!name || name.length > 64) { status(t("emptyName"), "error"); return; }
+    if (role !== "guest" || !transcript || !remoteApproval || !peer) return;
     busy = true;
     $("pairingAction").disabled = true;
     try {
-      if (role === "host" && peer && transcript && localApproval) {
-        localConsent = true;
-        remoteName = name;
-        session.send("trust-request", { transcript, approval: localApproval });
-        status(t("guestWait"), "ok");
-      } else if (role === "guest" && transcript && remoteApproval) {
-        const identity = await window.EZERO_CONNECT_IDENTITY.getPublicIdentity();
+      if (role === "guest" && transcript && remoteApproval) {
         localApproval = await window.EZERO_CONNECT_TRUST.signApproval(transcript);
-        remoteName = name;
+        remoteName = friendAlias(peer.fingerprint);
         localConsent = true;
         session.send("trust-approval", { transcript, approval: localApproval, stage: "guest-accepted" });
         status(t("guestWait"), "ok");
+        $("pairingAction").hidden = true;
       } else {
         throw new Error("PAIRING_STATE_INVALID");
       }
