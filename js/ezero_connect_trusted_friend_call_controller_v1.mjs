@@ -66,6 +66,7 @@ export function createTrustedFriendCallController({
     phase = next;
     emit(next, detail);
   }
+  function canStartNewCall() { return !active && ["idle", "ended", "declined", "expired", "failed"].includes(phase); }
   function isLive(call) {
     return !!call && Number.isSafeInteger(call.expiresAt) && call.expiresAt > now();
   }
@@ -118,7 +119,7 @@ export function createTrustedFriendCallController({
       if (!validCallId(payload.callId) || !["audio", "video"].includes(payload.mode) ||
           !Number.isSafeInteger(payload.expiresAt) || payload.expiresAt <= now() ||
           payload.expiresAt > now() + 60_000) return;
-      if (phase !== "idle" || active) {
+      if (!canStartNewCall()) {
         try { signalingSession.send("call-decline", { callId: payload.callId }); } catch (_) {}
         return;
       }
@@ -163,7 +164,7 @@ export function createTrustedFriendCallController({
     ready,
     async call(mode) {
       await ready;
-      if (closed || phase !== "idle" || active || !["audio", "video"].includes(mode)) fail("TRUSTED_CALL_NOT_AVAILABLE");
+      if (closed || !canStartNewCall() || !["audio", "video"].includes(mode)) fail("TRUSTED_CALL_NOT_AVAILABLE");
       const callId = callIdFactory();
       if (!validCallId(callId)) fail("TRUSTED_CALL_ID_INVALID");
       const expiresAt = now() + 45_000;
