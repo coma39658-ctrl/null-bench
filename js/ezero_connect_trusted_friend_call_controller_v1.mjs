@@ -79,7 +79,7 @@ export function createTrustedFriendCallController({
       iceServers, mediaDevices, RTCPeerConnectionImpl, onLocalStream, onRemoteStream,
       onState: value => {
         if (!active || active.callId !== call.callId) return;
-        if (value.state === "connected") { phase = "connected"; emit("connected", value); }
+        if (value.state === "connected" || (value.state === "connection" && value.connectionState === "connected")) { phase = "connected"; emit("connected", value); }
         else if (value.state === "error") emit("media-error", value);
         else if (value.state === "closed" && phase !== "idle") reset("ended", { reason: "media-closed" });
         else emit("media-" + value.state, value);
