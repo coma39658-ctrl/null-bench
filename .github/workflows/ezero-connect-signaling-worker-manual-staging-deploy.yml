@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - ezero-connect-trusted-call-controller-staging-20261125
+      - ezero-connect-one-accept-android-wake-integration-staging-20261125
     paths:
       - 'signaling/ezero-connect-v1/**'
       - '.github/workflows/ezero-connect-signaling-worker-manual-staging-deploy.yml'
@@ -45,5 +46,5 @@ jobs:
         run: |
           echo "Worker name: ezero-connect-call-preview-20261125"
           echo "workers.dev endpoint: https://ezero-connect-call-preview-20261125.coma39658.workers.dev"
-          echo "Allowed browser origin: https://ezero-connect-call-controller-preview.onrender.com"
+          echo "Allowed browser origin: https://ezero-connect-pr216-preview-20261125.onrender.com"
           echo "This isolated Worker endpoint is pinned in the clean staging app config."
