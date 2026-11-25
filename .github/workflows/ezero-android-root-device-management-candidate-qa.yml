@@ -5,6 +5,7 @@ on:
     branches:
       - ezero-android-root-device-management-staging-20261125
       - ezero-android-keystore-enrollment-client-staging-20261125
+      - ezero-android-enrollment-qr-handoff-contract-20261125
     paths:
       - "signaling/cloudflare/src/android_enrollment_candidate_v1.js"
       - "signaling/cloudflare/wrangler.android-enrollment-candidate-v1.jsonc"
@@ -35,6 +36,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Verify Android enrollment QR handoff contract
+        run: node --test tests/ezero_android_enrollment_qr_handoff_contract_v1.test.mjs
       - name: Verify root enrollment contract
         run: node --test tests/ezero_android_root_enrollment_contract_v1.test.mjs
       - name: Verify root device management safeguards
