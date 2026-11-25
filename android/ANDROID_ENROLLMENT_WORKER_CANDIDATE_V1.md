@@ -17,7 +17,7 @@ The bootstrap ceremony itself is still an operational security dependency: befor
 - `POST /v1/android/enrollment/challenge`: validate Android P-256 SPKI, recompute SHA-256 fingerprint, issue 90-second nonce/challenge.
 - `POST /v1/android/enrollment/complete`: verify Android proof-of-possession and root signature over exact canonical approval; root must already be active in registry; atomically reserve/consume challenge before asynchronous crypto checks; persist active device binding.
 
-The candidate has no FCM token endpoint, FCM sender, push delivery, device listing/revocation route, browser root-approval UI, or Android client integration yet. It does not make incoming calls ring. It stores public SPKIs and enrollment metadata only.
+The candidate still has no FCM token endpoint, FCM sender, or push delivery. Device listing/revocation routes are code candidates only; there is no browser root-management UI or Android enrollment client integration yet. It does not make incoming calls ring. It stores public SPKIs and enrollment metadata only.
 
 ## Release blockers
 1. Review and test the administrative bootstrap ceremony and secret rotation/recovery.
