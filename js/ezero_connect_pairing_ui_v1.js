@@ -146,9 +146,21 @@
     status(t("error") + " وجہ: " + reason, "error");
     $("pairingAction").disabled = true;
   }
-  function refreshContacts() {
+  function refreshContacts(saved) {
     document.dispatchEvent(new CustomEvent("ezero:friend-local-saved"));
     window.EZERO_CONNECT_CONTACTS_UI?.refresh?.();
+    if (saved?.relationshipId && saved?.remoteFingerprint) {
+      // Open the verified friend thread on both devices. This establishes
+      // the saved-friend session only; media still needs an explicit call
+      // mode and recipient acceptance.
+      document.dispatchEvent(new CustomEvent("ezero:friend-selected", {
+        detail: {
+          relationshipId: saved.relationshipId,
+          fingerprint: saved.remoteFingerprint,
+          displayName: remoteName || friendAlias(saved.remoteFingerprint)
+        }
+      }));
+    }
   }
 
   async function start(roleValue, inviteCode, metadata) {
@@ -229,7 +241,7 @@
         markDone("saved");
         status(t("hostSaved"), "ok");
         $("pairingAction").disabled = true;
-        refreshContacts();
+        refreshContacts(saved);
         return;
       }
       if (message.type === "trust-approval" && role === "guest" && p.stage === "host-saved") {
