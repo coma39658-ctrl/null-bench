@@ -1,0 +1,50 @@
+name: E-ZERO Root Android Approval UI Staging QA
+
+on:
+  push:
+    branches:
+      - ezero-root-browser-android-approval-ui-staging-20261125
+    paths:
+      - "scripts/ezero_connect_qr_entry_v1.js"
+      - "js/ezero_root_android_approval_ui_v1.js"
+      - "js/ezero_connect_identity_v1.js"
+      - "js/ezero_connect_root_signer_v1.js"
+      - "ezero-root-android-approval-staging.html"
+      - "tests/ezero_root_android_approval_ui_v1.test.mjs"
+      - ".github/workflows/ezero-root-android-approval-ui-staging-qa.yml"
+  pull_request:
+    branches:
+      - ezero-android-root-approval-wiring-staging-20261125
+    paths:
+      - "scripts/ezero_connect_qr_entry_v1.js"
+      - "js/ezero_root_android_approval_ui_v1.js"
+      - "js/ezero_connect_identity_v1.js"
+      - "js/ezero_connect_root_signer_v1.js"
+      - "ezero-root-android-approval-staging.html"
+      - "tests/ezero_root_android_approval_ui_v1.test.mjs"
+      - ".github/workflows/ezero-root-android-approval-ui-staging-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qr-approval-browser-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install pinned QR build dependencies without modifying lockfiles
+        run: npm install --no-save --no-package-lock esbuild@0.25.12 qr@0.7.2
+      - name: Build QR runtime bundle required by staging page
+        run: npm run build:ezero-qr
+      - name: Check browser modules and generated QR runtime syntax
+        run: |
+          node --check js/ezero_connect_identity_v1.js
+          node --check js/ezero_connect_root_signer_v1.js
+          node --check js/ezero_root_android_approval_ui_v1.js
+          node --check js/ezero_qr_runtime_v1.js
+      - name: Run Root Android approval UI contract tests
+        run: node --test tests/ezero_root_android_approval_ui_v1.test.mjs
