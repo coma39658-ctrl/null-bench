@@ -56,7 +56,7 @@ class QrCameraScanActivity : ComponentActivity() {
             scaleType = PreviewView.ScaleType.FILL_CENTER
         }
         val message = TextView(this).apply {
-            text = "E-ZERO QR scanner\\nFriend's permanent QR کو کیمرے کے سامنے رکھیں"
+            text = "E-ZERO QR scanner\\nFriend identity یا Android enrollment QR کو کیمرے کے سامنے رکھیں"
             textSize = 18f
             gravity = Gravity.CENTER
             setPadding(24, 24, 24, 24)
