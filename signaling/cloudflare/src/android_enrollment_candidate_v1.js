@@ -122,7 +122,11 @@ export class AndroidEnrollmentRegistry extends DurableObject {
       if (!Number.isFinite(expiresAt) || expiresAt > now) break;
       const recordKey = indexKey.slice(24);
       await this.ctx.storage.transaction(async (txn) => {
-        await txn.delete(recordKey);
+        const record = await txn.get(recordKey);
+        const recordExpiry = record?.expires_at ?? record?.challenge?.expires_at;
+        // A rate bucket may have been refreshed into a newer window while an
+        // older index row still exists. Never let that stale row delete it.
+        if (Number(recordExpiry) === expiresAt) await txn.delete(recordKey);
         await txn.delete(indexKey);
       });
       removed++;
