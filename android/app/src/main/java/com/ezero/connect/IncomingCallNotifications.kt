@@ -92,7 +92,7 @@ object IncomingCallNotifications {
     }
 
     private fun actionPendingIntent(
-        context: Context, action: String, callId: String, requestCode: Int
+        context: Context, action: String, callId: String, mode: String, requestCode: Int
     ): PendingIntent {
         val intent = Intent(context, CallActionReceiver::class.java).apply {
             this.action = action
