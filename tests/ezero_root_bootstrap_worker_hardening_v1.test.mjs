@@ -23,16 +23,16 @@ test("bootstrap validates actual P-256 SPKI before registration", () => {
 });
 
 test("bootstrap authorization and root insertion share one atomic transaction", () => {
-  assert.match(route, /await this\.ctx\.storage\.transaction\(async tx =>/);
-  assert.match(route, /tx\.get\("root-bootstrap-v1-used"\)/);
-  assert.match(route, /root-bootstrap-v1-used/);
-  assert.match(route, /tx\.put\("root-bootstrap-v1-used", true\)/);
-  assert.match(route, /tx\.put\("roots", \{ \[fp\]: record \}\)/);
+  assert.match(route, /this\.ctx\.storage\.transactionSync\(\(\) =>/);
+  assert.match(route, /SELECT used FROM ezero_root_bootstrap_state/);
+  assert.match(route, /ezero_root_bootstrap_state/);
+  assert.match(route, /INSERT INTO ezero_root_bootstrap_state/);
+  assert.match(route, /INSERT INTO ezero_roots/);
   assert.match(route, /BOOTSTRAP_ALREADY_USED/);
 });
 
 test("bootstrap cannot replace or add a second root", () => {
-  assert.match(route, /Object\.keys\(roots\)\.length !== 0/);
+  assert.match(route, /SELECT COUNT\(\*\) AS count FROM ezero_roots/);
   assert.match(route, /ROOT_ALREADY_REGISTERED/);
 });
 
