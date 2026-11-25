@@ -17,6 +17,8 @@ on:
       - "tests/ezero_connect_contract_model.test.mjs"
       - "js/ezero_push_contract_v1.js"
       - "tests/ezero_push_contract_v1.test.cjs"
+      - "service-worker.js"
+      - "tests/ezero_push_service_worker_v1.test.cjs"
   pull_request:
     paths:
       - "scripts/ezero_call_state_machine_v1.cjs"
@@ -36,4 +38,4 @@ jobs:
         with:
           node-version: 22
       - name: Run deterministic call-state and push contract tests
-        run: node --test scripts/ezero_call_state_machine_v1.test.cjs js/ezero_connect_trusted_friend_call_controller_v1.test.mjs js/ezero_connect_webrtc_media_call_v1.test.mjs tests/ezero_connect_contract_model.test.mjs tests/ezero_push_contract_v1.test.cjs
+        run: node --test scripts/ezero_call_state_machine_v1.test.cjs js/ezero_connect_trusted_friend_call_controller_v1.test.mjs js/ezero_connect_webrtc_media_call_v1.test.mjs tests/ezero_connect_contract_model.test.mjs tests/ezero_push_contract_v1.test.cjs tests/ezero_push_service_worker_v1.test.cjs
