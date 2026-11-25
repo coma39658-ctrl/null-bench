@@ -8,7 +8,7 @@ on:
       - "signaling/cloudflare/src/android_enrollment_candidate_v1.js"
       - "signaling/cloudflare/wrangler.android-enrollment-candidate-v1.jsonc"
       - "tests/worker-runtime/**"
-      - "vitest.config.js"
+      - "vitest.config.mjs"
       - "package.json"
       - ".github/workflows/ezero-worker-runtime-tests-staging.yml"
   push:
