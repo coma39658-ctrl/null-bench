@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { env, exports } from "cloudflare:workers";
-import { runInDurableObject } from "cloudflare:test";
+import { runInDurableObject, runDurableObjectAlarm } from "cloudflare:test";
 import { canonical, base64url } from "../../signaling/cloudflare/src/android_enrollment_candidate_v1.js";
 
 const ORIGIN = "https://coma39658-ctrl.github.io";
@@ -165,5 +165,96 @@ describe("isolated Android enrollment Worker — real Workers runtime", () => {
     });
     expect(keys.length).toBeGreaterThan(0);
     expect(keys.every(key => !key.includes("198.51.100."))).toBe(true);
+  });
+});
+
+
+describe("Android enrollment storage lifecycle alarms", () => {
+  it("removes an expired challenge record and its index", async () => {
+    const stub = env.ENROLLMENT.get(env.ENROLLMENT.idFromName("cleanup-expired-challenge"));
+    const expiresAt = Date.now() - 1000;
+    const recordKey = "challenge:expired_challenge_0001";
+    const indexKey = "expiry:" + String(expiresAt).padStart(16, "0") + ":" + recordKey;
+    await runInDurableObject(stub, async (_instance, state) => {
+      await state.storage.put(recordKey, {
+        challenge: { expires_at: String(expiresAt) }, created_at: expiresAt - 90000
+      });
+      await state.storage.put(indexKey, { record_key: recordKey });
+      await state.storage.setAlarm(Date.now() + 60000);
+    });
+
+    expect(await runDurableObjectAlarm(stub)).toBe(true);
+    const state = await runInDurableObject(stub, async (_instance, state) => ({
+      record: await state.storage.get(recordKey),
+      index: await state.storage.get(indexKey)
+    }));
+    expect(state.record).toBeUndefined();
+    expect(state.index).toBeUndefined();
+  });
+
+  it("keeps an unexpired challenge and reschedules its cleanup", async () => {
+    const stub = env.ENROLLMENT.get(env.ENROLLMENT.idFromName("cleanup-live-challenge"));
+    const expiresAt = Date.now() + 60000;
+    const recordKey = "challenge:live_challenge_00001";
+    const indexKey = "expiry:" + String(expiresAt).padStart(16, "0") + ":" + recordKey;
+    await runInDurableObject(stub, async (_instance, state) => {
+      await state.storage.put(recordKey, {
+        challenge: { expires_at: String(expiresAt) }, created_at: Date.now()
+      });
+      await state.storage.put(indexKey, { record_key: recordKey });
+      await state.storage.setAlarm(Date.now() + 60000);
+    });
+
+    expect(await runDurableObjectAlarm(stub)).toBe(true);
+    const state = await runInDurableObject(stub, async (_instance, state) => ({
+      record: await state.storage.get(recordKey),
+      alarm: await state.storage.getAlarm()
+    }));
+    expect(state.record).toBeTruthy();
+    expect(state.alarm).toBe(expiresAt);
+  });
+
+  it("cleans more than one batch over multiple bounded alarm invocations", async () => {
+    const stub = env.ENROLLMENT.get(env.ENROLLMENT.idFromName("cleanup-bounded-batches"));
+    const expiresAt = Date.now() - 1000;
+    await runInDurableObject(stub, async (_instance, state) => {
+      for (let i = 0; i < 105; i++) {
+        const recordKey = "challenge:batch_" + String(i).padStart(3, "0");
+        const indexKey = "expiry:" + String(expiresAt).padStart(16, "0") + ":" + recordKey;
+        await state.storage.put(recordKey, { challenge: { expires_at: String(expiresAt) } });
+        await state.storage.put(indexKey, { record_key: recordKey });
+      }
+      await state.storage.setAlarm(Date.now() + 60000);
+    });
+
+    expect(await runDurableObjectAlarm(stub)).toBe(true);
+    const firstCount = await runInDurableObject(stub, async (_instance, state) =>
+      (await state.storage.list({ prefix: "expiry:" })).size);
+    expect(firstCount).toBe(5);
+
+    expect(await runDurableObjectAlarm(stub)).toBe(true);
+    const finalCount = await runInDurableObject(stub, async (_instance, state) =>
+      (await state.storage.list({ prefix: "expiry:" })).size);
+    expect(finalCount).toBe(0);
+  });
+
+  it("removes an expired rate bucket without retaining its raw-IP key", async () => {
+    const stub = env.ENROLLMENT.get(env.ENROLLMENT.idFromName("cleanup-expired-rate"));
+    const expiresAt = Date.now() - 1000;
+    const recordKey = "rate:/v1/android/enrollment/challenge:" + "a".repeat(64);
+    const indexKey = "expiry:" + String(expiresAt).padStart(16, "0") + ":" + recordKey;
+    await runInDurableObject(stub, async (_instance, state) => {
+      await state.storage.put(recordKey, { window_start: 1, count: 2, expires_at: expiresAt });
+      await state.storage.put(indexKey, { record_key: recordKey });
+      await state.storage.setAlarm(Date.now() + 60000);
+    });
+
+    expect(await runDurableObjectAlarm(stub)).toBe(true);
+    const remaining = await runInDurableObject(stub, async (_instance, state) => ({
+      bucket: await state.storage.get(recordKey),
+      index: await state.storage.get(indexKey)
+    }));
+    expect(remaining.bucket).toBeUndefined();
+    expect(remaining.index).toBeUndefined();
   });
 });
