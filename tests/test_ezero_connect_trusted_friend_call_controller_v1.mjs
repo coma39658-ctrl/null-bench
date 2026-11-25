@@ -109,6 +109,18 @@ assert.equal(expiry.state, "expired", "unanswered invite must expire locally");
 await assert.rejects(() => expiry.accept(), /TRUSTED_CALL_NO_INCOMING_INVITE/);
 expiry.close();
 
+const cancelSession = new FakeSession();
+const cancelledInvite = createTrustedFriendCallController({
+  signalingSession: cancelSession, relationshipId, trustApi: trustApi(), identityApi,
+  now: () => clock.value, setTimer: timers.setTimer, clearTimer: timers.clearTimer
+});
+await cancelledInvite.ready;
+await cancelSession.receive("call-invite", { callId: callD, mode: "audio", expiresAt: clock.value + 10_000 });
+assert.equal(cancelledInvite.state, "incoming");
+await cancelSession.receive("call-decline", { callId: callD });
+assert.equal(cancelledInvite.state, "ended", "caller cancellation must dismiss the incoming call UI");
+cancelledInvite.close();
+
 const untrustedSession = new FakeSession();
 const untrusted = createTrustedFriendCallController({
   signalingSession: untrustedSession, relationshipId,
@@ -122,5 +134,5 @@ console.log("PASS only the mutually trusted saved-friend fingerprint can control
 console.log("PASS outgoing calls start media only after matching call acceptance");
 console.log("PASS incoming calls request no media before explicit accept");
 console.log("PASS mismatched call IDs and untrusted senders are ignored");
-console.log("PASS invite expiry, decline, hangup, repeat-call and closed-state cleanup are enforced");
+console.log("PASS invite expiry, remote invite cancellation, decline, hangup, repeat-call and cleanup are enforced");
 console.log("PASS unverified contacts cannot start call control");
