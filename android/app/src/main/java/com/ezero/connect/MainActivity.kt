@@ -1,13 +1,16 @@
 package com.ezero.connect
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.view.ViewGroup
+import android.text.InputType
 import android.widget.Button
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
@@ -56,6 +59,13 @@ class MainActivity : Activity() {
             }
         }
         layout.addView(prepareEnrollmentButton, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        ))
+        val rootPinButton = Button(this).apply {
+            text = "Verify and save E-ZERO Root fingerprint"
+            setOnClickListener { showRootPinDialog() }
+        }
+        layout.addView(rootPinButton, LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
         ))
         layout.addView(galleryButton, LinearLayout.LayoutParams(
@@ -158,6 +168,46 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun showRootPinDialog() {
+        val fields = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(40, 12, 40, 0)
+        }
+        fun field(label: String, multiLine: Boolean = false): EditText {
+            fields.addView(TextView(this).apply { text = label })
+            return EditText(this).apply {
+                inputType = if (multiLine) {
+                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+                } else {
+                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+                }
+                if (multiLine) minLines = 3
+                setTextIsSelectable(true)
+            }.also(fields::addView)
+        }
+        val spkiInput = field("Root Public SPKI (Base64URL)", true)
+        val fingerprintInput = field("Root SHA-256 fingerprint (64 lowercase hex)")
+        val confirmationInput = field("Independently checked fingerprint (type after separate comparison)")
+        AlertDialog.Builder(this)
+            .setTitle("First-use E-ZERO Root trust")
+            .setMessage("Paste only public SPKI and fingerprint from the authorized Root browser. Compare all 64 fingerprint characters through a separate trusted channel before confirming. Never paste a private key.")
+            .setView(fields)
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Verify and save") { _, _ ->
+                try {
+                    val pin = AndroidRootTrustPinV1.pinAfterIndependentConfirmation(
+                        this,
+                        spkiInput.text.toString().trim(),
+                        fingerprintInput.text.toString().trim(),
+                        confirmationInput.text.toString().trim()
+                    )
+                    statusView.text = "E-ZERO Root public key pinned on this phone.\\nFingerprint: " + pin.fingerprint + "\\nThis is only a local trust pin; server enrollment, friend trust, and calls are not enabled."
+                } catch (error: Exception) {
+                    statusView.text = "Root pin rejected: " + (error.message ?: "VALIDATION_FAILED") + ". No Root trust was saved."
+                }
+            }
+            .show()
+    }
     private fun requestNotificationPermission() {
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
