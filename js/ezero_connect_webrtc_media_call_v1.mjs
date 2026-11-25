@@ -66,11 +66,11 @@ export function createWebRTCMediaCallTransport({
 
   async function handleSignal(message) {
     if (closed || !message || message.fromFingerprint !== remoteFingerprint ||
-        !["offer", "answer", "ice-candidate", "hangup"].includes(message.type)) return;
+        !["call-offer", "call-answer", "call-ice-candidate", "call-hangup"].includes(message.type) || message.payload?.callId !== callId) return;
     try {
-      if (message.type === "hangup") { close(false); return; }
+      if (message.type === "call-hangup") { close(false); return; }
       if (!pc) return fail("MEDIA_CALL_SIGNAL_BEFORE_START");
-      if (message.type === "offer") {
+      if (message.type === "call-offer") {
         if (role !== "callee" || remoteDescriptionSet ||
             !validDescription({ type: "offer", sdp: message.payload?.sdp }, "offer")) fail("MEDIA_CALL_OFFER_INVALID");
         await pc.setRemoteDescription({ type: "offer", sdp: message.payload.sdp });
@@ -79,16 +79,16 @@ export function createWebRTCMediaCallTransport({
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         if (!validDescription(pc.localDescription, "answer")) fail("MEDIA_CALL_ANSWER_INVALID");
-        signalingSession.send("answer", { sdp: pc.localDescription.sdp });
+        signalingSession.send("call-answer", { callId, sdp: pc.localDescription.sdp });
         emit("answer-sent");
-      } else if (message.type === "answer") {
+      } else if (message.type === "call-answer") {
         if (role !== "caller" || remoteDescriptionSet ||
             !validDescription({ type: "answer", sdp: message.payload?.sdp }, "answer")) fail("MEDIA_CALL_UNEXPECTED_ANSWER");
         await pc.setRemoteDescription({ type: "answer", sdp: message.payload.sdp });
         remoteDescriptionSet = true;
         await flushCandidates();
         emit("answer-received");
-      } else if (message.type === "ice-candidate") {
+      } else if (message.type === "call-ice-candidate") {
         const raw = message.payload?.candidate;
         if (typeof raw !== "string" || raw.length > 2048) fail("MEDIA_CALL_ICE_CANDIDATE_INVALID");
         let candidate;
@@ -115,7 +115,7 @@ export function createWebRTCMediaCallTransport({
     if (closed) return;
     closed = true;
     if (notify) {
-      try { signalingSession.send("hangup", {}); } catch (_) {}
+      try { signalingSession.send("call-hangup", { callId }); } catch (_) {}
     }
     for (const remove of listeners.splice(0)) { try { remove?.(); } catch (_) {} }
     for (const track of localStream?.getTracks?.() || []) { try { track.stop(); } catch (_) {} }
@@ -146,7 +146,7 @@ export function createWebRTCMediaCallTransport({
         for (const track of localStream.getTracks()) pc.addTrack(track, localStream);
         pc.onicecandidate = event => {
           if (!closed && event.candidate) {
-            try { signalingSession.send("ice-candidate", { candidate: JSON.stringify(event.candidate.toJSON?.() || event.candidate) }); }
+            try { signalingSession.send("call-ice-candidate", { callId, candidate: JSON.stringify(event.candidate.toJSON?.() || event.candidate) }); }
             catch (error) { emit("error", { error: error?.message || "MEDIA_CALL_ICE_SEND_FAILED" }); close(false); }
           }
         };
@@ -168,7 +168,7 @@ export function createWebRTCMediaCallTransport({
           const offer = await pc.createOffer();
           await pc.setLocalDescription(offer);
           if (!validDescription(pc.localDescription, "offer")) fail("MEDIA_CALL_OFFER_INVALID");
-          signalingSession.send("offer", { sdp: pc.localDescription.sdp });
+          signalingSession.send("call-offer", { callId, sdp: pc.localDescription.sdp });
           emit("offer-sent");
         } else emit("waiting-for-offer");
         return Object.freeze({ state: "started", callId, mode, role });
