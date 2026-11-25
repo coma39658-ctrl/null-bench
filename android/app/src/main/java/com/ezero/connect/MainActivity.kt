@@ -45,13 +45,13 @@ class MainActivity : Activity() {
                 try {
                     val identity = AndroidEnrollmentKeyStore.getOrCreatePublicIdentity()
                     statusView.text = buildString {
-                        append("E-ZERO Connect — Android enrollment preparation\\n\\n")
-                        append("Device fingerprint (SHA-256):\\n")
+                        append("E-ZERO Connect — Android enrollment preparation\n\n")
+                        append("Device fingerprint (SHA-256):\n")
                         append(identity.fingerprint)
-                        append("\\n\\nStatus: KEY_CREATED_NOT_ENROLLED")
-                        append("\\nPrivate key remains inside Android Keystore.")
-                        append("\\nNo server connection or friend trust has been created.")
-                        append("\\nRoot approval is still required.")
+                        append("\n\nStatus: KEY_CREATED_NOT_ENROLLED")
+                        append("\nPrivate key remains inside Android Keystore.")
+                        append("\nNo server connection or friend trust has been created.")
+                        append("\nRoot approval is still required.")
                     }
                 } catch (_: Exception) {
                     statusView.text = "Secure device key could not be prepared on this phone."
@@ -201,7 +201,7 @@ class MainActivity : Activity() {
                         fingerprintInput.text.toString().trim(),
                         confirmationInput.text.toString().trim()
                     )
-                    statusView.text = "E-ZERO Root public key pinned on this phone.\\nFingerprint: " + pin.fingerprint + "\\nThis is only a local trust pin; server enrollment, friend trust, and calls are not enabled."
+                    statusView.text = "E-ZERO Root public key pinned on this phone.\nFingerprint: " + pin.fingerprint + "\nThis is only a local trust pin; server enrollment, friend trust, and calls are not enabled."
                 } catch (error: Exception) {
                     statusView.text = "Root pin rejected: " + (error.message ?: "VALIDATION_FAILED") + ". No Root trust was saved."
                 }
