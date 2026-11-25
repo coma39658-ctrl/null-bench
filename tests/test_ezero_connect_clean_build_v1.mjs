@@ -117,7 +117,7 @@ try {
   const expiredResult = await page.evaluate(async ({ code, now }) => {
     try { await window.EZERO_CONNECT_INVITES.verifyInvite(code, now); return "ACCEPTED"; }
     catch (error) { return error.message; }
-  }, { code: invite.inviteCode, now: invite.expiresAt + 1 });
+  }, { code: invite.inviteCode, now: invite.expiresAt + 5 * 60_000 + 1 }); // Client clock-skew allowance is five minutes; server enforces exact 90s expiry.
   assert.equal(expiredResult, "INVITE_EXPIRED_OR_TIME_INVALID");
 
   const tamperedCode = await page.evaluate((code) => {
