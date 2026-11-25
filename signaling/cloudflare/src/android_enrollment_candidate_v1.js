@@ -92,19 +92,32 @@ export class AndroidEnrollmentRegistry extends DurableObject {
 
     if (u.pathname === "/v1/admin/root-register") {
       const secret = this.env.ROOT_BOOTSTRAP_SECRET;
+      const expectedFp = this.env.ROOT_BOOTSTRAP_EXPECTED_FP;
       if (!secret || request.headers.get("X-Root-Bootstrap") !== secret)
         return response({error:"ADMIN_UNAUTHORIZED"},403);
+      if (typeof expectedFp !== "string" || !FP.test(expectedFp))
+        return response({error:"BOOTSTRAP_CONFIG_INVALID"},503);
       const spki = decode64(body.root_spki, 512);
       if (!spki || spki.length < 80 || spki.length > 160)
         return response({error:"BAD_ROOT_KEY"},400);
       try {
-        const key = await importP256(spki);
+        await importP256(spki);
         const fp = await fingerprint(spki);
-        const roots = (await this.ctx.storage.get("roots")) || {};
-        if (roots[fp]) return response({error:"ROOT_EXISTS"},409);
-        roots[fp] = { spki:body.root_spki, added_at:Date.now(), active:true };
-        await this.ctx.storage.put("roots",roots);
-        return response({ok:true,root_fp:fp});
+        if (fp !== expectedFp) return response({error:"ROOT_FINGERPRINT_MISMATCH"},403);
+        const record = { spki:body.root_spki, added_at:Date.now(), active:true };
+        // The durable transaction is the single-use gate. Concurrent requests
+        // cannot both consume bootstrap authorization or install competing roots.
+        const registered = this.ctx.storage.transactionSync(tx => {
+          if (tx.get("root-bootstrap-v1-used") === true) return "USED";
+          const roots = tx.get("roots") || {};
+          if (Object.keys(roots).length !== 0) return "ROOT_ALREADY_REGISTERED";
+          tx.put("roots", { [fp]: record });
+          tx.put("root-bootstrap-v1-used", true);
+          return "REGISTERED";
+        });
+        if (registered === "USED") return response({error:"BOOTSTRAP_ALREADY_USED"},409);
+        if (registered === "ROOT_ALREADY_REGISTERED") return response({error:"ROOT_ALREADY_REGISTERED"},409);
+        return response({ok:true,root_fp:fp,status:"ROOT_REGISTERED"});
       } catch (_) { return response({error:"BAD_ROOT_KEY"},400); }
     }
 
