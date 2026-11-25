@@ -8,7 +8,7 @@ import java.security.KeyStore
 import java.security.Signature
 import java.security.spec.ECGenParameterSpec
 import java.security.MessageDigest
-import java.util.Base64
+import android.util.Base64
 
 /**
  * Per-install P-256 identity for root-approved Android enrollment.
@@ -52,7 +52,7 @@ internal object AndroidEnrollmentKeyStore {
         val spki = pair.public.encoded
         val fingerprint = MessageDigest.getInstance("SHA-256").digest(spki)
             .joinToString("") { "%02x".format(it.toInt() and 0xff) }
-        return PublicIdentity(fingerprint, Base64.getUrlEncoder().withoutPadding().encodeToString(spki))
+        return PublicIdentity(fingerprint, Base64.encodeToString(spki, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING))
     }
 
     fun signChallenge(challenge: AndroidEnrollmentProtocolV1.Challenge): String {
@@ -65,6 +65,6 @@ internal object AndroidEnrollmentKeyStore {
             sign()
         }
         val p1363 = AndroidSignatureEncoding.derP256ToP1363(signature)
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(p1363)
+        return Base64.encodeToString(p1363, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
     }
 }
