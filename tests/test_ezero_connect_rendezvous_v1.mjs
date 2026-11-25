@@ -1,6 +1,6 @@
 import { createTrustedRendezvousClient } from "../js/ezero_connect_rendezvous_client_v1.mjs";
 import assert from "node:assert/strict";
-import { verifyReconnectProof, validateRelay, RENDEZVOUS_LIMITS } from "../signaling/ezero-connect-v1/rendezvous.mjs";
+import { EzeroConnectRendezvous, verifyReconnectProof, validateRelay, RENDEZVOUS_LIMITS } from "../signaling/ezero-connect-v1/rendezvous.mjs";
 
 const b64 = bytes => Buffer.from(bytes).toString("base64url");
 const hex = bytes => Array.from(new Uint8Array(bytes), b => b.toString(16).padStart(2, "0").toUpperCase()).join(":");
@@ -47,6 +47,7 @@ await assert.rejects(() => verifyReconnectProof({ ...proof, approvals: [approval
 await assert.rejects(() => verifyReconnectProof({ ...proof, payload: { ...payload, relationshipId: "f".repeat(64) } }, relationshipId, payload.challenge, payload.challengeExpiresAt, now), /RENDEZVOUS_PROOF_BINDING_INVALID/);
 assert.equal(RENDEZVOUS_LIMITS.challengeTtlMs, 30_000);
 assert.equal(RENDEZVOUS_LIMITS.sessionTtlMs, 120_000);
+assert.equal(RENDEZVOUS_LIMITS.maxPendingCallTtlMs, 120_000);
 const callId = b64(new Uint8Array(24).fill(7));
 const callInvite = { type: "call-invite", sentAt: now, payload: { callId, mode: "video", expiresAt: now + 45_000 } };
 assert.equal(validateRelay(JSON.stringify(callInvite), now).payload.mode, "video");
@@ -60,10 +61,67 @@ assert.throws(() => validateRelay(JSON.stringify({ type: "call-offer", sentAt: n
 assert.throws(() => validateRelay(JSON.stringify({ type: "call-ice-candidate", sentAt: now, payload: { callId, candidate: "x", extra: true } }), now), /RENDEZVOUS_CALL_ICE_INVALID/);
 assert.throws(() => validateRelay(JSON.stringify({ ...callInvite, payload: { ...callInvite.payload, mode: "screen" } }), now), /RENDEZVOUS_CALL_INVITE_INVALID/);
 assert.throws(() => validateRelay(JSON.stringify({ ...callInvite, payload: { ...callInvite.payload, callId: "short" } }), now), /RENDEZVOUS_CALL_INVITE_INVALID/);
-assert.throws(() => validateRelay(JSON.stringify({ ...callInvite, payload: { ...callInvite.payload, expiresAt: now + 90_000 } }), now), /RENDEZVOUS_CALL_INVITE_INVALID/);
+assert.equal(validateRelay(JSON.stringify({ ...callInvite, payload: { ...callInvite.payload, expiresAt: now + 90_000 } }), now).payload.expiresAt, now + 90_000);
+assert.throws(() => validateRelay(JSON.stringify({ ...callInvite, payload: { ...callInvite.payload, expiresAt: now + 120_001 } }), now), /RENDEZVOUS_CALL_INVITE_INVALID/);
 assert.throws(() => validateRelay(JSON.stringify({ type: "call-accept", sentAt: now, payload: { callId, extra: true } }), now), /RENDEZVOUS_CALL_RESPONSE_INVALID/);
 assert.throws(() => validateRelay(JSON.stringify({ type: "call-decline", sentAt: now, payload: { callId: "bad" } }), now), /RENDEZVOUS_CALL_RESPONSE_INVALID/);
 assert.throws(() => validateRelay(JSON.stringify({ type: "hangup", sentAt: now, payload: { callId } }), now), /RENDEZVOUS_HANGUP_INVALID/);
+
+// Durable Object offline-call queue: a signed-in caller may leave one
+// short-lived call invite for its authenticated peer to receive on reconnect.
+class FakeSocket {
+  constructor(attachment) { this.readyState = 1; this.attachment = structuredClone(attachment); this.sent = []; }
+  serializeAttachment(value) { this.attachment = structuredClone(value); }
+  deserializeAttachment() { return structuredClone(this.attachment); }
+  send(raw) { this.sent.push(JSON.parse(raw)); }
+  close() { this.readyState = 3; }
+}
+const storageValues = new Map();
+const fakeStorage = {
+  alarmAt: null,
+  async get(key) { return structuredClone(storageValues.get(key)); },
+  async put(key, value) { storageValues.set(key, structuredClone(value)); },
+  async delete(key) { storageValues.delete(key); },
+  async setAlarm(value) { this.alarmAt = value; },
+  async deleteAlarm() { this.alarmAt = null; }
+};
+const callerSocket = new FakeSocket({
+  state: "AUTHENTICATED", relationshipId, localFingerprint: fpA, remoteFingerprint: fpB,
+  expiresAt: Date.now() + 120_000, messageTimes: []
+});
+const fakeSockets = [callerSocket];
+const rendezvous = new EzeroConnectRendezvous({
+  getWebSockets: () => fakeSockets,
+  storage: fakeStorage
+}, { PUBLIC_ORIGIN: "https://example.invalid" });
+const queuedCallId = b64(new Uint8Array(24).fill(11));
+const queuedAt = Date.now();
+const queuedInvite = { type: "call-invite", sentAt: queuedAt, payload: {
+  callId: queuedCallId, mode: "audio", expiresAt: queuedAt + 90_000
+}};
+await rendezvous.webSocketMessage(callerSocket, JSON.stringify(queuedInvite));
+assert.equal((await fakeStorage.get("pendingCall"))?.callId, queuedCallId);
+assert.ok(callerSocket.sent.some(value => value.type === "peer-offline"));
+
+const recipientSocket = new FakeSocket({
+  state: "AUTHENTICATED", relationshipId, localFingerprint: fpB, remoteFingerprint: fpA,
+  expiresAt: Date.now() + 120_000, messageTimes: []
+});
+fakeSockets.push(recipientSocket);
+await rendezvous.notifyReady();
+const delivered = recipientSocket.sent.find(value => value.type === "relay" && value.message?.type === "call-invite");
+assert.equal(delivered?.fromFingerprint, fpA);
+assert.equal(delivered?.message?.payload?.callId, queuedCallId);
+assert.equal(await fakeStorage.get("pendingCall"), undefined);
+
+const cancelledCallId = b64(new Uint8Array(24).fill(12));
+const cancelAt = Date.now();
+await rendezvous.webSocketMessage(callerSocket, JSON.stringify({ type: "call-invite", sentAt: cancelAt, payload: {
+  callId: cancelledCallId, mode: "video", expiresAt: cancelAt + 90_000
+}}));
+await rendezvous.webSocketMessage(callerSocket, JSON.stringify({ type: "call-hangup", sentAt: Date.now(), payload: { callId: cancelledCallId } }));
+assert.equal(await fakeStorage.get("pendingCall"), undefined);
+console.log("PASS offline trusted call invite is queued, delivered once on peer reconnect, and cleared on cancel");
 
 class FakeWebSocket2 {
   constructor(url) { FakeWebSocket2.last = this; this.url = url; this.readyState = 0; this.handlers = new Map(); this.sent = []; queueMicrotask(() => { this.readyState = 1; this.dispatch("open", {}); }); }
