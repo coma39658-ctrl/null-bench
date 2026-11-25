@@ -1,0 +1,24 @@
+name: E-ZERO Android Root Enrollment Contract QA
+
+on:
+  push:
+    branches:
+      - ezero-android-root-approved-enrollment-contract-20261125
+    paths:
+      - "tests/ezero_android_root_enrollment_contract_v1.test.mjs"
+      - ".github/workflows/ezero-android-root-enrollment-contract-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  enrollment-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run root-approved enrollment contract tests
+        run: node --test tests/ezero_android_root_enrollment_contract_v1.test.mjs
