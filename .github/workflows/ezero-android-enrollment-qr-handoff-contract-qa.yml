@@ -1,0 +1,25 @@
+name: E-ZERO Android Enrollment QR Handoff Contract QA
+
+on:
+  push:
+    branches:
+      - ezero-android-enrollment-qr-handoff-contract-20261125
+    paths:
+      - android/ANDROID_ENROLLMENT_QR_HANDOFF_CONTRACT_V1.md
+      - tests/ezero_android_enrollment_qr_handoff_contract_v1.test.mjs
+      - .github/workflows/ezero-android-enrollment-qr-handoff-contract-qa.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify QR handoff security contract
+        run: node --test tests/ezero_android_enrollment_qr_handoff_contract_v1.test.mjs
