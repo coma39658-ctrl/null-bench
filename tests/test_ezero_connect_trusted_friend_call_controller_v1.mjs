@@ -35,7 +35,10 @@ function trustApi(remote = remoteFingerprint) {
 const identityApi = { async getPublicIdentity() { return { fingerprint: localFingerprint }; } };
 function mediaFactoryLog(log) {
   return options => ({
-    async start() { log.push({ action: "start", role: options.role, mode: options.mode, callId: options.callId }); },
+    async start() {
+      log.push({ action: "start", role: options.role, mode: options.mode, callId: options.callId });
+      options.onState({ state: "connection", connectionState: "connected" });
+    },
     close(notify) { log.push({ action: "close", notify }); options.onState({ state: "closed" }); }
   });
 }
@@ -65,6 +68,7 @@ await session.receive("call-accept", { callId: callA }, "33:".repeat(31) + "33")
 assert.equal(mediaLog.length, 0, "untrusted fingerprint must be ignored");
 await session.receive("call-accept", { callId: callA });
 assert.deepEqual(mediaLog[0], { action: "start", role: "caller", mode: "audio", callId: callA });
+assert.equal(controller.state, "connected", "WebRTC connectionState=connected must update call control state");
 await session.receive("call-hangup", { callId: callB });
 assert.equal(controller.state, "starting-media", "hangup for another call must be ignored");
 await session.receive("call-hangup", { callId: callA });
@@ -92,6 +96,7 @@ assert.equal(incomingLog.length, 0, "incoming invite must not request media befo
 await incoming.accept();
 assert.equal(incomingSession.sent.at(-1).type, "call-accept");
 assert.deepEqual(incomingLog[0], { action: "start", role: "callee", mode: "video", callId: callB });
+assert.equal(incoming.state, "connected", "callee WebRTC connectionState=connected must update call control state");
 incoming.hangup();
 assert.equal(incoming.state, "ended");
 incoming.close();
