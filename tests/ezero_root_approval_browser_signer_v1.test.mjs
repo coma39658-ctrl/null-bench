@@ -33,6 +33,9 @@ test("signing enforces exact origin and short expiry before using root key", () 
   assert.match(source, /Date\.now\(\) \+ 90000/);
 });
 
+test("canonical root command uses actual LF separators matching Worker", () => {
+  assert.match(source, /const canonical = tag \\+ "\\\\n" \\+ order\\.map\\(key => key \\+ "=" \\+ fields\\[key\\] \\+ "\\\\n"\\)\\.join\\(" "\\);/);
+});
 test("browser signer returns WebCrypto P1363 signature and root fingerprint", () => {
   assert.match(source, /crypto\.subtle\.sign\([\s\S]*?record\.privateKey/);
   assert.match(source, /return \{ root_fp: rootFp, signature: toBase64Url\(signature\) \}/);
