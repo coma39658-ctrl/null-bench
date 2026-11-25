@@ -301,3 +301,34 @@ describe("Android enrollment storage lifecycle alarms", () => {
   });
 
 });
+
+
+describe("Android enrollment shared abuse ceilings", () => {
+  it("atomically enforces a shared route ceiling across distributed client IPs", async () => {
+    const stub = env.ENROLLMENT.get(env.ENROLLMENT.idFromName("global-route-ceiling"));
+    const allowed = await runInDurableObject(stub, async (instance) => {
+      const attempts = Array.from({ length: 301 }, (_, i) =>
+        instance.consumeRateLimit(new Request("https://internal.invalid", {
+          headers: { "X-EZERO-Client-IP": "203.0.113." + (i + 1) }
+        }), "/v1/android/enrollment/challenge")
+      );
+      return Promise.all(attempts);
+    });
+    expect(allowed.filter(Boolean)).toHaveLength(300);
+    expect(allowed.filter(value => !value)).toHaveLength(1);
+  });
+
+  it("atomically enforces the per-IP ceiling under concurrent requests", async () => {
+    const stub = env.ENROLLMENT.get(env.ENROLLMENT.idFromName("concurrent-per-ip-ceiling"));
+    const allowed = await runInDurableObject(stub, async (instance) => {
+      const attempts = Array.from({ length: 11 }, () =>
+        instance.consumeRateLimit(new Request("https://internal.invalid", {
+          headers: { "X-EZERO-Client-IP": "198.51.100.222" }
+        }), "/v1/android/enrollment/challenge")
+      );
+      return Promise.all(attempts);
+    });
+    expect(allowed.filter(Boolean)).toHaveLength(10);
+    expect(allowed.filter(value => !value)).toHaveLength(1);
+  });
+});
