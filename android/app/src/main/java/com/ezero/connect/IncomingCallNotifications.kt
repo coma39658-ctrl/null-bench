@@ -22,13 +22,14 @@ object IncomingCallNotifications {
         ensureChannel(context, manager)
 
         val person = Person.Builder().setName(callerAlias).setImportant(true).build()
-        val accept = actionPendingIntent(context, CallActionReceiver.ACTION_ACCEPT, callId, 1)
-        val reject = actionPendingIntent(context, CallActionReceiver.ACTION_REJECT, callId, 2)
+        val accept = actionPendingIntent(context, CallActionReceiver.ACTION_ACCEPT, callId, mode, 1)
+        val reject = actionPendingIntent(context, CallActionReceiver.ACTION_REJECT, callId, mode, 2)
         val content = PendingIntent.getActivity(
             context, 3,
             Intent(context, MainActivity::class.java).apply {
                 data = Uri.parse("ezero://incoming/$callId")
                 putExtra(CallActionReceiver.EXTRA_CALL_ID, callId)
+                putExtra(CallActionReceiver.EXTRA_MODE, mode)
             },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -100,6 +101,7 @@ object IncomingCallNotifications {
             data = Uri.parse("ezero://call/$callId/$action")
             putExtra(CallActionReceiver.EXTRA_ACTION, action)
             putExtra(CallActionReceiver.EXTRA_CALL_ID, callId)
+            putExtra(CallActionReceiver.EXTRA_MODE, mode)
         }
         return PendingIntent.getBroadcast(
             context, requestCode, intent,
