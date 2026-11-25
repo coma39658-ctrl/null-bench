@@ -6,6 +6,7 @@ const localFingerprint = "11:".repeat(31) + "11";
 const remoteFingerprint = "22:".repeat(31) + "22";
 const callA = "A".repeat(32);
 const callB = "B".repeat(32);
+const callD = "D".repeat(32);
 
 class FakeSession {
   constructor() { this.sent = []; this.listeners = new Set(); }
@@ -43,9 +44,10 @@ const clock = { value: 1_000_000 };
 const timers = makeTimers(clock);
 const session = new FakeSession();
 const mediaLog = [];
+const generatedCallIds = [callA, callD];
 const controller = createTrustedFriendCallController({
   signalingSession: session, relationshipId, trustApi: trustApi(), identityApi,
-  callIdFactory: () => callA, now: () => clock.value,
+  callIdFactory: () => generatedCallIds.shift(), now: () => clock.value,
   setTimer: timers.setTimer, clearTimer: timers.clearTimer,
   mediaCallFactory: mediaFactoryLog(mediaLog)
 });
@@ -69,7 +71,8 @@ await session.receive("call-hangup", { callId: callA });
 assert.equal(controller.state, "ended");
 const secondCall = await controller.call("video");
 assert.equal(secondCall.mode, "video", "same saved friend can be called again after hangup");
-await session.receive("call-decline", { callId: callA });
+assert.equal(secondCall.callId, callD, "each call must receive a fresh call ID");
+await session.receive("call-decline", { callId: callD });
 assert.equal(controller.state, "declined");
 controller.close();
 assert.equal(controller.state, "closed");
