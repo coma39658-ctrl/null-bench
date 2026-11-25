@@ -58,37 +58,28 @@ try {
   }, activeCode);
 
   await host.waitForFunction(() => document.querySelector("#pairingPanel").hidden === false &&
-    document.querySelector("#pairingStatus").textContent.includes("محفوظ کنکشن بن گیا") &&
-    document.querySelector("#pairingAction").disabled === false, { timeout: 20000 });
+    document.querySelector("#pairingStatus").textContent.includes("دعوت بھیج دی گئی") &&
+    document.querySelector("#pairingAction").hidden === true, { timeout: 20000 });
   await guest.waitForFunction(() => document.querySelector("#pairingPanel").hidden === false &&
     document.querySelector("#pairingStatus").textContent.includes("انتظار"), { timeout: 20000 });
 
-  await host.evaluate(() => {
-    window.__pairingClickObserved = false;
-    document.querySelector("#pairingAction").addEventListener("click", () => {
-      window.__pairingClickObserved = true;
-    }, true);
-  });
-  await host.locator("#pairingFriendName").fill("Phone B");
-  await host.locator("#pairingAction").click();
-  await host.waitForTimeout(300);
   const hostActionDiagnostic = await host.evaluate(() => ({
-    clickObserved: window.__pairingClickObserved,
-    disabled: document.querySelector("#pairingAction")?.disabled,
-    buttonText: document.querySelector("#pairingAction")?.textContent,
-    nameValue: document.querySelector("#pairingFriendName")?.value,
+    actionHidden: document.querySelector("#pairingAction")?.hidden,
+    nameHidden: document.querySelector("#pairingFriendName")?.hidden,
     status: document.querySelector("#pairingStatus")?.textContent,
-    statusKind: document.querySelector("#pairingStatus")?.dataset.kind,
     outgoingTrustRequest: window.__wsTrace.some(item => item.direction === "out" && String(item.data).includes('"trust-request"'))
   }));
-  if (!hostActionDiagnostic.outgoingTrustRequest) {
-    throw new Error("Host did not emit trust-request after approval click: " + JSON.stringify(hostActionDiagnostic) +
-      " | " + JSON.stringify(await host.evaluate(() => window.__wsTrace)));
-  }
+  assert.equal(hostActionDiagnostic.actionHidden, true,
+    "The caller must not need a second approval/save click");
+  assert.equal(hostActionDiagnostic.nameHidden, true,
+    "The caller must not need to type a friend name before the recipient accepts");
+  assert.ok(hostActionDiagnostic.outgoingTrustRequest,
+    "The caller's deliberate QR invitation must automatically send the signed trust request");
+
   try {
     await guest.waitForFunction(() => {
       const el = document.querySelector("#pairingStatus");
-      return el.dataset.kind === "error" || el.textContent.includes("محفوظ کرنا چاہتا");
+      return el.dataset.kind === "error" || el.textContent.includes("ایک بار قبول کریں");
     }, null, { timeout: 15000 });
   } catch (error) {
     const diagnostics = await Promise.all([host, guest].map(page => page.evaluate(() => ({
@@ -98,10 +89,13 @@ try {
     throw new Error("Pairing relay diagnostic timeout: " + JSON.stringify(diagnostics) + " | " + error.message);
   }
   const guestPairingStatus = await guest.locator("#pairingStatus").textContent();
-  assert.ok(guestPairingStatus.includes("محفوظ کرنا چاہتا"),
-    "Guest did not receive/verify pairing request. Guest status: " + guestPairingStatus +
+  assert.ok(guestPairingStatus.includes("ایک بار قبول کریں"),
+    "Guest did not receive the single-accept request. Guest status: " + guestPairingStatus +
     " | Host status: " + await host.locator("#pairingStatus").textContent());
-  await guest.locator("#pairingFriendName").fill("Phone A");
+  assert.equal(await guest.locator("#pairingAction").isVisible(), true,
+    "Only the recipient should see the Accept action");
+  assert.equal(await guest.locator("#pairingFriendName").isHidden(), true,
+    "Recipient should not need to type a friend name to approve");
   await guest.locator("#pairingAction").click();
 
   try {
@@ -123,10 +117,12 @@ try {
     host.evaluate(() => window.EZERO_CONNECT_TRUST.listTrustedContacts()),
     guest.evaluate(() => window.EZERO_CONNECT_TRUST.listTrustedContacts())
   ]);
-  const hostSavedFriend = savedHost.find(c => c.displayName === "Phone B" && c.status === "TRUSTED");
-  const guestSavedFriend = savedGuest.find(c => c.displayName === "Phone A" && c.status === "TRUSTED");
-  assert.ok(hostSavedFriend, "Host did not persist Phone B. Contacts: " + JSON.stringify(savedHost));
-  assert.ok(guestSavedFriend, "Guest did not persist Phone A. Contacts: " + JSON.stringify(savedGuest));
+  const hostSavedFriend = savedHost.find(c => c.remoteFingerprint === guestIdentity.fingerprint && c.status === "TRUSTED");
+  const guestSavedFriend = savedGuest.find(c => c.remoteFingerprint === hostIdentity.fingerprint && c.status === "TRUSTED");
+  assert.ok(hostSavedFriend, "Host did not automatically persist the accepted guest. Contacts: " + JSON.stringify(savedHost));
+  assert.ok(guestSavedFriend, "Guest did not automatically persist the accepted host. Contacts: " + JSON.stringify(savedGuest));
+  assert.equal(hostSavedFriend.displayName, "E-ZERO friend · " + guestIdentity.fingerprint.replaceAll(":", "").slice(0, 8));
+  assert.equal(guestSavedFriend.displayName, "E-ZERO friend · " + hostIdentity.fingerprint.replaceAll(":", "").slice(0, 8));
   assert.equal(hostSavedFriend.remoteFingerprint, guestIdentity.fingerprint);
   assert.equal(guestSavedFriend.remoteFingerprint, hostIdentity.fingerprint);
   assert.equal(await host.evaluate(() => window.__mediaCalls), 0);
@@ -136,7 +132,7 @@ try {
   assert.equal(await guest.locator("#audioCall").isDisabled(), true);
   assert.equal(await guest.locator("#videoCall").isDisabled(), true);
 
-  console.log("EZERO_CLEAN_UI_QR_TO_MUTUAL_APPROVAL_TO_ENCRYPTED_SAVED_FRIEND_PASS");
+  console.log("EZERO_ONE_RECIPIENT_ACCEPT_AUTO_SAVES_BOTH_TRUSTED_FRIENDS_PASS");
 } finally {
   for (const context of contexts) await context.close();
   await browser.close();
