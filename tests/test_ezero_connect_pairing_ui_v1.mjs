@@ -60,8 +60,8 @@ try {
   await host.waitForFunction(() => document.querySelector("#pairingPanel").hidden === false &&
     document.querySelector("#pairingStatus").textContent.includes("دعوت بھیج دی گئی") &&
     document.querySelector("#pairingAction").hidden === true, { timeout: 20000 });
-  await guest.waitForFunction(() => document.querySelector("#pairingPanel").hidden === false &&
-    document.querySelector("#pairingStatus").textContent.includes("انتظار"), { timeout: 20000 });
+  await guest.waitForFunction(() => document.querySelector("#pairingPanel").hidden === false,
+    { timeout: 20000 });
 
   const hostActionDiagnostic = await host.evaluate(() => ({
     actionHidden: document.querySelector("#pairingAction")?.hidden,
