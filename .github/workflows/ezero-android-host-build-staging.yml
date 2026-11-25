@@ -7,6 +7,7 @@ on:
     paths:
       - "android/**"
       - "signaling/ezero-connect-v1/**"
+      - "tests/test_ezero_android_wake_v1.mjs"
       - "js/ezero_connect_trusted_friend_call_controller_v1.mjs"
       - "tests/test_ezero_connect_rendezvous_v1.mjs"
       - ".github/workflows/ezero-android-host-build-staging.yml"
@@ -44,9 +45,11 @@ jobs:
       - name: Run trusted rendezvous offline-call queue tests
         run: |
           node --check signaling/ezero-connect-v1/rendezvous.mjs
+          node --check signaling/ezero-connect-v1/android_wake.mjs
           node --check js/ezero_connect_trusted_friend_call_controller_v1.mjs
           node --check js/ezero_connect_first_call_handoff_v1.mjs
           node tests/test_ezero_connect_rendezvous_v1.mjs
+          node tests/test_ezero_android_wake_v1.mjs
       - name: Run Android unit tests
         run: gradle -p android :app:testDebugUnitTest
       - name: Compile debug APK
