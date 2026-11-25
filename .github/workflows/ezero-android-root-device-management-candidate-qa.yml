@@ -10,6 +10,8 @@ on:
       - "signaling/cloudflare/wrangler.jsonc"
       - "tests/ezero_android_root_enrollment_contract_v1.test.mjs"
       - "tests/ezero_android_root_device_management_candidate_v1.test.mjs"
+      - "tests/ezero_android_signature_encoding_v1.test.mjs"
+      - "android/signature_encoding_v1.js"
       - ".github/workflows/ezero-android-root-device-management-candidate-qa.yml"
   workflow_dispatch:
 
@@ -28,6 +30,8 @@ jobs:
         run: node --test tests/ezero_android_root_enrollment_contract_v1.test.mjs
       - name: Verify root device management safeguards
         run: node --test tests/ezero_android_root_device_management_candidate_v1.test.mjs
+      - name: Verify Android and Worker signature encoding interoperability
+        run: node --test tests/ezero_android_signature_encoding_v1.test.mjs
       - name: Validate isolated Worker bundle without deploying
         working-directory: signaling/cloudflare
         run: npx --yes wrangler@4 deploy --dry-run --config wrangler.android-enrollment-candidate-v1.jsonc
