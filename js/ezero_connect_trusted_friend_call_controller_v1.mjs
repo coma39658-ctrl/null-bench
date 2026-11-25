@@ -48,6 +48,7 @@ export function createTrustedFriendCallController({
   let localFingerprint = null;
   let remoteFingerprint = null;
   const subscribers = new Set();
+  const pendingMessages = [];
 
   function emit(state, detail = {}) {
     const event = Object.freeze({ state, relationshipId, callId: active?.callId || null, mode: active?.mode || null, ...detail });
@@ -113,7 +114,15 @@ export function createTrustedFriendCallController({
   }
 
   async function handleMessage(message) {
-    if (closed || !message || message.fromFingerprint !== remoteFingerprint || !message.payload) return;
+    if (closed || !message || !message.payload) return;
+    // A valid invite can arrive just after rendezvous authentication but
+    // before the local trust lookup finishes. Queue only bounded call invites;
+    // verify the sender fingerprint once the trusted contact is loaded.
+    if (!remoteFingerprint) {
+      if (message.type === "call-invite" && pendingMessages.length < 8) pendingMessages.push(message);
+      return;
+    }
+    if (message.fromFingerprint !== remoteFingerprint) return;
     const payload = message.payload;
     if (message.type === "call-invite") {
       if (!validCallId(payload.callId) || !["audio", "video"].includes(payload.mode) ||
@@ -156,8 +165,13 @@ export function createTrustedFriendCallController({
   }
 
   const removeListener = signalingSession.on("message", message => { void handleMessage(message); });
-  const ready = verifyTrust().catch(error => {
+  const ready = verifyTrust().then(async result => {
+    const queued = pendingMessages.splice(0);
+    for (const message of queued) await handleMessage(message);
+    return result;
+  }).catch(error => {
     phase = "error";
+    pendingMessages.length = 0;
     emit("error", { error: error?.message || "TRUSTED_CALL_VERIFICATION_FAILED" });
     throw error;
   });
