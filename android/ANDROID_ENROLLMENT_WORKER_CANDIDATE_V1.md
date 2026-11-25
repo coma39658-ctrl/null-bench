@@ -17,7 +17,7 @@ The bootstrap ceremony itself is still an operational security dependency: befor
 - `POST /v1/android/enrollment/challenge`: validate Android P-256 SPKI, recompute SHA-256 fingerprint, issue 90-second nonce/challenge.
 - `POST /v1/android/enrollment/complete`: verify Android proof-of-possession and root signature over exact canonical approval; root must already be active in registry; atomically reserve/consume challenge before asynchronous crypto checks; persist active device binding.
 
-The candidate still has no FCM token endpoint, FCM sender, or push delivery. Device listing/revocation routes are code candidates only; there is no browser root-management UI or Android enrollment client integration yet. It does not make incoming calls ring. It stores public SPKIs and enrollment metadata only.
+The candidate has no FCM token endpoint, FCM sender, push delivery, device listing/revocation route, browser root-approval UI, or Android client integration yet. It does not make incoming calls ring. It stores public SPKIs and enrollment metadata only.
 
 ## Release blockers
 1. Review and test the administrative bootstrap ceremony and secret rotation/recovery.
@@ -29,4 +29,4 @@ The candidate still has no FCM token endpoint, FCM sender, or push delivery. Dev
 7. FCM integration is a separate later stage; do not store FCM tokens until enrollment, revocation, sender authorization and signed wake validation are complete.
 
 ## Canonical crypto
-UTF-8, LF-only, fixed field order, final LF. ECDSA P-256/SHA-256 64-byte IEEE-P1363 signatures. Challenge is 90 seconds and binds the exact device key, nonce, challenge ID and fixed E-ZERO audience. Root approval binds root fingerprint, device fingerprint, challenge ID, nonce, audience and expiry.
+UTF-8, LF-only, fixed field order, final LF. ECDSA P-256/SHA-256 DER signatures. Challenge is 90 seconds and binds the exact device key, nonce, challenge ID and fixed E-ZERO audience. Root approval binds root fingerprint, device fingerprint, challenge ID, nonce, audience and expiry.
