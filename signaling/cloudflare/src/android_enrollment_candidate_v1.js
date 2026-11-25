@@ -93,6 +93,7 @@ export class AndroidEnrollmentRegistry extends DurableObject {
         CREATE TABLE IF NOT EXISTS ezero_root_bootstrap_state (
           id INTEGER PRIMARY KEY CHECK (id = 1),
           used INTEGER NOT NULL,
+          attempt_id TEXT NOT NULL UNIQUE,
           root_fp TEXT NOT NULL UNIQUE,
           spki TEXT NOT NULL,
           added_at INTEGER NOT NULL,
@@ -135,20 +136,19 @@ export class AndroidEnrollmentRegistry extends DurableObject {
         const sql = this.ctx.storage.sql;
         // A single INSERT is the atomic gate: the singleton primary key allows
         // only one root bootstrap to commit, even for concurrent requests.
+        const attemptId = base64url(crypto.getRandomValues(new Uint8Array(16)));
+        // The singleton INSERT is atomic. The per-request attempt ID lets only
+        // the request that inserted the row receive success under concurrency.
         sql.exec(
-          "INSERT OR IGNORE INTO ezero_root_bootstrap_state (id, used, root_fp, spki, added_at, active) VALUES (1, 1, ?, ?, ?, 1)",
-          fp, body.root_spki, Date.now()
+          "INSERT OR IGNORE INTO ezero_root_bootstrap_state (id, used, attempt_id, root_fp, spki, added_at, active) VALUES (1, 1, ?, ?, ?, ?, 1)",
+          attemptId, fp, body.root_spki, Date.now()
         ).toArray();
-        // Read changes() synchronously before yielding; the singleton PK makes
-        // the insert itself the atomic one-use gate.
-        const inserted = sql.exec("SELECT changes() AS changes").one().changes;
-        let registered = "REGISTERED";
-        if (!inserted) {
-          const existing = sql.exec(
-            "SELECT root_fp FROM ezero_root_bootstrap_state WHERE id = 1"
-          ).toArray()[0];
-          registered = existing?.root_fp === fp ? "USED" : "ROOT_ALREADY_REGISTERED";
-        }
+        const existing = sql.exec(
+          "SELECT attempt_id, root_fp FROM ezero_root_bootstrap_state WHERE id = 1"
+        ).toArray()[0];
+        const registered = existing?.attempt_id === attemptId
+          ? "REGISTERED"
+          : existing?.root_fp === fp ? "USED" : "ROOT_ALREADY_REGISTERED";
         if (registered === "USED") return response({error:"BOOTSTRAP_ALREADY_USED"},409);
         if (registered === "ROOT_ALREADY_REGISTERED") return response({error:"ROOT_ALREADY_REGISTERED"},409);
         return response({ok:true,root_fp:fp,status:"ROOT_REGISTERED"});
