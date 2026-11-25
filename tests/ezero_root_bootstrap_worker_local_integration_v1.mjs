@@ -2,7 +2,7 @@ import { createHash, generateKeyPairSync } from "node:crypto";
 import { spawn } from "node:child_process";
 import assert from "node:assert/strict";
 
-// Diagnostic run: worker returns only a safe failure-stage label. Validate per-request winner claim under parallel replay. Confirm SQL changes gate after assertion correction. Recheck atomic SQLite changes() implementation. Verify SQLite changes() single-use gate. Sequential first registration and concurrent replay check. Validate RETURNING row detection for atomic single-use registration. Final single-statement SQLite gate regression. SQL-backed atomic root bootstrap is under integration test. Latest revision exercises documented async atomic transaction. Re-run after assertion syntax correction. Single-use transaction now uses storage.kv. Atomic storage path now uses synchronous SQLite KV API.
+// Local-only Durable Object integration test with bounded request timeouts.
 const origin = "https://coma39658-ctrl.github.io";
 const port = 8791 + Math.floor(Math.random() * 300);
 const secret = "ci-only-ezero-root-bootstrap-secret";
@@ -37,17 +37,17 @@ async function waitReady() {
 async function register({ token = secret, key = rootSpki, requestOrigin = origin } = {}) {
   try {
     return await fetch(base + "/v1/admin/root-register", {
-    method: "POST",
-    headers: {
-      Origin: requestOrigin,
-      "Content-Type": "application/json",
-      "X-Root-Bootstrap": token
-    },
+      method: "POST",
+      headers: {
+        Origin: requestOrigin,
+        "Content-Type": "application/json",
+        "X-Root-Bootstrap": token
+      },
       body: JSON.stringify({ root_spki: key }),
       signal: AbortSignal.timeout(10000)
     });
   } catch (error) {
-    throw new Error("ROOT_REGISTER_REQUEST_FAILED_OR_TIMED_OUT: " + (error?.name || "Error") + "\\n" + output.slice(-6000));
+    throw new Error("ROOT_REGISTER_REQUEST_FAILED_OR_TIMED_OUT: " + (error?.name || "Error") + "\n" + output.slice(-6000));
   }
 }
 
