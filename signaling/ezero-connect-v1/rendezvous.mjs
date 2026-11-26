@@ -1,5 +1,6 @@
 const CHALLENGE_TTL_MS = 30_000;
 const SESSION_TTL_MS = 120_000;
+const MAX_PENDING_CALL_TTL_MS = 120_000;
 const MAX_MESSAGE_BYTES = 16 * 1024;
 const MAX_SDP_CHARS = 12 * 1024;
 const MAX_ICE_BYTES = 2 * 1024;
@@ -96,7 +97,8 @@ export async function verifyReconnectProof(proof, expectedRelationshipId, challe
 }
 
 function send(ws, value) {
-  try { if (ws.readyState === 1) ws.send(JSON.stringify(value)); } catch (_) {}
+  try { if (ws.readyState === 1) { ws.send(JSON.stringify(value)); return true; } } catch (_) {}
+  return false;
 }
 function close(ws, code = 1008, reason = "rejected") {
   try { if (ws.readyState === 0 || ws.readyState === 1) ws.close(code, reason.slice(0, 100)); } catch (_) {}
@@ -130,7 +132,7 @@ export function validateRelay(raw, now = Date.now()) {
         typeof m.payload.callId !== "string" || !/^[A-Za-z0-9_-]{32}$/.test(m.payload.callId) ||
         !["audio", "video"].includes(m.payload.mode) ||
         !Number.isSafeInteger(m.payload.expiresAt) ||
-        m.payload.expiresAt <= now || m.payload.expiresAt > m.sentAt + 60_000 ||
+        m.payload.expiresAt <= now || m.payload.expiresAt > m.sentAt + MAX_PENDING_CALL_TTL_MS ||
         m.payload.expiresAt <= m.sentAt) throw new Error("RENDEZVOUS_CALL_INVITE_INVALID");
   } else if (m.type === "call-accept" || m.type === "call-decline") {
     if (Object.keys(m.payload).join(",") !== "callId" ||
@@ -161,7 +163,7 @@ export class EzeroConnectRendezvous {
     const [client, server] = Object.values(pair);
     this.ctx.acceptWebSocket(server);
     server.serializeAttachment({ state: "PENDING", relationshipId, challenge, challengeExpiresAt, messageTimes: [] });
-    await this.ctx.storage.setAlarm(challengeExpiresAt);
+    await this.scheduleAlarm();
     send(server, { type: "challenge", challenge, challengeExpiresAt });
     return new Response(null, { status: 101, webSocket: client });
   }
@@ -188,7 +190,7 @@ export class EzeroConnectRendezvous {
         state.expiresAt = Date.now() + SESSION_TTL_MS;
         state.messageTimes = [];
         ws.serializeAttachment(state);
-        await this.ctx.storage.setAlarm(state.expiresAt);
+        await this.scheduleAlarm();
         send(ws, { type: "authenticated", expiresAt: state.expiresAt });
         await this.notifyReady();
         return;
@@ -205,7 +207,34 @@ export class EzeroConnectRendezvous {
         return a?.state === "AUTHENTICATED" && a.localFingerprint === state.remoteFingerprint &&
           a.remoteFingerprint === state.localFingerprint && a.expiresAt > now;
       });
-      if (!peer) return send(ws, { type: "peer-offline" });
+      if (!peer) {
+        if (message.type === "call-invite") {
+          const existing = await this.ctx.storage.get("pendingCall");
+          if (existing && existing.expiresAt > now && existing.callId !== message.payload.callId) {
+            return send(ws, { type: "peer-offline" });
+          }
+          await this.ctx.storage.put("pendingCall", {
+            fromFingerprint: state.localFingerprint,
+            toFingerprint: state.remoteFingerprint,
+            callId: message.payload.callId,
+            expiresAt: message.payload.expiresAt,
+            message
+          });
+          await this.scheduleAlarm();
+        } else if (["call-decline", "call-hangup", "hangup"].includes(message.type)) {
+          const pending = await this.ctx.storage.get("pendingCall");
+          if (pending?.fromFingerprint === state.localFingerprint &&
+              (message.type === "hangup" || pending.callId === message.payload.callId)) {
+            await this.ctx.storage.delete("pendingCall");
+            await this.scheduleAlarm();
+          }
+        }
+        return send(ws, { type: "peer-offline" });
+      }
+      if (["call-accept", "call-decline", "call-hangup"].includes(message.type)) {
+        const pending = await this.ctx.storage.get("pendingCall");
+        if (pending?.callId === message.payload.callId) await this.ctx.storage.delete("pendingCall");
+      }
       send(peer, { type: "relay", fromFingerprint: state.localFingerprint, message });
       if (message.type === "hangup") {
         send(peer, { type: "session-ended" });
@@ -216,6 +245,11 @@ export class EzeroConnectRendezvous {
 
   async notifyReady() {
     const sockets = this.ctx.getWebSockets().filter(ws => ws.readyState === 1 && ws.deserializeAttachment()?.state === "AUTHENTICATED");
+    let pending = await this.ctx.storage.get("pendingCall");
+    if (pending && pending.expiresAt <= Date.now()) {
+      await this.ctx.storage.delete("pendingCall");
+      pending = null;
+    }
     for (const ws of sockets) {
       const state = ws.deserializeAttachment();
       const peer = sockets.find(other => {
@@ -223,19 +257,47 @@ export class EzeroConnectRendezvous {
         const a = other.deserializeAttachment();
         return a.localFingerprint === state.remoteFingerprint && a.remoteFingerprint === state.localFingerprint;
       });
-      if (peer) send(ws, { type: "peer-ready", peerFingerprint: state.remoteFingerprint });
-      else send(ws, { type: "waiting-for-peer" });
+      if (peer) {
+        send(ws, { type: "peer-ready", peerFingerprint: state.remoteFingerprint });
+        if (pending && pending.toFingerprint === state.localFingerprint && pending.expiresAt > Date.now()) {
+          const delivered = send(ws, { type: "relay", fromFingerprint: pending.fromFingerprint, message: pending.message });
+          if (delivered) {
+            await this.ctx.storage.delete("pendingCall");
+            pending = null;
+          }
+        }
+      } else send(ws, { type: "waiting-for-peer" });
     }
+    await this.scheduleAlarm();
   }
 
   async webSocketClose(ws) {
     const state = ws.deserializeAttachment();
     if (state?.state === "AUTHENTICATED") {
+      const pending = await this.ctx.storage.get("pendingCall");
+      if (pending?.fromFingerprint === state.localFingerprint) await this.ctx.storage.delete("pendingCall");
       for (const peer of this.ctx.getWebSockets()) {
         const a = peer.deserializeAttachment();
         if (a?.state === "AUTHENTICATED" && a.localFingerprint === state.remoteFingerprint) send(peer, { type: "peer-disconnected" });
       }
     }
+    await this.scheduleAlarm();
+  }
+
+  async scheduleAlarm() {
+    const now = Date.now();
+    const deadlines = [];
+    for (const ws of this.ctx.getWebSockets()) {
+      const state = ws.deserializeAttachment();
+      const deadline = state?.state === "PENDING" ? state.challengeExpiresAt :
+        state?.state === "AUTHENTICATED" ? state.expiresAt : null;
+      if (Number.isSafeInteger(deadline) && deadline > now) deadlines.push(deadline);
+    }
+    const pending = await this.ctx.storage.get("pendingCall");
+    if (pending && pending.expiresAt <= now) await this.ctx.storage.delete("pendingCall");
+    else if (Number.isSafeInteger(pending?.expiresAt)) deadlines.push(pending.expiresAt);
+    if (deadlines.length) await this.ctx.storage.setAlarm(Math.min(...deadlines));
+    else await this.ctx.storage.deleteAlarm();
   }
 
   async alarm() {
@@ -245,12 +307,8 @@ export class EzeroConnectRendezvous {
       if (state?.state === "PENDING" && state.challengeExpiresAt <= now) close(ws, 1008, "challenge expired");
       if (state?.state === "AUTHENTICATED" && state.expiresAt <= now) close(ws, 1008, "session expired");
     }
-    const deadlines = this.ctx.getWebSockets().map(ws => ws.deserializeAttachment())
-      .filter(a => a && Number.isSafeInteger(a.state === "PENDING" ? a.challengeExpiresAt : a.expiresAt))
-      .map(a => a.state === "PENDING" ? a.challengeExpiresAt : a.expiresAt).filter(t => t > now);
-    if (deadlines.length) await this.ctx.storage.setAlarm(Math.min(...deadlines));
-    else await this.ctx.storage.deleteAlarm();
+    await this.scheduleAlarm();
   }
 }
 
-export const RENDEZVOUS_LIMITS = Object.freeze({ challengeTtlMs: CHALLENGE_TTL_MS, sessionTtlMs: SESSION_TTL_MS, maxMessageBytes: MAX_MESSAGE_BYTES });
+export const RENDEZVOUS_LIMITS = Object.freeze({ challengeTtlMs: CHALLENGE_TTL_MS, sessionTtlMs: SESSION_TTL_MS, maxMessageBytes: MAX_MESSAGE_BYTES, maxPendingCallTtlMs: MAX_PENDING_CALL_TTL_MS });

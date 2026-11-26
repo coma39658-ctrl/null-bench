@@ -127,7 +127,7 @@ export function createTrustedFriendCallController({
     if (message.type === "call-invite") {
       if (!validCallId(payload.callId) || !["audio", "video"].includes(payload.mode) ||
           !Number.isSafeInteger(payload.expiresAt) || payload.expiresAt <= now() ||
-          payload.expiresAt > now() + 60_000) return;
+          payload.expiresAt > now() + 120_000) return;
       if (!canStartNewCall()) {
         try { signalingSession.send("call-decline", { callId: payload.callId }); } catch (_) {}
         return;
@@ -197,7 +197,7 @@ export function createTrustedFriendCallController({
       if (closed || !canStartNewCall() || !["audio", "video"].includes(mode)) fail("TRUSTED_CALL_NOT_AVAILABLE");
       const callId = callIdFactory();
       if (!validCallId(callId)) fail("TRUSTED_CALL_ID_INVALID");
-      const expiresAt = now() + 45_000;
+      const expiresAt = now() + 90_000;
       active = { callId, mode, expiresAt, direction: "outgoing" };
       phase = "outgoing";
       armExpiry(active);

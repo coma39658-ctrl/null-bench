@@ -11,6 +11,8 @@ try {
     await page.addInitScript(() => {
       window.EZERO_CONNECT_CONFIG = { signalingUrl: "ws://127.0.0.1:8787" };
       window.__mediaCalls = 0;
+      window.__acceptClicks = 0;
+      document.addEventListener("click", event => { if (event.target?.closest?.("#acceptIncomingCall")) window.__acceptClicks++; }, true);
       window.__callStateEvents = [];
       document.addEventListener("ezero:trusted-call-state", event => {
         const value = event.detail || {};
@@ -43,6 +45,28 @@ try {
     await page.waitForFunction(() => document.querySelector("#identityFingerprint").textContent.length > 30);
     return page;
   }
+
+  const wakePage = await phone();
+  const wakeCallId = "Z".repeat(32);
+  await wakePage.goto("http://127.0.0.1:8769/ezero-connect-app.html?ezero_wake_call=" + wakeCallId);
+  await wakePage.locator("#acceptIncomingCall").waitFor({ state: "attached" });
+  await wakePage.evaluate(id => {
+    const button = document.querySelector("#acceptIncomingCall");
+    button.hidden = false;
+    button.disabled = false;
+    document.dispatchEvent(new CustomEvent("ezero:trusted-call-state", {
+      detail: { state: "incoming", callId: "X".repeat(32) }
+    }));
+  }, wakeCallId);
+  await wakePage.waitForTimeout(100);
+  assert.equal(await wakePage.evaluate(() => window.__acceptClicks), 0,
+    "Android wake must not auto-accept a different call ID");
+  await wakePage.evaluate(id => document.dispatchEvent(new CustomEvent("ezero:trusted-call-state", {
+    detail: { state: "incoming", callId: id }
+  })), wakeCallId);
+  await wakePage.waitForFunction(() => window.__acceptClicks === 1 &&
+    !new URL(location.href).searchParams.has("ezero_wake_call"), undefined, { timeout: 5000 });
+  console.log("PASS Android notification Accept hands off and auto-accepts only the matching trusted call ID");
 
   const host = await phone();
   const guest = await phone();
