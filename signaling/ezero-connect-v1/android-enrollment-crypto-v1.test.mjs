@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { webcrypto } from "node:crypto";
 import {
-  enrollmentCanonical, enrollmentBase64url, enrollmentFingerprint,
+  enrollmentCanonical, enrollmentBase64url, enrollmentDecodeBase64url, enrollmentFingerprint,
   verifyAndroidEnrollmentV1
 } from "./android-enrollment-crypto-v1.mjs";
 
@@ -54,6 +54,13 @@ function options(f, extra = {}) {
   return { now: NOW + 1, expectedAudience: f.challenge.audience,
     trustedApproverPublicKeySpki: f.browserSpki, ...extra };
 }
+
+test("rejects non-canonical, empty and oversized Base64URL inputs", () => {
+  assert.throws(() => enrollmentDecodeBase64url(""), /ENROLLMENT_BASE64URL_INVALID/);
+  assert.throws(() => enrollmentDecodeBase64url("AB"), /ENROLLMENT_BASE64URL_INVALID/);
+  assert.throws(() => enrollmentDecodeBase64url("A".repeat(513)), /ENROLLMENT_BASE64URL_INVALID/);
+  assert.deepEqual(Array.from(enrollmentDecodeBase64url("AQ")), [1]);
+});
 
 test("verifies real P-256 Android proof and independent browser approval", async () => {
   const f = await fixture();
