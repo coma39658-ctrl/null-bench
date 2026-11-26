@@ -55,10 +55,10 @@ function exactKeys(value, expected) {
 }
 
 export async function verifyAndroidEnrollmentV1(challenge, submission, options = {}) {
-  const { now = Date.now(), expectedAudience, trustedApproverPublicKeySpki } = options;
+  const { now = Date.now(), expectedAudience, trustedApproverPublicKeySpki, trustedApproverFingerprint } = options;
   if (!challenge || !submission || !Number.isSafeInteger(now) ||
       typeof expectedAudience !== "string" || !expectedAudience.startsWith("https://") ||
-      typeof trustedApproverPublicKeySpki !== "string") throw new Error("ENROLLMENT_INPUT_INVALID");
+      typeof trustedApproverPublicKeySpki !== "string" || !FP_RE.test(trustedApproverFingerprint || "")) throw new Error("ENROLLMENT_INPUT_INVALID");
   if (challenge.audience !== expectedAudience) throw new Error("ENROLLMENT_AUDIENCE_MISMATCH");
   if (!/^[A-Za-z0-9_-]{8,128}$/.test(challenge.challengeId || "") ||
       !/^[A-Za-z0-9_-]{22,172}$/.test(challenge.nonce || "") ||
@@ -89,9 +89,13 @@ export async function verifyAndroidEnrollmentV1(challenge, submission, options =
   if (await enrollmentFingerprint(challenge.androidPublicKeySpki) !== challenge.androidFingerprint) {
     throw new Error("ENROLLMENT_ANDROID_FINGERPRINT_MISMATCH");
   }
-  if (a.approverPublicKeySpki !== trustedApproverPublicKeySpki ||
-      await enrollmentFingerprint(a.approverPublicKeySpki) !== a.approverFingerprint ||
-      !FP_RE.test(a.approverFingerprint || "")) throw new Error("ENROLLMENT_APPROVER_IDENTITY_MISMATCH");
+  const configuredApproverFingerprint = await enrollmentFingerprint(trustedApproverPublicKeySpki);
+  if (configuredApproverFingerprint !== trustedApproverFingerprint ||
+      a.approverPublicKeySpki !== trustedApproverPublicKeySpki ||
+      a.approverFingerprint !== trustedApproverFingerprint ||
+      await enrollmentFingerprint(a.approverPublicKeySpki) !== a.approverFingerprint) {
+    throw new Error("ENROLLMENT_APPROVER_IDENTITY_MISMATCH");
+  }
 
   if (!await verifyP1363(challenge.androidPublicKeySpki, androidProof.signature, ANDROID_DOMAIN, p)) {
     throw new Error("ENROLLMENT_ANDROID_SIGNATURE_INVALID");
