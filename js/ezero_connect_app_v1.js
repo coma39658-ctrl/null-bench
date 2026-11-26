@@ -139,9 +139,10 @@
     button.disabled = true;
     status.textContent = "…";
     status.dataset.kind = "";
+    let payload = null;
     try {
       const identity = await window.EZERO_CONNECT_IDENTITY.getPublicIdentity();
-      const payload = {
+      payload = {
         version: 1,
         origin: window.location.origin,
         algorithm: identity.algorithm,
@@ -152,17 +153,16 @@
       status.textContent = translations[language].identityCopied;
       status.dataset.kind = "ok";
     } catch (_) {
-      const fallback = $("publicIdentityExportFallback");
-      fallback.value = JSON.stringify({
-        version: 1,
-        origin: window.location.origin,
-        algorithm: identity.algorithm,
-        fingerprint: identity.fingerprint,
-        publicKeySpki: identity.publicKeySpki
-      }, null, 2);
-      fallback.hidden = false;
-      status.textContent = translations[language].identityCopyError;
-      status.dataset.kind = "fallback";
+      if (payload) {
+        const fallback = $("publicIdentityExportFallback");
+        fallback.value = JSON.stringify(payload, null, 2);
+        fallback.hidden = false;
+        status.textContent = translations[language].identityCopyError;
+        status.dataset.kind = "fallback";
+      } else {
+        status.textContent = translations[language].identityError;
+        status.dataset.kind = "error";
+      }
     } finally {
       button.disabled = false;
     }
