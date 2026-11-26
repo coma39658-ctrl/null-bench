@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  ENROLLMENT_TTL_MS, createEnrollmentChallenge, completeEnrollment, revokeEnrollment
+  ENROLLMENT_TTL_MS, createEnrollmentChallenge, completeEnrollment, revokeEnrollment, createEnrollmentChallengeStore
 } from "../src/ezero_android_enrollment_model.mjs";
 
 const NOW = 1_800_000_000_000;
@@ -72,4 +72,41 @@ test("installation revocation is terminal in the reference policy model", () => 
 
 test("invalid installation identifiers are rejected", () => {
   assert.throws(() => completeEnrollment(challenge(), proof({ installationId: "bad id" }), NOW + 1), /ENROLLMENT_INSTALLATION_INVALID/);
+});
+
+test("challenge store consumes a valid challenge once across concurrent completion attempts", async () => {
+  const store = createEnrollmentChallengeStore();
+  store.issue(challenge());
+  const attempts = await Promise.allSettled([
+    Promise.resolve().then(() => store.complete("enroll_123456", proof(), NOW + 1)),
+    Promise.resolve().then(() => store.complete("enroll_123456", proof(), NOW + 1))
+  ]);
+  assert.equal(attempts.filter(result => result.status === "fulfilled").length, 1);
+  assert.equal(attempts.filter(result => result.status === "rejected").length, 1);
+  const rejected = attempts.find(result => result.status === "rejected");
+  assert.match(rejected.reason.message, /ENROLLMENT_CHALLENGE_REPLAYED/);
+  assert.equal(store.getInstallation("android_install_01").status, "ACTIVE");
+});
+
+test("a failed proof does not consume a challenge, but a successful retry does", () => {
+  const store = createEnrollmentChallengeStore();
+  store.issue(challenge());
+  assert.throws(
+    () => store.complete("enroll_123456", proof({ browserApprovalVerified: false }), NOW + 1),
+    /ENROLLMENT_SIGNATURE_INVALID/
+  );
+  const result = store.complete("enroll_123456", proof(), NOW + 2);
+  assert.equal(result.challenge.consumed, true);
+});
+
+test("challenge IDs and installation IDs cannot overwrite existing records", () => {
+  const store = createEnrollmentChallengeStore();
+  store.issue(challenge());
+  assert.throws(() => store.issue(challenge()), /ENROLLMENT_CHALLENGE_ID_CONFLICT/);
+  store.issue(challenge({ challengeId: "enroll_654321" }));
+  store.complete("enroll_123456", proof(), NOW + 1);
+  assert.throws(
+    () => store.complete("enroll_654321", proof({ challengeId: "enroll_654321" }), NOW + 2),
+    /ENROLLMENT_INSTALLATION_ID_CONFLICT/
+  );
 });
