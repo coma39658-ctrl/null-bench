@@ -35,9 +35,13 @@ try {
   await page.addInitScript(() => {
     window.__ezeroMediaRequestCount = 0;
     window.__ezeroCopiedPublicIdentity = null;
+    window.__ezeroClipboardFail = false;
     Object.defineProperty(navigator, "clipboard", {
       configurable: true,
-      value: { writeText: async value => { window.__ezeroCopiedPublicIdentity = value; } }
+      value: { writeText: async value => {
+        if (window.__ezeroClipboardFail) throw new Error("clipboard blocked");
+        window.__ezeroCopiedPublicIdentity = value;
+      } }
     });
     const media = navigator.mediaDevices;
     if (media && media.getUserMedia) {
@@ -97,6 +101,13 @@ try {
   assert.match(exportedIdentity.publicKeySpki, /^[A-Za-z0-9_-]+$/);
   assert.equal(Object.hasOwn(exportedIdentity, "privateKey"), false);
   assert.equal(Object.hasOwn(exportedIdentity, "privateKeySpki"), false);
+  await page.evaluate(() => { window.__ezeroClipboardFail = true; });
+  await page.locator("#copyPublicIdentity").click();
+  await page.waitForFunction(() => document.querySelector("#publicIdentityExportStatus").dataset.kind === "fallback");
+  assert.equal(await page.locator("#publicIdentityExportFallback").isVisible(), true);
+  const fallbackIdentity = JSON.parse(await page.locator("#publicIdentityExportFallback").inputValue());
+  assert.deepEqual(fallbackIdentity, exportedIdentity);
+  assert.equal(Object.hasOwn(fallbackIdentity, "privateKey"), false);
   const keyPolicy = await page.evaluate(async () => {
     const db = await new Promise((resolve, reject) => {
       const request = indexedDB.open("ezero-connect-device-identity", 1);
