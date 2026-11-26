@@ -112,6 +112,13 @@ try {
   assert.notEqual(persistedV2.updatedAt, "");
   await a.reload();
   await a.waitForFunction(() => Boolean(window.EZERO_CONNECT_TRUST));
+  const historyAfterReload = await a.evaluate(args => window.EZERO_CONNECT_TRUST.listTrustedMessages(args.id, args.fingerprint, 100).then(rows =>
+    rows.map(row => ({ messageId: row.messageId, status: row.status, bytes: [...row.bytes] }))
+  ), { id: savedA.relationshipId, fingerprint: identityB.fingerprint });
+  assert.equal(historyAfterReload.length, 2);
+  assert.equal(historyAfterReload[0].messageId, historyTextId);
+  assert.equal(historyAfterReload[0].status, "delivered");
+  assert.equal(new TextDecoder().decode(new Uint8Array(historyAfterReload[0].bytes)), "E-ZERO private chat history");
   const afterReload = await a.evaluate(args => window.EZERO_CONNECT_TRUST.getTrustedFriendProfile(args.id, args.fingerprint),
     { id: savedA.relationshipId, fingerprint: identityB.fingerprint });
   assert.deepEqual([...afterReload.bytes], [...friendPhotoV2]);
@@ -143,18 +150,51 @@ try {
   });
   assert.equal(unknownRelationship, "TRUST_RELATIONSHIP_NOT_TRUSTED");
 
+  const historyTextId = "a".repeat(32);
+  const historyVoiceId = "b".repeat(32);
+  const historyTextBytes = new TextEncoder().encode("E-ZERO private chat history");
+  const historyVoiceBytes = Uint8Array.from([7, 8, 9, 10, 11, 12]);
+  await a.evaluate(args => window.EZERO_CONNECT_TRUST.saveTrustedMessage(args.id, args.fingerprint, {
+    messageId: args.messageId, type: "text", direction: "outgoing", status: "sending",
+    createdAt: args.createdAt, bytes: new Uint8Array(args.bytes)
+  }), { id: savedA.relationshipId, fingerprint: identityB.fingerprint, messageId: historyTextId, createdAt: 1800000000000, bytes: [...historyTextBytes] });
+  await a.evaluate(args => window.EZERO_CONNECT_TRUST.updateTrustedMessageStatus(args.id, args.fingerprint, args.messageId, "delivered"),
+    { id: savedA.relationshipId, fingerprint: identityB.fingerprint, messageId: historyTextId });
+  await a.evaluate(args => window.EZERO_CONNECT_TRUST.saveTrustedMessage(args.id, args.fingerprint, {
+    messageId: args.messageId, type: "voice", direction: "incoming", status: "received",
+    createdAt: args.createdAt, bytes: new Uint8Array(args.bytes)
+  }), { id: savedA.relationshipId, fingerprint: identityB.fingerprint, messageId: historyVoiceId, createdAt: 1800000000001, bytes: [...historyVoiceBytes] });
+  const messageHistory = await a.evaluate(args => window.EZERO_CONNECT_TRUST.listTrustedMessages(args.id, args.fingerprint, 100).then(rows =>
+    rows.map(row => ({ messageId: row.messageId, type: row.type, direction: row.direction, status: row.status, createdAt: row.createdAt, bytes: [...row.bytes] }))
+  ), { id: savedA.relationshipId, fingerprint: identityB.fingerprint });
+  assert.equal(messageHistory.length, 2);
+  assert.equal(messageHistory[0].messageId, historyTextId);
+  assert.equal(messageHistory[0].status, "delivered");
+  assert.equal(new TextDecoder().decode(new Uint8Array(messageHistory[0].bytes)), "E-ZERO private chat history");
+  assert.equal(messageHistory[1].messageId, historyVoiceId);
+  assert.equal(messageHistory[1].type, "voice");
+  assert.deepEqual(messageHistory[1].bytes, [...historyVoiceBytes]);
+  const wrongMessageFingerprint = await a.evaluate(async args => {
+    try {
+      await window.EZERO_CONNECT_TRUST.listTrustedMessages(args.id, args.fingerprint, 100);
+      return "ACCEPTED";
+    } catch (error) { return error.message; }
+  }, { id: savedA.relationshipId, fingerprint: identityA.fingerprint });
+  assert.equal(wrongMessageFingerprint, "TRUST_FRIEND_PROFILE_TRUST_MISMATCH");
+
   const atRest = await a.evaluate(async () => {
     const db = await new Promise((resolve, reject) => {
-      const request = indexedDB.open("ezero-connect-trusted-contacts", 2);
+      const request = indexedDB.open("ezero-connect-trusted-contacts", 3);
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
     const result = await new Promise((resolve, reject) => {
-      const tx = db.transaction(["contacts", "vault", "friendProfiles"], "readonly");
+      const tx = db.transaction(["contacts", "vault", "friendProfiles", "messages"], "readonly");
       const contactsRequest = tx.objectStore("contacts").getAll();
       const vaultRequest = tx.objectStore("vault").get("local-aes-gcm-key");
       const friendProfileRequest = tx.objectStore("friendProfiles").getAll();
-      tx.oncomplete = () => resolve({ contact: contactsRequest.result[0], vault: vaultRequest.result, friendProfile: friendProfileRequest.result[0] });
+      const messageRequest = tx.objectStore("messages").getAll();
+      tx.oncomplete = () => resolve({ contact: contactsRequest.result[0], vault: vaultRequest.result, friendProfile: friendProfileRequest.result[0], messages: messageRequest.result });
       tx.onerror = () => reject(tx.error);
     });
     db.close();
@@ -164,7 +204,11 @@ try {
       vaultExtractable: result.vault.key.extractable,
       vaultAlgorithm: result.vault.key.algorithm.name,
       friendProfileKeys: Object.keys(result.friendProfile).sort(),
-      friendProfileCiphertextBytes: result.friendProfile.ciphertext.byteLength
+      friendProfileCiphertextBytes: result.friendProfile.ciphertext.byteLength,
+      messageCount: result.messages.length,
+      messageKeys: Object.keys(result.messages[0]).sort(),
+      messageCiphertextBytes: result.messages[0].ciphertext.byteLength,
+      messageRawHasPlaintext: JSON.stringify(result.messages).includes("E-ZERO private chat history")
     };
   });
   assert.deepEqual(atRest.contactKeys, ["ciphertext", "iv", "relationshipId"]);
@@ -173,6 +217,10 @@ try {
   assert.equal(atRest.vaultAlgorithm, "AES-GCM");
   assert.deepEqual(atRest.friendProfileKeys, ["ciphertext", "iv", "relationshipId"]);
   assert.ok(atRest.friendProfileCiphertextBytes > 0);
+  assert.equal(atRest.messageCount, 2);
+  assert.deepEqual(atRest.messageKeys, ["ciphertext", "createdAt", "iv", "messageId", "relationshipId"]);
+  assert.ok(atRest.messageCiphertextBytes > 0);
+  assert.equal(atRest.messageRawHasPlaintext, false);
 
   await a.evaluate(fp => window.EZERO_CONNECT_TRUST.revoke(fp), identityB.fingerprint);
   const revokedProfileRead = await a.evaluate(async args => {
@@ -182,19 +230,22 @@ try {
   assert.equal(revokedProfileRead, "TRUST_RELATIONSHIP_NOT_TRUSTED");
   const revokedPhotoCount = await a.evaluate(async () => {
     const db = await new Promise((resolve, reject) => {
-      const request = indexedDB.open("ezero-connect-trusted-contacts", 2);
+      const request = indexedDB.open("ezero-connect-trusted-contacts", 3);
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
     const count = await new Promise((resolve, reject) => {
-      const request = db.transaction("friendProfiles", "readonly").objectStore("friendProfiles").count();
-      request.onsuccess = () => resolve(request.result);
+      const tx = db.transaction(["friendProfiles", "messages"], "readonly");
+      const profileRequest = tx.objectStore("friendProfiles").count();
+      const messageRequest = tx.objectStore("messages").count();
+      tx.oncomplete = () => resolve({ profiles: profileRequest.result, messages: messageRequest.result });
       request.onerror = () => reject(request.error);
     });
     db.close();
     return count;
   });
-  assert.equal(revokedPhotoCount, 0);
+  assert.equal(revokedPhotoCount.profiles, 0);
+  assert.equal(revokedPhotoCount.messages, 0);
   assert.equal(await a.evaluate(fp => window.EZERO_CONNECT_TRUST.canReconnect(fp), identityB.fingerprint), false);
   await b.evaluate(fp => window.EZERO_CONNECT_TRUST.block(fp), identityA.fingerprint);
   assert.equal(await b.evaluate(fp => window.EZERO_CONNECT_TRUST.canReconnect(fp), identityA.fingerprint), false);
