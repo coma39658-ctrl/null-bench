@@ -241,7 +241,8 @@ try {
       const profileRequest = tx.objectStore("friendProfiles").count();
       const messageRequest = tx.objectStore("messages").count();
       tx.oncomplete = () => resolve({ profiles: profileRequest.result, messages: messageRequest.result });
-      request.onerror = () => reject(request.error);
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
     });
     db.close();
     return count;
