@@ -34,6 +34,11 @@ try {
   page.on("pageerror", error => errors.push(error.message));
   await page.addInitScript(() => {
     window.__ezeroMediaRequestCount = 0;
+    window.__ezeroCopiedPublicIdentity = null;
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: async value => { window.__ezeroCopiedPublicIdentity = value; } }
+    });
     const media = navigator.mediaDevices;
     if (media && media.getUserMedia) {
       const original = media.getUserMedia.bind(media);
@@ -81,6 +86,17 @@ try {
   await page.waitForFunction(() => document.querySelector("#identityFingerprint").textContent.length > 30);
   const fingerprint = await page.locator("#identityFingerprint").innerText();
   assert.match(fingerprint, /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/);
+  assert.equal(await page.locator("#copyPublicIdentity").isVisible(), true);
+  await page.locator("#copyPublicIdentity").click();
+  await page.waitForFunction(() => document.querySelector("#publicIdentityExportStatus").dataset.kind === "ok");
+  const exportedIdentity = await page.evaluate(() => JSON.parse(window.__ezeroCopiedPublicIdentity));
+  assert.equal(exportedIdentity.version, 1);
+  assert.equal(exportedIdentity.origin, "http://127.0.0.1:8769");
+  assert.equal(exportedIdentity.fingerprint, fingerprint);
+  assert.equal(exportedIdentity.algorithm, "ECDSA-P256-SHA256");
+  assert.match(exportedIdentity.publicKeySpki, /^[A-Za-z0-9_-]+$/);
+  assert.equal(Object.hasOwn(exportedIdentity, "privateKey"), false);
+  assert.equal(Object.hasOwn(exportedIdentity, "privateKeySpki"), false);
   const keyPolicy = await page.evaluate(async () => {
     const db = await new Promise((resolve, reject) => {
       const request = indexedDB.open("ezero-connect-device-identity", 1);
