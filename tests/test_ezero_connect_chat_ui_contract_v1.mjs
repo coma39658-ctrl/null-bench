@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 const html = await readFile(new URL("../ezero-connect-app.html", import.meta.url), "utf8");
 const ui = await readFile(new URL("../js/ezero_connect_chat_ui_v1.mjs", import.meta.url), "utf8");
 const session = await readFile(new URL("../js/ezero_connect_trusted_friend_session_v1.mjs", import.meta.url), "utf8");
+const trust = await readFile(new URL("../js/ezero_connect_trust_v1.js", import.meta.url), "utf8");
 
 for (const id of [
   "chatPanel", "chatMessages", "chatMessage", "sendChatMessage",
@@ -36,6 +37,23 @@ assert.match(ui, /receipt\.textContent = t\("delivered"\)/);
 assert.match(ui, /receipt\.textContent = t\("failed"\)/);
 assert.match(ui, /wasCancelled/);
 assert.match(ui, /URL\.revokeObjectURL/);
+assert.match(ui, /listTrustedMessages\(relationshipId, fingerprint, 100\)/);
+assert.match(ui, /renderStoredMessage\(record\)/);
+assert.match(ui, /saveTrustedMessage\(relationshipId, fingerprint/);
+assert.match(ui, /saveTrustedMessage\(currentRelationshipId, currentFingerprint/);
+assert.match(ui, /updateTrustedMessageStatus\(currentRelationshipId, currentFingerprint/);
+assert.match(ui, /function messageMetaText\(label, createdAt\)/);
+assert.match(ui, /content\.textContent = body/);
+assert.match(ui, /function addVoiceMessage\(/);
+assert.match(ui, /clearRenderedMessages\(\)/);
+assert.match(trust, /const DB_VERSION = 3/);
+assert.match(trust, /const MESSAGES = "messages"/);
+assert.match(trust, /async function saveTrustedMessage\(/);
+assert.match(trust, /async function listTrustedMessages\(/);
+assert.match(trust, /async function updateTrustedMessageStatus\(/);
+assert.match(trust, /crypto\.subtle\.encrypt/);
+assert.match(trust, /crypto\.subtle\.decrypt/);
+assert.match(trust, /deleteTrustedMessagesForRelationship\(record\.relationshipId\)/);
 assert.match(session, /if \(!delivered\) throw new Error\("TRUSTED_FRIEND_NO_MESSAGE_RECEIVER"\)/);
 assert.match(session, /transport\.sendText\(text\)/);
 assert.match(session, /transport\.sendVoice\(bytes\)/);
@@ -66,5 +84,7 @@ console.log("PASS media streams attach to call UI only after accepted call start
 console.log("PASS microphone is requested only by the explicit record button");
 console.log("PASS voice recording is bounded, cancellable, and not auto-sent");
 console.log("PASS Delivered label is applied only after the send promise confirms authenticated receipt");
+console.log("PASS text and voice history reload from encrypted IndexedDB records with local timestamps");
+console.log("PASS blocking or revoking a trusted friend deletes that relationship's local chat history");
 console.log("PASS verified friend DP is encrypted at rest, restored on selection, replaced on update, and auto-synced after a local photo change");
 console.log("BOUNDARY: static UI contract only; no live browser media, real peer, network, or Android notification proof");
