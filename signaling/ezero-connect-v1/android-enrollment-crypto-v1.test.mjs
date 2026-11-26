@@ -54,7 +54,6 @@ function options(f, extra = {}) {
   return { now: NOW + 1, expectedAudience: f.challenge.audience,
     trustedApproverPublicKeySpki: f.browserSpki, ...extra };
 }
-}
 
 test("verifies real P-256 Android proof and independent browser approval", async () => {
   const f = await fixture();
