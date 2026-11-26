@@ -52,3 +52,43 @@ export function revokeEnrollment(installation) {
   }
   return Object.freeze({ ...installation, status: "REVOKED" });
 }
+
+// In-memory serializable reference store for contract tests only.
+// A production Durable Object must provide equivalent atomicity across requests.
+export function createEnrollmentChallengeStore() {
+  const challenges = new Map();
+  const installations = new Map();
+
+  return Object.freeze({
+    issue(challenge) {
+      if (!challenge || typeof challenge.challengeId !== "string" || challenge.consumed !== false) {
+        throw new Error("ENROLLMENT_CHALLENGE_INVALID");
+      }
+      if (challenges.has(challenge.challengeId)) {
+        throw new Error("ENROLLMENT_CHALLENGE_ID_CONFLICT");
+      }
+      challenges.set(challenge.challengeId, challenge);
+      return challenge;
+    },
+
+    complete(challengeId, proof, now) {
+      const challenge = challenges.get(challengeId);
+      if (!challenge) throw new Error("ENROLLMENT_CHALLENGE_NOT_FOUND");
+      if (challenge.consumed) throw new Error("ENROLLMENT_CHALLENGE_REPLAYED");
+
+      // No await occurs between checking, validating, and consuming this record.
+      // This models a single atomic transaction; it does not implement distributed storage.
+      const result = completeEnrollment(challenge, proof, now);
+      if (installations.has(result.installation.installationId)) {
+        throw new Error("ENROLLMENT_INSTALLATION_ID_CONFLICT");
+      }
+      challenges.set(challengeId, result.challenge);
+      installations.set(result.installation.installationId, result.installation);
+      return result;
+    },
+
+    getInstallation(installationId) {
+      return installations.get(installationId) ?? null;
+    }
+  });
+}
