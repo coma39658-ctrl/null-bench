@@ -202,6 +202,16 @@ export class EzeroConnectRoom {
   constructor(ctx, env) {
     this.ctx = ctx;
     this.env = env;
+    // Durable Objects can interleave event handlers across awaits. Serialize
+    // socket admission and handshake verification so a single-use guest
+    // identity cannot be claimed by two simultaneous first connections.
+    this.operationQueue = Promise.resolve();
+  }
+
+  enqueueOperation(operation) {
+    const result = this.operationQueue.then(operation, operation);
+    this.operationQueue = result.catch(() => {});
+    return result;
   }
 
   async scheduleAlarm(roomExpiresAt) {
@@ -220,7 +230,11 @@ export class EzeroConnectRoom {
     await this.scheduleAlarm(roomExpiresAt);
   }
 
-  async fetch(request) {
+  fetch(request) {
+    return this.enqueueOperation(() => this.processFetch(request));
+  }
+
+  async processFetch(request) {
     const url = new URL(request.url);
     const roomId = url.pathname.split("/").pop() || "";
     const role = url.searchParams.get("role");
@@ -261,7 +275,11 @@ export class EzeroConnectRoom {
     return new Response(null, { status: 101, webSocket: client });
   }
 
-  async webSocketMessage(ws, raw) {
+  webSocketMessage(ws, raw) {
+    return this.enqueueOperation(() => this.processWebSocketMessage(ws, raw));
+  }
+
+  async processWebSocketMessage(ws, raw) {
     try {
       if (typeof raw !== "string" || new TextEncoder().encode(raw).length > MAX_MESSAGE_BYTES) {
         safeClose(ws, 1009, "message too large");
