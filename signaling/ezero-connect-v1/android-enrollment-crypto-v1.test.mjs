@@ -109,7 +109,7 @@ test("rejects a self-selected browser key not authenticated by the saved browser
   const attacker = await keyPair();
   const attackerSpki = await spki(attacker.publicKey);
   const attackerFingerprint = await enrollmentFingerprint(attackerSpki);
-  const payload = { ...f.approvalPayload, approverPublicKeySpki: attackerSpki, approverFingerprint };
+  const payload = { ...f.approvalPayload, approverPublicKeySpki: attackerSpki, approverFingerprint: attackerFingerprint };
   f.submission.browserApproval = {
     payload, signature: await sign(attacker.privateKey, "EZERO_ANDROID_ENROLL_APPROVAL_V1\n", payload)
   };
