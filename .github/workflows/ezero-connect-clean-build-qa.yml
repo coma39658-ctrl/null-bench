@@ -18,6 +18,7 @@ on:
       - 'tests/test_ezero_connect_trusted_reconnect_v1.mjs'
       - 'tests/test_ezero_connect_rendezvous_v1.mjs'
       - 'scripts/ezero_connect_qr_entry_v1.js'
+      - 'scripts/build_ezero_connect_qr_clock_skew_staging.sh'
       - 'package.json'
       - 'tests/test_ezero_connect_qr_runtime_v1.mjs'
       - 'tests/test_ezero_connect_trust_v1.mjs'
@@ -36,6 +37,7 @@ on:
       - 'js/ezero_connect_trusted_friend_call_controller_v1.mjs'
       - 'tests/test_ezero_connect_trusted_friend_call_controller_v1.mjs'
       - 'tests/test_ezero_connect_webrtc_media_call_v1.mjs'
+      - 'tests/test_ezero_connect_webrtc_messaging_transport_v1.mjs'
       - 'js/ezero_connect_chat_ui_v1.mjs'
       - 'tests/test_ezero_connect_chat_ui_contract_v1.mjs'
       - 'js/ezero_connect_trusted_friend_session_v1.mjs'
@@ -99,7 +101,7 @@ jobs:
           set -euo pipefail
           git fetch --no-tags origin ezero-connect-clean-build-20261120 --depth=50
           git diff --name-only origin/ezero-connect-clean-build-20261120...HEAD > /tmp/ezero-qr-changes.txt
-          if grep -E '^js/(ezero_saved_friend_stage_engine_v0_1|ezero_trusted_stage_one_request_v0_1|ezero_contact_first_call_dock_v0_1)\.js$' /tmp/ezero-qr-changes.txt; then
+          if grep -E '^js/(ezero_saved_friend_stage_engine_v0_1|ezero_trusted_stage_one_request_v0_1|ezero_contact_first_call_dock_v0_1)\\.js$' /tmp/ezero-qr-changes.txt; then
             echo 'FROZEN_CALL_ENGINE_SOURCE_CHANGE_DETECTED'
             exit 1
           fi
@@ -120,6 +122,10 @@ jobs:
         run: npm install --no-save --no-audit --no-fund --ignore-scripts playwright@1.57.0 qr@0.7.2 esbuild@0.25.12 wrangler@4.165.0
       - name: Build locally hosted QR runtime
         run: npm run build:ezero-qr
+      - name: Verify isolated QR clock-skew staging package
+        run: |
+          bash scripts/build_ezero_connect_qr_clock_skew_staging.sh /tmp/ezero-qr-clock-skew-staging-bundle
+          test -s /tmp/ezero-qr-clock-skew-staging-bundle/js/ezero_qr_runtime_v1.js
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Serve only on loopback
@@ -145,7 +151,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          printf '%s\n' 'PUBLIC_ORIGIN=http://127.0.0.1:8769' > signaling/ezero-connect-v1/.dev.vars
+          printf '%s\\n' 'PUBLIC_ORIGIN=http://127.0.0.1:8769' > signaling/ezero-connect-v1/.dev.vars
           nohup npx wrangler dev --local --ip 127.0.0.1 --port 8787 --config signaling/ezero-connect-v1/wrangler.jsonc >/tmp/ezero-connect-worker.log 2>&1 &
           for i in $(seq 1 60); do
             if curl -fsS http://127.0.0.1:8787/health >/dev/null; then sleep 2; cat /tmp/ezero-connect-worker.log; exit 0; fi
