@@ -16,4 +16,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node --test tests/ezero_connect_contract_model.test.mjs
+      - run: node --test tests/ezero_connect_contract_model.test.mjs tests/ezero_connect_pending_call_model.test.mjs
