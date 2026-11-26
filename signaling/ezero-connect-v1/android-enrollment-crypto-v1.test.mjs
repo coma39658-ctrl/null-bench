@@ -75,13 +75,13 @@ test("rejects a forged browser approval signature", async () => {
   const f = await fixture();
   const attacker = await keyPair();
   f.submission.browserApproval.signature = await sign(attacker.privateKey, "EZERO_ANDROID_ENROLL_APPROVAL_V1\n", f.approvalPayload);
-  await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, f.submission, NOW + 1), /ENROLLMENT_BROWSER_APPROVAL_INVALID/);
+  await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, f.submission, options(f)), /ENROLLMENT_BROWSER_APPROVAL_INVALID/);
 });
 
 test("rejects a signature from the wrong domain", async () => {
   const f = await fixture();
   f.submission.androidProof.signature = await sign(f.android.privateKey, "WRONG_DOMAIN\n", f.submission.androidProof.payload);
-  await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, f.submission, NOW + 1), /ENROLLMENT_ANDROID_SIGNATURE_INVALID/);
+  await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, f.submission, options(f)), /ENROLLMENT_ANDROID_SIGNATURE_INVALID/);
 });
 
 test("rejects expired, overlong and wrong-audience challenges", async () => {
@@ -96,13 +96,13 @@ test("rejects expired, overlong and wrong-audience challenges", async () => {
 test("rejects DER or malformed signature encodings rather than accepting ambiguity", async () => {
   const f = await fixture();
   f.submission.androidProof.signature = "AQ";
-  await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, f.submission, NOW + 1), /ENROLLMENT_SIGNATURE_LENGTH_INVALID/);
+  await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, f.submission, options(f)), /ENROLLMENT_SIGNATURE_LENGTH_INVALID/);
 });
 
 test("rejects public-key fingerprint substitution", async () => {
   const f = await fixture();
   f.submission.browserApproval.payload.approverFingerprint = f.challenge.androidFingerprint;
-  await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, f.submission, NOW + 1), /ENROLLMENT_APPROVER_IDENTITY_MISMATCH/);
+  await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, f.submission, options(f)), /ENROLLMENT_APPROVER_IDENTITY_MISMATCH/);
 });
 
 test("rejects a self-selected browser key not authenticated by the saved browser identity", async () => {
@@ -112,7 +112,7 @@ test("rejects a self-selected browser key not authenticated by the saved browser
   const attackerFingerprint = await enrollmentFingerprint(attackerSpki);
   const payload = { ...f.approvalPayload, approverPublicKeySpki: attackerSpki, approverFingerprint };
   f.submission.browserApproval = {
-    payload, signature: await sign(attacker.privateKey, "EZERO_ANDROID_ENROLL_APPROVAL_V1\\n", payload)
+    payload, signature: await sign(attacker.privateKey, "EZERO_ANDROID_ENROLL_APPROVAL_V1\n", payload)
   };
   await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, f.submission,
     options(f, { trustedApproverPublicKeySpki: f.browserSpki })), /ENROLLMENT_APPROVER_IDENTITY_MISMATCH/);
