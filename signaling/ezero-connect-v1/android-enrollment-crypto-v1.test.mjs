@@ -52,7 +52,8 @@ async function fixture() {
 }
 function options(f, extra = {}) {
   return { now: NOW + 1, expectedAudience: f.challenge.audience,
-    trustedApproverPublicKeySpki: f.browserSpki, ...extra };
+    trustedApproverPublicKeySpki: f.browserSpki,
+    trustedApproverFingerprint: f.approvalPayload.approverFingerprint, ...extra };
 }
 
 test("rejects non-canonical, empty and oversized Base64URL inputs", () => {
@@ -122,6 +123,14 @@ test("rejects a self-selected browser key not authenticated by the saved browser
   };
   await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, f.submission,
     options(f, { trustedApproverPublicKeySpki: f.browserSpki })), /ENROLLMENT_APPROVER_IDENTITY_MISMATCH/);
+});
+
+test("requires the separately pinned owner fingerprint, not only a public key", async () => {
+  const f = await fixture();
+  await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, f.submission,
+    options(f, { trustedApproverFingerprint: undefined })), /ENROLLMENT_INPUT_INVALID/);
+  await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, f.submission,
+    options(f, { trustedApproverFingerprint: f.challenge.androidFingerprint })), /ENROLLMENT_APPROVER_IDENTITY_MISMATCH/);
 });
 
 test("requires exact configured service audience", async () => {
