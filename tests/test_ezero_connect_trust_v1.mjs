@@ -112,13 +112,6 @@ try {
   assert.notEqual(persistedV2.updatedAt, "");
   await a.reload();
   await a.waitForFunction(() => Boolean(window.EZERO_CONNECT_TRUST));
-  const historyAfterReload = await a.evaluate(args => window.EZERO_CONNECT_TRUST.listTrustedMessages(args.id, args.fingerprint, 100).then(rows =>
-    rows.map(row => ({ messageId: row.messageId, status: row.status, bytes: [...row.bytes] }))
-  ), { id: savedA.relationshipId, fingerprint: identityB.fingerprint });
-  assert.equal(historyAfterReload.length, 2);
-  assert.equal(historyAfterReload[0].messageId, historyTextId);
-  assert.equal(historyAfterReload[0].status, "delivered");
-  assert.equal(new TextDecoder().decode(new Uint8Array(historyAfterReload[0].bytes)), "E-ZERO private chat history");
   const afterReload = await a.evaluate(args => window.EZERO_CONNECT_TRUST.getTrustedFriendProfile(args.id, args.fingerprint),
     { id: savedA.relationshipId, fingerprint: identityB.fingerprint });
   assert.deepEqual([...afterReload.bytes], [...friendPhotoV2]);
@@ -174,6 +167,15 @@ try {
   assert.equal(messageHistory[1].messageId, historyVoiceId);
   assert.equal(messageHistory[1].type, "voice");
   assert.deepEqual(messageHistory[1].bytes, [...historyVoiceBytes]);
+  await a.reload();
+  await a.waitForFunction(() => Boolean(window.EZERO_CONNECT_TRUST));
+  const historyAfterReload = await a.evaluate(args => window.EZERO_CONNECT_TRUST.listTrustedMessages(args.id, args.fingerprint, 100).then(rows =>
+    rows.map(row => ({ messageId: row.messageId, status: row.status, bytes: [...row.bytes] }))
+  ), { id: savedA.relationshipId, fingerprint: identityB.fingerprint });
+  assert.equal(historyAfterReload.length, 2);
+  assert.equal(historyAfterReload[0].messageId, historyTextId);
+  assert.equal(historyAfterReload[0].status, "delivered");
+  assert.equal(new TextDecoder().decode(new Uint8Array(historyAfterReload[0].bytes)), "E-ZERO private chat history");
   const wrongMessageFingerprint = await a.evaluate(async args => {
     try {
       await window.EZERO_CONNECT_TRUST.listTrustedMessages(args.id, args.fingerprint, 100);
