@@ -202,7 +202,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
   function clearRenderedMessages() {
     for (const url of messageAudioUrls) URL.revokeObjectURL(url);
     messageAudioUrls.clear();
-    clearRenderedMessages();
+    $("chatMessages").replaceChildren();
   }
   function renderStoredMessage(record) {
     const label = record.direction === "incoming" ? t("received")
@@ -302,7 +302,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     currentFingerprint = fingerprint;
     currentRelationshipId = relationshipId;
     panel.hidden = false;
-    $("chatMessages").replaceChildren();
+    clearRenderedMessages();
     if (friendAvatarUrl) URL.revokeObjectURL(friendAvatarUrl);
     friendAvatarUrl = null;
     friendAvatar.hidden = true;
