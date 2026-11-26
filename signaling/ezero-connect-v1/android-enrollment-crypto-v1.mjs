@@ -16,11 +16,16 @@ export function enrollmentCanonical(value) {
 }
 
 export function enrollmentDecodeBase64url(value, expectedBytes) {
-  if (typeof value !== "string" || !B64URL_RE.test(value)) throw new Error("ENROLLMENT_BASE64URL_INVALID");
+  // Bound untrusted input and require one canonical, unpadded Base64URL encoding.
+  if (typeof value !== "string" || value.length === 0 || value.length > 512 ||
+      value.length % 4 === 1 || !B64URL_RE.test(value)) {
+    throw new Error("ENROLLMENT_BASE64URL_INVALID");
+  }
   const padded = value.replaceAll("-", "+").replaceAll("_", "/") + "=".repeat((4 - value.length % 4) % 4);
   let binary;
   try { binary = atob(padded); } catch (_) { throw new Error("ENROLLMENT_BASE64URL_INVALID"); }
   const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+  if (enrollmentBase64url(bytes) !== value) throw new Error("ENROLLMENT_BASE64URL_INVALID");
   if (expectedBytes !== undefined && bytes.length !== expectedBytes) throw new Error("ENROLLMENT_SIGNATURE_LENGTH_INVALID");
   return bytes;
 }
