@@ -12,6 +12,14 @@ Keep the two keys separate:
 
 A browser storage reset or loss of the approver key requires a new explicit trust ceremony. Never silently migrate or copy private keys between browser and Android.
 
+## Mandatory approver trust anchor (implementation blocker)
+
+The browser approval signature is not self-authenticating. A public key included in the same client submission cannot establish that it belongs to the existing E-ZERO owner identity. The verifier must receive `trustedApproverPublicKeySpki` from a server-controlled trust anchor; it must never take that value from the enrollment request, QR payload, or an untrusted browser header.
+
+Before enabling either endpoint, the owner must explicitly provision the exact public SPKI of the already-verified E-ZERO browser identity into the isolated staging Worker configuration (for example, a non-secret `APPROVER_PUBLIC_KEY_SPKI` variable plus its expected fingerprint). The fingerprint must be checked against the existing trusted browser identity through a separate owner-controlled confirmation step. Do not guess, generate a replacement, or silently trust the first key that calls the endpoint. Keep the private key in the browser's existing protected origin storage; it must never be uploaded or copied to the Worker.
+
+The Worker must reject enrollment if this pinned key is absent, malformed, or its fingerprint does not match the configured fingerprint. Key rotation requires an explicit old-key-signed rotation statement or a separately documented owner recovery ceremony; a new browser key cannot replace the root merely by claiming the same profile name. Until this trust anchor is provisioned and independently checked, the enrollment endpoints remain disabled.
+
 ## Ceremony (90-second one-time challenge)
 
 1. Android generates or loads its Keystore P-256 key pair. It sends the public SPKI and fingerprint to the staging enrollment-challenge endpoint over HTTPS. It does not send its private key or FCM token.
