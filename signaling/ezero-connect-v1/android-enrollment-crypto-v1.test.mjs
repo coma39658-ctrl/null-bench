@@ -4,7 +4,7 @@ import { webcrypto } from "node:crypto";
 import {
   enrollmentCanonical, enrollmentBase64url, enrollmentFingerprint,
   verifyAndroidEnrollmentV1
-} from "../signaling/ezero-connect-v1/android-enrollment-crypto-v1.mjs";
+} from "./android-enrollment-crypto-v1.mjs";
 
 globalThis.crypto ??= webcrypto;
 const NOW = 1_800_000_000_000;
