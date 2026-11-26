@@ -144,22 +144,24 @@ try {
       role: "host", inviteCode: args.inviteCode, inviteMetadata: args.metadata
     });
     window.__ezeroSignal = session;
-    session.ready.catch(error => { window.__ezeroReadyRejected = error.message; });
+    session.ready.then(() => { window.__ezeroReady = true; })
+      .catch(error => { window.__ezeroReadyRejected = error.message; });
   }, { inviteCode: invite2.inviteCode, metadata: invite2 });
+  await host2.waitForFunction(() => window.__ezeroReady === true, null, { timeout: 10000 });
   await Promise.all([guest2a, guest2b].map((page, index) => page.evaluate(args => {
     const session = window.EZERO_CONNECT_SIGNALING.connect({
       role: "guest", inviteCode: args.inviteCode, inviteMetadata: args.metadata
     });
     window.__ezeroSignal = session;
-    session.ready.catch(error => { window.__ezeroReadyRejected = error.message; });
+    session.ready.then(() => { window.__ezeroReady = true; })
+      .catch(error => { window.__ezeroReadyRejected = error.message; });
   }, { inviteCode: invite2.inviteCode, metadata: index === 0 ? verified2a : verified2b })));
   const racePages = [guest2a, guest2b];
   await Promise.all(racePages.map(page => page.waitForFunction(
-    () => Boolean(window.__ezeroSignal?.ready || window.__ezeroReadyRejected), null, { timeout: 10000 }
+    () => window.__ezeroReady === true || Boolean(window.__ezeroReadyRejected), null, { timeout: 10000 }
   )));
   const raceResults = await Promise.all(racePages.map(page => page.evaluate(async () => {
-    try { await window.__ezeroSignal.ready; return "ACCEPTED"; }
-    catch (_) { return window.__ezeroReadyRejected || "REJECTED"; }
+    return window.__ezeroReady === true ? "ACCEPTED" : (window.__ezeroReadyRejected || "REJECTED");
   })));
   assert.equal(raceResults.filter(value => value === "ACCEPTED").length, 1,
     "Only one simultaneous guest identity may claim a signed invite");
