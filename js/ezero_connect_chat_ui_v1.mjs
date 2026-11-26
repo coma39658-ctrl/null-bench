@@ -19,7 +19,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       sending:"بھیجا جا رہا ہے…", delivered:"محفوظ طور پر وصول ہونے کی تصدیق ہوئی",
       failed:"وصولی کی تصدیق نہیں ملی؛ Delivered نہیں دکھایا گیا۔",
       received:"موصول ہوا", notReady:"پہلے محفوظ دوست کے ساتھ کنکشن بننے دیں۔",
-      voiceIncoming:"وائس پیغام", error:"محفوظ چیٹ کنکشن دستیاب نہیں۔",
+      voiceIncoming:"وائس پیغام", error:"محفوظ چیٹ کنکشن دستیاب نہیں۔", historyUnavailable:"پیغامات اس فون میں محفوظ نہیں ہو سکے۔",
       noRelation:"اس محفوظ دوست کا relationship ID دستیاب نہیں۔", shareProfile:"اپنی DP محفوظ دوست کو بھیجیں", profileSent:"پروفائل تصویر محفوظ کنکشن پر بھیج دی گئی۔", profileReceived:"دوست کی DP فون میں محفوظ ہو گئی", profileMissing:"پہلے اپنی پروفائل میں تصویر محفوظ کریں۔", profileInvalid:"موصولہ پروفائل تصویر درست نہیں۔", callReady:"محفوظ دوست کال کے لیے تیار ہے۔", callOutgoing:"دوست کو کال کی دعوت بھیجی جا رہی ہے…", callIncoming:"آپ کے محفوظ دوست کی کال آ رہی ہے۔", callAccepted:"کال قبول ہو گئی؛ رابطہ بن رہا ہے…", callConnected:"کال منسلک ہے۔", callDeclined:"کال مسترد کر دی گئی۔", callExpired:"کال کی دعوت کی مدت ختم ہو گئی۔", callEnded:"کال ختم ہو گئی۔", callFailed:"کال منسلک نہیں ہو سکی۔", acceptCall:"کال قبول کریں", declineCall:"کال مسترد کریں", hangupCall:"کال ختم کریں", incomingCallLabel:"آنے والی کال"
     },
     en: {
@@ -35,7 +35,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       failed:"No authenticated receipt; not marked Delivered.",
       received:"Received", voiceIncoming:"Voice message",
       notReady:"Wait for a secure connection to the saved friend.",
-      error:"Secure chat connection is unavailable.",
+      error:"Secure chat connection is unavailable.", historyUnavailable:"Chat history could not be saved on this device.",
       noRelation:"The saved friend relationship ID is unavailable.", shareProfile:"Share my DP with saved friend", profileSent:"Profile photo sent over the secure connection.", profileReceived:"Friend DP saved on this phone", profileMissing:"Save a photo in your profile first.", profileInvalid:"The received profile image is invalid.", callReady:"Your saved friend is ready to call.", callOutgoing:"Calling your friend…", callIncoming:"Incoming call from your saved friend.", callAccepted:"Call accepted; connecting…", callConnected:"Call connected.", callDeclined:"Call declined.", callExpired:"Call invitation expired.", callEnded:"Call ended.", callFailed:"The call could not connect.", acceptCall:"Accept call", declineCall:"Decline call", hangupCall:"End call", incomingCallLabel:"Incoming call"
     },
     ar: {
@@ -51,7 +51,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       failed:"لم يصل تأكيد موثّق؛ لن تظهر حالة تم التسليم.",
       received:"تم الاستلام", voiceIncoming:"رسالة صوتية",
       notReady:"انتظر إنشاء اتصال آمن مع الصديق المحفوظ.",
-      error:"اتصال المحادثة الآمنة غير متاح.",
+      error:"اتصال المحادثة الآمنة غير متاح.", historyUnavailable:"تعذر حفظ سجل المحادثة على هذا الهاتف.",
       noRelation:"معرّف علاقة الصديق المحفوظ غير متاح.", shareProfile:"مشاركة صورتي مع الصديق", profileSent:"تم إرسال الصورة عبر الاتصال الآمن.", profileReceived:"تم حفظ صورة الصديق على الهاتف", profileMissing:"احفظ صورة في ملفك الشخصي أولاً.", profileInvalid:"صورة الملف الشخصي المستلمة غير صالحة.", callReady:"صديقك المحفوظ جاهز للاتصال.", callOutgoing:"جارٍ الاتصال بصديقك…", callIncoming:"مكالمة واردة من صديقك المحفوظ.", callAccepted:"تم قبول المكالمة؛ جارٍ الاتصال…", callConnected:"المكالمة متصلة.", callDeclined:"تم رفض المكالمة.", callExpired:"انتهت صلاحية دعوة المكالمة.", callEnded:"انتهت المكالمة.", callFailed:"تعذر الاتصال بالمكالمة.", acceptCall:"قبول المكالمة", declineCall:"رفض المكالمة", hangupCall:"إنهاء المكالمة", incomingCallLabel:"مكالمة واردة"
     }
   };
@@ -75,6 +75,7 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
   let stopLimit = null;
   let friendAvatarUrl = null;
   const profileSyncPromises = new Map();
+  const messageAudioUrls = new Set();
   const shareProfileButton = document.createElement("button");
   shareProfileButton.type = "button";
   shareProfileButton.className = "secondary";
@@ -160,19 +161,59 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     $("sendVoice").disabled = true;
     $("cancelVoice").hidden = true;
   }
-  function addMessage(label, body, kind = "received") {
+  function messageMetaText(label, createdAt) {
+    const locale = language === "ar" ? "ar-SA" : language === "en" ? "en-SA" : "ur-SA";
+    const time = new Date(createdAt).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+    return label + " · " + time;
+  }
+  function addMessage(label, body, kind = "received", createdAt = Date.now()) {
     const row = document.createElement("div");
     row.className = "ezero-chat-message " + kind;
     row.style.cssText = "margin:8px 0;padding:10px 12px;border-radius:13px;background:#f1f7f3;font-size:12px;overflow-wrap:anywhere";
     const content = document.createElement("div");
     content.textContent = body;
     const state = document.createElement("small");
-    state.textContent = label;
+    state.textContent = messageMetaText(label, createdAt);
     state.style.cssText = "display:block;margin-top:5px;color:#718278;font-size:10px";
     row.append(content, state);
     $("chatMessages").append(row);
     $("chatMessages").scrollTop = $("chatMessages").scrollHeight;
     return state;
+  }
+  function addVoiceMessage(label, source, kind = "received", createdAt = Date.now()) {
+    const blob = source instanceof Blob ? source : new Blob([source], { type: "audio/webm" });
+    const url = URL.createObjectURL(blob);
+    messageAudioUrls.add(url);
+    const row = document.createElement("div");
+    row.className = "ezero-chat-message " + kind;
+    row.style.cssText = "margin:8px 0;padding:10px 12px;border-radius:13px;background:#f1f7f3";
+    const audio = document.createElement("audio");
+    audio.controls = true;
+    audio.src = url;
+    audio.style.width = "100%";
+    const state = document.createElement("small");
+    state.textContent = messageMetaText(label, createdAt);
+    state.style.cssText = "display:block;margin-top:5px;color:#718278;font-size:10px";
+    row.append(audio, state);
+    $("chatMessages").append(row);
+    $("chatMessages").scrollTop = $("chatMessages").scrollHeight;
+    return state;
+  }
+  function clearRenderedMessages() {
+    for (const url of messageAudioUrls) URL.revokeObjectURL(url);
+    messageAudioUrls.clear();
+    clearRenderedMessages();
+  }
+  function renderStoredMessage(record) {
+    const label = record.direction === "incoming" ? t("received")
+      : record.status === "delivered" ? t("delivered")
+      : record.status === "failed" ? t("failed") : t("sending");
+    const kind = record.direction === "outgoing" ? "sent" : "received";
+    if (record.type === "text") {
+      addMessage(label, decoder.decode(record.bytes), kind, record.createdAt);
+    } else if (record.type === "voice") {
+      addVoiceMessage(label, record.bytes, kind, record.createdAt);
+    }
   }
   function releaseRecorder() {
     if (stopLimit) clearTimeout(stopLimit);
@@ -208,8 +249,14 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     // Ignore late frames from a previously selected friend before rendering any message type.
     if (generation !== connectionGeneration || relationshipId !== currentRelationshipId || fingerprint !== currentFingerprint) return;
     if (message.type === "text") {
+      const createdAt = Date.now();
+      await globalThis.EZERO_CONNECT_TRUST.saveTrustedMessage(relationshipId, fingerprint, {
+        messageId: message.messageId, type: "text", direction: "incoming",
+        status: "received", createdAt, bytes: message.bytes
+      });
+      if (generation !== connectionGeneration || relationshipId !== currentRelationshipId || fingerprint !== currentFingerprint) return;
       const decoded = decoder.decode(message.bytes);
-      addMessage(t("received"), decoded, "received");
+      addMessage(t("received"), decoded, "received", createdAt);
       return;
     }
     if (message.type === "profile") {
@@ -228,21 +275,13 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       return;
     }
     if (message.type === "voice") {
-      const blob = new Blob([message.bytes], { type: "audio/webm" });
-      const url = URL.createObjectURL(blob);
-      const row = document.createElement("div");
-      row.className = "ezero-chat-message received";
-      row.style.cssText = "margin:8px 0;padding:10px 12px;border-radius:13px;background:#f1f7f3";
-      const label = document.createElement("div");
-      label.textContent = t("voiceIncoming");
-      const audio = document.createElement("audio");
-      audio.controls = true;
-      audio.src = url;
-      audio.style.width = "100%";
-      row.append(label, audio);
-      $("chatMessages").append(row);
-      $("chatMessages").scrollTop = $("chatMessages").scrollHeight;
-      audio.addEventListener("ended", () => URL.revokeObjectURL(url), { once: true });
+      const createdAt = Date.now();
+      await globalThis.EZERO_CONNECT_TRUST.saveTrustedMessage(relationshipId, fingerprint, {
+        messageId: message.messageId, type: "voice", direction: "incoming",
+        status: "received", createdAt, bytes: message.bytes
+      });
+      if (generation !== connectionGeneration || relationshipId !== currentRelationshipId || fingerprint !== currentFingerprint) return;
+      addVoiceMessage(t("voiceIncoming"), message.bytes, "received", createdAt);
       return;
     }
     throw new Error("CHAT_INBOUND_TYPE_UNSUPPORTED");
@@ -273,6 +312,13 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       if (generation !== connectionGeneration || currentRelationshipId !== relationshipId || currentFingerprint !== fingerprint) return;
       if (savedProfile.bytes) showFriendAvatar(savedProfile.bytes);
     } catch (_) { /* No saved friend photo yet; keep the name/initials. */ }
+    try {
+      const history = await globalThis.EZERO_CONNECT_TRUST.listTrustedMessages(relationshipId, fingerprint, 100);
+      if (generation !== connectionGeneration || currentRelationshipId !== relationshipId || currentFingerprint !== fingerprint) return;
+      for (const record of history) renderStoredMessage(record);
+    } catch (_) {
+      status(t("historyUnavailable"), "error");
+    }
     if (generation !== connectionGeneration || currentRelationshipId !== relationshipId || currentFingerprint !== fingerprint) return;
     currentFriendName = String(detail.displayName || "").trim();
     $("chatTitle").textContent = currentFriendName ? currentFriendName + " · " + t("title") : t("title");
@@ -424,13 +470,27 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     const value = $("chatMessage").value.trim();
     if (!value || !secure()) return;
     $("sendChatMessage").disabled = true;
-    const receipt = addMessage(t("sending"), value, "sent");
+    const messageId = crypto.randomUUID().replaceAll("-", "");
+    const createdAt = Date.now();
+    const bytes = encoder.encode(value);
+    let receipt = null;
     try {
-      await session.sendText(value);
-      receipt.textContent = t("delivered");
-      $("chatMessage").value = "";
+      await globalThis.EZERO_CONNECT_TRUST.saveTrustedMessage(currentRelationshipId, currentFingerprint, {
+        messageId, type: "text", direction: "outgoing", status: "sending", createdAt, bytes
+      });
+      receipt = addMessage(t("sending"), value, "sent", createdAt);
+      try {
+        await session.sendText(value);
+        receipt.textContent = messageMetaText(t("delivered"), createdAt);
+        $("chatMessage").value = "";
+        try { await globalThis.EZERO_CONNECT_TRUST.updateTrustedMessageStatus(currentRelationshipId, currentFingerprint, messageId, "delivered"); }
+        catch (_) { status(t("historyUnavailable"), "error"); }
+      } catch (_) {
+        try { await globalThis.EZERO_CONNECT_TRUST.updateTrustedMessageStatus(currentRelationshipId, currentFingerprint, messageId, "failed"); } catch (_) {}
+        receipt.textContent = messageMetaText(t("failed"), createdAt);
+      }
     } catch (_) {
-      receipt.textContent = t("failed");
+      status(t("historyUnavailable"), "error");
     } finally { controls(); }
   });
   $("chatMessage").addEventListener("keydown", event => {
@@ -501,13 +561,27 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
       return;
     }
     $("sendVoice").disabled = true;
-    const receipt = addMessage(t("sending"), t("voiceIncoming"), "sent");
+    const messageId = crypto.randomUUID().replaceAll("-", "");
+    const createdAt = Date.now();
+    let receipt = null;
     try {
-      await session.sendVoice(bytes);
-      receipt.textContent = t("delivered");
-      clearVoice();
+      await globalThis.EZERO_CONNECT_TRUST.saveTrustedMessage(currentRelationshipId, currentFingerprint, {
+        messageId, type: "voice", direction: "outgoing", status: "sending", createdAt, bytes
+      });
+      receipt = addVoiceMessage(t("sending"), blob, "sent", createdAt);
+      try {
+        await session.sendVoice(bytes);
+        receipt.textContent = messageMetaText(t("delivered"), createdAt);
+        clearVoice();
+        try { await globalThis.EZERO_CONNECT_TRUST.updateTrustedMessageStatus(currentRelationshipId, currentFingerprint, messageId, "delivered"); }
+        catch (_) { status(t("historyUnavailable"), "error"); }
+      } catch (_) {
+        try { await globalThis.EZERO_CONNECT_TRUST.updateTrustedMessageStatus(currentRelationshipId, currentFingerprint, messageId, "failed"); } catch (_) {}
+        receipt.textContent = messageMetaText(t("failed"), createdAt);
+        controls();
+      }
     } catch (_) {
-      receipt.textContent = t("failed");
+      status(t("historyUnavailable"), "error");
       controls();
     }
   });
@@ -534,6 +608,8 @@ import { createTrustedFriendMessagingSession } from "./ezero_connect_trusted_fri
     releaseRecorder();
     closeSession();
     clearVoice();
+    for (const url of messageAudioUrls) URL.revokeObjectURL(url);
+    messageAudioUrls.clear();
   });
   document.dispatchEvent(new CustomEvent("ezero:language-changed", { detail: { language: "ur" } }));
 })();
