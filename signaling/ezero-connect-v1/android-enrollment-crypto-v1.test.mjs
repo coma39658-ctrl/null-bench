@@ -48,12 +48,17 @@ async function fixture() {
       signature: await sign(browser.privateKey, "EZERO_ANDROID_ENROLL_APPROVAL_V1\n", approvalPayload)
     }
   };
-  return { challenge, submission, android, browser, approvalPayload };
+  return { challenge, submission, android, browser, browserSpki, approvalPayload };
+}
+function options(f, extra = {}) {
+  return { now: NOW + 1, expectedAudience: f.challenge.audience,
+    trustedApproverPublicKeySpki: f.browserSpki, ...extra };
+}
 }
 
 test("verifies real P-256 Android proof and independent browser approval", async () => {
   const f = await fixture();
-  const result = await verifyAndroidEnrollmentV1(f.challenge, f.submission, NOW + 1);
+  const result = await verifyAndroidEnrollmentV1(f.challenge, f.submission, options(f));
   assert.equal(result.status, "ACTIVE");
   assert.equal(result.androidFingerprint, f.challenge.androidFingerprint);
   assert.equal(result.approverFingerprint, f.approvalPayload.approverFingerprint);
@@ -63,7 +68,7 @@ test("verifies real P-256 Android proof and independent browser approval", async
 test("rejects a changed Android proof payload", async () => {
   const f = await fixture();
   f.submission.androidProof.payload.nonce = "changed_nonce_abcdefghijkl";
-  await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, f.submission, NOW + 1), /ENROLLMENT_PROOF_BINDING_INVALID/);
+  await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, f.submission, options(f)), /ENROLLMENT_PROOF_BINDING_INVALID/);
 });
 
 test("rejects a forged browser approval signature", async () => {
@@ -81,11 +86,11 @@ test("rejects a signature from the wrong domain", async () => {
 
 test("rejects expired, overlong and wrong-audience challenges", async () => {
   const f = await fixture();
-  await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, f.submission, NOW + 90_000), /ENROLLMENT_CHALLENGE_INVALID/);
-  await assert.rejects(() => verifyAndroidEnrollmentV1({ ...f.challenge, expiresAt: NOW + 90_001 }, f.submission, NOW + 1), /ENROLLMENT_CHALLENGE_INVALID/);
+  await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, f.submission, options(f, { now: NOW + 90_000 })), /ENROLLMENT_CHALLENGE_INVALID/);
+  await assert.rejects(() => verifyAndroidEnrollmentV1({ ...f.challenge, expiresAt: NOW + 90_001 }, f.submission, options(f)), /ENROLLMENT_CHALLENGE_INVALID/);
   const altered = structuredClone(f.submission);
   altered.androidProof.payload.audience = "https://wrong.example";
-  await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, altered, NOW + 1), /ENROLLMENT_PROOF_BINDING_INVALID/);
+  await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, altered, options(f)), /ENROLLMENT_PROOF_BINDING_INVALID/);
 });
 
 test("rejects DER or malformed signature encodings rather than accepting ambiguity", async () => {
@@ -97,5 +102,24 @@ test("rejects DER or malformed signature encodings rather than accepting ambigui
 test("rejects public-key fingerprint substitution", async () => {
   const f = await fixture();
   f.submission.browserApproval.payload.approverFingerprint = f.challenge.androidFingerprint;
-  await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, f.submission, NOW + 1), /ENROLLMENT_APPROVER_FINGERPRINT_MISMATCH/);
+  await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, f.submission, NOW + 1), /ENROLLMENT_APPROVER_IDENTITY_MISMATCH/);
+});
+
+test("rejects a self-selected browser key not authenticated by the saved browser identity", async () => {
+  const f = await fixture();
+  const attacker = await keyPair();
+  const attackerSpki = await spki(attacker.publicKey);
+  const attackerFingerprint = await enrollmentFingerprint(attackerSpki);
+  const payload = { ...f.approvalPayload, approverPublicKeySpki: attackerSpki, approverFingerprint };
+  f.submission.browserApproval = {
+    payload, signature: await sign(attacker.privateKey, "EZERO_ANDROID_ENROLL_APPROVAL_V1\\n", payload)
+  };
+  await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, f.submission,
+    options(f, { trustedApproverPublicKeySpki: f.browserSpki })), /ENROLLMENT_APPROVER_IDENTITY_MISMATCH/);
+});
+
+test("requires exact configured service audience", async () => {
+  const f = await fixture();
+  await assert.rejects(() => verifyAndroidEnrollmentV1(f.challenge, f.submission,
+    options(f, { expectedAudience: "https://attacker.example" })), /ENROLLMENT_AUDIENCE_MISMATCH/);
 });
