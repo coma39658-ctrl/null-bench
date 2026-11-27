@@ -29,6 +29,14 @@ The existing browser friend list is stored in encrypted IndexedDB. The native An
 - Android unit tests and staging APK assembly run in CI.
 - These automated tests do not prove the import on a physical Android phone.
 
+## Incoming-call trusted-peer gate V1 (next staging layer)
+
+- Added a strict resolver that accepts only a single local contact with status `TRUSTED`, matching BOTH the exact remote key fingerprint and the exact 64-character relationship ID.
+- Blocked, revoked, pending, malformed, mismatched, and ambiguous duplicate records fail closed.
+- Android's encrypted contact store exposes a matching `getTrustedPeerForCall(context, fingerprint, relationshipId)` overload for the eventual authenticated-invite fetch path.
+- The resolver is deliberately not wired to FCM data: the caller fingerprint and relationship ID must come from a server-authenticated, one-use invite fetch, never from the FCM wake hint.
+- This is authorization groundwork only. No inbox fetch route exists yet; no incoming ring is activated by this change.
+
 ## Not implemented by this bridge
 - No FCM sender or call-wake route.
 - No native inbox subscription or authenticated pending-invite fetch.
