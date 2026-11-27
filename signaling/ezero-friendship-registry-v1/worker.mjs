@@ -180,7 +180,7 @@ export class EzeroFriendshipRelationship {
             status: record.status, approvals: approved.length }, record.status === "ACTIVE" ? 200 : 202);
         }
 
-        if (!exactKeys(body, ["protocol","relationshipId","callerFingerprint","recipientFingerprint","callId","nonce","mode","expiresAt","signedInvite"]) ||
+        if (!exactKeys(body, ["protocol","relationshipId","callerFingerprint","recipientFingerprint","callId","nonce","mode","expiresAt","signedInvite","expectedOrigin"]) ||
             body.protocol !== "E-ZERO-SAVED-FRIEND-AUTH-1" ||
             !RELATIONSHIP_RE.test(body.relationshipId || "") ||
             !FINGERPRINT_RE.test(body.callerFingerprint || "") ||
@@ -199,9 +199,12 @@ export class EzeroFriendshipRelationship {
         const invite = body.signedInvite.payload;
         const caller = record.transcript.participants.find(p => p.fingerprint === body.callerFingerprint);
         const recipient = record.transcript.participants.find(p => p.fingerprint === body.recipientFingerprint);
-        if (!caller || !recipient || caller.fingerprint === recipient.fingerprint ||
+        if (!caller || !recipient) return json({ authorized: false }, 403);
+        if (caller.fingerprint === recipient.fingerprint ||
+            typeof body.expectedOrigin !== "string" ||
+            (record.transcript.origin && record.transcript.origin !== body.expectedOrigin) ||
             invite.v !== 1 || invite.protocol !== "E-ZERO-SAVED-FRIEND-CALL-1" ||
-            invite.origin !== record.transcript.origin ||
+            invite.origin !== body.expectedOrigin ||
             invite.callerFingerprint !== caller.fingerprint ||
             invite.callerPublicKeySpki !== caller.publicKeySpki ||
             invite.recipientFingerprint !== recipient.fingerprint ||
@@ -272,6 +275,7 @@ export default {
       try {
         const body = await readJson(request);
         if (!RELATIONSHIP_RE.test(body?.relationshipId || "")) return json({ error: "RELATIONSHIP_ID_INVALID" }, 400);
+        body.expectedOrigin = env.PUBLIC_ORIGIN;
         const id = env.RELATIONSHIPS.idFromName(body.relationshipId);
         return env.RELATIONSHIPS.get(id).fetch("https://relationship.internal/authorize", {
           method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
