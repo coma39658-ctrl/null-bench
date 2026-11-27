@@ -50,7 +50,8 @@ async function fixture() {
   const queue = new EzeroOfflineCallQueue(ctx, { INTERNAL_QUEUE_SECRET: secret });
   const now = Date.now();
   const body = {
-    callId: "call_12345678", callerFingerprint: fingerprint(1), recipientFingerprint,
+    callId: "call_12345678", callerFingerprint: fingerprint(1),
+    recipientIdentityFingerprint: fingerprint(2), recipientInstallationFingerprint: recipientFingerprint,
     relationshipId: "a".repeat(64), installationId: "install_device_123456",
     devicePublicKeySpki: b64url(spki), invite: "SIGNED_CALL_INVITE_TEST_FIXTURE",
     mode: "AUDIO", nonce: "caller_nonce_1234567890", expiresAt: now + 25_000
@@ -65,7 +66,9 @@ async function fixture() {
     const issuedAt = Date.now();
     const payload = {
       protocol: "E-ZERO-OFFLINE-CALL-CLAIM-1", method: "POST", path,
-      callId, installationId: body.installationId, recipientFingerprint: body.recipientFingerprint,
+      callId, installationId: body.installationId,
+      recipientIdentityFingerprint: body.recipientIdentityFingerprint,
+      recipientInstallationFingerprint: body.recipientInstallationFingerprint,
       issuedAt, nonce: "device_nonce_" + crypto.randomUUID().replaceAll("-", "")
     };
     const rawSignature = new Uint8Array(await crypto.subtle.sign(
@@ -94,10 +97,13 @@ test("internal queue creation requires secret and strict recipient-bound payload
 
 test("recipient fingerprint must match the exact installation public key", async () => {
   const f = await fixture();
-  const mismatch = await f.create({ recipientFingerprint: fingerprint(2) });
+  const mismatch = await f.create({ recipientInstallationFingerprint: fingerprint(3) });
   assert.equal(mismatch.status, 400);
   assert.equal((await mismatch.json()).error, "QUEUE_DEVICE_FINGERPRINT_MISMATCH");
-  assert.equal((await f.create()).status, 201);
+  const created = await f.create();
+  assert.equal(created.status, 201);
+  // The account identity and installation key are intentionally distinct identities.
+  assert.notEqual(f.body.recipientIdentityFingerprint, f.body.recipientInstallationFingerprint);
 });
 
 test("only the enrolled installation key can atomically claim once", async () => {
