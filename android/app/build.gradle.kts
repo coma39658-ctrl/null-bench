@@ -25,7 +25,7 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "0.1.0-staging"
-        buildConfigField("String", "ANDROID_ENROLLMENT_WORKER_ENDPOINT", "\"${configuredEnrollmentWorkerEndpoint}\"")
+        buildConfigField("String", "ANDROID_ENROLLMENT_WORKER_ENDPOINT", "\"\${configuredEnrollmentWorkerEndpoint}\"")
     }
 
     compileOptions {
@@ -48,4 +48,5 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:35.2.0"))
     implementation("com.google.firebase:firebase-messaging")
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20240303")
 }
