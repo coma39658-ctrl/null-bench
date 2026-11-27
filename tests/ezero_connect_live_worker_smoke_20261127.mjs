@@ -139,12 +139,62 @@ async function main() {
     "a different device must not take over the authenticated host role"
   );
 
-  reconnect.ws.close();
+  // Exercise the guest side of the same deployed Durable Object. Observe the
+  // host socket before guest reconnect so a spurious disconnect is detectable.
+  const hostEvents = [];
+  const onHostMessage = raw => {
+    try { hostEvents.push(JSON.parse(raw.toString("utf8"))); } catch (_) {}
+  };
+  reconnect.ws.on("message", onHostMessage);
+  const guestDevice = await makeDevice();
+  const guestFirst = await authenticate("guest", roomId, nonce, guestDevice, inviteCode);
+  const waitForPeerReady = async (ws, label) => await new Promise((resolve, reject) => {
+    const timer = setTimeout(() => { cleanup(); reject(new Error(label + "_PEER_READY_TIMEOUT")); }, 5_000);
+    const onMessage = raw => {
+      let message;
+      try { message = JSON.parse(raw.toString("utf8")); } catch (_) { return; }
+      if (message.type === "peer-ready") { cleanup(); resolve(message); }
+      if (message.type === "server-error") { cleanup(); reject(new Error(label + "_SERVER_" + message.code)); }
+    };
+    const cleanup = () => { clearTimeout(timer); ws.off("message", onMessage); };
+    ws.on("message", onMessage);
+  });
+  await Promise.all([
+    waitForPeerReady(reconnect.ws, "HOST"),
+    waitForPeerReady(guestFirst.ws, "GUEST")
+  ]);
+  const guestReconnect = await authenticate("guest", roomId, nonce, guestDevice);
+  const oldGuestClose = await new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("OLD_GUEST_SOCKET_REPLACEMENT_TIMEOUT")), 5_000);
+    guestFirst.ws.once("close", (code, reason) => {
+      clearTimeout(timer);
+      resolve({ code, reason: reason.toString() });
+    });
+  });
+  assert.equal(oldGuestClose.code, 4001,
+    "authenticated same-device reconnect should replace the previous guest socket");
+  await waitForPeerReady(reconnect.ws, "HOST_AFTER_GUEST_RECONNECT");
+  const competingGuest = await makeDevice();
+  await assert.rejects(
+    () => authenticate("guest", roomId, nonce, competingGuest),
+    /STAGING_SERVER_REJECTED|STAGING_EARLY_CLOSE|STAGING_SOCKET_ERROR/,
+    "a different device must not take over the authenticated guest role"
+  );
+  await new Promise(resolve => setTimeout(resolve, 500));
+  assert.equal(hostEvents.some(message => message.type === "peer-disconnected"), false,
+    "same-device guest socket replacement must not emit a false peer-disconnected event");
+  reconnect.ws.off("message", onHostMessage);
+  guestReconnect.ws.close();
+
   console.log("PASS: deployed Cloudflare Worker health and staging release marker");
   console.log("PASS: deployed Worker rejects an untrusted Origin");
   console.log("PASS: real Durable Object accepts signed host invite and challenge");
   console.log("PASS: same authenticated device reconnect replaces its old WebSocket");
   console.log("PASS: a different device cannot take over the authenticated host role");
+  console.log("PASS: guest authenticates and both roles receive peer-ready");
+  console.log("PASS: same authenticated guest device reconnect replaces its old WebSocket");
+  console.log("PASS: a different device cannot take over the authenticated guest role");
+  console.log("PASS: guest same-device reconnect emits no false peer-disconnected event");
   console.log("BOUNDARY: synthetic staging identities only; no saved contacts, calls, SDP/media, push, or production data");
 }
 
