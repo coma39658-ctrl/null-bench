@@ -11,6 +11,8 @@ on:
       - "signaling/cloudflare/src/android_enrollment_candidate_v1.js"
       - "signaling/cloudflare/src/identity_installation_binding_v1.mjs"
       - "tests/ezero_identity_installation_binding_v1.test.mjs"
+      - "tests/ezero_browser_identity_binding_handoff_v1.test.mjs"
+      - "js/ezero_connect_identity_v1.js"
       - "signaling/cloudflare/wrangler.android-enrollment-candidate-v1.jsonc"
       - "android/ROOT_APPROVED_ENROLLMENT_CONTRACT_V1.md"
       - "tests/ezero_android_root_enrollment_contract_v1.test.mjs"
@@ -35,7 +37,9 @@ jobs:
       - name: Verify FCM token registration contract
         run: node --test tests/ezero_android_fcm_token_registration_contract_v1.test.mjs
       - name: Verify identity-to-installation dual-key binding contract
-        run: node --test tests/ezero_identity_installation_binding_v1.test.mjs
+        run: node --test tests/ezero_identity_installation_binding_v1.test.mjs tests/ezero_browser_identity_binding_handoff_v1.test.mjs
+      - name: Parse browser identity module
+        run: node --check js/ezero_connect_identity_v1.js
       - name: Validate isolated Worker bundle without deploying
         working-directory: signaling/cloudflare
         run: npx --yes wrangler@4 deploy --dry-run --config wrangler.android-enrollment-candidate-v1.jsonc
