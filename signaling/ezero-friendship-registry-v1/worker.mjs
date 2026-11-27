@@ -137,7 +137,7 @@ export class EzeroFriendshipRelationship {
           if (!exactKeys(body, ["protocol","relationshipId","transcript","handshakes"]) ||
               body.protocol !== "E-ZERO-REGISTRY-V2-REGISTER-1" || !RELATIONSHIP_RE.test(body.relationshipId || "") ||
               !exactKeys(body.handshakes, ["host","guest"])) return json({ error: "REGISTRY_V2_REQUEST_INVALID" }, 400);
-          await validateV2Transcript(body.transcript, Date.now(), this.env?.PUBLIC_ORIGIN || "");
+          await validateV2Transcript(body.transcript, Date.now(), body.transcript?.origin || "");
           await validateV2Handshake(body.transcript, "host", body.handshakes.host);
           await validateV2Handshake(body.transcript, "guest", body.handshakes.guest);
           const relationshipId = await sha256Hex(new TextEncoder().encode(canonical(body.transcript)));
@@ -221,7 +221,7 @@ export default {
       try {
         const body = await readJson(request);
         if (!exactKeys(body, ["protocol","relationshipId","transcript","handshakes"]) ||
-            body.protocol !== "E-ZERO-REGISTRY-V2-REGISTER-1" || !RELATIONSHIP_RE.test(body.relationshipId || "")) return json({ error: "REGISTRY_V2_REQUEST_INVALID" }, 400);
+            body.protocol !== "E-ZERO-REGISTRY-V2-REGISTER-1" || !RELATIONSHIP_RE.test(body.relationshipId || "") || body.transcript?.origin !== env.PUBLIC_ORIGIN) return json({ error: "REGISTRY_V2_REQUEST_INVALID" }, 400);
         const id = env.RELATIONSHIPS.idFromName(body.relationshipId);
         return env.RELATIONSHIPS.get(id).fetch("https://relationship.internal/register-v2", {
           method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
