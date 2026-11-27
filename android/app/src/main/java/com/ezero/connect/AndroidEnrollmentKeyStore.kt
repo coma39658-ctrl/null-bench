@@ -66,6 +66,16 @@ internal object AndroidEnrollmentKeyStore {
         }
     }
 
+    /**
+     * Signs protocol-defined canonical bytes and returns the 64-byte IEEE-P1363
+     * encoding used by WebCrypto and the binding verifier. The private key stays
+     * inside Android Keystore; callers receive only the signature bytes.
+     */
+    fun signCanonicalBytesP1363(bytes: ByteArray): ByteArray {
+        val der = signCanonicalBytes(bytes)
+        return AndroidSignatureEncoding.derP256ToP1363(der)
+    }
+
     fun signChallenge(challenge: AndroidEnrollmentProtocolV1.Challenge): String {
         val pair = getOrCreateKeyPair()
         val identity = getOrCreatePublicIdentity()
