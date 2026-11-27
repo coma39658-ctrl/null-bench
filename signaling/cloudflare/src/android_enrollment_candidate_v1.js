@@ -56,19 +56,54 @@ function response(body, status=200) {
 const CHALLENGE_ORDER = ["challenge_id","device_fp","nonce","audience","expires_at"];
 const APPROVAL_ORDER = ["root_fp","device_fp","challenge_id","nonce","audience","expires_at"];
 
+const TOKEN_ORDER = ["device_fp","issued_at","nonce","token_sha256"];
+const TOKEN_NONCE = /^[A-Za-z0-9_-]{16,128}$/;
+function derToP1363(der) {
+  if (!(der instanceof Uint8Array) || der.length < 8 || der.length > 80 || der[0] !== 0x30 || der[1] !== der.length - 2)
+    return null;
+  let p = 2;
+  const readInteger = () => {
+    if (der[p++] !== 0x02) return null;
+    const n = der[p++];
+    if (!n || p + n > der.length) return null;
+    let v = der.slice(p, p + n); p += n;
+    if ((v[0] & 0x80) || (v.length > 1 && v[0] === 0 && !(v[1] & 0x80))) return null;
+    if (v[0] === 0) v = v.slice(1);
+    if (v.length > 32) return null;
+    const out = new Uint8Array(32); out.set(v, 32 - v.length); return out;
+  };
+  const r = readInteger(), t = readInteger();
+  if (!r || !t || p !== der.length) return null;
+  const out = new Uint8Array(64); out.set(r, 0); out.set(t, 32); return out;
+}
+async function encryptPushToken(token, deviceFp, keyText) {
+  const raw = decode64(keyText, 64);
+  if (!raw || raw.length !== 32) throw new TypeError("TOKEN_ENCRYPTION_KEY_INVALID");
+  const key = await crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["encrypt"]);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ciphertext = new Uint8Array(await crypto.subtle.encrypt(
+    {name:"AES-GCM",iv,additionalData:enc.encode("EZERO_FCM_TOKEN_V1:"+deviceFp),tagLength:128},
+    key,enc.encode(token)
+  ));
+  const combined = new Uint8Array(iv.length+ciphertext.length);
+  combined.set(iv); combined.set(ciphertext,iv.length);
+  return base64url(combined);
+}
+
 export default {
   async fetch(request, env) {
     const u = new URL(request.url);
     if (request.method === "OPTIONS" && u.pathname.startsWith("/v1/android/")) {
       if (request.headers.get("Origin") !== ORIGIN) return response({error:"ORIGIN_DENIED"},403);
       return new Response(null,{status:204,headers:{
-        "Access-Control-Allow-Origin":ORIGIN,"Access-Control-Allow-Methods":"POST, OPTIONS",
+        "Access-Control-Allow-Origin":ORIGIN,"Access-Control-Allow-Methods":"POST, PUT, OPTIONS",
         "Access-Control-Allow-Headers":"Content-Type","Access-Control-Max-Age":"300","Vary":"Origin"
       }});
     }
     const origin = request.headers.get("Origin");
     const androidRoute = u.pathname === "/v1/android/enrollment/challenge" ||
-      u.pathname === "/v1/android/enrollment/complete";
+      u.pathname === "/v1/android/enrollment/complete" ||
+      u.pathname === "/v1/android/devices/current/push-token";
     const rootAdminRoute = u.pathname === "/v1/admin/root-register";
     if (!androidRoute && !rootAdminRoute) return response({error:"NOT_FOUND"},404);
 
@@ -79,7 +114,8 @@ export default {
     if (androidRoute && origin !== null && origin !== ORIGIN)
       return response({error:"ORIGIN_DENIED"},403);
     if (!env.ENROLLMENT?.idFromName) return response({error:"UNAVAILABLE"},503);
-    if (request.method !== "POST") return response({error:"METHOD_NOT_ALLOWED"},405);
+    const expectedMethod = u.pathname === "/v1/android/devices/current/push-token" ? "PUT" : "POST";
+    if (request.method !== expectedMethod) return response({error:"METHOD_NOT_ALLOWED"},405);
     if (!request.headers.get("Content-Type")?.toLowerCase().startsWith("application/json"))
       return response({error:"CONTENT_TYPE"},415);
     const body = await readJson(request);
@@ -142,6 +178,54 @@ export class AndroidEnrollmentRegistry extends DurableObject {
         await this.ctx.storage.put("roots",roots);
         return response({ok:true,root_fp:fp});
       } catch (_) { return response({error:"BAD_ROOT_KEY"},400); }
+    }
+
+
+    if (u.pathname === "/v1/android/devices/current/push-token") {
+      const deviceFp = body.device_fp;
+      const issuedAt = body.issued_at;
+      const nonce = body.nonce;
+      const token = body.fcm_token;
+      if (!FP.test(deviceFp || "") || !/^\\d{13}$/.test(String(issuedAt || "")) ||
+          !TOKEN_NONCE.test(nonce || "") || typeof token !== "string" ||
+          token.length < 20 || token.length > 4096 ||
+          typeof body.device_signature !== "string")
+        return response({error:"BAD_TOKEN_REGISTRATION"},400);
+      const now = Date.now(), issued = Number(issuedAt);
+      if (!Number.isSafeInteger(issued) || Math.abs(now-issued) > 120000)
+        return response({error:"TOKEN_REGISTRATION_EXPIRED"},401);
+      const devices = (await this.ctx.storage.get("devices")) || {};
+      const device = devices[deviceFp];
+      if (!device?.active || !FP.test(device.root_fp || ""))
+        return response({error:"DEVICE_NOT_ENROLLED"},403);
+      const tokenHash = hex(new Uint8Array(await crypto.subtle.digest("SHA-256",enc.encode(token))));
+      const signedFields = {device_fp:deviceFp,issued_at:String(issued),nonce,token_sha256:tokenHash};
+      const signedBytes = canonical("EZERO_ANDROID_PUSH_TOKEN_V1",signedFields,TOKEN_ORDER);
+      const der = decode64(body.device_signature,180);
+      const p1363 = der ? derToP1363(der) : null;
+      if (!p1363) return response({error:"BAD_DEVICE_SIGNATURE"},400);
+      let valid = false;
+      try {
+        const publicKey = await importP256(decode64(device.device_spki,512));
+        valid = await crypto.subtle.verify({name:"ECDSA",hash:"SHA-256"},publicKey,p1363,signedBytes);
+      } catch (_) { valid = false; }
+      if (!valid) return response({error:"DEVICE_AUTH_FAILED"},403);
+      const encryptedToken = await encryptPushToken(token,deviceFp,this.env.TOKEN_ENCRYPTION_KEY_BASE64URL || "");
+      const nonceKey = "push-token-nonces:"+deviceFp;
+      const accepted = this.ctx.storage.transactionSync(tx => {
+        const prior = tx.get(nonceKey) || [];
+        const fresh = prior.filter(x => x.expires_at > now);
+        if (fresh.some(x => x.nonce === nonce)) return false;
+        fresh.push({nonce,expires_at:now+120000});
+        tx.put(nonceKey,fresh.slice(-128));
+        tx.put("push-token:"+deviceFp,{
+          encrypted_token:encryptedToken,token_sha256:tokenHash,
+          updated_at:now,expires_at:now+90*24*60*60*1000,active:true
+        });
+        return true;
+      });
+      if (!accepted) return response({error:"TOKEN_NONCE_REPLAY"},409);
+      return response({ok:true,status:"TOKEN_REGISTERED",device_fp:deviceFp,token_expires_at:now+90*24*60*60*1000});
     }
 
     if (u.pathname === "/v1/android/enrollment/challenge") {
