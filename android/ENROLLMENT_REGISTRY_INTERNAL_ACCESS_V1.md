@@ -1,6 +1,6 @@
 # E-ZERO Android enrollment registry — private service access contract V1
 
-Status: **DESIGN ONLY — no private service Worker, service binding, token retrieval, or revocation endpoint is deployed.**
+Status: **DESIGN ONLY — no private service Worker, service binding, token retrieval, or revocation endpoint is deployed. Public enrollment candidate revocation code exists in the unmerged staging PR only.**
 
 ## Goal
 
@@ -52,14 +52,15 @@ Before dispatch, the call controller must verify the signed invite, active mutua
 
 ## Root trust and revocation prerequisite
 
-The current candidate's `/v1/admin/root-register` accepts a root SPKI only when the separately provisioned `ROOT_BOOTSTRAP_SECRET` is supplied. This is an operator bootstrap mechanism, not account login and not proof that an arbitrary root key belongs to the E-ZERO account.
+The current isolated candidate's `/v1/admin/root-register`, `/v1/admin/root-revoke`, and `/v1/admin/device-revoke` routes require the separately provisioned `ROOT_BOOTSTRAP_SECRET` and the canonical web Origin. Revocation atomically disables child installation records and stored token records; token registration and enrollment completion re-check active root/device state inside their write transactions. Revoked installation fingerprints remain tombstoned and cannot silently re-enroll. This is an operator bootstrap mechanism, not account login and not proof that an arbitrary root key belongs to the E-ZERO account. The admin secret is a high-value staging secret; do not place it in Android, browser bundles, Git, logs, or chat.
 
 Before any real enrollment:
 - Independently obtain the exact public SPKI and fingerprint of the already-established E-ZERO Root identity.
 - Provision it through a controlled out-of-band operator ceremony; never let an enrolling Android device self-register its own Root.
 - Record who approved the fingerprint, when, and by which release/ceremony reference, without recording private keys.
-- Implement and test root and installation revocation before FCM dispatch.
-- Ensure root revocation invalidates every child installation and token atomically.
+- Candidate implementation now includes root and installation revocation routes plus atomic token/device disablement and write-time revocation rechecks. These are code-level staging changes, not deployed functionality.
+- CI must test that root revocation invalidates every child installation and token atomically, and that a concurrent token-registration/enrollment write cannot restore a revoked record.
+- Before FCM dispatch, independently verify the actual E-ZERO Root public key and run staging revocation tests against the deployed isolated Durable Object.
 
 ## Required negative tests
 
