@@ -8,7 +8,7 @@ This is a native Android notification host scaffold. It is deliberately separate
 - The staging CI now runs Android unit tests before compiling the debug APK.
 - AndroidX Core-Telecom 1.0.0 and `MANAGE_OWN_CALLS` are added; the app registers audio/video capabilities with Android Telecom on supported devices.
 - Telecom registration is groundwork only: no incoming Telecom call is created until signed invite verification and the existing WebRTC answer/reject handoff are integrated.
-- FCM project configuration is not present. Push delivery is therefore NOT active.
+- The isolated staging build restores `google-services.json` only from the GitHub Actions secret `STAGING_GOOGLE_SERVICES_JSON_BASE64`; the file is not committed. This enables Firebase client configuration in the staging APK only. Push delivery is still NOT active because authenticated device-token registration and a live FCM sender are not wired.
 - The signed E-ZERO wake-up API and existing WebRTC invite handoff are not yet integrated.
 - Accept currently opens the host activity with a pending-call marker; it does not claim to connect a call.
 - No APK build, physical-device test, public deployment, Worker deployment, or production change is claimed.
