@@ -1,8 +1,16 @@
 # E-ZERO Offline Call Queue V1 — staging implementation contract
 
-Status: **CONTRACT ONLY — NOT IMPLEMENTED, NOT ROUTED, NOT DEPLOYED**
+Status: **PARTIAL IMPLEMENTATION IN PR #240 — NOT ROUTED, NOT DEPLOYED, NOT END-TO-END VERIFIED**
 
 Parent security baseline: PR #238 (signed P-256 saved-friend call authorization). This document defines the next isolated server stage. It does not change the current WebSocket inbox, browser WebRTC engine, pairing UI, production Worker, or Android APK.
+
+## Implementation snapshot (reviewed 2026-11-27)
+
+The isolated Durable Object module now exists at `signaling/ezero-offline-call-queue-v1/worker.mjs`. Its implemented internal interface is `POST /internal/v1/create`, guarded by the `X-EZERO-Queue-Internal` shared secret; its recipient-device actions are `POST /v1/claim` and `POST /v1/reject`. It enforces one pending call per installation, bounded payload/expiry, call and nonce replay checks, P-256 recipient-installation proof, and a serialized one-time claim/reject transition. Unit coverage is in `tests/test_ezero_offline_call_queue_v1.mjs`.
+
+This is a queue primitive, not the full contract described below. The module does **not** itself consult the Friendship Registry, verify the caller-signed invite, resolve an ACTIVE root-approved device enrollment, look up or protect an FCM token, enforce caller/device rate limits, or send FCM. Its internal shared-secret check authenticates only the caller holding that secret; the upstream service must perform all authorization checks before creation. No public route or Durable Object binding is active. The Android app does not yet call `/v1/claim` or `/v1/reject`, and its Accept action remains a placeholder without WebRTC handoff.
+
+The proposed public-facing endpoint shapes later in this document remain target interfaces, not implemented routes. Do not infer route activation from the presence of the Durable Object class or passing unit tests.
 
 ## Goal
 
@@ -85,8 +93,54 @@ Wake an enrolled recipient Android installation when it has no active WebSocket,
 
 ## Known integration gaps to close
 
-- The current Android `MainActivity` Accept handler is still a placeholder and does not fetch a pending invite or hand off to WebRTC.
-- The current native messaging service verifies a server wake and replay guard, but the queue-backed authenticated invite fetch is not integrated.
-- The low-level FCM sender is a transport helper, not a call authorization route.
-- The existing browser inbox is WebSocket-oriented; offline persistence and wake routing are not yet established by this contract.
+- The queue module's internal creation guard is a staging shared secret only; integrate it behind a trusted service binding or equivalent non-browser service identity, and re-check Registry authorization, active mutual friendship, block/revocation, device enrollment, and recipient-key provenance before every create.
+- The current queue routes (`/internal/v1/create`, `/v1/claim`, `/v1/reject`) differ from the target API shapes above. Add an authenticated Worker adapter that binds each Durable Object to the exact recipient installation; do not expose the raw class directly.
+- The queue currently has no caller-authenticated cancellation route, FCM dispatch, Android queue-backed authenticated fetch, or Accept-to-WebRTC bridge.
+- The current Android `MainActivity` Accept handler is still a placeholder and does not fetch a pending invite or hand off to WebRTC. Reject currently dismisses only the local notification; it does not consume the server queue.
+- The native messaging service verifies a server-signed wake and persistent replay guard, then shows the alert. The queue-backed authenticated invite fetch is not integrated; therefore a wake is not yet proof of a fetchable, authorized call.
+- The low-level FCM sender is a transport helper, not a call authorization route. No active Worker entrypoint invokes it.
+- The existing browser inbox remains WebSocket-oriented; offline queue creation and wake routing are not yet wired to it.
 - No Firebase live delivery, audible lock-screen ringing, or native-to-WebRTC physical test is claimed by this document.
+
+
+## Cross-service fingerprint serialization gate (2026-11-27)
+
+A code audit found two currently used textual encodings for the same SHA-256 SPKI fingerprint:
+
+- Android enrollment candidate stores/transmits lowercase 64-character hex without separators (for example, `aabb…`).
+- Saved-friend call authorization and the offline queue use uppercase colon-separated octets (for example, `AA:BB:…`). The queue's PR #242 hardening recomputes this uppercase-colon form from the exact recipient SPKI and compares it with `recipientFingerprint`.
+
+These are not interchangeable strings. Before wiring the Registry, enrollment service, call controller, and queue together, define one canonical wire representation or add a single audited conversion at the service boundary. Conversion must be derived from the exact SPKI bytes; never trust a caller-supplied converted fingerprint. Add cross-language test vectors proving Android/JVM and Worker output the same canonical value for the same SPKI, including mismatch rejection.
+
+Also, PR #242's SPKI-to-recipient-fingerprint check is a required dependency of the queue implementation. Do not merge or release PR #240 without the PR #242 hardening (or an equivalent fix already included in its exact tested head). The earlier PR #240 head alone only checked that the submitted SPKI was parseable P-256; it did not bind that key to the claimed recipient fingerprint.
+
+
+### Identity semantics must be separated (critical review)
+
+The fingerprint issue is not only a text-format conversion. The enrollment contract explicitly defines two different P-256 identities: the browser/account Root identity and the Android installation key. The signed saved-friend call invite's `recipientFingerprint` identifies the recipient participant in the friendship relationship. The queue's `devicePublicKeySpki` is intended to identify the enrolled Android installation.
+
+Therefore, PR #242's current equality check (`fingerprintFromSpki(devicePublicKeySpki) === recipientFingerprint`) is valid **only if** the protocol explicitly defines `recipientFingerprint` as the Android installation fingerprint. That is not established by the current saved-friend invite contract and conflicts with the separate Root-vs-installation identity model. Do not merge/release PR #242 as the final integration fix until the protocol is clarified.
+
+Required correction before integration:
+- Preserve `recipientIdentityFingerprint` from the signed saved-friend invite and Registry relationship.
+- Add a distinct `recipientInstallationFingerprint` bound to `devicePublicKeySpki` and the active root-approved enrollment record.
+- Bind the pending queue record to both identities plus the exact installation ID.
+- Authorize the call against `recipientIdentityFingerprint`; authenticate claim/reject against `recipientInstallationFingerprint` and the installation key.
+- Verify the enrollment registry proves that the installation is currently authorized for that recipient account/root. Never infer account ownership from possession of an installation key.
+- Add negative tests for an authorized account paired with the wrong installation, a valid installation under a different account, a changed SPKI, and a mismatched identity/installation pair.
+
+Until this split is implemented, PR #242 is a useful cryptographic consistency check but may reject legitimate account-to-device mappings or incorrectly conflate two identity domains. Keep PRs #240 and #242 draft and unmerged.
+
+
+### Identity-split implementation candidate (PR #242, validation pending)
+
+The current PR #242 candidate has now been revised to use separate `recipientIdentityFingerprint` and `recipientInstallationFingerprint` fields. It derives the installation fingerprint from the submitted SPKI, stores both identities, and binds both identities plus installation ID into claim/reject proof bytes. The positive fixture deliberately uses distinct account and installation fingerprints; the negative test rejects a mismatched installation fingerprint.
+
+Candidate code head: `7a05943ec4dcddafb8c08d3ae9b16a41ab3668be`. Earlier PR #242 CI success applied to the prior code head only; no CI result is yet reported for this revised identity-split head. This remains a candidate implementation, not a verified integration. The upstream Registry/enrollment adapter still needs to prove the mapping between the account identity and the active root-approved Android installation.
+
+## Documentation validation (2026-11-27)
+
+- PR #241 documentation commit: `f9f534fc56b1db7cbf560b38bddf3be8f077650d`.
+- Evidence Registry Validator run `46055728163`: **completed / success** for this documentation commit.
+- This docs-only change did not run the full Clean Build Shell QA suite. The separate PR #240 code-head QA run `46054460765` and Evidence Registry run `46054460668` passed for `cc678549b394ba6c005607ee61460863cf8e9338`; those results validate that code head, not this documentation-only commit.
+- No Android build, FCM delivery, ringtone, lock-screen, or native-to-WebRTC physical test is established by these CI results.
