@@ -58,3 +58,11 @@ assert.match(source, /TRUST_APPROVAL_SIGNATURE_INVALID/,
   "pairing UI must identify approval signature verification failure");
 
 console.log("EZERO_SAFE_SERVER_STAGE_DIAGNOSTICS_CONTRACT_PASS");
+const trustModule = await readFile(new URL("../js/ezero_connect_trust_v1.js", import.meta.url), "utf8");
+const trustErrorCodes = [...new Set([...trustModule.matchAll(/new Error\\("(TRUST_[A-Z0-9_]+)"\\)/g)].map(match => match[1]))];
+for (const code of trustErrorCodes) {
+  assert.ok(source.includes(code), `pairing UI must explain trusted-contact error ${code}`);
+}
+assert.ok(trustErrorCodes.length >= 40, "contract must cover the complete trusted-contact error surface");
+console.log("EZERO_TRUST_MODULE_ERROR_COVERAGE_CONTRACT_PASS");
+
