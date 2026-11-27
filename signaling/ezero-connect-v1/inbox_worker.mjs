@@ -192,6 +192,11 @@ export class EzeroConnectInbox {
             peer.fingerprint === a.peerFingerprint;
         });
         if (!caller) { send(ws, { type: "call-expired", callId: message.callId }); return; }
+        const queued = await this.ctx.storage.get("pendingInvite");
+        if (queued?.callId === message.callId) {
+          await this.ctx.storage.delete("pendingInvite");
+          await this.ctx.storage.deleteAlarm();
+        }
         send(caller, { type: "call-response", callId: message.callId, decision: message.decision });
         const callerState = caller.deserializeAttachment();
         callerState.pendingCallId = null; callerState.peerFingerprint = null; callerState.callExpiresAt = null;
@@ -250,6 +255,11 @@ export class EzeroConnectInbox {
           peerState.peerFingerprint = null; peerState.callExpiresAt = null;
           peer.serializeAttachment(peerState);
           send(peer, { type: "call-cancelled", callId: message.callId });
+        }
+        const queued = await this.ctx.storage.get("pendingInvite");
+        if (queued?.callId === message.callId) {
+          await this.ctx.storage.delete("pendingInvite");
+          await this.ctx.storage.deleteAlarm();
         }
         a.pendingCallId = null; a.peerFingerprint = null; a.callExpiresAt = null;
         a.activeCallId = null; a.state = "AUTHENTICATED";
