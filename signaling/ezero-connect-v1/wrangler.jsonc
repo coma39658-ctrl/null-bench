@@ -15,6 +15,6 @@
     { "tag": "v2", "new_sqlite_classes": ["EzeroConnectRendezvous"] }
   ],
   "vars": {
-    "PUBLIC_ORIGIN": "https://ezero-connect-call-controller-preview.onrender.com"
+    "PUBLIC_ORIGIN": "https://ezero-connect-chat-history-pr223-staging.onrender.com"
   }
 }
