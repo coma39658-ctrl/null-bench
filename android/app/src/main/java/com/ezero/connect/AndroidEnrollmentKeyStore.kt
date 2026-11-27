@@ -66,7 +66,7 @@ internal object AndroidEnrollmentKeyStore {
     )
 
     fun signFcmTokenRegistration(fcmToken: String): SignedFcmTokenRegistration {
-        require(fcmToken.matches(Regex("^[A-Za-z0-9_:-]{32,2048}$"))) {
+        require(AndroidFcmTokenProtocolV1.isValidToken(fcmToken)) {
             "FCM_TOKEN_FORMAT_INVALID"
         }
         val identity = getOrCreatePublicIdentity()
@@ -76,22 +76,13 @@ internal object AndroidEnrollmentKeyStore {
             random.nextBytes(bytes)
             return Base64.encodeToString(bytes, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
         }
-        val tokenHash = Base64.encodeToString(
-            MessageDigest.getInstance("SHA-256").digest(fcmToken.toByteArray(Charsets.UTF_8)),
-            Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING
-        )
+        val tokenHash = AndroidFcmTokenProtocolV1.tokenSha256Base64Url(fcmToken)
         val commandId = randomB64()
         val issuedAt = System.currentTimeMillis().toString()
         val nonce = randomB64()
-        val canonical = (
-            "EZERO_ANDROID_FCM_TOKEN_V1\\n" +
-                "device_fp=${identity.fingerprint}\\n" +
-                "token_sha256=$tokenHash\\n" +
-                "command_id=$commandId\\n" +
-                "issued_at=$issuedAt\\n" +
-                "nonce=$nonce\\n" +
-                "audience=https://coma39658-ctrl.github.io\\n"
-            ).toByteArray(Charsets.UTF_8)
+        val canonical = AndroidFcmTokenProtocolV1.canonicalMessage(
+            identity.fingerprint, tokenHash, commandId, issuedAt, nonce
+        )
         val pair = getOrCreateKeyPair()
         val der = Signature.getInstance("SHA256withECDSA").run {
             initSign(pair.private)
