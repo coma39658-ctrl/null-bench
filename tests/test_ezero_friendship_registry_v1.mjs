@@ -79,17 +79,17 @@ response = await postApproval(approvals[1]);
 assert.equal(response.status, 200);
 assert.equal((await response.json()).status, "ACTIVE");
 response = await RegistryWorker.fetch(new Request("https://registry.example/v1/authorize-call", {
-  method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(authBody)
+  method: "POST", headers: { Origin: origin, "Content-Type": "application/json" }, body: JSON.stringify(authBody)
 }), env);
 assert.equal(response.status, 200);
 assert.deepEqual(await response.json(), { authorized: true, relationshipId });
 response = await RegistryWorker.fetch(new Request("https://registry.example/v1/authorize-call", {
-  method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(authBody)
+  method: "POST", headers: { Origin: origin, "Content-Type": "application/json" }, body: JSON.stringify(authBody)
 }), env);
 assert.equal(response.status, 409);
 const wrongPeer = { ...authBody, callId: "D".repeat(32), nonce: "S".repeat(32), recipientFingerprint: "CC:".repeat(31) + "03" };
 response = await RegistryWorker.fetch(new Request("https://registry.example/v1/authorize-call", {
-  method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(wrongPeer)
+  method: "POST", headers: { Origin: origin, "Content-Type": "application/json" }, body: JSON.stringify(wrongPeer)
 }), env);
 assert.equal(response.status, 403);
 response = await postApproval(approvals[0]);
