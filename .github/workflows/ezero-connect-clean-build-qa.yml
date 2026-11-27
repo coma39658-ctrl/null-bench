@@ -20,7 +20,9 @@ on:
       - 'js/ezero_connect_pairing_auto_ui_v2.js'
       - 'js/ezero_connect_config_v1.js'
       - 'scripts/ezero_connect_qr_entry_v1.js'
-      - 'signaling/ezero-connect-v1/**'\n      - 'signaling/ezero-friendship-registry-v1/**'\n      - 'tests/test_ezero_friendship_registry_v1.mjs'
+      - 'signaling/ezero-connect-v1/**'
+      - 'signaling/ezero-friendship-registry-v1/**'
+      - 'tests/test_ezero_friendship_registry_v1.mjs'
       - 'tests/test_ezero_connect_qr_frozen_guard_v1.mjs'
       - 'tests/test_ezero_connect_clean_build_v1.mjs'
       - 'tests/test_ezero_connect_qr_runtime_v1.mjs'
@@ -135,7 +137,9 @@ jobs:
           node --check js/ezero_connect_pairing_auto_ui_v2.js
           node --check js/ezero_connect_config_v1.js
           node --check scripts/ezero_connect_qr_entry_v1.js
-          node --check signaling/ezero-friendship-registry-v1/worker.mjs\n          node --check tests/test_ezero_friendship_registry_v1.mjs\n          node --check signaling/ezero-connect-v1/worker.mjs
+          node --check signaling/ezero-friendship-registry-v1/worker.mjs
+          node --check tests/test_ezero_friendship_registry_v1.mjs
+          node --check signaling/ezero-connect-v1/worker.mjs
           node --check signaling/ezero-connect-v1/inbox_worker.mjs
           node --check signaling/ezero-connect-v1/inbox_protocol.mjs
           node --check signaling/ezero-connect-v1/saved_friendship_authorization_v1.mjs
@@ -201,6 +205,10 @@ jobs:
         run: node tests/test_ezero_connect_inbox_worker_v1.mjs
       - name: Verify server-authoritative saved-friend call authorization
         run: node tests/test_ezero_saved_friendship_authorization_v1.mjs
+      - name: Verify two-sided signed friendship registry and replay-safe call authorization
+        run: node tests/test_ezero_friendship_registry_v1.mjs
+      - name: Validate isolated friendship registry Worker without deploying
+        run: npx wrangler deploy --dry-run --outdir /tmp/ezero-friendship-registry-dry-run --config signaling/ezero-friendship-registry-v1/wrangler.jsonc
       - name: Verify saved-friend browser identity and inbox client
         run: node tests/test_ezero_connect_saved_calls_client_v1.mjs
       - name: Verify foreground media call controls and accepted-room handoff
