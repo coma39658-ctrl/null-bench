@@ -7,7 +7,7 @@
  */
 const REGISTRY_PATH = "https://friendship-registry.internal/v1/authorize-call";
 const FINGERPRINT_RE = new RegExp("^(?:[0-9A-F]{2}:){31}[0-9A-F]{2}$");
-const RELATIONSHIP_RE = new RegExp("^[A-Za-z0-9_-]{16,128}$");
+const RELATIONSHIP_RE = new RegExp("^[a-f0-9]{64}$");
 const OPAQUE_ID_RE = new RegExp("^[A-Za-z0-9_-]{32}$");
 
 export async function authorizeSavedFriendshipForCall(env, invite) {

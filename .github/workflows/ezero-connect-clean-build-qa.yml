@@ -22,6 +22,8 @@ on:
       - 'scripts/ezero_connect_qr_entry_v1.js'
       - 'signaling/ezero-connect-v1/**'
       - 'signaling/ezero-friendship-registry-v1/**'
+      - 'signaling/ezero-offline-call-queue-v1/**'
+      - 'tests/test_ezero_offline_call_queue_v1.mjs'
       - 'tests/test_ezero_friendship_registry_v1.mjs'
       - 'tests/test_ezero_friendship_registry_v2.mjs'
       - 'tests/test_ezero_connect_qr_frozen_guard_v1.mjs'
@@ -51,6 +53,7 @@ on:
       - ezero-mutual-approval-ui-staging-20261123
       - ezero-connect-auto-trust-pairing-v2-20261123
       - ezero-connect-media-foundation-v1-20261123
+      - ezero-offline-call-queue-do-v1-staging-20261127
     paths:
       - 'ezero-connect.html'
       - 'ezero-connect-app.html'
@@ -69,6 +72,8 @@ on:
       - 'js/ezero_connect_config_v1.js'
       - 'scripts/ezero_connect_qr_entry_v1.js'
       - 'signaling/ezero-connect-v1/**'
+      - 'signaling/ezero-offline-call-queue-v1/**'
+      - 'tests/test_ezero_offline_call_queue_v1.mjs'
       - 'tests/test_ezero_connect_qr_frozen_guard_v1.mjs'
       - 'tests/test_ezero_connect_clean_build_v1.mjs'
       - 'tests/test_ezero_connect_qr_runtime_v1.mjs'
@@ -141,6 +146,8 @@ jobs:
           node --check signaling/ezero-friendship-registry-v1/worker.mjs
           node --check tests/test_ezero_friendship_registry_v1.mjs
           node --check tests/test_ezero_friendship_registry_v2.mjs
+          node --check signaling/ezero-offline-call-queue-v1/worker.mjs
+          node --check tests/test_ezero_offline_call_queue_v1.mjs
           node --check signaling/ezero-connect-v1/worker.mjs
           node --check signaling/ezero-connect-v1/inbox_worker.mjs
           node --check signaling/ezero-connect-v1/inbox_protocol.mjs
@@ -209,6 +216,8 @@ jobs:
         run: node tests/test_ezero_connect_inbox_worker_v1.mjs
       - name: Verify server-authoritative saved-friend call authorization
         run: node tests/test_ezero_saved_friendship_authorization_v1.mjs
+      - name: Verify recipient-bound offline call queue, device proof and one-time claim
+        run: node tests/test_ezero_offline_call_queue_v1.mjs
       - name: Verify two-sided signed friendship registry and replay-safe call authorization
         run: node tests/test_ezero_friendship_registry_v1.mjs
       - name: Validate isolated friendship registry Worker without deploying

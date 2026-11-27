@@ -20,7 +20,7 @@ const payload = {
   v: 1, protocol: "E-ZERO-SAVED-FRIEND-CALL-1",
   origin: "https://staging.example.test",
   callerFingerprint, callerPublicKeySpki: b64url(spki),
-  recipientFingerprint, relationshipId: "relationship_1234567890",
+  recipientFingerprint, relationshipId: "c".repeat(64),
   callId: "A".repeat(32), nonce: "B".repeat(32),
   mode: "audio", issuedAt: now, expiresAt: now + 20_000
 };

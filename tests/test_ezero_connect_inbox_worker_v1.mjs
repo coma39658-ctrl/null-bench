@@ -37,7 +37,7 @@ const payload = {
   callerFingerprint: caller.fingerprint,
   callerPublicKeySpki: caller.spki,
   recipientFingerprint: recipient.fingerprint,
-  relationshipId: "relationship_1234567890",
+  relationshipId: "c".repeat(64),
   callId: "0123456789abcdefghijklmnopqrstuv",
   nonce: "abcdefghijklmnopqrstuv0123456789",
   mode: "audio",

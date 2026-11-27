@@ -8,7 +8,7 @@ const invite = {
   callerFingerprint: "AA:".repeat(31) + "01",
   callerPublicKeySpki: "A".repeat(124),
   recipientFingerprint: "BB:".repeat(31) + "02",
-  relationshipId: "relationship_1234567890",
+  relationshipId: "c".repeat(64),
   callId: "A".repeat(32),
   nonce: "B".repeat(32),
   mode: "audio",
@@ -64,6 +64,10 @@ await assert.rejects(
 );
 await assert.rejects(
   () => authorizeSavedFriendshipForCall(env, { ...invite, callerFingerprint: "not-a-fingerprint" }),
+  /FRIENDSHIP_INVITE_INVALID/
+);
+await assert.rejects(
+  () => authorizeSavedFriendshipForCall(env, { ...invite, relationshipId: "relationship_1234567890" }),
   /FRIENDSHIP_INVITE_INVALID/
 );
 console.log("EZERO_SERVER_AUTHORITATIVE_FRIENDSHIP_GATE_PASS");

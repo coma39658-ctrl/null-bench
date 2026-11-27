@@ -69,7 +69,7 @@ export async function verifyCallInvite(code, expectedOrigin, expectedRecipientFi
     throw new Error("CALL_INVITE_BINDING_INVALID");
   }
   if (!["audio", "video"].includes(p.mode) || typeof p.relationshipId !== "string" ||
-      !/^[A-Za-z0-9_-]{16,128}$/.test(p.relationshipId) ||
+      !/^[a-f0-9]{64}$/.test(p.relationshipId) ||
       typeof p.callId !== "string" || !/^[A-Za-z0-9_-]{32}$/.test(p.callId) ||
       typeof p.nonce !== "string" || !/^[A-Za-z0-9_-]{32}$/.test(p.nonce)) {
     throw new Error("CALL_INVITE_VALUE_INVALID");
