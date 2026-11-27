@@ -22,6 +22,150 @@ internal object BrowserAndroidIdentityProofQrV1 {
         "relationshipId", "identityFingerprint", "installationFingerprint", "installationId"
     )
 
+    /**
+     * Small recursive-descent JSON syntax validator. Object member names are decoded
+     * before comparison, so escaped aliases such as "type" and "\\u0074ype" collide.
+     * It validates strings, escapes, numbers, arrays, objects and trailing input.
+     */
+    private class StrictJsonDuplicateKeyGuard(private val source: String) {
+        private var index = 0
+
+        fun validateDocument() {
+            skipWhitespace()
+            parseValue()
+            skipWhitespace()
+            require(index == source.length) { "JSON_TRAILING_CONTENT" }
+        }
+
+        private fun parseValue() {
+            skipWhitespace()
+            require(index < source.length) { "JSON_VALUE_MISSING" }
+            when (source[index]) {
+                '{' -> parseObject()
+                '[' -> parseArray()
+                '"' -> parseString()
+                't' -> consumeLiteral("true")
+                'f' -> consumeLiteral("false")
+                'n' -> consumeLiteral("null")
+                '-', in '0'..'9' -> parseNumber()
+                else -> throw IllegalArgumentException("JSON_VALUE_INVALID")
+            }
+        }
+
+        private fun parseObject() {
+            expect('{')
+            skipWhitespace()
+            if (consumeIf('}')) return
+            val keys = HashSet<String>()
+            while (true) {
+                skipWhitespace()
+                require(index < source.length && source[index] == '"') { "JSON_OBJECT_KEY_INVALID" }
+                val key = parseString()
+                require(keys.add(key)) { "JSON_DUPLICATE_KEY" }
+                skipWhitespace()
+                expect(':')
+                parseValue()
+                skipWhitespace()
+                if (consumeIf('}')) return
+                expect(',')
+            }
+        }
+
+        private fun parseArray() {
+            expect('[')
+            skipWhitespace()
+            if (consumeIf(']')) return
+            while (true) {
+                parseValue()
+                skipWhitespace()
+                if (consumeIf(']')) return
+                expect(',')
+            }
+        }
+
+        private fun parseString(): String {
+            expect('"')
+            val out = StringBuilder()
+            while (index < source.length) {
+                val ch = source[index++]
+                when {
+                    ch == '"' -> return out.toString()
+                    ch == '\\' -> {
+                        require(index < source.length) { "JSON_ESCAPE_INVALID" }
+                        when (val escaped = source[index++]) {
+                            '"', '\\', '/' -> out.append(escaped)
+                            'b' -> out.append('\b')
+                            'f' -> out.append('\u000C')
+                            'n' -> out.append('\n')
+                            'r' -> out.append('\r')
+                            't' -> out.append('\t')
+                            'u' -> {
+                                require(index + 4 <= source.length) { "JSON_UNICODE_ESCAPE_INVALID" }
+                                val hex = source.substring(index, index + 4)
+                                require(hex.all { it in '0'..'9' || it in 'a'..'f' || it in 'A'..'F' }) {
+                                    "JSON_UNICODE_ESCAPE_INVALID"
+                                }
+                                out.append(hex.toInt(16).toChar())
+                                index += 4
+                            }
+                            else -> throw IllegalArgumentException("JSON_ESCAPE_INVALID")
+                        }
+                    }
+                    ch.code < 0x20 -> throw IllegalArgumentException("JSON_CONTROL_CHARACTER")
+                    else -> out.append(ch)
+                }
+            }
+            throw IllegalArgumentException("JSON_STRING_UNTERMINATED")
+        }
+
+        private fun parseNumber() {
+            consumeIf('-')
+            require(index < source.length) { "JSON_NUMBER_INVALID" }
+            if (consumeIf('0')) {
+                require(index >= source.length || source[index] !in '0'..'9') { "JSON_NUMBER_INVALID" }
+            } else {
+                require(index < source.length && source[index] in '1'..'9') { "JSON_NUMBER_INVALID" }
+                while (index < source.length && source[index] in '0'..'9') index++
+            }
+            if (consumeIf('.')) {
+                require(index < source.length && source[index] in '0'..'9') { "JSON_NUMBER_INVALID" }
+                while (index < source.length && source[index] in '0'..'9') index++
+            }
+            if (index < source.length && (source[index] == 'e' || source[index] == 'E')) {
+                index++
+                if (index < source.length && (source[index] == '+' || source[index] == '-')) index++
+                require(index < source.length && source[index] in '0'..'9') { "JSON_NUMBER_INVALID" }
+                while (index < source.length && source[index] in '0'..'9') index++
+            }
+        }
+
+        private fun consumeLiteral(literal: String) {
+            require(source.regionMatches(index, literal, 0, literal.length)) { "JSON_LITERAL_INVALID" }
+            index += literal.length
+        }
+
+        private fun skipWhitespace() {
+            while (index < source.length && source[index] in charArrayOf(' ', '\\t', '\\n', '\\r')) index++
+        }
+
+        private fun expect(ch: Char) {
+            require(index < source.length && source[index] == ch) { "JSON_SYNTAX_INVALID" }
+            index++
+        }
+
+        private fun consumeIf(ch: Char): Boolean {
+            if (index < source.length && source[index] == ch) {
+                index++
+                return true
+            }
+            return false
+        }
+
+        companion object {
+            fun validate(source: String) = StrictJsonDuplicateKeyGuard(source).validateDocument()
+        }
+    }
+
     data class Proof(
         val challengeId: String,
         val nonce: String,
@@ -39,6 +183,9 @@ internal object BrowserAndroidIdentityProofQrV1 {
         require(expectedInstallationFingerprint.matches(Regex("^[a-f0-9]{64}$"))) { "LOCAL_INSTALLATION_FINGERPRINT_INVALID" }
         require(expectedInstallationId.matches(Regex("^[A-Za-z0-9_-]{8,128}$"))) { "LOCAL_INSTALLATION_ID_INVALID" }
 
+        // JSONObject keeps only the last occurrence of a duplicate key. Reject duplicates
+        // with a strict syntax pass before constructing the object model.
+        StrictJsonDuplicateKeyGuard.validate(raw)
         val root = JSONObject(raw)
         require(root.keys().asSequence().toSet() == TOP_KEYS) { "QR_FIELDS_INVALID" }
         require(root.getString("type") == TYPE) { "QR_TYPE_INVALID" }
