@@ -198,6 +198,14 @@ function safeClose(ws, code = 1008, reason = "connection rejected") {
   } catch (_) {}
 }
 
+function safeDiagnosticCode(error) {
+  const message = String(error?.message || "");
+  if (/^INVITE_/.test(message)) return "INVITE_REJECTED";
+  if (/^(HELLO_|BASE64URL_|CANONICAL_)/.test(message)) return "IDENTITY_PROOF_REJECTED";
+  if (/^(ROOM_|ROLE_|PEER_)/.test(message)) return "ROOM_STATE_REJECTED";
+  return "INTERNAL_ERROR";
+}
+
 export class EzeroConnectRoom {
   constructor(ctx, env) {
     this.ctx = ctx;
@@ -280,6 +288,7 @@ export class EzeroConnectRoom {
   }
 
   async processWebSocketMessage(ws, raw) {
+    let diagnosticStage = "admission";
     try {
       if (typeof raw !== "string" || new TextEncoder().encode(raw).length > MAX_MESSAGE_BYTES) {
         safeClose(ws, 1009, "message too large");
@@ -289,6 +298,7 @@ export class EzeroConnectRoom {
       try { parsed = JSON.parse(raw); } catch (_) { safeClose(ws, 1007, "invalid JSON"); return; }
       const attachment = ws.deserializeAttachment();
       if (!attachment) { safeClose(ws); return; }
+      diagnosticStage = attachment.state === "PENDING" ? "handshake" : "relay";
 
       if (attachment.state === "PENDING") {
         const helloKeys = Object.keys(parsed || {}).sort().join(",");
@@ -396,7 +406,12 @@ export class EzeroConnectRoom {
       if (message.type === "hangup" || message.type === "trust-decline") {
         await this.closeRoom(message.type);
       }
-    } catch (_) {
+    } catch (error) {
+      safeSend(ws, {
+        type: "server-error",
+        stage: diagnosticStage,
+        code: safeDiagnosticCode(error)
+      });
       safeClose(ws, 1011, "signaling failure");
     }
   }
