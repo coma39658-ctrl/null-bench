@@ -91,6 +91,12 @@ response = await RegistryWorker.fetch(new Request("https://registry.example/v1/a
   method: "POST", headers: { "Origin": "https://evil.example", "Content-Type": "application/json" }, body: JSON.stringify(auth)
 }), env);
 assert.equal(response.status, 403);
+const forgedAuth = structuredClone(auth);
+forgedAuth.signedInvite.signature = handshakes.guest.signature;
+response = await RegistryWorker.fetch(new Request("https://registry.example/v1/authorize-call", {
+  method: "POST", headers: { Origin: origin, "Content-Type": "application/json" }, body: JSON.stringify(forgedAuth)
+}), env);
+assert.equal(response.status, 400);
 response = await RegistryWorker.fetch(new Request("https://registry.example/v1/authorize-call", {
   method: "POST", headers: { Origin: origin, "Content-Type": "application/json" }, body: JSON.stringify(auth)
 }), env);
