@@ -1,10 +1,11 @@
 (() => {
   "use strict";
   const DB_NAME = "ezero-connect-trusted-contacts";
-  const DB_VERSION = 2;
+  const DB_VERSION = 3;
   const CONTACTS = "contacts";
   const VAULT = "vault";
   const FRIEND_PROFILES = "friendProfiles";
+  const MESSAGES = "messages";
   const VAULT_ID = "local-aes-gcm-key";
   // Contact metadata is AES-GCM encrypted locally; the non-extractable vault key stays in IndexedDB.
 
@@ -46,6 +47,15 @@
         if (!db.objectStoreNames.contains(CONTACTS)) db.createObjectStore(CONTACTS, { keyPath: "relationshipId" });
         if (!db.objectStoreNames.contains(VAULT)) db.createObjectStore(VAULT, { keyPath: "id" });
         if (!db.objectStoreNames.contains(FRIEND_PROFILES)) db.createObjectStore(FRIEND_PROFILES, { keyPath: "relationshipId" });
+        let messagesStore;
+        if (!db.objectStoreNames.contains(MESSAGES)) {
+          messagesStore = db.createObjectStore(MESSAGES, { keyPath: ["relationshipId", "messageId"] });
+        } else {
+          messagesStore = request.transaction.objectStore(MESSAGES);
+        }
+        if (!messagesStore.indexNames.contains("byRelationshipCreatedAt")) {
+          messagesStore.createIndex("byRelationshipCreatedAt", ["relationshipId", "createdAt"], { unique: false });
+        }
       };
       request.onsuccess = () => {
         const db = request.result;
@@ -406,6 +416,203 @@
     return true;
   }
 
+  const MESSAGE_ID_PATTERN = /^[A-Za-z0-9_-]{16,128}$/;
+  const MESSAGE_STATUSES = new Set(["sending", "delivered", "failed", "received"]);
+
+  function validateStoredMessage(input) {
+    if (!input || typeof input !== "object" || Array.isArray(input) ||
+        !MESSAGE_ID_PATTERN.test(input.messageId || "") ||
+        !["text", "voice"].includes(input.type) ||
+        !["incoming", "outgoing"].includes(input.direction) ||
+        !MESSAGE_STATUSES.has(input.status) ||
+        !Number.isSafeInteger(input.createdAt) || input.createdAt < 0 ||
+        !(input.bytes instanceof Uint8Array) || input.bytes.length === 0) {
+      throw new Error("TRUST_MESSAGE_INPUT_INVALID");
+    }
+    if ((input.direction === "incoming" && input.status !== "received") ||
+        (input.direction === "outgoing" && input.status === "received")) {
+      throw new Error("TRUST_MESSAGE_STATUS_INVALID");
+    }
+    const maxBytes = input.type === "text" ? 8000 : 180 * 1024;
+    if (input.bytes.length > maxBytes) throw new Error("TRUST_MESSAGE_SIZE_INVALID");
+    if (input.type === "text") {
+      try { new TextDecoder("utf-8", { fatal: true }).decode(input.bytes); }
+      catch (_) { throw new Error("TRUST_MESSAGE_TEXT_ENCODING_INVALID"); }
+    }
+    return {
+      messageId: input.messageId,
+      type: input.type,
+      direction: input.direction,
+      status: input.status,
+      createdAt: input.createdAt,
+      bytes: new Uint8Array(input.bytes)
+    };
+  }
+
+  function messageAdditionalData(relationshipId, messageId) {
+    return new TextEncoder().encode(relationshipId + ":" + messageId);
+  }
+
+  async function encryptStoredMessage(value, key) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const plaintextValue = {
+      relationshipId: value.relationshipId,
+      messageId: value.messageId,
+      type: value.type,
+      direction: value.direction,
+      status: value.status,
+      createdAt: value.createdAt,
+      payloadBase64: bytesToBase64(value.bytes)
+    };
+    const ciphertext = await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv, additionalData: messageAdditionalData(value.relationshipId, value.messageId) },
+      key,
+      new TextEncoder().encode(JSON.stringify(plaintextValue))
+    );
+    return {
+      relationshipId: value.relationshipId,
+      messageId: value.messageId,
+      createdAt: value.createdAt,
+      iv,
+      ciphertext: new Uint8Array(ciphertext)
+    };
+  }
+
+  async function decryptStoredMessage(record, key) {
+    const clear = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: new Uint8Array(record.iv), additionalData: messageAdditionalData(record.relationshipId, record.messageId) },
+      key,
+      new Uint8Array(record.ciphertext)
+    );
+    const value = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(clear));
+    if (value.relationshipId !== record.relationshipId || value.messageId !== record.messageId ||
+        value.createdAt !== record.createdAt || !["text", "voice"].includes(value.type) ||
+        !["incoming", "outgoing"].includes(value.direction) || !MESSAGE_STATUSES.has(value.status) ||
+        typeof value.payloadBase64 !== "string") {
+      throw new Error("TRUST_MESSAGE_RECORD_INVALID");
+    }
+    const bytes = base64ToBytes(value.payloadBase64);
+    const maxBytes = value.type === "text" ? 8000 : 180 * 1024;
+    if (!bytes.length || bytes.length > maxBytes) throw new Error("TRUST_MESSAGE_RECORD_SIZE_INVALID");
+    if (value.type === "text") new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    return Object.freeze({
+      messageId: value.messageId,
+      relationshipId: value.relationshipId,
+      type: value.type,
+      direction: value.direction,
+      status: value.status,
+      createdAt: value.createdAt,
+      bytes
+    });
+  }
+
+  async function saveTrustedMessage(relationshipId, remoteFingerprint, input) {
+    await trustedProfileContext(relationshipId, remoteFingerprint);
+    const value = validateStoredMessage(input);
+    const key = await readVaultKey(true);
+    if (!key || key.extractable !== false || key.algorithm?.name !== "AES-GCM") {
+      throw new Error("TRUST_VAULT_KEY_MISSING_OR_INVALID");
+    }
+    const record = await encryptStoredMessage({ ...value, relationshipId }, key);
+    const db = await openDb();
+    try {
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(MESSAGES, "readwrite");
+        tx.objectStore(MESSAGES).add(record);
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(new Error("TRUST_MESSAGE_WRITE_FAILED"));
+        tx.onabort = () => reject(new Error("TRUST_MESSAGE_WRITE_ABORTED"));
+      });
+    } finally { db.close(); }
+    return Object.freeze({ messageId: value.messageId, createdAt: value.createdAt, status: value.status });
+  }
+
+  async function listTrustedMessages(relationshipId, remoteFingerprint, limit = 100) {
+    await trustedProfileContext(relationshipId, remoteFingerprint);
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 200) throw new Error("TRUST_MESSAGE_LIMIT_INVALID");
+    const db = await openDb();
+    let records;
+    try {
+      records = await new Promise((resolve, reject) => {
+        const rows = [];
+        const range = IDBKeyRange.bound([relationshipId, 0], [relationshipId, Number.MAX_SAFE_INTEGER]);
+        const request = db.transaction(MESSAGES, "readonly")
+          .objectStore(MESSAGES).index("byRelationshipCreatedAt").openCursor(range, "prev");
+        request.onsuccess = () => {
+          const cursor = request.result;
+          if (cursor && rows.length < limit) {
+            rows.push(cursor.value);
+            cursor.continue();
+          } else resolve(rows);
+        };
+        request.onerror = () => reject(new Error("TRUST_MESSAGE_READ_FAILED"));
+      });
+    } finally { db.close(); }
+    const key = await readVaultKey(false);
+    if (!key || key.extractable !== false || key.algorithm?.name !== "AES-GCM") {
+      throw new Error("TRUST_VAULT_KEY_MISSING_OR_INVALID");
+    }
+    const values = [];
+    for (const record of records.reverse()) values.push(await decryptStoredMessage(record, key));
+    return Object.freeze(values);
+  }
+
+  async function updateTrustedMessageStatus(relationshipId, remoteFingerprint, messageId, status) {
+    await trustedProfileContext(relationshipId, remoteFingerprint);
+    if (!MESSAGE_ID_PATTERN.test(messageId || "") || !["delivered", "failed"].includes(status)) {
+      throw new Error("TRUST_MESSAGE_STATUS_UPDATE_INVALID");
+    }
+    const db = await openDb();
+    let record;
+    try {
+      record = await new Promise((resolve, reject) => {
+        const request = db.transaction(MESSAGES, "readonly").objectStore(MESSAGES).get([relationshipId, messageId]);
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(new Error("TRUST_MESSAGE_READ_FAILED"));
+      });
+    } finally { db.close(); }
+    if (!record) throw new Error("TRUST_MESSAGE_NOT_FOUND");
+    const key = await readVaultKey(false);
+    if (!key || key.extractable !== false || key.algorithm?.name !== "AES-GCM") {
+      throw new Error("TRUST_VAULT_KEY_MISSING_OR_INVALID");
+    }
+    const current = await decryptStoredMessage(record, key);
+    if (current.direction !== "outgoing" || current.status !== "sending") {
+      throw new Error("TRUST_MESSAGE_STATUS_TRANSITION_INVALID");
+    }
+    const updated = await encryptStoredMessage({ ...current, relationshipId, status }, key);
+    const writeDb = await openDb();
+    try {
+      await new Promise((resolve, reject) => {
+        const tx = writeDb.transaction(MESSAGES, "readwrite");
+        tx.objectStore(MESSAGES).put(updated);
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(new Error("TRUST_MESSAGE_STATUS_WRITE_FAILED"));
+        tx.onabort = () => reject(new Error("TRUST_MESSAGE_STATUS_WRITE_ABORTED"));
+      });
+    } finally { writeDb.close(); }
+    return Object.freeze({ messageId, status });
+  }
+
+  async function deleteTrustedMessagesForRelationship(relationshipId) {
+    const db = await openDb();
+    try {
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(MESSAGES, "readwrite");
+        const range = IDBKeyRange.bound([relationshipId, 0], [relationshipId, Number.MAX_SAFE_INTEGER]);
+        const request = tx.objectStore(MESSAGES).index("byRelationshipCreatedAt").openCursor(range);
+        request.onsuccess = () => {
+          const cursor = request.result;
+          if (cursor) { cursor.delete(); cursor.continue(); }
+        };
+        request.onerror = () => reject(new Error("TRUST_MESSAGE_DELETE_FAILED"));
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(new Error("TRUST_MESSAGE_DELETE_FAILED"));
+        tx.onabort = () => reject(new Error("TRUST_MESSAGE_DELETE_ABORTED"));
+      });
+    } finally { db.close(); }
+  }
+
   async function canReconnect(remoteFingerprint) {
     if (!/^(?:[0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(remoteFingerprint)) return false;
     const records = await allContacts();
@@ -446,7 +653,10 @@
       });
     }
     db.close();
-    for (const record of changed) await deleteFriendProfileRecord(record.relationshipId);
+    for (const record of changed) {
+      await deleteFriendProfileRecord(record.relationshipId);
+      await deleteTrustedMessagesForRelationship(record.relationshipId);
+    }
     return true;
   }
 
@@ -491,6 +701,9 @@
     saveTrustedFriendProfile,
     getTrustedFriendProfile,
     setTrustedFriendProfileSharedHash,
+    saveTrustedMessage,
+    listTrustedMessages,
+    updateTrustedMessageStatus,
     canReconnect,
     revoke,
     block,
