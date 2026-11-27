@@ -117,6 +117,34 @@ try {
   assert.equal(await a.evaluate(fp => window.EZERO_CONNECT_TRUST.canReconnect(fp), identityB.fingerprint), true);
   assert.equal(await b.evaluate(fp => window.EZERO_CONNECT_TRUST.canReconnect(fp), identityA.fingerprint), true);
 
+  // Simulate a same-device page refresh while its old authenticated socket is
+  // still open. The verified device must replace its own stale socket without
+  // causing the other phone to see a false peer-disconnected state.
+  const aReconnect = await a.context().newPage();
+  await aReconnect.addInitScript(() => {
+    window.EZERO_CONNECT_CONFIG = { signalingUrl: "ws://127.0.0.1:8787" };
+  });
+  await aReconnect.goto("http://127.0.0.1:8769/ezero-connect-app.html");
+  await aReconnect.waitForFunction(() => Boolean(
+    window.EZERO_CONNECT_SIGNALING && window.EZERO_CONNECT_IDENTITY && window.EZERO_CONNECT_INVITES
+  ));
+  const reconnectIdentity = await aReconnect.evaluate(() => window.EZERO_CONNECT_IDENTITY.getPublicIdentity());
+  assert.equal(reconnectIdentity.fingerprint, identityA.fingerprint,
+    "a second page in the same device context must retain the same cryptographic identity");
+  await aReconnect.evaluate(args => {
+    const session = window.EZERO_CONNECT_SIGNALING.connect({
+      role: "host", inviteCode: args.inviteCode, inviteMetadata: args.metadata
+    });
+    window.__ezeroSignal = session;
+    session.on("peer-ready", peer => { window.__ezeroPeer = peer; });
+    session.on("error", error => { window.__ezeroSignalError = error.message; });
+    session.ready.then(() => { window.__ezeroReady = true; })
+      .catch(error => { window.__ezeroReadyRejected = error.message; });
+  }, { inviteCode: invite.inviteCode, metadata: invite });
+  await aReconnect.waitForFunction(() => window.__ezeroReady === true, null, { timeout: 10000 });
+  await aReconnect.waitForFunction(() => Boolean(window.__ezeroPeer), null, { timeout: 10000 });
+  await b.waitForFunction(() => window.__ezeroPeer?.fingerprint === identityA.fingerprint, null, { timeout: 10000 });
+
   // A third, different device must not take over the already-bound guest
   // identity by replaying the same signed QR/nonce.
   const c = await phone();
@@ -170,12 +198,13 @@ try {
   await host2.waitForFunction(() => Boolean(window.__ezeroSignal?.ready), null, { timeout: 10000 });
   await host2.evaluate(() => window.__ezeroSignal.send("hangup", {}));
 
-  await a.evaluate(() => window.__ezeroSignal.send("hangup", {}));
+  await aReconnect.evaluate(() => window.__ezeroSignal.send("hangup", {}));
   await b.waitForFunction(() => Boolean(window.__ezeroRoomClosed));
-  await a.waitForFunction(() => Boolean(window.__ezeroRoomClosed));
+  await aReconnect.waitForFunction(() => Boolean(window.__ezeroRoomClosed));
   assert.equal(await a.evaluate(() => window.__mediaCalls), 0);
+  assert.equal(await aReconnect.evaluate(() => window.__mediaCalls), 0);
   assert.equal(await b.evaluate(() => window.__mediaCalls), 0);
-  assert.equal(await a.evaluate(() => window.__ezeroSignalError || null), null);
+  assert.equal(await aReconnect.evaluate(() => window.__ezeroSignalError || null), null);
   assert.equal(await b.evaluate(() => window.__ezeroSignalError || null), null);
 
   console.log("EZERO_LOCAL_WORKER_TWO_BROWSER_TRUST_RELAY_PASS");
