@@ -244,9 +244,8 @@ export class AndroidEnrollmentRegistry extends DurableObject {
         if (!currentRoots[body.root_fp]?.active) return { error: "ROOT_NOT_AUTHORIZED", status: 403 };
         if (await txn.get(replayKey)) return { error: "ROOT_COMMAND_REPLAY", status: 409 };
 
-        let devices = null;
+        let devices = (await txn.get("devices")) || {};
         if (expectedAction === "REVOKE_DEVICE") {
-          devices = (await txn.get("devices")) || {};
           const device = devices[body.device_fp];
           if (!device || device.root_fp !== body.root_fp) return { error: "DEVICE_NOT_FOUND", status: 404 };
           if (!device.active) return { error: "DEVICE_ALREADY_REVOKED", status: 409 };
