@@ -54,6 +54,7 @@ on:
       - ezero-connect-auto-trust-pairing-v2-20261123
       - ezero-connect-media-foundation-v1-20261123
       - ezero-offline-call-queue-do-v1-staging-20261127
+      - ezero-offline-queue-device-fingerprint-binding-staging-20261127
     paths:
       - 'ezero-connect.html'
       - 'ezero-connect-app.html'
