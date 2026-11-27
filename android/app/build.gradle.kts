@@ -24,8 +24,8 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "0.1.0-staging"
-        buildConfigField("String", "ANDROID_ENROLLMENT_WORKER_ENDPOINT", "\"\${configuredEnrollmentWorkerEndpoint}\"")
-        buildConfigField("String", "CALL_WAKE_PUBLIC_KEY_SPKI_BASE64", "\"\${configuredCallWakePublicKey}\"")
+        buildConfigField("String", "ANDROID_ENROLLMENT_WORKER_ENDPOINT", "\"" + configuredEnrollmentWorkerEndpoint + "\"")
+        buildConfigField("String", "CALL_WAKE_PUBLIC_KEY_SPKI_BASE64", "\"" + configuredCallWakePublicKey + "\"")
     }
 
     compileOptions {
