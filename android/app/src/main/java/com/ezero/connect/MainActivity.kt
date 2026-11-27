@@ -304,7 +304,8 @@ class MainActivity : Activity() {
                     .commit()) { "ENROLLMENT_STATE_PERSISTENCE_FAILED" }
                 runOnUiThread {
                     enrollmentQrView.visibility = android.view.View.GONE
-                    statusView.text = "E-ZERO device enrollment confirmed by Worker.\\n\\nDevice fingerprint: ${result.getString("device_fp")}\\nRoot fingerprint: ${result.getString("root_fp")}\\n\\nStatus: ENROLLED. This does not enable FCM ringing, friend trust, or WebRTC calling."\n                    refreshFcmRegistrationIfEnrolled()
+                    statusView.text = "E-ZERO device enrollment confirmed by Worker.\\n\\nDevice fingerprint: ${result.getString("device_fp")}\\nRoot fingerprint: ${result.getString("root_fp")}\\n\\nStatus: ENROLLED. This does not enable FCM ringing, friend trust, or WebRTC calling."
+                    refreshFcmRegistrationIfEnrolled()
                 }
             } catch (error: Exception) {
                 runOnUiThread {
