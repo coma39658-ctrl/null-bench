@@ -3,7 +3,7 @@ name: E-ZERO QR Clock-Skew Isolated Worker Staging
 on:
   push:
     branches:
-      - ezero-connect-qr-clock-skew-repair-staging-20261125
+      - ezero-connect-peer-diagnostics-staging-20261126
     paths:
       - 'signaling/ezero-connect-v1/**'
       - 'signaling/ezero-connect-qr-clock-skew-staging/wrangler.jsonc'
