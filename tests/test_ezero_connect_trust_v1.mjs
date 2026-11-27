@@ -214,7 +214,9 @@ try {
   assert.equal(exportedEnvelope.payload.protocol, "E-ZERO-ANDROID-TRUST-BUNDLE-1");
   assert.equal(exportedEnvelope.payload.remoteFingerprint, identityB.fingerprint);
   assert.equal(exportedEnvelope.payload.relationshipId, autoSavedA.relationshipId);
-  assert.equal(exportedEnvelope.payload.trustVersion, 2);
+  assert.equal(exportedEnvelope.payload.trustVersion, 1);
+  assert.ok(exportedEnvelope.payload.localApproval.signature);
+  assert.ok(exportedEnvelope.payload.remoteApproval.signature);
   const rootPublicKey = createPublicKey({
     key: Buffer.from(exportedEnvelope.payload.rootSpki, "base64url"),
     format: "der",
