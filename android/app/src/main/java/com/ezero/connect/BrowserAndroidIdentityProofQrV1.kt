@@ -40,12 +40,12 @@ internal object BrowserAndroidIdentityProofQrV1 {
         require(expectedInstallationId.matches(Regex("^[A-Za-z0-9_-]{8,128}$"))) { "LOCAL_INSTALLATION_ID_INVALID" }
 
         val root = JSONObject(raw)
-        require(root.keySet() == TOP_KEYS) { "QR_FIELDS_INVALID" }
+        require(root.keys().asSequence().toSet() == TOP_KEYS) { "QR_FIELDS_INVALID" }
         require(root.getString("type") == TYPE) { "QR_TYPE_INVALID" }
         require(root.getString("encoding") == "P1363_BASE64URL") { "SIGNATURE_ENCODING_INVALID" }
 
         val statement = root.getJSONObject("statement")
-        require(statement.keySet() == STATEMENT_KEYS) { "STATEMENT_FIELDS_INVALID" }
+        require(statement.keys().asSequence().toSet() == STATEMENT_KEYS) { "STATEMENT_FIELDS_INVALID" }
         require(statement.getString("protocol") == PROTOCOL) { "PROTOCOL_INVALID" }
         require(statement.getString("origin") == ORIGIN) { "ORIGIN_INVALID" }
 
