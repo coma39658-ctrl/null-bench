@@ -143,7 +143,7 @@ try {
   }, { inviteCode: invite.inviteCode, metadata: invite });
   await aReconnect.waitForFunction(() => window.__ezeroReady === true, null, { timeout: 10000 });
   await aReconnect.waitForFunction(() => Boolean(window.__ezeroPeer), null, { timeout: 10000 });
-  await b.waitForFunction(() => window.__ezeroPeer?.fingerprint === identityA.fingerprint, null, { timeout: 10000 });
+  await b.waitForFunction(expectedFingerprint => window.__ezeroPeer?.fingerprint === expectedFingerprint, identityA.fingerprint, { timeout: 10000 });
 
   // A third, different device must not take over the already-bound guest
   // identity by replaying the same signed QR/nonce.
