@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { webcrypto } from "node:crypto";
+import { createPublicKey, verify as verifySignature, webcrypto } from "node:crypto";
 import { canonicalCallWakeV1, signCallWakeV1 } from "./call_wake_signing_v1.js";
 
 globalThis.crypto ??= webcrypto;
@@ -36,13 +36,16 @@ test("signed envelope verifies with public key and Android-compatible DER ECDSA"
       "=".repeat((4 - envelope.server_sig.length % 4) % 4)),
     c => c.charCodeAt(0)
   );
-  const ok = await crypto.subtle.verify(
-    { name: "ECDSA", hash: "SHA-256" },
-    pair.publicKey,
-    signature,
-    canonicalCallWakeV1(envelope)
+  assert.equal(signature[0], 0x30, "server_sig must be ASN.1 DER for Android SHA256withECDSA");
+  const spki = await crypto.subtle.exportKey("spki", pair.publicKey);
+  const publicKey = createPublicKey({ key: Buffer.from(spki), format: "der", type: "spki" });
+  const ok = verifySignature(
+    "sha256",
+    Buffer.from(canonicalCallWakeV1(envelope)),
+    publicKey,
+    Buffer.from(signature)
   );
-  assert.equal(ok, true);
+  assert.equal(ok, true, "Android-compatible DER signature must verify with the matching public key");
   assert.equal(envelope.expires_at, String(NOW + 90_000));
   assert.equal(envelope.wake_v, "1");
 });
