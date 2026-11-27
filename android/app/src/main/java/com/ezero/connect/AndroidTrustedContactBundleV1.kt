@@ -345,6 +345,21 @@ internal object AndroidTrustedContactBundleV1 {
         return records.single()
     }
 
+    /**
+     * Resolve an incoming caller only when both the public-key fingerprint
+     * AND the exact mutually-approved relationship ID match one local record.
+     * Call only with identity fields from a server-authenticated, one-use invite.
+     */
+    fun getTrustedPeerForCall(
+        context: Context,
+        remoteFingerprint: String,
+        relationshipId: String
+    ): TrustedContact? {
+        if (!relationshipId.matches(Regex("^[a-f0-9]{64}$"))) return null
+        val peer = getTrustedPeerForCall(context, remoteFingerprint) ?: return null
+        return peer.takeIf { it.relationshipId == relationshipId }
+    }
+
     fun setStatus(context: Context, remoteFingerprint: String, status: String): Boolean {
         require(status == "BLOCKED" || status == "REVOKED") { "TRUST_STATUS_INVALID" }
         val records = readStored(context)
