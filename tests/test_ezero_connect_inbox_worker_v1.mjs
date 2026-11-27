@@ -58,7 +58,24 @@ const recipientSocket = new FakeSocket({
   origin: payload.origin, fingerprint: recipient.fingerprint, peerCallId: null
 });
 const ctx = { getWebSockets: () => [callerSocket, recipientSocket] };
-const inbox = new EzeroConnectInbox(ctx, { PUBLIC_ORIGIN: payload.origin });
+const env = {
+  PUBLIC_ORIGIN: payload.origin,
+  // Unit-test-only trusted registry: emulate an exact mutual-friend allow decision.
+  FRIENDSHIP_REGISTRY: {
+    async fetch(_url, init) {
+      const request = JSON.parse(init.body);
+      assert.equal(request.protocol, "E-ZERO-SAVED-FRIEND-AUTH-1");
+      assert.equal(request.callerFingerprint, caller.fingerprint);
+      assert.equal(request.recipientFingerprint, recipient.fingerprint);
+      assert.equal(request.relationshipId, payload.relationshipId);
+      return new Response(JSON.stringify({
+        authorized: true,
+        relationshipId: payload.relationshipId
+      }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+  }
+};
+const inbox = new EzeroConnectInbox(ctx, env);
 
 await inbox.webSocketMessage(callerSocket, JSON.stringify({ type: "call-invite", inviteCode }));
 assert.equal(recipientSocket.sent.at(-1).type, "incoming-call");
@@ -125,7 +142,7 @@ const offlineCaller = new FakeSocket({
   state: "AUTHENTICATED", inboxFingerprint: recipient.fingerprint,
   origin: payload.origin, fingerprint: caller.fingerprint, pendingCallId: null
 });
-const offlineInbox = new EzeroConnectInbox({ getWebSockets: () => [offlineCaller] }, { PUBLIC_ORIGIN: payload.origin });
+const offlineInbox = new EzeroConnectInbox({ getWebSockets: () => [offlineCaller] }, env);
 await offlineInbox.webSocketMessage(offlineCaller, JSON.stringify({ type: "call-invite", inviteCode }));
 assert.equal(offlineCaller.sent.at(-1).type, "unavailable");
 assert.equal(offlineCaller.sent.some(item => item.type === "invite-routed"), false);
