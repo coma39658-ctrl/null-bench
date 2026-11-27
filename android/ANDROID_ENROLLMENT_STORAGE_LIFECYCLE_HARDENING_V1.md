@@ -92,7 +92,7 @@ Added on branch `ezero-enrollment-root-lifecycle-staging-20261127`:
 - `POST /v1/admin/root/devices/revoke` disables one device only when the active Root signs the exact command.
 - Commands bind Root fingerprint, unique command ID, action, device fingerprint, 24-byte nonce, canonical E-ZERO audience and a maximum 60-second expiry.
 - P-256/SHA-256 signature verification happens before an atomic transaction consumes the command ID. The transaction rechecks Root activity, rejects replay, updates device state and appends a privacy-minimized audit record.
-- Replay records are retained for 24 hours; audit records are retained for 365 days and removed through bounded expiry alarms.
+- Replay records are retained for 24 hours; audit records are retained for 30 days and removed through bounded expiry alarms.
 - Root lifecycle routes require the canonical browser Origin, JSON POST, per-IP and shared admin rate limits. No bootstrap secret or private key is stored in source.
 
 ### Remaining release blockers
@@ -100,7 +100,7 @@ Added on branch `ezero-enrollment-root-lifecycle-staging-20261127`:
 - Root revocation and full Root key rotation/recovery are not implemented. Device listing/revocation is only a partial closure of H5.
 - Android Keystore client, Root approval UI, and the native registration integration remain absent.
 - The signed-command protocol and new Worker runtime tests must pass CI and receive independent security review.
-- The 365-day audit retention policy requires human approval.
+- The 30-day audit retention policy requires human approval.
 - This branch is isolated, not deployed. No Root has been registered and no FCM token or push sender is present.
 
 ## Follow-on implementation — authenticated FCM token registration (staging candidate)
