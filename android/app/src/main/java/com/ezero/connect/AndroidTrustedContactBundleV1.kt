@@ -192,7 +192,7 @@ internal object AndroidTrustedContactBundleV1 {
                 proof.optString("inviteNonce") == transcript.optString("inviteNonce") &&
                 proof.optString("fingerprint") == remoteFp &&
                 proof.optString("publicKeySpki") == remoteSpki &&
-                proof.optString("role") == if (transcript.optString("inviterFingerprint") == rootFingerprint) "guest" else "host" &&
+                proof.optString("role") == (if (transcript.optString("inviterFingerprint") == rootFingerprint) "guest" else "host") &&
                 proof.optString("challenge").matches(Regex("^[A-Za-z0-9_-]{43}$")) &&
                 proof.optLong("challengeExpiresAt", -1L) > 0L) {
                 "TRUST_PEER_PROOF_BINDING_INVALID"
