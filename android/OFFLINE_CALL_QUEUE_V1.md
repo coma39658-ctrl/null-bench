@@ -114,6 +114,23 @@ These are not interchangeable strings. Before wiring the Registry, enrollment se
 
 Also, PR #242's SPKI-to-recipient-fingerprint check is a required dependency of the queue implementation. Do not merge or release PR #240 without the PR #242 hardening (or an equivalent fix already included in its exact tested head). The earlier PR #240 head alone only checked that the submitted SPKI was parseable P-256; it did not bind that key to the claimed recipient fingerprint.
 
+
+### Identity semantics must be separated (critical review)
+
+The fingerprint issue is not only a text-format conversion. The enrollment contract explicitly defines two different P-256 identities: the browser/account Root identity and the Android installation key. The signed saved-friend call invite's `recipientFingerprint` identifies the recipient participant in the friendship relationship. The queue's `devicePublicKeySpki` is intended to identify the enrolled Android installation.
+
+Therefore, PR #242's current equality check (`fingerprintFromSpki(devicePublicKeySpki) === recipientFingerprint`) is valid **only if** the protocol explicitly defines `recipientFingerprint` as the Android installation fingerprint. That is not established by the current saved-friend invite contract and conflicts with the separate Root-vs-installation identity model. Do not merge/release PR #242 as the final integration fix until the protocol is clarified.
+
+Required correction before integration:
+- Preserve `recipientIdentityFingerprint` from the signed saved-friend invite and Registry relationship.
+- Add a distinct `recipientInstallationFingerprint` bound to `devicePublicKeySpki` and the active root-approved enrollment record.
+- Bind the pending queue record to both identities plus the exact installation ID.
+- Authorize the call against `recipientIdentityFingerprint`; authenticate claim/reject against `recipientInstallationFingerprint` and the installation key.
+- Verify the enrollment registry proves that the installation is currently authorized for that recipient account/root. Never infer account ownership from possession of an installation key.
+- Add negative tests for an authorized account paired with the wrong installation, a valid installation under a different account, a changed SPKI, and a mismatched identity/installation pair.
+
+Until this split is implemented, PR #242 is a useful cryptographic consistency check but may reject legitimate account-to-device mappings or incorrectly conflate two identity domains. Keep PRs #240 and #242 draft and unmerged.
+
 ## Documentation validation (2026-11-27)
 
 - PR #241 documentation commit: `f9f534fc56b1db7cbf560b38bddf3be8f077650d`.
