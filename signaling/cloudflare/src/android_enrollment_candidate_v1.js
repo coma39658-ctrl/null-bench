@@ -186,7 +186,7 @@ export class AndroidEnrollmentRegistry extends DurableObject {
       const issuedAt = body.issued_at;
       const nonce = body.nonce;
       const token = body.fcm_token;
-      if (!FP.test(deviceFp || "") || !/^\\d{13}$/.test(String(issuedAt || "")) ||
+      if (!FP.test(deviceFp || "") || !/^\d{13}$/.test(String(issuedAt || "")) ||
           !TOKEN_NONCE.test(nonce || "") || typeof token !== "string" ||
           token.length < 20 || token.length > 4096 ||
           typeof body.device_signature !== "string")
