@@ -4,6 +4,8 @@ import {readFileSync} from "node:fs";
 
 const worker = readFileSync(new URL("../signaling/cloudflare/src/android_enrollment_candidate_v1.js", import.meta.url), "utf8");
 const contract = readFileSync(new URL("../android/FCM_TOKEN_REGISTRATION_V1.md", import.meta.url), "utf8");
+const androidService = readFileSync(new URL("../android/app/src/main/java/com/ezero/connect/IncomingCallMessagingService.kt", import.meta.url), "utf8");
+const androidClient = readFileSync(new URL("../android/app/src/main/java/com/ezero/connect/AndroidPushTokenRegistrationV1.kt", import.meta.url), "utf8");
 
 test("FCM token registration is a PUT route isolated to the Android enrollment candidate", () => {
   assert.match(worker, /u\.pathname === "\/v1\/android\/devices\/current\/push-token"/);
