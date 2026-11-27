@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - ezero-connect-encrypted-chat-history-staging-20261126
+      - ezero-connect-pairing-diagnostic-accuracy-staging-20261127
     paths:
       - 'signaling/ezero-connect-v1/**'
       - '.github/workflows/ezero-connect-signaling-worker-manual-staging-deploy.yml'
