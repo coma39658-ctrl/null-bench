@@ -6,6 +6,7 @@ on:
     branches:
       - ezero-connect-encrypted-chat-history-staging-20261126
       - ezero-connect-pairing-diagnostic-accuracy-staging-20261127
+      - ezero-connect-same-device-reconnect-staging-20261127
     paths:
       - 'signaling/ezero-connect-v1/**'
       - '.github/workflows/ezero-connect-signaling-worker-manual-staging-deploy.yml'
@@ -46,5 +47,5 @@ jobs:
         run: |
           echo "Worker name: ezero-connect-call-preview-20261125"
           echo "workers.dev endpoint: https://ezero-connect-call-preview-20261125.coma39658.workers.dev"
-          echo "Allowed browser origin: https://ezero-connect-chat-history-pr223-staging.onrender.com"
+          echo "Allowed browser origin: https://ezero-connect-pairing-diagnostic-pr224.onrender.com"
           echo "This is an isolated staging Worker only."
