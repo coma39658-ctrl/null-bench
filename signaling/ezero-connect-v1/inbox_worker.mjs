@@ -51,9 +51,9 @@ function close(ws, code = 1008, reason = "inbox rejected") {
 }
 
 /**
- * Foreground-only, volatile inbox. It never stores call invitations or signaling
- * payloads in Durable Object storage; only WebSocket attachments hold routing
- * metadata while the sockets are connected.
+ * Short-lived saved-friend call inbox. Only a signed, expiring call invite is
+ * queued in Durable Object storage when the recipient is offline. SDP, ICE,
+ * media, chat content and private keys are never stored here.
  */
 export class EzeroConnectInbox {
   constructor(ctx, env) {
@@ -126,6 +126,7 @@ export class EzeroConnectInbox {
         a.recentCallIds = Array.isArray(a.recentCallIds) ? a.recentCallIds.filter(item => item && item.expiresAt > Date.now()).slice(-31) : [];
         ws.serializeAttachment(a);
         send(ws, { type: "inbox-ready", fingerprint: a.fingerprint });
+        await this.deliverPendingInvite(ws);
         return;
       }
 
@@ -143,13 +144,33 @@ export class EzeroConnectInbox {
           const peer = other.deserializeAttachment();
           return peer?.state === "AUTHENTICATED" && peer.fingerprint === a.inboxFingerprint && !peer.peerCallId && !peer.pendingCallId;
         });
-        if (!recipient) { send(ws, { type: "unavailable", callId: invite.callId }); return; }
-        const recipientState = recipient.deserializeAttachment();
-        a.pendingCallId = invite.callId;
         a.recentCallIds.push({ callId: invite.callId, nonce: invite.nonce, expiresAt: invite.expiresAt });
         a.recentCallIds = a.recentCallIds.slice(-32);
+        a.pendingCallId = invite.callId;
         a.peerFingerprint = invite.recipientFingerprint;
         a.callExpiresAt = invite.expiresAt;
+        if (!recipient) {
+          const existing = await this.ctx.storage.get("pendingInvite");
+          if (existing && existing.expiresAt > Date.now()) {
+            a.pendingCallId = null; a.peerFingerprint = null; a.callExpiresAt = null;
+            ws.serializeAttachment(a);
+            send(ws, { type: "busy", callId: invite.callId });
+            return;
+          }
+          const pending = {
+            v: 1, inviteCode: message.inviteCode, callId: invite.callId,
+            callerFingerprint: invite.callerFingerprint,
+            recipientFingerprint: invite.recipientFingerprint,
+            relationshipId: invite.relationshipId,
+            expiresAt: invite.expiresAt, queuedAt: Date.now()
+          };
+          await this.ctx.storage.put("pendingInvite", pending);
+          await this.ctx.storage.setAlarm(invite.expiresAt);
+          ws.serializeAttachment(a);
+          send(ws, { type: "invite-queued", callId: invite.callId, expiresAt: invite.expiresAt });
+          return;
+        }
+        const recipientState = recipient.deserializeAttachment();
         recipientState.peerCallId = invite.callId;
         recipientState.peerFingerprint = invite.callerFingerprint;
         recipientState.callExpiresAt = invite.expiresAt;
@@ -171,6 +192,11 @@ export class EzeroConnectInbox {
             peer.fingerprint === a.peerFingerprint;
         });
         if (!caller) { send(ws, { type: "call-expired", callId: message.callId }); return; }
+        const queued = await this.ctx.storage.get("pendingInvite");
+        if (queued?.callId === message.callId) {
+          await this.ctx.storage.delete("pendingInvite");
+          await this.ctx.storage.deleteAlarm();
+        }
         send(caller, { type: "call-response", callId: message.callId, decision: message.decision });
         const callerState = caller.deserializeAttachment();
         callerState.pendingCallId = null; callerState.peerFingerprint = null; callerState.callExpiresAt = null;
@@ -230,6 +256,11 @@ export class EzeroConnectInbox {
           peer.serializeAttachment(peerState);
           send(peer, { type: "call-cancelled", callId: message.callId });
         }
+        const queued = await this.ctx.storage.get("pendingInvite");
+        if (queued?.callId === message.callId) {
+          await this.ctx.storage.delete("pendingInvite");
+          await this.ctx.storage.deleteAlarm();
+        }
         a.pendingCallId = null; a.peerFingerprint = null; a.callExpiresAt = null;
         a.activeCallId = null; a.state = "AUTHENTICATED";
         ws.serializeAttachment(a);
@@ -239,6 +270,63 @@ export class EzeroConnectInbox {
     } catch (_) {
       close(ws, 1008, "inbox message rejected");
     }
+  }
+
+  async deliverPendingInvite(recipientSocket) {
+    const pending = await this.ctx.storage.get("pendingInvite");
+    if (!pending) return false;
+    const now = Date.now();
+    if (!Number.isSafeInteger(pending.expiresAt) || pending.expiresAt <= now) {
+      await this.ctx.storage.delete("pendingInvite");
+      await this.ctx.storage.deleteAlarm();
+      return false;
+    }
+    const recipientState = recipientSocket.deserializeAttachment();
+    if (recipientState?.state !== "AUTHENTICATED" ||
+        recipientState.fingerprint !== pending.recipientFingerprint ||
+        recipientState.inboxFingerprint !== pending.recipientFingerprint ||
+        recipientState.peerCallId || recipientState.pendingCallId || recipientState.activeCallId) return false;
+
+    const callerSocket = this.ctx.getWebSockets().find(other => {
+      if (other === recipientSocket || other.readyState !== 1) return false;
+      const state = other.deserializeAttachment();
+      return state?.state === "AUTHENTICATED" &&
+        state.fingerprint === pending.callerFingerprint &&
+        state.pendingCallId === pending.callId &&
+        state.peerFingerprint === pending.recipientFingerprint &&
+        state.callExpiresAt > now;
+    });
+    if (!callerSocket) return false;
+
+    const invite = await verifyCallInvite(
+      pending.inviteCode, recipientState.origin, recipientState.inboxFingerprint, now
+    );
+    if (invite.callId !== pending.callId ||
+        invite.callerFingerprint !== pending.callerFingerprint ||
+        invite.recipientFingerprint !== pending.recipientFingerprint ||
+        invite.relationshipId !== pending.relationshipId ||
+        invite.expiresAt !== pending.expiresAt) {
+      await this.ctx.storage.delete("pendingInvite");
+      await this.ctx.storage.deleteAlarm();
+      return false;
+    }
+    recipientState.peerCallId = pending.callId;
+    recipientState.peerFingerprint = pending.callerFingerprint;
+    recipientState.callExpiresAt = pending.expiresAt;
+    recipientSocket.serializeAttachment(recipientState);
+    send(recipientSocket, { type: "incoming-call", inviteCode: pending.inviteCode, queued: true });
+    send(callerSocket, { type: "invite-routed", callId: pending.callId, expiresAt: pending.expiresAt, queued: true });
+    return true;
+  }
+
+  async alarm() {
+    const pending = await this.ctx.storage.get("pendingInvite");
+    if (pending && pending.expiresAt <= Date.now()) {
+      await this.ctx.storage.delete("pendingInvite");
+    }
+    const remaining = await this.ctx.storage.get("pendingInvite");
+    if (remaining && remaining.expiresAt > Date.now()) await this.ctx.storage.setAlarm(remaining.expiresAt);
+    else await this.ctx.storage.deleteAlarm();
   }
 
   async webSocketClose(ws) {

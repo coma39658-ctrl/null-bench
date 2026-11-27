@@ -34,6 +34,15 @@ The Worker stores only room metadata, public keys/fingerprints, role and expiry.
 - Hashed-IP admission limits: 8 host-room attempts/minute and 20 guest-handshake attempts/minute, enforced by separate Durable Objects; raw IP addresses are not persisted.
 - One host and one guest per room.
 
+## Saved-friend call inbox (staging implementation)
+
+- A call invite is accepted only after its caller signature, recipient fingerprint, origin, expiry and relationship ID validate.
+- If the recipient has no authenticated inbox WebSocket, the Durable Object may retain exactly one signed invite envelope for that recipient until its original expiry (maximum 30 seconds). It does not persist SDP, ICE, media, chat, photos, caller-supplied display names, or private keys.
+- On recipient reconnect, the queued invite is re-verified and delivered only if the original caller is still authenticated and has the matching pending call state.
+- Accept, Decline, Cancel or expiry consumes the queued invite. A reconnect cannot extend the original expiry.
+- This is an online-reconnect queue, not an FCM push service: it cannot wake a force-stopped app or guarantee a ringtone while the inbox socket is disconnected. FCM device enrollment, signed wake delivery and Android WebRTC handoff remain separate work.
+- The implementation is isolated and not deployed. CI tests are required before considering any staging deployment.
+
 ## Deployment boundary
 
 No Worker has been deployed. The wrangler.jsonc name and .invalid origin are staging placeholders. A real staging deployment requires an explicitly configured Cloudflare account, exact staging origin and dedicated Durable Object namespace. Production must not be targeted.

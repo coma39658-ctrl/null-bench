@@ -27,6 +27,15 @@ class FakeSocket {
   close() { this.readyState = 3; }
 }
 
+class FakeStorage {
+  constructor() { this.values = new Map(); this.alarmAt = null; }
+  async get(key) { return this.values.get(key); }
+  async put(key, value) { this.values.set(key, structuredClone(value)); }
+  async delete(key) { this.values.delete(key); }
+  async setAlarm(value) { this.alarmAt = value; }
+  async deleteAlarm() { this.alarmAt = null; }
+}
+
 const caller = await identity();
 const recipient = await identity();
 const now = Date.now();
@@ -57,7 +66,7 @@ const recipientSocket = new FakeSocket({
   state: "AUTHENTICATED", inboxFingerprint: recipient.fingerprint,
   origin: payload.origin, fingerprint: recipient.fingerprint, peerCallId: null
 });
-const ctx = { getWebSockets: () => [callerSocket, recipientSocket] };
+const ctx = { storage: new FakeStorage(), getWebSockets: () => [callerSocket, recipientSocket] };
 const inbox = new EzeroConnectInbox(ctx, { PUBLIC_ORIGIN: payload.origin });
 
 await inbox.webSocketMessage(callerSocket, JSON.stringify({ type: "call-invite", inviteCode }));
@@ -125,9 +134,40 @@ const offlineCaller = new FakeSocket({
   state: "AUTHENTICATED", inboxFingerprint: recipient.fingerprint,
   origin: payload.origin, fingerprint: caller.fingerprint, pendingCallId: null
 });
-const offlineInbox = new EzeroConnectInbox({ getWebSockets: () => [offlineCaller] }, { PUBLIC_ORIGIN: payload.origin });
+const offlineSockets = [offlineCaller];
+const offlineStorage = new FakeStorage();
+const offlineInbox = new EzeroConnectInbox({
+  storage: offlineStorage, getWebSockets: () => offlineSockets
+}, { PUBLIC_ORIGIN: payload.origin });
 await offlineInbox.webSocketMessage(offlineCaller, JSON.stringify({ type: "call-invite", inviteCode }));
-assert.equal(offlineCaller.sent.at(-1).type, "unavailable");
+assert.equal(offlineCaller.sent.at(-1).type, "invite-queued");
 assert.equal(offlineCaller.sent.some(item => item.type === "invite-routed"), false);
+assert.equal((await offlineStorage.get("pendingInvite")).callId, payload.callId);
+
+// Recipient reconnects while the signed invite is still valid. The queue is
+// delivered only after the authenticated recipient fingerprint matches and
+// the original caller is still online with the same pending call.
+const reconnectedRecipient = new FakeSocket({
+  state: "AUTHENTICATED", inboxFingerprint: recipient.fingerprint,
+  origin: payload.origin, fingerprint: recipient.fingerprint,
+  peerCallId: null, pendingCallId: null, activeCallId: null
+});
+offlineSockets.push(reconnectedRecipient);
+assert.equal(await offlineInbox.deliverPendingInvite(reconnectedRecipient), true);
+assert.equal(reconnectedRecipient.sent.at(-1).type, "incoming-call");
+assert.equal(reconnectedRecipient.sent.at(-1).queued, true);
+assert.equal(offlineCaller.sent.at(-1).type, "invite-routed");
+assert.equal(offlineCaller.attachment.pendingCallId, payload.callId);
+
+await offlineInbox.webSocketMessage(reconnectedRecipient, JSON.stringify({
+  type: "call-response", callId: payload.callId, decision: "accept"
+}));
+assert.equal(offlineCaller.sent.at(-1).decision, "accept");
+assert.equal(reconnectedRecipient.attachment.state, "CALL_ACCEPTED");
+assert.equal(offlineCaller.attachment.state, "CALL_ACCEPTED");
+assert.equal(await offlineStorage.get("pendingInvite"), undefined);
+assert.equal(offlineStorage.alarmAt, null);
+
+// The signed invite is consumed only after explicit Accept/Decline or expiry.
 
 console.log("SAVED_FRIEND_INBOX_SIGNED_ROUTING_ACCEPT_DECLINE_AND_OFFLINE_NO_QUEUE_PASS");
