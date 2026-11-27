@@ -17,7 +17,7 @@ const RATE_RETENTION_MS = 24 * 60 * 60 * 1000;
 const CLEANUP_BATCH = 100;
 const COMMAND_MAX_AGE_MS = 60000;
 const COMMAND_REPLAY_RETENTION_MS = 24 * 60 * 60 * 1000;
-const AUDIT_RETENTION_MS = 365 * 24 * 60 * 60 * 1000;
+const AUDIT_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 const TOKEN_COMMAND_MAX_AGE_MS = 60000;
 const enc = new TextEncoder();
 
