@@ -1,0 +1,44 @@
+name: E-ZERO Android Root Approval UI Staging QA
+
+on:
+  pull_request:
+    paths:
+      - "ezero-android-root-approval-staging.html"
+      - "js/ezero_android_root_approval_ui_v1.js"
+      - "js/ezero_connect_identity_v1.js"
+      - "js/ezero_connect_root_signer_v1.js"
+      - "js/vendor/ezero-qrcode-generator-mit.js"
+      - "tests/ezero_android_root_approval_ui_v1.test.mjs"
+      - ".github/workflows/ezero-android-root-approval-ui-staging-qa.yml"
+  push:
+    branches:
+      - ezero-enrollment-root-lifecycle-staging-20261127
+    paths:
+      - "ezero-android-root-approval-staging.html"
+      - "js/ezero_android_root_approval_ui_v1.js"
+      - "js/ezero_connect_identity_v1.js"
+      - "js/ezero_connect_root_signer_v1.js"
+      - "js/vendor/ezero-qrcode-generator-mit.js"
+      - "tests/ezero_android_root_approval_ui_v1.test.mjs"
+      - ".github/workflows/ezero-android-root-approval-ui-staging-qa.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  root-approval-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check browser approval module syntax
+        run: node --check js/ezero_android_root_approval_ui_v1.js
+      - name: Verify strict Android QR and explicit Root approval flow
+        run: node --test tests/ezero_android_root_approval_ui_v1.test.mjs
+      - name: State staging evidence boundary
+        run: echo "NO_ROOT_BOOTSTRAP_NO_WORKER_DEPLOYMENT_NO_ANDROID_ENROLLMENT_NO_PUSH_DELIVERY"

@@ -1,0 +1,501 @@
+import { describe, expect, it } from "vitest";
+import { env, exports } from "cloudflare:workers";
+import { runInDurableObject, runDurableObjectAlarm } from "cloudflare:test";
+import { canonical, base64url } from "../../signaling/cloudflare/src/android_enrollment_candidate_v1.js";
+
+const ORIGIN = "https://coma39658-ctrl.github.io";
+const ROOT_SECRET = "test-only-not-a-production-secret";
+const CHALLENGE_ORDER = ["challenge_id", "device_fp", "nonce", "audience", "expires_at"];
+const APPROVAL_ORDER = ["root_fp", "device_fp", "challenge_id", "nonce", "audience", "expires_at"];
+
+async function keyPair() {
+  return crypto.subtle.generateKey(
+    { name: "ECDSA", namedCurve: "P-256" },
+    true,
+    ["sign", "verify"]
+  );
+}
+
+async function spkiB64(key) {
+  return base64url(new Uint8Array(await crypto.subtle.exportKey("spki", key)));
+}
+
+async function post(path, body, ip, { origin, secret } = {}) {
+  const headers = {
+    "Content-Type": "application/json",
+    "CF-Connecting-IP": ip
+  };
+  if (origin !== undefined) headers.Origin = origin;
+  if (secret !== undefined) headers["X-Root-Bootstrap"] = secret;
+  return exports.default.fetch(new Request("https://enrollment-test.invalid" + path, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body)
+  }), env);
+}
+
+async function registerRoot(root, ip) {
+  const rootSpki = await spkiB64(root.publicKey);
+  const response = await post("/v1/admin/root-register", { root_spki: rootSpki }, ip, {
+    origin: ORIGIN,
+    secret: ROOT_SECRET
+  });
+  const payload = await response.json();
+  expect(response.status).toBe(200);
+  return { rootSpki, rootFp: payload.root_fp };
+}
+
+async function issueChallenge(device, ip) {
+  const response = await post("/v1/android/enrollment/challenge", {
+    device_spki: await spkiB64(device.publicKey)
+  }, ip);
+  const payload = await response.json();
+  expect(response.status).toBe(200);
+  return payload.challenge;
+}
+
+async function completionBody(root, rootFp, device, challenge) {
+  const challengeBytes = canonical(
+    "EZERO_ANDROID_ENROLL_CHALLENGE_V1",
+    challenge,
+    CHALLENGE_ORDER
+  );
+  const approval = {
+    root_fp: rootFp,
+    device_fp: challenge.device_fp,
+    challenge_id: challenge.challenge_id,
+    nonce: challenge.nonce,
+    audience: challenge.audience,
+    expires_at: challenge.expires_at
+  };
+  const approvalBytes = canonical("EZERO_ANDROID_ROOT_APPROVAL_V1", approval, APPROVAL_ORDER);
+  const [deviceProof, rootApproval] = await Promise.all([
+    crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, device.privateKey, challengeBytes),
+    crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, root.privateKey, approvalBytes)
+  ]);
+  return {
+    challenge_id: challenge.challenge_id,
+    root_fp: rootFp,
+    device_proof: base64url(new Uint8Array(deviceProof)),
+    root_approval: base64url(new Uint8Array(rootApproval))
+  };
+}
+
+async function signedRootCommand(root, rootFp, action, deviceFp = "") {
+  const command = {
+    root_fp: rootFp,
+    command_id: base64url(crypto.getRandomValues(new Uint8Array(24))),
+    action,
+    device_fp: deviceFp,
+    nonce: base64url(crypto.getRandomValues(new Uint8Array(24))),
+    audience: ORIGIN,
+    expires_at: String(Date.now() + 30000)
+  };
+  const bytes = canonical("EZERO_ANDROID_ROOT_COMMAND_V1", command, [
+    "root_fp", "command_id", "action", "device_fp", "nonce", "audience", "expires_at"
+  ]);
+  const signature = await crypto.subtle.sign(
+    { name: "ECDSA", hash: "SHA-256" }, root.privateKey, bytes
+  );
+  return { ...command, signature: base64url(new Uint8Array(signature)) };
+}
+
+async function signedDeviceToken(device, deviceFp, token, issuedAt = String(Date.now())) {
+  const command = {
+    device_fp: deviceFp,
+    token_sha256: base64url(new Uint8Array(await crypto.subtle.digest(
+      "SHA-256", new TextEncoder().encode(token)
+    ))),
+    command_id: base64url(crypto.getRandomValues(new Uint8Array(24))),
+    issued_at: issuedAt,
+    nonce: base64url(crypto.getRandomValues(new Uint8Array(24))),
+    audience: ORIGIN
+  };
+  const signature = await crypto.subtle.sign(
+    { name: "ECDSA", hash: "SHA-256" }, device.privateKey,
+    canonical("EZERO_ANDROID_FCM_TOKEN_V1", command, [
+      "device_fp", "token_sha256", "command_id", "issued_at", "nonce", "audience"
+    ])
+  );
+  return {
+    device_fp: deviceFp, fcm_token: token, issued_at: issuedAt,
+    command_id: command.command_id, nonce: command.nonce,
+    signature: base64url(new Uint8Array(signature))
+  };
+}
+
+describe("isolated Android enrollment Worker — real Workers runtime", () => {
+  it("accepts one valid device enrollment and rejects replay of the same challenge", async () => {
+    const root = await keyPair();
+    const device = await keyPair();
+    const { rootFp } = await registerRoot(root, "198.51.100.31");
+    const challenge = await issueChallenge(device, "198.51.100.32");
+    const body = await completionBody(root, rootFp, device, challenge);
+
+    const first = await post("/v1/android/enrollment/complete", body, "198.51.100.32");
+    expect(first.status).toBe(200);
+    expect(await first.json()).toMatchObject({
+      ok: true,
+      status: "ENROLLED",
+      root_fp: rootFp,
+      device_fp: challenge.device_fp
+    });
+
+    const replay = await post("/v1/android/enrollment/complete", body, "198.51.100.32");
+    expect(replay.status).toBe(409);
+    expect(await replay.json()).toMatchObject({ error: "CHALLENGE_UNKNOWN_OR_USED" });
+  });
+
+  it("allows exactly one of two concurrent valid completions for the same challenge", async () => {
+    const root = await keyPair();
+    const device = await keyPair();
+    const { rootFp } = await registerRoot(root, "198.51.100.41");
+    const challenge = await issueChallenge(device, "198.51.100.42");
+    const body = await completionBody(root, rootFp, device, challenge);
+
+    const responses = await Promise.all([
+      post("/v1/android/enrollment/complete", body, "198.51.100.42"),
+      post("/v1/android/enrollment/complete", body, "198.51.100.42")
+    ]);
+    const statuses = responses.map(response => response.status).sort((a, b) => a - b);
+    expect(statuses).toEqual([200, 409]);
+  });
+
+  it("rejects a foreign browser Origin while permitting a native request without Origin", async () => {
+    const device = await keyPair();
+    const spki = await spkiB64(device.publicKey);
+
+    const foreign = await post("/v1/android/enrollment/challenge", { device_spki: spki },
+      "198.51.100.51", { origin: "https://attacker.invalid" });
+    expect(foreign.status).toBe(403);
+    expect(await foreign.json()).toMatchObject({ error: "ORIGIN_DENIED" });
+
+    const native = await post("/v1/android/enrollment/challenge", { device_spki: spki },
+      "198.51.100.52");
+    expect(native.status).toBe(200);
+  });
+
+  it("enforces the per-IP challenge ceiling in Durable Object storage", async () => {
+    const device = await keyPair();
+    const deviceSpki = await spkiB64(device.publicKey);
+    const ip = "198.51.100.61";
+    const statuses = [];
+    for (let i = 0; i < 11; i++) {
+      const response = await post("/v1/android/enrollment/challenge", {
+        device_spki: deviceSpki
+      }, ip);
+      statuses.push(response.status);
+    }
+    expect(statuses.slice(0, 10).every(status => status === 200)).toBe(true);
+    expect(statuses[10]).toBe(429);
+  });
+
+  it("keeps Root registration unavailable without the bootstrap secret", async () => {
+    const root = await keyPair();
+    const response = await post("/v1/admin/root-register", {
+      root_spki: await spkiB64(root.publicKey)
+    }, "198.51.100.71", { origin: ORIGIN });
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({ error: "ADMIN_UNAUTHORIZED" });
+  });
+
+  it("lists only its own devices and revokes a device with a signed, replay-protected Root command", async () => {
+    const root = await keyPair();
+    const device = await keyPair();
+    const { rootFp } = await registerRoot(root, "198.51.100.81");
+    const challenge = await issueChallenge(device, "198.51.100.82");
+    const enrollment = await completionBody(root, rootFp, device, challenge);
+    const enrolled = await post("/v1/android/enrollment/complete", enrollment, "198.51.100.82");
+    expect(enrolled.status).toBe(200);
+
+    const listCommand = await signedRootCommand(root, rootFp, "LIST_DEVICES");
+    const listed = await post("/v1/admin/root/devices/list", listCommand, "198.51.100.83", {
+      origin: ORIGIN
+    });
+    expect(listed.status).toBe(200);
+    expect(await listed.json()).toMatchObject({
+      ok: true,
+      devices: [{ device_fp: challenge.device_fp, root_fp: rootFp, active: true }],
+      truncated: false
+    });
+
+    const revokeCommand = await signedRootCommand(
+      root, rootFp, "REVOKE_DEVICE", challenge.device_fp
+    );
+    const revoked = await post("/v1/admin/root/devices/revoke", revokeCommand, "198.51.100.83", {
+      origin: ORIGIN
+    });
+    expect(revoked.status).toBe(200);
+    expect(await revoked.json()).toMatchObject({
+      ok: true, status: "DEVICE_REVOKED", device_fp: challenge.device_fp
+    });
+
+    const replay = await post("/v1/admin/root/devices/revoke", revokeCommand, "198.51.100.83", {
+      origin: ORIGIN
+    });
+    expect(replay.status).toBe(409);
+    expect(await replay.json()).toMatchObject({ error: "ROOT_COMMAND_REPLAY" });
+
+    const finalListCommand = await signedRootCommand(root, rootFp, "LIST_DEVICES");
+    const finalList = await post("/v1/admin/root/devices/list", finalListCommand, "198.51.100.83", {
+      origin: ORIGIN
+    });
+    expect(finalList.status).toBe(200);
+    expect(await finalList.json()).toMatchObject({
+      devices: [{ device_fp: challenge.device_fp, active: false }]
+    });
+  });
+
+  it("registers an FCM token only with the enrolled device key and rejects replay", async () => {
+    const root = await keyPair();
+    const device = await keyPair();
+    const { rootFp } = await registerRoot(root, "198.51.100.101");
+    const challenge = await issueChallenge(device, "198.51.100.102");
+    const enrollment = await completionBody(root, rootFp, device, challenge);
+    const enrolled = await post("/v1/android/enrollment/complete", enrollment, "198.51.100.102");
+    expect(enrolled.status).toBe(200);
+
+    const token = "fcm:staging-token_abcdefghijklmnopqrstuvwxyz0123456789";
+    const registration = await signedDeviceToken(device, challenge.device_fp, token);
+    const response = await post("/v1/android/device-token", registration, "198.51.100.102");
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      ok: true, status: "TOKEN_REGISTERED", device_fp: challenge.device_fp
+    });
+
+    const replay = await post("/v1/android/device-token", registration, "198.51.100.102");
+    expect(replay.status).toBe(409);
+    expect(await replay.json()).toMatchObject({ error: "DEVICE_TOKEN_COMMAND_REPLAY" });
+
+    const stored = await runInDurableObject(
+      env.ENROLLMENT.get(env.ENROLLMENT.idFromName("global-root-enrollment-v1")),
+      async (_instance, state) => (await state.storage.get("devices"))[challenge.device_fp]
+    );
+    expect(stored.fcm_token).toBe(token);
+    expect(stored.fcm_token_sha256).toBeTruthy();
+  });
+
+  it("rejects an FCM token signature from a key other than the enrolled device", async () => {
+    const root = await keyPair();
+    const device = await keyPair();
+    const attacker = await keyPair();
+    const { rootFp } = await registerRoot(root, "198.51.100.111");
+    const challenge = await issueChallenge(device, "198.51.100.112");
+    const enrollment = await completionBody(root, rootFp, device, challenge);
+    expect((await post("/v1/android/enrollment/complete", enrollment, "198.51.100.112")).status).toBe(200);
+
+    const forged = await signedDeviceToken(attacker, challenge.device_fp,
+      "fcm:forged-token_abcdefghijklmnopqrstuvwxyz0123456789");
+    const response = await post("/v1/android/device-token", forged, "198.51.100.112");
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({ error: "DEVICE_TOKEN_SIGNATURE_INVALID" });
+  });
+
+  it("does not accept FCM token registration after device revocation", async () => {
+    const root = await keyPair();
+    const device = await keyPair();
+    const { rootFp } = await registerRoot(root, "198.51.100.121");
+    const challenge = await issueChallenge(device, "198.51.100.122");
+    const enrollment = await completionBody(root, rootFp, device, challenge);
+    expect((await post("/v1/android/enrollment/complete", enrollment, "198.51.100.122")).status).toBe(200);
+
+    const revoke = await signedRootCommand(root, rootFp, "REVOKE_DEVICE", challenge.device_fp);
+    expect((await post("/v1/admin/root/devices/revoke", revoke, "198.51.100.123", {
+      origin: ORIGIN
+    })).status).toBe(200);
+
+    const tokenRequest = await signedDeviceToken(device, challenge.device_fp,
+      "fcm:revoked-device-token_abcdefghijklmnopqrstuvwxyz0123456789");
+    const response = await post("/v1/android/device-token", tokenRequest, "198.51.100.122");
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({ error: "DEVICE_NOT_ENROLLED_OR_REVOKED" });
+  });
+
+  it("rejects Root lifecycle commands signed by a different key", async () => {
+    const root = await keyPair();
+    const attacker = await keyPair();
+    const { rootFp } = await registerRoot(root, "198.51.100.91");
+    const forged = await signedRootCommand(attacker, rootFp, "LIST_DEVICES");
+    const response = await post("/v1/admin/root/devices/list", forged, "198.51.100.92", {
+      origin: ORIGIN
+    });
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({ error: "ROOT_SIGNATURE_INVALID" });
+  });
+
+  it("persists rate-limit buckets as hashed keys rather than raw client IPs", async () => {
+    const id = env.ENROLLMENT.idFromName("global-root-enrollment-v1");
+    const stub = env.ENROLLMENT.get(id);
+    const keys = await runInDurableObject(stub, async (_instance, state) => {
+      const values = await state.storage.list({ prefix: "rate:" });
+      return [...values.keys()];
+    });
+    expect(keys.length).toBeGreaterThan(0);
+    expect(keys.every(key => !key.includes("198.51.100."))).toBe(true);
+  });
+});
+
+
+describe("Android enrollment storage lifecycle alarms", () => {
+  it("removes an expired challenge record and its index", async () => {
+    const stub = env.ENROLLMENT.get(env.ENROLLMENT.idFromName("cleanup-expired-challenge"));
+    const expiresAt = Date.now() - 1000;
+    const recordKey = "challenge:expired_challenge_0001";
+    const indexKey = "expiry:" + String(expiresAt).padStart(16, "0") + ":" + recordKey;
+    await runInDurableObject(stub, async (_instance, state) => {
+      await state.storage.put(recordKey, {
+        challenge: { expires_at: String(expiresAt) }, created_at: expiresAt - 90000
+      });
+      await state.storage.put(indexKey, { record_key: recordKey });
+      await state.storage.setAlarm(Date.now() + 60000);
+    });
+
+    expect(await runDurableObjectAlarm(stub)).toBe(true);
+    const state = await runInDurableObject(stub, async (_instance, state) => ({
+      record: await state.storage.get(recordKey),
+      index: await state.storage.get(indexKey)
+    }));
+    expect(state.record).toBeUndefined();
+    expect(state.index).toBeUndefined();
+  });
+
+  it("keeps an unexpired challenge and reschedules its cleanup", async () => {
+    const stub = env.ENROLLMENT.get(env.ENROLLMENT.idFromName("cleanup-live-challenge"));
+    const expiresAt = Date.now() + 60000;
+    const recordKey = "challenge:live_challenge_00001";
+    const indexKey = "expiry:" + String(expiresAt).padStart(16, "0") + ":" + recordKey;
+    await runInDurableObject(stub, async (_instance, state) => {
+      await state.storage.put(recordKey, {
+        challenge: { expires_at: String(expiresAt) }, created_at: Date.now()
+      });
+      await state.storage.put(indexKey, { record_key: recordKey });
+      await state.storage.setAlarm(Date.now() + 60000);
+    });
+
+    expect(await runDurableObjectAlarm(stub)).toBe(true);
+    const state = await runInDurableObject(stub, async (_instance, state) => ({
+      record: await state.storage.get(recordKey),
+      alarm: await state.storage.getAlarm()
+    }));
+    expect(state.record).toBeTruthy();
+    expect(state.alarm).toBe(expiresAt);
+  });
+
+  it("cleans more than one batch over multiple bounded alarm invocations", async () => {
+    const stub = env.ENROLLMENT.get(env.ENROLLMENT.idFromName("cleanup-bounded-batches"));
+    const expiresAt = Date.now() - 1000;
+    await runInDurableObject(stub, async (_instance, state) => {
+      for (let i = 0; i < 105; i++) {
+        const recordKey = "challenge:batch_" + String(i).padStart(3, "0");
+        const indexKey = "expiry:" + String(expiresAt).padStart(16, "0") + ":" + recordKey;
+        await state.storage.put(recordKey, { challenge: { expires_at: String(expiresAt) } });
+        await state.storage.put(indexKey, { record_key: recordKey });
+      }
+      await state.storage.setAlarm(Date.now() + 60000);
+    });
+
+    expect(await runDurableObjectAlarm(stub)).toBe(true);
+    const firstCount = await runInDurableObject(stub, async (_instance, state) =>
+      (await state.storage.list({ prefix: "expiry:" })).size);
+    expect(firstCount).toBe(5);
+
+    expect(await runDurableObjectAlarm(stub)).toBe(true);
+    const finalCount = await runInDurableObject(stub, async (_instance, state) =>
+      (await state.storage.list({ prefix: "expiry:" })).size);
+    expect(finalCount).toBe(0);
+  });
+
+  it("removes an expired rate bucket without retaining its raw-IP key", async () => {
+    const stub = env.ENROLLMENT.get(env.ENROLLMENT.idFromName("cleanup-expired-rate"));
+    const expiresAt = Date.now() - 1000;
+    const recordKey = "rate:/v1/android/enrollment/challenge:" + "a".repeat(64);
+    const indexKey = "expiry:" + String(expiresAt).padStart(16, "0") + ":" + recordKey;
+    await runInDurableObject(stub, async (_instance, state) => {
+      await state.storage.put(recordKey, { window_start: 1, count: 2, expires_at: expiresAt });
+      await state.storage.put(indexKey, { record_key: recordKey });
+      await state.storage.setAlarm(Date.now() + 60000);
+    });
+
+    expect(await runDurableObjectAlarm(stub)).toBe(true);
+    const remaining = await runInDurableObject(stub, async (_instance, state) => ({
+      bucket: await state.storage.get(recordKey),
+      index: await state.storage.get(indexKey)
+    }));
+    expect(remaining.bucket).toBeUndefined();
+    expect(remaining.index).toBeUndefined();
+  });
+
+  it("preserves the earliest alarm when concurrent writers schedule cleanup", async () => {
+    const stub = env.ENROLLMENT.get(env.ENROLLMENT.idFromName("cleanup-concurrent-schedule"));
+    const earliest = Date.now() + 30000;
+    const later = earliest + 60000;
+    const alarm = await runInDurableObject(stub, async (instance, state) => {
+      await Promise.all([
+        instance.scheduleCleanup(later),
+        instance.scheduleCleanup(earliest),
+        instance.scheduleCleanup(later + 60000)
+      ]);
+      return state.storage.getAlarm();
+    });
+    expect(alarm).toBe(earliest);
+  });
+
+  it("does not let a stale rate index delete a refreshed bucket", async () => {
+    const stub = env.ENROLLMENT.get(env.ENROLLMENT.idFromName("cleanup-stale-rate-index"));
+    const oldExpiry = Date.now() - 1000;
+    const newExpiry = Date.now() + 60000;
+    const recordKey = "rate:/v1/android/enrollment/challenge:" + "b".repeat(64);
+    const oldIndex = "expiry:" + String(oldExpiry).padStart(16, "0") + ":" + recordKey;
+    const newIndex = "expiry:" + String(newExpiry).padStart(16, "0") + ":" + recordKey;
+    await runInDurableObject(stub, async (_instance, state) => {
+      await state.storage.put(recordKey, {
+        window_start: 2, count: 1, expires_at: newExpiry
+      });
+      await state.storage.put(oldIndex, { record_key: recordKey });
+      await state.storage.put(newIndex, { record_key: recordKey });
+      await state.storage.setAlarm(Date.now() + 60000);
+    });
+
+    expect(await runDurableObjectAlarm(stub)).toBe(true);
+    const state = await runInDurableObject(stub, async (_instance, state) => ({
+      bucket: await state.storage.get(recordKey),
+      oldIndex: await state.storage.get(oldIndex),
+      newIndex: await state.storage.get(newIndex)
+    }));
+    expect(state.bucket?.expires_at).toBe(newExpiry);
+    expect(state.oldIndex).toBeUndefined();
+    expect(state.newIndex).toBeTruthy();
+  });
+
+});
+
+
+describe("Android enrollment shared abuse ceilings", () => {
+  it("atomically enforces a shared route ceiling across distributed client IPs", async () => {
+    const stub = env.ENROLLMENT.get(env.ENROLLMENT.idFromName("global-route-ceiling"));
+    const allowed = await runInDurableObject(stub, async (instance) => {
+      const attempts = Array.from({ length: 301 }, (_, i) =>
+        instance.consumeRateLimit(new Request("https://internal.invalid", {
+          headers: { "X-EZERO-Client-IP": "203.0.113." + (i + 1) }
+        }), "/v1/android/enrollment/challenge")
+      );
+      return Promise.all(attempts);
+    });
+    expect(allowed.filter(Boolean)).toHaveLength(300);
+    expect(allowed.filter(value => !value)).toHaveLength(1);
+  });
+
+  it("atomically enforces the per-IP ceiling under concurrent requests", async () => {
+    const stub = env.ENROLLMENT.get(env.ENROLLMENT.idFromName("concurrent-per-ip-ceiling"));
+    const allowed = await runInDurableObject(stub, async (instance) => {
+      const attempts = Array.from({ length: 11 }, () =>
+        instance.consumeRateLimit(new Request("https://internal.invalid", {
+          headers: { "X-EZERO-Client-IP": "198.51.100.222" }
+        }), "/v1/android/enrollment/challenge")
+      );
+      return Promise.all(attempts);
+    });
+    expect(allowed.filter(Boolean)).toHaveLength(10);
+    expect(allowed.filter(value => !value)).toHaveLength(1);
+  });
+});

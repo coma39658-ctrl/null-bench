@@ -2,13 +2,16 @@
   "name": "ezero-connect-clean-build",
   "private": true,
   "scripts": {
-    "build:ezero-qr": "esbuild scripts/ezero_connect_qr_entry_v1.js --bundle --format=iife --global-name=EZERO_QR_BUNDLE --outfile=js/ezero_qr_runtime_v1.js --minify"
+    "build:ezero-qr": "esbuild scripts/ezero_connect_qr_entry_v1.js --bundle --format=iife --global-name=EZERO_QR_BUNDLE --outfile=js/ezero_qr_runtime_v1.js --minify",
+    "test:android-enrollment-worker": "vitest run --config vitest.config.mjs"
   },
   "dependencies": {
     "qr": "0.7.2"
   },
   "devDependencies": {
     "esbuild": "0.25.12",
-    "wrangler": "4.165.0"
+    "wrangler": "4.165.0",
+    "@cloudflare/vitest-pool-workers": "^0.13.5",
+    "vitest": "^4.1.0"
   }
 }
