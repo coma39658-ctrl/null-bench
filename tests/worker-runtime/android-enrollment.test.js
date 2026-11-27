@@ -100,6 +100,30 @@ async function signedRootCommand(root, rootFp, action, deviceFp = "") {
   return { ...command, signature: base64url(new Uint8Array(signature)) };
 }
 
+async function signedDeviceToken(device, deviceFp, token, issuedAt = String(Date.now())) {
+  const command = {
+    device_fp: deviceFp,
+    token_sha256: base64url(new Uint8Array(await crypto.subtle.digest(
+      "SHA-256", new TextEncoder().encode(token)
+    ))),
+    command_id: base64url(crypto.getRandomValues(new Uint8Array(24))),
+    issued_at: issuedAt,
+    nonce: base64url(crypto.getRandomValues(new Uint8Array(24))),
+    audience: ORIGIN
+  };
+  const signature = await crypto.subtle.sign(
+    { name: "ECDSA", hash: "SHA-256" }, device.privateKey,
+    canonical("EZERO_ANDROID_FCM_TOKEN_V1", command, [
+      "device_fp", "token_sha256", "command_id", "issued_at", "nonce", "audience"
+    ])
+  );
+  return {
+    device_fp: deviceFp, fcm_token: token, issued_at: issuedAt,
+    command_id: command.command_id, nonce: command.nonce,
+    signature: base64url(new Uint8Array(signature))
+  };
+}
+
 describe("isolated Android enrollment Worker — real Workers runtime", () => {
   it("accepts one valid device enrollment and rejects replay of the same challenge", async () => {
     const root = await keyPair();
@@ -220,6 +244,71 @@ describe("isolated Android enrollment Worker — real Workers runtime", () => {
     expect(await finalList.json()).toMatchObject({
       devices: [{ device_fp: challenge.device_fp, active: false }]
     });
+  });
+
+  it("registers an FCM token only with the enrolled device key and rejects replay", async () => {
+    const root = await keyPair();
+    const device = await keyPair();
+    const { rootFp } = await registerRoot(root, "198.51.100.101");
+    const challenge = await issueChallenge(device, "198.51.100.102");
+    const enrollment = await completionBody(root, rootFp, device, challenge);
+    const enrolled = await post("/v1/android/enrollment/complete", enrollment, "198.51.100.102");
+    expect(enrolled.status).toBe(200);
+
+    const token = "fcm:staging-token_abcdefghijklmnopqrstuvwxyz0123456789";
+    const registration = await signedDeviceToken(device, challenge.device_fp, token);
+    const response = await post("/v1/android/device-token", registration, "198.51.100.102");
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      ok: true, status: "TOKEN_REGISTERED", device_fp: challenge.device_fp
+    });
+
+    const replay = await post("/v1/android/device-token", registration, "198.51.100.102");
+    expect(replay.status).toBe(409);
+    expect(await replay.json()).toMatchObject({ error: "DEVICE_TOKEN_COMMAND_REPLAY" });
+
+    const stored = await runInDurableObject(
+      env.ENROLLMENT.get(env.ENROLLMENT.idFromName("global-root-enrollment-v1")),
+      async (_instance, state) => (await state.storage.get("devices"))[challenge.device_fp]
+    );
+    expect(stored.fcm_token).toBe(token);
+    expect(stored.fcm_token_sha256).toBeTruthy();
+  });
+
+  it("rejects an FCM token signature from a key other than the enrolled device", async () => {
+    const root = await keyPair();
+    const device = await keyPair();
+    const attacker = await keyPair();
+    const { rootFp } = await registerRoot(root, "198.51.100.111");
+    const challenge = await issueChallenge(device, "198.51.100.112");
+    const enrollment = await completionBody(root, rootFp, device, challenge);
+    expect((await post("/v1/android/enrollment/complete", enrollment, "198.51.100.112")).status).toBe(200);
+
+    const forged = await signedDeviceToken(attacker, challenge.device_fp,
+      "fcm:forged-token_abcdefghijklmnopqrstuvwxyz0123456789");
+    const response = await post("/v1/android/device-token", forged, "198.51.100.112");
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({ error: "DEVICE_TOKEN_SIGNATURE_INVALID" });
+  });
+
+  it("does not accept FCM token registration after device revocation", async () => {
+    const root = await keyPair();
+    const device = await keyPair();
+    const { rootFp } = await registerRoot(root, "198.51.100.121");
+    const challenge = await issueChallenge(device, "198.51.100.122");
+    const enrollment = await completionBody(root, rootFp, device, challenge);
+    expect((await post("/v1/android/enrollment/complete", enrollment, "198.51.100.122")).status).toBe(200);
+
+    const revoke = await signedRootCommand(root, rootFp, "REVOKE_DEVICE", challenge.device_fp);
+    expect((await post("/v1/admin/root/devices/revoke", revoke, "198.51.100.123", {
+      origin: ORIGIN
+    })).status).toBe(200);
+
+    const tokenRequest = await signedDeviceToken(device, challenge.device_fp,
+      "fcm:revoked-device-token_abcdefghijklmnopqrstuvwxyz0123456789");
+    const response = await post("/v1/android/device-token", tokenRequest, "198.51.100.122");
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({ error: "DEVICE_NOT_ENROLLED_OR_REVOKED" });
   });
 
   it("rejects Root lifecycle commands signed by a different key", async () => {
