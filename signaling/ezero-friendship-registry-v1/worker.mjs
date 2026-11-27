@@ -243,7 +243,10 @@ export default {
         });
       } catch (error) { return json({ error: error?.message || "APPROVAL_FAILED" }, errorStatus(error)); }
     }
-    if (url.pathname === AUTH_PATH && request.method === "POST") {
+    if (url.pathname === AUTH_PATH) {
+      if (request.method !== "POST" || !env.PUBLIC_ORIGIN || request.headers.get("Origin") !== env.PUBLIC_ORIGIN) {
+        return json({ error: "ORIGIN_OR_METHOD_REJECTED" }, 403);
+      }
       try {
         const body = await readJson(request);
         if (!RELATIONSHIP_RE.test(body?.relationshipId || "")) return json({ error: "RELATIONSHIP_ID_INVALID" }, 400);
