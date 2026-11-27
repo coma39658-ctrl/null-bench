@@ -21,6 +21,10 @@ assert.match(source, /PEER_WAIT_TIMEOUT_MS\s*=\s*45_000/,
   "peer wait must have a bounded diagnostic timeout");
 assert.match(source, /session\.on\("peer-ready",\s*async remote\s*=>\s*\{/,
   "only validated peer-ready may enter the connected branch");
+assert.match(source, /markDone\("qr"\);\s*setStep\("identity", "active"\)/,
+  "a locally verified invite completes QR only; server identity remains in progress");
+assert.match(source, /session\.on\("ready",\s*\(\)\s*=>\s*\{\s*markDone\("identity"\)/,
+  "identity completes only after the signaling server accepts the signed handshake");
 
 const peerReadyHandler = source.split('session.on("peer-ready", async remote => {')[1]?.split('session.on("message"')[0] || "";
 assert.ok(peerReadyHandler.includes('peerConnected = true'), "peer-ready must set the connected state");
@@ -34,6 +38,10 @@ console.log("EZERO_PEER_CONNECTION_DIAGNOSTICS_CONTRACT_PASS");
 const signaling = await readFile(new URL("../js/ezero_connect_signaling_client_v1.js", import.meta.url), "utf8");
 const worker = await readFile(new URL("../signaling/ezero-connect-v1/worker.mjs", import.meta.url), "utf8");
 
+assert.match(worker, /function rejectWithDiagnostic\(ws, stage, code, reason\)/,
+  "early Worker rejections must return bounded stage diagnostics before closing");
+assert.match(worker, /rejectWithDiagnostic\(ws, "handshake", "INVITE_REJECTED"/,
+  "missing or invalid signed invites must be distinguishable from peer connection failures");
 assert.match(worker, /function safeDiagnosticCode\(error\)/,
   "Worker must convert internal errors into a bounded diagnostic category");
 assert.match(worker, /type: "server-error",[\s\S]*?stage: diagnosticStage,[\s\S]*?code: safeDiagnosticCode\(error\)/,
