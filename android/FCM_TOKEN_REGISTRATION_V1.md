@@ -40,10 +40,10 @@ The server converts the DER signature to WebCrypto P1363 and verifies it against
 
 ## Not yet implemented
 
-- Android `onNewToken` does not yet call this endpoint or sign the canonical request.
-- No FCM sender exists; no service-account credential is configured.
+- Android `FirebaseMessagingService.onNewToken` now calls the authenticated registration client. After Worker-confirmed enrollment, the app requests the current FCM token and attempts registration using the non-exportable Android Keystore key; exact LF-delimited signing bytes have a unit test.
+- No FCM sender exists; no service-account credential is configured, and no `google-services.json`/Firebase runtime configuration has been provisioned in this branch.
 - No signed call-wake public key is pinned in Android.
 - No signed invite fetch / Accept-to-WebRTC handoff is wired.
-- No Worker deployment or physical-device test has occurred.
+- No Worker deployment or physical-device token-registration test has occurred; the staging encryption secret is not provisioned.
 
 Therefore this endpoint alone does **not** enable incoming ringing. Keep this branch isolated and draft until the Android client, sender, key ceremony, live staging deployment, and two-device physical acceptance tests all pass.
