@@ -40,12 +40,14 @@ test("token nonce is atomically replay-protected and root revocation blocks regi
   assert.match(worker, /fresh\.slice\(-128\)/);
 });
 
-test("contract explicitly marks Android token upload and FCM sender as not yet active", () => {
-  assert.match(contract, /onNewToken.*does not yet call this endpoint/s);
+test("Android onNewToken is wired to the authenticated token client while sender remains inactive", () => {
+  assert.match(androidService, /AndroidPushTokenRegistrationV1\\.onNewToken\\(applicationContext, token\\)/);
+  assert.match(androidClient, /EZERO_ANDROID_PUSH_TOKEN_V1/);
+  assert.match(androidClient, /requestMethod = "PUT"/);
+  assert.match(contract, /onNewToken` now calls the authenticated registration client/s);
   assert.match(contract, /No FCM sender exists/);
-  assert.match(contract, /does \*\*not\*\* enable incoming ringing/);
+  assert.match(contract, /does \\*\\*not\\*\\* enable incoming ringing/);
 });
-
 test("issued_at accepts exactly 13 decimal digits (not a literal backslash-d)", () => {
   assert.ok(worker.includes("!/^\\d{13}$/.test"));
   assert.ok(!worker.includes("!/^\\\\d{13}$/.test"));
