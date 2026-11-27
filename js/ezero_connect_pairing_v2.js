@@ -42,6 +42,9 @@
             typeof event.peerPublicKeySpki !== "string") {
           throw new Error("PAIRING_V2_PEER_PROOF_MISSING");
         }
+        if (typeof event.relationshipId !== "string" || !/^[0-9a-f]{64}$/.test(event.relationshipId)) {
+          throw new Error("PAIRING_V2_SERVER_RELATIONSHIP_ID_MISSING");
+        }
         state = "SAVING_VERIFIED_FRIEND";
         emit();
         const result = await globalThis.EZERO_CONNECT_TRUST.saveVerifiedPeer({
@@ -51,7 +54,7 @@
           peerFingerprint: event.peerFingerprint,
           peerPublicKeySpki: event.peerPublicKeySpki
         });
-        if (event.relationshipId && event.relationshipId !== result.relationshipId) {
+        if (event.relationshipId !== result.relationshipId) {
           throw new Error("PAIRING_V2_SERVER_RELATIONSHIP_MISMATCH");
         }
         saved = true;
