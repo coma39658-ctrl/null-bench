@@ -198,6 +198,11 @@ export class AndroidEnrollmentRegistry extends DurableObject {
       const device = devices[deviceFp];
       if (!device?.active || !FP.test(device.root_fp || ""))
         return response({error:"DEVICE_NOT_ENROLLED"},403);
+      const roots = (await this.ctx.storage.get("roots")) || {};
+      if (!roots[device.root_fp]?.active)
+        return response({error:"ROOT_REVOKED"},403);
+      if (!this.env.TOKEN_ENCRYPTION_KEY_BASE64URL)
+        return response({error:"TOKEN_STORAGE_UNAVAILABLE"},503);
       const tokenHash = hex(new Uint8Array(await crypto.subtle.digest("SHA-256",enc.encode(token))));
       const signedFields = {device_fp:deviceFp,issued_at:String(issued),nonce,token_sha256:tokenHash};
       const signedBytes = canonical("EZERO_ANDROID_PUSH_TOKEN_V1",signedFields,TOKEN_ORDER);
