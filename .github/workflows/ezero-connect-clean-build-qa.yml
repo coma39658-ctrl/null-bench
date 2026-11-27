@@ -23,6 +23,7 @@ on:
       - 'signaling/ezero-connect-v1/**'
       - 'signaling/ezero-friendship-registry-v1/**'
       - 'tests/test_ezero_friendship_registry_v1.mjs'
+      - 'tests/test_ezero_friendship_registry_v2.mjs'
       - 'tests/test_ezero_connect_qr_frozen_guard_v1.mjs'
       - 'tests/test_ezero_connect_clean_build_v1.mjs'
       - 'tests/test_ezero_connect_qr_runtime_v1.mjs'
@@ -139,6 +140,7 @@ jobs:
           node --check scripts/ezero_connect_qr_entry_v1.js
           node --check signaling/ezero-friendship-registry-v1/worker.mjs
           node --check tests/test_ezero_friendship_registry_v1.mjs
+          node --check tests/test_ezero_friendship_registry_v2.mjs
           node --check signaling/ezero-connect-v1/worker.mjs
           node --check signaling/ezero-connect-v1/inbox_worker.mjs
           node --check signaling/ezero-connect-v1/inbox_protocol.mjs
@@ -164,6 +166,8 @@ jobs:
         run: npm install --no-save --no-audit --no-fund --ignore-scripts playwright@1.57.0 qr@0.7.2 esbuild@0.25.12 wrangler@4.165.0
       - name: Build locally hosted QR runtime
         run: npm run build:ezero-qr
+      - name: Verify V2 mutual pairing registry activation and replay protection
+        run: node tests/test_ezero_friendship_registry_v2.mjs
       - name: Validate Worker bundle and migrations without deploying
         run: npx wrangler deploy --dry-run --outdir /tmp/ezero-connect-worker-dry-run --config signaling/ezero-connect-v1/wrangler.jsonc
       - name: Install Chromium
