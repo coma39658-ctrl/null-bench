@@ -122,8 +122,9 @@ test("real WebCrypto browser key and Android installation key verify the same bi
   assert.equal(verified.ok, true);
   assert.match(verified.statementHash, /^[a-f0-9]{64}$/);
 
-  const corrupted = finalIdentityProof.signature.slice(0, -1) +
-    (finalIdentityProof.signature.endsWith("A") ? "B" : "A");
+  const corruptedBytes = Buffer.from(finalIdentityProof.signature, "base64url");
+  corruptedBytes[0] ^= 0x01;
+  const corrupted = corruptedBytes.toString("base64url");
   await assert.rejects(verifyIdentityInstallationBindingV1({
     statement,
     identitySpki: new Uint8Array(identitySpki),
