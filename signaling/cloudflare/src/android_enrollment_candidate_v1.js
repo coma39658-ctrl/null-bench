@@ -198,7 +198,7 @@ export class AndroidEnrollmentRegistry extends DurableObject {
     if (!FP.test(body.root_fp || "") || !ID.test(body.command_id || "") ||
         body.action !== expectedAction ||
         (expectedAction === "LIST_DEVICES" ? body.device_fp !== "" : !FP.test(body.device_fp || "")) ||
-        typeof body.expires_at !== "string" || !/^\\d{13}$/.test(body.expires_at) ||
+        typeof body.expires_at !== "string" || !/^\d{13}$/.test(body.expires_at) ||
         !Number.isSafeInteger(Number(body.expires_at)) ||
         Number(body.expires_at) <= now || Number(body.expires_at) > now + COMMAND_MAX_AGE_MS) {
       return { error: "BAD_ROOT_COMMAND", status: 400 };
