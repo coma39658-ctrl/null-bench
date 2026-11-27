@@ -226,10 +226,16 @@ export class AndroidEnrollmentRegistry extends DurableObject {
       try {
         const key = await importP256(spki);
         const fp = await fingerprint(spki);
-        const roots = (await this.ctx.storage.get("roots")) || {};
-        if (roots[fp]) return response({error:"ROOT_EXISTS"},409);
-        roots[fp] = { spki:body.root_spki, added_at:Date.now(), active:true };
-        await this.ctx.storage.put("roots",roots);
+        // Serialize root provisioning with root/device revocation. A read-then-put
+        // across awaits could otherwise restore a root after a concurrent revoke.
+        const registered = this.ctx.storage.transactionSync(tx => {
+          const roots = tx.get("roots") || {};
+          if (roots[fp]) return false;
+          roots[fp] = { spki:body.root_spki, added_at:Date.now(), active:true };
+          tx.put("roots",roots);
+          return true;
+        });
+        if (!registered) return response({error:"ROOT_EXISTS"},409);
         return response({ok:true,root_fp:fp});
       } catch (_) { return response({error:"BAD_ROOT_KEY"},400); }
     }
