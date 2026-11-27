@@ -46,7 +46,7 @@ test("canonical wake bytes match Android contract exactly", () => {
     "nonce=abcdefghijklmnopQRSTUV",
     ""
   ].join("\n");
-  assert.deepEqual(canonicalCallWake(call), Buffer.from(expected, "utf8"));
+  assert.equal(Buffer.compare(Buffer.from(canonicalCallWake(call)), Buffer.from(expected, "utf8")), 0);
 });
 
 test("signed wake is DER ECDSA and verifies against the staged public key", async () => {
