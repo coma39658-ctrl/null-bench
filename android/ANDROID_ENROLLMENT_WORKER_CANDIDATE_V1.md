@@ -3,7 +3,7 @@
 Status: **isolated code candidate only — NOT DEPLOYED and NOT wired to the active Worker**.
 
 ## Files
-- `src/android_enrollment_candidate_v1.js`: root pre-registration, Android challenge, signed device proof, signed root approval, and active enrollment binding.
+- `src/android_enrollment_candidate_v1.js`: root pre-registration, Android challenge, signed device proof, signed root approval, active enrollment binding, signed Root device listing/revocation, and proof-bound FCM token registration.
 - `wrangler.android-enrollment-candidate-v1.jsonc`: separate candidate configuration with its own Durable Object class.
 - Existing `wrangler.jsonc`, live signaling Worker, QR flow, friend store, Render Preview, Firebase project, and APK are unchanged.
 
@@ -15,9 +15,9 @@ The bootstrap ceremony itself is still an operational security dependency: befor
 ## Implemented candidate routes
 - `POST /v1/admin/root-register`: secret-gated registration of a P-256 root SPKI.
 - `POST /v1/android/enrollment/challenge`: validate Android P-256 SPKI, recompute SHA-256 fingerprint, issue 90-second nonce/challenge.
-- `POST /v1/android/enrollment/complete`: verify Android proof-of-possession and root signature over exact canonical approval; root must already be active in registry; atomically reserve/consume challenge before asynchronous crypto checks; persist active device binding.
+- `POST /v1/android/enrollment/complete`: verify Android proof-of-possession and root signature over exact canonical approval; root must already be active in registry; atomically reserve/consume challenge before asynchronous crypto checks; persist active device binding.\n- `POST /v1/admin/root/devices/list` and `/v1/admin/root/devices/revoke`: require short-lived P-256 Root-signed commands with nonce, expiry, command ID and atomic replay protection. Revocation also clears the stored FCM token.\n- `POST /v1/android/device-token`: accept an FCM token only from an active enrolled device, signed by that device key over the token digest and a short-lived command. The token is stored server-side and never returned or logged.
 
-The candidate has no FCM token endpoint, FCM sender, push delivery, device listing/revocation route, browser root-approval UI, or Android client integration yet. It does not make incoming calls ring. It stores public SPKIs and enrollment metadata only. The current rate limiter hashes the Cloudflare edge client IP before persistence; it does not store raw IPs. The fixed-window counters are per route and IP and need operational review before deployment.
+The candidate still has no FCM sender, push delivery, call-wake route, browser Root approval UI, Root revocation/rotation/recovery, or native Accept-to-WebRTC handoff. Android now contains a Keystore-signed FCM token registration client that runs only after Worker-confirmed enrollment or on Firebase token refresh. The client is endpoint-configurable and the endpoint is blank until a separate staging deployment is approved. It does not make incoming calls ring. It stores public SPKIs, enrolled-device metadata and the server-side FCM token. The rate limiter hashes the Cloudflare edge client IP before persistence; it does not store raw IPs. The fixed-window counters are per route and IP and need operational review before deployment.
 
 ## Release blockers
 1. Review and test the administrative bootstrap ceremony and secret rotation/recovery.
