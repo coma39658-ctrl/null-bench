@@ -131,6 +131,13 @@ Required correction before integration:
 
 Until this split is implemented, PR #242 is a useful cryptographic consistency check but may reject legitimate account-to-device mappings or incorrectly conflate two identity domains. Keep PRs #240 and #242 draft and unmerged.
 
+
+### Identity-split implementation candidate (PR #242, validation pending)
+
+The current PR #242 candidate has now been revised to use separate `recipientIdentityFingerprint` and `recipientInstallationFingerprint` fields. It derives the installation fingerprint from the submitted SPKI, stores both identities, and binds both identities plus installation ID into claim/reject proof bytes. The positive fixture deliberately uses distinct account and installation fingerprints; the negative test rejects a mismatched installation fingerprint.
+
+Candidate code head: `7a05943ec4dcddafb8c08d3ae9b16a41ab3668be`. Earlier PR #242 CI success applied to the prior code head only; no CI result is yet reported for this revised identity-split head. This remains a candidate implementation, not a verified integration. The upstream Registry/enrollment adapter still needs to prove the mapping between the account identity and the active root-approved Android installation.
+
 ## Documentation validation (2026-11-27)
 
 - PR #241 documentation commit: `f9f534fc56b1db7cbf560b38bddf3be8f077650d`.
