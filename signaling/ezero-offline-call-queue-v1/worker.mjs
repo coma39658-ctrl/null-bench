@@ -102,11 +102,12 @@ export class EzeroOfflineCallQueue {
 
         if (url.pathname === "/internal/v1/create") {
           const keys = ["callId","callerFingerprint","devicePublicKeySpki","expiresAt","installationId",
-            "invite","mode","nonce","recipientFingerprint","relationshipId"];
+            "invite","mode","nonce","recipientIdentityFingerprint","recipientInstallationFingerprint","relationshipId"];
           if (!exactKeys(body, keys) || !CALL_ID.test(body.callId || "") ||
               !FINGERPRINT.test(body.callerFingerprint || "") ||
-              !FINGERPRINT.test(body.recipientFingerprint || "") ||
-              body.callerFingerprint === body.recipientFingerprint ||
+              !FINGERPRINT.test(body.recipientIdentityFingerprint || "") ||
+              !FINGERPRINT.test(body.recipientInstallationFingerprint || "") ||
+              body.callerFingerprint === body.recipientIdentityFingerprint ||
               !/^[A-Za-z0-9_-]{16,128}$/.test(body.installationId || "") ||
               !/^[a-f0-9]{64}$/.test(body.relationshipId || "") ||
               !NONCE.test(body.nonce || "") || !["AUDIO","VIDEO"].includes(body.mode) ||
@@ -123,7 +124,7 @@ export class EzeroOfflineCallQueue {
           await crypto.subtle.importKey("spki", spki, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
           // Bind the claimed recipient identity to the exact installation public key.
           // The upstream enrollment service must still prove this key is root-approved and active.
-          if (await fingerprintFromSpki(spki) !== body.recipientFingerprint) {
+          if (await fingerprintFromSpki(spki) !== body.recipientInstallationFingerprint) {
             return json({ error: "QUEUE_DEVICE_FINGERPRINT_MISMATCH" }, 400);
           }
           const current = await this.ctx.storage.get("pending");
@@ -136,7 +137,9 @@ export class EzeroOfflineCallQueue {
           }
           const record = {
             callId: body.callId, callerFingerprint: body.callerFingerprint,
-            recipientFingerprint: body.recipientFingerprint, relationshipId: body.relationshipId,
+            recipientIdentityFingerprint: body.recipientIdentityFingerprint,
+            recipientInstallationFingerprint: body.recipientInstallationFingerprint,
+            relationshipId: body.relationshipId,
             installationId: body.installationId, devicePublicKeySpki: body.devicePublicKeySpki,
             invite: body.invite, mode: body.mode, nonce: body.nonce,
             createdAt: now, expiresAt: body.expiresAt, status: "PENDING"
@@ -165,7 +168,8 @@ export class EzeroOfflineCallQueue {
           path: url.pathname,
           callId: pending.callId,
           installationId: pending.installationId,
-          recipientFingerprint: pending.recipientFingerprint,
+          recipientIdentityFingerprint: pending.recipientIdentityFingerprint,
+          recipientInstallationFingerprint: pending.recipientInstallationFingerprint,
           issuedAt: body.issuedAt,
           nonce: body.nonce
         };
@@ -181,7 +185,9 @@ export class EzeroOfflineCallQueue {
           await this.ctx.storage.put("pending", pending);
           replay.push({ nonce: body.nonce, expiresAt: now + 120_000 });
           await this.ctx.storage.put("deviceProofNonces", replay.slice(-MAX_REPLAY));
-          return json({ status: "CLAIMED", callId: pending.callId, invite: pending.invite, mode: pending.mode });
+          return json({ status: "CLAIMED", callId: pending.callId, invite: pending.invite, mode: pending.mode,
+            recipientIdentityFingerprint: pending.recipientIdentityFingerprint,
+            recipientInstallationFingerprint: pending.recipientInstallationFingerprint });
         }
         if (url.pathname === "/v1/reject") {
           pending.status = "REJECTED";
