@@ -93,6 +93,22 @@ class MainActivity : Activity() {
         layout.addView(completeEnrollmentButton, LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
         ))
+        val trustedFriendBundleInput = EditText(this).apply {
+            hint = "Paste E-ZERO Root-signed trusted friend QR text"
+            minLines = 3
+            maxLines = 5
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+        }
+        layout.addView(trustedFriendBundleInput, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        ))
+        val importTrustedFriendButton = Button(this).apply {
+            text = "Import verified trusted friend"
+            setOnClickListener { importTrustedFriendBundle(trustedFriendBundleInput.text.toString().trim()) }
+        }
+        layout.addView(importTrustedFriendButton, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        ))
         val rootPinButton = Button(this).apply {
             text = "Verify and save E-ZERO Root fingerprint"
             setOnClickListener { showRootPinDialog() }
@@ -205,6 +221,9 @@ class MainActivity : Activity() {
                     statusView.text = "Root approval rejected: " + (error.message ?: "APPROVAL_INVALID") + ". Pending enrollment remains untrusted."
                 }
             }
+            AndroidQrPayloadRouter.Kind.TRUSTED_CONTACT_BUNDLE -> {
+                importTrustedFriendBundle(raw)
+            }
             AndroidQrPayloadRouter.Kind.INVALID_ENROLLMENT -> {
                 statusView.text = "Unrecognized Android enrollment QR version. No trust was created."
             }
@@ -224,6 +243,38 @@ class MainActivity : Activity() {
         }
     }
 
+
+    private fun importTrustedFriendBundle(raw: String) {
+        if (raw.isBlank()) {
+            statusView.text = "Trusted friend QR/text is empty. No contact was imported."
+            return
+        }
+        statusView.text = "Verifying the existing Root signature and saved-friend proof…"
+        Thread {
+            try {
+                val root = AndroidRootTrustPinV1.load(this)
+                    ?: throw IllegalStateException("ROOT_PIN_NOT_CONFIGURED")
+                val contact = AndroidTrustedContactBundleV1.importAndSave(this, raw, root)
+                runOnUiThread {
+                    statusView.text = buildString {
+                        append("E-ZERO trusted friend imported and encrypted on this phone.\\n\\n")
+                        append("Name: ")
+                        append(contact.displayName.ifBlank { "E-ZERO friend" })
+                        append("\\nFingerprint: ")
+                        append(contact.remoteFingerprint)
+                        append("\\nRelationship ID: ")
+                        append(contact.relationshipId)
+                        append("\\n\\nStatus: TRUSTED_CONTACT_IMPORTED")
+                        append("\\nThis does not yet activate FCM ringing or WebRTC calls.")
+                    }
+                }
+            } catch (error: Exception) {
+                runOnUiThread {
+                    statusView.text = "Trusted friend import rejected: ${error.message ?: "INVALID_BUNDLE"}. No unverified contact was saved."
+                }
+            }
+        }.start()
+    }
 
     private fun createEnrollmentRequestQr() {
         val endpoint = BuildConfig.ANDROID_ENROLLMENT_WORKER_ENDPOINT
