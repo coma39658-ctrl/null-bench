@@ -27,6 +27,11 @@
         emit();
         return;
       }
+      if (event?.type === "friendship-registry-error") {
+        state = "ERROR";
+        emit({ error: event.code || "SERVER_FRIENDSHIP_REGISTRATION_FAILED" });
+        return;
+      }
       if (event?.type !== "peer-ready") return;
       processing = true;
       state = "VERIFYING_BOTH_DEVICES";
@@ -46,6 +51,9 @@
           peerFingerprint: event.peerFingerprint,
           peerPublicKeySpki: event.peerPublicKeySpki
         });
+        if (event.relationshipId && event.relationshipId !== result.relationshipId) {
+          throw new Error("PAIRING_V2_SERVER_RELATIONSHIP_MISMATCH");
+        }
         saved = true;
         state = "SAVED";
         emit({ result });
