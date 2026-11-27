@@ -77,7 +77,11 @@ const auth = {
   callId: "C".repeat(32), nonce: "Q".repeat(32), mode: "video", expiresAt: Date.now() + 20_000
 };
 response = await RegistryWorker.fetch(new Request("https://registry.example/v1/authorize-call", {
-  method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(auth)
+  method: "POST", headers: { "Origin": "https://evil.example", "Content-Type": "application/json" }, body: JSON.stringify(auth)
+}), env);
+assert.equal(response.status, 403);
+response = await RegistryWorker.fetch(new Request("https://registry.example/v1/authorize-call", {
+  method: "POST", headers: { Origin: origin, "Content-Type": "application/json" }, body: JSON.stringify(auth)
 }), env);
 assert.equal(response.status, 200);
 response = await RegistryWorker.fetch(new Request("https://registry.example/v1/authorize-call", {
