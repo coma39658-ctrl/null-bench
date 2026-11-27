@@ -180,7 +180,7 @@ export class EzeroFriendshipRelationship {
             status: record.status, approvals: approved.length }, record.status === "ACTIVE" ? 200 : 202);
         }
 
-        if (!exactKeys(body, ["protocol","relationshipId","callerFingerprint","recipientFingerprint","callId","nonce","mode","expiresAt"]) ||
+        if (!exactKeys(body, ["protocol","relationshipId","callerFingerprint","recipientFingerprint","callId","nonce","mode","expiresAt","signedInvite"]) ||
             body.protocol !== "E-ZERO-SAVED-FRIEND-AUTH-1" ||
             !RELATIONSHIP_RE.test(body.relationshipId || "") ||
             !FINGERPRINT_RE.test(body.callerFingerprint || "") ||
@@ -189,14 +189,36 @@ export class EzeroFriendshipRelationship {
             !ID_RE.test(body.callId || "") || !ID_RE.test(body.nonce || "") ||
             !["audio","video"].includes(body.mode) ||
             !Number.isSafeInteger(body.expiresAt) || body.expiresAt <= Date.now() ||
-            body.expiresAt > Date.now() + CALL_TTL_MS) return json({ error: "CALL_AUTH_REQUEST_INVALID" }, 400);
+            body.expiresAt > Date.now() + CALL_TTL_MS ||
+            !exactKeys(body.signedInvite, ["payload","signature"]) ||
+            !exactKeys(body.signedInvite.payload, ["callerFingerprint","callerPublicKeySpki","callId","expiresAt","issuedAt","mode","nonce","origin","protocol","recipientFingerprint","relationshipId","v"]) ||
+            typeof body.signedInvite.signature !== "string") return json({ error: "CALL_AUTH_REQUEST_INVALID" }, 400);
         const record = await this.ctx.storage.get("relationship");
-        if (!record || record.status !== "ACTIVE" ||
-            !record.transcript.participants.some(p => p.fingerprint === body.callerFingerprint) ||
-            !record.transcript.participants.some(p => p.fingerprint === body.recipientFingerprint)) {
-          return json({ authorized: false }, 403);
-        }
+        if (!record || record.status !== "ACTIVE") return json({ authorized: false }, 403);
         const now = Date.now();
+        const invite = body.signedInvite.payload;
+        const caller = record.transcript.participants.find(p => p.fingerprint === body.callerFingerprint);
+        const recipient = record.transcript.participants.find(p => p.fingerprint === body.recipientFingerprint);
+        if (!caller || !recipient || caller.fingerprint === recipient.fingerprint ||
+            invite.v !== 1 || invite.protocol !== "E-ZERO-SAVED-FRIEND-CALL-1" ||
+            invite.origin !== record.transcript.origin ||
+            invite.callerFingerprint !== caller.fingerprint ||
+            invite.callerPublicKeySpki !== caller.publicKeySpki ||
+            invite.recipientFingerprint !== recipient.fingerprint ||
+            invite.relationshipId !== body.relationshipId ||
+            invite.callId !== body.callId || invite.nonce !== body.nonce ||
+            invite.mode !== body.mode || invite.expiresAt !== body.expiresAt ||
+            !Number.isSafeInteger(invite.issuedAt) || invite.issuedAt > now + 5_000 ||
+            invite.expiresAt <= now || invite.expiresAt <= invite.issuedAt ||
+            invite.expiresAt - invite.issuedAt > CALL_TTL_MS) {
+          return json({ error: "CALL_AUTH_INVITE_BINDING_INVALID" }, 400);
+        }
+        const key = await crypto.subtle.importKey("spki", decode(caller.publicKeySpki),
+          { name: "ECDSA", namedCurve: "P-256" }, true, ["verify"]);
+        if (!await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, key,
+            decode(body.signedInvite.signature, 64), new TextEncoder().encode(canonical(invite)))) {
+          return json({ error: "CALL_AUTH_SIGNATURE_INVALID" }, 400);
+        }
         const used = (await this.ctx.storage.get("usedCalls") || []).filter(x => x.expiresAt > now);
         if (used.some(x => x.callId === body.callId || x.nonce === body.nonce)) {
           return json({ error: "CALL_REPLAY_REJECTED" }, 409);
