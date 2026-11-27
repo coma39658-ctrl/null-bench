@@ -122,8 +122,9 @@ export class EzeroOfflineCallQueue {
           const spki = decode64url(body.devicePublicKeySpki);
           if (spki.length < 80 || spki.length > 160) return json({ error: "QUEUE_DEVICE_KEY_INVALID" }, 400);
           await crypto.subtle.importKey("spki", spki, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
-          // Bind the claimed recipient identity to the exact installation public key.
-          // The upstream enrollment service must still prove this key is root-approved and active.
+          // Bind the Android installation fingerprint to the exact installation public key.
+          // The separate recipient account identity remains bound by the signed invite and upstream Registry.
+          // The upstream enrollment service must still prove this installation is root-approved and active.
           if (await fingerprintFromSpki(spki) !== body.recipientInstallationFingerprint) {
             return json({ error: "QUEUE_DEVICE_FINGERPRINT_MISMATCH" }, 400);
           }
