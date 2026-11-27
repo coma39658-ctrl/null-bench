@@ -163,6 +163,13 @@ class AndroidTrustedContactBundleV1Test {
         return Fixture(raw, pin, now)
     }
 
+    private fun mutatePayload(raw: String, change: (JSONObject) -> Unit): String {
+        val prefix = "EZERO-ANDROID-TRUST1."
+        val envelope = JSONObject(Base64.getUrlDecoder().decode(raw.removePrefix(prefix)).toString(Charsets.UTF_8))
+        change(envelope.getJSONObject("payload"))
+        return prefix + b64(envelope.toString().toByteArray(Charsets.UTF_8))
+    }
+
     @Test fun verifiesRootSignedTrustedFriendBundleAndRelationship() {
         val f = fixture()
         val contact = AndroidTrustedContactBundleV1.verifyBundle(f.raw, f.pin, f.now)
@@ -181,7 +188,7 @@ class AndroidTrustedContactBundleV1Test {
 
     @Test fun rejectsModifiedPayloadAndWrongRootPin() {
         val f = fixture()
-        val changed = f.raw.replace("Test Friend", "Attacker")
+        val changed = mutatePayload(f.raw) { it.put("displayName", "Attacker") }
         assertThrows(IllegalArgumentException::class.java) {
             AndroidTrustedContactBundleV1.verifyBundle(changed, f.pin, f.now)
         }
@@ -200,13 +207,13 @@ class AndroidTrustedContactBundleV1Test {
             AndroidTrustedContactBundleV1.verifyBundle(f.raw, f.pin, f.now + 90_001L)
         }
         assertThrows(IllegalArgumentException::class.java) {
-            AndroidTrustedContactBundleV1.verifyBundle(f.raw.replace(origin, "https://evil.invalid"), f.pin, f.now)
+            AndroidTrustedContactBundleV1.verifyBundle(mutatePayload(f.raw) { it.put("origin", "https://evil.invalid") }, f.pin, f.now)
         }
     }
 
     @Test fun rejectsRelationshipIdMismatchAndMalformedPrefix() {
         val f = fixture()
-        val changed = f.raw.replace("relationshipId", "relationshipX")
+        val changed = mutatePayload(f.raw) { it.put("relationshipId", "0".repeat(64)) }
         assertThrows(IllegalArgumentException::class.java) {
             AndroidTrustedContactBundleV1.verifyBundle(changed, f.pin, f.now)
         }
