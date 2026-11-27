@@ -55,6 +55,27 @@ internal object AndroidEnrollmentKeyStore {
         return PublicIdentity(fingerprint, Base64.encodeToString(spki, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING))
     }
 
+    /** Sign protocol-defined UTF-8 bytes with the non-exportable installation key. */
+    fun signCanonicalBytes(bytes: ByteArray): ByteArray {
+        require(bytes.isNotEmpty() && bytes.size <= 8192) { "SIGNING_MESSAGE_SIZE_INVALID" }
+        val pair = getOrCreateKeyPair()
+        return Signature.getInstance("SHA256withECDSA").run {
+            initSign(pair.private)
+            update(bytes)
+            sign() // ASN.1 DER, as required by the Worker registration contract.
+        }
+    }
+
+    /**
+     * Signs protocol-defined canonical bytes and returns the 64-byte IEEE-P1363
+     * encoding used by WebCrypto and the binding verifier. The private key stays
+     * inside Android Keystore; callers receive only the signature bytes.
+     */
+    fun signCanonicalBytesP1363(bytes: ByteArray): ByteArray {
+        val der = signCanonicalBytes(bytes)
+        return AndroidSignatureEncoding.derP256ToP1363(der)
+    }
+
     fun signChallenge(challenge: AndroidEnrollmentProtocolV1.Challenge): String {
         val pair = getOrCreateKeyPair()
         val identity = getOrCreatePublicIdentity()

@@ -5,8 +5,7 @@ import com.google.firebase.messaging.RemoteMessage
 
 class IncomingCallMessagingService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
-        // TODO(stage): send token over authenticated device-registration API.
-        // Never log or expose the FCM token. No backend endpoint is wired yet.
+        AndroidPushTokenRegistrationV1.onNewToken(applicationContext, token)
     }
 
     override fun onMessageReceived(message: RemoteMessage) {

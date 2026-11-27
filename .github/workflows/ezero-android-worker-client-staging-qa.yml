@@ -4,6 +4,10 @@ on:
   pull_request:
     paths:
       - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentWorkerClientV1.kt"
+      - "android/app/src/main/java/com/ezero/connect/AndroidPushTokenRegistrationV1.kt"
+      - "android/app/src/main/java/com/ezero/connect/IncomingCallMessagingService.kt"
+      - "android/app/src/main/java/com/ezero/connect/MainActivity.kt"
+      - "android/app/src/test/java/com/ezero/connect/AndroidPushTokenRegistrationV1Test.kt"
       - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentKeyStore.kt"
       - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentProtocolV1.kt"
       - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentQrEnvelopeV1.kt"
@@ -17,6 +21,10 @@ on:
       - ezero-android-worker-client-staging-20261125
     paths:
       - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentWorkerClientV1.kt"
+      - "android/app/src/main/java/com/ezero/connect/AndroidPushTokenRegistrationV1.kt"
+      - "android/app/src/main/java/com/ezero/connect/IncomingCallMessagingService.kt"
+      - "android/app/src/main/java/com/ezero/connect/MainActivity.kt"
+      - "android/app/src/test/java/com/ezero/connect/AndroidPushTokenRegistrationV1Test.kt"
       - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentKeyStore.kt"
       - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentProtocolV1.kt"
       - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentQrEnvelopeV1.kt"

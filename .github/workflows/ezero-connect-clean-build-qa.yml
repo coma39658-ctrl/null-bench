@@ -8,6 +8,7 @@ on:
       - 'ezero-connect.webmanifest'
       - 'js/ezero_connect_app_v1.js'
       - 'js/ezero_connect_identity_v1.js'
+      - 'tests/ezero_browser_identity_binding_handoff_v1.test.mjs'
       - 'js/ezero_connect_invite_v1.js'
       - 'js/ezero_connect_trust_v1.js'
       - 'js/ezero_connect_signal_client_v1.js'
@@ -123,6 +124,7 @@ jobs:
           set -euo pipefail
           node --check js/ezero_connect_app_v1.js
           node --check js/ezero_connect_identity_v1.js
+          node --check tests/ezero_browser_identity_binding_handoff_v1.test.mjs
           node --check js/ezero_connect_invite_v1.js
           node --check js/ezero_connect_trust_v1.js
           node --check js/ezero_connect_signal_client_v1.js
@@ -181,6 +183,8 @@ jobs:
         run: node tests/test_ezero_connect_qr_runtime_v1.mjs
       - name: Verify full-screen mobile scanner, camera switch, torch gating and gallery control
         run: node tests/test_ezero_web_scanner_controls_v1.mjs
+      - name: Verify consent-gated browser identity signature handoff for Android binding
+        run: node --test tests/ezero_browser_identity_binding_handoff_v1.test.mjs
       - name: Verify mutual approval and encrypted trusted-contact vault
         run: node tests/test_ezero_connect_trust_v1.mjs
       - name: Verify signed signaling handshake and message limits

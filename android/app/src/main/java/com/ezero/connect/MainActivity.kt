@@ -122,6 +122,7 @@ class MainActivity : Activity() {
             append("\n\nA verified QR is identity evidence only; it does not enroll or trust a friend.")
         }
         requestNotificationPermission()
+        AndroidPushTokenRegistrationV1.requestCurrentToken(this)
         showPendingCall(intent)
     }
 
@@ -300,7 +301,9 @@ class MainActivity : Activity() {
                     .putString(KEY_LAST_APPROVED_DEVICE_FP, result.getString("device_fp"))
                     .putString(KEY_LAST_APPROVED_ROOT_FP, result.getString("root_fp"))
                     .putString(KEY_LAST_APPROVAL_AT, System.currentTimeMillis().toString())
+                    .putBoolean(KEY_SERVER_ENROLLED, true)
                     .commit()) { "ENROLLMENT_STATE_PERSISTENCE_FAILED" }
+                AndroidPushTokenRegistrationV1.requestCurrentToken(this)
                 runOnUiThread {
                     enrollmentQrView.visibility = android.view.View.GONE
                     statusView.text = "E-ZERO device enrollment confirmed by Worker.\\n\\nDevice fingerprint: ${result.getString("device_fp")}\\nRoot fingerprint: ${result.getString("root_fp")}\\n\\nStatus: ENROLLED. This does not enable FCM ringing, friend trust, or WebRTC calling."
@@ -383,5 +386,6 @@ class MainActivity : Activity() {
         private const val KEY_LAST_APPROVED_DEVICE_FP = "last_approved_device_fp"
         private const val KEY_LAST_APPROVED_ROOT_FP = "last_approved_root_fp"
         private const val KEY_LAST_APPROVAL_AT = "last_approval_at"
+        private const val KEY_SERVER_ENROLLED = "server_enrolled"
     }
 }
