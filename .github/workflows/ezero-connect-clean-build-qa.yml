@@ -29,6 +29,8 @@ on:
       - 'js/ezero_connect_signaling_client_v1.js'
       - 'js/ezero_connect_pairing_ui_v1.js'
       - 'tests/test_ezero_connect_peer_diagnostics_contract_v1.mjs'
+      - 'js/ezero_connect_pairing_ui_v1.js'
+      - 'tests/test_ezero_connect_peer_diagnostics_contract_v1.mjs'
       - 'js/ezero_connect_e2e_crypto_v1.mjs'
       - 'tests/test_ezero_connect_e2e_crypto_v1.mjs'
       - 'js/ezero_connect_e2e_datachannel_v1.mjs'
