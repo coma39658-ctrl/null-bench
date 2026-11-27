@@ -171,7 +171,7 @@
         statement.origin !== "https://coma39658-ctrl.github.io" ||
         typeof statement.challengeId !== "string" || !/^[A-Za-z0-9_-]{22,128}$/.test(statement.challengeId) ||
         typeof statement.nonce !== "string" || !/^[A-Za-z0-9_-]{22,128}$/.test(statement.nonce) ||
-        typeof statement.expiresAt !== "string" || !/^\\d{13}$/.test(statement.expiresAt) ||
+        typeof statement.expiresAt !== "string" || !/^\d{13}$/.test(statement.expiresAt) ||
         Number(statement.expiresAt) <= Date.now() || Number(statement.expiresAt) > Date.now() + 60000 ||
         typeof statement.relationshipId !== "string" || !/^[a-f0-9]{64}$/.test(statement.relationshipId) ||
         typeof statement.identityFingerprint !== "string" || !/^(?:[0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(statement.identityFingerprint) ||
@@ -186,8 +186,8 @@
       throw new Error("BINDING_IDENTITY_FINGERPRINT_MISMATCH");
     }
     const bytes = new TextEncoder().encode(
-      "EZERO_IDENTITY_INSTALLATION_BINDING_V1\\n" +
-      fields.map(key => key + "=" + statement[key] + "\\n").join("")
+      "EZERO_IDENTITY_INSTALLATION_BINDING_V1\n" +
+      fields.map(key => key + "=" + statement[key] + "\n").join("")
     );
     const signature = await crypto.subtle.sign(
       { name: "ECDSA", hash: "SHA-256" }, record.privateKey, bytes
