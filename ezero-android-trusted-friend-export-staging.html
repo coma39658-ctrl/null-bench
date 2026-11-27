@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ur">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E-ZERO Android Trusted Friend Export — Staging</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#19383c;background:#f2f6f5}
+body{margin:0;padding:16px}.panel{max-width:700px;margin:20px auto;background:white;border:1px solid #d8e3e0;border-radius:15px;padding:20px}
+h1{font-size:22px;margin-top:0}.muted{color:#536b70;line-height:1.65;font-size:14px}
+.warning{padding:12px;background:#fff7ed;border-left:4px solid #b45309;line-height:1.6;margin:14px 0}
+select,textarea{box-sizing:border-box;width:100%;padding:12px;border:1px solid #b9cbc7;border-radius:9px;margin:8px 0;font:14px system-ui}
+textarea{min-height:140px;font:12px ui-monospace,monospace}
+button{border:0;border-radius:9px;background:#174b45;color:white;font-weight:700;padding:12px 15px;margin:8px 6px 8px 0}
+#qr{display:block;width:300px;max-width:100%;margin:16px auto}
+#status{background:#edf4f2;border-radius:9px;padding:12px;line-height:1.5;white-space:pre-wrap}
+small{color:#657a7c}
+</style>
+</head>
+<body>
+<main class="panel">
+<h1>E‑ZERO محفوظ دوست — Android میں منتقل کریں</h1>
+<p class="muted">یہ صفحہ اسی براؤزر کی پہلے سے محفوظ Trusted Friends فہرست سے ایک دوست کا مختصر مدت والا Root-signed پیکج بناتا ہے تاکہ اسے E‑ZERO Android ایپ میں درآمد کیا جاسکے۔ نجی کلید یا FCM ٹوکن پیکج میں شامل نہیں ہوتے۔</p>
+<div class="warning"><strong>رازداری:</strong> QR میں دوست کا ڈیجیٹل fingerprint، public key، محفوظ رابطے کا ثبوت اور دکھانے والا نام شامل ہوگا۔ اسے صرف اپنے E‑ZERO Android فون میں درآمد کریں۔ QR 90 سیکنڈ بعد ختم ہوگا۔</div>
+<label for="friend">محفوظ دوست منتخب کریں</label>
+<select id="friend"><option value="">فہرست لوڈ ہو رہی ہے…</option></select>
+<button id="load" type="button">محفوظ دوست دوبارہ لوڈ کریں</button>
+<button id="export" type="button" disabled>منتخب دوست کا محفوظ QR بنائیں</button>
+<div id="output" hidden>
+<img id="qr" alt="E-ZERO trusted friend import QR">
+<label for="payload">Android میں اسکین کرنے کے لیے QR متن</label>
+<textarea id="payload" readonly></textarea>
+<button id="copy" type="button">متن کاپی کریں</button>
+</div>
+<div id="status" role="status" aria-live="polite">پہلے سے محفوظ Root اور Trusted Friends ریکارڈ چیک ہو رہے ہیں…</div>
+<p class="muted">یہ صرف محفوظ دوست کی شناخت Android میں منتقل کرتا ہے۔ اس سے FCM، کال کی بیل یا WebRTC کنکشن خودکار طور پر فعال نہیں ہوتا۔</p>
+<small>STAGING ONLY — no production changes.</small>
+</main>
+<script src="js/ezero_connect_identity_v1.js"></script>
+<script src="js/ezero_connect_trust_v1.js"></script>
+<script src="js/vendor/ezero-qrcode-generator-mit.js"></script>
+<script>
+(async function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const select=$("friend"),status=$("status");
+async function load(){
+ $("export").disabled=true;$("output").hidden=true;select.innerHTML="";
+ try{
+  const identity=await EZERO_CONNECT_IDENTITY.load();
+  if(!identity)throw new Error("اس براؤزر میں پہلے سے محفوظ E-ZERO شناخت موجود نہیں۔");
+  const contacts=await EZERO_CONNECT_TRUST.listTrustedContacts();
+  const trusted=contacts.filter(c=>c.status==="TRUSTED");
+  if(!trusted.length){select.add(new Option("کوئی محفوظ دوست نہیں ملا",""));status.textContent="اس براؤزر میں فی الحال کوئی Trusted Friend موجود نہیں۔";return;}
+  select.add(new Option("دوست منتخب کریں",""));
+  for(const c of trusted){
+   const label=(c.displayName||"E-ZERO friend")+" — "+c.remoteFingerprint.slice(0,17)+"…";
+   select.add(new Option(label,c.remoteFingerprint));
+  }
+  $("export").disabled=false;
+  status.textContent="Root شناخت لوڈ ہوگئی۔ "+trusted.length+" محفوظ دوست دستیاب ہیں۔";
+ }catch(error){status.textContent="لوڈ نہیں ہوا: "+String(error.message||error);}
+}
+$("load").addEventListener("click",load);
+$("export").addEventListener("click",async()=>{
+ $("export").disabled=true;$("output").hidden=true;
+ try{
+  if(!select.value)throw new Error("پہلے ایک محفوظ دوست منتخب کریں۔");
+  const raw=await EZERO_CONNECT_TRUST.exportTrustedContactBundle({remoteFingerprint:select.value,explicitConsent:true});
+  const qr=qrcode(0,"L");qr.addData(raw);qr.make();
+  $("qr").src=qr.createDataURL(7,4);$("payload").value=raw;$("output").hidden=false;
+  status.textContent="Root-signed friend QR تیار ہوگیا۔ اسے اسی Android فون سے اسکین کریں؛ یہ 90 سیکنڈ میں ختم ہوگا۔";
+ }catch(error){status.textContent="Export مسترد: "+String(error.message||error);}
+ finally{$("export").disabled=false;}
+});
+$("copy").addEventListener("click",async()=>{
+ try{await navigator.clipboard.writeText($("payload").value);status.textContent="QR متن کاپی ہوگیا۔"}
+ catch(_){$("payload").focus();$("payload").select();status.textContent="متن منتخب ہے؛ دستی طور پر کاپی کریں۔"}
+});
+await load();
+})();
+</script>
+</body>
+</html>

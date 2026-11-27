@@ -1,4 +1,12 @@
 import assert from "node:assert/strict";
+import { createPublicKey, verify as verifySignature } from "node:crypto";
+
+function stableCanonical(value) {
+  if (value === null || typeof value === "string" || typeof value === "boolean") return JSON.stringify(value);
+  if (typeof value === "number" && Number.isFinite(value)) return JSON.stringify(value);
+  if (Array.isArray(value)) return "[" + value.map(stableCanonical).join(",") + "]";
+  return "{" + Object.keys(value).sort().map(key => JSON.stringify(key) + ":" + stableCanonical(value[key])).join(",") + "}";
+}
 import { chromium } from "playwright";
 
 const browser = await chromium.launch({ headless: true });
@@ -192,6 +200,35 @@ try {
   assert.equal(autoSavedA.status, "TRUSTED");
   assert.equal(autoSavedB.status, "TRUSTED");
   assert.equal(autoSavedA.relationshipId, autoSavedB.relationshipId);
+  const deniedExport = await a.evaluate(fp => window.EZERO_CONNECT_TRUST.exportTrustedContactBundle({
+    remoteFingerprint: fp, explicitConsent: false
+  }).then(() => "ACCEPTED").catch(error => error.message), identityB.fingerprint);
+  assert.equal(deniedExport, "TRUST_EXPORT_EXPLICIT_CONSENT_REQUIRED");
+  const exportedBundle = await a.evaluate(fp => window.EZERO_CONNECT_TRUST.exportTrustedContactBundle({
+    remoteFingerprint: fp, explicitConsent: true
+  }), identityB.fingerprint);
+  assert.ok(exportedBundle.startsWith("EZERO-ANDROID-TRUST1."));
+  const exportedEnvelope = JSON.parse(Buffer.from(
+    exportedBundle.slice("EZERO-ANDROID-TRUST1.".length), "base64url"
+  ).toString("utf8"));
+  assert.equal(exportedEnvelope.payload.protocol, "E-ZERO-ANDROID-TRUST-BUNDLE-1");
+  assert.equal(exportedEnvelope.payload.remoteFingerprint, identityB.fingerprint);
+  assert.equal(exportedEnvelope.payload.relationshipId, autoSavedA.relationshipId);
+  assert.equal(exportedEnvelope.payload.trustVersion, 1);
+  assert.ok(exportedEnvelope.payload.localApproval.signature);
+  assert.ok(exportedEnvelope.payload.remoteApproval.signature);
+  const rootPublicKey = createPublicKey({
+    key: Buffer.from(exportedEnvelope.payload.rootSpki, "base64url"),
+    format: "der",
+    type: "spki"
+  });
+  assert.equal(verifySignature(
+    "sha256",
+    Buffer.from(stableCanonical(exportedEnvelope.payload), "utf8"),
+    { key: rootPublicKey, dsaEncoding: "ieee-p1363" },
+    Buffer.from(exportedEnvelope.signature, "base64url")
+  ), true);
+
   const callPeerA = await a.evaluate(fp => window.EZERO_CONNECT_TRUST.getTrustedPeerForCall(fp), identityB.fingerprint);
   const callPeerB = await b.evaluate(fp => window.EZERO_CONNECT_TRUST.getTrustedPeerForCall(fp), identityA.fingerprint);
   assert.deepEqual(Object.keys(callPeerA).sort(), ["displayName","relationshipId","remoteFingerprint","remotePublicKeySpki"]);

@@ -10,6 +10,7 @@ on:
       - 'js/ezero_connect_identity_v1.js'
       - 'js/ezero_connect_invite_v1.js'
       - 'js/ezero_connect_trust_v1.js'
+      - 'ezero-android-trusted-friend-export-staging.html'
       - 'js/ezero_connect_signal_client_v1.js'
       - 'js/ezero_connect_saved_calls_v1.js'
       - 'js/ezero_connect_media_v1.js'
@@ -48,6 +49,7 @@ on:
       - ezero-mutual-approval-ui-staging-20261123
       - ezero-connect-auto-trust-pairing-v2-20261123
       - ezero-connect-media-foundation-v1-20261123
+      - ezero-android-trusted-contact-bridge-staging-20261127
     paths:
       - 'ezero-connect.html'
       - 'ezero-connect-app.html'
@@ -56,6 +58,7 @@ on:
       - 'js/ezero_connect_identity_v1.js'
       - 'js/ezero_connect_invite_v1.js'
       - 'js/ezero_connect_trust_v1.js'
+      - 'ezero-android-trusted-friend-export-staging.html'
       - 'js/ezero_connect_signal_client_v1.js'
       - 'js/ezero_connect_saved_calls_v1.js'
       - 'js/ezero_connect_media_v1.js'
