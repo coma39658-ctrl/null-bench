@@ -9,7 +9,7 @@ const canonical = (tag, fields, order) => Buffer.from(tag+"\n"+order.map(k=>k+"=
 const CHALLENGE_ORDER=["challenge_id","device_fp","nonce","audience","expires_at"];
 const APPROVAL_ORDER=["root_fp","device_fp","challenge_id","nonce","audience","expires_at"];
 const signBytes=(key,bytes)=>sign("sha256",bytes,{key,dsaEncoding:"ieee-p1363"});
-const verifyBytes=(key,bytes,sig)=>verify("sha256",bytes,key,sig);
+const verifyBytes=(key,bytes,sig)=>verify("sha256",bytes,{key,dsaEncoding:"ieee-p1363"},sig);
 
 function fixture(){
  const root=generateKeyPairSync("ec",{namedCurve:"prime256v1"});
