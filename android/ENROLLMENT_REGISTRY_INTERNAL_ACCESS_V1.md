@@ -76,3 +76,24 @@ Before any real enrollment:
 Do not deploy or wire this service until the exact DO storage binding is verified against the isolated enrollment Worker, root provisioning/revocation is implemented, the private Worker has no public ingress, FCM sender credentials and wake signing key are configured in staging secrets, and all negative tests pass. Then test real FCM on two Android phones with foreground, background, screen-off, app-swiped-away, permission denied, battery optimization, reject, expiry, cancellation, and network loss. Force-stop must be tested separately because Android may block delivery.
 
 A green unit/CI result is not proof of audible ringing. Audible lock-screen ringing remains **NOT VERIFIED** until physically observed on the target devices.
+
+
+## Code-audit finding — current pairing registry is not an installation registry
+
+Audited staging sources on 2026-11-27:
+
+- `signaling/ezero-friendship-registry-v1/worker.mjs` V2 transcript validation accepts each participant as exactly `{ fingerprint, publicKeySpki }`. It verifies the SPKI fingerprint and mutual handshake, then stores the friendship transcript. It does not store an Android `installationId`, an Android installation fingerprint, or an account-to-installation binding.
+- The `/v1/authorize-call` path verifies the signed call invite against the two friendship participant fingerprints and the active relationship. Its success response is only `{ authorized: true, relationshipId }`; it does not resolve an enrolled Android installation.
+- `signaling/ezero-connect-v1/inbox_worker.mjs` routes an incoming call only to a currently connected foreground WebSocket whose authenticated fingerprint matches the recipient. If no such socket exists, it returns `unavailable`; it does not dispatch FCM.
+- `signaling/cloudflare/src/android_enrollment_candidate_v1.js` stores Android devices by the SPKI-derived `device_fp` and links them to a root fingerprint. The current candidate has no trusted API to associate a device record with a friendship participant fingerprint or stable installation ID, and no private token-resolution/FCM-dispatch API.
+- Therefore the existing staging code proves friendship identity and Android key enrollment as separate facts only. It does not prove that a particular enrolled Android installation belongs to a particular friendship participant. The private FCM service must remain design-only until a separately authorized, auditable account-to-installation binding is implemented and tested.
+
+### Required implementation contract before push can be enabled
+
+1. Add an explicit server-authorized binding record with the three distinct identifiers: `recipientIdentityFingerprint`, `recipientInstallationFingerprint`, and `installationId`. Bind the installation fingerprint to the exact enrolled SPKI and bind the identity to the active approved relationship participant through a trusted enrollment/approval flow.
+2. Make binding creation/replacement and revocation authenticated, replay-resistant, rate-limited, and auditable. A client-supplied fingerprint or `authorized: true` flag is never sufficient.
+3. On every call wake, re-check active friendship, block/revocation state, account-to-installation binding, root/device active state, token expiry, call expiry, and nonce/call replay before dispatch.
+4. Keep token lookup and decryption inside the private service boundary; do not expose raw token or ciphertext to the public call controller, browser, or Android client.
+5. Add negative tests for wrong identity, wrong installation, stale binding, revoked friendship, revoked root/device, replay, and revocation racing with dispatch. Only then proceed to physical FCM/ringtone testing.
+
+Status remains **NOT IMPLEMENTED / NOT VERIFIED**. This audit is a code inspection of unmerged staging branches, not a production-state claim.
