@@ -91,7 +91,7 @@ test("replay protection is explicitly outside signature helper and requires one-
   const f = await fixture();
   const source = await (await import("node:fs/promises")).readFile(
     new URL("../signaling/cloudflare/src/identity_installation_binding_v1.mjs", import.meta.url), "utf8");
-  assert.match(source, /challenge\\s+consumption/);
+  assert.match(source, /challenge\s+consumption/);
   assert.match(source, /does not check relationship status/);
   assert.equal((await verifyIdentityInstallationBindingV1({
     statement: f.statement, identitySpki: f.identitySpki,
