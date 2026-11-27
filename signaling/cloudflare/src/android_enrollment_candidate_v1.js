@@ -104,7 +104,7 @@ export default {
     const androidRoute = u.pathname === "/v1/android/enrollment/challenge" ||
       u.pathname === "/v1/android/enrollment/complete" ||
       u.pathname === "/v1/android/devices/current/push-token";
-    const rootAdminRoute = u.pathname === "/v1/admin/root-register";
+    const rootAdminRoute = u.pathname.startsWith("/v1/admin/");
     if (!androidRoute && !rootAdminRoute) return response({error:"NOT_FOUND"},404);
 
     // Native Android HTTP clients do not send a browser Origin header.
@@ -139,7 +139,7 @@ export class AndroidEnrollmentRegistry extends DurableObject {
     const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(clientIp)));
     const key = "rate:" + route + ":" + hex(digest);
     const now = Date.now();
-    const admin = route === "/v1/admin/root-register";
+    const admin = route.startsWith("/v1/admin/");
     const windowMs = admin ? 60 * 60 * 1000 : 60 * 1000;
     const limit = admin ? 3 : 10;
     const windowStart = Math.floor(now / windowMs) * windowMs;
@@ -158,14 +158,68 @@ export class AndroidEnrollmentRegistry extends DurableObject {
     const rateAllowed = await this.consumeRateLimit(request, u.pathname);
     if (!rateAllowed) return new Response(JSON.stringify({error:"RATE_LIMITED"}), {
       status:429, headers:{"Content-Type":"application/json; charset=utf-8",
-        "Cache-Control":"no-store","Retry-After":u.pathname === "/v1/admin/root-register" ? "3600" : "60",
+        "Cache-Control":"no-store","Retry-After":u.pathname.startsWith("/v1/admin/") ? "3600" : "60",
         "X-Content-Type-Options":"nosniff","Access-Control-Allow-Origin":ORIGIN,"Vary":"Origin"}
     });
 
-    if (u.pathname === "/v1/admin/root-register") {
+    if (rootAdminRoute) {
       const secret = this.env.ROOT_BOOTSTRAP_SECRET;
       if (!secret || request.headers.get("X-Root-Bootstrap") !== secret)
         return response({error:"ADMIN_UNAUTHORIZED"},403);
+    }
+
+    if (u.pathname === "/v1/admin/root-revoke") {
+      const rootFp = body.root_fp;
+      const reason = body.reason;
+      if (!FP.test(rootFp || "") ||
+          !["ROOT_COMPROMISE","OPERATOR_ROTATION","SECURITY_REVIEW"].includes(reason))
+        return response({error:"BAD_ROOT_REVOCATION"},400);
+      const now = Date.now();
+      const revoked = this.ctx.storage.transactionSync(tx => {
+        const roots = tx.get("roots") || {};
+        const root = roots[rootFp];
+        if (!root || !root.active) return false;
+        roots[rootFp] = {...root,active:false,revoked_at:now,revocation_reason:reason};
+        const devices = tx.get("devices") || {};
+        for (const [deviceFp,device] of Object.entries(devices)) {
+          if (device.root_fp !== rootFp) continue;
+          devices[deviceFp] = {...device,active:false,revoked:true,revoked_at:now};
+          const token = tx.get("push-token:"+deviceFp);
+          if (token) tx.put("push-token:"+deviceFp,{...token,active:false,revoked_at:now});
+        }
+        tx.put("roots",roots);
+        tx.put("devices",devices);
+        return true;
+      });
+      return revoked
+        ? response({ok:true,status:"ROOT_AND_CHILD_INSTALLATIONS_REVOKED",root_fp:rootFp})
+        : response({error:"ROOT_NOT_ACTIVE"},409);
+    }
+
+    if (u.pathname === "/v1/admin/device-revoke") {
+      const deviceFp = body.device_fp;
+      const reason = body.reason;
+      if (!FP.test(deviceFp || "") ||
+          !["USER_REQUEST","DEVICE_LOST","SECURITY_REVIEW"].includes(reason))
+        return response({error:"BAD_DEVICE_REVOCATION"},400);
+      const now = Date.now();
+      const revoked = this.ctx.storage.transactionSync(tx => {
+        const devices = tx.get("devices") || {};
+        const device = devices[deviceFp];
+        if (!device || !device.active) return false;
+        devices[deviceFp] = {...device,active:false,revoked:true,revoked_at:now,
+          revocation_reason:reason};
+        tx.put("devices",devices);
+        const token = tx.get("push-token:"+deviceFp);
+        if (token) tx.put("push-token:"+deviceFp,{...token,active:false,revoked_at:now});
+        return true;
+      });
+      return revoked
+        ? response({ok:true,status:"INSTALLATION_REVOKED",device_fp:deviceFp})
+        : response({error:"DEVICE_NOT_ACTIVE"},409);
+    }
+
+    if (u.pathname === "/v1/admin/root-register") {
       const spki = decode64(body.root_spki, 512);
       if (!spki || spki.length < 80 || spki.length > 160)
         return response({error:"BAD_ROOT_KEY"},400);
@@ -218,18 +272,25 @@ export class AndroidEnrollmentRegistry extends DurableObject {
       const encryptedToken = await encryptPushToken(token,deviceFp,this.env.TOKEN_ENCRYPTION_KEY_BASE64URL || "");
       const nonceKey = "push-token-nonces:"+deviceFp;
       const accepted = this.ctx.storage.transactionSync(tx => {
+        // Re-check revocation atomically with token persistence.
+        const currentDevices = tx.get("devices") || {};
+        const currentDevice = currentDevices[deviceFp];
+        const currentRoots = tx.get("roots") || {};
+        if (!currentDevice?.active || !currentRoots[currentDevice.root_fp]?.active)
+          return "REVOKED";
         const prior = tx.get(nonceKey) || [];
         const fresh = prior.filter(x => x.expires_at > now);
-        if (fresh.some(x => x.nonce === nonce)) return false;
+        if (fresh.some(x => x.nonce === nonce)) return "REPLAY";
         fresh.push({nonce,expires_at:now+120000});
         tx.put(nonceKey,fresh.slice(-128));
         tx.put("push-token:"+deviceFp,{
           encrypted_token:encryptedToken,token_sha256:tokenHash,
           updated_at:now,expires_at:now+90*24*60*60*1000,active:true
         });
-        return true;
+        return "STORED";
       });
-      if (!accepted) return response({error:"TOKEN_NONCE_REPLAY"},409);
+      if (accepted === "REVOKED") return response({error:"DEVICE_OR_ROOT_REVOKED"},403);
+      if (accepted === "REPLAY") return response({error:"TOKEN_NONCE_REPLAY"},409);
       return response({ok:true,status:"TOKEN_REGISTERED",device_fp:deviceFp,token_expires_at:now+90*24*60*60*1000});
     }
 
@@ -299,11 +360,18 @@ export class AndroidEnrollmentRegistry extends DurableObject {
           crypto.subtle.verify({name:"ECDSA",hash:"SHA-256"},rootKey,rootSig,approvalBytes)
         ]);
         if (!deviceOK || !rootOK) return response({error:"PROOF_INVALID"},403);
-        const devices = (await this.ctx.storage.get("devices")) || {};
-        if (devices[c.device_fp]?.active) return response({error:"DEVICE_ALREADY_ENROLLED"},409);
-        devices[c.device_fp] = {root_fp:body.root_fp,device_spki:saved.device_spki,
-          enrolled_at:now,active:true};
-        await this.ctx.storage.put("devices",devices);
+        const enrollmentResult = this.ctx.storage.transactionSync(tx => {
+          const currentRoots = tx.get("roots") || {};
+          if (!currentRoots[body.root_fp]?.active) return "ROOT_REVOKED";
+          const devices = tx.get("devices") || {};
+          if (devices[c.device_fp]) return "DEVICE_ALREADY_SEEN";
+          devices[c.device_fp] = {root_fp:body.root_fp,device_spki:saved.device_spki,
+            enrolled_at:now,active:true,revoked:false};
+          tx.put("devices",devices);
+          return "ENROLLED";
+        });
+        if (enrollmentResult !== "ENROLLED")
+          return response({error:enrollmentResult},409);
         await this.ctx.storage.delete(key);
         return response({ok:true,device_fp:c.device_fp,root_fp:body.root_fp,status:"ENROLLED"});
       } catch (_) { return response({error:"PROOF_INVALID"},403); }
