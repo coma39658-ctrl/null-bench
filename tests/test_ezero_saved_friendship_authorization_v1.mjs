@@ -51,11 +51,11 @@ await assert.rejects(
   /FRIENDSHIP_REGISTRY_UNAVAILABLE/
 );
 await assert.rejects(
-  () => authorizeSavedFriendshipForCall({ FRIENDSHIP_REGISTRY: { fetch: async () => new Response("no", { status: 403 }) } }, invite),
+  () => authorizeSavedFriendshipForCall({ PUBLIC_ORIGIN: invite.origin, FRIENDSHIP_REGISTRY: { fetch: async () => new Response("no", { status: 403 }) } }, invite),
   /FRIENDSHIP_REGISTRY_REJECTED/
 );
 await assert.rejects(
-  () => authorizeSavedFriendshipForCall({ FRIENDSHIP_REGISTRY: { fetch: async () => new Response(JSON.stringify({ authorized: true, relationshipId: "wrong" }), { status: 200 }) } }, invite),
+  () => authorizeSavedFriendshipForCall({ PUBLIC_ORIGIN: invite.origin, FRIENDSHIP_REGISTRY: { fetch: async () => new Response(JSON.stringify({ authorized: true, relationshipId: "wrong" }), { status: 200 }) } }, invite),
   /FRIENDSHIP_REGISTRY_RESPONSE_INVALID/
 );
 await assert.rejects(
