@@ -22,6 +22,10 @@ function decode64url(value) {
   try { binary = atob(padded); } catch (_) { throw new Error("QUEUE_KEY_ENCODING_INVALID"); }
   return Uint8Array.from(binary, c => c.charCodeAt(0));
 }
+async function fingerprintFromSpki(spki) {
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", spki));
+  return Array.from(digest, byte => byte.toString(16).padStart(2, "0").toUpperCase()).join(":");
+}
 function canonical(value) {
   if (value === null || typeof value === "string" || typeof value === "boolean") return JSON.stringify(value);
   if (typeof value === "number" && Number.isFinite(value)) return JSON.stringify(value);
@@ -98,11 +102,12 @@ export class EzeroOfflineCallQueue {
 
         if (url.pathname === "/internal/v1/create") {
           const keys = ["callId","callerFingerprint","devicePublicKeySpki","expiresAt","installationId",
-            "invite","mode","nonce","recipientFingerprint","relationshipId"];
+            "invite","mode","nonce","recipientIdentityFingerprint","recipientInstallationFingerprint","relationshipId"];
           if (!exactKeys(body, keys) || !CALL_ID.test(body.callId || "") ||
               !FINGERPRINT.test(body.callerFingerprint || "") ||
-              !FINGERPRINT.test(body.recipientFingerprint || "") ||
-              body.callerFingerprint === body.recipientFingerprint ||
+              !FINGERPRINT.test(body.recipientIdentityFingerprint || "") ||
+              !FINGERPRINT.test(body.recipientInstallationFingerprint || "") ||
+              body.callerFingerprint === body.recipientIdentityFingerprint ||
               !/^[A-Za-z0-9_-]{16,128}$/.test(body.installationId || "") ||
               !/^[a-f0-9]{64}$/.test(body.relationshipId || "") ||
               !NONCE.test(body.nonce || "") || !["AUDIO","VIDEO"].includes(body.mode) ||
@@ -117,6 +122,12 @@ export class EzeroOfflineCallQueue {
           const spki = decode64url(body.devicePublicKeySpki);
           if (spki.length < 80 || spki.length > 160) return json({ error: "QUEUE_DEVICE_KEY_INVALID" }, 400);
           await crypto.subtle.importKey("spki", spki, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+          // Bind the Android installation fingerprint to the exact installation public key.
+          // The separate recipient account identity remains bound by the signed invite and upstream Registry.
+          // The upstream enrollment service must still prove this installation is root-approved and active.
+          if (await fingerprintFromSpki(spki) !== body.recipientInstallationFingerprint) {
+            return json({ error: "QUEUE_DEVICE_FINGERPRINT_MISMATCH" }, 400);
+          }
           const current = await this.ctx.storage.get("pending");
           if (current && current.expiresAt > now && current.status === "PENDING") {
             return json({ error: "RECIPIENT_BUSY" }, 409);
@@ -127,7 +138,9 @@ export class EzeroOfflineCallQueue {
           }
           const record = {
             callId: body.callId, callerFingerprint: body.callerFingerprint,
-            recipientFingerprint: body.recipientFingerprint, relationshipId: body.relationshipId,
+            recipientIdentityFingerprint: body.recipientIdentityFingerprint,
+            recipientInstallationFingerprint: body.recipientInstallationFingerprint,
+            relationshipId: body.relationshipId,
             installationId: body.installationId, devicePublicKeySpki: body.devicePublicKeySpki,
             invite: body.invite, mode: body.mode, nonce: body.nonce,
             createdAt: now, expiresAt: body.expiresAt, status: "PENDING"
@@ -156,7 +169,8 @@ export class EzeroOfflineCallQueue {
           path: url.pathname,
           callId: pending.callId,
           installationId: pending.installationId,
-          recipientFingerprint: pending.recipientFingerprint,
+          recipientIdentityFingerprint: pending.recipientIdentityFingerprint,
+          recipientInstallationFingerprint: pending.recipientInstallationFingerprint,
           issuedAt: body.issuedAt,
           nonce: body.nonce
         };
@@ -172,7 +186,9 @@ export class EzeroOfflineCallQueue {
           await this.ctx.storage.put("pending", pending);
           replay.push({ nonce: body.nonce, expiresAt: now + 120_000 });
           await this.ctx.storage.put("deviceProofNonces", replay.slice(-MAX_REPLAY));
-          return json({ status: "CLAIMED", callId: pending.callId, invite: pending.invite, mode: pending.mode });
+          return json({ status: "CLAIMED", callId: pending.callId, invite: pending.invite, mode: pending.mode,
+            recipientIdentityFingerprint: pending.recipientIdentityFingerprint,
+            recipientInstallationFingerprint: pending.recipientInstallationFingerprint });
         }
         if (url.pathname === "/v1/reject") {
           pending.status = "REJECTED";
