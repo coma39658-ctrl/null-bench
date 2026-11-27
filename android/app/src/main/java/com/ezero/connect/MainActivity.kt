@@ -122,6 +122,7 @@ class MainActivity : Activity() {
             append("\n\nA verified QR is identity evidence only; it does not enroll or trust a friend.")
         }
         requestNotificationPermission()
+        AndroidPushTokenRegistrationV1.requestCurrentToken(this)
         showPendingCall(intent)
     }
 
