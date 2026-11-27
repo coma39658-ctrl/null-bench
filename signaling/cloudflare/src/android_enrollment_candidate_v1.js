@@ -162,7 +162,7 @@ export class AndroidEnrollmentRegistry extends DurableObject {
         "X-Content-Type-Options":"nosniff","Access-Control-Allow-Origin":ORIGIN,"Vary":"Origin"}
     });
 
-    if (rootAdminRoute) {
+    if (u.pathname.startsWith("/v1/admin/")) {
       const secret = this.env.ROOT_BOOTSTRAP_SECRET;
       if (!secret || request.headers.get("X-Root-Bootstrap") !== secret)
         return response({error:"ADMIN_UNAUTHORIZED"},403);
