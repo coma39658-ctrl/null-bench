@@ -1,0 +1,18 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "ezero-friendship-registry-staging-20261127",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-11-20",
+  "workers_dev": false,
+  "durable_objects": {
+    "bindings": [
+      { "name": "RELATIONSHIPS", "class_name": "EzeroFriendshipRelationship" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["EzeroFriendshipRelationship"] }
+  ],
+  "vars": {
+    "PUBLIC_ORIGIN": "https://ezero-connect-pairing-v2-preview-20261123.onrender.com"
+  }
+}
