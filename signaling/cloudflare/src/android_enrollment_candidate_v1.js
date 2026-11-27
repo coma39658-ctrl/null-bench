@@ -18,6 +18,7 @@ const CLEANUP_BATCH = 100;
 const COMMAND_MAX_AGE_MS = 60000;
 const COMMAND_REPLAY_RETENTION_MS = 24 * 60 * 60 * 1000;
 const AUDIT_RETENTION_MS = 365 * 24 * 60 * 60 * 1000;
+const TOKEN_COMMAND_MAX_AGE_MS = 60000;
 const enc = new TextEncoder();
 
 function expiryIndexKey(expiresAt, recordKey) {
@@ -68,6 +69,7 @@ function response(body, status=200) {
 const CHALLENGE_ORDER = ["challenge_id","device_fp","nonce","audience","expires_at"];
 const APPROVAL_ORDER = ["root_fp","device_fp","challenge_id","nonce","audience","expires_at"];
 const ROOT_COMMAND_ORDER = ["root_fp","command_id","action","device_fp","nonce","audience","expires_at"];
+const TOKEN_ORDER = ["device_fp","token_sha256","command_id","issued_at","nonce","audience"];
 
 export default {
   async fetch(request, env) {
@@ -193,6 +195,80 @@ export class AndroidEnrollmentRegistry extends DurableObject {
     });
   }
 
+  async registerDeviceToken(body) {
+    const now = Date.now();
+    if (!FP.test(body.device_fp || "") ||
+        typeof body.fcm_token !== "string" ||
+        !/^[A-Za-z0-9_:-]{32,4096}$/.test(body.fcm_token) ||
+        typeof body.issued_at !== "string" || !/^\\d{13}$/.test(body.issued_at) ||
+        !Number.isSafeInteger(Number(body.issued_at)) ||
+        Math.abs(now - Number(body.issued_at)) > TOKEN_COMMAND_MAX_AGE_MS ||
+        !ID.test(body.command_id || "")) {
+      return { error: "BAD_DEVICE_TOKEN_REQUEST", status: 400 };
+    }
+    const nonce = decode64(body.nonce, 64);
+    const signature = decode64(body.signature, 128);
+    if (!nonce || nonce.length !== 24 || !signature || signature.length !== 64) {
+      return { error: "BAD_DEVICE_TOKEN_SIGNATURE", status: 400 };
+    }
+
+    const tokenDigest = new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(body.fcm_token)));
+    const tokenHash = base64url(tokenDigest);
+    const command = {
+      device_fp: body.device_fp,
+      token_sha256: tokenHash,
+      command_id: body.command_id,
+      issued_at: body.issued_at,
+      nonce: body.nonce,
+      audience: ORIGIN
+    };
+    const devices = (await this.ctx.storage.get("devices")) || {};
+    const device = devices[body.device_fp];
+    if (!device?.active) return { error: "DEVICE_NOT_ENROLLED_OR_REVOKED", status: 403 };
+    try {
+      const spki = decode64(device.device_spki, 512);
+      if (!spki || await fingerprint(spki) !== body.device_fp) {
+        return { error: "DEVICE_REGISTRY_CORRUPT", status: 503 };
+      }
+      const key = await importP256(spki);
+      const valid = await crypto.subtle.verify(
+        { name: "ECDSA", hash: "SHA-256" }, key, signature,
+        canonical("EZERO_ANDROID_FCM_TOKEN_V1", command, TOKEN_ORDER)
+      );
+      if (!valid) return { error: "DEVICE_TOKEN_SIGNATURE_INVALID", status: 403 };
+
+      const replayKey = "device-token-command:" + body.command_id;
+      const replayExpiry = now + COMMAND_REPLAY_RETENTION_MS;
+      const auditKey = "audit:device-token:" + body.command_id;
+      const auditExpiry = now + AUDIT_RETENTION_MS;
+      const result = await this.ctx.storage.transaction(async (txn) => {
+        const current = (await txn.get("devices")) || {};
+        const active = current[body.device_fp];
+        if (!active?.active) return { error: "DEVICE_NOT_ENROLLED_OR_REVOKED", status: 403 };
+        if (await txn.get(replayKey)) return { error: "DEVICE_TOKEN_COMMAND_REPLAY", status: 409 };
+        current[body.device_fp] = {
+          ...active, fcm_token: body.fcm_token, fcm_token_sha256: tokenHash,
+          fcm_token_updated_at: now
+        };
+        await txn.put("devices", current);
+        await txn.put(replayKey, { expires_at: replayExpiry, device_fp: body.device_fp });
+        await txn.put(expiryIndexKey(replayExpiry, replayKey), { record_key: replayKey });
+        await txn.put(auditKey, {
+          at: now, expires_at: auditExpiry, device_fp: body.device_fp,
+          action: "FCM_TOKEN_REGISTERED", token_sha256: tokenHash
+        });
+        await txn.put(expiryIndexKey(auditExpiry, auditKey), { record_key: auditKey });
+        return { ok: true };
+      });
+      if (result.error) return result;
+      await this.scheduleCleanup(replayExpiry);
+      await this.scheduleCleanup(auditExpiry);
+      return { ok: true, status: "TOKEN_REGISTERED", device_fp: body.device_fp };
+    } catch (_) {
+      return { error: "DEVICE_TOKEN_VERIFICATION_FAILED", status: 403 };
+    }
+  }
+
   async executeRootCommand(body, expectedAction) {
     const now = Date.now();
     if (!FP.test(body.root_fp || "") || !ID.test(body.command_id || "") ||
@@ -249,7 +325,7 @@ export class AndroidEnrollmentRegistry extends DurableObject {
           const device = devices[body.device_fp];
           if (!device || device.root_fp !== body.root_fp) return { error: "DEVICE_NOT_FOUND", status: 404 };
           if (!device.active) return { error: "DEVICE_ALREADY_REVOKED", status: 409 };
-          devices[body.device_fp] = { ...device, active: false, revoked_at: now };
+          devices[body.device_fp] = { ...device, active: false, revoked_at: now, fcm_token: null, fcm_token_sha256: null };
           await txn.put("devices", devices);
         }
 
@@ -324,6 +400,11 @@ export class AndroidEnrollmentRegistry extends DurableObject {
 
     if (u.pathname === "/v1/admin/root/devices/revoke") {
       const result = await this.executeRootCommand(body, "REVOKE_DEVICE");
+      return result.error ? response({error: result.error}, result.status) : response(result);
+    }
+
+    if (u.pathname === "/v1/android/device-token") {
+      const result = await this.registerDeviceToken(body);
       return result.error ? response({error: result.error}, result.status) : response(result);
     }
 
