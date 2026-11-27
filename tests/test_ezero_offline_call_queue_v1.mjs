@@ -117,7 +117,7 @@ test("only one pending call per recipient installation; duplicate call and nonce
 
 test("expired pending calls cannot be claimed", async () => {
   const f = await fixture();
-  assert.equal((await f.create({ expiresAt: Date.now() + 5 })).status, 201);
-  await new Promise(resolve => setTimeout(resolve, 15));
+  assert.equal((await f.create({ expiresAt: Date.now() + 150 })).status, 201);
+  await new Promise(resolve => setTimeout(resolve, 180));
   assert.equal((await f.deviceAction("/v1/claim")).status, 404);
 });
