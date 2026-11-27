@@ -102,6 +102,18 @@ Wake an enrolled recipient Android installation when it has no active WebSocket,
 - The existing browser inbox remains WebSocket-oriented; offline queue creation and wake routing are not yet wired to it.
 - No Firebase live delivery, audible lock-screen ringing, or native-to-WebRTC physical test is claimed by this document.
 
+
+## Cross-service fingerprint serialization gate (2026-11-27)
+
+A code audit found two currently used textual encodings for the same SHA-256 SPKI fingerprint:
+
+- Android enrollment candidate stores/transmits lowercase 64-character hex without separators (for example, `aabb…`).
+- Saved-friend call authorization and the offline queue use uppercase colon-separated octets (for example, `AA:BB:…`). The queue's PR #242 hardening recomputes this uppercase-colon form from the exact recipient SPKI and compares it with `recipientFingerprint`.
+
+These are not interchangeable strings. Before wiring the Registry, enrollment service, call controller, and queue together, define one canonical wire representation or add a single audited conversion at the service boundary. Conversion must be derived from the exact SPKI bytes; never trust a caller-supplied converted fingerprint. Add cross-language test vectors proving Android/JVM and Worker output the same canonical value for the same SPKI, including mismatch rejection.
+
+Also, PR #242's SPKI-to-recipient-fingerprint check is a required dependency of the queue implementation. Do not merge or release PR #240 without the PR #242 hardening (or an equivalent fix already included in its exact tested head). The earlier PR #240 head alone only checked that the submitted SPKI was parseable P-256; it did not bind that key to the claimed recipient fingerprint.
+
 ## Documentation validation (2026-11-27)
 
 - PR #241 documentation commit: `f9f534fc56b1db7cbf560b38bddf3be8f077650d`.
