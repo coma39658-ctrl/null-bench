@@ -59,6 +59,7 @@ on:
       - ezero-connect-client-20261120
       - ezero-connect-pr154-friend-retention-clean-20261121
       - ezero-connect-scalable-friends-profile-staging-20261121
+      - ezero-connect-encrypted-chat-history-staging-20261126
     paths:
       - 'ezero-connect.html'
       - 'ezero-connect-app.html'
