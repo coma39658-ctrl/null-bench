@@ -31,23 +31,11 @@ class AndroidTrustedContactBundleV1Test {
         is JSONArray -> (0 until value.length()).joinToString(",", "[", "]") { canonical(value.get(it)) }
         else -> error("bad canonical value")
     }
-    private fun p1363(der: ByteArray): ByteArray {
-        var i = 2
-        fun readInteger(): ByteArray {
-            require(der[i++].toInt() == 0x02)
-            val length = der[i++].toInt() and 0xff
-            var v = der.copyOfRange(i, i + length); i += length
-            while (v.size > 32 && v[0] == 0.toByte()) v = v.copyOfRange(1, v.size)
-            if (v.size == 33 && v[0] == 0.toByte()) v = v.copyOfRange(1, v.size)
-            return ByteArray(32 - v.size) + v
-        }
-        return readInteger() + readInteger()
-    }
     private fun sign(pair: KeyPair, value: Any): String {
-        val signer = Signature.getInstance("SHA256withECDSA")
+        val signer = Signature.getInstance("SHA256withECDSAinP1363Format")
         signer.initSign(pair.private)
         signer.update(canonical(value).toByteArray(Charsets.UTF_8))
-        return b64(p1363(signer.sign()))
+        return b64(signer.sign())
     }
     private data class Fixture(val raw: String, val pin: AndroidRootTrustPinV1.Pin, val now: Long)
     private fun fixture(): Fixture {
