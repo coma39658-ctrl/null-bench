@@ -380,6 +380,68 @@
     return { relationshipId, remoteFingerprint: remote.fingerprint, status: "TRUSTED", alreadySaved };
   }
 
+  function encodeBase64url(bytes) {
+    let binary = "";
+    for (const byte of new Uint8Array(bytes)) binary += String.fromCharCode(byte);
+    return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
+  }
+
+  async function exportTrustedContactBundle({ remoteFingerprint, explicitConsent, now = Date.now() }) {
+    if (explicitConsent !== true) throw new Error("TRUST_EXPORT_EXPLICIT_CONSENT_REQUIRED");
+    if (!/^(?:[0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(remoteFingerprint || "")) {
+      throw new Error("TRUST_EXPORT_FINGERPRINT_INVALID");
+    }
+    if (!Number.isSafeInteger(now)) throw new Error("TRUST_EXPORT_TIME_INVALID");
+    const identity = await globalThis.EZERO_CONNECT_IDENTITY.getPublicIdentity();
+    const matches = (await allContacts()).filter(record =>
+      record.remoteFingerprint === remoteFingerprint && record.status === "TRUSTED"
+    );
+    if (matches.length !== 1) throw new Error("TRUST_EXPORT_CONTACT_NOT_UNIQUE_TRUSTED");
+    const record = matches[0];
+    const transcript = record.transcript;
+    if (!transcript || typeof record.relationshipId !== "string") throw new Error("TRUST_EXPORT_RECORD_INVALID");
+    const relationshipId = await hashHex(new TextEncoder().encode(stableCanonical(transcript)));
+    if (relationshipId !== record.relationshipId) throw new Error("TRUST_EXPORT_RELATIONSHIP_MISMATCH");
+    const participants = transcript.participants;
+    const local = participants?.find(p => p.fingerprint === identity.fingerprint);
+    const remote = participants?.find(p => p.fingerprint === remoteFingerprint);
+    if (!local || local.publicKeySpki !== identity.publicKeySpki ||
+        !remote || remote.publicKeySpki !== record.remotePublicKeySpki) {
+      throw new Error("TRUST_EXPORT_PARTICIPANT_MISMATCH");
+    }
+    if (record.trustVersion === 2 && (!record.peerHandshake || typeof record.peerHandshake.signature !== "string")) {
+      throw new Error("TRUST_EXPORT_PEER_PROOF_MISSING");
+    }
+    if (!record.trustVersion && (!record.localApproval || !record.remoteApproval)) {
+      throw new Error("TRUST_EXPORT_DUAL_APPROVAL_MISSING");
+    }
+    const payload = {
+      v: 1,
+      protocol: "E-ZERO-ANDROID-TRUST-BUNDLE-1",
+      origin: location.origin,
+      rootFingerprint: identity.fingerprint,
+      localFingerprint: identity.fingerprint,
+      remoteFingerprint,
+      remotePublicKeySpki: record.remotePublicKeySpki,
+      relationshipId,
+      displayName: record.displayName || "",
+      trustVersion: record.trustVersion || 1,
+      transcript,
+      localApproval: record.localApproval || null,
+      remoteApproval: record.remoteApproval || null,
+      peerHandshake: record.peerHandshake || null,
+      issuedAt: now,
+      expiresAt: now + 90_000,
+      nonce: encodeBase64url(crypto.getRandomValues(new Uint8Array(24)))
+    };
+    const signature = await globalThis.EZERO_CONNECT_IDENTITY.signCanonical(payload);
+    const envelope = { payload, signature };
+    const encoded = encodeBase64url(new TextEncoder().encode(JSON.stringify(envelope)));
+    const result = "EZERO-ANDROID-TRUST1." + encoded;
+    if (new TextEncoder().encode(result).length > 12000) throw new Error("TRUST_EXPORT_BUNDLE_TOO_LARGE");
+    return result;
+  }
+
   async function listTrustedContacts() {
     const records = await allContacts();
     return records.map(({ relationshipId, remoteFingerprint, displayName, status, createdAt }) =>
@@ -478,6 +540,7 @@
     listTrustedContacts,
     canReconnect,
     getTrustedPeerForCall,
+    exportTrustedContactBundle,
     revoke,
     block,
     unblock
