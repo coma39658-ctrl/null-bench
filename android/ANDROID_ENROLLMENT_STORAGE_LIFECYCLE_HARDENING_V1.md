@@ -117,4 +117,4 @@ Added to the isolated Worker candidate:
 
 ### Boundaries
 
-This is a server-side token-registration endpoint only. The Android `onNewToken()` client hook, authenticated token refresh from the native app, Firebase Admin sender credentials, actual FCM delivery, call-wake route and native Accept-to-WebRTC handoff are still not wired. No token has been registered and no push has been sent. The Worker remains isolated and not deployed.
+The Android client now signs token registrations with the non-exportable Keystore device key. `onNewToken()` attempts registration only when the app already has a Worker-confirmed enrollment; the app also fetches the current Firebase token after enrollment and at app startup. The Android endpoint remains blank until a separate Worker deployment is approved. Device-side registration has compile/unit coverage but has not been exercised against a deployed Worker. Firebase Admin sender credentials, actual FCM delivery, call-wake authorization and native Accept-to-WebRTC handoff are still not wired. No token has been registered and no push has been sent. The Worker remains isolated and not deployed.
