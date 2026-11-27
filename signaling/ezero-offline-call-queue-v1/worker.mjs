@@ -61,7 +61,7 @@ export class EzeroOfflineCallQueue {
   async fetch(request) {
     if (request.method !== "POST") return json({ error: "METHOD_NOT_ALLOWED" }, 405);
     const url = new URL(request.url);
-    if (!["/internal/v1/create", "/v1/claim", "/v1/reject", "/internal/v1/cancel"].includes(url.pathname)) {
+    if (!["/internal/v1/create", "/v1/claim", "/v1/reject"].includes(url.pathname)) {
       return json({ error: "NOT_FOUND" }, 404);
     }
     return this.ctx.blockConcurrencyWhile(async () => {
@@ -162,9 +162,6 @@ export class EzeroOfflineCallQueue {
           replay.push({ nonce: body.nonce, expiresAt: now + 120_000 });
           await this.ctx.storage.put("deviceProofNonces", replay.slice(-MAX_REPLAY));
           return json({ status: "REJECTED", callId: pending.callId });
-        }
-        if (url.pathname === "/internal/v1/cancel") {
-          return json({ error: "INTERNAL_ROUTE_REQUIRES_CALLER_AUTHORIZATION" }, 403);
         }
         return json({ error: "NOT_FOUND" }, 404);
       } catch (error) {
