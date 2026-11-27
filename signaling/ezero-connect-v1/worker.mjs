@@ -198,6 +198,11 @@ function safeClose(ws, code = 1008, reason = "connection rejected") {
   } catch (_) {}
 }
 
+function rejectWithDiagnostic(ws, stage, code, reason) {
+  safeSend(ws, { type: "server-error", stage, code });
+  safeClose(ws, 1008, reason);
+}
+
 function safeDiagnosticCode(error) {
   const message = String(error?.message || "");
   if (/^INVITE_/.test(message)) return "INVITE_REJECTED";
@@ -305,15 +310,15 @@ export class EzeroConnectRoom {
         if (!parsed || typeof parsed !== "object" ||
             !["fingerprint,inviteCode,inviteNonce,publicKeySpki,signature,type", "fingerprint,inviteNonce,publicKeySpki,signature,type"].includes(helloKeys) ||
             parsed.type !== "hello" || typeof parsed.inviteNonce !== "string") {
-          safeClose(ws, 1008, "hello required");
+          rejectWithDiagnostic(ws, "handshake", "IDENTITY_PROOF_REJECTED", "hello required");
           return;
         }
         let room = await this.ctx.storage.get("room");
         const now = Date.now();
         if (!room) {
-          if (typeof parsed.inviteCode !== "string") { safeClose(ws, 1008, "signed invite required"); return; }
+          if (typeof parsed.inviteCode !== "string") { rejectWithDiagnostic(ws, "handshake", "INVITE_REJECTED", "signed invite required"); return; }
           const invite = await verifyInviteCode(parsed.inviteCode, this.env.PUBLIC_ORIGIN, attachment.roomId, now);
-          if (parsed.inviteNonce !== invite.nonce) { safeClose(ws, 1008, "invite nonce mismatch"); return; }
+          if (parsed.inviteNonce !== invite.nonce) { rejectWithDiagnostic(ws, "handshake", "INVITE_REJECTED", "invite nonce mismatch"); return; }
           const expiresAt = now + ROOM_TTL_MS;
           if (expiresAt <= now) { safeClose(ws, 1008, "room expired"); return; }
           room = {
@@ -331,12 +336,12 @@ export class EzeroConnectRoom {
           };
         } else if (room.roomId !== attachment.roomId || room.origin !== attachment.origin ||
                    room.inviteNonce !== parsed.inviteNonce || room.expiresAt <= now) {
-          safeClose(ws, 1008, "room state mismatch or expired");
+          rejectWithDiagnostic(ws, "handshake", "ROOM_STATE_REJECTED", "room state mismatch or expired");
           return;
         }
         if (attachment.role === "guest" && !room.guestFingerprint &&
             room.inviteExpiresAt <= now - INVITE_CLOCK_SKEW_TOLERANCE_MS) {
-          safeClose(ws, 1008, "invite expired before guest joined");
+          rejectWithDiagnostic(ws, "handshake", "INVITE_REJECTED", "invite expired before guest joined");
           return;
         }
         const verified = await verifyHandshake(parsed, attachment, room, now);
@@ -345,7 +350,7 @@ export class EzeroConnectRoom {
           const state = other.deserializeAttachment();
           return state?.state === "AUTHENTICATED" && state.role === attachment.role;
         });
-        if (activeSameRole) { safeClose(ws, 1008, "role already connected"); return; }
+        if (activeSameRole) { rejectWithDiagnostic(ws, "handshake", "ROOM_STATE_REJECTED", "role already connected"); return; }
         if (attachment.role === "guest") {
           room.guestFingerprint = verified.fingerprint;
           room.guestPublicKeySpki = verified.publicKeySpki;
