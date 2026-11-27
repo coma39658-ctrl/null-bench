@@ -420,6 +420,7 @@
       protocol: "E-ZERO-ANDROID-TRUST-BUNDLE-1",
       origin: location.origin,
       rootFingerprint: identity.fingerprint,
+      rootSpki: identity.publicKeySpki,
       localFingerprint: identity.fingerprint,
       remoteFingerprint,
       remotePublicKeySpki: record.remotePublicKeySpki,
