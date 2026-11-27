@@ -18,7 +18,8 @@ class IncomingCallWakeSignatureVerifierTest {
         "call_id" to "call_12345678",
         "mode" to "AUDIO",
         "expires_at" to "1800000090000",
-        "nonce" to "nonce_1234567890"
+        "nonce" to "nonce_1234567890",
+        "server_sig" to "AA"
     )
 
     private fun signed(fields: Map<String, String> = data()): ByteArray {

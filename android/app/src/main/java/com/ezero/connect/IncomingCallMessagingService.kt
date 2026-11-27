@@ -9,12 +9,11 @@ class IncomingCallMessagingService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
-        // Only data-only, server-signed wake-ups may create an actionable alert.
-        // Until a reviewed staging public key is pinned, verification fails closed.
+        // Only data-only, pinned-key server-signed, fresh wake-ups may alert.
         if (message.notification != null) return
         if (!IncomingCallWakeSignatureVerifier.verify(message.data)) return
-
         val payload = IncomingCallPayload.parse(message.data) ?: return
+        if (!IncomingCallWakeReplayGuardV1.consume(this, payload.callId, message.data)) return
         IncomingCallNotifications.show(
             context = this,
             callId = payload.callId,
