@@ -21,6 +21,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
+import com.google.firebase.messaging.FirebaseMessaging
 
 class MainActivity : Activity() {
     private lateinit var statusView: TextView
@@ -303,7 +304,7 @@ class MainActivity : Activity() {
                     .commit()) { "ENROLLMENT_STATE_PERSISTENCE_FAILED" }
                 runOnUiThread {
                     enrollmentQrView.visibility = android.view.View.GONE
-                    statusView.text = "E-ZERO device enrollment confirmed by Worker.\\n\\nDevice fingerprint: ${result.getString("device_fp")}\\nRoot fingerprint: ${result.getString("root_fp")}\\n\\nStatus: ENROLLED. This does not enable FCM ringing, friend trust, or WebRTC calling."
+                    statusView.text = "E-ZERO device enrollment confirmed by Worker.\\n\\nDevice fingerprint: ${result.getString("device_fp")}\\nRoot fingerprint: ${result.getString("root_fp")}\\n\\nStatus: ENROLLED. This does not enable FCM ringing, friend trust, or WebRTC calling."\n                    refreshFcmRegistrationIfEnrolled()
                 }
             } catch (error: Exception) {
                 runOnUiThread {
@@ -354,6 +355,18 @@ class MainActivity : Activity() {
             }
             .show()
     }
+    private fun refreshFcmRegistrationIfEnrolled() {
+        FirebaseMessaging.getInstance().token
+            .addOnSuccessListener { token ->
+                Thread {
+                    AndroidFcmTokenRegistrationV1.registerIfEnrolled(this, token)
+                }.start()
+            }
+            .addOnFailureListener {
+                // No token is logged. A later app launch or Firebase token refresh retries.
+            }
+    }
+
     private fun requestNotificationPermission() {
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
