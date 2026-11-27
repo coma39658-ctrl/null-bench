@@ -107,3 +107,35 @@ test("enrollment endpoints apply privacy-preserving per-IP fixed-window limits",
  assert.match(worker,/Retry-After/);
  assert.doesNotMatch(worker,/tx\.put\([^\n]*clientIp/,"raw client IP must never be persisted");
 });
+
+test("root revocation atomically disables every child installation and stored push token",()=>{
+ const worker=readFileSync(fileURLToPath(new URL("../signaling/cloudflare/src/android_enrollment_candidate_v1.js",import.meta.url)),"utf8");
+ assert.match(worker,/u\.pathname === "\/v1\/admin\/root-revoke"/);
+ assert.match(worker,/ROOT_AND_CHILD_INSTALLATIONS_REVOKED/);
+ assert.match(worker,/devices\[deviceFp\] = \{\.\.\.device,active:false,revoked:true/);
+ assert.match(worker,/tx\.put\("push-token:"\+deviceFp,\{\.\.\.token,active:false/);
+ assert.match(worker,/ROOT_BOOTSTRAP_SECRET/);
+});
+
+test("installation revocation atomically disables its push token and leaves a tombstone",()=>{
+ const worker=readFileSync(fileURLToPath(new URL("../signaling/cloudflare/src/android_enrollment_candidate_v1.js",import.meta.url)),"utf8");
+ assert.match(worker,/u\.pathname === "\/v1\/admin\/device-revoke"/);
+ assert.match(worker,/INSTALLATION_REVOKED/);
+ assert.match(worker,/revoked:true,revoked_at:now/);
+ assert.match(worker,/DEVICE_ALREADY_SEEN/,"a revoked installation key cannot silently re-enroll");
+});
+
+test("token writes re-check root and device revocation inside the same transaction",()=>{
+ const worker=readFileSync(fileURLToPath(new URL("../signaling/cloudflare/src/android_enrollment_candidate_v1.js",import.meta.url)),"utf8");
+ assert.match(worker,/Re-check revocation atomically with token persistence/);
+ assert.match(worker,/currentDevices\[deviceFp\]/);
+ assert.match(worker,/currentRoots\[currentDevice\.root_fp\]/);
+ assert.match(worker,/DEVICE_OR_ROOT_REVOKED/);
+});
+
+test("enrollment completion atomically re-checks root state before adding a device",()=>{
+ const worker=readFileSync(fileURLToPath(new URL("../signaling/cloudflare/src/android_enrollment_candidate_v1.js",import.meta.url)),"utf8");
+ assert.match(worker,/const enrollmentResult = this\.ctx\.storage\.transactionSync/);
+ assert.match(worker,/if \(!currentRoots\[body\.root_fp\]\?\.active\) return "ROOT_REVOKED"/);
+ assert.match(worker,/if \(devices\[c\.device_fp\]\) return "DEVICE_ALREADY_SEEN"/);
+});
