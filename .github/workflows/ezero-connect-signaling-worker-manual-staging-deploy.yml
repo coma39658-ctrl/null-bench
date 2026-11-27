@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - ezero-connect-trusted-call-controller-staging-20261125
+      - ezero-connect-encrypted-chat-history-staging-20261126
     paths:
       - 'signaling/ezero-connect-v1/**'
       - '.github/workflows/ezero-connect-signaling-worker-manual-staging-deploy.yml'
@@ -45,5 +45,5 @@ jobs:
         run: |
           echo "Worker name: ezero-connect-call-preview-20261125"
           echo "workers.dev endpoint: https://ezero-connect-call-preview-20261125.coma39658.workers.dev"
-          echo "Allowed browser origin: https://ezero-connect-call-controller-preview.onrender.com"
-          echo "This isolated Worker endpoint is pinned in the clean staging app config."
+          echo "Allowed browser origin: https://ezero-connect-chat-history-pr223-staging.onrender.com"
+          echo "This is an isolated staging Worker only."
