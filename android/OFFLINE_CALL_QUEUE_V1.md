@@ -1,8 +1,16 @@
 # E-ZERO Offline Call Queue V1 — staging implementation contract
 
-Status: **CONTRACT ONLY — NOT IMPLEMENTED, NOT ROUTED, NOT DEPLOYED**
+Status: **PARTIAL IMPLEMENTATION IN PR #240 — NOT ROUTED, NOT DEPLOYED, NOT END-TO-END VERIFIED**
 
 Parent security baseline: PR #238 (signed P-256 saved-friend call authorization). This document defines the next isolated server stage. It does not change the current WebSocket inbox, browser WebRTC engine, pairing UI, production Worker, or Android APK.
+
+## Implementation snapshot (reviewed 2026-11-27)
+
+The isolated Durable Object module now exists at `signaling/ezero-offline-call-queue-v1/worker.mjs`. Its implemented internal interface is `POST /internal/v1/create`, guarded by the `X-EZERO-Queue-Internal` shared secret; its recipient-device actions are `POST /v1/claim` and `POST /v1/reject`. It enforces one pending call per installation, bounded payload/expiry, call and nonce replay checks, P-256 recipient-installation proof, and a serialized one-time claim/reject transition. Unit coverage is in `tests/test_ezero_offline_call_queue_v1.mjs`.
+
+This is a queue primitive, not the full contract described below. The module does **not** itself consult the Friendship Registry, verify the caller-signed invite, resolve an ACTIVE root-approved device enrollment, look up or protect an FCM token, enforce caller/device rate limits, or send FCM. Its internal shared-secret check authenticates only the caller holding that secret; the upstream service must perform all authorization checks before creation. No public route or Durable Object binding is active. The Android app does not yet call `/v1/claim` or `/v1/reject`, and its Accept action remains a placeholder without WebRTC handoff.
+
+The proposed public-facing endpoint shapes later in this document remain target interfaces, not implemented routes. Do not infer route activation from the presence of the Durable Object class or passing unit tests.
 
 ## Goal
 
@@ -85,8 +93,11 @@ Wake an enrolled recipient Android installation when it has no active WebSocket,
 
 ## Known integration gaps to close
 
-- The current Android `MainActivity` Accept handler is still a placeholder and does not fetch a pending invite or hand off to WebRTC.
-- The current native messaging service verifies a server wake and replay guard, but the queue-backed authenticated invite fetch is not integrated.
-- The low-level FCM sender is a transport helper, not a call authorization route.
-- The existing browser inbox is WebSocket-oriented; offline persistence and wake routing are not yet established by this contract.
+- The queue module's internal creation guard is a staging shared secret only; integrate it behind a trusted service binding or equivalent non-browser service identity, and re-check Registry authorization, active mutual friendship, block/revocation, device enrollment, and recipient-key provenance before every create.
+- The current queue routes (`/internal/v1/create`, `/v1/claim`, `/v1/reject`) differ from the target API shapes above. Add an authenticated Worker adapter that binds each Durable Object to the exact recipient installation; do not expose the raw class directly.
+- The queue currently has no caller-authenticated cancellation route, FCM dispatch, Android queue-backed authenticated fetch, or Accept-to-WebRTC bridge.
+- The current Android `MainActivity` Accept handler is still a placeholder and does not fetch a pending invite or hand off to WebRTC. Reject currently dismisses only the local notification; it does not consume the server queue.
+- The native messaging service verifies a server-signed wake and persistent replay guard, then shows the alert. The queue-backed authenticated invite fetch is not integrated; therefore a wake is not yet proof of a fetchable, authorized call.
+- The low-level FCM sender is a transport helper, not a call authorization route. No active Worker entrypoint invokes it.
+- The existing browser inbox remains WebSocket-oriented; offline queue creation and wake routing are not yet wired to it.
 - No Firebase live delivery, audible lock-screen ringing, or native-to-WebRTC physical test is claimed by this document.
