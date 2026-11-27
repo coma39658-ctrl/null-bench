@@ -150,5 +150,58 @@
     return toBase64Url(signature);
   }
 
-  globalThis.EZERO_CONNECT_IDENTITY = Object.freeze({ load, createAfterConsent, getPublicIdentity, signCanonical });
+  // Explicit user-mediated half of the Android installation-binding ceremony.
+  // The non-extractable browser identity key signs only; it is never exported.
+  async function signInstallationBinding(statement, consentGranted) {
+    if (consentGranted !== true) throw new Error("EXPLICIT_BINDING_CONSENT_REQUIRED");
+    if (!globalThis.crypto?.subtle || !globalThis.isSecureContext) {
+      throw new Error("SECURE_CRYPTO_CONTEXT_REQUIRED");
+    }
+    if (!statement || typeof statement !== "object" || Array.isArray(statement)) {
+      throw new Error("BINDING_STATEMENT_INVALID");
+    }
+    const fields = [
+      "protocol", "origin", "challengeId", "nonce", "expiresAt",
+      "relationshipId", "identityFingerprint", "installationFingerprint", "installationId"
+    ];
+    if (Object.keys(statement).sort().join(",") !== [...fields].sort().join(",")) {
+      throw new Error("BINDING_FIELDS_INVALID");
+    }
+    if (statement.protocol !== "EZERO_IDENTITY_INSTALLATION_BINDING_V1" ||
+        statement.origin !== "https://coma39658-ctrl.github.io" ||
+        typeof statement.challengeId !== "string" || !/^[A-Za-z0-9_-]{22,128}$/.test(statement.challengeId) ||
+        typeof statement.nonce !== "string" || !/^[A-Za-z0-9_-]{22,128}$/.test(statement.nonce) ||
+        typeof statement.expiresAt !== "string" || !/^\\d{13}$/.test(statement.expiresAt) ||
+        Number(statement.expiresAt) <= Date.now() || Number(statement.expiresAt) > Date.now() + 60000 ||
+        typeof statement.relationshipId !== "string" || !/^[a-f0-9]{64}$/.test(statement.relationshipId) ||
+        typeof statement.identityFingerprint !== "string" || !/^(?:[0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(statement.identityFingerprint) ||
+        typeof statement.installationFingerprint !== "string" || !/^[a-f0-9]{64}$/.test(statement.installationFingerprint) ||
+        typeof statement.installationId !== "string" || !/^[A-Za-z0-9_-]{22,128}$/.test(statement.installationId)) {
+      throw new Error("BINDING_STATEMENT_INVALID");
+    }
+    const record = validateRecord(await readRecord());
+    const metadata = await publicMetadata(record.publicKey);
+    if (metadata.fingerprint !== record.fingerprint ||
+        statement.identityFingerprint !== record.fingerprint) {
+      throw new Error("BINDING_IDENTITY_FINGERPRINT_MISMATCH");
+    }
+    const bytes = new TextEncoder().encode(
+      "EZERO_IDENTITY_INSTALLATION_BINDING_V1\\n" +
+      fields.map(key => key + "=" + statement[key] + "\\n").join("")
+    );
+    const signature = await crypto.subtle.sign(
+      { name: "ECDSA", hash: "SHA-256" }, record.privateKey, bytes
+    );
+    return {
+      protocol: statement.protocol,
+      identityFingerprint: record.fingerprint,
+      signature: toBase64Url(signature),
+      encoding: "P1363_BASE64URL",
+      privateKeyExported: false
+    };
+  }
+
+  globalThis.EZERO_CONNECT_IDENTITY = Object.freeze({
+    load, createAfterConsent, getPublicIdentity, signCanonical, signInstallationBinding
+  });
 })();
