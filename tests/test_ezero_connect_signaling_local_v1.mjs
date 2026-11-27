@@ -127,6 +127,12 @@ try {
   const aReconnect = await a.context().newPage();
   await aReconnect.addInitScript(() => {
     window.EZERO_CONNECT_CONFIG = { signalingUrl: "ws://127.0.0.1:8787" };
+    window.__mediaCalls = 0;
+    const media = navigator.mediaDevices;
+    if (media?.getUserMedia) {
+      const original = media.getUserMedia.bind(media);
+      media.getUserMedia = (...args) => { window.__mediaCalls++; return original(...args); };
+    }
   });
   await aReconnect.goto("http://127.0.0.1:8769/ezero-connect-app.html");
   await aReconnect.waitForFunction(() => Boolean(
