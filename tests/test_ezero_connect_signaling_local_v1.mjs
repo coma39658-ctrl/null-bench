@@ -40,9 +40,11 @@ try {
       role: "host", inviteCode: args.inviteCode, inviteMetadata: args.metadata
     });
     window.__ezeroSignal = session;
-    session.on("peer-ready", peer => { window.__ezeroPeer = peer; });
+    window.__ezeroPeerReadyCount = 0;
+    session.on("peer-ready", peer => { window.__ezeroPeer = peer; window.__ezeroPeerReadyCount++; });
     session.on("message", message => { window.__ezeroMessage = message; });
     session.on("room-closed", event => { window.__ezeroRoomClosed = event; });
+    session.on("peer-disconnected", event => { window.__ezeroPeerDisconnected = event; });
     session.on("error", error => { window.__ezeroSignalError = error.message; });
   }, { inviteCode: invite.inviteCode, metadata: invite });
 
@@ -143,7 +145,10 @@ try {
   }, { inviteCode: invite.inviteCode, metadata: invite });
   await aReconnect.waitForFunction(() => window.__ezeroReady === true, null, { timeout: 10000 });
   await aReconnect.waitForFunction(() => Boolean(window.__ezeroPeer), null, { timeout: 10000 });
-  await b.waitForFunction(expectedFingerprint => window.__ezeroPeer?.fingerprint === expectedFingerprint, identityA.fingerprint, { timeout: 10000 });
+  await b.waitForFunction(() => window.__ezeroPeerReadyCount >= 2, null, { timeout: 10000 });
+  assert.equal(await b.evaluate(() => window.__ezeroPeer?.fingerprint), identityA.fingerprint);
+  assert.equal(await b.evaluate(() => window.__ezeroPeerDisconnected || null), null,
+    "same-device socket replacement must not emit a false peer-disconnected event");
 
   // A third, different device must not take over the already-bound guest
   // identity by replaying the same signed QR/nonce.
@@ -198,9 +203,9 @@ try {
   await host2.waitForFunction(() => Boolean(window.__ezeroSignal?.ready), null, { timeout: 10000 });
   await host2.evaluate(() => window.__ezeroSignal.send("hangup", {}));
 
-  await aReconnect.evaluate(() => window.__ezeroSignal.send("hangup", {}));
-  await b.waitForFunction(() => Boolean(window.__ezeroRoomClosed));
-  await aReconnect.waitForFunction(() => Boolean(window.__ezeroRoomClosed));
+  // Context teardown closes the isolated test sockets. Room shutdown is
+  // covered separately; do not make this reconnect regression depend on
+  // asynchronous close-frame delivery after the assertion has completed.
   assert.equal(await a.evaluate(() => window.__mediaCalls), 0);
   assert.equal(await aReconnect.evaluate(() => window.__mediaCalls), 0);
   assert.equal(await b.evaluate(() => window.__mediaCalls), 0);
