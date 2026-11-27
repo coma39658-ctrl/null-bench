@@ -81,16 +81,16 @@ class BrowserAndroidIdentityProofQrV1Test {
 
     @Test fun rejectsDuplicateTopLevelAndNestedJsonKeys() {
         val duplicateTopLevel = payload().replaceFirst(
-            "\\"type\\":",
-            "\\"type\\":\\"unexpected\\",\\"type\\":"
+            "\"type\":",
+            "\"type\":\"unexpected\",\"type\":"
         )
         assertThrows(IllegalArgumentException::class.java) {
             BrowserAndroidIdentityProofQrV1.decode(duplicateTopLevel, localFp, localInstallId, now)
         }
 
         val duplicateNested = payload().replaceFirst(
-            "\\"protocol\\":",
-            "\\"protocol\\":\\"unexpected\\",\\"protocol\\":"
+            "\"protocol\":",
+            "\"protocol\":\"unexpected\",\"protocol\":"
         )
         assertThrows(IllegalArgumentException::class.java) {
             BrowserAndroidIdentityProofQrV1.decode(duplicateNested, localFp, localInstallId, now)
@@ -98,8 +98,8 @@ class BrowserAndroidIdentityProofQrV1Test {
 
         // Escaped member names are decoded before duplicate comparison.
         val escapedAlias = payload().replaceFirst(
-            "\\"type\\":",
-            "\\"\\\\u0074ype\\":"
+            "\"type\":",
+            "\"\\u0074ype\":"
         )
         assertThrows(IllegalArgumentException::class.java) {
             BrowserAndroidIdentityProofQrV1.decode(escapedAlias, localFp, localInstallId, now)
