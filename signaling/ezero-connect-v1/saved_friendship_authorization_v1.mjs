@@ -22,12 +22,36 @@ export async function authorizeSavedFriendshipForCall(env, invite) {
       !OPAQUE_ID_RE.test(invite.callId || "") ||
       !OPAQUE_ID_RE.test(invite.nonce || "") ||
       !["audio", "video"].includes(invite.mode) ||
-      !Number.isSafeInteger(invite.expiresAt) || invite.expiresAt <= Date.now()) {
+      !Number.isSafeInteger(invite.issuedAt) ||
+      !Number.isSafeInteger(invite.expiresAt) || invite.expiresAt <= Date.now() ||
+      typeof invite.origin !== "string" || typeof invite.callerPublicKeySpki !== "string" ||
+      typeof invite.signature !== "string") {
     throw new Error("FRIENDSHIP_INVITE_INVALID");
   }
+  if (!env.PUBLIC_ORIGIN || invite.origin !== env.PUBLIC_ORIGIN) {
+    throw new Error("FRIENDSHIP_INVITE_ORIGIN_INVALID");
+  }
+  const signedPayload = {
+    v: invite.v,
+    protocol: invite.protocol,
+    origin: invite.origin,
+    callerFingerprint: invite.callerFingerprint,
+    callerPublicKeySpki: invite.callerPublicKeySpki,
+    recipientFingerprint: invite.recipientFingerprint,
+    relationshipId: invite.relationshipId,
+    callId: invite.callId,
+    nonce: invite.nonce,
+    mode: invite.mode,
+    issuedAt: invite.issuedAt,
+    expiresAt: invite.expiresAt
+  };
   const response = await env.FRIENDSHIP_REGISTRY.fetch(REGISTRY_PATH, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store",
+      "Origin": env.PUBLIC_ORIGIN
+    },
     body: JSON.stringify({
       protocol: "E-ZERO-SAVED-FRIEND-AUTH-1",
       relationshipId: invite.relationshipId,
@@ -36,7 +60,8 @@ export async function authorizeSavedFriendshipForCall(env, invite) {
       callId: invite.callId,
       nonce: invite.nonce,
       mode: invite.mode,
-      expiresAt: invite.expiresAt
+      expiresAt: invite.expiresAt,
+      signedInvite: { payload: signedPayload, signature: invite.signature }
     })
   });
   if (!response || response.status !== 200) throw new Error("FRIENDSHIP_REGISTRY_REJECTED");
