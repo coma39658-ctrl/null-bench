@@ -14,12 +14,18 @@ on:
       - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentQrEnvelopeV1.kt"
       - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentApprovalGateV1.kt"
       - "android/app/src/main/java/com/ezero/connect/AndroidRootTrustPinV1.kt"
+      - "android/app/src/main/java/com/ezero/connect/AndroidTrustedContactBundleV1.kt"
+      - "android/app/src/main/java/com/ezero/connect/AndroidQrPayloadRouter.kt"
+      - "android/app/src/test/java/com/ezero/connect/AndroidTrustedContactBundleV1Test.kt"
+      - "js/ezero_connect_trust_v1.js"
+      - "ezero-android-trusted-friend-export-staging.html"
       - "android/app/src/test/java/com/ezero/connect/AndroidEnrollmentWorkerClientV1Test.kt"
       - "android/app/build.gradle.kts"
       - ".github/workflows/ezero-android-worker-client-staging-qa.yml"
   push:
     branches:
       - ezero-android-worker-client-staging-20261125
+      - ezero-android-trusted-contact-bridge-staging-20261127
     paths:
       - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentWorkerClientV1.kt"
       - "android/app/src/main/java/com/ezero/connect/AndroidFcmTokenProtocolV1.kt"
@@ -32,6 +38,11 @@ on:
       - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentQrEnvelopeV1.kt"
       - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentApprovalGateV1.kt"
       - "android/app/src/main/java/com/ezero/connect/AndroidRootTrustPinV1.kt"
+      - "android/app/src/main/java/com/ezero/connect/AndroidTrustedContactBundleV1.kt"
+      - "android/app/src/main/java/com/ezero/connect/AndroidQrPayloadRouter.kt"
+      - "android/app/src/test/java/com/ezero/connect/AndroidTrustedContactBundleV1Test.kt"
+      - "js/ezero_connect_trust_v1.js"
+      - "ezero-android-trusted-friend-export-staging.html"
       - "android/app/src/test/java/com/ezero/connect/AndroidEnrollmentWorkerClientV1Test.kt"
       - "android/app/build.gradle.kts"
       - ".github/workflows/ezero-android-worker-client-staging-qa.yml"
