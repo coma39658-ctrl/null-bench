@@ -95,7 +95,7 @@ test("internal queue creation requires secret and strict recipient-bound payload
   assert.equal((await created.json()).status, "PENDING");
 });
 
-test("recipient fingerprint must match the exact installation public key", async () => {
+test("recipient installation fingerprint must match the exact installation public key", async () => {
   const f = await fixture();
   const mismatch = await f.create({ recipientInstallationFingerprint: fingerprint(3) });
   assert.equal(mismatch.status, 400);
