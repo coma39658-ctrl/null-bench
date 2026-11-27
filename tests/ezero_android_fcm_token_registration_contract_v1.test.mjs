@@ -43,3 +43,8 @@ test("contract explicitly marks Android token upload and FCM sender as not yet a
   assert.match(contract, /No FCM sender exists/);
   assert.match(contract, /does \*\*not\*\* enable incoming ringing/);
 });
+
+test("issued_at accepts exactly 13 decimal digits (not a literal backslash-d)", () => {
+  assert.ok(worker.includes("!/^\\d{13}$/.test"));
+  assert.ok(!worker.includes("!/^\\\\d{13}$/.test"));
+});
