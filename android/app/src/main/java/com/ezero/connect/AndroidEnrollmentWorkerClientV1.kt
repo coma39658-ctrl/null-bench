@@ -73,6 +73,31 @@ internal class AndroidEnrollmentWorkerClientV1(baseUrl: String) {
         return response
     }
 
+    fun registerFcmToken(
+        identity: AndroidEnrollmentKeyStore.PublicIdentity,
+        fcmToken: String
+    ): JSONObject {
+        require(identity.fingerprint == AndroidEnrollmentKeyStore.getOrCreatePublicIdentity().fingerprint) {
+            "DEVICE_IDENTITY_CHANGED"
+        }
+        val signed = AndroidEnrollmentKeyStore.signFcmTokenRegistration(fcmToken)
+        require(signed.deviceFingerprint == identity.fingerprint) { "DEVICE_TOKEN_IDENTITY_MISMATCH" }
+        val body = JSONObject()
+            .put("device_fp", signed.deviceFingerprint)
+            .put("fcm_token", signed.fcmToken)
+            .put("issued_at", signed.issuedAt)
+            .put("command_id", signed.commandId)
+            .put("nonce", signed.nonce)
+            .put("signature", signed.signature)
+        val response = post("/v1/android/device-token", body)
+        require(response.optBoolean("ok", false) &&
+            response.optString("status") == "TOKEN_REGISTERED" &&
+            response.optString("device_fp") == identity.fingerprint) {
+            "WORKER_TOKEN_REGISTRATION_RESPONSE_INVALID"
+        }
+        return response
+    }
+
     private fun post(path: String, body: JSONObject): JSONObject {
         val bytes = body.toString().toByteArray(Charsets.UTF_8)
         require(bytes.size <= 4096) { "WORKER_REQUEST_TOO_LARGE" }
