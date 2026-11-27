@@ -40,7 +40,10 @@
       ]
     }
   ],
-  "services": [\n    { "binding": "FRIENDSHIP_REGISTRY", "service": "ezero-friendship-registry-staging-20261127" }\n  ],\n  "vars": {
+  "services": [
+    { "binding": "FRIENDSHIP_REGISTRY", "service": "ezero-friendship-registry-staging-20261127" }
+  ],
+  "vars": {
     "PUBLIC_ORIGIN": "https://ezero-connect-pairing-v2-preview-20261123.onrender.com"
   }
 }
