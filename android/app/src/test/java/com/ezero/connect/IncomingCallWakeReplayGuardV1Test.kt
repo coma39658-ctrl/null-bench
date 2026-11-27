@@ -39,8 +39,8 @@ class IncomingCallWakeReplayGuardV1Test {
         var entries = emptySet<String>()
         repeat(140) { index ->
             entries = IncomingCallWakeReplayGuardV1.consumeOnce(
-                entries, "call_\${index.toString().padStart(10, '0')}",
-                "nonce_\${index.toString().padStart(10, '0')}", now + 30_000, now
+                entries, "call_${index.toString().padStart(10, '0')}",
+                "nonce_${index.toString().padStart(10, '0')}", now + 30_000, now
             )!!
         }
         assertEquals(128, entries.size)
