@@ -137,6 +137,18 @@ internal object AndroidTrustedContactBundleV1 {
         val firstFp = first.getString("fingerprint")
         val secondFp = second.getString("fingerprint")
         require(firstFp < secondFp) { "TRUST_PARTICIPANT_ORDER_INVALID" }
+        val roomId = transcript.optString("roomId")
+        val inviteNonce = transcript.optString("inviteNonce")
+        require(roomId.matches(Regex("^[A-Za-z0-9_-]{32}$")) &&
+            inviteNonce.matches(Regex("^[A-Za-z0-9_-]{32}$"))) { "TRUST_TRANSCRIPT_NONCE_INVALID" }
+        val inviteIssuedAt = transcript.optLong("inviteIssuedAt", -1L)
+        val inviteExpiresAt = transcript.optLong("inviteExpiresAt", -1L)
+        require(inviteIssuedAt > 0L && inviteExpiresAt > inviteIssuedAt &&
+            inviteExpiresAt - inviteIssuedAt <= 90_000L) { "TRUST_TRANSCRIPT_TIME_INVALID" }
+        if (trustVersion == 1) {
+            val createdAt = transcript.optLong("createdAt", -1L)
+            require(createdAt in inviteIssuedAt..inviteExpiresAt) { "TRUST_TRANSCRIPT_CREATED_AT_INVALID" }
+        }
         val rootSpki = payload.getString("rootSpki")
         val remoteSpki = payload.getString("remotePublicKeySpki")
         val local = (0 until 2).map { participants.getJSONObject(it) }
@@ -168,8 +180,7 @@ internal object AndroidTrustedContactBundleV1 {
             }
         } else {
             require(transcript.optString("origin") == ORIGIN &&
-                transcript.optString("roomId").matches(Regex("^[A-Za-z0-9_-]{32}$")) &&
-                transcript.optString("inviteNonce").matches(Regex("^[A-Za-z0-9_-]{32}$"))) {
+                transcript.optString("inviterFingerprint") in setOf(rootFingerprint, remoteFp)) {
                 "TRUST_V2_TRANSCRIPT_BINDING_INVALID"
             }
             val peer = payload.optJSONObject("peerHandshake")
@@ -180,7 +191,10 @@ internal object AndroidTrustedContactBundleV1 {
                 proof.optString("roomId") == transcript.optString("roomId") &&
                 proof.optString("inviteNonce") == transcript.optString("inviteNonce") &&
                 proof.optString("fingerprint") == remoteFp &&
-                proof.optString("publicKeySpki") == remoteSpki) {
+                proof.optString("publicKeySpki") == remoteSpki &&
+                proof.optString("role") == if (transcript.optString("inviterFingerprint") == rootFingerprint) "guest" else "host" &&
+                proof.optString("challenge").matches(Regex("^[A-Za-z0-9_-]{43}$")) &&
+                proof.optLong("challengeExpiresAt", -1L) > 0L) {
                 "TRUST_PEER_PROOF_BINDING_INVALID"
             }
             require(verify(publicKey(remoteSpki), peer.getString("signature"), proof)) {
