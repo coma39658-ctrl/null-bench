@@ -32,6 +32,10 @@ function p1363ToDer(raw) {
   return Uint8Array.from([0x30, r.length + s.length, ...r, ...s]);
 }
 const fingerprint = byte => Array(32).fill(byte.toString(16).padStart(2, "0").toUpperCase()).join(":");
+async function fingerprintForSpki(spki) {
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", spki));
+  return Array.from(digest, byte => byte.toString(16).padStart(2, "0").toUpperCase()).join(":");
+}
 function canonical(value) {
   if (value === null || typeof value !== "object") return JSON.stringify(value);
   if (Array.isArray(value)) return "[" + value.map(canonical).join(",") + "]";
@@ -40,12 +44,13 @@ function canonical(value) {
 async function fixture() {
   const pair = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
   const spki = new Uint8Array(await crypto.subtle.exportKey("spki", pair.publicKey));
+  const recipientFingerprint = await fingerprintForSpki(spki);
   const ctx = new Context();
   const secret = "staging-internal-queue-secret-32-bytes";
   const queue = new EzeroOfflineCallQueue(ctx, { INTERNAL_QUEUE_SECRET: secret });
   const now = Date.now();
   const body = {
-    callId: "call_12345678", callerFingerprint: fingerprint(1), recipientFingerprint: fingerprint(2),
+    callId: "call_12345678", callerFingerprint: fingerprint(1), recipientFingerprint,
     relationshipId: "a".repeat(64), installationId: "install_device_123456",
     devicePublicKeySpki: b64url(spki), invite: "SIGNED_CALL_INVITE_TEST_FIXTURE",
     mode: "AUDIO", nonce: "caller_nonce_1234567890", expiresAt: now + 25_000
@@ -85,6 +90,14 @@ test("internal queue creation requires secret and strict recipient-bound payload
   const created = await f.create();
   assert.equal(created.status, 201);
   assert.equal((await created.json()).status, "PENDING");
+});
+
+test("recipient fingerprint must match the exact installation public key", async () => {
+  const f = await fixture();
+  const mismatch = await f.create({ recipientFingerprint: fingerprint(2) });
+  assert.equal(mismatch.status, 400);
+  assert.equal((await mismatch.json()).error, "QUEUE_DEVICE_FINGERPRINT_MISMATCH");
+  assert.equal((await f.create()).status, 201);
 });
 
 test("only the enrolled installation key can atomically claim once", async () => {
