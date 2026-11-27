@@ -15,6 +15,9 @@ const MAX_BODY = 4096;
 const CHALLENGE_MS = 90000;
 const RATE_RETENTION_MS = 24 * 60 * 60 * 1000;
 const CLEANUP_BATCH = 100;
+const COMMAND_MAX_AGE_MS = 60000;
+const COMMAND_REPLAY_RETENTION_MS = 24 * 60 * 60 * 1000;
+const AUDIT_RETENTION_MS = 365 * 24 * 60 * 60 * 1000;
 const enc = new TextEncoder();
 
 function expiryIndexKey(expiresAt, recordKey) {
@@ -64,11 +67,12 @@ function response(body, status=200) {
 }
 const CHALLENGE_ORDER = ["challenge_id","device_fp","nonce","audience","expires_at"];
 const APPROVAL_ORDER = ["root_fp","device_fp","challenge_id","nonce","audience","expires_at"];
+const ROOT_COMMAND_ORDER = ["root_fp","command_id","action","device_fp","nonce","audience","expires_at"];
 
 export default {
   async fetch(request, env) {
     const u = new URL(request.url);
-    if (request.method === "OPTIONS" && u.pathname.startsWith("/v1/android/")) {
+    if (request.method === "OPTIONS" && (u.pathname.startsWith("/v1/android/") || u.pathname.startsWith("/v1/admin/root/"))) {
       if (request.headers.get("Origin") !== ORIGIN) return response({error:"ORIGIN_DENIED"},403);
       return new Response(null,{status:204,headers:{
         "Access-Control-Allow-Origin":ORIGIN,"Access-Control-Allow-Methods":"POST, OPTIONS",
@@ -78,11 +82,13 @@ export default {
     const origin = request.headers.get("Origin");
     const androidRoute = u.pathname === "/v1/android/enrollment/challenge" ||
       u.pathname === "/v1/android/enrollment/complete";
-    const rootAdminRoute = u.pathname === "/v1/admin/root-register";
+    const rootAdminRoute = u.pathname === "/v1/admin/root-register" ||
+      u.pathname === "/v1/admin/root/devices/list" ||
+      u.pathname === "/v1/admin/root/devices/revoke";
     if (!androidRoute && !rootAdminRoute) return response({error:"NOT_FOUND"},404);
 
     // Native Android HTTP clients do not send a browser Origin header.
-    // Permit an absent Origin only on the two proof-gated Android endpoints.
+    // Permit an absent Origin only on the proof-gated Android endpoints.
     // Browser callers must still be the canonical web origin; foreign origins fail closed.
     if (rootAdminRoute && origin !== ORIGIN) return response({error:"ORIGIN_DENIED"},403);
     if (androidRoute && origin !== null && origin !== ORIGIN)
@@ -154,7 +160,7 @@ export class AndroidEnrollmentRegistry extends DurableObject {
     const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(clientIp)));
     const key = "rate:" + route + ":" + hex(digest);
     const now = Date.now();
-    const admin = route === "/v1/admin/root-register";
+    const admin = route.startsWith("/v1/admin/");
     const windowMs = admin ? 60 * 60 * 1000 : 60 * 1000;
     const limit = admin ? 3 : 10;
     const windowStart = Math.floor(now / windowMs) * windowMs;
@@ -185,6 +191,97 @@ export class AndroidEnrollmentRegistry extends DurableObject {
       }
       return allowed;
     });
+  }
+
+  async executeRootCommand(body, expectedAction) {
+    const now = Date.now();
+    if (!FP.test(body.root_fp || "") || !ID.test(body.command_id || "") ||
+        body.action !== expectedAction ||
+        (expectedAction === "LIST_DEVICES" ? body.device_fp !== "" : !FP.test(body.device_fp || "")) ||
+        typeof body.expires_at !== "string" || !/^\\d{13}$/.test(body.expires_at) ||
+        !Number.isSafeInteger(Number(body.expires_at)) ||
+        Number(body.expires_at) <= now || Number(body.expires_at) > now + COMMAND_MAX_AGE_MS) {
+      return { error: "BAD_ROOT_COMMAND", status: 400 };
+    }
+    const nonce = decode64(body.nonce, 64);
+    const signature = decode64(body.signature, 128);
+    if (!nonce || nonce.length !== 24 || !signature || signature.length !== 64) {
+      return { error: "BAD_ROOT_COMMAND", status: 400 };
+    }
+
+    const roots = (await this.ctx.storage.get("roots")) || {};
+    const root = roots[body.root_fp];
+    if (!root?.active) return { error: "ROOT_NOT_AUTHORIZED", status: 403 };
+    try {
+      const spki = decode64(root.spki, 512);
+      if (!spki || await fingerprint(spki) !== body.root_fp) {
+        return { error: "ROOT_REGISTRY_CORRUPT", status: 503 };
+      }
+      const key = await importP256(spki);
+      const command = {
+        root_fp: body.root_fp,
+        command_id: body.command_id,
+        action: body.action,
+        device_fp: body.device_fp,
+        nonce: body.nonce,
+        audience: ORIGIN,
+        expires_at: body.expires_at
+      };
+      const valid = await crypto.subtle.verify(
+        { name: "ECDSA", hash: "SHA-256" },
+        key,
+        signature,
+        canonical("EZERO_ANDROID_ROOT_COMMAND_V1", command, ROOT_COMMAND_ORDER)
+      );
+      if (!valid) return { error: "ROOT_SIGNATURE_INVALID", status: 403 };
+
+      const replayKey = "root-command:" + body.command_id;
+      const auditKey = "audit:root-command:" + body.command_id;
+      const replayExpiry = now + COMMAND_REPLAY_RETENTION_MS;
+      const auditExpiry = now + AUDIT_RETENTION_MS;
+      const transactionResult = await this.ctx.storage.transaction(async (txn) => {
+        const currentRoots = (await txn.get("roots")) || {};
+        if (!currentRoots[body.root_fp]?.active) return { error: "ROOT_NOT_AUTHORIZED", status: 403 };
+        if (await txn.get(replayKey)) return { error: "ROOT_COMMAND_REPLAY", status: 409 };
+
+        let devices = null;
+        if (expectedAction === "REVOKE_DEVICE") {
+          devices = (await txn.get("devices")) || {};
+          const device = devices[body.device_fp];
+          if (!device || device.root_fp !== body.root_fp) return { error: "DEVICE_NOT_FOUND", status: 404 };
+          if (!device.active) return { error: "DEVICE_ALREADY_REVOKED", status: 409 };
+          devices[body.device_fp] = { ...device, active: false, revoked_at: now };
+          await txn.put("devices", devices);
+        }
+
+        await txn.put(replayKey, { expires_at: replayExpiry, root_fp: body.root_fp });
+        await txn.put(expiryIndexKey(replayExpiry, replayKey), { record_key: replayKey });
+        await txn.put(auditKey, {
+          at: now, expires_at: auditExpiry, root_fp: body.root_fp,
+          action: expectedAction, device_fp: body.device_fp || null,
+          outcome: expectedAction === "REVOKE_DEVICE" ? "DEVICE_REVOKED" : "DEVICE_LISTED"
+        });
+        await txn.put(expiryIndexKey(auditExpiry, auditKey), { record_key: auditKey });
+        return { ok: true, devices };
+      });
+      if (transactionResult.error) return transactionResult;
+      await this.scheduleCleanup(replayExpiry);
+      await this.scheduleCleanup(auditExpiry);
+      if (expectedAction === "REVOKE_DEVICE") {
+        return { ok: true, status: "DEVICE_REVOKED", device_fp: body.device_fp };
+      }
+      const all = Object.entries(transactionResult.devices || {})
+        .filter(([fp, device]) => device.root_fp === body.root_fp)
+        .map(([fp, device]) => ({
+          device_fp: fp, root_fp: device.root_fp,
+          enrolled_at: device.enrolled_at, active: device.active === true,
+          revoked_at: device.revoked_at || null
+        }))
+        .sort((a, b) => b.enrolled_at - a.enrolled_at);
+      return { ok: true, devices: all.slice(0, 100), truncated: all.length > 100 };
+    } catch (_) {
+      return { error: "ROOT_COMMAND_VERIFICATION_FAILED", status: 403 };
+    }
   }
 
   async fetch(request) {
@@ -219,6 +316,16 @@ export class AndroidEnrollmentRegistry extends DurableObject {
         await this.ctx.storage.put("roots",roots);
         return response({ok:true,root_fp:fp});
       } catch (_) { return response({error:"BAD_ROOT_KEY"},400); }
+    }
+
+    if (u.pathname === "/v1/admin/root/devices/list") {
+      const result = await this.executeRootCommand(body, "LIST_DEVICES");
+      return result.error ? response({error: result.error}, result.status) : response(result);
+    }
+
+    if (u.pathname === "/v1/admin/root/devices/revoke") {
+      const result = await this.executeRootCommand(body, "REVOKE_DEVICE");
+      return result.error ? response({error: result.error}, result.status) : response(result);
     }
 
     if (u.pathname === "/v1/android/enrollment/challenge") {
