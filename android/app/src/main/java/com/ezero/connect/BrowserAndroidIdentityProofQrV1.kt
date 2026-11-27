@@ -145,7 +145,7 @@ internal object BrowserAndroidIdentityProofQrV1 {
         }
 
         private fun skipWhitespace() {
-            while (index < source.length && source[index] in charArrayOf(' ', '\\t', '\\n', '\\r')) index++
+            while (index < source.length && source[index] in charArrayOf(' ', '\t', '\n', '\r')) index++
         }
 
         private fun expect(ch: Char) {
