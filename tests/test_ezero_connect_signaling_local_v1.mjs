@@ -53,9 +53,11 @@ try {
       role: "guest", inviteCode: args.inviteCode, inviteMetadata: args.metadata
     });
     window.__ezeroSignal = session;
-    session.on("peer-ready", peer => { window.__ezeroPeer = peer; });
+    window.__ezeroPeerReadyCount = 0;
+    session.on("peer-ready", peer => { window.__ezeroPeer = peer; window.__ezeroPeerReadyCount++; });
     session.on("message", message => { window.__ezeroMessage = message; });
     session.on("room-closed", event => { window.__ezeroRoomClosed = event; });
+    session.on("peer-disconnected", event => { window.__ezeroPeerDisconnected = event; });
     session.on("error", error => { window.__ezeroSignalError = error.message; });
   }, { inviteCode: invite.inviteCode, metadata: verified });
 
