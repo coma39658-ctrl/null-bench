@@ -295,7 +295,7 @@ export class AndroidEnrollmentRegistry extends DurableObject {
     }
     if (!rateAllowed) return new Response(JSON.stringify({error:"RATE_LIMITED"}), {
       status:429, headers:{"Content-Type":"application/json; charset=utf-8",
-        "Cache-Control":"no-store","Retry-After":u.pathname === "/v1/admin/root-register" ? "3600" : "60",
+        "Cache-Control":"no-store","Retry-After":u.pathname.startsWith("/v1/admin/") ? "3600" : "60",
         "X-Content-Type-Options":"nosniff","Access-Control-Allow-Origin":ORIGIN,"Vary":"Origin"}
     });
 
