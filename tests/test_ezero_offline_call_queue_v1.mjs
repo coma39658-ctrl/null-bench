@@ -20,6 +20,17 @@ class Context {
   }
 }
 const b64url = bytes => Buffer.from(bytes).toString("base64url");
+function p1363ToDer(raw) {
+  const integer = bytes => {
+    let start = 0;
+    while (start < bytes.length - 1 && bytes[start] === 0) start++;
+    let value = bytes.slice(start);
+    if (value[0] & 0x80) value = Uint8Array.from([0, ...value]);
+    return Uint8Array.from([0x02, value.length, ...value]);
+  };
+  const r = integer(raw.slice(0, 32)), s = integer(raw.slice(32, 64));
+  return Uint8Array.from([0x30, r.length + s.length, ...r, ...s]);
+}
 const fingerprint = byte => Array(32).fill(byte.toString(16).padStart(2, "0").toUpperCase()).join(":");
 function canonical(value) {
   if (value === null || typeof value !== "object") return JSON.stringify(value);
@@ -52,9 +63,10 @@ async function fixture() {
       callId, installationId: body.installationId, recipientFingerprint: body.recipientFingerprint,
       issuedAt, nonce: "device_nonce_" + crypto.randomUUID().replaceAll("-", "")
     };
-    const signature = b64url(new Uint8Array(await crypto.subtle.sign(
+    const rawSignature = new Uint8Array(await crypto.subtle.sign(
       { name: "ECDSA", hash: "SHA-256" }, pair.privateKey, new TextEncoder().encode(canonical(payload))
-    )));
+    ));
+    const signature = b64url(p1363ToDer(rawSignature));
     return queue.fetch(new Request("https://queue.invalid" + path, {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ callId, installationId: body.installationId, issuedAt,
