@@ -257,15 +257,15 @@ class MainActivity : Activity() {
                 val contact = AndroidTrustedContactBundleV1.importAndSave(this, raw, root)
                 runOnUiThread {
                     statusView.text = buildString {
-                        append("E-ZERO trusted friend imported and encrypted on this phone.\\n\\n")
+                        append("E-ZERO trusted friend imported and encrypted on this phone.\n\n")
                         append("Name: ")
                         append(contact.displayName.ifBlank { "E-ZERO friend" })
-                        append("\\nFingerprint: ")
+                        append("\nFingerprint: ")
                         append(contact.remoteFingerprint)
-                        append("\\nRelationship ID: ")
+                        append("\nRelationship ID: ")
                         append(contact.relationshipId)
-                        append("\\n\\nStatus: TRUSTED_CONTACT_IMPORTED")
-                        append("\\nThis does not yet activate FCM ringing or WebRTC calls.")
+                        append("\n\nStatus: TRUSTED_CONTACT_IMPORTED")
+                        append("\nThis does not yet activate FCM ringing or WebRTC calls.")
                     }
                 }
             } catch (error: Exception) {
