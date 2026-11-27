@@ -59,7 +59,7 @@ assert.match(source, /TRUST_APPROVAL_SIGNATURE_INVALID/,
 
 console.log("EZERO_SAFE_SERVER_STAGE_DIAGNOSTICS_CONTRACT_PASS");
 const trustModule = await readFile(new URL("../js/ezero_connect_trust_v1.js", import.meta.url), "utf8");
-const trustErrorCodes = [...new Set([...trustModule.matchAll(/new Error\\("(TRUST_[A-Z0-9_]+)"\\)/g)].map(match => match[1]))];
+const trustErrorCodes = [...new Set([...trustModule.matchAll(/new Error\("(TRUST_[A-Z0-9_]+)"\)/g)].map(match => match[1]))];
 for (const code of trustErrorCodes) {
   assert.ok(source.includes(code), `pairing UI must explain trusted-contact error ${code}`);
 }
