@@ -129,7 +129,7 @@ try {
     session.ready.catch(error => { window.__ezeroReadyRejected = error.message; });
   }, { inviteCode: invite.inviteCode, metadata: verified });
   await c.waitForFunction(() => Boolean(window.__ezeroReadyRejected), null, { timeout: 10000 });
-  assert.equal(await c.evaluate(() => window.__ezeroReadyRejected), "SIGNAL_SOCKET_CLOSED_BEFORE_READY");
+  assert.equal(await c.evaluate(() => window.__ezeroReadyRejected), "SIGNAL_SERVER_HANDSHAKE_IDENTITY_PROOF_REJECTED");
 
   // Race two distinct guest identities against a fresh invite at the same time.
   // Exactly one guest may complete the first authenticated handshake.
