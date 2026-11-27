@@ -22,6 +22,10 @@ function decode64url(value) {
   try { binary = atob(padded); } catch (_) { throw new Error("QUEUE_KEY_ENCODING_INVALID"); }
   return Uint8Array.from(binary, c => c.charCodeAt(0));
 }
+async function fingerprintFromSpki(spki) {
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", spki));
+  return Array.from(digest, byte => byte.toString(16).padStart(2, "0").toUpperCase()).join(":");
+}
 function canonical(value) {
   if (value === null || typeof value === "string" || typeof value === "boolean") return JSON.stringify(value);
   if (typeof value === "number" && Number.isFinite(value)) return JSON.stringify(value);
@@ -117,6 +121,11 @@ export class EzeroOfflineCallQueue {
           const spki = decode64url(body.devicePublicKeySpki);
           if (spki.length < 80 || spki.length > 160) return json({ error: "QUEUE_DEVICE_KEY_INVALID" }, 400);
           await crypto.subtle.importKey("spki", spki, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+          // Bind the claimed recipient identity to the exact installation public key.
+          // The upstream enrollment service must still prove this key is root-approved and active.
+          if (await fingerprintFromSpki(spki) !== body.recipientFingerprint) {
+            return json({ error: "QUEUE_DEVICE_FINGERPRINT_MISMATCH" }, 400);
+          }
           const current = await this.ctx.storage.get("pending");
           if (current && current.expiresAt > now && current.status === "PENDING") {
             return json({ error: "RECIPIENT_BUSY" }, 409);
