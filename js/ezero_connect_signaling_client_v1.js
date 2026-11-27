@@ -186,6 +186,13 @@
           socket.send(JSON.stringify(hello));
           return;
         }
+        if (data.type === "server-error") {
+          const stages = new Set(["admission", "handshake", "relay"]);
+          const codes = new Set(["INVITE_REJECTED", "IDENTITY_PROOF_REJECTED", "ROOM_STATE_REJECTED", "INTERNAL_ERROR"]);
+          if (!stages.has(data.stage) || !codes.has(data.code)) throw new Error("SIGNAL_SERVER_DIAGNOSTIC_INVALID");
+          fail(new Error("SIGNAL_SERVER_" + data.stage.toUpperCase() + "_" + data.code));
+          return;
+        }
         if (data.type === "hello-accepted") {
           if (data.roomId !== inviteMetadata.roomId || data.role !== role) throw new Error("SIGNAL_HELLO_ACCEPTED_INVALID");
           helloAccepted = true;
