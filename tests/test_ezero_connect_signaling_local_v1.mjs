@@ -117,6 +117,59 @@ try {
   assert.equal(await a.evaluate(fp => window.EZERO_CONNECT_TRUST.canReconnect(fp), identityB.fingerprint), true);
   assert.equal(await b.evaluate(fp => window.EZERO_CONNECT_TRUST.canReconnect(fp), identityA.fingerprint), true);
 
+  // A third, different device must not take over the already-bound guest
+  // identity by replaying the same signed QR/nonce.
+  const c = await phone();
+  await c.evaluate(args => {
+    const session = window.EZERO_CONNECT_SIGNALING.connect({
+      role: "guest", inviteCode: args.inviteCode, inviteMetadata: args.metadata
+    });
+    window.__ezeroSignal = session;
+    session.on("error", error => { window.__ezeroSignalError = error.message; });
+    session.ready.catch(error => { window.__ezeroReadyRejected = error.message; });
+  }, { inviteCode: invite.inviteCode, metadata: verified });
+  await c.waitForFunction(() => Boolean(window.__ezeroReadyRejected), null, { timeout: 10000 });
+  assert.equal(await c.evaluate(() => window.__ezeroReadyRejected), "SIGNAL_SOCKET_CLOSED_BEFORE_READY");
+
+  // Race two distinct guest identities against a fresh invite at the same time.
+  // Exactly one guest may complete the first authenticated handshake.
+  const host2 = await phone();
+  const guest2a = await phone();
+  const guest2b = await phone();
+  const invite2 = await host2.evaluate(() => window.EZERO_CONNECT_INVITES.createInvite());
+  const verified2a = await guest2a.evaluate(code => window.EZERO_CONNECT_INVITES.verifyInvite(code), invite2.inviteCode);
+  const verified2b = await guest2b.evaluate(code => window.EZERO_CONNECT_INVITES.verifyInvite(code), invite2.inviteCode);
+  await host2.evaluate(args => {
+    const session = window.EZERO_CONNECT_SIGNALING.connect({
+      role: "host", inviteCode: args.inviteCode, inviteMetadata: args.metadata
+    });
+    window.__ezeroSignal = session;
+    session.ready.then(() => { window.__ezeroReady = true; })
+      .catch(error => { window.__ezeroReadyRejected = error.message; });
+  }, { inviteCode: invite2.inviteCode, metadata: invite2 });
+  await host2.waitForFunction(() => window.__ezeroReady === true, null, { timeout: 10000 });
+  await Promise.all([guest2a, guest2b].map((page, index) => page.evaluate(args => {
+    const session = window.EZERO_CONNECT_SIGNALING.connect({
+      role: "guest", inviteCode: args.inviteCode, inviteMetadata: args.metadata
+    });
+    window.__ezeroSignal = session;
+    session.ready.then(() => { window.__ezeroReady = true; })
+      .catch(error => { window.__ezeroReadyRejected = error.message; });
+  }, { inviteCode: invite2.inviteCode, metadata: index === 0 ? verified2a : verified2b })));
+  const racePages = [guest2a, guest2b];
+  await Promise.all(racePages.map(page => page.waitForFunction(
+    () => window.__ezeroReady === true || Boolean(window.__ezeroReadyRejected), null, { timeout: 10000 }
+  )));
+  const raceResults = await Promise.all(racePages.map(page => page.evaluate(async () => {
+    return window.__ezeroReady === true ? "ACCEPTED" : (window.__ezeroReadyRejected || "REJECTED");
+  })));
+  assert.equal(raceResults.filter(value => value === "ACCEPTED").length, 1,
+    "Only one simultaneous guest identity may claim a signed invite");
+  assert.equal(raceResults.filter(value => value !== "ACCEPTED").length, 1,
+    "The competing guest identity must be rejected");
+  await host2.waitForFunction(() => Boolean(window.__ezeroSignal?.ready), null, { timeout: 10000 });
+  await host2.evaluate(() => window.__ezeroSignal.send("hangup", {}));
+
   await a.evaluate(() => window.__ezeroSignal.send("hangup", {}));
   await b.waitForFunction(() => Boolean(window.__ezeroRoomClosed));
   await a.waitForFunction(() => Boolean(window.__ezeroRoomClosed));

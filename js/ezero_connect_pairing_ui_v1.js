@@ -13,6 +13,8 @@
     ur: {
       title:"محفوظ دوست بنائیں", host:"آپ QR کے مالک ہیں", guest:"دوست کا QR اسکین ہوا",
       waiting:"دوست کے جڑنے کا انتظار ہے…", peer:"محفوظ کنکشن بن گیا۔ اب دوست کو محفوظ کرنے کی منظوری دیں۔",
+      serverAccepted:"اس فون کی سرور سے تصدیق ہو گئی ہے؛ دوسرے فون کے آنے کا انتظار ہے۔", peerTimeout:"ابھی دوسرا فون نہیں ملا۔ دونوں فون اسی QR دعوت اور انٹرنیٹ کے ساتھ کھلے رکھیں۔",
+      peerDisconnected:"دوسرا فون منقطع ہو گیا۔ دوبارہ رابطہ قائم ہونے کا انتظار ہے۔", roomClosed:"محفوظ رابطے کا کمرہ بند ہو گیا۔", rateLimited:"بہت زیادہ کوششیں ہوئیں؛ کچھ دیر بعد دوبارہ کوشش کریں۔", peerUnavailable:"دوسرا فون ابھی دستیاب نہیں۔ دونوں فون آن لائن ہونے چاہئیں.",
       hostName:"دوست کا نام لکھیں", hostAction:"درخواست بھیجیں اور محفوظ کرنے کی منظوری دیں",
       guestWait:"دوست کی درخواست کا انتظار ہے…", request:"دوست آپ کو محفوظ کرنا چاہتا ہے۔ نام لکھیں اور منظوری دیں۔",
       guestName:"اپنی فہرست میں دوست کا نام لکھیں", guestAction:"منظوری دیں اور دوست محفوظ کریں",
@@ -24,6 +26,8 @@
     en: {
       title:"Save a trusted friend", host:"You are showing your QR", guest:"Friend QR verified",
       waiting:"Waiting for the other device…", peer:"Secure peer connection established. Approve saving this friend.",
+      serverAccepted:"This device is authenticated; waiting for the other phone to join.", peerTimeout:"The other phone has not joined yet. Keep both phones online with this same invite.",
+      peerDisconnected:"The other phone disconnected. Waiting for it to reconnect.", roomClosed:"The secure pairing room was closed.", rateLimited:"Too many attempts. Please wait before trying again.", peerUnavailable:"The other phone is not connected yet. Both phones must be online.",
       hostName:"Enter the friend's name", hostAction:"Send request and consent to save",
       guestWait:"Waiting for the friend's request…", request:"This person wants to save you as a trusted friend. Enter their name and approve.",
       guestName:"Name this friend in your list", guestAction:"Approve and save friend",
@@ -35,6 +39,8 @@
     ar: {
       title:"حفظ صديق موثوق", host:"أنت تعرض رمز QR", guest:"تم التحقق من رمز الصديق",
       waiting:"بانتظار الجهاز الآخر…", peer:"تم إنشاء اتصال آمن. وافق على حفظ هذا الصديق.",
+      serverAccepted:"تم التحقق من هذا الجهاز؛ بانتظار انضمام الهاتف الآخر.", peerTimeout:"لم ينضم الهاتف الآخر بعد. أبقِ الهاتفين متصلين بالإنترنت وبنفس الدعوة.",
+      peerDisconnected:"انقطع الهاتف الآخر. بانتظار إعادة اتصاله.", roomClosed:"تم إغلاق غرفة الاقتران الآمن.", rateLimited:"محاولات كثيرة؛ يرجى الانتظار قبل المحاولة مجدداً.", peerUnavailable:"الهاتف الآخر غير متصل حالياً. يجب أن يكون الهاتفان متصلين.",
       hostName:"أدخل اسم الصديق", hostAction:"إرسال الطلب والموافقة على الحفظ",
       guestWait:"بانتظار طلب الصديق…", request:"يريد هذا الشخص حفظك كصديق موثوق. أدخل اسمه ووافق.",
       guestName:"اكتب اسم هذا الصديق في قائمتك", guestAction:"الموافقة وحفظ الصديق",
@@ -56,6 +62,22 @@
   let localConsent = false;
   let busy = false;
   let pendingMessages = [];
+  let peerWaitTimer = null;
+  let peerConnected = false;
+  const PEER_WAIT_TIMEOUT_MS = 45_000;
+
+  function clearPeerWaitTimer() {
+    if (peerWaitTimer !== null) clearTimeout(peerWaitTimer);
+    peerWaitTimer = null;
+  }
+  function startPeerWaitTimer() {
+    if (peerConnected || peerWaitTimer !== null) return;
+    setStep("peer", "active");
+    peerWaitTimer = setTimeout(() => {
+      peerWaitTimer = null;
+      if (!peerConnected && !panel.hidden) status(t("peerTimeout"), "warning");
+    }, PEER_WAIT_TIMEOUT_MS);
+  }
 
   function t(key) { return (words[lang] || words.ur)[key] || words.ur[key] || key; }
   const stepLabels = {
@@ -104,6 +126,8 @@
     else setStep("qr", "active");
   }
   function closeSession() {
+    clearPeerWaitTimer();
+    peerConnected = false;
     if (session) { try { session.close(); } catch (_) {} }
     session = null;
   }
@@ -150,9 +174,38 @@
       show(roleValue, t("notReady")); $("pairingAction").disabled = true; return;
     }
     show(roleValue, t("waiting"));
+    peerConnected = false;
     try {
       session = api.connect({ role: roleValue, inviteCode, inviteMetadata: metadata });
+      session.on("ready", () => {
+        if (!peerConnected) {
+          startPeerWaitTimer();
+          status(t("serverAccepted"), "waiting");
+        }
+      });
+      session.on("waiting-for-peer", () => {
+        if (!peerConnected) {
+          startPeerWaitTimer();
+          status(t("serverAccepted"), "waiting");
+        }
+      });
+      session.on("peer-disconnected", () => {
+        peerConnected = false;
+        clearPeerWaitTimer();
+        setStep("peer", "failed");
+        status(t("peerDisconnected"), "warning");
+      });
+      session.on("room-closed", () => {
+        peerConnected = false;
+        clearPeerWaitTimer();
+        setStep("peer", "failed");
+        status(t("roomClosed"), "error");
+      });
+      session.on("rate-limited", () => status(t("rateLimited"), "error"));
+      session.on("peer-not-connected", () => status(t("peerUnavailable"), "warning"));
       session.on("peer-ready", async remote => {
+        clearPeerWaitTimer();
+        peerConnected = true;
         peer = remote;
         markDone("qr");
         markDone("peer");
@@ -170,7 +223,10 @@
       });
       session.on("message", message => { void handleMessage(message); });
       session.on("error", fail);
-      session.on("close", () => { if (!panel.hidden && !busy) status(t("error"), "error"); });
+      session.on("close", () => {
+        clearPeerWaitTimer();
+        if (!panel.hidden && !busy && !peerConnected) status(t("peerDisconnected"), "warning");
+      });
       await session.ready;
     } catch (error) { fail(error); }
   }
