@@ -14,6 +14,6 @@
     { "tag": "v1", "new_sqlite_classes": ["EzeroConnectRoom", "EzeroConnectRendezvous"] }
   ],
   "vars": {
-    "PUBLIC_ORIGIN": "https://ezero-connect-qr-clock-skew-preview.onrender.com"
+    "PUBLIC_ORIGIN": "https://ezero-connect-chat-history-pr223-staging.onrender.com"
   }
 }
