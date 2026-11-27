@@ -1,4 +1,5 @@
 import { verifyCallInvite } from "./inbox_protocol.mjs";
+import { authorizeSavedFriendshipForCall } from "./saved_friendship_authorization_v1.mjs";
 
 const FINGERPRINT_RE = /^(?:[0-9A-F]{2}:){31}[0-9A-F]{2}$/;
 const CHALLENGE_TTL_MS = 30_000;
@@ -134,6 +135,12 @@ export class EzeroConnectInbox {
         if (a.pendingCallId || a.peerCallId || a.activeCallId) { send(ws, { type: "busy" }); return; }
         const invite = await verifyCallInvite(message.inviteCode, a.origin, a.inboxFingerprint);
         if (invite.callerFingerprint !== a.fingerprint) throw new Error("INBOX_CALLER_IDENTITY_MISMATCH");
+        // Fail closed until a trusted registry confirms both sides approved this friendship.
+        const friendship = await authorizeSavedFriendshipForCall(this.env, invite);
+        if (!friendship.authorized || friendship.relationshipId !== invite.relationshipId) {
+          send(ws, { type: "friendship-not-authorized", callId: invite.callId });
+          return;
+        }
         a.recentCallIds = Array.isArray(a.recentCallIds) ? a.recentCallIds.filter(item => item && item.expiresAt > Date.now()) : [];
         if (a.recentCallIds.some(item => item.callId === invite.callId || item.nonce === invite.nonce)) {
           send(ws, { type: "replay-rejected", callId: invite.callId }); return;
