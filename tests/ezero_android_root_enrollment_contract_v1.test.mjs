@@ -140,6 +140,18 @@ test("enrollment completion atomically re-checks root state before adding a devi
  assert.match(worker,/if \(devices\[c\.device_fp\]\) return "DEVICE_ALREADY_SEEN"/);
 });
 
+test("root registration is atomic with revocation and cannot restore a revoked root from a stale read",()=>{
+ const worker=readFileSync(fileURLToPath(new URL("../signaling/cloudflare/src/android_enrollment_candidate_v1.js",import.meta.url)),"utf8");
+ const start=worker.indexOf('if (u.pathname === "/v1/admin/root-register")');
+ const end=worker.indexOf('if (u.pathname === "/v1/android/devices/current/push-token")',start);
+ const route=worker.slice(start,end);
+ assert.match(route,/transactionSync\(tx => \{/);
+ assert.match(route,/const roots = tx\.get\("roots"\) \|\| \{\}/);
+ assert.match(route,/tx\.put\("roots",roots\)/);
+ assert.doesNotMatch(route,/await this\.ctx\.storage\.get\("roots"\)/);
+ assert.doesNotMatch(route,/await this\.ctx\.storage\.put\("roots",roots\)/);
+});
+
 test("Durable Object admin authorization checks its own request path without outer-scope variables",()=>{
  const worker=readFileSync(fileURLToPath(new URL("../signaling/cloudflare/src/android_enrollment_candidate_v1.js",import.meta.url)),"utf8");
  const doStart=worker.indexOf("export class AndroidEnrollmentRegistry");
