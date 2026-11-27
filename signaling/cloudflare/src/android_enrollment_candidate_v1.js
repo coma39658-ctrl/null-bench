@@ -3,7 +3,7 @@
  * ISOLATED / NOT DEPLOYED. Not referenced by the active wrangler entrypoint.
  *
  * Root keys must be pre-provisioned out-of-band with ROOT_BOOTSTRAP_SECRET.
- * This module intentionally has no Firebase/FCM token or push-sender surface.
+ * Includes authenticated encrypted FCM-token registration; no FCM sender exists here.
  */
 import { DurableObject } from "cloudflare:workers";
 
@@ -11,7 +11,7 @@ const ORIGIN = "https://coma39658-ctrl.github.io";
 const FP = /^[a-f0-9]{64}$/;
 const ID = /^[A-Za-z0-9_-]{16,128}$/;
 const B64 = /^[A-Za-z0-9_-]+$/;
-const MAX_BODY = 4096;
+const MAX_BODY = 8192;
 const CHALLENGE_MS = 90000;
 const enc = new TextEncoder();
 
@@ -108,7 +108,7 @@ export default {
     if (!androidRoute && !rootAdminRoute) return response({error:"NOT_FOUND"},404);
 
     // Native Android HTTP clients do not send a browser Origin header.
-    // Permit an absent Origin only on the two proof-gated Android endpoints.
+    // Permit an absent Origin only on proof-gated Android endpoints.
     // Browser callers must still be the canonical web origin; foreign origins fail closed.
     if (rootAdminRoute && origin !== ORIGIN) return response({error:"ORIGIN_DENIED"},403);
     if (androidRoute && origin !== null && origin !== ORIGIN)
