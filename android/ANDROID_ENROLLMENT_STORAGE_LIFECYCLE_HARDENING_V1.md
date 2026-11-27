@@ -83,3 +83,22 @@ Added on branch `ezero-enrollment-global-rate-ceiling-staging-20261125`:
 - Runtime tests added for 301 concurrent requests across distinct IPs (exactly 300 accepted) and 11 concurrent requests from one IP (exactly 10 accepted).
 
 Not implemented: per-device ceilings. Device identity must be established by a valid cryptographic proof before it can safely be used as an abuse-control identity. No deployment or production configuration change.
+
+## Implementation progress — signed Root device lifecycle (staging candidate)
+
+Added on branch `ezero-enrollment-root-lifecycle-staging-20261127`:
+
+- `POST /v1/admin/root/devices/list` returns at most 100 device records belonging to the signing Root. It omits device public keys and other unnecessary material.
+- `POST /v1/admin/root/devices/revoke` disables one device only when the active Root signs the exact command.
+- Commands bind Root fingerprint, unique command ID, action, device fingerprint, 24-byte nonce, canonical E-ZERO audience and a maximum 60-second expiry.
+- P-256/SHA-256 signature verification happens before an atomic transaction consumes the command ID. The transaction rechecks Root activity, rejects replay, updates device state and appends a privacy-minimized audit record.
+- Replay records are retained for 24 hours; audit records are retained for 365 days and removed through bounded expiry alarms.
+- Root lifecycle routes require the canonical browser Origin, JSON POST, per-IP and shared admin rate limits. No bootstrap secret or private key is stored in source.
+
+### Remaining release blockers
+
+- Root revocation and full Root key rotation/recovery are not implemented. Device listing/revocation is only a partial closure of H5.
+- Android Keystore client, Root approval UI, and the native registration integration remain absent.
+- The signed-command protocol and new Worker runtime tests must pass CI and receive independent security review.
+- The 365-day audit retention policy requires human approval.
+- This branch is isolated, not deployed. No Root has been registered and no FCM token or push sender is present.
