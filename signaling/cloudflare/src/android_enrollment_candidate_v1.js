@@ -199,7 +199,7 @@ export class AndroidEnrollmentRegistry extends DurableObject {
     const now = Date.now();
     if (!FP.test(body.device_fp || "") ||
         typeof body.fcm_token !== "string" ||
-        !/^[A-Za-z0-9_:-]{32,4096}$/.test(body.fcm_token) ||
+        !/^[A-Za-z0-9_:-]{32,2048}$/.test(body.fcm_token) ||
         typeof body.issued_at !== "string" || !/^\\d{13}$/.test(body.issued_at) ||
         !Number.isSafeInteger(Number(body.issued_at)) ||
         Math.abs(now - Number(body.issued_at)) > TOKEN_COMMAND_MAX_AGE_MS ||
