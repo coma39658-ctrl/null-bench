@@ -102,3 +102,19 @@ Added on branch `ezero-enrollment-root-lifecycle-staging-20261127`:
 - The signed-command protocol and new Worker runtime tests must pass CI and receive independent security review.
 - The 365-day audit retention policy requires human approval.
 - This branch is isolated, not deployed. No Root has been registered and no FCM token or push sender is present.
+
+## Follow-on implementation — authenticated FCM token registration (staging candidate)
+
+Added to the isolated Worker candidate:
+
+- `POST /v1/android/device-token` accepts a token only for an already-enrolled, active device.
+- Android device P-256 proof-of-possession signs a canonical message binding the device fingerprint, SHA-256 digest of the FCM token, unique command ID, issue time, 24-byte nonce and canonical E-ZERO audience.
+- The Worker checks the active enrollment record and re-verifies the enrolled public key fingerprint before accepting the signature.
+- Commands older than 60 seconds, malformed tokens, invalid signatures and replayed command IDs are rejected.
+- Token replacement and replay/audit records are committed in one Durable Object transaction. The raw token is stored only in the isolated server-side Durable Object for later FCM delivery; it is not returned in the response or written to logs.
+- Device revocation now clears the stored FCM token and token digest as part of the same atomic state update.
+- Tests cover valid token registration, replay rejection, forged device signature rejection, and rejection after device revocation.
+
+### Boundaries
+
+This is a server-side token-registration endpoint only. The Android `onNewToken()` client hook, authenticated token refresh from the native app, Firebase Admin sender credentials, actual FCM delivery, call-wake route and native Accept-to-WebRTC handoff are still not wired. No token has been registered and no push has been sent. The Worker remains isolated and not deployed.
