@@ -83,7 +83,8 @@ export default {
     }
     const origin = request.headers.get("Origin");
     const androidRoute = u.pathname === "/v1/android/enrollment/challenge" ||
-      u.pathname === "/v1/android/enrollment/complete";
+      u.pathname === "/v1/android/enrollment/complete" ||
+      u.pathname === "/v1/android/device-token";
     const rootAdminRoute = u.pathname === "/v1/admin/root-register" ||
       u.pathname === "/v1/admin/root/devices/list" ||
       u.pathname === "/v1/admin/root/devices/revoke";
