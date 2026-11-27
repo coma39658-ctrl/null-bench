@@ -46,5 +46,13 @@ assert.match(source, /SIGNAL_SERVER_HANDSHAKE_IDENTITY_PROOF_REJECTED/,
   "pairing UI must explain identity proof failures");
 assert.match(source, /SIGNAL_SERVER_RELAY_INTERNAL_ERROR/,
   "pairing UI must distinguish relay-stage failures");
+assert.match(source, /TRUST_SECURE_STORAGE_UNAVAILABLE/,
+  "pairing UI must identify unavailable secure local storage");
+assert.match(source, /TRUST_CONTACT_SAVE_FAILED/,
+  "pairing UI must identify local friend persistence failure");
+assert.match(source, /TRUST_RELATIONSHIP_ALREADY_EXISTS/,
+  "pairing UI must distinguish an already-saved relationship from a new save failure");
+assert.match(source, /TRUST_APPROVAL_SIGNATURE_INVALID/,
+  "pairing UI must identify approval signature verification failure");
 
 console.log("EZERO_SAFE_SERVER_STAGE_DIAGNOSTICS_CONTRACT_PASS");
