@@ -66,5 +66,12 @@ jobs:
         run: gradle -p android :app:testDebugUnitTest
       - name: Assemble staging APK without deployment
         run: gradle -p android :app:assembleDebug
+      - name: Upload isolated staging APK for one-time device verification
+        uses: actions/upload-artifact@v4
+        with:
+          name: ezero-android-trusted-contact-bridge-staging-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
       - name: State runtime evidence boundary
         run: echo "NO_WORKER_DEPLOYMENT_NO_DEVICE_INSTALL_NO_SERVER_ENROLLMENT_NO_BACKGROUND_RING_PROOF"
