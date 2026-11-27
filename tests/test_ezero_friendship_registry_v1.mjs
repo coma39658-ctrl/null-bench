@@ -66,10 +66,21 @@ const postApproval = (approval) => RegistryWorker.fetch(new Request("https://reg
 let response = await postApproval(approvals[0]);
 assert.equal(response.status, 202);
 assert.equal((await response.json()).status, "PENDING");
+const callPayload = {
+  v: 1, protocol: "E-ZERO-SAVED-FRIEND-CALL-1", origin,
+  callerFingerprint: a.fingerprint, callerPublicKeySpki: a.spki,
+  recipientFingerprint: b.fingerprint, relationshipId,
+  callId: "C".repeat(32), nonce: "Q".repeat(32), mode: "audio",
+  issuedAt: Date.now(), expiresAt: Date.now() + 20_000
+};
+const callSignature = b64url(await crypto.subtle.sign(
+  { name: "ECDSA", hash: "SHA-256" }, a.pair.privateKey, enc.encode(canonical(callPayload))
+));
 const authBody = {
   protocol: "E-ZERO-SAVED-FRIEND-AUTH-1", relationshipId,
   callerFingerprint: a.fingerprint, recipientFingerprint: b.fingerprint,
-  callId: "C".repeat(32), nonce: "Q".repeat(32), mode: "audio", expiresAt: Date.now() + 20_000
+  callId: callPayload.callId, nonce: callPayload.nonce, mode: callPayload.mode,
+  expiresAt: callPayload.expiresAt, signedInvite: { payload: callPayload, signature: callSignature }
 };
 response = await RegistryWorker.fetch(new Request("https://registry.example/v1/authorize-call", {
   method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(authBody)
