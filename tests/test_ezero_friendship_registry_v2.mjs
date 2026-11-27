@@ -85,7 +85,7 @@ response = await RegistryWorker.fetch(new Request("https://registry.example/v1/a
 }), env);
 assert.equal(response.status, 200);
 response = await RegistryWorker.fetch(new Request("https://registry.example/v1/authorize-call", {
-  method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(auth)
+  method: "POST", headers: { Origin: origin, "Content-Type": "application/json" }, body: JSON.stringify(auth)
 }), env);
 assert.equal(response.status, 409);
 const tampered = structuredClone(handshakes);
