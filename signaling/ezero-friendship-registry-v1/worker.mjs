@@ -18,6 +18,16 @@ function exactKeys(value, expected) {
   return value && typeof value === "object" && !Array.isArray(value) &&
     Object.keys(value).sort().join(",") === [...expected].sort().join(",");
 }
+function constantTimeSecretMatch(candidate, expected) {
+  if (typeof candidate !== "string" || typeof expected !== "string" ||
+      candidate.length < 32 || expected.length < 32) return false;
+  const a = new TextEncoder().encode(candidate);
+  const b = new TextEncoder().encode(expected);
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a[i] ^ b[i];
+  return diff === 0;
+}
 function canonical(value) {
   if (value === null || typeof value === "string" || typeof value === "boolean") return JSON.stringify(value);
   if (typeof value === "number" && Number.isFinite(value)) return JSON.stringify(value);
@@ -128,10 +138,31 @@ export class EzeroFriendshipRelationship {
   async fetch(request) {
     if (request.method !== "POST") return json({ error: "METHOD_NOT_ALLOWED" }, 405);
     const url = new URL(request.url);
-    if (url.pathname !== "/approve" && url.pathname !== "/authorize" && url.pathname !== "/register-v2") return json({ error: "NOT_FOUND" }, 404);
+    if (url.pathname !== "/approve" && url.pathname !== "/authorize" &&
+        url.pathname !== "/register-v2" && url.pathname !== "/internal-read") return json({ error: "NOT_FOUND" }, 404);
     return this.ctx.blockConcurrencyWhile(async () => {
       try {
         const body = await readJson(request);
+
+        if (url.pathname === "/internal-read") {
+          if (!exactKeys(body, ["relationshipId"]) || !RELATIONSHIP_RE.test(body.relationshipId || "")) {
+            return json({ error: "INTERNAL_READ_REQUEST_INVALID" }, 400);
+          }
+          const record = await this.ctx.storage.get("relationship");
+          if (!record || record.relationshipId !== body.relationshipId || record.status !== "ACTIVE" ||
+              !record.transcript || !Array.isArray(record.transcript.participants)) {
+            return json({ error: "RELATIONSHIP_NOT_ACTIVE" }, 404);
+          }
+          return json({
+            relationshipId: record.relationshipId,
+            status: record.status,
+            origin: record.transcript.origin || "",
+            participants: record.transcript.participants.map(p => ({
+              fingerprint: p.fingerprint,
+              publicKeySpki: p.publicKeySpki
+            }))
+          });
+        }
 
         if (url.pathname === "/register-v2") {
           if (!exactKeys(body, ["protocol","relationshipId","transcript","handshakes"]) ||
@@ -240,6 +271,24 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === "/health" && request.method === "GET") return json({ service: "ezero-friendship-registry", status: "ok", release: "staging" });
+
+    if (url.pathname === "/internal/v1/relationships/read") {
+      if (request.method !== "POST" || request.headers.has("Origin") ||
+          !constantTimeSecretMatch(request.headers.get("X-EZERO-Registry-Internal"),
+            env.REGISTRY_INTERNAL_ACCESS_SECRET || "")) {
+        return json({ error: "INTERNAL_ACCESS_REJECTED" }, 403);
+      }
+      try {
+        const body = await readJson(request);
+        if (!exactKeys(body, ["relationshipId"]) || !RELATIONSHIP_RE.test(body.relationshipId || "")) {
+          return json({ error: "INTERNAL_READ_REQUEST_INVALID" }, 400);
+        }
+        const id = env.RELATIONSHIPS.idFromName(body.relationshipId);
+        return env.RELATIONSHIPS.get(id).fetch("https://relationship.internal/internal-read", {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
+        });
+      } catch (error) { return json({ error: error?.message || "INTERNAL_READ_FAILED" }, errorStatus(error)); }
+    }
 
     if (url.pathname === "/v1/relationships/register-v2") {
       if (request.method !== "POST" || !env.PUBLIC_ORIGIN || request.headers.get("Origin") !== env.PUBLIC_ORIGIN) return json({ error: "ORIGIN_OR_METHOD_REJECTED" }, 403);

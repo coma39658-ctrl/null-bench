@@ -24,6 +24,7 @@ on:
       - 'signaling/ezero-friendship-registry-v1/**'
       - 'tests/test_ezero_friendship_registry_v1.mjs'
       - 'tests/test_ezero_friendship_registry_v2.mjs'
+      - 'tests/test_ezero_private_friendship_registry_read_v1.mjs'
       - 'tests/test_ezero_connect_qr_frozen_guard_v1.mjs'
       - 'tests/test_ezero_connect_clean_build_v1.mjs'
       - 'tests/test_ezero_connect_qr_runtime_v1.mjs'
@@ -141,6 +142,7 @@ jobs:
           node --check signaling/ezero-friendship-registry-v1/worker.mjs
           node --check tests/test_ezero_friendship_registry_v1.mjs
           node --check tests/test_ezero_friendship_registry_v2.mjs
+          node --check tests/test_ezero_private_friendship_registry_read_v1.mjs
           node --check signaling/ezero-connect-v1/worker.mjs
           node --check signaling/ezero-connect-v1/inbox_worker.mjs
           node --check signaling/ezero-connect-v1/inbox_protocol.mjs
@@ -168,6 +170,8 @@ jobs:
         run: npm run build:ezero-qr
       - name: Verify V2 mutual pairing registry activation and replay protection
         run: node tests/test_ezero_friendship_registry_v2.mjs
+      - name: Verify secret-gated private Friendship Registry read adapter
+        run: node tests/test_ezero_private_friendship_registry_read_v1.mjs
       - name: Validate Worker bundle and migrations without deploying
         run: npx wrangler deploy --dry-run --outdir /tmp/ezero-connect-worker-dry-run --config signaling/ezero-connect-v1/wrangler.jsonc
       - name: Install Chromium
