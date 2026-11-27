@@ -117,12 +117,78 @@ class AndroidTrustedContactBundleV1Test {
         return Fixture(raw, pin, now)
     }
 
+    private fun legacyFixture(): Fixture {
+        val now = System.currentTimeMillis()
+        val root = keyPair()
+        val remote = keyPair()
+        val rootSpki = b64(root.public.encoded)
+        val remoteSpki = b64(remote.public.encoded)
+        val rootFp = fp(root.public.encoded)
+        val remoteFp = fp(remote.public.encoded)
+        val participants = listOf(
+            JSONObject().put("fingerprint", rootFp).put("publicKeySpki", rootSpki),
+            JSONObject().put("fingerprint", remoteFp).put("publicKeySpki", remoteSpki)
+        ).sortedBy { it.getString("fingerprint") }
+        val transcript = JSONObject()
+            .put("v", 1)
+            .put("protocol", "E-ZERO-TRUST-1")
+            .put("purpose", "mutual-contact-save")
+            .put("participants", JSONArray(participants))
+            .put("roomId", "R".repeat(32))
+            .put("inviteNonce", "N".repeat(32))
+            .put("inviteIssuedAt", now - 10_000L)
+            .put("inviteExpiresAt", now - 9_000L)
+            .put("createdAt", now - 9_500L)
+        val transcriptHash = MessageDigest.getInstance("SHA-256")
+            .digest(canonical(transcript).toByteArray(Charsets.UTF_8))
+            .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+        val localApproval = JSONObject()
+            .put("signerFingerprint", rootFp)
+            .put("transcriptHash", transcriptHash)
+            .put("signature", sign(root, transcript))
+        val remoteApproval = JSONObject()
+            .put("signerFingerprint", remoteFp)
+            .put("transcriptHash", transcriptHash)
+            .put("signature", sign(remote, transcript))
+        val payload = JSONObject()
+            .put("v", 1)
+            .put("protocol", "E-ZERO-ANDROID-TRUST-BUNDLE-1")
+            .put("origin", origin)
+            .put("rootFingerprint", rootFp)
+            .put("rootSpki", rootSpki)
+            .put("localFingerprint", rootFp)
+            .put("remoteFingerprint", remoteFp)
+            .put("remotePublicKeySpki", remoteSpki)
+            .put("relationshipId", transcriptHash)
+            .put("displayName", "Legacy Friend")
+            .put("trustVersion", 1)
+            .put("transcript", transcript)
+            .put("localApproval", localApproval)
+            .put("remoteApproval", remoteApproval)
+            .put("peerHandshake", JSONObject.NULL)
+            .put("issuedAt", now)
+            .put("expiresAt", now + 60_000L)
+            .put("nonce", b64(ByteArray(24) { (it + 3).toByte() }))
+        val envelope = JSONObject().put("payload", payload).put("signature", sign(root, payload))
+        val raw = "EZERO-ANDROID-TRUST1." + b64(envelope.toString().toByteArray(Charsets.UTF_8))
+        val pin = AndroidRootTrustPinV1.Pin(rootSpki, rootFp.replace(":", "").lowercase())
+        return Fixture(raw, pin, now)
+    }
+
     @Test fun verifiesRootSignedTrustedFriendBundleAndRelationship() {
         val f = fixture()
         val contact = AndroidTrustedContactBundleV1.verifyBundle(f.raw, f.pin, f.now)
         assertEquals("Test Friend", contact.displayName)
         assertEquals("TRUSTED", contact.status)
         assertEquals(2, contact.trustVersion)
+    }
+
+    @Test fun verifiesLegacyDualApprovedTrustedFriendBundle() {
+        val f = legacyFixture()
+        val contact = AndroidTrustedContactBundleV1.verifyBundle(f.raw, f.pin, f.now)
+        assertEquals("Legacy Friend", contact.displayName)
+        assertEquals(1, contact.trustVersion)
+        assertEquals("TRUSTED", contact.status)
     }
 
     @Test fun rejectsModifiedPayloadAndWrongRootPin() {
