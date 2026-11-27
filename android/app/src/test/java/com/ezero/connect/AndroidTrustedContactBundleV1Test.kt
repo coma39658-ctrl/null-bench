@@ -32,7 +32,7 @@ class AndroidTrustedContactBundleV1Test {
         else -> error("bad canonical value")
     }
     private fun p1363(der: ByteArray): ByteArray {
-        var i = 3
+        var i = 2
         fun readInteger(): ByteArray {
             require(der[i++].toInt() == 0x02)
             val length = der[i++].toInt() and 0xff
