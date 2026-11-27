@@ -329,6 +329,7 @@ export class EzeroConnectRoom {
             roomId: attachment.roomId,
             origin: invite.origin,
             inviteNonce: invite.nonce,
+            inviteIssuedAt: invite.issuedAt,
             inviteExpiresAt: invite.expiresAt,
             hostFingerprint: invite.inviterFingerprint,
             hostPublicKeySpki: invite.inviterPublicKeySpki,
@@ -432,17 +433,67 @@ export class EzeroConnectRoom {
     const room = await this.ctx.storage.get("room");
     const h = host.deserializeAttachment();
     const g = guest.deserializeAttachment();
+    if (!room?.hostHandshake || !room?.guestHandshake || !Number.isSafeInteger(room.inviteIssuedAt) ||
+        !Number.isSafeInteger(room.inviteExpiresAt) || !this.env?.FRIENDSHIP_REGISTRY?.fetch) {
+      for (const ws of [host, guest]) safeSend(ws, { type: "friendship-registry-error", code: "REGISTRY_PREREQUISITES_UNAVAILABLE" });
+      return;
+    }
+    const participants = [
+      { fingerprint: room.hostFingerprint, publicKeySpki: room.hostPublicKeySpki },
+      { fingerprint: room.guestFingerprint, publicKeySpki: room.guestPublicKeySpki }
+    ].sort((a, b) => a.fingerprint < b.fingerprint ? -1 : a.fingerprint > b.fingerprint ? 1 : 0);
+    const transcript = {
+      v: 2,
+      protocol: "E-ZERO-TRUST-2",
+      purpose: "consented-invite-auto-save",
+      origin: room.origin,
+      roomId: room.roomId,
+      inviteNonce: room.inviteNonce,
+      inviteIssuedAt: room.inviteIssuedAt,
+      inviteExpiresAt: room.inviteExpiresAt,
+      inviterFingerprint: room.hostFingerprint,
+      participants
+    };
+    const transcriptBytes = new TextEncoder().encode(stableCanonical(transcript));
+    const digest = await crypto.subtle.digest("SHA-256", transcriptBytes);
+    const relationshipId = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, "0")).join("");
+    if (room.registryStatus !== "ACTIVE") {
+      try {
+        const response = await this.env.FRIENDSHIP_REGISTRY.fetch("https://friendship-registry.internal/v1/relationships/register-v2", {
+          method: "POST",
+          headers: { "Origin": room.origin, "Content-Type": "application/json", "Cache-Control": "no-store" },
+          body: JSON.stringify({
+            protocol: "E-ZERO-REGISTRY-V2-REGISTER-1",
+            relationshipId,
+            transcript,
+            handshakes: { host: room.hostHandshake, guest: room.guestHandshake }
+          })
+        });
+        const result = await response.json().catch(() => null);
+        if (response.status !== 200 || !result || result.status !== "ACTIVE" || result.relationshipId !== relationshipId) {
+          throw new Error("REGISTRY_V2_ACTIVATION_REJECTED");
+        }
+        room.registryStatus = "ACTIVE";
+        room.relationshipId = relationshipId;
+        await this.ctx.storage.put("room", room);
+      } catch (_) {
+        for (const ws of [host, guest]) safeSend(ws, { type: "friendship-registry-error", code: "SERVER_FRIENDSHIP_REGISTRATION_FAILED" });
+        return;
+      }
+    }
     safeSend(host, {
       type: "peer-ready",
       peerFingerprint: g.fingerprint,
       peerPublicKeySpki: g.publicKeySpki,
-      peerHandshake: room?.guestHandshake || null
+      peerHandshake: room.guestHandshake,
+      relationshipId
     });
     safeSend(guest, {
       type: "peer-ready",
       peerFingerprint: h.fingerprint,
       peerPublicKeySpki: h.publicKeySpki,
-      peerHandshake: room?.hostHandshake || null
+      peerHandshake: room.hostHandshake,
+      relationshipId
     });
   }
 

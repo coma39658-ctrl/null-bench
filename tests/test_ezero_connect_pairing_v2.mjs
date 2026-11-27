@@ -5,7 +5,7 @@ const calls = [];
 globalThis.EZERO_CONNECT_TRUST = {
   async saveVerifiedPeer(args) {
     calls.push(args);
-    return { status: "TRUSTED", remoteFingerprint: args.peerFingerprint };
+    return { status: "TRUSTED", remoteFingerprint: args.peerFingerprint, relationshipId: "a".repeat(64) };
   }
 };
 
@@ -44,15 +44,18 @@ const guestProof = { payload: { protocol: "test-guest-proof" }, signature: "sign
 const hostProof = { payload: { protocol: "test-host-proof" }, signature: "signed-host-proof" };
 await hostConnection.emit({
   type: "peer-ready", peerFingerprint: guestIdentity.fingerprint,
-  peerPublicKeySpki: guestIdentity.publicKeySpki, peerHandshake: guestProof
+  peerPublicKeySpki: guestIdentity.publicKeySpki, peerHandshake: guestProof,
+  relationshipId: "a".repeat(64)
 });
 await hostConnection.emit({
   type: "peer-ready", peerFingerprint: guestIdentity.fingerprint,
-  peerPublicKeySpki: guestIdentity.publicKeySpki, peerHandshake: guestProof
+  peerPublicKeySpki: guestIdentity.publicKeySpki, peerHandshake: guestProof,
+  relationshipId: "a".repeat(64)
 });
 await guestConnection.emit({
   type: "peer-ready", peerFingerprint: hostIdentity.fingerprint,
-  peerPublicKeySpki: hostIdentity.publicKeySpki, peerHandshake: hostProof
+  peerPublicKeySpki: hostIdentity.publicKeySpki, peerHandshake: hostProof,
+  relationshipId: "a".repeat(64)
 });
 assert.equal(host.state, "SAVED");
 assert.equal(guest.state, "SAVED");
@@ -76,7 +79,22 @@ await badConnection.emit({
 });
 assert.equal(bad.state, "ERROR");
 assert.equal(bad.saved, false);
+
+const missingIdConnection = new FakeConnection();
+const missingId = globalThis.EZERO_CONNECT_PAIRING_V2.create({
+  connection: missingIdConnection, invitePayload, role: "host"
+});
+const callsBeforeMissingId = calls.length;
+await missingIdConnection.emit({
+  type: "peer-ready", peerFingerprint: guestIdentity.fingerprint,
+  peerPublicKeySpki: guestIdentity.publicKeySpki, peerHandshake: guestProof
+});
+assert.equal(missingId.state, "ERROR");
+assert.equal(missingId.saved, false);
+assert.equal(calls.length, callsBeforeMissingId);
+
 host.close();
 guest.close();
 bad.close();
+missingId.close();
 console.log("EZERO_AUTOMATIC_TRUST_PAIRING_V2_SESSION_PASS");

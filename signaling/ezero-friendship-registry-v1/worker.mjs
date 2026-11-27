@@ -74,6 +74,43 @@ async function validateApproval(transcript, approval) {
   if (!valid) throw new Error("REGISTRY_APPROVAL_SIGNATURE_INVALID");
   return true;
 }
+
+async function validateV2Transcript(t, now = Date.now(), publicOrigin = "") {
+  const keys = ["inviteExpiresAt","inviteIssuedAt","inviteNonce","inviterFingerprint","origin","participants","protocol","purpose","roomId","v"];
+  if (!exactKeys(t, keys) || t.v !== 2 || t.protocol !== "E-ZERO-TRUST-2" ||
+      t.purpose !== "consented-invite-auto-save" || t.origin !== publicOrigin ||
+      !ID_RE.test(t.roomId || "") || !ID_RE.test(t.inviteNonce || "") ||
+      !Number.isSafeInteger(t.inviteIssuedAt) || !Number.isSafeInteger(t.inviteExpiresAt) ||
+      t.inviteExpiresAt <= now || t.inviteExpiresAt <= t.inviteIssuedAt ||
+      t.inviteExpiresAt - t.inviteIssuedAt > 90_000 ||
+      !FINGERPRINT_RE.test(t.inviterFingerprint || "") ||
+      !Array.isArray(t.participants) || t.participants.length !== 2) throw new Error("REGISTRY_V2_TRANSCRIPT_INVALID");
+  const [a,b] = t.participants;
+  if (!exactKeys(a, ["fingerprint","publicKeySpki"]) || !exactKeys(b, ["fingerprint","publicKeySpki"]) ||
+      !FINGERPRINT_RE.test(a.fingerprint || "") || !FINGERPRINT_RE.test(b.fingerprint || "") ||
+      !(a.fingerprint < b.fingerprint) || !t.participants.some(p => p.fingerprint === t.inviterFingerprint)) {
+    throw new Error("REGISTRY_V2_PARTICIPANTS_INVALID");
+  }
+  for (const p of t.participants) if (await fingerprint(p.publicKeySpki) !== p.fingerprint) throw new Error("REGISTRY_V2_PARTICIPANT_KEY_MISMATCH");
+}
+async function validateV2Handshake(transcript, role, proof) {
+  if (!exactKeys(proof, ["payload","signature"]) || !exactKeys(proof.payload,
+      ["challenge","challengeExpiresAt","fingerprint","inviteNonce","origin","protocol","publicKeySpki","role","roomId","v"])) throw new Error("REGISTRY_V2_HANDSHAKE_INVALID");
+  const p = proof.payload;
+  const participant = transcript.participants.find(x => x.fingerprint === p.fingerprint);
+  if (!participant || p.v !== 1 || p.protocol !== "E-ZERO-SIGNAL-HELLO-1" ||
+      p.origin !== transcript.origin || p.roomId !== transcript.roomId || p.inviteNonce !== transcript.inviteNonce ||
+      p.role !== role || p.publicKeySpki !== participant.publicKeySpki ||
+      !/^[A-Za-z0-9_-]{43}$/.test(p.challenge || "") || !Number.isSafeInteger(p.challengeExpiresAt) ||
+      p.challengeExpiresAt < transcript.inviteIssuedAt || p.challengeExpiresAt > transcript.inviteExpiresAt + 30_000) {
+    throw new Error("REGISTRY_V2_HANDSHAKE_BINDING_INVALID");
+  }
+  const key = await crypto.subtle.importKey("spki", decode(participant.publicKeySpki), { name: "ECDSA", namedCurve: "P-256" }, true, ["verify"]);
+  if (!await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, key, decode(proof.signature, 64), new TextEncoder().encode(canonical(p)))) {
+    throw new Error("REGISTRY_V2_HANDSHAKE_SIGNATURE_INVALID");
+  }
+}
+
 async function readJson(request) {
   if (Number(request.headers.get("Content-Length") || 0) > MAX_BODY) throw new Error("REGISTRY_BODY_TOO_LARGE");
   const raw = await request.text();
@@ -91,10 +128,32 @@ export class EzeroFriendshipRelationship {
   async fetch(request) {
     if (request.method !== "POST") return json({ error: "METHOD_NOT_ALLOWED" }, 405);
     const url = new URL(request.url);
-    if (url.pathname !== "/approve" && url.pathname !== "/authorize") return json({ error: "NOT_FOUND" }, 404);
+    if (url.pathname !== "/approve" && url.pathname !== "/authorize" && url.pathname !== "/register-v2") return json({ error: "NOT_FOUND" }, 404);
     return this.ctx.blockConcurrencyWhile(async () => {
       try {
         const body = await readJson(request);
+
+        if (url.pathname === "/register-v2") {
+          if (!exactKeys(body, ["protocol","relationshipId","transcript","handshakes"]) ||
+              body.protocol !== "E-ZERO-REGISTRY-V2-REGISTER-1" || !RELATIONSHIP_RE.test(body.relationshipId || "") ||
+              !exactKeys(body.handshakes, ["host","guest"])) return json({ error: "REGISTRY_V2_REQUEST_INVALID" }, 400);
+          await validateV2Transcript(body.transcript, Date.now(), body.transcript?.origin || "");
+          await validateV2Handshake(body.transcript, "host", body.handshakes.host);
+          await validateV2Handshake(body.transcript, "guest", body.handshakes.guest);
+          const relationshipId = await sha256Hex(new TextEncoder().encode(canonical(body.transcript)));
+          if (body.relationshipId !== relationshipId) return json({ error: "REGISTRY_V2_RELATIONSHIP_ID_MISMATCH" }, 400);
+          const prior = await this.ctx.storage.get("relationship");
+          if (prior && (prior.relationshipId !== relationshipId || canonical(prior.transcript) !== canonical(body.transcript))) {
+            return json({ error: "RELATIONSHIP_CONFLICT" }, 409);
+          }
+          const record = prior || { relationshipId, transcript: body.transcript, approvals: {},
+            status: "ACTIVE", registration: "SERVER_VERIFIED_MUTUAL_V2_HANDSHAKES", createdAt: Date.now() };
+          record.status = "ACTIVE";
+          record.updatedAt = Date.now();
+          await this.ctx.storage.put("relationship", record);
+          return json({ protocol: "E-ZERO-REGISTRY-RESULT-2", relationshipId, status: "ACTIVE" }, 200);
+        }
+
         if (url.pathname === "/approve") {
           if (!exactKeys(body, ["protocol","relationshipId","transcript","approval"]) ||
               body.protocol !== "E-ZERO-REGISTRY-APPROVAL-1") return json({ error: "REQUEST_INVALID" }, 400);
@@ -156,6 +215,19 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === "/health" && request.method === "GET") return json({ service: "ezero-friendship-registry", status: "ok", release: "staging" });
+
+    if (url.pathname === "/v1/relationships/register-v2") {
+      if (request.method !== "POST" || !env.PUBLIC_ORIGIN || request.headers.get("Origin") !== env.PUBLIC_ORIGIN) return json({ error: "ORIGIN_OR_METHOD_REJECTED" }, 403);
+      try {
+        const body = await readJson(request);
+        if (!exactKeys(body, ["protocol","relationshipId","transcript","handshakes"]) ||
+            body.protocol !== "E-ZERO-REGISTRY-V2-REGISTER-1" || !RELATIONSHIP_RE.test(body.relationshipId || "") || body.transcript?.origin !== env.PUBLIC_ORIGIN) return json({ error: "REGISTRY_V2_REQUEST_INVALID" }, 400);
+        const id = env.RELATIONSHIPS.idFromName(body.relationshipId);
+        return env.RELATIONSHIPS.get(id).fetch("https://relationship.internal/register-v2", {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
+        });
+      } catch (error) { return json({ error: error?.message || "REGISTRY_V2_REGISTER_FAILED" }, errorStatus(error)); }
+    }
     if (url.pathname === APPROVAL_PATH) {
       if (request.method !== "POST" || !env.PUBLIC_ORIGIN || request.headers.get("Origin") !== env.PUBLIC_ORIGIN) {
         return json({ error: "ORIGIN_OR_METHOD_REJECTED" }, 403);
