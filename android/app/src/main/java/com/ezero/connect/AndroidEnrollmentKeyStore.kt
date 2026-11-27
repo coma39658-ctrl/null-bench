@@ -8,6 +8,7 @@ import java.security.KeyStore
 import java.security.Signature
 import java.security.spec.ECGenParameterSpec
 import java.security.MessageDigest
+import java.security.SecureRandom
 import android.util.Base64
 
 /**
@@ -53,6 +54,55 @@ internal object AndroidEnrollmentKeyStore {
         val fingerprint = MessageDigest.getInstance("SHA-256").digest(spki)
             .joinToString("") { "%02x".format(it.toInt() and 0xff) }
         return PublicIdentity(fingerprint, Base64.encodeToString(spki, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING))
+    }
+
+    data class SignedFcmTokenRegistration(
+        val deviceFingerprint: String,
+        val fcmToken: String,
+        val issuedAt: String,
+        val commandId: String,
+        val nonce: String,
+        val signature: String
+    )
+
+    fun signFcmTokenRegistration(fcmToken: String): SignedFcmTokenRegistration {
+        require(fcmToken.matches(Regex("^[A-Za-z0-9_:-]{32,2048}$"))) {
+            "FCM_TOKEN_FORMAT_INVALID"
+        }
+        val identity = getOrCreatePublicIdentity()
+        val random = SecureRandom()
+        fun randomB64(): String {
+            val bytes = ByteArray(24)
+            random.nextBytes(bytes)
+            return Base64.encodeToString(bytes, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+        }
+        val tokenHash = Base64.encodeToString(
+            MessageDigest.getInstance("SHA-256").digest(fcmToken.toByteArray(Charsets.UTF_8)),
+            Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING
+        )
+        val commandId = randomB64()
+        val issuedAt = System.currentTimeMillis().toString()
+        val nonce = randomB64()
+        val canonical = (
+            "EZERO_ANDROID_FCM_TOKEN_V1\\n" +
+                "device_fp=${identity.fingerprint}\\n" +
+                "token_sha256=$tokenHash\\n" +
+                "command_id=$commandId\\n" +
+                "issued_at=$issuedAt\\n" +
+                "nonce=$nonce\\n" +
+                "audience=https://coma39658-ctrl.github.io\\n"
+            ).toByteArray(Charsets.UTF_8)
+        val pair = getOrCreateKeyPair()
+        val der = Signature.getInstance("SHA256withECDSA").run {
+            initSign(pair.private)
+            update(canonical)
+            sign()
+        }
+        val p1363 = AndroidSignatureEncoding.derP256ToP1363(der)
+        return SignedFcmTokenRegistration(
+            identity.fingerprint, fcmToken, issuedAt, commandId, nonce,
+            Base64.encodeToString(p1363, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+        )
     }
 
     fun signChallenge(challenge: AndroidEnrollmentProtocolV1.Challenge): String {
