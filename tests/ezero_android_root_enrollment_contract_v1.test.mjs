@@ -139,3 +139,11 @@ test("enrollment completion atomically re-checks root state before adding a devi
  assert.match(worker,/if \(!currentRoots\[body\.root_fp\]\?\.active\) return "ROOT_REVOKED"/);
  assert.match(worker,/if \(devices\[c\.device_fp\]\) return "DEVICE_ALREADY_SEEN"/);
 });
+
+test("Durable Object admin authorization checks its own request path without outer-scope variables",()=>{
+ const worker=readFileSync(fileURLToPath(new URL("../signaling/cloudflare/src/android_enrollment_candidate_v1.js",import.meta.url)),"utf8");
+ const doStart=worker.indexOf("export class AndroidEnrollmentRegistry");
+ const doBody=worker.slice(doStart);
+ assert.match(doBody,/if \(u\.pathname\.startsWith\("\/v1\/admin\/"\)\) \{/);
+ assert.doesNotMatch(doBody,/if \(rootAdminRoute\)/);
+});
