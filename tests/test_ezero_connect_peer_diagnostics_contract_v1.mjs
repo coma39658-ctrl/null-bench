@@ -27,3 +27,24 @@ assert.ok(!source.includes('session.on("ready", () => {\n        markDone("peer"
   "hello-accepted/ready must never be treated as peer-ready");
 
 console.log("EZERO_PEER_CONNECTION_DIAGNOSTICS_CONTRACT_PASS");
+
+
+const signaling = await readFile(new URL("../js/ezero_connect_signaling_client_v1.js", import.meta.url), "utf8");
+const worker = await readFile(new URL("../signaling/ezero-connect-v1/worker.mjs", import.meta.url), "utf8");
+
+assert.match(worker, /function safeDiagnosticCode\(error\)/,
+  "Worker must convert internal errors into a bounded diagnostic category");
+assert.match(worker, /type: "server-error",[\s\S]*?stage: diagnosticStage,[\s\S]*?code: safeDiagnosticCode\(error\)/,
+  "Worker must send stage and allowlisted code, never raw exception text");
+assert.match(signaling, /data\.type === "server-error"/,
+  "signaling client must recognize safe server diagnostics");
+assert.match(signaling, /SIGNAL_SERVER_DIAGNOSTIC_INVALID/,
+  "signaling client must reject malformed diagnostic messages");
+assert.match(source, /SIGNAL_SERVER_HANDSHAKE_INVITE_REJECTED/,
+  "pairing UI must explain a rejected invite without exposing secrets");
+assert.match(source, /SIGNAL_SERVER_HANDSHAKE_IDENTITY_PROOF_REJECTED/,
+  "pairing UI must explain identity proof failures");
+assert.match(source, /SIGNAL_SERVER_RELAY_INTERNAL_ERROR/,
+  "pairing UI must distinguish relay-stage failures");
+
+console.log("EZERO_SAFE_SERVER_STAGE_DIAGNOSTICS_CONTRACT_PASS");
