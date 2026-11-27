@@ -101,3 +101,10 @@ Wake an enrolled recipient Android installation when it has no active WebSocket,
 - The low-level FCM sender is a transport helper, not a call authorization route. No active Worker entrypoint invokes it.
 - The existing browser inbox remains WebSocket-oriented; offline queue creation and wake routing are not yet wired to it.
 - No Firebase live delivery, audible lock-screen ringing, or native-to-WebRTC physical test is claimed by this document.
+
+## Documentation validation (2026-11-27)
+
+- PR #241 documentation commit: `f9f534fc56b1db7cbf560b38bddf3be8f077650d`.
+- Evidence Registry Validator run `46055728163`: **completed / success** for this documentation commit.
+- This docs-only change did not run the full Clean Build Shell QA suite. The separate PR #240 code-head QA run `46054460765` and Evidence Registry run `46054460668` passed for `cc678549b394ba6c005607ee61460863cf8e9338`; those results validate that code head, not this documentation-only commit.
+- No Android build, FCM delivery, ringtone, lock-screen, or native-to-WebRTC physical test is established by these CI results.
