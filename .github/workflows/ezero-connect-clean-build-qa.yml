@@ -53,6 +53,7 @@ on:
       - ezero-mutual-approval-ui-staging-20261123
       - ezero-connect-auto-trust-pairing-v2-20261123
       - ezero-connect-media-foundation-v1-20261123
+      - ezero-offline-call-queue-do-v1-staging-20261127
     paths:
       - 'ezero-connect.html'
       - 'ezero-connect-app.html'
@@ -71,6 +72,8 @@ on:
       - 'js/ezero_connect_config_v1.js'
       - 'scripts/ezero_connect_qr_entry_v1.js'
       - 'signaling/ezero-connect-v1/**'
+      - 'signaling/ezero-offline-call-queue-v1/**'
+      - 'tests/test_ezero_offline_call_queue_v1.mjs'
       - 'tests/test_ezero_connect_qr_frozen_guard_v1.mjs'
       - 'tests/test_ezero_connect_clean_build_v1.mjs'
       - 'tests/test_ezero_connect_qr_runtime_v1.mjs'
