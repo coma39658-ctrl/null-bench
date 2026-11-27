@@ -40,7 +40,7 @@ const state = {
 const relationship = new EzeroFriendshipRelationship(state);
 const namespace = {
   idFromName(name) { return name; },
-  get() { return { fetch: request => relationship.fetch(request) }; }
+  get() { return { fetch: (url, init) => relationship.fetch(new Request(url, init)) }; }
 };
 const origin = "https://ezero-connect-pairing-v2-preview-20261123.onrender.com";
 const env = { PUBLIC_ORIGIN: origin, RELATIONSHIPS: namespace };
