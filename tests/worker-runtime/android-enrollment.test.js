@@ -81,6 +81,25 @@ async function completionBody(root, rootFp, device, challenge) {
   };
 }
 
+async function signedRootCommand(root, rootFp, action, deviceFp = "") {
+  const command = {
+    root_fp: rootFp,
+    command_id: base64url(crypto.getRandomValues(new Uint8Array(24))),
+    action,
+    device_fp: deviceFp,
+    nonce: base64url(crypto.getRandomValues(new Uint8Array(24))),
+    audience: ORIGIN,
+    expires_at: String(Date.now() + 30000)
+  };
+  const bytes = canonical("EZERO_ANDROID_ROOT_COMMAND_V1", command, [
+    "root_fp", "command_id", "action", "device_fp", "nonce", "audience", "expires_at"
+  ]);
+  const signature = await crypto.subtle.sign(
+    { name: "ECDSA", hash: "SHA-256" }, root.privateKey, bytes
+  );
+  return { ...command, signature: base64url(new Uint8Array(signature)) };
+}
+
 describe("isolated Android enrollment Worker — real Workers runtime", () => {
   it("accepts one valid device enrollment and rejects replay of the same challenge", async () => {
     const root = await keyPair();
@@ -154,6 +173,65 @@ describe("isolated Android enrollment Worker — real Workers runtime", () => {
     }, "198.51.100.71", { origin: ORIGIN });
     expect(response.status).toBe(403);
     expect(await response.json()).toMatchObject({ error: "ADMIN_UNAUTHORIZED" });
+  });
+
+  it("lists only its own devices and revokes a device with a signed, replay-protected Root command", async () => {
+    const root = await keyPair();
+    const device = await keyPair();
+    const { rootFp } = await registerRoot(root, "198.51.100.81");
+    const challenge = await issueChallenge(device, "198.51.100.82");
+    const enrollment = await completionBody(root, rootFp, device, challenge);
+    const enrolled = await post("/v1/android/enrollment/complete", enrollment, "198.51.100.82");
+    expect(enrolled.status).toBe(200);
+
+    const listCommand = await signedRootCommand(root, rootFp, "LIST_DEVICES");
+    const listed = await post("/v1/admin/root/devices/list", listCommand, "198.51.100.83", {
+      origin: ORIGIN
+    });
+    expect(listed.status).toBe(200);
+    expect(await listed.json()).toMatchObject({
+      ok: true,
+      devices: [{ device_fp: challenge.device_fp, root_fp: rootFp, active: true }],
+      truncated: false
+    });
+
+    const revokeCommand = await signedRootCommand(
+      root, rootFp, "REVOKE_DEVICE", challenge.device_fp
+    );
+    const revoked = await post("/v1/admin/root/devices/revoke", revokeCommand, "198.51.100.83", {
+      origin: ORIGIN
+    });
+    expect(revoked.status).toBe(200);
+    expect(await revoked.json()).toMatchObject({
+      ok: true, status: "DEVICE_REVOKED", device_fp: challenge.device_fp
+    });
+
+    const replay = await post("/v1/admin/root/devices/revoke", revokeCommand, "198.51.100.83", {
+      origin: ORIGIN
+    });
+    expect(replay.status).toBe(409);
+    expect(await replay.json()).toMatchObject({ error: "ROOT_COMMAND_REPLAY" });
+
+    const finalListCommand = await signedRootCommand(root, rootFp, "LIST_DEVICES");
+    const finalList = await post("/v1/admin/root/devices/list", finalListCommand, "198.51.100.83", {
+      origin: ORIGIN
+    });
+    expect(finalList.status).toBe(200);
+    expect(await finalList.json()).toMatchObject({
+      devices: [{ device_fp: challenge.device_fp, active: false }]
+    });
+  });
+
+  it("rejects Root lifecycle commands signed by a different key", async () => {
+    const root = await keyPair();
+    const attacker = await keyPair();
+    const { rootFp } = await registerRoot(root, "198.51.100.91");
+    const forged = await signedRootCommand(attacker, rootFp, "LIST_DEVICES");
+    const response = await post("/v1/admin/root/devices/list", forged, "198.51.100.92", {
+      origin: ORIGIN
+    });
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({ error: "ROOT_SIGNATURE_INVALID" });
   });
 
   it("persists rate-limit buckets as hashed keys rather than raw client IPs", async () => {
