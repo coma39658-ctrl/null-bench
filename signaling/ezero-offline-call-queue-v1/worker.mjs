@@ -36,11 +36,30 @@ async function readJson(request, maxBytes = 16 * 1024) {
   if (new TextEncoder().encode(raw).length > maxBytes) throw new Error("QUEUE_BODY_TOO_LARGE");
   try { return JSON.parse(raw); } catch (_) { throw new Error("QUEUE_JSON_INVALID"); }
 }
+function derToP1363(der) {
+  if (!(der instanceof Uint8Array) || der.length < 8 || der.length > 80 ||
+      der[0] !== 0x30 || der[1] !== der.length - 2) return null;
+  let p = 2;
+  const readInteger = () => {
+    if (der[p++] !== 0x02) return null;
+    const n = der[p++];
+    if (!n || p + n > der.length) return null;
+    let value = der.slice(p, p + n); p += n;
+    if ((value[0] & 0x80) || (value.length > 1 && value[0] === 0 && !(value[1] & 0x80))) return null;
+    if (value[0] === 0) value = value.slice(1);
+    if (value.length > 32) return null;
+    const out = new Uint8Array(32); out.set(value, 32 - value.length); return out;
+  };
+  const r = readInteger(), s = readInteger();
+  if (!r || !s || p !== der.length) return null;
+  const out = new Uint8Array(64); out.set(r, 0); out.set(s, 32); return out;
+}
 async function verifyDeviceProof(spki, signature, payload) {
   const key = await crypto.subtle.importKey("spki", decode64url(spki),
     { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
-  const sig = decode64url(signature);
-  if (sig.length !== 64) return false;
+  const encoded = decode64url(signature);
+  const sig = encoded.length === 64 ? encoded : derToP1363(encoded);
+  if (!sig) return false;
   return crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, key, sig,
     new TextEncoder().encode(canonical(payload)));
 }
