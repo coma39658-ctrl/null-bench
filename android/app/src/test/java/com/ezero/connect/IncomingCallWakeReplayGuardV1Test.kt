@@ -31,7 +31,7 @@ class IncomingCallWakeReplayGuardV1Test {
     }
 
     @Test fun expiresOldEntriesAndBoundsStorage() {
-        val old = setOf("oldnonce123456789|oldcall123|\${now - 1}")
+        val old = setOf("oldnonce123456789|oldcall123|${now - 1}")
         val fresh = IncomingCallWakeReplayGuardV1.consumeOnce(
             old, "call_12345678", "nonce_1234567890", now + 30_000, now
         )!!
@@ -39,8 +39,8 @@ class IncomingCallWakeReplayGuardV1Test {
         var entries = emptySet<String>()
         repeat(140) { index ->
             entries = IncomingCallWakeReplayGuardV1.consumeOnce(
-                entries, "call_\${index.toString().padStart(8, '0')}",
-                "nonce_\${index.toString().padStart(8, '0')}", now + 30_000, now
+                entries, "call_\${index.toString().padStart(10, '0')}",
+                "nonce_\${index.toString().padStart(10, '0')}", now + 30_000, now
             )!!
         }
         assertEquals(128, entries.size)
