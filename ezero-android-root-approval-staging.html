@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ur">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E-ZERO Android Root Approval — Staging</title>
+<style>
+:root{color-scheme:light;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#f2f6f5;color:#18343b}
+body{margin:0;padding:18px}.wrap{max-width:760px;margin:20px auto;background:#fff;border:1px solid #d6e1df;border-radius:16px;padding:20px;box-shadow:0 8px 26px #153b3510}
+h1{font-size:23px;margin:0 0 8px}.note{line-height:1.65;color:#536b70;font-size:14px}
+.warning{padding:13px;border-left:4px solid #b45309;background:#fff7ed;line-height:1.6;margin:16px 0}
+button{padding:11px 15px;border:0;border-radius:9px;background:#174b45;color:white;font-weight:700;margin:8px 8px 0 0}
+button.secondary{background:#e6efed;color:#174b45}button:disabled{opacity:.45}
+textarea{width:100%;min-height:130px;box-sizing:border-box;padding:12px;border:1px solid #b9cbc7;border-radius:9px;font:12px ui-monospace,monospace}
+video{width:100%;max-height:320px;background:#102528;border-radius:10px;margin-top:12px}
+#status{padding:12px;border-radius:9px;background:#edf4f2;margin-top:15px;white-space:pre-wrap;line-height:1.5}
+#approvalQr{display:block;max-width:100%;width:300px;margin:14px auto}
+.fingerprint{font:13px ui-monospace,monospace;overflow-wrap:anywhere;background:#f2f6f5;padding:10px;border-radius:8px}
+small{color:#657a7c}
+</style>
+</head>
+<body>
+<main class="wrap">
+<h1>E‑ZERO محفوظ Android منظوری</h1>
+<p class="note">یہ صفحہ صرف پہلے سے موجود E‑ZERO Root براؤزر کلید سے Android کی درخواست کی تصدیق اور منظوری کا QR بناتا ہے۔ Root کی نئی کلید نہیں بنائی جاتی۔</p>
+<div class="warning"><strong>اہم:</strong> QR اسکین کرنے سے خودکار منظوری نہیں ہوگی۔ پہلے فون کی شناخت اور دستخط چیک ہوں گے، پھر آپ کے واضح بٹن دبانے پر Root دستخط کرے گا۔ نجی کلید براؤزر سے باہر نہیں جاتی۔</div>
+
+<h2>1 — Android درخواست اسکین کریں</h2>
+<p class="note">Android پر دکھایا گیا مختصر مدت والا Enrollment QR کیمرے سے اسکین کریں یا تصویر منتخب کریں۔ اگر اسکینر دستیاب نہ ہو تو QR کا متن نیچے پیسٹ کریں۔</p>
+<button id="startCamera" type="button">کیمرہ کھولیں</button>
+<button id="stopCamera" class="secondary" type="button" disabled>کیمرہ بند کریں</button>
+<video id="camera" playsinline muted hidden></video>
+<label for="requestText">Enrollment QR متن</label>
+<textarea id="requestText" autocomplete="off" spellcheck="false" placeholder="EZERO_ANDROID_ENROLL_REQUEST_V1 ..."></textarea>
+<div>
+<input id="requestImage" type="file" accept="image/*">
+<button id="verifyRequest" type="button">درخواست اور فون کا دستخط چیک کریں</button>
+</div>
+<div id="deviceInfo" hidden>
+<strong>تصدیق شدہ فون Fingerprint</strong>
+<div class="fingerprint" id="deviceFingerprint"></div>
+<p class="note" id="expiryInfo"></p>
+</div>
+
+<h2>2 — واضح Root منظوری</h2>
+<p class="note">صرف تب منظوری دیں جب دکھایا گیا Fingerprint اسی فون سے متعلق ہو جسے آپ اپنے اکاؤنٹ کے Trusted Devices میں شامل کرنا چاہتے ہیں۔</p>
+<button id="approve" type="button" disabled>میں اس فون کو منظور کرتا ہوں — Approval QR بنائیں</button>
+<div id="approvalArea" hidden>
+<img id="approvalQr" alt="E-ZERO Android Root approval QR">
+<label for="approvalText">Android کے لیے Root Approval QR متن</label>
+<textarea id="approvalText" readonly></textarea>
+<button id="copyApproval" class="secondary" type="button">Approval متن کاپی کریں</button>
+</div>
+<div id="status" role="status" aria-live="polite">موجودہ Root شناخت چیک کرنے کے لیے پہلے درخواست اسکین کریں۔</div>
+<p class="note">یہ Staging صفحہ صرف مقامی دستخط اور QR بناتا ہے۔ یہ Worker پر Root رجسٹر نہیں کرتا، فون کو Server پر Enroll نہیں کرتا، FCM Push نہیں بھیجتا اور کالنگ فعال نہیں کرتا۔</p>
+<small>STAGING ONLY — no production changes.</small>
+</main>
+<script src="js/ezero_connect_identity_v1.js"></script>
+<script src="js/ezero_connect_root_signer_v1.js"></script>
+<script src="js/vendor/ezero-qrcode-generator-mit.js"></script>
+<script src="js/ezero_android_root_approval_ui_v1.js"></script>
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const status=$("status"),video=$("camera"),requestText=$("requestText");
+let stream=null,verifiedRequest=null,detector=null;
+function stopCamera(){
+ if(stream){stream.getTracks().forEach(track=>track.stop());stream=null;}
+ video.pause();video.srcObject=null;video.hidden=true;
+ $("stopCamera").disabled=true;$("startCamera").disabled=false;
+}
+async function scanBitmap(bitmap){
+ if(!("BarcodeDetector" in window))throw new Error("اس براؤزر میں تصویر/کیمرہ QR شناخت دستیاب نہیں؛ QR متن پیسٹ کریں۔");
+ detector=detector||new BarcodeDetector({formats:["qr_code"]});
+ const codes=await detector.detect(bitmap);
+ if(!codes.length)throw new Error("تصویر میں QR کوڈ نہیں ملا۔");
+ requestText.value=codes[0].rawValue;
+ $("verifyRequest").click();
+}
+$("startCamera").addEventListener("click",async()=>{
+ try{
+  if(!navigator.mediaDevices?.getUserMedia||!("BarcodeDetector" in window))throw new Error("اس براؤزر میں QR کیمرہ اسکین دستیاب نہیں؛ گیلری یا متن استعمال کریں۔");
+  detector=detector||new BarcodeDetector({formats:["qr_code"]});
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
+  video.srcObject=stream;video.hidden=false;await video.play();
+  $("startCamera").disabled=true;$("stopCamera").disabled=false;
+  status.textContent="QR کیمرہ فعال ہے؛ Android درخواست سامنے رکھیں۔";
+  const scan=async()=>{
+   if(!stream)return;
+   try{
+    const codes=await detector.detect(video);
+    if(codes.length){requestText.value=codes[0].rawValue;stopCamera();$("verifyRequest").click();return;}
+   }catch(_){}
+   if(stream)requestAnimationFrame(scan);
+  };
+  requestAnimationFrame(scan);
+ }catch(error){stopCamera();status.textContent=String(error.message||error);}
+});
+$("stopCamera").addEventListener("click",stopCamera);
+$("requestImage").addEventListener("change",async event=>{
+ const file=event.target.files&&event.target.files[0];if(!file)return;
+ try{const bitmap=await createImageBitmap(file);try{await scanBitmap(bitmap);}finally{bitmap.close();}}
+ catch(error){status.textContent=String(error.message||error);}
+});
+$("verifyRequest").addEventListener("click",async()=>{
+ verifiedRequest=null;$("approve").disabled=true;$("deviceInfo").hidden=true;$("approvalArea").hidden=true;
+ status.textContent="Android QR کی ساخت، P-256 public key، fingerprint، expiry اور device signature چیک ہو رہے ہیں…";
+ try{
+  if(!window.isSecureContext)throw new Error("SECURE_ORIGIN_REQUIRED");
+  const existing=await window.EZERO_CONNECT_IDENTITY.load();
+  if(!existing)throw new Error("اس براؤزر میں پہلے سے محفوظ E-ZERO Root شناخت موجود نہیں؛ نئی کلید خودکار نہیں بنائی جائے گی۔");
+  verifiedRequest=await window.EZERO_ANDROID_ROOT_APPROVAL_UI_V1.verifyEnrollmentRequest(requestText.value);
+  $("deviceFingerprint").textContent=verifiedRequest.deviceFingerprint;
+  $("expiryInfo").textContent="Challenge expiry: "+new Date(Number(verifiedRequest.expiresAt)).toLocaleString();
+  $("deviceInfo").hidden=false;$("approve").disabled=false;
+  status.textContent="فون کی شناخت اور اس کا دستخط درست ہیں۔ ابھی Root منظوری نہیں دی گئی۔";
+ }catch(error){status.textContent="درخواست مسترد: "+String(error.message||error);verifiedRequest=null;}
+});
+$("approve").addEventListener("click",async()=>{
+ $("approve").disabled=true;$("approvalArea").hidden=true;
+ try{
+  if(!verifiedRequest)throw new Error("DEVICE_REQUEST_NOT_VERIFIED");
+  const approval=await window.EZERO_ANDROID_ROOT_APPROVAL_UI_V1.createRootApproval(requestText.value);
+  const qr=qrcode(0,"M");qr.addData(approval);qr.make();
+  $("approvalQr").src=qr.createDataURL(8,4);
+  $("approvalText").value=approval;$("approvalArea").hidden=false;
+  status.textContent="Root Approval QR تیار ہے۔ اسے اسی Android فون پر اسکین کریں جس کی Fingerprint اوپر دکھائی گئی ہے۔";
+ }catch(error){status.textContent="منظوری نہیں بن سکی: "+String(error.message||error);}
+ finally{$("approve").disabled=false;}
+});
+$("copyApproval").addEventListener("click",async()=>{
+ try{await navigator.clipboard.writeText($("approvalText").value);status.textContent="Approval متن کاپی ہوگیا۔"}
+ catch(_){$("approvalText").focus();$("approvalText").select();status.textContent="متن منتخب ہے؛ دستی طور پر کاپی کریں۔"}
+});
+window.addEventListener("pagehide",stopCamera);
+})();
+</script>
+</body>
+</html>
