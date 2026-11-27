@@ -58,11 +58,11 @@ internal object AndroidPushTokenRegistrationV1 {
         require(issuedAt.matches(Regex("^\\d{13}$"))) { "BAD_ISSUED_AT" }
         require(nonce.matches(Regex("^[A-Za-z0-9_-]{16,128}$"))) { "BAD_NONCE" }
         require(tokenHash.matches(Regex("^[a-f0-9]{64}$"))) { "BAD_TOKEN_HASH" }
-        return ("EZERO_ANDROID_PUSH_TOKEN_V1\\n" +
-            "device_fp=$deviceFp\\n" +
-            "issued_at=$issuedAt\\n" +
-            "nonce=$nonce\\n" +
-            "token_sha256=$tokenHash\\n").toByteArray(Charsets.UTF_8)
+        return ("EZERO_ANDROID_PUSH_TOKEN_V1\n" +
+            "device_fp=$deviceFp\n" +
+            "issued_at=$issuedAt\n" +
+            "nonce=$nonce\n" +
+            "token_sha256=$tokenHash\n").toByteArray(Charsets.UTF_8)
     }
 
     private fun register(context: Context, baseUrl: String, token: String) {
