@@ -10,7 +10,7 @@ The UI stays small: My QR, Scan QR, Contacts, Audio, Video, Message. Security ch
 
 ## Keep three identities separate
 
-1. **E-ZERO account ID** — stable public contact address, generated once by the service. It is not a phone number and contains no secret. It survives profile edits and device replacement.
+1. **E-ZERO account ID** — stable public contact address, created once as a random 128-bit public identifier and bound to the already-verified E-ZERO root identity. It is not a phone number and contains no secret. It survives profile edits. Device replacement is allowed only through an authenticated enrollment/recovery ceremony.
 2. **Device key** — unique P-256 signing key per device, generated in secure context and kept non-extractable in the platform keystore where available. The server stores only public key material and device status.
 3. **Contact relationship** — mutual approval record between two E-ZERO account IDs, bound to the verified device keys that approved it. The existing signed trust transcript remains proof of consent; it must not be confused with the public contact address.
 
@@ -43,14 +43,14 @@ A scan is not consent. A display name or avatar is never identity proof. Duplica
 
 ## Directory and call routing
 
-Add a small dedicated directory API, separate from the current ephemeral pairing room:
+Add a small dedicated directory API, separate from the current ephemeral pairing room. To keep cost and moving parts low, use one Cloudflare Durable Object per random E-ZERO account ID for the first version; do not add a separate SQL database unless measured scale requires it. The account ID is random and unguessable, but still requires authorization. Account creation must be signed by the already-pinned E-ZERO root key. Align Android installation enrollment with docs/ezero-connect-android-enrollment-v1-contract.md; do not invent a second trust root or silently trust a first-seen browser key. Proposed operations:
 - POST /v1/accounts/register — register an account ID with a proof-of-possession challenge;
 - GET /v1/accounts/{ezeroId} — return only public profile and active public device-key metadata;
 - POST /v1/devices/register — register/rotate a device public key and push token after signed proof;
 - POST /v1/devices/revoke — revoke a lost device after account re-authentication;
 - POST /v1/calls/resolve — resolve a saved E-ZERO ID to eligible active devices and issue a short-lived call attempt.
 
-The directory must never return FCM tokens or private routing data to another user. Push tokens are server-side only, protected at rest, scoped to the device, and replaceable. Enforce authorization, exact origin where applicable, request size limits, per-account/IP rate limits, idempotency keys and audit-safe event codes. Do not log tokens, QR payloads, contact lists, message bodies, SDP, ICE or call secrets.
+The directory must never return FCM tokens or private routing data to another user. Keep the Android enrollment trust anchor pinned and owner-provisioned as specified in docs/ezero-connect-android-enrollment-v1-contract.md; enrollment endpoints remain disabled until that exact root public key and fingerprint are verified. Push tokens are server-side only, protected at rest, scoped to the device, and replaceable. Enforce authorization, exact origin where applicable, request size limits, per-account/IP rate limits, idempotency keys and audit-safe event codes. Do not log tokens, QR payloads, contact lists, message bodies, SDP, ICE or call secrets.
 
 Use the existing Cloudflare Durable Object signaling path for the live WebSocket call session after directory resolution. Do not replace the working media engine in this phase.
 
@@ -75,7 +75,8 @@ Use the existing Cloudflare Durable Object signaling path for the live WebSocket
 ## Recovery and device loss
 
 - Account ID remains stable when a device is replaced.
-- New device enrollment requires a passkey / platform credential or a one-time recovery method, then a new device key.
+- Current staging enrollment contract uses the already-verified browser root identity to approve an Android installation. Do not add a second login or passkey flow in this phase.
+- If the root browser key is lost, recovery is not yet established. Do not claim account recovery or silently replace the root key. A separately designed, owner-approved recovery ceremony is required before promising device-independent recovery.
 - Lost-device revocation invalidates its directory registration and push token immediately.
 - Never restore trust merely from a copied QR, display name, avatar, or local contact export.
 - If a recovery mechanism is not implemented and verified, clearly state that account recovery is not yet available; do not claim a permanent recoverable account.
@@ -99,7 +100,7 @@ Then use a single physical Android release gate with a short scripted run:
 4. repeat once across different networks;
 5. revoke a test device and verify it cannot receive calls.
 
-A green unit/CI suite reduces repeated manual work but cannot prove Android background ringing, OEM battery behavior, camera permissions, microphone permissions, or real network/TURN operation. These require the one physical release gate.
+A green unit/CI suite reduces repeated manual work but cannot prove Android background ringing, OEM battery behavior, camera permissions, microphone permissions, or real network/TURN operation. These require the one physical release gate. The Android enrollment contract's explicit trust-anchor prerequisite is a one-time owner-controlled setup, not something to bypass to reduce testing.
 
 ## Migration and non-regression
 
