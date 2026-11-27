@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
+// Keep this contract in the clean mobile QA trigger set for safe local-save diagnostics.
+
 const source = await readFile(new URL("../js/ezero_connect_pairing_ui_v1.js", import.meta.url), "utf8");
 
 assert.match(source, /session\.on\("ready",\s*\(\)\s*=>\s*\{/,
