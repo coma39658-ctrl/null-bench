@@ -159,6 +159,15 @@ assert.equal(reconnectedRecipient.sent.at(-1).queued, true);
 assert.equal(offlineCaller.sent.at(-1).type, "invite-routed");
 assert.equal(offlineCaller.attachment.pendingCallId, payload.callId);
 
+await offlineInbox.webSocketMessage(reconnectedRecipient, JSON.stringify({
+  type: "call-response", callId: payload.callId, decision: "accept"
+}));
+assert.equal(offlineCaller.sent.at(-1).decision, "accept");
+assert.equal(reconnectedRecipient.attachment.state, "CALL_ACCEPTED");
+assert.equal(offlineCaller.attachment.state, "CALL_ACCEPTED");
+assert.equal(await offlineStorage.get("pendingInvite"), undefined);
+assert.equal(offlineStorage.alarmAt, null);
+
 // The signed invite is consumed only after explicit Accept/Decline or expiry.
 
 console.log("SAVED_FRIEND_INBOX_SIGNED_ROUTING_ACCEPT_DECLINE_AND_OFFLINE_NO_QUEUE_PASS");
