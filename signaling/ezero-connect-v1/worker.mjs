@@ -6,6 +6,7 @@ const INVITE_TTL_MS = 90_000;
 const INVITE_CLOCK_SKEW_TOLERANCE_MS = 2 * 60_000;
 const ROOM_TTL_MS = 10 * 60_000;
 const CHALLENGE_TTL_MS = 30_000;
+const MAX_PENDING_PER_ROLE = 3;
 const MAX_MESSAGE_BYTES = 16 * 1024;
 const MAX_ICE_BYTES = 2 * 1024;
 const MAX_SDP_CHARS = 12 * 1024;
@@ -211,6 +212,13 @@ function safeDiagnosticCode(error) {
   return "INTERNAL_ERROR";
 }
 
+export function isSameAuthenticatedDevice(state, role, verified) {
+  return state?.state === "AUTHENTICATED" &&
+    state.role === role &&
+    state.fingerprint === verified?.fingerprint &&
+    state.publicKeySpki === verified?.publicKeySpki;
+}
+
 export class EzeroConnectRoom {
   constructor(ctx, env) {
     this.ctx = ctx;
@@ -260,11 +268,17 @@ export class EzeroConnectRoom {
       return new Response("Room or role invalid", { status: 400 });
     }
     const now = Date.now();
-    const existingPending = this.ctx.getWebSockets().some(ws => {
+    // Allow bounded parallel pending handshakes. A single abandoned socket
+    // must not lock this role out; only an authenticated device identity may
+    // claim the role. Expired pending sockets are cleaned by the alarm.
+    const pendingForRole = this.ctx.getWebSockets().filter(ws => {
       const state = ws.deserializeAttachment();
-      return state?.state === "PENDING" && state.role === role && state.challengeExpiresAt > now;
+      return ws.readyState === 1 && state?.state === "PENDING" &&
+        state.role === role && state.challengeExpiresAt > now;
     });
-    if (existingPending) return new Response("Role handshake already pending", { status: 409 });
+    if (pendingForRole.length >= MAX_PENDING_PER_ROLE) {
+      return new Response("Too many pending handshakes", { status: 429 });
+    }
     const challenge = randomBase64url(32);
     const challengeExpiresAt = now + CHALLENGE_TTL_MS;
     const pendingChallenges = await this.ctx.storage.get("pendingChallenges") || {};
@@ -345,12 +359,20 @@ export class EzeroConnectRoom {
           return;
         }
         const verified = await verifyHandshake(parsed, attachment, room, now);
-        const activeSameRole = this.ctx.getWebSockets().some(other => {
+        const activeSameRole = this.ctx.getWebSockets().filter(other => {
           if (other === ws || other.readyState !== 1) return false;
           const state = other.deserializeAttachment();
           return state?.state === "AUTHENTICATED" && state.role === attachment.role;
         });
-        if (activeSameRole) { rejectWithDiagnostic(ws, "handshake", "ROOM_STATE_REJECTED", "role already connected"); return; }
+        // A different device must never take over an authenticated role. The
+        // same cryptographically verified device may replace its stale socket
+        // after refresh, network recovery, or an interrupted pairing attempt.
+        if (activeSameRole.some(other =>
+          !isSameAuthenticatedDevice(other.deserializeAttachment(), attachment.role, verified)
+        )) {
+          rejectWithDiagnostic(ws, "handshake", "ROOM_STATE_REJECTED", "role belongs to another device");
+          return;
+        }
         if (attachment.role === "guest") {
           room.guestFingerprint = verified.fingerprint;
           room.guestPublicKeySpki = verified.publicKeySpki;
@@ -367,6 +389,11 @@ export class EzeroConnectRoom {
         attachment.expiresAt = room.expiresAt;
         attachment.messageTimes = [];
         ws.serializeAttachment(attachment);
+        // Publish the replacement as authenticated before closing old sockets,
+        // so their close callbacks cannot report a false peer-disconnected event.
+        for (const previous of activeSameRole) {
+          safeClose(previous, 4001, "replaced by authenticated same-device reconnect");
+        }
         safeSend(ws, { type: "hello-accepted", role: attachment.role, roomId: room.roomId, expiresAt: room.expiresAt });
         await this.notifyPeerReady();
         return;
@@ -465,12 +492,18 @@ export class EzeroConnectRoom {
       await this.removePendingChallenge(attachment.challenge, room?.expiresAt);
     }
     if (attachment?.state === "AUTHENTICATED") {
-      const peer = this.ctx.getWebSockets().find(other => {
+      const replacementExists = this.ctx.getWebSockets().some(other => {
         if (other === ws || other.readyState !== 1) return false;
-        const state = other.deserializeAttachment();
-        return state?.state === "AUTHENTICATED" && state.role !== attachment.role;
+        return isSameAuthenticatedDevice(other.deserializeAttachment(), attachment.role, attachment);
       });
-      if (peer) safeSend(peer, { type: "peer-disconnected", role: attachment.role });
+      if (!replacementExists) {
+        const peer = this.ctx.getWebSockets().find(other => {
+          if (other === ws || other.readyState !== 1) return false;
+          const state = other.deserializeAttachment();
+          return state?.state === "AUTHENTICATED" && state.role !== attachment.role;
+        });
+        if (peer) safeSend(peer, { type: "peer-disconnected", role: attachment.role });
+      }
     }
     if (code >= 1000 && code < 5000 && ![1004, 1005, 1006, 1015].includes(code)) {
       try { ws.close(code, reason); } catch (_) {}

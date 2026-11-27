@@ -1,6 +1,7 @@
 name: E-ZERO Connect Clean Build Shell QA
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - 'ezero-connect.html'

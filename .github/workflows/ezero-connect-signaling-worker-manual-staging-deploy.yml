@@ -6,8 +6,10 @@ on:
     branches:
       - ezero-connect-encrypted-chat-history-staging-20261126
       - ezero-connect-pairing-diagnostic-accuracy-staging-20261127
+      - ezero-connect-same-device-reconnect-staging-20261127
     paths:
       - 'signaling/ezero-connect-v1/**'
+      - 'tests/ezero_connect_live_worker_smoke_20261127.mjs'
       - '.github/workflows/ezero-connect-signaling-worker-manual-staging-deploy.yml'
 
 permissions:
@@ -42,9 +44,15 @@ jobs:
           workingDirectory: signaling/ezero-connect-v1
           command: deploy --config wrangler.jsonc
 
+      - name: Install isolated WebSocket smoke-test dependency
+        run: npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund ws
+
+      - name: Verify live staging Worker and same-device Durable Object reconnect
+        run: node tests/ezero_connect_live_worker_smoke_20261127.mjs
+
       - name: Print staging endpoint
         run: |
           echo "Worker name: ezero-connect-call-preview-20261125"
           echo "workers.dev endpoint: https://ezero-connect-call-preview-20261125.coma39658.workers.dev"
-          echo "Allowed browser origin: https://ezero-connect-chat-history-pr223-staging.onrender.com"
+          echo "Allowed browser origin: https://ezero-connect-pairing-diagnostic-pr224.onrender.com"
           echo "This is an isolated staging Worker only."

@@ -5,6 +5,7 @@ import {
   verifyInviteCode,
   handshakePayload,
   verifyHandshake,
+  isSameAuthenticatedDevice,
   validateSignalMessage
 } from "../signaling/ezero-connect-v1/worker.mjs";
 
@@ -115,6 +116,19 @@ const verifiedGuestHandshake = await verifyHandshake(guestHello, attachmentGuest
 assert.equal(verifiedGuestHandshake.fingerprint, guest.fingerprint);
 assert.deepEqual(verifiedGuestHandshake.proof.payload, guestSignedChallenge);
 assert.equal(verifiedGuestHandshake.proof.signature, guestHello.signature);
+const authenticatedGuest = {
+  ...attachmentGuest,
+  state: "AUTHENTICATED",
+  fingerprint: verifiedGuestHandshake.fingerprint,
+  publicKeySpki: verifiedGuestHandshake.publicKeySpki
+};
+assert.equal(isSameAuthenticatedDevice(authenticatedGuest, "guest", verifiedGuestHandshake), true,
+  "the same cryptographically verified device may reconnect and replace its old socket");
+assert.equal(isSameAuthenticatedDevice(authenticatedGuest, "guest", {
+  ...verifiedGuestHandshake, fingerprint: host.fingerprint
+}), false, "a different device must not take over the authenticated guest role");
+assert.equal(isSameAuthenticatedDevice(authenticatedGuest, "host", verifiedGuestHandshake), false,
+  "a device cannot use a guest socket to claim the host role");
 await assert.rejects(() => verifyHandshake(guestHello, { ...attachmentGuest, challenge: "wrong" }, room, now), /HELLO_SIGNATURE_INVALID/);
 await assert.rejects(() => verifyHandshake(guestHello, { ...attachmentGuest, challengeExpiresAt: now - 1 }, room, now), /HELLO_CHALLENGE_EXPIRED/);
 await assert.rejects(() => verifyHandshake({ ...guestHello, inviteNonce: "wrong" }, attachmentGuest, room, now), /HELLO_FIELDS_INVALID/);
@@ -134,6 +148,14 @@ const workerSource = await readFile("signaling/ezero-connect-v1/worker.mjs", "ut
 assert.match(workerSource, /new WebSocketPair\(/);
 assert.match(workerSource, /acceptWebSocket\(/);
 assert.match(workerSource, /serializeAttachment\(/);
+assert.match(workerSource, /MAX_PENDING_PER_ROLE = 3/,
+  "abandoned pending sockets must not permanently block reconnect, while admission stays bounded");
+assert.match(workerSource, /isSameAuthenticatedDevice\(other\.deserializeAttachment\(\), attachment\.role, verified\)/,
+  "only the same verified device may replace an authenticated role socket");
+assert.match(workerSource, /replaced by authenticated same-device reconnect/,
+  "old same-device sockets must be closed after the replacement is authenticated");
+assert.match(workerSource, /replacementExists/,
+  "closing a replaced socket must not signal a false peer disconnect");
 assert.match(workerSource, /storage\.put\("room", room\)/);
 assert.match(workerSource, /storage\.put\("pendingChallenges", pendingChallenges\)/);
 assert.doesNotMatch(workerSource, /storage\.put\(["'](?:messages|sdp|ice|payload)["']/i);
