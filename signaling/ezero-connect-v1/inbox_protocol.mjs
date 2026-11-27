@@ -82,7 +82,7 @@ export async function verifyCallInvite(code, expectedOrigin, expectedRecipientFi
   const spki = decodeBase64url(p.callerPublicKeySpki);
   if (await fingerprintFromSpki(spki) !== p.callerFingerprint) throw new Error("CALL_INVITE_FINGERPRINT_MISMATCH");
   if (!await verifySignature(p.callerPublicKeySpki, envelope.signature, p)) throw new Error("CALL_INVITE_SIGNATURE_INVALID");
-  return Object.freeze({ ...p });
+  return Object.freeze({ ...p, signature: envelope.signature });
 }
 
 export const CALL_INVITE_LIMITS = Object.freeze({
