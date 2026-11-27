@@ -71,10 +71,21 @@ const request = body => RegistryWorker.fetch(new Request("https://registry.examp
 let response = await request({ protocol: "E-ZERO-REGISTRY-V2-REGISTER-1", relationshipId, transcript, handshakes });
 assert.equal(response.status, 200);
 assert.deepEqual(await response.json(), { protocol: "E-ZERO-REGISTRY-RESULT-2", relationshipId, status: "ACTIVE" });
+const callPayload = {
+  v: 1, protocol: "E-ZERO-SAVED-FRIEND-CALL-1", origin,
+  callerFingerprint: host.fingerprint, callerPublicKeySpki: host.spki,
+  recipientFingerprint: guest.fingerprint, relationshipId,
+  callId: "C".repeat(32), nonce: "Q".repeat(32), mode: "video",
+  issuedAt: Date.now(), expiresAt: Date.now() + 20_000
+};
+const callSignature = b64url(await crypto.subtle.sign(
+  { name: "ECDSA", hash: "SHA-256" }, host.pair.privateKey, enc.encode(canonical(callPayload))
+));
 const auth = {
   protocol: "E-ZERO-SAVED-FRIEND-AUTH-1", relationshipId,
   callerFingerprint: host.fingerprint, recipientFingerprint: guest.fingerprint,
-  callId: "C".repeat(32), nonce: "Q".repeat(32), mode: "video", expiresAt: Date.now() + 20_000
+  callId: callPayload.callId, nonce: callPayload.nonce, mode: callPayload.mode,
+  expiresAt: callPayload.expiresAt, signedInvite: { payload: callPayload, signature: callSignature }
 };
 response = await RegistryWorker.fetch(new Request("https://registry.example/v1/authorize-call", {
   method: "POST", headers: { "Origin": "https://evil.example", "Content-Type": "application/json" }, body: JSON.stringify(auth)
