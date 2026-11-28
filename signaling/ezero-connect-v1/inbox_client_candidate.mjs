@@ -44,10 +44,23 @@ function exactKeys(value, expected) {
 
 export class EzeroTrustedInboxClient {
   constructor({ websocketOrigin, origin, identityProvider, WebSocketImpl = globalThis.WebSocket, onEvent = () => {} }) {
-    if (typeof websocketOrigin !== "string" || !/^wss:\/\/[a-z0-9.-]+(?::443)?$/i.test(websocketOrigin)) {
+    let wsUrl, pageUrl;
+    try {
+      wsUrl = new URL(websocketOrigin);
+      pageUrl = new URL(origin);
+    } catch (_) {
+      throw new Error("INBOX_ORIGIN_INVALID");
+    }
+    if (typeof websocketOrigin !== "string" || wsUrl.protocol !== "wss:" ||
+        !wsUrl.hostname || wsUrl.username || wsUrl.password ||
+        (wsUrl.port && wsUrl.port !== "443") || wsUrl.pathname !== "/" ||
+        wsUrl.search || wsUrl.hash || websocketOrigin !== wsUrl.origin) {
       throw new Error("INBOX_WSS_ORIGIN_INVALID");
     }
-    if (typeof origin !== "string" || !/^https:\/\//.test(origin)) throw new Error("INBOX_ORIGIN_INVALID");
+    if (typeof origin !== "string" || pageUrl.protocol !== "https:" ||
+        !pageUrl.hostname || pageUrl.username || pageUrl.password ||
+        pageUrl.pathname !== "/" || pageUrl.search || pageUrl.hash ||
+        origin !== pageUrl.origin) throw new Error("INBOX_ORIGIN_INVALID");
     if (typeof identityProvider !== "function" || typeof WebSocketImpl !== "function") throw new Error("INBOX_DEPENDENCY_MISSING");
     this.websocketOrigin = websocketOrigin;
     this.origin = origin;
@@ -102,9 +115,15 @@ export class EzeroTrustedInboxClient {
           }
           const p = message.payload;
           const now = Date.now();
+          let challengeBytes;
+          try {
+            challengeBytes = decodeB64url(p.challenge);
+          } catch (_) {
+            return fail("INBOX_CHALLENGE_ENCODING_INVALID");
+          }
           if (p.v !== 1 || p.protocol !== PROTOCOL || p.origin !== this.origin ||
               p.inboxFingerprint !== targetFingerprint || typeof p.challenge !== "string" ||
-              !B64URL.test(p.challenge) || decodeB64url(p.challenge).length !== 32 ||
+              !B64URL.test(p.challenge) || challengeBytes.length !== 32 ||
               !Number.isSafeInteger(p.challengeExpiresAt) ||
               p.challengeExpiresAt <= now || p.challengeExpiresAt > now + 30000) {
             return fail("INBOX_CHALLENGE_INVALID");
@@ -170,7 +189,22 @@ export class EzeroTrustedInboxClient {
     };
     const expected = schemas[message.type];
     if (!expected || !exactKeys(message, expected)) return fail("INBOX_FRAME_SCHEMA_INVALID");
+    const validCallId = value => typeof value === "string" && /^[A-Za-z0-9_-]{32}$/.test(value);
+    if (["invite-routed", "call-response", "unavailable", "friendship-not-authorized",
+         "replay-rejected", "call-expired", "call-room-invite", "call-room-routed",
+         "call-room-unavailable", "call-cancelled"].includes(message.type) &&
+        !validCallId(message.callId)) return fail("INBOX_FRAME_VALUE_INVALID");
+    if (message.type === "invite-routed" &&
+        (!Number.isSafeInteger(message.expiresAt) || message.expiresAt <= Date.now())) {
+      return fail("INBOX_FRAME_VALUE_INVALID");
+    }
     if (message.type === "call-response" && !["accept", "decline"].includes(message.decision)) return fail("INBOX_RESPONSE_INVALID");
+    if (message.type === "call-room-invite" &&
+        (typeof message.inviteCode !== "string" || !message.inviteCode.startsWith("EZERO1.") || message.inviteCode.length > 8192)) {
+      return fail("INBOX_ROOM_INVITE_INVALID");
+    }
+    if (message.type === "peer-inbox-disconnected" &&
+        message.callId !== null && !validCallId(message.callId)) return fail("INBOX_FRAME_VALUE_INVALID");
     if (message.type === "incoming-call") {
       try {
         const invite = await verifyCallInvite(message.inviteCode, this.origin, this.identity.fingerprintColon);
