@@ -189,6 +189,33 @@ assert.ok(!recipientSocket.attachment.activeCallId, "declining recipient must no
 await inbox.webSocketMessage(callerSocket, JSON.stringify({ type: "call-invite", inviteCode }));
 assert.equal(callerSocket.sent.at(-1).type, "replay-rejected");
 
+// A valid signature is not sufficient: the authoritative friendship registry
+// must explicitly approve the exact saved relationship before any routing.
+const deniedCaller = new FakeSocket({
+  state: "AUTHENTICATED", inboxFingerprint: recipient.fingerprint,
+  origin: payload.origin, fingerprint: caller.fingerprint, pendingCallId: null
+});
+const deniedRecipient = new FakeSocket({
+  state: "AUTHENTICATED", inboxFingerprint: recipient.fingerprint,
+  origin: payload.origin, fingerprint: recipient.fingerprint, peerCallId: null
+});
+const deniedEnv = {
+  ...env,
+  FRIENDSHIP_REGISTRY: {
+    async fetch() {
+      return new Response(JSON.stringify({ authorized: false }), {
+        status: 403, headers: { "Content-Type": "application/json" }
+      });
+    }
+  }
+};
+const deniedInbox = new EzeroConnectInbox({ getWebSockets: () => [deniedCaller, deniedRecipient] }, deniedEnv);
+await deniedInbox.webSocketMessage(deniedCaller, JSON.stringify({ type: "call-invite", inviteCode }));
+assert.equal(deniedCaller.sent.at(-1).type, "friendship-not-authorized");
+assert.equal(deniedRecipient.sent.some(item => item.type === "incoming-call"), false);
+assert.equal(deniedCaller.attachment.pendingCallId, null);
+assert.equal(deniedRecipient.attachment.peerCallId, null);
+
 // A dropped socket also releases the accepted-call state on the other endpoint.
 callerSocket.attachment.state = "CALL_ACCEPTED";
 callerSocket.attachment.activeCallId = payload.callId;
