@@ -46,7 +46,7 @@ const client = new EzeroTrustedInboxClient({
 });
 const target = "AB:".repeat(31) + "CD";
 const opening = client.openInbox(target);
-await new Promise(resolve => setImmediate(resolve));
+await new Promise(resolve => { const wait = () => FakeWebSocket.last ? resolve() : setImmediate(wait); wait(); });
 const socket = FakeWebSocket.last;
 assert.equal(socket.url, "wss://isolated-inbox.example/v1/inbox/" + target);
 
@@ -108,7 +108,7 @@ const badClient = new EzeroTrustedInboxClient({
   WebSocketImpl: FakeWebSocket
 });
 const badOpening = badClient.openInbox(target);
-await new Promise(resolve => setImmediate(resolve));
+await new Promise(resolve => { const wait = () => FakeWebSocket.last ? resolve() : setImmediate(wait); wait(); });
 const badSocket = FakeWebSocket.last;
 badSocket.emit("message", JSON.stringify({
   type: "challenge",
