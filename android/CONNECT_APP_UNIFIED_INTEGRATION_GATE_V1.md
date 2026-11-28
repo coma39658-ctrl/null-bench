@@ -57,6 +57,9 @@ All these PRs are draft/open candidates at the time of this integration plan. Th
 - Do not combine unrelated worker deployment configuration.
 
 ### Gate I1 — Build one Android home without changing trust
+- **Initial code slice added on this branch:** encrypted Android trusted-contact store, Root-signed contact import, native Trusted Friends list, local Block action, QR payload routing and a launcher entry to the friend list.
+- The QR path accepts the trusted-contact envelope only after Root signature, expiry, transcript and mutual-approval proof checks. A QR scan or fingerprint alone never saves a friend.
+- The contact list is local to this Android installation and is not yet synchronized with the browser's IndexedDB store.
 - Keep package ID `com.ezero.connect` and current Android Keystore identities.
 - Add a single navigation shell for Home, Friends, QR, Messages and Calls.
 - Do not clear or migrate any existing local identity/contact store.
@@ -118,16 +121,16 @@ Force-stop behavior must be documented separately; do not promise delivery after
 | Standalone app architecture | DESIGN PASS | PR #248, draft |
 | Repository boundary inventory | PARTIAL PASS | PR #249, draft |
 | Server-authoritative friend call routing | STAGING CANDIDATE | PR #235, not merged/deployed |
-| Android trusted-contact import | STAGING CANDIDATE | PR #228/#229 chain, not reconciled into this branch |
+| Android trusted-contact import | INTEGRATED IN THIS STAGING BRANCH | Store, Root-signed QR route, native friend list and local Block action added; CI/physical test pending |
 | Offline pending-call queue | STAGING CANDIDATE | PR #230, not reconciled/deployed |
 | Browser ↔ Android identity binding | CRYPTO/QR CANDIDATE | PR #243/#245/#246, not reconciled |
 | Native ↔ PWA secure WebView handoff | CONTRACT ONLY | PR #234; runtime bridge not implemented |
 | FCM closed-app ringing | BLOCKED / UNPROVEN | No verified credentials, active sender route or two-phone physical proof |
-| One unified app navigation | NOT STARTED | This branch records the integration target; no runtime UI changes yet |
+| One unified app navigation | PARTIAL | Android launcher now opens native Trusted Friends; full Home/Calls/Messages/QR navigation remains incomplete |
 | Production/public cutover | NOT AUTHORIZED / NOT STARTED | No live deployment or production change |
 
 ## Safety and release boundary
 
-This commit is documentation-only. It does not merge any feature PR, alter Android app source, change Firebase, provision secrets, deploy a Worker, publish a new website path, change package signing, migrate user data, or touch production. No claim is made that the app modules are already connected or that closed-app ringing works.
+This branch now contains a small Android runtime integration slice plus its gate document: Root-signed trusted-contact import, encrypted local storage, native friend list, local Block action and QR routing. It does not yet connect the browser PWA/WebRTC engine to the Android shell, synchronize browser and Android friend stores, or activate incoming-call delivery. CI is pending until checks complete. No Firebase project or secret was changed; no Worker was deployed; no public site was published; package signing and production remain unchanged. No claim is made that closed-app ringing works.
 
-The next implementation slice must be a small, reviewable Android navigation/WebView host change on this branch, with strict origin and permission tests, while retaining the current launcher behavior as a rollback path.
+The next implementation slice is the strict Android navigation/WebView host, with exact-origin, redirect, WebMessageChannel, media-permission and rollback tests.
