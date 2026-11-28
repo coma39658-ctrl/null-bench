@@ -107,6 +107,7 @@ const badClient = new EzeroTrustedInboxClient({
   identityProvider: async () => identity,
   WebSocketImpl: FakeWebSocket
 });
+FakeWebSocket.last = null;
 const badOpening = badClient.openInbox(target);
 await new Promise(resolve => { const wait = () => FakeWebSocket.last ? resolve() : setImmediate(wait); wait(); });
 const badSocket = FakeWebSocket.last;
