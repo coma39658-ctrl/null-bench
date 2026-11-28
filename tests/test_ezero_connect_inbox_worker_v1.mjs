@@ -182,8 +182,8 @@ assert.deepEqual(callerSocket.sent.at(-1), {
 });
 assert.equal(callerSocket.attachment.state, "AUTHENTICATED");
 assert.equal(recipientSocket.attachment.state, "AUTHENTICATED");
-assert.equal(callerSocket.attachment.activeCallId, undefined);
-assert.equal(recipientSocket.attachment.activeCallId, undefined);
+assert.ok(!callerSocket.attachment.activeCallId, "declined caller must not retain an active call");
+assert.ok(!recipientSocket.attachment.activeCallId, "declining recipient must not retain an active call");
 
 // A signed invite cannot be replayed after the call is cancelled.
 await inbox.webSocketMessage(callerSocket, JSON.stringify({ type: "call-invite", inviteCode }));
