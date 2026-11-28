@@ -2,46 +2,55 @@
 
 ## Status
 
-Audit only. No protocol adapter is approved, no Worker deployment is verified, and the foreground inbox must remain fail-closed. This document records source-level incompatibilities found between the browser foreground client and the isolated signaling Worker. A passing source audit is not a runtime handshake or a two-device test.
+Source review of the current browser client and isolated Worker shows that the foreground handshake and saved-call message shapes are now substantially aligned. A cross-component test in the staging test branch exercises the browser-generated signed hello against the real Worker class and verifies the authenticated ready frame in both directions.
 
-## Confirmed incompatibilities
+This is source/test evidence only. No Worker deployment is verified, the foreground inbox must remain fail-closed, and no physical two-device or Android background-ringing result is established.
 
-| Area | Browser client expects/sends | Worker expects/sends | Required resolution |
+## Current source-level alignment
+
+| Area | Current browser client | Current Worker | Assessment |
 |---|---|---|---|
-| WebSocket path | `/v1/trusted/{lowercase-hex-fingerprint}` | DO route is `/v1/inbox/{uppercase-colon-fingerprint}` | Select one canonical route and fingerprint encoding; validate at every boundary |
-| Challenge frame | `{t:"challenge", nonce, target, opened, expires}` | `{type:"challenge", payload:{v,protocol,origin,inboxFingerprint,challenge,challengeExpiresAt}}` | Specify one versioned schema and strict parser |
-| Challenge nonce | 32 URL-safe characters | 32 random bytes encoded base64url (normally 43 characters) | Specify exact entropy and encoding |
-| Hello frame | `{t:"hello",role,fp,pub,sig}` | `{type:"hello",fingerprint,publicKeySpki,signature}` | Align exact field names and reject unknown fields |
-| Signed transcript | Newline-joined `EZERO-TRUSTED-INBOX-1` fields | Canonical JSON object with `E-ZERO-INBOX-HELLO-1` protocol fields | Define a single canonical byte-level transcript and test signatures cross-implementation |
-| Fingerprint | Lowercase 64-character hex without separators | Uppercase 32-byte hex with colon separators | Define one canonical representation; normalize only at a validated boundary |
-| Ready frame | `{t:"ready",role}` | `{type:"inbox-ready",fingerprint}` | Align authenticated-ready frame and bind it to the role/identity |
-| Incoming call | `{t:"incoming",from,callId,kind,invite}` where invite is a same-origin call-page URL | `{type:"incoming-call",inviteCode}` where inviteCode is a signed `EZERO-CALL1.` envelope | Do not convert an opaque signed invite into a URL without a reviewed verifier/adapter |
-| Outgoing call | `{t:"call",kind,callId,invite}` | `{type:"call-invite",inviteCode}` | Align exact request and preserve server-side signature, expiry, replay and relationship checks |
-| Trust updates | Client sends `trust` / `untrust`; expects `trust-updated` | No corresponding trust/untrust message handler found | Implement only through authoritative friendship registry with explicit dual consent |
-| Receipt | Client sends `{t:"received",from,callId}` | No matching receipt handler found | Define delivery acknowledgement semantics; never treat socket send as displayed/ringing |
-| Error vocabulary | Client expects `{t:"error",code}` | Worker emits several `type`-based status frames | Publish a versioned error/status catalogue |
+| WebSocket route | `/v1/inbox/{uppercase-colon-fingerprint}` | Same route family; validates uppercase colon-delimited SHA-256 fingerprint | ALIGNED IN SOURCE |
+| Challenge | Parses `type:"challenge"` and the versioned payload | Emits the same versioned payload | ALIGNED IN SOURCE |
+| Challenge entropy | Requires 43-character base64url encoding of 32 bytes | Generates 32 random bytes and base64url-encodes them | ALIGNED IN SOURCE |
+| Signed hello | Sends `type:"hello"`, fingerprint, SPKI and signature | Strictly parses those exact fields | ALIGNED IN SOURCE |
+| Signed transcript | Signs canonical JSON containing protocol, origin, identity fingerprint, inbox fingerprint, challenge and expiry | Verifies the same canonical JSON fields | CROSS-COMPONENT TEST ADDED |
+| Fingerprint | Uppercase colon-delimited SHA-256 representation | Computes and validates the same representation | ALIGNED IN SOURCE |
+| Ready | Requires `type:"inbox-ready"` and matching local fingerprint | Emits `type:"inbox-ready"` with authenticated fingerprint | CROSS-COMPONENT TEST ADDED |
+| Call invite | Sends `type:"call-invite"` with opaque `EZERO-CALL1.` code | Verifies signature, expiry, replay and saved-friend authorization before routing | SHAPE ALIGNED; negative/security coverage remains |
+| Call response | Sends `type:"call-response"` with call ID and explicit accept/decline | Validates pending peer/call state and relays explicit decision | SHAPE ALIGNED IN SOURCE |
+| Room handoff | Sends `type:"call-room-invite"` with opaque `EZERO1.` code after explicit acceptance | Relays opaque room invite only for the accepted active call | SHAPE ALIGNED IN SOURCE |
+| Cancellation | Sends `type:"call-cancel"` | Handles pending/active call cancellation | SHAPE ALIGNED IN SOURCE |
+
+## Remaining gaps and unsupported behavior
+
+1. No client/Worker trust or untrust message API is part of this inbox v1. Friendship authorization must continue to come from the authoritative saved-friend registry; do not add a socket shortcut.
+2. No delivery receipt semantics are implemented. A successful WebSocket send or `invite-routed` response must not be described as displayed, delivered to the user, ringing, or connected.
+3. Error/status events are emitted as Worker `type` frames and surfaced to the client event callback. A complete stable public error catalogue and UI mapping remain to be specified.
+4. Additional shared negative vectors are still required for malformed routes, wrong origin/fingerprint, stale/future challenge, malformed or tampered signatures, unknown fields, replay, expired invite, unauthorized friendship, duplicate sockets, busy recipient, disconnect and cancellation races.
+5. The exact deployed Worker, origin, route, Durable Object binding and protocol version have not been verified in a live deployment.
 
 ## Security and product constraints
 
-1. Keep the staging client disabled until the exact Worker deployment, origin, route, Durable Object binding, and protocol version are verified.
-2. Keep the existing QR/WebRTC signaling path separate and unchanged.
-3. The Worker must continue to verify the signed call invite and authoritative saved-friend relationship before routing.
-4. No call may be auto-accepted. Incoming-call display, user acceptance, WebRTC room invite verification, and media connection are separate states.
-5. Do not label an invite delivered, displayed, ringing, or connected based only on a WebSocket send.
-6. No private key export. Browser device keys remain non-extractable; public-key proof and signatures are verified.
-7. Foreground inbox tests do not establish background or screen-off ringing. That requires Android push delivery and physical locked-screen testing on two devices.
+- Keep the staging inbox disabled/fail-closed until deployment and runtime gates pass.
+- Keep the existing QR/WebRTC signaling path separate and unchanged.
+- Worker-side signed-invite verification and authoritative saved-friend authorization remain mandatory.
+- Never auto-accept calls. Incoming-call presentation, explicit user acceptance, room-invite verification and media connection are separate states.
+- Do not export private keys. Browser device keys remain non-extractable.
+- Inbox remains foreground-only/volatile; do not store private keys, SDP, media, profile photos or message bodies.
+- Foreground protocol tests do not establish Android push delivery or screen-off ringing. Those require separate FCM/Android implementation and physical locked-screen tests on two devices.
 
-## Required implementation gates
+## Required release gates
 
-- [ ] Choose and version one canonical wire protocol.
-- [ ] Add shared positive and negative contract vectors for route, fingerprint, challenge, hello signature, ready, call invite, response, receipt, trust update and errors.
-- [ ] Verify browser and Worker produce/consume byte-identical signed transcripts.
-- [ ] Test malformed JSON, unknown fields, wrong origin, wrong fingerprint, stale challenge, replayed nonce, expired invite, unauthorized relationship, duplicate socket, busy recipient and disconnected peer.
-- [ ] Test that no private key, SDP, media, profile photo or message body is stored by the inbox.
-- [ ] Verify exact staging deployment and health/handshake evidence before enabling the flag.
-- [ ] Run two-device foreground call tests while preserving the current QR/WebRTC baseline.
-- [ ] Separately implement and physically verify FCM/Android background and screen-off ringing.
+- [x] Current source route, fingerprint, challenge, hello and ready shapes reviewed for alignment.
+- [x] Add a cross-component browser-client-to-real-Worker signed-hello conformance test.
+- [ ] Complete shared positive/negative vectors for call invite, response, room handoff, cancellation and error/status frames.
+- [ ] Complete malformed-input, origin, replay, expiry, relationship, duplicate-socket, busy-recipient and disconnect tests.
+- [ ] Verify volatile-only handling and absence of sensitive payload persistence.
+- [ ] Verify exact staging deployment and live health/handshake evidence before enabling the inbox.
+- [ ] Run two-device foreground calls while preserving the existing QR/WebRTC baseline.
+- [ ] Separately implement and physically verify FCM/Android background and screen-off ringtone/Accept/Decline behavior.
 
 ## Explicit non-claims
 
-This audit does not establish that the inbox is deployed, that saved-friend calls work, that Android push ringing works, or that any physical two-device test has passed.
+This audit does not establish that the inbox is deployed, that saved-friend calls work on physical devices, that Android push ringing works, or that any physical two-device test has passed.
