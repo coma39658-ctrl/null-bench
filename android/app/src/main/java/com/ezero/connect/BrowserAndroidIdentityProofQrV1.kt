@@ -43,8 +43,14 @@ internal object BrowserAndroidIdentityProofQrV1 {
             require(depth <= maxDepth) { "JSON_NESTING_TOO_DEEP" }
             require(index < source.length) { "JSON_VALUE_MISSING" }
             when (source[index]) {
-                '{' -> parseObject(depth + 1)
-                '[' -> parseArray(depth + 1)
+                '{' -> {
+                    require(depth < maxDepth) { "JSON_NESTING_TOO_DEEP" }
+                    parseObject(depth + 1)
+                }
+                '[' -> {
+                    require(depth < maxDepth) { "JSON_NESTING_TOO_DEEP" }
+                    parseArray(depth + 1)
+                }
                 '"' -> parseString()
                 't' -> consumeLiteral("true")
                 'f' -> consumeLiteral("false")
