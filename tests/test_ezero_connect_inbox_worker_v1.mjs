@@ -219,6 +219,88 @@ assert.equal(deniedRecipient.sent.some(item => item.type === "incoming-call"), f
 assert.equal(deniedCaller.attachment.pendingCallId, null);
 assert.equal(deniedRecipient.attachment.peerCallId, null);
 
+// A positive Registry response for a different relationship must still fail closed.
+const mismatchCaller = new FakeSocket({
+  state: "AUTHENTICATED", inboxFingerprint: recipient.fingerprint,
+  origin: payload.origin, fingerprint: caller.fingerprint, pendingCallId: null
+});
+const mismatchRecipient = new FakeSocket({
+  state: "AUTHENTICATED", inboxFingerprint: recipient.fingerprint,
+  origin: payload.origin, fingerprint: recipient.fingerprint, peerCallId: null
+});
+const mismatchEnv = {
+  ...env,
+  FRIENDSHIP_REGISTRY: {
+    async fetch() {
+      return new Response(JSON.stringify({
+        authorized: true,
+        relationshipId: "different_relationship_123"
+      }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+  }
+};
+const mismatchInbox = new EzeroConnectInbox(
+  { getWebSockets: () => [mismatchCaller, mismatchRecipient] }, mismatchEnv
+);
+await mismatchInbox.webSocketMessage(mismatchCaller, JSON.stringify({ type: "call-invite", inviteCode }));
+assert.equal(mismatchCaller.readyState, 3);
+assert.equal(mismatchCaller.sent.length, 0);
+assert.equal(mismatchRecipient.sent.some(item => item.type === "incoming-call"), false);
+assert.equal(mismatchCaller.attachment.pendingCallId, null);
+assert.equal(mismatchRecipient.attachment.peerCallId, null);
+
+// A Registry transport exception must not fall back to local trust or route a call.
+const errorCaller = new FakeSocket({
+  state: "AUTHENTICATED", inboxFingerprint: recipient.fingerprint,
+  origin: payload.origin, fingerprint: caller.fingerprint, pendingCallId: null
+});
+const errorRecipient = new FakeSocket({
+  state: "AUTHENTICATED", inboxFingerprint: recipient.fingerprint,
+  origin: payload.origin, fingerprint: recipient.fingerprint, peerCallId: null
+});
+const errorEnv = {
+  ...env,
+  FRIENDSHIP_REGISTRY: { async fetch() { throw new Error("registry unavailable"); } }
+};
+const errorInbox = new EzeroConnectInbox(
+  { getWebSockets: () => [errorCaller, errorRecipient] }, errorEnv
+);
+await errorInbox.webSocketMessage(errorCaller, JSON.stringify({ type: "call-invite", inviteCode }));
+assert.equal(errorCaller.readyState, 3);
+assert.equal(errorRecipient.sent.some(item => item.type === "incoming-call"), false);
+assert.equal(errorCaller.attachment.pendingCallId, null);
+assert.equal(errorRecipient.attachment.peerCallId, null);
+
+// A socket for a different authenticated identity is not the intended recipient.
+const impostorCaller = new FakeSocket({
+  state: "AUTHENTICATED", inboxFingerprint: recipient.fingerprint,
+  origin: payload.origin, fingerprint: caller.fingerprint, pendingCallId: null
+});
+const impostorSocket = new FakeSocket({
+  state: "AUTHENTICATED", inboxFingerprint: recipient.fingerprint,
+  origin: payload.origin, fingerprint: caller.fingerprint, peerCallId: null
+});
+const impostorInbox = new EzeroConnectInbox(
+  { getWebSockets: () => [impostorCaller, impostorSocket] }, env
+);
+await impostorInbox.webSocketMessage(impostorCaller, JSON.stringify({ type: "call-invite", inviteCode }));
+assert.equal(impostorCaller.sent.at(-1).type, "unavailable");
+assert.equal(impostorSocket.sent.some(item => item.type === "incoming-call"), false);
+assert.equal(impostorCaller.attachment.pendingCallId, null);
+assert.equal(impostorSocket.attachment.peerCallId, null);
+
+// Unknown fields on a call frame are rejected rather than silently ignored.
+const strictCaller = new FakeSocket({
+  state: "AUTHENTICATED", inboxFingerprint: recipient.fingerprint,
+  origin: payload.origin, fingerprint: caller.fingerprint, pendingCallId: null
+});
+const strictInbox = new EzeroConnectInbox({ getWebSockets: () => [strictCaller] }, env);
+await strictInbox.webSocketMessage(strictCaller, JSON.stringify({
+  type: "call-invite", inviteCode, unexpected: true
+}));
+assert.equal(strictCaller.readyState, 3);
+assert.equal(strictCaller.sent.some(item => item.type === "invite-routed"), false);
+
 // A dropped socket also releases the accepted-call state on the other endpoint.
 callerSocket.attachment.state = "CALL_ACCEPTED";
 callerSocket.attachment.activeCallId = payload.callId;
