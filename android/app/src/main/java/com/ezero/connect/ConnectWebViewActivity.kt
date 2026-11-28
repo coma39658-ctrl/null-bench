@@ -3,10 +3,8 @@ package com.ezero.connect
 import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.view.View
 import android.webkit.CookieManager
 import android.webkit.PermissionRequest
 import android.webkit.SslErrorHandler
