@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { webcrypto } from "node:crypto";
 import { EzeroConnectInbox } from "../signaling/ezero-connect-v1/inbox_worker.mjs";
-import { canonicalCallInvite, encodeCallInvite } from "../signaling/ezero-connect-v1/inbox_protocol.mjs";
+import { canonicalCallInvite, encodeCallInvite, verifyCallInvite } from "../signaling/ezero-connect-v1/inbox_protocol.mjs";
 
 globalThis.crypto ||= webcrypto;
 
@@ -48,7 +48,43 @@ const signature = toB64url(await crypto.subtle.sign(
   { name: "ECDSA", hash: "SHA-256" }, caller.pair.privateKey,
   new TextEncoder().encode(canonicalCallInvite(payload))
 ));
+
 const inviteCode = encodeCallInvite({ payload, signature });
+
+// Negative signed-invite validation vectors: exact origin/recipient binding,
+// strict envelope schema, expiry, malformed encoding, and signature tampering.
+assert.deepEqual(await verifyCallInvite(inviteCode, payload.origin, recipient.fingerprint), payload);
+await assert.rejects(
+  () => verifyCallInvite(inviteCode, "https://wrong-origin.example", recipient.fingerprint),
+  /CALL_INVITE_BINDING_INVALID/
+);
+await assert.rejects(
+  () => verifyCallInvite(inviteCode, payload.origin, caller.fingerprint),
+  /CALL_INVITE_BINDING_INVALID/
+);
+await assert.rejects(
+  () => verifyCallInvite("EZERO-CALL1.not*base64", payload.origin, recipient.fingerprint),
+  /CALL_INVITE_FORMAT_INVALID/
+);
+const decodedEnvelope = JSON.parse(Buffer.from(inviteCode.slice("EZERO-CALL1.".length), "base64url").toString("utf8"));
+const tamperedSignature = decodedEnvelope.signature[0] === "A" ? "B" : "A";
+await assert.rejects(
+  () => verifyCallInvite(encodeCallInvite({ ...decodedEnvelope, signature: tamperedSignature + decodedEnvelope.signature.slice(1) }), payload.origin, recipient.fingerprint),
+  /CALL_INVITE_SIGNATURE_INVALID/
+);
+await assert.rejects(
+  () => verifyCallInvite(encodeCallInvite({ ...decodedEnvelope, unexpected: true }), payload.origin, recipient.fingerprint),
+  /CALL_INVITE_ENVELOPE_INVALID/
+);
+const expiredPayload = { ...payload, issuedAt: now - 40_000, expiresAt: now - 1 };
+const expiredSignature = toB64url(await crypto.subtle.sign(
+  { name: "ECDSA", hash: "SHA-256" }, caller.pair.privateKey,
+  new TextEncoder().encode(canonicalCallInvite(expiredPayload))
+));
+await assert.rejects(
+  () => verifyCallInvite(encodeCallInvite({ payload: expiredPayload, signature: expiredSignature }), payload.origin, recipient.fingerprint),
+  /CALL_INVITE_EXPIRED_OR_TIME_INVALID/
+);
 const callerSocket = new FakeSocket({
   state: "AUTHENTICATED", inboxFingerprint: recipient.fingerprint,
   origin: payload.origin, fingerprint: caller.fingerprint, pendingCallId: null
@@ -118,8 +154,36 @@ assert.equal(notAcceptedSocket.readyState, 3);
 await inbox.webSocketMessage(callerSocket, JSON.stringify({ type: "call-invite", inviteCode }));
 assert.equal(callerSocket.sent.at(-1).type, "busy");
 await inbox.webSocketMessage(callerSocket, JSON.stringify({ type: "call-cancel", callId: payload.callId }));
+
 assert.equal(callerSocket.attachment.state, "AUTHENTICATED");
 assert.equal(recipientSocket.attachment.state, "AUTHENTICATED");
+
+// A separate fresh invitation must require explicit user decline and must
+// not enter the accepted-call / room-handoff state.
+const declinePayload = {
+  ...payload,
+  callId: "ZYXWVUTSRQPONMLKJIHGFEDCBA987654",
+  nonce: "987654ZYXWVUTSRQPONMLKJIHGFEDCBA",
+  issuedAt: Date.now(),
+  expiresAt: Date.now() + 20_000
+};
+const declineSignature = toB64url(await crypto.subtle.sign(
+  { name: "ECDSA", hash: "SHA-256" }, caller.pair.privateKey,
+  new TextEncoder().encode(canonicalCallInvite(declinePayload))
+));
+const declineInviteCode = encodeCallInvite({ payload: declinePayload, signature: declineSignature });
+await inbox.webSocketMessage(callerSocket, JSON.stringify({ type: "call-invite", inviteCode: declineInviteCode }));
+assert.equal(recipientSocket.sent.at(-1).type, "incoming-call");
+await inbox.webSocketMessage(recipientSocket, JSON.stringify({
+  type: "call-response", callId: declinePayload.callId, decision: "decline"
+}));
+assert.deepEqual(callerSocket.sent.at(-1), {
+  type: "call-response", callId: declinePayload.callId, decision: "decline"
+});
+assert.equal(callerSocket.attachment.state, "AUTHENTICATED");
+assert.equal(recipientSocket.attachment.state, "AUTHENTICATED");
+assert.equal(callerSocket.attachment.activeCallId, undefined);
+assert.equal(recipientSocket.attachment.activeCallId, undefined);
 
 // A signed invite cannot be replayed after the call is cancelled.
 await inbox.webSocketMessage(callerSocket, JSON.stringify({ type: "call-invite", inviteCode }));
