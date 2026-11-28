@@ -13,7 +13,7 @@ import java.security.interfaces.ECPublicKey
 import java.security.spec.ECGenParameterSpec
 import java.security.spec.ECParameterSpec
 import java.security.spec.X509EncodedKeySpec
-import java.util.Base64
+import android.util.Base64
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -48,8 +48,8 @@ internal object AndroidTrustedContactBundleV1 {
             value.matches(Regex("^[A-Za-z0-9_-]+$")) && value.length % 4 != 1) {
             "TRUST_BUNDLE_BASE64_INVALID"
         }
-        val bytes = Base64.getUrlDecoder().decode(value + "=".repeat((4 - value.length % 4) % 4))
-        require(Base64.getUrlEncoder().withoutPadding().encodeToString(bytes) == value) {
+        val bytes = Base64.decode(value, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+        require(Base64.encodeToString(bytes, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING) == value) {
             "TRUST_BUNDLE_BASE64_NON_CANONICAL"
         }
         return bytes
@@ -232,7 +232,7 @@ internal object AndroidTrustedContactBundleV1 {
             "TRUST_BUNDLE_ROOT_MISMATCH"
         }
         val rootSpki = payload.getString("rootSpki")
-        require(encode64(Base64.getUrlDecoder().decode(trustedRoot.spkiBase64Url)) == rootSpki) {
+        require(encode64(Base64.decode(trustedRoot.spkiBase64Url, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)) == rootSpki) {
             "TRUST_BUNDLE_ROOT_KEY_MISMATCH"
         }
         val issued = payload.getLong("issuedAt")
@@ -285,8 +285,8 @@ internal object AndroidTrustedContactBundleV1 {
             ?: return mutableListOf()
         val parts = blob.split(".")
         require(parts.size == 2) { "TRUST_STORE_FORMAT_INVALID" }
-        val iv = Base64.getDecoder().decode(parts[0])
-        val ciphertext = Base64.getDecoder().decode(parts[1])
+        val iv = Base64.decode(parts[0], Base64.NO_WRAP)
+        val ciphertext = Base64.decode(parts[1], Base64.NO_WRAP)
         require(iv.size == 12 && ciphertext.size <= 64_000) { "TRUST_STORE_SIZE_INVALID" }
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.DECRYPT_MODE, storageKey(), GCMParameterSpec(128, iv))
@@ -316,8 +316,8 @@ internal object AndroidTrustedContactBundleV1 {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.ENCRYPT_MODE, storageKey())
         val encrypted = cipher.doFinal(json.toString().toByteArray(Charsets.UTF_8))
-        val blob = Base64.getEncoder().encodeToString(cipher.iv) + "." +
-            Base64.getEncoder().encodeToString(encrypted)
+        val blob = Base64.encodeToString(cipher.iv, Base64.NO_WRAP) + "." +
+            Base64.encodeToString(encrypted, Base64.NO_WRAP)
         require(context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
             .putString(KEY_CIPHERTEXT, blob).commit()) { "TRUST_STORE_WRITE_FAILED" }
     }
