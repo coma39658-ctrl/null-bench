@@ -154,8 +154,10 @@
     const canonical = new TextEncoder().encode(stableCanonical(payload));
     const valid = await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, publicKey, signatureBytes, canonical);
     if (!valid) throw new Error("INVITE_SIGNATURE_INVALID");
-    const consumed = await consumeNonce(payload.nonce, payload.expiresAt, now);
-    if (!consumed) throw new Error("INVITE_REPLAYED");
+    // Do not consume the nonce during local QR parsing. A failed/aborted pairing
+    // must remain retryable while the signed invite is valid. The signaling
+    // Durable Object is authoritative: it binds the nonce to one room and locks
+    // the guest identity after the first authenticated guest handshake.
     return {
       inviterFingerprint: payload.inviterFingerprint,
       inviterPublicKeySpki: payload.inviterPublicKeySpki,

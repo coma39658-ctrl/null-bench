@@ -34,6 +34,15 @@ try {
   page.on("pageerror", error => errors.push(error.message));
   await page.addInitScript(() => {
     window.__ezeroMediaRequestCount = 0;
+    window.__ezeroCopiedPublicIdentity = null;
+    window.__ezeroClipboardFail = false;
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: async value => {
+        if (window.__ezeroClipboardFail) throw new Error("clipboard blocked");
+        window.__ezeroCopiedPublicIdentity = value;
+      } }
+    });
     const media = navigator.mediaDevices;
     if (media && media.getUserMedia) {
       const original = media.getUserMedia.bind(media);
@@ -81,6 +90,24 @@ try {
   await page.waitForFunction(() => document.querySelector("#identityFingerprint").textContent.length > 30);
   const fingerprint = await page.locator("#identityFingerprint").innerText();
   assert.match(fingerprint, /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/);
+  assert.equal(await page.locator("#copyPublicIdentity").isVisible(), true);
+  await page.locator("#copyPublicIdentity").click();
+  await page.waitForFunction(() => document.querySelector("#publicIdentityExportStatus").dataset.kind === "ok");
+  const exportedIdentity = await page.evaluate(() => JSON.parse(window.__ezeroCopiedPublicIdentity));
+  assert.equal(exportedIdentity.version, 1);
+  assert.equal(exportedIdentity.origin, "http://127.0.0.1:8769");
+  assert.equal(exportedIdentity.fingerprint, fingerprint);
+  assert.equal(exportedIdentity.algorithm, "ECDSA-P256-SHA256");
+  assert.match(exportedIdentity.publicKeySpki, /^[A-Za-z0-9_-]+$/);
+  assert.equal(Object.hasOwn(exportedIdentity, "privateKey"), false);
+  assert.equal(Object.hasOwn(exportedIdentity, "privateKeySpki"), false);
+  await page.evaluate(() => { window.__ezeroClipboardFail = true; });
+  await page.locator("#copyPublicIdentity").click();
+  await page.waitForFunction(() => document.querySelector("#publicIdentityExportStatus").dataset.kind === "fallback");
+  assert.equal(await page.locator("#publicIdentityExportFallback").isVisible(), true);
+  const fallbackIdentity = JSON.parse(await page.locator("#publicIdentityExportFallback").inputValue());
+  assert.deepEqual(fallbackIdentity, exportedIdentity);
+  assert.equal(Object.hasOwn(fallbackIdentity, "privateKey"), false);
   const keyPolicy = await page.evaluate(async () => {
     const db = await new Promise((resolve, reject) => {
       const request = indexedDB.open("ezero-connect-device-identity", 1);
@@ -151,11 +178,14 @@ try {
   assert.equal(verifiedInvite.issuedAt, invite.issuedAt);
   assert.equal(Object.hasOwn(invite, "guestSecret"), false);
   assert.equal(Object.hasOwn(verifiedInvite, "guestProof"), false);
-  const replayResult = await page.evaluate(async code => {
+  // Parsing a QR must be retryable after an interrupted pairing. Replay control
+  // is enforced by the signaling Durable Object, which binds the nonce to the
+  // first authenticated guest fingerprint and rejects a different guest.
+  const retryResult = await page.evaluate(async code => {
     try { await window.EZERO_CONNECT_INVITES.verifyInvite(code); return "ACCEPTED"; }
     catch (error) { return error.message; }
   }, invite.inviteCode);
-  assert.equal(replayResult, "INVITE_REPLAYED");
+  assert.equal(retryResult, "ACCEPTED");
 
 
 

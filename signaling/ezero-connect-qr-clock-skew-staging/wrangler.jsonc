@@ -1,0 +1,19 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "ezero-connect-qr-clock-skew-staging-20261125",
+  "main": "../ezero-connect-v1/worker.mjs",
+  "compatibility_date": "2026-11-19",
+  "workers_dev": true,
+  "durable_objects": {
+    "bindings": [
+      { "name": "ROOMS", "class_name": "EzeroConnectRoom" },
+      { "name": "RENDEZVOUS", "class_name": "EzeroConnectRendezvous" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["EzeroConnectRoom", "EzeroConnectRendezvous"] }
+  ],
+  "vars": {
+    "PUBLIC_ORIGIN": "https://ezero-connect-qr-clock-skew-preview.onrender.com"
+  }
+}
