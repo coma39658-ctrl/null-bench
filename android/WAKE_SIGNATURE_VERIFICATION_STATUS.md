@@ -1,6 +1,6 @@
 # Incoming-call wake signature gate — staging status
 
-Branch: `ezero-android-incoming-call-ringtone-staging-20261120`
+Branch: `ezero-android-fcm-replay-guard-staging-20261125`
 
 ## Implemented in source
 
@@ -12,9 +12,9 @@ Branch: `ezero-android-incoming-call-ringtone-staging-20261120`
 
 ## Deliberately not active
 
-- The staging public-key pin is intentionally blank because no independently verified backend signing public key has been supplied by an active sender.
+- The staging public-key pin remains intentionally blank. The signing helper and DER-format interoperability test now pass, but no active sender has supplied an independently verified public SPKI key for pinning.
 - Therefore the production entry point `verify(data)` currently returns false for every message and no incoming-call alert can be triggered by FCM yet.
-- No Firebase configuration, token registration, sender, enrollment endpoint, Worker secret, or deployment was added.
+- Firebase client configuration is restored from an Actions secret for the isolated staging75 package only. No authenticated token registration endpoint, FCM sender route, pinned wake key, or live push deployment is active.
 - Existing Android Telecom registration and Accept UI still do not establish or answer a WebRTC call.
 
 ## Required next gate
@@ -24,4 +24,6 @@ Branch: `ezero-android-incoming-call-ringtone-staging-20261120`
 3. Run automated Android tests and a two-device physical test before describing incoming ringing as active.
 4. Keep production, public QR/WebRTC code, and the existing calling engine unchanged.
 
-Status: **IMPLEMENTED LOCALLY / KEY NOT PINNED / PUSH NOT ACTIVE / PHYSICAL TEST NOT RUN**.
+Staging CI: **Node signing contract PASS / Android unit tests PASS / signed staging APK build PASS / application ID and certificate fingerprint verified**.
+
+Runtime boundary: **KEY NOT PINNED / TOKEN REGISTRATION NOT ACTIVE / FCM SENDER NOT ACTIVE / PUSH NOT ACTIVE / PHYSICAL TEST NOT RUN**.

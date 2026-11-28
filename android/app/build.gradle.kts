@@ -21,11 +21,16 @@ val stagingSigningValues = listOf(
 )
 val stagingSigningConfigured = stagingSigningValues.all { !it.isNullOrBlank() }
 
+// The public wake-verification key is a build-time pin; blank remains fail-closed.
+val wakePublicKeySpkiBase64 = providers.gradleProperty("ezeroWakePublicKeySpkiBase64").orElse("").get()
+val escapedWakePublicKeySpkiBase64 = wakePublicKeySpkiBase64.replace("\\", "\\\\").replace("\"", "\\\"")
+
 if (stagingSigningValues.any { !it.isNullOrBlank() } && !stagingSigningConfigured) {
     throw GradleException("Incomplete E-ZERO staging signing configuration; all four signing environment values are required.")
 }
 
 android {
+    buildFeatures { buildConfig = true }
     namespace = "com.ezero.connect"
     compileSdk = 35
 
@@ -35,6 +40,7 @@ android {
         targetSdk = 35
         versionCode = 75
         versionName = "0.1.0-staging75"
+        buildConfigField("String", "EZERO_WAKE_PUBLIC_KEY_SPKI_BASE64", "\"$escapedWakePublicKeySpkiBase64\"")
     }
 
     signingConfigs {

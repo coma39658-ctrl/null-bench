@@ -12,12 +12,14 @@ class IncomingCallPayloadTest {
         callId: String = "call_12345678",
         mode: String = "AUDIO",
         expiresAt: String = (now + 30_000L).toString(),
-        alias: String = "A friend"
+        alias: String = "A friend",
+        nonce: String = "nonce_1234567890"
     ) = mapOf(
         "call_id" to callId,
         "mode" to mode,
         "expires_at" to expiresAt,
-        "caller_alias" to alias
+        "caller_alias" to alias,
+        "nonce" to nonce
     )
 
     @Test fun acceptsValidAudioAndVideoWakeups() {
@@ -30,6 +32,8 @@ class IncomingCallPayloadTest {
         assertNull(IncomingCallPayload.parse(valid(callId = "short"), now))
         assertNull(IncomingCallPayload.parse(valid(callId = "call/12345678"), now))
         assertNull(IncomingCallPayload.parse(valid(callId = "x".repeat(129)), now))
+        assertNull(IncomingCallPayload.parse(valid(nonce = "short"), now))
+        assertNull(IncomingCallPayload.parse(valid(nonce = "x".repeat(129)), now))
     }
 
     @Test fun rejectsUnknownModesAndMalformedExpiry() {
@@ -46,6 +50,6 @@ class IncomingCallPayloadTest {
 
     @Test fun neverTrustsCallerAliasFromPushPayload() {
         assertEquals("E-ZERO friend", IncomingCallPayload.parse(valid(alias = "Trusted-looking Alice"), now)?.callerAlias)
-        assertEquals("E-ZERO friend", IncomingCallPayload.parse(valid(alias = "<spoofed>\u0000"), now)?.callerAlias)
+        assertEquals("E-ZERO friend", IncomingCallPayload.parse(valid(alias = "<spoofed>\\u0000"), now)?.callerAlias)
     }
 }

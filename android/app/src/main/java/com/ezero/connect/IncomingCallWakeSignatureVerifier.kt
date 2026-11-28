@@ -16,7 +16,7 @@ import java.security.spec.X509EncodedKeySpec
 internal object IncomingCallWakeSignatureVerifier {
     // Set only to the public SPKI key published by the isolated staging sender.
     // Never put a private signing key or FCM credential in the Android app.
-    private const val PINNED_STAGING_PUBLIC_KEY_SPKI_BASE64 = ""
+    private val PINNED_STAGING_PUBLIC_KEY_SPKI_BASE64 = BuildConfig.EZERO_WAKE_PUBLIC_KEY_SPKI_BASE64
 
     private val NONCE = Regex("^[A-Za-z0-9_-]{16,128}$")
     private const val MAX_WAKE_LIFETIME_MS = 120_000L
