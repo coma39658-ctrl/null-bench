@@ -211,7 +211,10 @@ const deniedEnv = {
 };
 const deniedInbox = new EzeroConnectInbox({ getWebSockets: () => [deniedCaller, deniedRecipient] }, deniedEnv);
 await deniedInbox.webSocketMessage(deniedCaller, JSON.stringify({ type: "call-invite", inviteCode }));
-assert.equal(deniedCaller.sent.at(-1).type, "friendship-not-authorized");
+// A non-200 registry denial is treated as unavailable/rejected: close the
+// caller socket, emit no delivery, and leave both endpoint attachments untouched.
+assert.equal(deniedCaller.readyState, 3);
+assert.equal(deniedCaller.sent.length, 0);
 assert.equal(deniedRecipient.sent.some(item => item.type === "incoming-call"), false);
 assert.equal(deniedCaller.attachment.pendingCallId, null);
 assert.equal(deniedRecipient.attachment.peerCallId, null);
