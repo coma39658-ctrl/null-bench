@@ -27,7 +27,7 @@ jobs:
           python scripts/validate_evidence_registry.py \
             | tee "validation_logs/evidence_registry_validation_ci_${DATE}_run-${GITHUB_RUN_ID}.log"
 
-      - name: Set up Node for public AI client checks
+      - name: Set up Node for public AI and E-ZERO client checks
         uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -38,6 +38,12 @@ jobs:
           node --check js/ezero_connect_root_signer_v1.js
           node tests/test_ezero_root_public_identity_page_v1.mjs
 
+      - name: Check Trusted Inbox V1 client candidate
+        run: |
+          node --check signaling/ezero-connect-v1/inbox_client_candidate.mjs
+          node tests/test_ezero_trusted_inbox_client_v1.mjs
+          node tests/test_ezero_connect_inbox_worker_v1.mjs
+
       - name: Check AI browser contract and external link safety
         shell: bash
         run: |
@@ -47,7 +53,6 @@ jobs:
           node tests/test_ezero_web_sources_public_v0_1.js
           node tests/test_ezero_public_site_state_v0_1.js
           node tests/test_ezero_ai_video_frame_contract_v0_1.js
-
 
       - name: Set up Java for isolated Android enrollment QA
         uses: actions/setup-java@v4
