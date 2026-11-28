@@ -243,7 +243,8 @@ const mismatchInbox = new EzeroConnectInbox(
   { getWebSockets: () => [mismatchCaller, mismatchRecipient] }, mismatchEnv
 );
 await mismatchInbox.webSocketMessage(mismatchCaller, JSON.stringify({ type: "call-invite", inviteCode }));
-assert.equal(mismatchCaller.sent.at(-1).type, "friendship-not-authorized");
+assert.equal(mismatchCaller.readyState, 3);
+assert.equal(mismatchCaller.sent.length, 0);
 assert.equal(mismatchRecipient.sent.some(item => item.type === "incoming-call"), false);
 assert.equal(mismatchCaller.attachment.pendingCallId, null);
 assert.equal(mismatchRecipient.attachment.peerCallId, null);
