@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.view.View
 import android.webkit.CookieManager
 import android.webkit.PermissionRequest
-import android.webkit.SafeBrowsingResponse
 import android.webkit.SslErrorHandler
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -114,15 +113,6 @@ class ConnectWebViewActivity : Activity() {
                 status.text = "TLS سرٹیفکیٹ کی تصدیق ناکام — رابطہ روک دیا گیا"
             }
 
-            override fun onSafeBrowsingHit(
-                view: WebView?,
-                request: WebResourceRequest?,
-                threatType: Int,
-                callback: SafeBrowsingResponse
-            ) {
-                callback.backToSafety(true)
-                status.text = "Safe Browsing نے خطرناک صفحہ روک دیا"
-            }
         }
 
         webView.webChromeClient = object : WebChromeClient() {
