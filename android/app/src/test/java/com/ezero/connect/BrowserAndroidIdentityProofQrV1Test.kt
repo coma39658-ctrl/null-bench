@@ -101,6 +101,9 @@ class BrowserAndroidIdentityProofQrV1Test {
             """"type":""",
             """"type":"unexpected","\u0074ype":"""
         )
+        assertThrows(IllegalArgumentException::class.java) {
+            BrowserAndroidIdentityProofQrV1.decode(escapedAlias, localFp, localInstallId, now)
+        }
     }
 
     @Test fun rejectsOversizedQr() {
