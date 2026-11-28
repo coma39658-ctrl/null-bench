@@ -105,7 +105,7 @@ class ConnectWebViewActivity : Activity() {
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 val url = request?.url?.toString() ?: return true
-                return !ConnectWebOriginPolicyV1.isAllowed(url)
+                return !ConnectWebOriginPolicyV1.isAllowedNavigation(url)
             }
 
             override fun onReceivedSslError(view: WebView?, handler: SslErrorHandler?, error: android.net.http.SslError?) {
