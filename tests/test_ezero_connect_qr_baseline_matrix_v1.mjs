@@ -43,20 +43,23 @@ const fixtures = await page.evaluate(async (payload) => {
       ctx.filter = "none";
     }, name));
   }
-  const large = await png((ctx, c) => {
-    const image = ctx.createImageData(c.width, c.height);
-    let seed = 0x12345678;
-    for (let i = 0; i < image.data.length; i += 4) {
-      seed = (1664525 * seed + 1013904223) >>> 0;
-      const v = seed >>> 24;
-      image.data[i] = v; image.data[i+1] = v; image.data[i+2] = v; image.data[i+3] = 255;
-    }
-    ctx.putImageData(image, 0, 0);
-    const side = 700;
-    ctx.fillStyle = "#fff";
-    ctx.fillRect((c.width-side)/2-12, (c.height-side)/2-12, side+24, side+24);
-    ctx.drawImage(source, (c.width-side)/2, (c.height-side)/2, side, side);
-  }, "large.png");
+  const largeCanvas = document.createElement("canvas");
+  largeCanvas.width = 2500; largeCanvas.height = 2500;
+  const largeContext = largeCanvas.getContext("2d", { willReadFrequently: true });
+  const largePixels = largeContext.createImageData(largeCanvas.width, largeCanvas.height);
+  let largeSeed = 0x12345678;
+  for (let i = 0; i < largePixels.data.length; i += 4) {
+    largeSeed = (1664525 * largeSeed + 1013904223) >>> 0;
+    const v = largeSeed >>> 24;
+    largePixels.data[i] = v; largePixels.data[i+1] = v; largePixels.data[i+2] = v; largePixels.data[i+3] = 255;
+  }
+  largeContext.putImageData(largePixels, 0, 0);
+  const largeSide = 700;
+  largeContext.fillStyle = "#fff";
+  largeContext.fillRect((largeCanvas.width-largeSide)/2-12, (largeCanvas.height-largeSide)/2-12, largeSide+24, largeSide+24);
+  largeContext.drawImage(source, (largeCanvas.width-largeSide)/2, (largeCanvas.height-largeSide)/2, largeSide, largeSide);
+  const largeBlob = await new Promise(resolve => largeCanvas.toBlob(resolve, "image/png"));
+  const large = { name: "large.png", type: largeBlob.type, data: Array.from(new Uint8Array(await largeBlob.arrayBuffer())) };
   const noQr = await png((ctx, c) => {
     ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
     for (let i = 0; i < 70; i++) {
