@@ -27,6 +27,16 @@ class ConnectWebOriginPolicyV1Test {
         assertFalse(ConnectWebOriginPolicyV1.isAllowed(base.replace("github.io/", "github.io:443/")))
     }
 
+    @Test fun allowsOnlyTheExactTrustedHttpsOriginForMediaPermission() {
+        assertTrue(ConnectWebOriginPolicyV1.isAllowedOrigin("https://coma39658-ctrl.github.io"))
+        assertTrue(ConnectWebOriginPolicyV1.isAllowedOrigin("https://coma39658-ctrl.github.io/"))
+        assertFalse(ConnectWebOriginPolicyV1.isAllowedOrigin("http://coma39658-ctrl.github.io"))
+        assertFalse(ConnectWebOriginPolicyV1.isAllowedOrigin("https://coma39658-ctrl.github.io:443"))
+        assertFalse(ConnectWebOriginPolicyV1.isAllowedOrigin("https://attacker@coma39658-ctrl.github.io"))
+        assertFalse(ConnectWebOriginPolicyV1.isAllowedOrigin("https://coma39658-ctrl.github.io.evil.example"))
+        assertFalse(ConnectWebOriginPolicyV1.isAllowedOrigin("https://coma39658-ctrl.github.io/path"))
+    }
+
     @Test fun rejectsMalformedAndRelativeUrls() {
         assertFalse(ConnectWebOriginPolicyV1.isAllowed("not a url"))
         assertFalse(ConnectWebOriginPolicyV1.isAllowed("/null-bench/ezero_trusted_friends_staging_20261106.html"))
