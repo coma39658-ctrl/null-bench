@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ur">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E-ZERO Root Public Identity — Staging</title>
+<style>
+:root{color-scheme:light;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#f3f7f8;color:#17323b}
+body{margin:0;padding:22px}.wrap{max-width:760px;margin:24px auto;background:white;border:1px solid #d2e1e5;border-radius:16px;padding:22px;box-shadow:0 8px 26px #16394312}
+h1{font-size:23px;margin:0 0 8px}.note{line-height:1.65;color:#526b73;font-size:14px}
+.warning{padding:13px;border-left:4px solid #b45309;background:#fff7ed;line-height:1.6;margin:18px 0}
+label{display:block;font-weight:700;margin:18px 0 7px}
+textarea,input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #b8cbd1;border-radius:9px;font:12px ui-monospace,monospace;background:#f9fcfd}
+textarea{min-height:110px;overflow-wrap:anywhere}
+button{padding:11px 15px;border:0;border-radius:9px;background:#174b57;color:white;font-weight:700;margin:8px 8px 0 0}
+button.secondary{background:#e5eff1;color:#17404b}
+#status{padding:12px;border-radius:9px;background:#eef5f6;margin-top:15px;white-space:pre-wrap;line-height:1.5}
+small{color:#627982}
+</style>
+</head>
+<body>
+<main class="wrap">
+<h1>E‑ZERO Root — Public Identity</h1>
+<p class="note">یہ صفحہ صرف موجودہ براؤزر کی پہلے سے محفوظ E‑ZERO Root شناخت سے عوامی معلومات دکھاتا ہے۔ اسے اسی اصل E‑ZERO ویب سائٹ کے origin پر کھولنا ضروری ہے جہاں Root شناخت بنائی گئی تھی۔</p>
+<div class="warning"><strong>اہم حفاظتی ہدایت:</strong> یہاں صرف Public SPKI اور SHA‑256 fingerprint دکھائے جاتے ہیں۔ نجی کلید کبھی ظاہر، نقل یا شیئر نہیں کی جاتی۔ اس صفحے پر کوئی نیٹ ورک اپ لوڈ یا Root key تبدیلی نہیں ہوتی۔</div>
+<button id="load" type="button">محفوظ Root کی عوامی شناخت دکھائیں</button>
+<div id="status" role="status" aria-live="polite">شناخت ابھی لوڈ نہیں ہوئی۔</div>
+<label for="fingerprint">Root SHA‑256 Fingerprint — 64 lowercase hex characters</label>
+<input id="fingerprint" readonly autocomplete="off" spellcheck="false">
+<button class="secondary" data-copy="fingerprint" type="button">Fingerprint کاپی کریں</button>
+<label for="spki">Root Public SPKI — Base64URL</label>
+<textarea id="spki" readonly autocomplete="off" spellcheck="false"></textarea>
+<button class="secondary" data-copy="spki" type="button">Public SPKI کاپی کریں</button>
+<p class="note">اگلے مرحلے میں Android پر fingerprint کو کسی الگ قابلِ اعتماد ذریعے سے حرف بہ حرف ملایا جائے گا۔ صرف QR یا اسی فون پر دکھائی گئی معلومات کو آزاد تصدیق نہیں سمجھا جائے گا۔</p>
+<small>STAGING UI — no enrollment, no device approval, no server trust.</small>
+</main>
+<script src="./js/ezero_connect_identity_v1.js"></script>
+<script>
+(function(){
+"use strict";
+const status=document.getElementById("status");
+const fingerprint=document.getElementById("fingerprint");
+const spki=document.getElementById("spki");
+document.getElementById("load").addEventListener("click",async function(){
+ this.disabled=true;
+ status.textContent="موجودہ براؤزر کی محفوظ Root شناخت چیک ہو رہی ہے…";
+ fingerprint.value="";spki.value="";
+ try{
+  if(!window.isSecureContext||!window.EZERO_CONNECT_IDENTITY)throw new Error("ROOT_IDENTITY_MODULE_UNAVAILABLE_OR_INSECURE_ORIGIN");
+  const existing=await window.EZERO_CONNECT_IDENTITY.load();
+  if(!existing)throw new Error("NO_EXISTING_ROOT_IDENTITY_ON_THIS_ORIGIN");
+  const identity=await window.EZERO_CONNECT_IDENTITY.getPublicIdentity();
+  const normalized=identity.fingerprint.replaceAll(":","").toLowerCase();
+  if(!/^[a-f0-9]{64}$/.test(normalized)||!identity.publicKeySpki)throw new Error("PUBLIC_IDENTITY_FORMAT_INVALID");
+  fingerprint.value=normalized;
+  spki.value=identity.publicKeySpki;
+  status.textContent="Root identity loaded. Only public material is shown. Private key remains non-exportable. No server or enrollment action was performed.";
+ }catch(error){
+  status.textContent="شناخت ظاہر نہیں ہو سکی: "+String(error&&error.message||error)+"\nکوئی نئی Root کلید نہیں بنائی گئی اور کوئی تبدیلی نہیں کی گئی۔";
+ }finally{this.disabled=false;}
+});
+document.querySelectorAll("[data-copy]").forEach(function(button){
+ button.addEventListener("click",async function(){
+  const target=document.getElementById(this.dataset.copy);
+  if(!target.value){status.textContent="پہلے عوامی شناخت لوڈ کریں۔";return;}
+  try{await navigator.clipboard.writeText(target.value);status.textContent="منتخب عوامی معلومات کاپی ہو گئی۔";}
+  catch(_){target.focus();target.select();status.textContent="کاپی دستیاب نہیں؛ متن منتخب کر دیا گیا ہے، اسے دستی طور پر کاپی کریں۔";}
+ });
+});
+})();
+</script>
+</body>
+</html>
