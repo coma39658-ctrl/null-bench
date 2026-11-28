@@ -17,6 +17,7 @@ import android.widget.TextView
 class TrustedFriendsActivity : Activity() {
     private lateinit var root: LinearLayout
     private lateinit var status: TextView
+    private lateinit var friendList: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +53,8 @@ class TrustedFriendsActivity : Activity() {
             text = "Refresh friends"
             setOnClickListener { renderFriends() }
         }, matchWrap())
+        friendList = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        root.addView(friendList, matchWrap())
 
         renderFriends()
     }
@@ -82,7 +85,7 @@ class TrustedFriendsActivity : Activity() {
     }
 
     private fun renderFriends() {
-        while (root.childCount > 4) root.removeViewAt(4)
+        friendList.removeAllViews()
         val contacts = try {
             AndroidTrustedContactBundleV1.listTrusted(this)
         } catch (_: Exception) {
@@ -90,7 +93,7 @@ class TrustedFriendsActivity : Activity() {
             emptyList()
         }
         if (contacts.isEmpty()) {
-            root.addView(TextView(this).apply {
+            friendList.addView(TextView(this).apply {
                 text = "No verified friends saved on this phone yet."
             }, matchWrap())
             return
@@ -121,7 +124,7 @@ class TrustedFriendsActivity : Activity() {
                         }.show()
                 }
             })
-            root.addView(card, matchWrap())
+            friendList.addView(card, matchWrap())
         }
     }
 
