@@ -64,7 +64,7 @@ socket.emit("message", JSON.stringify({
     challengeExpiresAt
   }
 }));
-await new Promise(resolve => setImmediate(resolve));
+await new Promise(resolve => { const wait = () => socket.sent.length ? resolve() : setImmediate(wait); wait(); });
 assert.equal(socket.sent.length, 1);
 const hello = socket.sent[0];
 assert.deepEqual(Object.keys(hello).sort(), ["fingerprint", "publicKeySpki", "signature", "type"]);
