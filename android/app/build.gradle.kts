@@ -46,4 +46,5 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:35.2.0"))
     implementation("com.google.firebase:firebase-messaging")
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20250517")
 }
