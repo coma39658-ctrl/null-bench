@@ -111,6 +111,15 @@ class MainActivity : Activity() {
         layout.addView(cameraButton, LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
         ))
+        val trustedFriendsButton = Button(this).apply {
+            text = "Open Trusted Friends"
+            setOnClickListener {
+                startActivity(Intent(this@MainActivity, TrustedFriendsActivity::class.java))
+            }
+        }
+        layout.addView(trustedFriendsButton, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        ))
         setContentView(layout)
 
         val telecomReady = AndroidTelecomRegistration.register(this)
@@ -205,6 +214,9 @@ class MainActivity : Activity() {
                     statusView.text = "Root approval rejected: " + (error.message ?: "APPROVAL_INVALID") + ". Pending enrollment remains untrusted."
                 }
             }
+            AndroidQrPayloadRouter.Kind.TRUSTED_CONTACT_BUNDLE -> {
+                importTrustedFriendBundle(raw)
+            }
             AndroidQrPayloadRouter.Kind.INVALID_ENROLLMENT -> {
                 statusView.text = "Unrecognized Android enrollment QR version. No trust was created."
             }
@@ -224,6 +236,32 @@ class MainActivity : Activity() {
         }
     }
 
+
+    private fun importTrustedFriendBundle(raw: String) {
+        statusView.text = "Verifying Root signature, expiry and existing mutual-friend proof…"
+        Thread {
+            try {
+                val rootPin = AndroidRootTrustPinV1.load(this)
+                    ?: throw IllegalStateException("ROOT_PIN_NOT_CONFIGURED")
+                val contact = AndroidTrustedContactBundleV1.importAndSave(this, raw, rootPin)
+                runOnUiThread {
+                    statusView.text = buildString {
+                        append("Verified friend saved on this phone.\\n")
+                        append("Name: ")
+                        append(contact.displayName.ifBlank { "E-ZERO friend" })
+                        append("\\nFingerprint: ")
+                        append(contact.remoteFingerprint)
+                        append("\\nStatus: TRUSTED_CONTACT_IMPORTED")
+                        append("\\nIncoming calls are not enabled by importing a contact alone.")
+                    }
+                }
+            } catch (error: Exception) {
+                runOnUiThread {
+                    statusView.text = "Trusted friend import rejected: ${error.message ?: "INVALID_BUNDLE"}. No unverified contact was saved."
+                }
+            }
+        }.start()
+    }
 
     private fun createEnrollmentRequestQr() {
         val endpoint = BuildConfig.ANDROID_ENROLLMENT_WORKER_ENDPOINT
