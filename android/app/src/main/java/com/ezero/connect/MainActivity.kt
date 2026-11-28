@@ -237,6 +237,7 @@ class MainActivity : Activity() {
     }
 
 
+    // Camera and gallery imports share the exact same Root-signed trust-bundle verifier.
     private fun importTrustedFriendBundle(raw: String) {
         statusView.text = "Verifying Root signature, expiry and existing mutual-friend proof…"
         Thread {
