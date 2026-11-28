@@ -15,6 +15,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 
@@ -24,7 +25,7 @@ import androidx.core.content.ContextCompat
  * single reviewed entry URL; media permission is granted only after a page
  * getUserMedia request and Android runtime permission.
  */
-class ConnectWebViewActivity : Activity() {
+class ConnectWebViewActivity : ComponentActivity() {
     private lateinit var webView: WebView
     private lateinit var status: TextView
     private var pendingMediaRequest: PermissionRequest? = null
