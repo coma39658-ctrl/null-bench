@@ -123,4 +123,42 @@ badSocket.emit("message", JSON.stringify({
 await assert.rejects(badOpening, /INBOX_CHALLENGE_INVALID/);
 assert.equal(badSocket.readyState, 3);
 
+// Origins must be exact canonical origins; paths, credentials and query strings are rejected.
+assert.throws(() => new EzeroTrustedInboxClient({
+  websocketOrigin: "wss://isolated-inbox.example/extra",
+  origin: "https://ezero-staging.example",
+  identityProvider: async () => identity,
+  WebSocketImpl: FakeWebSocket
+}), /INBOX_WSS_ORIGIN_INVALID/);
+assert.throws(() => new EzeroTrustedInboxClient({
+  websocketOrigin: "wss://isolated-inbox.example",
+  origin: "https://ezero-staging.example/path",
+  identityProvider: async () => identity,
+  WebSocketImpl: FakeWebSocket
+}), /INBOX_ORIGIN_INVALID/);
+
+// A syntactically base64url but impossible one-character challenge must close the
+// socket and reject the handshake rather than leave an unauthenticated socket open.
+const malformedClient = new EzeroTrustedInboxClient({
+  websocketOrigin: "wss://isolated-inbox.example",
+  origin: "https://ezero-staging.example",
+  identityProvider: async () => identity,
+  WebSocketImpl: FakeWebSocket
+});
+FakeWebSocket.last = null;
+const malformedOpening = malformedClient.openInbox(target);
+await new Promise(resolve => { const wait = () => FakeWebSocket.last ? resolve() : setImmediate(wait); wait(); });
+const malformedSocket = FakeWebSocket.last;
+malformedSocket.emit("message", JSON.stringify({
+  type: "challenge",
+  payload: {
+    v: 1, protocol: "E-ZERO-INBOX-HELLO-1",
+    origin: "https://ezero-staging.example",
+    inboxFingerprint: target, challenge: "A",
+    challengeExpiresAt: Date.now() + 20000
+  }
+}));
+await assert.rejects(malformedOpening, /INBOX_CHALLENGE_ENCODING_INVALID/);
+assert.equal(malformedSocket.readyState, 3);
+
 console.log("TRUSTED_INBOX_V1_CLIENT_HANDSHAKE_AND_STRICT_FRAME_TESTS_PASS");
