@@ -29,20 +29,22 @@ internal object BrowserAndroidIdentityProofQrV1 {
      */
     private class StrictJsonDuplicateKeyGuard(private val source: String) {
         private var index = 0
+        private val maxDepth = 32
 
         fun validateDocument() {
             skipWhitespace()
-            parseValue()
+            parseValue(0)
             skipWhitespace()
             require(index == source.length) { "JSON_TRAILING_CONTENT" }
         }
 
-        private fun parseValue() {
+        private fun parseValue(depth: Int) {
             skipWhitespace()
+            require(depth <= maxDepth) { "JSON_NESTING_TOO_DEEP" }
             require(index < source.length) { "JSON_VALUE_MISSING" }
             when (source[index]) {
-                '{' -> parseObject()
-                '[' -> parseArray()
+                '{' -> parseObject(depth + 1)
+                '[' -> parseArray(depth + 1)
                 '"' -> parseString()
                 't' -> consumeLiteral("true")
                 'f' -> consumeLiteral("false")
@@ -52,7 +54,7 @@ internal object BrowserAndroidIdentityProofQrV1 {
             }
         }
 
-        private fun parseObject() {
+        private fun parseObject(depth: Int) {
             expect('{')
             skipWhitespace()
             if (consumeIf('}')) return
@@ -64,19 +66,19 @@ internal object BrowserAndroidIdentityProofQrV1 {
                 require(keys.add(key)) { "JSON_DUPLICATE_KEY" }
                 skipWhitespace()
                 expect(':')
-                parseValue()
+                parseValue(depth)
                 skipWhitespace()
                 if (consumeIf('}')) return
                 expect(',')
             }
         }
 
-        private fun parseArray() {
+        private fun parseArray(depth: Int) {
             expect('[')
             skipWhitespace()
             if (consumeIf(']')) return
             while (true) {
-                parseValue()
+                parseValue(depth)
                 skipWhitespace()
                 if (consumeIf(']')) return
                 expect(',')
