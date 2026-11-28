@@ -37,6 +37,21 @@ class ConnectWebOriginPolicyV1Test {
         assertFalse(ConnectWebOriginPolicyV1.isAllowedOrigin("https://coma39658-ctrl.github.io/path"))
     }
 
+    @Test fun allowsOnlySamePageAnchorNavigation() {
+        assertTrue(ConnectWebOriginPolicyV1.isAllowedNavigation(
+            ConnectWebOriginPolicyV1.ENTRY_URL + "#ezeroOneJoinPanel"
+        ))
+        assertFalse(ConnectWebOriginPolicyV1.isAllowedNavigation(
+            ConnectWebOriginPolicyV1.ENTRY_URL + "?next=https://attacker.example"
+        ))
+        assertFalse(ConnectWebOriginPolicyV1.isAllowedNavigation(
+            ConnectWebOriginPolicyV1.ENTRY_URL.replace("ezero_trusted_friends_staging_20261106.html", "index.html")
+        ))
+        assertFalse(ConnectWebOriginPolicyV1.isAllowedNavigation(
+            "https://coma39658-ctrl.github.io.evil.example/null-bench/ezero_trusted_friends_staging_20261106.html#top"
+        ))
+    }
+
     @Test fun rejectsMalformedAndRelativeUrls() {
         assertFalse(ConnectWebOriginPolicyV1.isAllowed("not a url"))
         assertFalse(ConnectWebOriginPolicyV1.isAllowed("/null-bench/ezero_trusted_friends_staging_20261106.html"))
