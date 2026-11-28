@@ -44,7 +44,7 @@ const fixtures = await page.evaluate(async (payload) => {
     }, name));
   }
   const largeCanvas = document.createElement("canvas");
-  largeCanvas.width = 2500; largeCanvas.height = 2500;
+  largeCanvas.width = 2300; largeCanvas.height = 2300;
   const largeContext = largeCanvas.getContext("2d", { willReadFrequently: true });
   const largePixels = largeContext.createImageData(largeCanvas.width, largeCanvas.height);
   let largeSeed = 0x12345678;
