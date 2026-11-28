@@ -111,6 +111,15 @@ class MainActivity : Activity() {
         layout.addView(cameraButton, LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
         ))
+        val openConnectPageButton = Button(this).apply {
+            text = "Open E-ZERO Connect (Staging)"
+            setOnClickListener {
+                startActivity(Intent(this@MainActivity, ConnectWebViewActivity::class.java))
+            }
+        }
+        layout.addView(openConnectPageButton, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        ))
         val trustedFriendsButton = Button(this).apply {
             text = "Open Trusted Friends"
             setOnClickListener {
