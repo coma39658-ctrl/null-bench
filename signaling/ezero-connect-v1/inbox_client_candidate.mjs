@@ -1,3 +1,5 @@
+import { verifyCallInvite } from "./inbox_protocol.mjs";
+
 /*
  * E-ZERO Trusted Inbox V1 browser transport candidate.
  * Foreground-only and deliberately not imported by the public page.
@@ -136,7 +138,7 @@ export class EzeroTrustedInboxClient {
           this.onEvent({ type: "inbox-online", fingerprint: identity.fingerprintColon });
           return;
         }
-        this.handleAuthenticatedMessage(message, fail);
+        await this.handleAuthenticatedMessage(message, fail);
       });
       ws.addEventListener("close", () => {
         if (!settled) { settled = true; finish(); reject(new Error("INBOX_SOCKET_CLOSED")); }
@@ -147,7 +149,7 @@ export class EzeroTrustedInboxClient {
     });
   }
 
-  handleAuthenticatedMessage(message, fail) {
+  async handleAuthenticatedMessage(message, fail) {
     if (!message || typeof message !== "object" || Array.isArray(message) || typeof message.type !== "string") {
       return fail("INBOX_FRAME_INVALID");
     }
@@ -169,6 +171,16 @@ export class EzeroTrustedInboxClient {
     const expected = schemas[message.type];
     if (!expected || !exactKeys(message, expected)) return fail("INBOX_FRAME_SCHEMA_INVALID");
     if (message.type === "call-response" && !["accept", "decline"].includes(message.decision)) return fail("INBOX_RESPONSE_INVALID");
+    if (message.type === "incoming-call") {
+      try {
+        const invite = await verifyCallInvite(message.inviteCode, this.origin, this.identity.fingerprintColon);
+        if (invite.recipientFingerprint !== this.identity.fingerprintColon) return fail("INBOX_INCOMING_RECIPIENT_MISMATCH");
+        this.onEvent({ type: "incoming-call", inviteCode: message.inviteCode, invite });
+      } catch (_) {
+        return fail("INBOX_INCOMING_INVITE_INVALID");
+      }
+      return;
+    }
     this.onEvent({ ...message });
   }
 
@@ -177,11 +189,16 @@ export class EzeroTrustedInboxClient {
     this.socket.send(JSON.stringify(message));
   }
 
-  sendCallInvite(inviteCode) {
-    if (typeof inviteCode !== "string" || !inviteCode.startsWith("EZERO-CALL1.") || inviteCode.length > 8192) {
+  async sendCallInvite(inviteCode) {
+    if (!this.identity || !this.targetFingerprint || typeof inviteCode !== "string" ||
+        !inviteCode.startsWith("EZERO-CALL1.") || inviteCode.length > 8192) {
       throw new Error("INBOX_SIGNED_INVITE_REQUIRED");
     }
+    const invite = await verifyCallInvite(inviteCode, this.origin, this.targetFingerprint);
+    if (invite.callerFingerprint !== this.identity.fingerprintColon ||
+        invite.recipientFingerprint !== this.targetFingerprint) throw new Error("INBOX_CALL_INVITE_IDENTITY_MISMATCH");
     this.sendExact({ type: "call-invite", inviteCode }, ["type", "inviteCode"]);
+    return invite;
   }
 
   respondToCall(callId, decision) {
