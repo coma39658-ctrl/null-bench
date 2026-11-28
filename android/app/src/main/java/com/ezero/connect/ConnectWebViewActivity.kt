@@ -97,7 +97,9 @@ class ConnectWebViewActivity : Activity() {
             javaScriptCanOpenWindowsAutomatically = false
             setSupportMultipleWindows(false)
             mediaPlaybackRequiresUserGesture = true
-            safeBrowsingEnabled = true
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                safeBrowsingEnabled = true
+            }
         }
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, false)
 
