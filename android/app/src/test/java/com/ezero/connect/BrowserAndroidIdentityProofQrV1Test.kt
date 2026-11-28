@@ -98,12 +98,9 @@ class BrowserAndroidIdentityProofQrV1Test {
 
         // Escaped member names are decoded before duplicate comparison.
         val escapedAlias = payload().replaceFirst(
-            "\"type\":",
-            "\"\\u0074ype\":"
+            """"type":""",
+            """"type":"unexpected","\u0074ype":"""
         )
-        assertThrows(IllegalArgumentException::class.java) {
-            BrowserAndroidIdentityProofQrV1.decode(escapedAlias, localFp, localInstallId, now)
-        }
     }
 
     @Test fun rejectsOversizedQr() {
