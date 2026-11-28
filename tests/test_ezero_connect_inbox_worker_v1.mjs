@@ -27,6 +27,111 @@ class FakeSocket {
   close() { this.readyState = 3; }
 }
 
+
+function pendingHelloSocket(targetFingerprint, expiresAt = Date.now() + 30_000) {
+  return new FakeSocket({
+    state: "PENDING",
+    inboxFingerprint: targetFingerprint,
+    origin: "https://ezero-staging.example",
+    challenge: toB64url(crypto.getRandomValues(new Uint8Array(32))),
+    challengeExpiresAt: expiresAt
+  });
+}
+
+async function signedHello(device, socket, overrides = {}) {
+  const a = socket.attachment;
+  const fingerprint = overrides.fingerprint || device.fingerprint;
+  const payload = {
+    v: 1,
+    protocol: "E-ZERO-INBOX-HELLO-1",
+    origin: a.origin,
+    fingerprint,
+    inboxFingerprint: a.inboxFingerprint,
+    challenge: a.challenge,
+    challengeExpiresAt: a.challengeExpiresAt
+  };
+  const signature = toB64url(await crypto.subtle.sign(
+    { name: "ECDSA", hash: "SHA-256" }, device.pair.privateKey,
+    new TextEncoder().encode(canonicalCallInvite(payload))
+  ));
+  return {
+    type: "hello",
+    fingerprint,
+    publicKeySpki: device.spki,
+    signature,
+    ...overrides
+  };
+}
+
+// Exercise the actual Worker challenge/hello verifier, not just the invite
+// parser. Each negative case gets a fresh pending socket and challenge.
+const helloDevice = await identity();
+const helloTarget = await identity();
+const helloEnv = { PUBLIC_ORIGIN: "https://ezero-staging.example" };
+
+const validHelloSocket = pendingHelloSocket(helloTarget.fingerprint);
+const validHelloInbox = new EzeroConnectInbox(
+  { getWebSockets: () => [validHelloSocket] }, helloEnv
+);
+const validHello = await signedHello(helloDevice, validHelloSocket);
+await validHelloInbox.webSocketMessage(validHelloSocket, JSON.stringify(validHello));
+assert.equal(validHelloSocket.readyState, 1);
+assert.equal(validHelloSocket.attachment.state, "AUTHENTICATED");
+assert.equal(validHelloSocket.attachment.fingerprint, helloDevice.fingerprint);
+assert.deepEqual(validHelloSocket.sent.at(-1), {
+  type: "inbox-ready", fingerprint: helloDevice.fingerprint
+});
+
+const tamperedHelloSocket = pendingHelloSocket(helloTarget.fingerprint);
+const tamperedHelloInbox = new EzeroConnectInbox(
+  { getWebSockets: () => [tamperedHelloSocket] }, helloEnv
+);
+const tamperedHello = await signedHello(helloDevice, tamperedHelloSocket);
+tamperedHello.signature = (tamperedHello.signature[0] === "A" ? "B" : "A") + tamperedHello.signature.slice(1);
+await tamperedHelloInbox.webSocketMessage(tamperedHelloSocket, JSON.stringify(tamperedHello));
+assert.equal(tamperedHelloSocket.readyState, 3, "one-byte hello signature tamper must close");
+
+const mismatchHelloSocket = pendingHelloSocket(helloTarget.fingerprint);
+const mismatchHelloInbox = new EzeroConnectInbox(
+  { getWebSockets: () => [mismatchHelloSocket] }, helloEnv
+);
+const mismatchHello = await signedHello(helloDevice, mismatchHelloSocket, {
+  fingerprint: helloTarget.fingerprint
+});
+await mismatchHelloInbox.webSocketMessage(mismatchHelloSocket, JSON.stringify(mismatchHello));
+assert.equal(mismatchHelloSocket.readyState, 3, "public key/fingerprint mismatch must close");
+
+const expiredHelloSocket = pendingHelloSocket(helloTarget.fingerprint, Date.now() - 1);
+const expiredHelloInbox = new EzeroConnectInbox(
+  { getWebSockets: () => [expiredHelloSocket] }, helloEnv
+);
+const expiredHello = await signedHello(helloDevice, expiredHelloSocket);
+await expiredHelloInbox.webSocketMessage(expiredHelloSocket, JSON.stringify(expiredHello));
+assert.equal(expiredHelloSocket.readyState, 3, "expired challenge must close");
+
+const unknownFieldHelloSocket = pendingHelloSocket(helloTarget.fingerprint);
+const unknownFieldHelloInbox = new EzeroConnectInbox(
+  { getWebSockets: () => [unknownFieldHelloSocket] }, helloEnv
+);
+const unknownFieldHello = await signedHello(helloDevice, unknownFieldHelloSocket, {
+  unexpected: true
+});
+await unknownFieldHelloInbox.webSocketMessage(unknownFieldHelloSocket, JSON.stringify(unknownFieldHello));
+assert.equal(unknownFieldHelloSocket.readyState, 3, "unknown hello field must close");
+
+const duplicateAuthenticatedSocket = new FakeSocket({
+  state: "AUTHENTICATED", fingerprint: helloDevice.fingerprint
+});
+const duplicateHelloSocket = pendingHelloSocket(helloTarget.fingerprint);
+const duplicateHelloInbox = new EzeroConnectInbox(
+  { getWebSockets: () => [duplicateAuthenticatedSocket, duplicateHelloSocket] }, helloEnv
+);
+const duplicateHello = await signedHello(helloDevice, duplicateHelloSocket);
+await duplicateHelloInbox.webSocketMessage(duplicateHelloSocket, JSON.stringify(duplicateHello));
+assert.equal(duplicateHelloSocket.readyState, 3, "duplicate authenticated device socket must close");
+
+console.log("INBOX_HELLO_VALID_TAMPER_FINGERPRINT_EXPIRY_UNKNOWN_FIELD_DUPLICATE_SOCKET_PASS");
+
 const caller = await identity();
 const recipient = await identity();
 const now = Date.now();
