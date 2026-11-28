@@ -11,6 +11,19 @@ internal object ConnectWebOriginPolicyV1 {
     const val ENTRY_URL =
         "https://coma39658-ctrl.github.io/null-bench/ezero_trusted_friends_staging_20261106.html"
 
+    fun isAllowedOrigin(raw: String): Boolean = try {
+        val uri = URI(raw)
+        uri.scheme == "https" &&
+            uri.host == "coma39658-ctrl.github.io" &&
+            uri.port == -1 &&
+            uri.rawUserInfo == null &&
+            uri.rawQuery == null &&
+            uri.rawFragment == null &&
+            (uri.rawPath.isNullOrEmpty() || uri.rawPath == "/")
+    } catch (_: Exception) {
+        false
+    }
+
     fun isAllowed(raw: String): Boolean = try {
         val uri = URI(raw)
         uri.scheme == "https" &&
