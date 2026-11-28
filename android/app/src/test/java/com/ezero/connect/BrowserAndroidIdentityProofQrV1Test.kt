@@ -106,6 +106,14 @@ class BrowserAndroidIdentityProofQrV1Test {
         }
     }
 
+    @Test fun rejectsExcessiveJsonNesting() {
+        val deeplyNested = payload().dropLast(1) +
+            ",\"nested\":" + "[".repeat(40) + "0" + "]".repeat(40) + "}"
+        assertThrows(IllegalArgumentException::class.java) {
+            BrowserAndroidIdentityProofQrV1.decode(deeplyNested, localFp, localInstallId, now)
+        }
+    }
+
     @Test fun rejectsOversizedQr() {
         assertThrows(IllegalArgumentException::class.java) {
             BrowserAndroidIdentityProofQrV1.decode("x".repeat(4097), localFp, localInstallId, now)
