@@ -1,0 +1,65 @@
+name: E-ZERO Android Worker Client Staging QA
+
+on:
+  pull_request:
+    paths:
+      - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentWorkerClientV1.kt"
+      - "android/app/src/main/java/com/ezero/connect/AndroidPushTokenRegistrationV1.kt"
+      - "android/app/src/main/java/com/ezero/connect/IncomingCallMessagingService.kt"
+      - "android/app/src/main/java/com/ezero/connect/IncomingCallWakeSignatureVerifier.kt"
+      - "android/app/src/main/java/com/ezero/connect/IncomingCallWakeReplayGuardV1.kt"
+      - "android/app/src/test/java/com/ezero/connect/IncomingCallWakeSignatureVerifierTest.kt"
+      - "android/app/src/test/java/com/ezero/connect/IncomingCallWakeReplayGuardV1Test.kt"
+      - "android/app/src/main/java/com/ezero/connect/IncomingCallWakeSignatureVerifier.kt"
+      - "android/app/src/main/java/com/ezero/connect/IncomingCallWakeReplayGuardV1.kt"
+      - "android/app/src/test/java/com/ezero/connect/IncomingCallWakeSignatureVerifierTest.kt"
+      - "android/app/src/test/java/com/ezero/connect/IncomingCallWakeReplayGuardV1Test.kt"
+      - "android/app/src/main/java/com/ezero/connect/MainActivity.kt"
+      - "android/app/src/test/java/com/ezero/connect/AndroidPushTokenRegistrationV1Test.kt"
+      - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentKeyStore.kt"
+      - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentProtocolV1.kt"
+      - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentQrEnvelopeV1.kt"
+      - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentApprovalGateV1.kt"
+      - "android/app/src/main/java/com/ezero/connect/AndroidRootTrustPinV1.kt"
+      - "android/app/src/test/java/com/ezero/connect/AndroidEnrollmentWorkerClientV1Test.kt"
+      - "android/app/build.gradle.kts"
+      - ".github/workflows/ezero-android-worker-client-staging-qa.yml"
+  push:
+    branches:
+      - ezero-android-worker-client-staging-20261125
+    paths:
+      - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentWorkerClientV1.kt"
+      - "android/app/src/main/java/com/ezero/connect/AndroidPushTokenRegistrationV1.kt"
+      - "android/app/src/main/java/com/ezero/connect/IncomingCallMessagingService.kt"
+      - "android/app/src/main/java/com/ezero/connect/MainActivity.kt"
+      - "android/app/src/test/java/com/ezero/connect/AndroidPushTokenRegistrationV1Test.kt"
+      - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentKeyStore.kt"
+      - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentProtocolV1.kt"
+      - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentQrEnvelopeV1.kt"
+      - "android/app/src/main/java/com/ezero/connect/AndroidEnrollmentApprovalGateV1.kt"
+      - "android/app/src/main/java/com/ezero/connect/AndroidRootTrustPinV1.kt"
+      - "android/app/src/test/java/com/ezero/connect/AndroidEnrollmentWorkerClientV1Test.kt"
+      - "android/app/build.gradle.kts"
+      - ".github/workflows/ezero-android-worker-client-staging-qa.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  android-worker-client:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Verify Android Worker client unit tests
+        run: gradle -p android :app:testDebugUnitTest
+      - name: Assemble staging APK without deployment
+        run: gradle -p android :app:assembleDebug
+      - name: State runtime evidence boundary
+        run: echo "NO_WORKER_DEPLOYMENT_NO_DEVICE_INSTALL_NO_SERVER_ENROLLMENT_NO_BACKGROUND_RING_PROOF"
